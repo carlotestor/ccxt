@@ -3372,11 +3372,11 @@ impl Sxbet {
             return;
         }
         let mut requestIdString: Option<String> = match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        let mut pendingRequests: Value = self.safe_dict_k(self.options.clone(), "wsPendingRequests", &[Value::Map({
+        let mut pendingRequests: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsPendingRequests", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut pendingEntry: Option<crate::value::Dict> = self.safe_dict(pendingRequests.clone(), requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+})]).into_dict();
+        let mut pendingEntry: Option<crate::value::Dict> = self.safe_dict(&pendingRequests, requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
         let mut errorReply: Option<crate::value::Dict> = __pro_message.get("error").cloned().unwrap_or_default().into_opt_dict();
         if (errorReply.is_some()) {
             // a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
@@ -3393,7 +3393,7 @@ impl Sxbet {
                 if (subscription.is_some()) && (__ch.has_subscription((&subscription).as_deref())) {
                     __ch.remove_subscription(subscription.as_deref());
                 }
-                { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
+                { let __be_tmp = self.omit(&pendingRequests, requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
                 client.reject(error.clone(), failedHash.as_deref());
             }  else {
                 // an error that cannot be correlated to one command fails the whole connection
@@ -3403,7 +3403,7 @@ impl Sxbet {
         }
         if (pendingEntry.is_some()) {
             // a successful command ack - the tracked request has served its purpose
-            { let __be_tmp = self.omit(pendingRequests, requestIdString.map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
+            { let __be_tmp = self.omit(&pendingRequests, requestIdString.map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
         }
         let mut connectReply: Option<crate::value::Dict> = __pro_message.get("connect").cloned().unwrap_or_default().into_opt_dict();
         if (connectReply.is_some()) {

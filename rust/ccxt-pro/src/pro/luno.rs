@@ -571,7 +571,8 @@ impl Luno {
     Value::Null
 }
 
-    pub fn parse_order_book_bids_asks(&self, mut bidasks: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order_book_bids_asks(&self, bidasks: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut bidasks: Value = bidasks.into();
         let mut priceKey = get_arg(optional_args, 0, Value::Str("price".into()));
         let mut amountKey = get_arg(optional_args, 1, Value::Str("volume".into()));
         let mut thirdKey = get_arg(optional_args, 2, Value::Int(2));

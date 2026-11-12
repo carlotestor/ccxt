@@ -867,7 +867,7 @@ impl Ndax {
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        let mut payload: Value = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut payload: crate::value::List = message.get("o").cloned().unwrap_or_default().into_list();
         //
         //     [
         //         [
@@ -888,7 +888,7 @@ impl Ndax {
         if (symbol.is_none()) {
             return;
         }
-        let mut snapshot: Value = self.parse_order_book(payload, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut snapshot: Value = self.parse_order_book(&payload, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates

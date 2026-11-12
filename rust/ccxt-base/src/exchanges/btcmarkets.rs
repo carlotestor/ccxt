@@ -917,8 +917,8 @@ impl Btcmarkets {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_markets(&[params]).await;
-        return self.parse_markets(response);
+        let mut response: crate::value::List = self.public_get_markets(&[params]).await.into_list();
+        return self.parse_markets(&response);
         Value::Null
         }).await?))
     }
@@ -1142,8 +1142,8 @@ impl Btcmarkets {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(200))); // default is 10, max 200
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_market_id_candles(&[__ws_arg_3]).await;
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limit]);
+        let mut response: crate::value::List = self.public_get_markets_market_id_candles(&[__ws_arg_3]).await.into_list();
+        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1180,7 +1180,7 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_market_id_orderbook(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.public_get_markets_market_id_orderbook(&[__ws_arg_4]).await.into_dict();
         //
         //     {
         //         "marketId":"BTC-AUD",
@@ -1197,9 +1197,9 @@ impl Btcmarkets {
         //         ]
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_product_k(response.clone(), "snapshotId", Value::Float(0.001), &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(response, "snapshotId", &[]));
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(&response, "snapshotId", Value::Float(0.001), &[]).as_i64();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&response, "snapshotId", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))
@@ -1291,8 +1291,8 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_market_id_ticker(&[__ws_arg_5]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_get_markets_market_id_ticker(&[__ws_arg_5]).await.into_dict();
+        return self.parse_ticker(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1313,8 +1313,8 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_market_id_ticker(&[__ws_arg_6]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_get_markets_market_id_ticker(&[__ws_arg_6]).await.into_dict();
+        return self.parse_ticker(&response, &[(market).raw.clone()]);
 
     Value::Null
 }
@@ -1433,8 +1433,8 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_market_id_trades(&[__ws_arg_7]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_markets_market_id_trades(&[__ws_arg_7]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1527,8 +1527,8 @@ impl Btcmarkets {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsTriggerPrice, Value::Str("clientOrderId".into()), &[]).into_dict();
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_orders(&[__ws_arg_8]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_8]).await.into_dict();
+        return self.parse_order(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1593,8 +1593,8 @@ impl Btcmarkets {
         //    }
         //
         let mut cancelOrders: Value = self.safe_list_k(&response, "cancelOrders", &[Value::from(vec![])]);
-        let mut unprocessedRequests: Value = self.safe_list_k(&response, "unprocessedRequests", &[Value::from(vec![])]);
-        let mut orders: Value = self.array_concat(cancelOrders, unprocessedRequests);
+        let mut unprocessedRequests: crate::value::List = self.safe_list_k(&response, "unprocessedRequests", &[Value::from(vec![])]).into_list();
+        let mut orders: Value = self.array_concat(cancelOrders, &unprocessedRequests);
         return self.parse_orders(orders, &[]);
         Value::Null
         }).await?))
@@ -1631,8 +1631,8 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_orders_id(&[__ws_arg_10]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_delete_orders_id(&[__ws_arg_10]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -1802,8 +1802,8 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders_id(&[__ws_arg_11]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_get_orders_id(&[__ws_arg_11]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -1852,8 +1852,8 @@ impl Btcmarkets {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders(&[__ws_arg_12]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_orders(&[__ws_arg_12]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1966,8 +1966,8 @@ impl Btcmarkets {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_trades(&[__ws_arg_14]).await;
-        return self.parse_trades(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_trades(&[__ws_arg_14]).await.into_list();
+        return self.parse_trades(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2017,8 +2017,8 @@ impl Btcmarkets {
             request.insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("?dt=".into())).into()), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: Value = self.private_post_withdrawals(&[__ws_arg_15]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_withdrawals(&[__ws_arg_15]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }

@@ -562,8 +562,8 @@ impl Zaif {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut markets: Value = self.public_get_currency_pairs_all(&[params]).await;
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.public_get_currency_pairs_all(&[params]).await.into_list();
+        return self.parse_markets(&markets);
         Value::Null
         }).await?))
     }
@@ -716,8 +716,8 @@ impl Zaif {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_post_get_info(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_post_get_info(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -754,8 +754,8 @@ impl Zaif {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_depth_pair(&[__ws_arg_0]).await;
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[]);
+        let mut response: crate::value::Dict = self.public_get_depth_pair(&[__ws_arg_0]).await.into_dict();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]);
         Value::Null
         }).await?))
     }
@@ -837,8 +837,8 @@ impl Zaif {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: Value = self.public_get_ticker_pair(&[__ws_arg_1]).await;
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        let mut ticker: crate::value::Dict = self.public_get_ticker_pair(&[__ws_arg_1]).await.into_dict();
+        return self.parse_ticker(&ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -921,7 +921,7 @@ impl Zaif {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trades_pair(&[__ws_arg_2]).await;
+        let mut response: crate::value::List = self.public_get_trades_pair(&[__ws_arg_2]).await.into_list();
         //
         //      [
         //          {
@@ -934,7 +934,7 @@ impl Zaif {
         //          }, ...
         //      ]
         //
-        let mut trades: Value = self.to_array(response);
+        let mut trades: Value = self.to_array(&response);
         let mut numTrades: i64 = trades.len() as i64;
         if (numTrades == 1) {
             let mut firstTrade: Value = self.safe_dict(trades.clone(), Value::Int(0), &[Value::Map({

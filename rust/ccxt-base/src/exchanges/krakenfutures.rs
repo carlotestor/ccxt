@@ -1155,11 +1155,11 @@ impl Krakenfutures {
         //    }
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "serverTime", &[])).as_i64();
-        let mut orderBook: Value = self.safe_dict_k(&response, "orderBook", &[Value::Map({
+        let mut orderBook: crate::value::Dict = self.safe_dict_k(&response, "orderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_order_book(orderBook, symbol, &[Value::from(timestamp)]);
+        })]).into_dict();
+        return self.parse_order_book(&orderBook, symbol, &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -3724,8 +3724,8 @@ impl Krakenfutures {
         //        ]
         //    }
         //
-        let mut logs: Value = self.safe_list_k(&response, "logs", &[Value::from(vec![])]);
-        return self.parse_incomes(logs, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        let mut logs: crate::value::List = self.safe_list_k(&response, "logs", &[Value::from(vec![])]).into_list();
+        return self.parse_incomes(&logs, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4703,7 +4703,8 @@ impl Krakenfutures {
         }).await?))
     }
 
-    pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut info: Value = info.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         /*
          * @method

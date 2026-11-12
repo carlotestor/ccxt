@@ -2599,7 +2599,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("hash".to_string(), id);
             m
         }), &[params]);
-        let mut response: Value = self.myriad_public_get_orders_hash(&[__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.myriad_public_get_orders_hash(&[__ws_arg_17]).await.into_dict();
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -2630,7 +2630,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (outcome != Value::Null) {
             market = self.load_outcome(outcome, &[]).await;
         }
-        return self.parse_prediction_order(response, &[market]);
+        return self.parse_prediction_order(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -3361,8 +3361,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_23]).await;
-        return self.parse_prediction_ticker(response, &[outcomeObj]);
+        let mut response: crate::value::Dict = self.myriad_public_get_markets_id(&[__ws_arg_23]).await.into_dict();
+        return self.parse_prediction_ticker(&response, &[outcomeObj]);
         Value::Null
         }).await?))
     }

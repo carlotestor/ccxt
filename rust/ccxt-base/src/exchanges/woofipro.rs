@@ -2341,8 +2341,8 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_1178: bool = true;
             while { if !__for_first_1178 { i += 1; } __for_first_1178 = false; i < (rows.len() as i64) } {
-            let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
+            let mut row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Value = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]);
             if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
@@ -2350,7 +2350,7 @@ impl Woofipro {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                 m
-            }), &[row]).into_dict();
+            }), &[&row]).into_dict();
             result.push(self.parse_ticker(&ticker, &[]));
         }
         }
@@ -2501,8 +2501,8 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_1179: bool = true;
             while { if !__for_first_1179 { i += 1; } __for_first_1179 = false; i < (rows.len() as i64) } {
-            let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
+            let mut row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Value = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]);
             if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
@@ -2510,7 +2510,7 @@ impl Woofipro {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                 m
-            }), &[row]).into_dict();
+            }), &[&row]).into_dict();
             result.push(self.parse_open_interest(&interest, &[]));
         }
         }
@@ -2743,8 +2743,8 @@ impl Woofipro {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return self.parse_incomes(rows, &[market, since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return self.parse_incomes(&rows, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2889,7 +2889,7 @@ impl Woofipro {
             m
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
-        return self.parse_order_book(Value::Dict(data), symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        return self.parse_order_book(&data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
         Value::Null
         }).await?))
     }
@@ -3555,7 +3555,7 @@ impl Woofipro {
     m
 }));
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         if (!trigger) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
@@ -3571,30 +3571,30 @@ impl Woofipro {
                 m.insert("symbol".to_string(), self.safe_string_k(&market, "id", &[]));
             m
         });
-        let mut clientOrderIdUnified: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(paramsOmitted.clone(), "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
+        let mut clientOrderIdUnified: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
+        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(&paramsOmitted, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut response: Value = Value::Null;
         if trigger {
             if isByClientOrder {
                 request.insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone());
-                let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
+                let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
                 let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
                 response = self.v1_private_delete_algo_client_order(&[__ws_arg_11]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
-                let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.v1_private_delete_algo_order(&[__ws_arg_12]).await;
             }
         }  else {
             if isByClientOrder {
                 request.insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone());
-                let mut paramsOmitted3: crate::value::Dict = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
+                let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
                 let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
                 response = self.v1_private_delete_client_order(&[__ws_arg_13]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
-                let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+                let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.v1_private_delete_order(&[__ws_arg_14]).await;
             }
         }
@@ -4998,14 +4998,14 @@ impl Woofipro {
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v1_private_post_position_margin(&[__ws_arg_35]).await;
+        let mut response: crate::value::Dict = self.v1_private_post_position_margin(&[__ws_arg_35]).await.into_dict();
         //
         // {
         //     "success": true,
         //     "timestamp": 1702989203989
         // }
         //
-        let mut modification: indexmap::IndexMap<String, Value> = self.parse_margin_modification(response, &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
+        let mut modification: indexmap::IndexMap<String, Value> = self.parse_margin_modification(&response, &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
         modification.insert("type".into(), (if (type_var.as_str() == Some("ADD")) { Value::Str("add".into()) } else { Value::Str("reduce".into()) }));
         modification.insert("amount".into(), self.parse_number(self.number_to_string(amount), &[]));
         return Value::Map(modification);

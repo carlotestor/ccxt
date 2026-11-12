@@ -1497,8 +1497,8 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_api_v3_coins(&[params]).await;
-        return self.parse_currencies(response);
+        let mut response: crate::value::List = self.public_get_api_v3_coins(&[params]).await.into_list();
+        return self.parse_currencies(&response);
         Value::Null
         }).await?))
     }
@@ -1624,9 +1624,9 @@ impl Weex {
         let spotResponsecontractResponseVariable: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
         let mut spotResponse: Value = spotResponsecontractResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut contractResponse: Value = spotResponsecontractResponseVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut spotArray: Value = self.safe_list_k(spotResponse, "symbols", &[Value::from(vec![])]);
-        let mut contractArray: Value = self.safe_list_k(contractResponse, "symbols", &[Value::from(vec![])]);
-        let mut result: Value = self.array_concat(spotArray, contractArray);
+        let mut spotArray: crate::value::List = self.safe_list_k(spotResponse, "symbols", &[Value::from(vec![])]).into_list();
+        let mut contractArray: crate::value::List = self.safe_list_k(contractResponse, "symbols", &[Value::from(vec![])]).into_list();
+        let mut result: Value = self.array_concat(&spotArray, &contractArray);
         return self.parse_markets(result);
         Value::Null
         }).await?))
@@ -2095,8 +2095,8 @@ impl Weex {
         if (type_var.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets".into()))));
         }
-        let mut response: Value = self.public_get_api_v3_market_ticker_price(&[paramsMarketType]).await;
-        return self.parse_last_prices(response, &[symbolsNormalized]);
+        let mut response: crate::value::List = self.public_get_api_v3_market_ticker_price(&[paramsMarketType]).await.into_list();
+        return self.parse_last_prices(&response, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -2164,7 +2164,7 @@ impl Weex {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsPriceType]);
-        let mut response: Value = self.contract_get_capi_v3_market_symbol_price(&[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.contract_get_capi_v3_market_symbol_price(&[__ws_arg_2]).await.into_dict();
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -2176,7 +2176,7 @@ impl Weex {
         let mut ticker: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        }), &[response]);
+        }), &[&response]);
         if (priceType.as_deref() == Some("INDEX")) {
             { let __be_tmp = self.safe_string_k(ticker.clone(), "price", &[]); if let Value::Dict(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("indexPrice".into(), __be_tmp); } }
         }  else {
@@ -2211,8 +2211,8 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Str("swap".into())]); // reject non-contract symbols instead of silently filtering the result to an empty dict
-        let mut response: Value = self.contract_get_capi_v3_market_premium_index(&[params]).await;
-        return self.parse_tickers(response, &[symbolsNormalized]);
+        let mut response: crate::value::List = self.contract_get_capi_v3_market_premium_index(&[params]).await.into_list();
+        return self.parse_tickers(&response, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -2366,8 +2366,8 @@ impl Weex {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_api_v3_market_klines(&[__ws_arg_5]).await;
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limit]);
+        let mut response: crate::value::List = self.public_get_api_v3_market_klines(&[__ws_arg_5]).await.into_list();
+        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2728,8 +2728,8 @@ impl Weex {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.contract_get_capi_v3_market_open_interest(&[__ws_arg_12]).await;
-        return self.parse_open_interest(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.contract_get_capi_v3_market_open_interest(&[__ws_arg_12]).await.into_dict();
+        return self.parse_open_interest(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2799,8 +2799,8 @@ impl Weex {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.contract_get_capi_v3_market_premium_index(&[__ws_arg_13]).await;
-        return self.parse_funding_rates(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut response: crate::value::List = self.contract_get_capi_v3_market_premium_index(&[__ws_arg_13]).await.into_list();
+        return self.parse_funding_rates(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2889,8 +2889,8 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_14 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.contract_get_capi_v3_market_funding_rate(&[__ws_arg_14]).await;
-        return self.parse_funding_rate_histories(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.contract_get_capi_v3_market_funding_rate(&[__ws_arg_14]).await.into_list();
+        return self.parse_funding_rate_histories(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3092,8 +3092,8 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_15 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.private_get_api_v3_account_transfer_records(&[__ws_arg_15]).await;
-        return self.parse_transfers(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_api_v3_account_transfer_records(&[__ws_arg_15]).await.into_list();
+        return self.parse_transfers(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4159,8 +4159,8 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.private_get_api_v3_all_orders(&[__ws_arg_29]).await;
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.private_get_api_v3_all_orders(&[__ws_arg_29]).await.into_list();
+        return self.parse_orders(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4716,8 +4716,8 @@ impl Weex {
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_37 = self.extend(requestUntil, &[paramsUntil]);
-            let mut billsResponse: Value = self.private_post_api_v3_account_bills(&[__ws_arg_37]).await;
-            items = self.to_array(billsResponse);
+            let mut billsResponse: crate::value::List = self.private_post_api_v3_account_bills(&[__ws_arg_37]).await.into_list();
+            items = self.to_array(&billsResponse);
         }
         return self.parse_ledger(items, &[currency, since, limit]);
         Value::Null
@@ -4926,8 +4926,8 @@ impl Weex {
         //         ]
         //     }
         //
-        let mut items: Value = self.safe_list_k(&response, "items", &[Value::from(vec![])]);
-        return self.parse_incomes(items, &[market, since, limit]);
+        let mut items: crate::value::List = self.safe_list_k(&response, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_incomes(&items, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -5064,8 +5064,8 @@ impl Weex {
             m
         });
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.contract_private_get_capi_v3_account_position_single_position(&[__ws_arg_39]).await;
-        return self.parse_positions(response, &[Value::from(vec![Value::from((market).symbol.clone())])]);
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_position_single_position(&[__ws_arg_39]).await.into_list();
+        return self.parse_positions(&response, &[Value::from(vec![Value::from((market).symbol.clone())])]);
         Value::Null
         }).await?))
     }
@@ -5228,8 +5228,8 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.contract_private_post_capi_v3_close_positions(&[params]).await;
-        return self.parse_positions(response, &[]);
+        let mut response: crate::value::List = self.contract_private_post_capi_v3_close_positions(&[params]).await.into_list();
+        return self.parse_positions(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -5416,8 +5416,8 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await;
-        return self.parse_margin_modes(self.to_array(response), &[symbolsNormalized, Value::Str("symbol".into()), Value::Str("swap".into())]);
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await.into_list();
+        return self.parse_margin_modes(self.to_array(&response), &[symbolsNormalized, Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
     }
@@ -5571,8 +5571,8 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await;
-        return self.parse_leverages(self.to_array(response), &[symbolsNormalized, Value::Str("symbol".into()), Value::Str("swap".into())]);
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await.into_list();
+        return self.parse_leverages(self.to_array(&response), &[symbolsNormalized, Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
     }
@@ -5790,8 +5790,8 @@ impl Weex {
             parsedType = "add".to_string();
         }
         let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.contract_private_post_capi_v3_account_position_margin(&[__ws_arg_48]).await;
-        let __ws_arg_49 = self.parse_margin_modification(response, &[market]);
+        let mut response: crate::value::Dict = self.contract_private_post_capi_v3_account_position_margin(&[__ws_arg_48]).await.into_dict();
+        let __ws_arg_49 = self.parse_margin_modification(&response, &[market]);
         let __ws_arg_50 = self.parse_number(amount, &[]);
         return self.extend(__ws_arg_49, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -2325,8 +2325,8 @@ impl Mexc {
     m
 });
         }
-        let mut response: Value = self.spot_private_get_capital_config_getall(&[params]).await;
-        return self.parse_currencies(response);
+        let mut response: crate::value::List = self.spot_private_get_capital_config_getall(&[params]).await.into_list();
+        return self.parse_currencies(&response);
         Value::Null
         }).await?))
     }
@@ -2779,7 +2779,7 @@ impl Mexc {
         }
         if (market).spot {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            let mut response: Value = self.spot_public_get_depth(&[__ws_arg_0]).await;
+            let mut response: crate::value::Dict = self.spot_public_get_depth(&[__ws_arg_0]).await.into_dict();
             //
             //     {
             //         "lastUpdateId": "744267132",
@@ -2793,9 +2793,9 @@ impl Mexc {
             //         ]
             //     }
             //
-            let mut spotTimestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-            let mut spotOrderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), symbol.clone(), &[Value::from(spotTimestamp)]).as_map().cloned().unwrap_or_default();
-            spotOrderbook.insert("nonce".into(), self.safe_integer_k(response.clone(), "lastUpdateId", &[]));
+            let mut spotTimestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+            let mut spotOrderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, symbol.clone(), &[Value::from(spotTimestamp)]).as_map().cloned().unwrap_or_default();
+            spotOrderbook.insert("nonce".into(), self.safe_integer_k(&response, "lastUpdateId", &[]));
             return Value::Map(spotOrderbook);
         }  else if (market).swap {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -3191,7 +3191,7 @@ impl Mexc {
                     // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
-            let mut response: Value = self.spot_public_get_klines(&[__ws_arg_6]).await;
+            let mut response: crate::value::List = self.spot_public_get_klines(&[__ws_arg_6]).await.into_list();
             //
             //     [
             //       [
@@ -3206,7 +3206,7 @@ impl Mexc {
             //       ],
             //     ]
             //
-            candles = self.to_array(response.clone());
+            candles = self.to_array(&response);
         }  else if (market).swap {
             if (since != Value::Null) {
                 request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
@@ -4132,8 +4132,8 @@ impl Mexc {
                 m.insert("batchOrders".to_string(), json_stringify(&Value::from(ordersRequests)));
             m
         });
-        let mut response: Value = self.spot_private_post_batch_orders(&[Value::Map(request)]).await;
-        return self.parse_orders(response, &[]);
+        let mut response: crate::value::List = self.spot_private_post_batch_orders(&[Value::Map(request)]).await.into_list();
+        return self.parse_orders(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -4895,8 +4895,8 @@ impl Mexc {
             }
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            let mut response: Value = self.spot_private_delete_open_orders(&[__ws_arg_33]).await;
-            return self.parse_orders(response.clone(), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+            let mut response: crate::value::List = self.spot_private_delete_open_orders(&[__ws_arg_33]).await.into_list();
+            return self.parse_orders(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         }  else {
             if (symbol != Value::Null) {
                 request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
@@ -6339,7 +6339,8 @@ impl Mexc {
         }).await?))
     }
 
-    pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut info: Value = info.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -6516,7 +6517,7 @@ impl Mexc {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.spot_private_get_capital_deposit_address(&[__ws_arg_49]).await;
+        let mut response: crate::value::List = self.spot_private_get_capital_deposit_address(&[__ws_arg_49]).await.into_list();
         //
         //    [
         //        {
@@ -6529,7 +6530,7 @@ impl Mexc {
         //        ...
         //    ]
         //
-        let mut addressStructures: Value = self.parse_deposit_addresses(response, &[Value::Null, Value::Bool(false)]);
+        let mut addressStructures: Value = self.parse_deposit_addresses(&response, &[Value::Null, Value::Bool(false)]);
         return self.index_by(addressStructures, Value::Str("network".into()));
         Value::Null
         }).await?))
@@ -6597,8 +6598,8 @@ impl Mexc {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.spot_private_post_capital_deposit_address(&[__ws_arg_50]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.spot_private_post_capital_deposit_address(&[__ws_arg_50]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -6705,8 +6706,8 @@ impl Mexc {
         }
         let mut paramsOmitted: crate::value::Dict = (if (rawNetwork.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         let __ws_arg_51 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -6757,8 +6758,8 @@ impl Mexc {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_52 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.spot_private_get_capital_withdraw_history(&[__ws_arg_52]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.spot_private_get_capital_withdraw_history(&[__ws_arg_52]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -7415,13 +7416,13 @@ impl Mexc {
             paramsOmitted = self.omit(params, Value::Str("symbol".into()), &[]);
         }
         let __ws_arg_57 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.spot_private_post_capital_transfer(&[__ws_arg_57]).await;
+        let mut response: crate::value::Dict = self.spot_private_post_capital_transfer(&[__ws_arg_57]).await.into_dict();
         //
         //     {
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        let mut transaction: Value = self.parse_transfer(response, &[currency]);
+        let mut transaction: Value = self.parse_transfer(&response, &[currency]);
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);
@@ -7588,8 +7589,8 @@ impl Mexc {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE".into()))));
             }
             let __ws_arg_58 = self.extend(Value::Map(requestForInternal), &[&paramsInternal]);
-            let mut responseForInternal: Value = self.spot_private_post_capital_transfer_internal(&[__ws_arg_58]).await;
-            return self.parse_transaction(responseForInternal, &[currency.clone()]);
+            let mut responseForInternal: crate::value::Dict = self.spot_private_post_capital_transfer_internal(&[__ws_arg_58]).await.into_dict();
+            return self.parse_transaction(&responseForInternal, &[currency.clone()]);
         }
         let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7613,8 +7614,8 @@ impl Mexc {
         }
         let mut paramsOmitted: Value = (if (network.is_some()) { self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("network".into()), Value::Str("netWork".into())]), &[]) } else { Value::from(&paramsWithdrawTag) });
         let __ws_arg_59 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.spot_private_post_capital_withdraw(&[__ws_arg_59]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.spot_private_post_capital_withdraw(&[__ws_arg_59]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -7817,8 +7818,8 @@ impl Mexc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.spot_private_get_capital_config_getall(&[params]).await;
-        return self.parse_deposit_withdraw_fees(response, &[codes, Value::Str("coin".into())]);
+        let mut response: crate::value::List = self.spot_private_get_capital_config_getall(&[params]).await.into_list();
+        return self.parse_deposit_withdraw_fees(&response, &[codes, Value::Str("coin".into())]);
         Value::Null
         }).await?))
     }
@@ -8164,8 +8165,8 @@ impl Mexc {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("direction".into()), &[]).into_dict();
         let __ws_arg_63 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.contract_private_post_position_change_leverage(&[__ws_arg_63]).await;
-        return self.parse_leverage(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.contract_private_post_position_change_leverage(&[__ws_arg_63]).await.into_dict();
+        return self.parse_leverage(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }

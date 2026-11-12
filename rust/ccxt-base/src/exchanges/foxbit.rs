@@ -1052,8 +1052,8 @@ impl Foxbit {
         //      }
         //    ]
         //  }
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_tickers(data, &[symbolsNormalized]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_tickers(&data, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -1142,7 +1142,7 @@ impl Foxbit {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_public_get_markets_market_orderbook(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_markets_market_orderbook(&[__ws_arg_1]).await.into_dict();
         //  {
         //    "sequence_id": 1234567890,
         //    "timestamp": 1713187921336,
@@ -1167,8 +1167,8 @@ impl Foxbit {
         //      ]
         //    ]
         //  }
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(response, symbol, &[Value::from(timestamp)]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        return self.parse_order_book(&response, symbol, &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -1276,8 +1276,8 @@ impl Foxbit {
             }
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await;
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), interval, since, limit]);
+        let mut response: crate::value::List = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await.into_list();
+        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), interval, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1545,8 +1545,8 @@ impl Foxbit {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.v3_private_post_orders(&[__ws_arg_5]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.v3_private_post_orders(&[__ws_arg_5]).await.into_dict();
+        return self.parse_order(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1786,8 +1786,8 @@ impl Foxbit {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_orders_by_order_id_id(&[__ws_arg_9]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.v3_private_get_orders_by_order_id_id(&[__ws_arg_9]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -1974,8 +1974,8 @@ impl Foxbit {
             request.insert("network_code".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmited]);
-        let mut response: Value = self.v3_private_get_deposits_address(&[__ws_arg_12]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.v3_private_get_deposits_address(&[__ws_arg_12]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -2368,8 +2368,8 @@ impl Foxbit {
             request.insert("network_code".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: Value = self.v3_private_post_withdrawals(&[__ws_arg_16]).await;
-        return self.parse_transaction(response, &[]);
+        let mut response: crate::value::Dict = self.v3_private_post_withdrawals(&[__ws_arg_16]).await.into_dict();
+        return self.parse_transaction(&response, &[]);
         Value::Null
         }).await?))
     }

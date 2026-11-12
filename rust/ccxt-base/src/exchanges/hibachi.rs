@@ -892,8 +892,8 @@ impl Hibachi {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_trade_account_info(&[__ws_arg_0]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_get_trade_account_info(&[__ws_arg_0]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -1269,8 +1269,8 @@ impl Hibachi {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_trade_order(&[__ws_arg_3]).await;
-        return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        let mut response: crate::value::Dict = self.private_get_trade_order(&[__ws_arg_3]).await.into_dict();
+        return self.parse_order(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
     }
@@ -2215,8 +2215,8 @@ impl Hibachi {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_trade_orders(&[__ws_arg_13]).await;
-        return self.parse_orders(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        let mut response: crate::value::List = self.private_get_trade_orders(&[__ws_arg_13]).await.into_list();
+        return self.parse_orders(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2830,7 +2830,7 @@ impl Hibachi {
         //     ]
         // }
         //
-        let mut rowsCapitalHistory: Value = self.safe_list_k(&responseCapitalHistory, "transactions", &[Value::from(vec![])]);
+        let mut rowsCapitalHistory: crate::value::List = self.safe_list_k(&responseCapitalHistory, "transactions", &[Value::from(vec![])]).into_list();
         let mut responseTradingHistory: crate::value::Dict = self.safe_dict(promises, Value::Int(1), &[]).into_dict();
         //
         // {
@@ -2858,8 +2858,8 @@ impl Hibachi {
         //     ]
         // }
         //
-        let mut rowsTradingHistory: Value = self.safe_list_k(&responseTradingHistory, "tradingHistory", &[Value::from(vec![])]);
-        let mut rows: Value = self.array_concat(rowsCapitalHistory, rowsTradingHistory);
+        let mut rowsTradingHistory: crate::value::List = self.safe_list_k(&responseTradingHistory, "tradingHistory", &[Value::from(vec![])]).into_list();
+        let mut rows: Value = self.array_concat(&rowsCapitalHistory, &rowsTradingHistory);
         return self.parse_ledger(rows, &[currency, since, limit, params]);
         Value::Null
         }).await?))

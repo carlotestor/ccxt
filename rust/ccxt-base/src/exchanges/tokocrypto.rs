@@ -1903,8 +1903,8 @@ impl Tokocrypto {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.binance_get_ticker_book_ticker(&[params]).await;
-        return self.parse_tickers(response, &[symbols]);
+        let mut response: crate::value::List = self.binance_get_ticker_book_ticker(&[params]).await.into_list();
+        return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -3421,8 +3421,8 @@ impl Tokocrypto {
             request.insert("network".into(), networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
-        let mut response: Value = self.private_post_open_v1_withdraws(&[__ws_arg_19]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_open_v1_withdraws(&[__ws_arg_19]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }

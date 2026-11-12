@@ -1056,7 +1056,7 @@ impl Kraken {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), stored.clone()); }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-        let mut parsed: Value = self.parse_trades(Value::Arr(data), &[market]);
+        let mut parsed: Value = self.parse_trades(&data, &[market]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_417: bool = true;

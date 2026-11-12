@@ -708,8 +708,8 @@ impl Coincheck {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_accounts_balance(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_get_accounts_balance(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -853,8 +853,8 @@ impl Coincheck {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_order_books(&[__ws_arg_0]).await;
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[]);
+        let mut response: crate::value::Dict = self.public_get_order_books(&[__ws_arg_0]).await.into_dict();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]);
         Value::Null
         }).await?))
     }
@@ -937,8 +937,8 @@ impl Coincheck {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: Value = self.public_get_ticker(&[__ws_arg_1]).await;
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        let mut ticker: crate::value::Dict = self.public_get_ticker(&[__ws_arg_1]).await.into_dict();
+        return self.parse_ticker(&ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1329,8 +1329,8 @@ impl Coincheck {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_exchange_orders_id(&[__ws_arg_5]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_delete_exchange_orders_id(&[__ws_arg_5]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }

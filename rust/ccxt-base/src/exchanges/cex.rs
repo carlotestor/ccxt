@@ -692,13 +692,13 @@ impl Cex {
         //
         let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
         let mut dataCurrencies: Value = self.safe_list_k(responses.get(0).cloned().unwrap_or(Value::Null), "data", &[Value::from(vec![])]);
-        let mut dataNetworks: Value = self.safe_dict_k(responses.get(1).cloned().unwrap_or(Value::Null), "data", &[Value::Map({
+        let mut dataNetworks: crate::value::Dict = self.safe_dict_k(responses.get(1).cloned().unwrap_or(Value::Null), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut currenciesIndexed: crate::value::Dict = self.index_by(dataCurrencies, Value::Str("currency".into())).into_dict();
-        let mut data: Value = self.deep_extend(currenciesIndexed, &[dataNetworks]);
-        return self.parse_currencies(self.to_array(data));
+        let mut data: crate::value::Dict = self.deep_extend(currenciesIndexed, &[&dataNetworks]).into_dict();
+        return self.parse_currencies(self.to_array(&data));
         Value::Null
         }).await?))
     }
@@ -1051,11 +1051,11 @@ impl Cex {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_tickers(data, &[symbols]);
+        })]).into_dict();
+        return self.parse_tickers(&data, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -1259,7 +1259,7 @@ impl Cex {
             m
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&orderBook, "timestamp", &[]).as_i64();
-        return self.parse_order_book(Value::Dict(orderBook), Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        return self.parse_order_book(&orderBook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -1499,11 +1499,11 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut balances: Value = self.safe_dict_k(&data, "balancesPerAccounts", &[Value::Map({
+        let mut balances: crate::value::Dict = self.safe_dict_k(&data, "balancesPerAccounts", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut arrays: Value = self.to_array(balances);
+        })]).into_dict();
+        let mut arrays: Value = self.to_array(&balances);
         return self.parse_accounts(arrays, &[params]);
         Value::Null
         }).await?))

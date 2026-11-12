@@ -993,7 +993,7 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: Value = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, params]).await;
-        let mut response: Value = self.gateway_private_post_execute(&[request.clone()]).await;
+        let mut response: crate::value::Dict = self.gateway_private_post_execute(&[request.clone()]).await.into_dict();
         //
         //     {
         //         "status": "success",
@@ -1016,7 +1016,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
         m.insert("place_order".to_string(), Value::Map(placeOrder));
     m
-}), &[response]);
+}), &[&response]);
         return self.parse_order(__ws_arg_1, &[market]);
         Value::Null
         }).await?))
@@ -1812,13 +1812,13 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_981: bool = true;
             while { if !__for_first_981 { i += 1; } __for_first_981 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-            if self.is_archive_order_closed(order.clone()).as_bool() == Some(true) {
+            let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            if self.is_archive_order_closed(Value::from(&order)).as_bool() == Some(true) {
                 closedOrders.push(self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("status".to_string(), Value::Str("closed".into()));
                     m
-                }), &[order]));
+                }), &[&order]));
             }
         }
         }
@@ -1990,13 +1990,13 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_982: bool = true;
             while { if !__for_first_982 { i += 1; } __for_first_982 = false; i < (matches.len() as i64) } {
-            let mut match_val: Value = matches.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut submissionIdx: Option<String> = self.safe_string_k(match_val.clone(), "submission_idx", &[]).as_str().map(str::to_owned);
+            let mut match_val: crate::value::Dict = matches.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut submissionIdx: Option<String> = self.safe_string_k(&match_val, "submission_idx", &[]).as_str().map(str::to_owned);
             let mut tx: crate::value::Dict = self.safe_dict(txsBySubmission.clone(), submissionIdx.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            trades.push(self.extend(tx, &[match_val]));
+            trades.push(self.extend(tx, &[&match_val]));
         }
         }
         return self.parse_trades(Value::from(trades), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
@@ -2216,8 +2216,8 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_984: bool = true;
             while { if !__for_first_984 { i += 1; } __for_first_984 = false; i < (events.len() as i64) } {
-            let mut event: Value = events.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut submissionIdx: Option<String> = self.safe_string_k(event.clone(), "submission_idx", &[]).as_str().map(str::to_owned);
+            let mut event: crate::value::Dict = events.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut submissionIdx: Option<String> = self.safe_string_k(&event, "submission_idx", &[]).as_str().map(str::to_owned);
             let mut tx: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2238,7 +2238,7 @@ impl Nado {
                 let mut m = indexmap::IndexMap::new();
                 m
             }), &[tx]);
-            transaction = self.extend(transaction.clone(), &[event]);
+            transaction = self.extend(transaction.clone(), &[&event]);
             add_element_to_object(&mut transaction, &Value::Str("transaction_type".into()), transactionType.clone());
             transactions.push(self.parse_transaction(transaction, &[currency.clone()]));
         }
@@ -2323,16 +2323,16 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_986: bool = true;
             while { if !__for_first_986 { i += 1; } __for_first_986 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut balance: crate::value::Dict = self.safe_dict_k(position.clone(), "balance", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_k(&position, "balance", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut amount: Option<String> = self.safe_string_k(&balance, "amount", &[]).as_str().map(str::to_owned);
             if (amount.is_none()) || crate::precise::Precise::stringEquals(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 continue;
             }
-            let mut productId: Option<String> = self.safe_string_k(position.clone(), "product_id", &[]).as_str().map(str::to_owned);
+            let mut productId: Option<String> = self.safe_string_k(&position, "product_id", &[]).as_str().map(str::to_owned);
             let mut product: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2353,7 +2353,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
         m.insert("product".to_string(), product);
     m
-}), &[position]);
+}), &[&position]);
             result.push(self.parse_position(__ws_arg_13, &[]));
         }
         }
@@ -2671,12 +2671,12 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.gateway_v2_public_get_assets(&[params]).await;
+        let mut response: crate::value::List = self.gateway_v2_public_get_assets(&[params]).await.into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut assets: crate::value::List = self.to_array(response).into_list();
+        let mut assets: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_991: bool = true;
@@ -2728,7 +2728,7 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.archive_v2_public_get_tickers(&[params]).await;
+        let mut response: crate::value::Dict = self.archive_v2_public_get_tickers(&[params]).await.into_dict();
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -2743,7 +2743,7 @@ impl Nado {
         //         }
         //     }
         //
-        let mut tickers: Value = self.to_array(response);
+        let mut tickers: Value = self.to_array(&response);
         return self.parse_tickers(tickers, &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -3151,7 +3151,7 @@ impl Nado {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.gateway_v2_public_get_orderbook(&[__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.gateway_v2_public_get_orderbook(&[__ws_arg_17]).await.into_dict();
         //
         //     {
         //         "product_id": 1,
@@ -3167,8 +3167,8 @@ impl Nado {
         //         "timestamp": 1757913317944
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -3210,8 +3210,8 @@ impl Nado {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.archive_v2_public_get_trades(&[__ws_arg_18]).await;
-        return self.parse_trades(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.archive_v2_public_get_trades(&[__ws_arg_18]).await.into_list();
+        return self.parse_trades(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }

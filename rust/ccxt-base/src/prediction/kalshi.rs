@@ -2375,8 +2375,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.kalshi_private_get_portfolio_balance(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_balance(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -3074,18 +3074,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("price".into(), self.number_to_string(yesPrice));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSelfTradePreventionType]);
-        let mut response: Value = self.kalshi_private_post_portfolio_events_orders(&[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.kalshi_private_post_portfolio_events_orders(&[__ws_arg_12]).await.into_dict();
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
-        let mut order: Value = self.parse_prediction_order(response.clone(), &[outcomeObj]);
+        let mut order: Value = self.parse_prediction_order(&response, &[outcomeObj]);
         if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("side".to_string(), side); }
         if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("amount".to_string(), amount.clone()); }
         if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("price".to_string(), price); }
         // the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
         // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
         // otherwise a fully-filled order would return status 'closed' with filled 0
-        let mut remainingCount: Value = self.safe_number_k(response.clone(), "remaining_count", &[]);
-        let mut filledCount: Option<f64> = self.safe_number_k(response, "fill_count", &[]).as_f64();
+        let mut remainingCount: Value = self.safe_number_k(&response, "remaining_count", &[]);
+        let mut filledCount: Option<f64> = self.safe_number_k(&response, "fill_count", &[]).as_f64();
         if (filledCount.is_some()) {
             if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("filled".to_string(), Value::from(filledCount)); }
         }  else if (remainingCount != Value::Null) {

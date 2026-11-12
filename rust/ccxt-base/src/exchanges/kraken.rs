@@ -2467,8 +2467,8 @@ impl Kraken {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_post_balance_ex(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_post_balance_ex(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -5023,7 +5023,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 Value::Str(". Use krakenfutures instead to transfer from the futures account.".into()))));
         }
         let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_wallet_transfer(&[__ws_arg_28]).await;
+        let mut response: crate::value::Dict = self.private_post_wallet_transfer(&[__ws_arg_28]).await.into_dict();
         //
         //   {
         //       "error":[
@@ -5033,7 +5033,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //       }
         //   }
         //
-        let mut transfer: Value = self.parse_transfer(response, &[currency]);
+        let mut transfer: Value = self.parse_transfer(&response, &[currency]);
         return self.extend(transfer, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);

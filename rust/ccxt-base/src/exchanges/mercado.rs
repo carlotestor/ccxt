@@ -580,7 +580,7 @@ impl Mercado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_coins(&[params]).await;
+        let mut response: crate::value::List = self.public_get_coins(&[params]).await.into_list();
         //
         //     [
         //         "BCH",
@@ -607,7 +607,7 @@ impl Mercado {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut coins: crate::value::List = self.to_array(response).into_list();
+        let mut coins: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_943: bool = true;
@@ -722,8 +722,8 @@ impl Mercado {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_coin_orderbook(&[__ws_arg_0]).await;
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[]);
+        let mut response: crate::value::Dict = self.public_get_coin_orderbook(&[__ws_arg_0]).await.into_dict();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]);
         Value::Null
         }).await?))
     }
@@ -967,8 +967,8 @@ impl Mercado {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_post_get_account_info(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_post_get_account_info(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }

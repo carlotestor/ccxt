@@ -1492,10 +1492,10 @@ impl Bitfinex {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_conf_config(&[__ws_arg_0]).await.into_list();
-        let mut spotMarketsInfo: Value = self.safe_list(&response, Value::Int(0), &[Value::from(vec![])]);
-        let mut futuresMarketsInfo: Value = self.safe_list(&response, Value::Int(1), &[Value::from(vec![])]);
+        let mut spotMarketsInfo: crate::value::List = self.safe_list(&response, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut futuresMarketsInfo: crate::value::List = self.safe_list(&response, Value::Int(1), &[Value::from(vec![])]).into_list();
         let mut marginIds: Value = self.safe_list(&response, Value::Int(3), &[Value::from(vec![])]);
-        let mut markets: crate::value::List = self.array_concat(spotMarketsInfo, futuresMarketsInfo).into_list();
+        let mut markets: crate::value::List = self.array_concat(&spotMarketsInfo, &futuresMarketsInfo).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2196,7 +2196,7 @@ impl Bitfinex {
             request.insert("len".into(), limit);
         }
         let mut fullRequest: Value = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.public_get_book_symbol_precision(&[fullRequest.clone()]).await;
+        let mut orderbook: crate::value::List = self.public_get_book_symbol_precision(&[fullRequest.clone()]).await.into_list();
         let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2209,7 +2209,7 @@ impl Bitfinex {
             m
         });
         let mut priceIndex: i64 = (if (self.safe_string_k(fullRequest, "precision", &[]).as_str() == Some("R0")) { 1 } else { 0 });
-        let mut orders: crate::value::List = self.to_array(orderbook).into_list();
+        let mut orders: crate::value::List = self.to_array(&orderbook).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_345: bool = true;
@@ -2390,8 +2390,8 @@ impl Bitfinex {
             request.insert("symbols".into(), Value::Str("ALL".into()));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut tickers: Value = self.public_get_tickers(&[__ws_arg_3]).await;
-        return self.parse_tickers(tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut tickers: crate::value::List = self.public_get_tickers(&[__ws_arg_3]).await.into_list();
+        return self.parse_tickers(&tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2580,7 +2580,7 @@ impl Bitfinex {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_5 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.public_get_trades_symbol_hist(&[__ws_arg_5]).await;
+        let mut response: crate::value::List = self.public_get_trades_symbol_hist(&[__ws_arg_5]).await.into_list();
         //
         //     [
         //         [
@@ -2591,7 +2591,7 @@ impl Bitfinex {
         //         ]
         //     ]
         //
-        let mut rawTrades: Value = self.to_array(response);
+        let mut rawTrades: Value = self.to_array(&response);
         let mut trades: Value = self.sort_by(rawTrades, Value::Int(1), &[]);
         let mut tradesList: Vec<Value> = Vec::new();
         {
@@ -2664,8 +2664,8 @@ impl Bitfinex {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_6 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.public_get_candles_trade_timeframe_symbol_hist(&[__ws_arg_6]).await;
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limitResolved]);
+        let mut response: crate::value::List = self.public_get_candles_trade_timeframe_symbol_hist(&[__ws_arg_6]).await.into_list();
+        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -3679,8 +3679,8 @@ impl Bitfinex {
         });
         // valid for trades up to 10 days old
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_auth_r_order_symbol_id_trades(&[__ws_arg_16]).await;
-        let mut rawTrades: crate::value::List = self.to_array(response).into_list();
+        let mut response: crate::value::List = self.private_post_auth_r_order_symbol_id_trades(&[__ws_arg_16]).await.into_list();
+        let mut rawTrades: crate::value::List = self.to_array(&response).into_list();
         let mut tradesList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4235,12 +4235,12 @@ impl Bitfinex {
             currency = self.currency(code);
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            let mut currencyMovements: Value = self.private_post_auth_r_movements_currency_hist(&[__ws_arg_21]).await;
-            response = self.to_array(currencyMovements);
+            let mut currencyMovements: crate::value::List = self.private_post_auth_r_movements_currency_hist(&[__ws_arg_21]).await.into_list();
+            response = self.to_array(&currencyMovements);
         }  else {
             let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-            let mut movements: Value = self.private_post_auth_r_movements_hist(&[__ws_arg_22]).await;
-            response = self.to_array(movements);
+            let mut movements: crate::value::List = self.private_post_auth_r_movements_hist(&[__ws_arg_22]).await.into_list();
+            response = self.to_array(&movements);
         }
         return self.parse_transactions(response, &[currency, since, limit]);
         Value::Null
@@ -4388,7 +4388,7 @@ impl Bitfinex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.private_post_auth_r_positions(&[params]).await;
+        let mut response: crate::value::List = self.private_post_auth_r_positions(&[params]).await.into_list();
         //
         //     [
         //         [
@@ -4423,7 +4423,7 @@ impl Bitfinex {
         //         ]
         //     ]
         //
-        let mut rawPositions: crate::value::List = self.to_array(response).into_list();
+        let mut rawPositions: crate::value::List = self.to_array(&response).into_list();
         let mut positionsList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4819,8 +4819,8 @@ impl Bitfinex {
             m
         });
         let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_status_deriv(&[__ws_arg_26]).await;
-        return self.parse_funding_rates(response, &[symbols]);
+        let mut response: crate::value::List = self.public_get_status_deriv(&[__ws_arg_26]).await.into_list();
+        return self.parse_funding_rates(&response, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -4876,7 +4876,7 @@ impl Bitfinex {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_27 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.public_get_status_deriv_symbol_hist(&[__ws_arg_27]).await;
+        let mut response: crate::value::List = self.public_get_status_deriv_symbol_hist(&[__ws_arg_27]).await.into_list();
         //
         //   [
         //       [
@@ -4907,7 +4907,7 @@ impl Bitfinex {
         //       ]
         //   ]
         //
-        let mut rawRatesData: crate::value::List = self.to_array(response).into_list();
+        let mut rawRatesData: crate::value::List = self.to_array(&response).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5072,8 +5072,8 @@ impl Bitfinex {
             m
         });
         let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_status_deriv(&[__ws_arg_28]).await;
-        return self.parse_open_interests(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut response: crate::value::List = self.public_get_status_deriv(&[__ws_arg_28]).await.into_list();
+        return self.parse_open_interests(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5333,8 +5333,8 @@ impl Bitfinex {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_31 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.public_get_liquidations_hist(&[__ws_arg_31]).await;
-        return self.parse_liquidations(self.to_array(response), &[market, since, limit]);
+        let mut response: crate::value::List = self.public_get_liquidations_hist(&[__ws_arg_31]).await.into_list();
+        return self.parse_liquidations(self.to_array(&response), &[market, since, limit]);
         Value::Null
         }).await?))
     }

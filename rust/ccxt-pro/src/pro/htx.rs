@@ -1268,7 +1268,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut version: Value = self.safe_integer_k(&tick, "version", &[]);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         if (event.as_deref() == Some("snapshot")) {
-            let mut snapshot: Value = self.parse_order_book(Value::from(&tick), symbol.clone(), &[Value::from(timestamp)]);
+            let mut snapshot: Value = self.parse_order_book(&tick, symbol.clone(), &[Value::from(timestamp)]);
             orderbook.reset(snapshot);
             orderbook.set_book_meta("nonce", version.clone());
         }

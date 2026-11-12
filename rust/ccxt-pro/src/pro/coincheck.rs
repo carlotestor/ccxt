@@ -343,7 +343,7 @@ impl Coincheck {
             m
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&data, "last_update_at", &[]).as_i64();
-        let mut snapshot: Value = self.parse_order_book(Value::Dict(data), symbol.clone(), &[Value::from(timestamp)]);
+        let mut snapshot: Value = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp)]);
         let mut orderbook: Value = self.order_book(&[snapshot]);
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);

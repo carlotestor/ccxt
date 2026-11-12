@@ -1653,9 +1653,9 @@ impl Toobit {
         //            },
         //          ...
         //
-        let mut symbols: Value = self.safe_list_k(response.clone(), "symbols", &[Value::from(vec![])]);
-        let mut contracts: Value = self.safe_list_k(response, "contracts", &[Value::from(vec![])]);
-        let mut all: crate::value::List = self.array_concat(symbols, contracts).into_list();
+        let mut symbols: crate::value::List = self.safe_list_k(response.clone(), "symbols", &[Value::from(vec![])]).into_list();
+        let mut contracts: crate::value::List = self.safe_list_k(response, "contracts", &[Value::from(vec![])]).into_list();
+        let mut all: crate::value::List = self.array_concat(&symbols, &contracts).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1815,7 +1815,7 @@ impl Toobit {
             request.insert("limit".into(), limit);
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.common_get_quote_v1_depth(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.common_get_quote_v1_depth(&[__ws_arg_0]).await.into_dict();
         //
         //    {
         //        "t": "1755593995237",
@@ -1843,8 +1843,8 @@ impl Toobit {
         //        ]
         //    }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "t", &[]).as_i64();
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "t", &[]).as_i64();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
         Value::Null
         }).await?))
     }
@@ -1887,8 +1887,8 @@ impl Toobit {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.common_get_quote_v1_trades(&[__ws_arg_1]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.common_get_quote_v1_trades(&[__ws_arg_1]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2260,8 +2260,8 @@ impl Toobit {
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.common_get_quote_v1_ticker_price(&[__ws_arg_7]).await;
-        return self.parse_last_prices(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut response: crate::value::List = self.common_get_quote_v1_ticker_price(&[__ws_arg_7]).await.into_list();
+        return self.parse_last_prices(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2409,8 +2409,8 @@ impl Toobit {
             }
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.common_get_api_v1_futures_funding_rate(&[__ws_arg_9]).await;
-        return self.parse_funding_rates(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut response: crate::value::List = self.common_get_api_v1_futures_funding_rate(&[__ws_arg_9]).await.into_list();
+        return self.parse_funding_rates(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2495,8 +2495,8 @@ impl Toobit {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsPaginate]);
-        let mut response: Value = self.common_get_api_v1_futures_history_funding_rate(&[__ws_arg_10]).await;
-        return self.parse_funding_rate_histories(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.common_get_api_v1_futures_history_funding_rate(&[__ws_arg_10]).await.into_list();
+        return self.parse_funding_rate_histories(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3450,8 +3450,8 @@ impl Toobit {
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_api_v1_sub_account_transfer(&[__ws_arg_24]).await;
-        return self.parse_transfer(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_api_v1_sub_account_transfer(&[__ws_arg_24]).await.into_dict();
+        return self.parse_transfer(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -3961,8 +3961,8 @@ impl Toobit {
         }
         request.insert("chainType".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
         let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_api_v1_account_deposit_address(&[__ws_arg_32]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_get_api_v1_account_deposit_address(&[__ws_arg_32]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -4040,8 +4040,8 @@ impl Toobit {
             request.insert("addressExt".into(), tag.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: Value = self.private_post_api_v1_account_withdraw(&[__ws_arg_33]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_api_v1_account_withdraw(&[__ws_arg_33]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -4243,8 +4243,8 @@ impl Toobit {
             }
         }
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_api_v1_futures_positions(&[__ws_arg_37]).await;
-        return self.parse_positions(response, &[symbols]);
+        let mut response: crate::value::List = self.private_get_api_v1_futures_positions(&[__ws_arg_37]).await.into_list();
+        return self.parse_positions(&response, &[symbols]);
         Value::Null
         }).await?))
     }

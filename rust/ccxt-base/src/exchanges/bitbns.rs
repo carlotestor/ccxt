@@ -622,7 +622,7 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.www_get_order_fetch_markets(&[params]).await;
+        let mut response: crate::value::List = self.www_get_order_fetch_markets(&[params]).await.into_list();
         //
         //     [
         //         {
@@ -647,7 +647,7 @@ impl Bitbns {
         //     ]
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut rawMarkets: crate::value::List = self.to_array(response).into_list();
+        let mut rawMarkets: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_337: bool = true;
@@ -792,7 +792,7 @@ impl Bitbns {
             request.insert("limit".into(), limit); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.www_get_order_fetch_orderbook(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.www_get_order_fetch_orderbook(&[__ws_arg_0]).await.into_dict();
         //
         //     {
         //         "bids":[
@@ -810,8 +810,8 @@ impl Bitbns {
         //         "nonce":""
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -903,8 +903,8 @@ impl Bitbns {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.www_get_order_fetch_tickers(&[params]).await;
-        return self.parse_tickers(response, &[symbols]);
+        let mut response: crate::value::Dict = self.www_get_order_fetch_tickers(&[params]).await.into_dict();
+        return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -973,8 +973,8 @@ impl Bitbns {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.v1_post_current_coin_balance_everything(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.v1_post_current_coin_balance_everything(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -1587,8 +1587,8 @@ impl Bitbns {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.www_get_exchange_data_tradedetails(&[__ws_arg_7]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.www_get_exchange_data_tradedetails(&[__ws_arg_7]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

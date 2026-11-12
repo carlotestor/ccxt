@@ -1563,15 +1563,15 @@ impl Predictfun {
                         let mut oi: i64 = 0;
             let mut __for_first_1466: bool = true;
             while { if !__for_first_1466 { oi += 1; } __for_first_1466 = false; (oi as f64) < rawOutcomesLength } {
-            let mut rawOutcome: Value = rawOutcomes.get(oi as usize).cloned().unwrap_or(Value::Null);
+            let mut rawOutcome: crate::value::Dict = rawOutcomes.get(oi as usize).cloned().unwrap_or(Value::Null).into_dict();
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            let mut rawLabel: Option<String> = self.safe_string_upper_k(rawOutcome.clone(), "name", &[]).as_str().map(str::to_owned);
+            let mut rawLabel: Option<String> = self.safe_string_upper_k(&rawOutcome, "name", &[]).as_str().map(str::to_owned);
             let mut label: Value = self.strip_price_formatting(rawLabel.as_deref());
-            let mut tokenId: Option<String> = self.safe_string_k(rawOutcome.clone(), "onChainId", &[]).as_str().map(str::to_owned);
+            let mut tokenId: Option<String> = self.safe_string_k(&rawOutcome, "onChainId", &[]).as_str().map(str::to_owned);
             let mut outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol, Value::Str(":".into())).into()), label);
             let mut winner: Option<bool> = None;
-            let mut outcomeStatus: Option<String> = self.safe_string_k(rawOutcome.clone(), "status", &[]).as_str().map(str::to_owned);
+            let mut outcomeStatus: Option<String> = self.safe_string_k(&rawOutcome, "status", &[]).as_str().map(str::to_owned);
             let mut settleFractionRaw: Option<i64> = None;
             if (outcomeStatus.is_some()) {
                 winner = Some(outcomeStatus.as_deref() == Some("WON"));
@@ -1600,7 +1600,7 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
         m.insert("marketId".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
     m
-}), &[rawOutcome]));
+}), &[&rawOutcome]));
                 m
             }));
         }
@@ -1749,7 +1749,7 @@ impl Predictfun {
         let mut outcomeSymbol: Option<String> = self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]).as_str().map(str::to_owned);
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
         if isYesOutcome {
-            let mut yesOrderbook: Value = self.parse_order_book(Value::from(&data), outcomeSymbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+            let mut yesOrderbook: Value = self.parse_order_book(&data, outcomeSymbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
             return self.safe_prediction_order_book(yesOrderbook, &[outcomeObj.clone()]);
         }  else {
             let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();

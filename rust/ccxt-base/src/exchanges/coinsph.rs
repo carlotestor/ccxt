@@ -1093,8 +1093,8 @@ impl Coinsph {
     m
 });
         }
-        let mut response: Value = self.private_get_openapi_wallet_v1_config_getall(&[params]).await;
-        return self.parse_currencies(response);
+        let mut response: crate::value::List = self.private_get_openapi_wallet_v1_config_getall(&[params]).await.into_list();
+        return self.parse_currencies(&response);
         Value::Null
         }).await?))
     }
@@ -1695,7 +1695,7 @@ impl Coinsph {
             request.insert("limit".into(), limit);
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_openapi_quote_v1_depth(&[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.public_get_openapi_quote_v1_depth(&[__ws_arg_6]).await.into_dict();
         //
         //     {
         //         "lastUpdateId": "1667022157000699400",
@@ -1709,8 +1709,8 @@ impl Coinsph {
         //         ]
         //     }
         //
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), symbol, &[]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(response, "lastUpdateId", &[]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, symbol, &[]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&response, "lastUpdateId", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))
@@ -1775,7 +1775,7 @@ impl Coinsph {
         request.insert("limit".into(), Value::from(limitResolved));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.public_get_openapi_quote_v1_klines(&[__ws_arg_7]).await;
+        let mut response: crate::value::List = self.public_get_openapi_quote_v1_klines(&[__ws_arg_7]).await.into_list();
         //
         //     [
         //         [
@@ -1793,7 +1793,7 @@ impl Coinsph {
         //         ]
         //     ]
         //
-        let mut ohlcvs: Value = self.to_array(response);
+        let mut ohlcvs: Value = self.to_array(&response);
         return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -1848,8 +1848,8 @@ impl Coinsph {
             }
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_openapi_quote_v1_trades(&[__ws_arg_8]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_openapi_quote_v1_trades(&[__ws_arg_8]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1898,8 +1898,8 @@ impl Coinsph {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_openapi_v1_my_trades(&[__ws_arg_9]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.private_get_openapi_v1_my_trades(&[__ws_arg_9]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2063,8 +2063,8 @@ impl Coinsph {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_openapi_v1_account(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_get_openapi_v1_account(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -2259,8 +2259,8 @@ impl Coinsph {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into())]), &[]).into_dict();
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_openapi_v1_order(&[__ws_arg_13]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_get_openapi_v1_order(&[__ws_arg_13]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -2302,8 +2302,8 @@ impl Coinsph {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_openapi_v1_open_orders(&[__ws_arg_14]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_openapi_v1_open_orders(&[__ws_arg_14]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2352,8 +2352,8 @@ impl Coinsph {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_openapi_v1_history_orders(&[__ws_arg_15]).await;
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.private_get_openapi_v1_history_orders(&[__ws_arg_15]).await.into_list();
+        return self.parse_orders(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2395,8 +2395,8 @@ impl Coinsph {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into())]), &[]).into_dict();
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_delete_openapi_v1_order(&[__ws_arg_16]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_delete_openapi_v1_order(&[__ws_arg_16]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -2437,8 +2437,8 @@ impl Coinsph {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_openapi_v1_open_orders(&[__ws_arg_17]).await;
-        return self.parse_orders(response, &[market]);
+        let mut response: crate::value::List = self.private_delete_openapi_v1_open_orders(&[__ws_arg_17]).await.into_list();
+        return self.parse_orders(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -2715,7 +2715,7 @@ impl Coinsph {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_openapi_v1_asset_trade_fee(&[params]).await;
+        let mut response: crate::value::List = self.private_get_openapi_v1_asset_trade_fee(&[params]).await.into_list();
         //
         //     [
         //         {
@@ -2734,7 +2734,7 @@ impl Coinsph {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut fees: crate::value::List = self.to_array(response).into_list();
+        let mut fees: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_579: bool = true;
@@ -2832,8 +2832,8 @@ impl Coinsph {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict();
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_openapi_wallet_v1_withdraw_apply(&[__ws_arg_19]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_openapi_wallet_v1_withdraw_apply(&[__ws_arg_19]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -2882,8 +2882,8 @@ impl Coinsph {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_openapi_wallet_v1_deposit_history(&[__ws_arg_20]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_openapi_wallet_v1_deposit_history(&[__ws_arg_20]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2932,8 +2932,8 @@ impl Coinsph {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_openapi_wallet_v1_withdraw_history(&[__ws_arg_21]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_openapi_wallet_v1_withdraw_history(&[__ws_arg_21]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3095,8 +3095,8 @@ impl Coinsph {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_openapi_wallet_v1_deposit_address(&[__ws_arg_22]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_get_openapi_wallet_v1_deposit_address(&[__ws_arg_22]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }

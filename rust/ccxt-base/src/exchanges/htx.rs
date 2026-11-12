@@ -4681,8 +4681,8 @@ impl Htx {
         //         "ts":1637504679376
         //     }
         //
-        let mut rawTickers: Value = self.safe_list2(&response, Value::Str("data".into()), Value::Str("ticks".into()), &[Value::from(vec![])]);
-        let mut tickers: Value = self.parse_tickers(rawTickers, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), Value::Dict(paramsSubType)]);
+        let mut rawTickers: crate::value::List = self.safe_list2(&response, Value::Str("data".into()), Value::Str("ticks".into()), &[Value::from(vec![])]).into_list();
+        let mut tickers: Value = self.parse_tickers(&rawTickers, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), Value::Dict(paramsSubType)]);
         return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4735,8 +4735,8 @@ impl Htx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_list_k(&tick, "data", &[Value::from(vec![])]);
-        return self.parse_last_prices(data, &[symbolsNormalized]);
+        let mut data: crate::value::List = self.safe_list_k(&tick, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_last_prices(&data, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -8658,9 +8658,9 @@ impl Htx {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
-                let mut success: Value = self.safe_list_k(&batchData, "success", &[Value::from(vec![])]);
-                let mut errors: Value = self.safe_list_k(&batchData, "errors", &[Value::from(vec![])]);
-                result = self.array_concat(success, errors);
+                let mut success: crate::value::List = self.safe_list_k(&batchData, "success", &[Value::from(vec![])]).into_list();
+                let mut errors: crate::value::List = self.safe_list_k(&batchData, "errors", &[Value::from(vec![])]).into_list();
+                result = self.array_concat(&success, &errors);
             }
         }
         return self.parse_orders(result, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
@@ -9904,8 +9904,8 @@ impl Htx {
         }
         request.insert("amount".into(), amountValue);
         let __ws_arg_115 = self.extend(Value::Map(request), &[paramsFee]);
-        let mut response: Value = self.spot_private_post_v1_dw_withdraw_api_create(&[__ws_arg_115]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.spot_private_post_v1_dw_withdraw_api_create(&[__ws_arg_115]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -11119,8 +11119,8 @@ impl Htx {
             let __ws_arg_132 = self.extend(request, &[&paramsUntil]);
             response = self.contract_private_post_api_v3_contract_financial_record_exact(&[__ws_arg_132]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_incomes(data, &[(market).raw.clone(), since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_incomes(&data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -11793,13 +11793,14 @@ impl Htx {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_leverage_tiers(data, &[symbols, Value::Str("contract_code".into())]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_leverage_tiers(&data, &[symbols, Value::Str("contract_code".into())]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut info: Value = info.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Option<String> = self.safe_string_k(info.clone(), "trade_partition", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(info.clone(), "contract_code", &[]).as_str().map(str::to_owned);

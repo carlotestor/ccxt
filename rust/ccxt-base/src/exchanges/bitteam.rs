@@ -1265,7 +1265,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trade_api_cmc_orderbook_pair(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_trade_api_cmc_orderbook_pair(&[__ws_arg_1]).await.into_dict();
         //
         //     {
         //         "timestamp": 1701166703284,
@@ -1293,8 +1293,8 @@ impl Bitteam {
         //         ]
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        let mut orderbook: Value = self.parse_order_book(response, symbol, &[Value::from(timestamp)]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        let mut orderbook: Value = self.parse_order_book(&response, symbol, &[Value::from(timestamp)]);
         return orderbook;
         Value::Null
         }).await?))
@@ -2481,8 +2481,8 @@ impl Bitteam {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trade_api_cmc_trades_pair(&[__ws_arg_11]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_trade_api_cmc_trades_pair(&[__ws_arg_11]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2813,8 +2813,8 @@ impl Bitteam {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_trade_api_ccxt_balance(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_get_trade_api_ccxt_balance(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -2869,18 +2869,18 @@ impl Bitteam {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut balanceByCurrencies: indexmap::IndexMap<String, Value> = self.omit(result.clone(), Value::from(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]), &[]).as_map().cloned().unwrap_or_default();
+})]).into_dict();
+        let mut balanceByCurrencies: indexmap::IndexMap<String, Value> = self.omit(&result, Value::from(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]), &[]).as_map().cloned().unwrap_or_default();
         let mut rawCurrencyIds: Vec<Value> = Value::Array(balanceByCurrencies.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_442: bool = true;
             while { if !__for_first_442 { i += 1; } __for_first_442 = false; i < (rawCurrencyIds.len() as i64) } {
             let mut rawCurrencyId: Option<String> = rawCurrencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut currencyBalance: crate::value::Dict = self.safe_dict(result.clone(), rawCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+            let mut currencyBalance: crate::value::Dict = self.safe_dict(&result, rawCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let mut free: Option<String> = self.safe_string_k(&currencyBalance, "free", &[]).as_str().map(str::to_owned);
             let mut used: Option<String> = self.safe_string_k(&currencyBalance, "used", &[]).as_str().map(str::to_owned);
             let mut total: Option<String> = self.safe_string_k(&currencyBalance, "total", &[]).as_str().map(str::to_owned);

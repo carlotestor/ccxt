@@ -596,7 +596,7 @@ impl Bitflyer {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut jp_markets: Value = self.public_get_getmarkets(&[params.clone()]).await;
+        let mut jp_markets: crate::value::List = self.public_get_getmarkets(&[params.clone()]).await.into_list();
         //
         //     [
         //         // spot
@@ -613,22 +613,22 @@ impl Bitflyer {
         //         },
         //     ];
         //
-        let mut us_markets: Value = self.public_get_getmarkets_usa(&[params.clone()]).await;
+        let mut us_markets: crate::value::List = self.public_get_getmarkets_usa(&[params.clone()]).await.into_list();
         //
         //     [
         //         { "product_code": "BTC_USD", "market_type": "Spot" },
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let mut eu_markets: Value = self.public_get_getmarkets_eu(&[params]).await;
+        let mut eu_markets: crate::value::List = self.public_get_getmarkets_eu(&[params]).await.into_list();
         //
         //     [
         //         { "product_code": "BTC_EUR", "market_type": "Spot" },
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let mut markets: Value = self.array_concat(self.to_array(jp_markets), self.to_array(us_markets));
-        markets = self.array_concat(markets.clone(), self.to_array(eu_markets));
+        let mut markets: Value = self.array_concat(self.to_array(&jp_markets), self.to_array(&us_markets));
+        markets = self.array_concat(markets.clone(), self.to_array(&eu_markets));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -856,8 +856,8 @@ impl Bitflyer {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.public_get_getboard(&[__ws_arg_0]).await;
-        return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        let mut orderbook: crate::value::Dict = self.public_get_getboard(&[__ws_arg_0]).await.into_dict();
+        return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         Value::Null
         }).await?))
     }
@@ -926,8 +926,8 @@ impl Bitflyer {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_getticker(&[__ws_arg_1]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_get_getticker(&[__ws_arg_1]).await.into_dict();
+        return self.parse_ticker(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1037,8 +1037,8 @@ impl Bitflyer {
             request.insert("count".into(), limit.clone());
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_getexecutions(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_getexecutions(&[__ws_arg_2]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1299,11 +1299,11 @@ impl Bitflyer {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_getchildorders(&[__ws_arg_6]).await;
+        let mut response: crate::value::List = self.private_get_getchildorders(&[__ws_arg_6]).await.into_list();
         if (symbol != Value::Null) {
-            return self.filter_by(self.parse_orders(response.clone(), &[(market).raw.clone(), since.clone(), limit.clone()]), Value::Str("symbol".into()), symbol, &[]);
+            return self.filter_by(self.parse_orders(&response, &[(market).raw.clone(), since.clone(), limit.clone()]), Value::Str("symbol".into()), symbol, &[]);
         }
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1454,8 +1454,8 @@ impl Bitflyer {
             request.insert("count".into(), limit.clone());
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_getexecutions(&[__ws_arg_9]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.private_get_getexecutions(&[__ws_arg_9]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1538,8 +1538,8 @@ impl Bitflyer {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_withdraw(&[__ws_arg_11]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_withdraw(&[__ws_arg_11]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -1583,8 +1583,8 @@ impl Bitflyer {
             request.insert("count".into(), limit.clone()); // default 100
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_getcoinins(&[__ws_arg_12]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_getcoinins(&[__ws_arg_12]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1628,8 +1628,8 @@ impl Bitflyer {
             request.insert("count".into(), limit.clone()); // default 100
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_getcoinouts(&[__ws_arg_13]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_getcoinouts(&[__ws_arg_13]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

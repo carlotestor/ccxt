@@ -1487,7 +1487,7 @@ impl Bitvavo {
     pub async fn watch_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut subscription: Value) -> Value {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut params: Value = self.safe_dict_k(subscription.clone(), "params", &[]);
+        let mut params: crate::value::Dict = self.safe_dict_k(subscription.clone(), "params", &[]).into_dict();
         // multi-symbol watches share one subscription object without a marketId,
         // in that case the buffered delta message identifies the market
         let mut marketId: Value = self.safe_string2(subscription.clone(), Value::Str("marketId".into()), Value::Str("market".into()), &[(match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
@@ -1504,7 +1504,7 @@ impl Bitvavo {
                 m.insert("market".to_string(), marketId);
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_0, &messageHash[..], subscription).await;
         return orderbook.limit();
 

@@ -860,7 +860,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_pair(&[params]).await;
+        let mut response: crate::value::List = self.public_get_pair(&[params]).await.into_list();
         //
         //     [
         //         {
@@ -890,7 +890,7 @@ impl Latoken {
 })]);
         let mut currenciesById: Value = self.index_by(currencies, Value::Str("id".into()));
         let mut result: Vec<Value> = Vec::new();
-        let mut rawMarkets: crate::value::List = self.to_array(response).into_list();
+        let mut rawMarkets: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_910: bool = true;
@@ -1005,7 +1005,7 @@ impl Latoken {
 }));
         // sequential on purpose - with Promise.all the static request harness records
         // whichever call finished last, which differs between the sync and async ports
-        let mut response: Value = self.public_get_currency(&[params]).await;
+        let mut response: crate::value::List = self.public_get_currency(&[params]).await.into_list();
         //
         //     [
         //         {
@@ -1060,7 +1060,7 @@ impl Latoken {
         // no params on this one - they belong to the currency request, not to the bindings
         let mut bindingsResponse: Value = self.public_get_transaction_bindings(&[]).await;
         let mut bindingsById: Value = self.index_by(bindingsResponse, Value::Str("id".into()));
-        let mut rawCurrencies: crate::value::List = self.to_array(response).into_list();
+        let mut rawCurrencies: crate::value::List = self.to_array(&response).into_list();
         let mut merged: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1462,8 +1462,8 @@ impl Latoken {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_ticker_base_quote(&[__ws_arg_1]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_get_ticker_base_quote(&[__ws_arg_1]).await.into_dict();
+        return self.parse_ticker(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1491,8 +1491,8 @@ impl Latoken {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_ticker(&[params]).await;
-        return self.parse_tickers(response, &[symbols]);
+        let mut response: crate::value::List = self.public_get_ticker(&[params]).await.into_list();
+        return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -1634,8 +1634,8 @@ impl Latoken {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); // default 100, limit 100
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trade_history_currency_quote(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_trade_history_currency_quote(&[__ws_arg_2]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

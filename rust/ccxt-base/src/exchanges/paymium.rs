@@ -470,8 +470,8 @@ impl Paymium {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_user(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_get_user(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -508,8 +508,8 @@ impl Paymium {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_data_currency_depth(&[__ws_arg_0]).await;
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
+        let mut response: crate::value::Dict = self.public_get_data_currency_depth(&[__ws_arg_0]).await.into_dict();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
     }
@@ -599,8 +599,8 @@ impl Paymium {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: Value = self.public_get_data_currency_ticker(&[__ws_arg_1]).await;
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        let mut ticker: crate::value::Dict = self.public_get_data_currency_ticker(&[__ws_arg_1]).await.into_dict();
+        return self.parse_ticker(&ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -671,8 +671,8 @@ impl Paymium {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_data_currency_trades(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_data_currency_trades(&[__ws_arg_2]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -700,8 +700,8 @@ impl Paymium {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_post_user_addresses(&[params]).await;
-        return self.parse_deposit_address(response, &[]);
+        let mut response: crate::value::Dict = self.private_post_user_addresses(&[params]).await.into_dict();
+        return self.parse_deposit_address(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -735,8 +735,8 @@ impl Paymium {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_user_addresses_address(&[__ws_arg_3]).await;
-        return self.parse_deposit_address(response, &[]);
+        let mut response: crate::value::Dict = self.private_get_user_addresses_address(&[__ws_arg_3]).await.into_dict();
+        return self.parse_deposit_address(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -764,8 +764,8 @@ impl Paymium {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_user_addresses(&[params]).await;
-        return self.parse_deposit_addresses(response, &[codes, Value::Bool(false)]);
+        let mut response: crate::value::List = self.private_get_user_addresses(&[params]).await.into_list();
+        return self.parse_deposit_addresses(&response, &[codes, Value::Bool(false)]);
         Value::Null
         }).await?))
     }
@@ -933,8 +933,8 @@ impl Paymium {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_user_email_transfers(&[__ws_arg_6]).await;
-        return self.parse_transfer(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_user_email_transfers(&[__ws_arg_6]).await.into_dict();
+        return self.parse_transfer(&response, &[currency]);
         Value::Null
         }).await?))
     }

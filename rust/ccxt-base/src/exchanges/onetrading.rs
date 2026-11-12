@@ -748,8 +748,8 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_currencies(&[params]).await;
-        return self.parse_currencies(response);
+        let mut response: crate::value::List = self.public_get_currencies(&[params]).await.into_list();
+        return self.parse_currencies(&response);
         Value::Null
         }).await?))
     }
@@ -813,8 +813,8 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_instruments(&[params]).await;
-        return self.parse_markets(response);
+        let mut response: crate::value::List = self.public_get_instruments(&[params]).await.into_list();
+        return self.parse_markets(&response);
         Value::Null
         }).await?))
     }
@@ -1334,8 +1334,8 @@ impl Onetrading {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_market_ticker_instrument_code(&[__ws_arg_0]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_get_market_ticker_instrument_code(&[__ws_arg_0]).await.into_dict();
+        return self.parse_ticker(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1364,7 +1364,7 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.public_get_market_ticker(&[params]).await;
+        let mut response: crate::value::List = self.public_get_market_ticker(&[params]).await.into_list();
         //
         //     [
         //         {
@@ -1389,7 +1389,7 @@ impl Onetrading {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut rawTickers: crate::value::List = self.to_array(response).into_list();
+        let mut rawTickers: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1039: bool = true;
@@ -1441,7 +1441,7 @@ impl Onetrading {
             request.insert("depth".into(), limit);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_order_book_instrument_code(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_order_book_instrument_code(&[__ws_arg_1]).await.into_dict();
         //
         // level 1
         //
@@ -1497,8 +1497,8 @@ impl Onetrading {
         //         ]
         //     }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(response.clone(), "time", &[])).as_i64();
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "time", &[])).as_i64();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
     }
@@ -1767,8 +1767,8 @@ impl Onetrading {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_account_balances(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_get_account_balances(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -1989,8 +1989,8 @@ impl Onetrading {
         let mut timeInForce: String = self.safe_string2(params, Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[Value::Str("GOOD_TILL_CANCELLED".into())]).as_str().unwrap_or("GOOD_TILL_CANCELLED").to_string();
         request.insert("time_in_force".into(), Value::from(timeInForce));
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_account_orders(&[__ws_arg_3]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.private_post_account_orders(&[__ws_arg_3]).await.into_dict();
+        return self.parse_order(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }

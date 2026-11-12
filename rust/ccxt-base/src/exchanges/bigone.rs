@@ -1513,8 +1513,8 @@ impl Bigone {
             //
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
-            let mut instruments: Value = self.contract_public_get_instruments(&[Value::Dict(paramsMarketType)]).await;
-            data = self.to_array(instruments);
+            let mut instruments: crate::value::List = self.contract_public_get_instruments(&[Value::Dict(paramsMarketType)]).await.into_list();
+            data = self.to_array(&instruments);
         }
         let mut tickers: Value = self.parse_tickers(data, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -1622,11 +1622,11 @@ impl Bigone {
             //         }
             //     }
             //
-            let mut orderbook: Value = self.safe_dict_k(response, "data", &[Value::Map({
+            let mut orderbook: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+})]).into_dict();
+            return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
         }
         Value::Null
         }).await?))
@@ -3184,14 +3184,14 @@ impl Bigone {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_transfer(&[__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.private_post_transfer(&[__ws_arg_17]).await.into_dict();
         //
         //     {
         //         "code": 0,
         //         "data": null
         //     }
         //
-        let mut transfer: Value = self.parse_transfer(response, &[currency]);
+        let mut transfer: Value = self.parse_transfer(&response, &[currency]);
         let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -676,8 +676,8 @@ impl Limitless {
             });
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&rest]);
             let mut firstPageResponse: crate::value::Dict = self.limitless_public_get_markets_active(&[__ws_arg_1]).await.into_dict();
-            let mut firstData: Value = self.safe_list_k(&firstPageResponse, "data", &[Value::from(vec![])]);
-            allRaw = self.array_concat(Value::Arr(allRaw), firstData).into_list();
+            let mut firstData: crate::value::List = self.safe_list_k(&firstPageResponse, "data", &[Value::from(vec![])]).into_list();
+            allRaw = self.array_concat(Value::Arr(allRaw), &firstData).into_list();
             let mut promises: Vec<Value> = Vec::new();
             let mut cappedPages: Value = ((match ((maxMarkets).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
             let mut knownTotal: Value = self.safe_integer_k(&firstPageResponse, "totalMarketsCount", &[Value::Int(0)]);
@@ -702,8 +702,8 @@ impl Limitless {
                 let mut __for_first_1302: bool = true;
                 while { if !__for_first_1302 { j += 1; } __for_first_1302 = false; (j as f64) < length.as_f64().unwrap_or(f64::NAN) } {
                 let mut response: Value = self.safe_dict(responses.clone(), Value::Int(j), &[]);
-                let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-                allRaw = self.array_concat(Value::Arr(allRaw), data).into_list();
+                let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+                allRaw = self.array_concat(Value::Arr(allRaw), &data).into_list();
             }
             }
             let mut lastPageResponse: crate::value::Dict = self.safe_dict(responses, (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
@@ -2290,8 +2290,8 @@ impl Limitless {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.limitless_private_get_markets_slug_user_orders(&[__ws_arg_22]).await;
-        return self.parse_prediction_orders(self.to_array(response), &[Value::Null, since, limit]);
+        let mut response: crate::value::List = self.limitless_private_get_markets_slug_user_orders(&[__ws_arg_22]).await.into_list();
+        return self.parse_prediction_orders(self.to_array(&response), &[Value::Null, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3069,8 +3069,8 @@ if _try_result.is_err() {
             request.insert("postOnly".into(), postOnly);
         }
         let __ws_arg_24 = self.extend(Value::Map(request), &[paramsValue]);
-        let mut response: Value = self.limitless_private_post_orders(&[__ws_arg_24]).await;
-        let mut parsedOrder: Value = self.parse_prediction_order(response, &[outcomeObj]);
+        let mut response: crate::value::Dict = self.limitless_private_post_orders(&[__ws_arg_24]).await.into_dict();
+        let mut parsedOrder: Value = self.parse_prediction_order(&response, &[outcomeObj]);
         // the create-order response omits a status field; a freshly accepted order is open
         let mut parsedStatus: Option<String> = self.safe_string_k(parsedOrder.clone(), "status", &[]).as_str().map(str::to_owned);
         if (parsedStatus.is_none()) {
@@ -3303,9 +3303,9 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.limitless_private_delete_orders_order_id(&[__ws_arg_25]).await;
+        let mut response: crate::value::Dict = self.limitless_private_delete_orders_order_id(&[__ws_arg_25]).await.into_dict();
         // the delete response carries no order body, so backfill the id and the resulting status
-        let mut order: Value = self.parse_prediction_order(response, &[]);
+        let mut order: Value = self.parse_prediction_order(&response, &[]);
         let mut orderId: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
         if (orderId.is_none()) {
             if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("id".to_string(), id); }

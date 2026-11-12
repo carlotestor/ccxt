@@ -392,7 +392,7 @@ impl Extended {
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         if (type_var.as_deref() == Some("SNAPSHOT")) {
-            let mut snapshot: Value = self.parse_order_book(Value::from(&data), symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("q".into())]);
+            let mut snapshot: Value = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("q".into())]);
             snapshot.set_book_meta("nonce", nonce.clone());
             orderbook.reset(snapshot);
             client.resolve(orderbook.clone(), messageHash.as_str());
@@ -456,10 +456,10 @@ impl Extended {
             });
             self.extend_exchange_options(&[Value::Map(defaultOptions)]);
             let mut originalOptions: Value = crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options");
-            let mut originalHeaders: Value = self.safe_dict_k(originalOptions.clone(), "headers", &[Value::Map({
+            let mut originalHeaders: crate::value::Dict = self.safe_dict_k(originalOptions.clone(), "headers", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let __ws_arg_0 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -468,7 +468,7 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
         m.insert("User-Agent".to_string(), crate::value::get_value_k(&self.userAgents, "chrome"));
     m
-}), &[originalHeaders]), &[Value::Map({
+}), &[&originalHeaders]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("X-Api-Key".to_string(), self.apiKey.clone());
     m

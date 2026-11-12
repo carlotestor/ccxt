@@ -7401,8 +7401,8 @@ impl Binance {
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), keysList); }
                 }
             }  else {
-                let mut resultMarkets: Value = self.safe_list2(res, Value::Str("symbols".into()), Value::Str("optionSymbols".into()), &[Value::from(vec![])]);
-                markets = self.array_concat(Value::Arr(markets), resultMarkets).into_list();
+                let mut resultMarkets: crate::value::List = self.safe_list2(res, Value::Str("symbols".into()), Value::Str("optionSymbols".into()), &[Value::from(vec![])]).into_list();
+                markets = self.array_concat(Value::Arr(markets), &resultMarkets).into_list();
             }
         }
         }
@@ -14443,8 +14443,8 @@ impl Binance {
             }
         }
         let __ws_arg_144 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.sapi_post_asset_transfer(&[__ws_arg_144]).await;
-        return self.parse_transfer(response, &[currency]);
+        let mut response: crate::value::Dict = self.sapi_post_asset_transfer(&[__ws_arg_144]).await.into_dict();
+        return self.parse_transfer(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -14588,8 +14588,8 @@ impl Binance {
         }
         // has support for the 'network' parameter
         let __ws_arg_147 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: Value = self.sapi_get_capital_deposit_address(&[__ws_arg_147]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.sapi_get_capital_deposit_address(&[__ws_arg_147]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -14799,8 +14799,8 @@ impl Binance {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.sapi_get_capital_config_getall(&[params]).await;
-        return self.parse_deposit_withdraw_fees(response, &[codes, Value::Str("coin".into())]);
+        let mut response: crate::value::List = self.sapi_get_capital_config_getall(&[params]).await.into_list();
+        return self.parse_deposit_withdraw_fees(&response, &[codes, Value::Str("coin".into())]);
         Value::Null
         }).await?))
     }
@@ -14945,8 +14945,8 @@ impl Binance {
         }
         request.insert("amount".into(), self.currency_to_precision(currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), amount, &[networkCode.map(Value::from).unwrap_or(Value::Null)]));
         let __ws_arg_148 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: Value = self.sapi_post_capital_withdraw_apply(&[__ws_arg_148]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.sapi_post_capital_withdraw_apply(&[__ws_arg_148]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -15352,8 +15352,8 @@ impl Binance {
             m
         });
         let __ws_arg_154 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_futures_transfer(&[__ws_arg_154]).await;
-        return self.parse_transfer(response, &[currency]);
+        let mut response: crate::value::Dict = self.sapi_post_futures_transfer(&[__ws_arg_154]).await.into_dict();
+        return self.parse_transfer(&response, &[currency]);
 
     Value::Null
 }
@@ -16336,7 +16336,8 @@ impl Binance {
         }).await?))
     }
 
-    pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut info: Value = info.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -16469,7 +16470,7 @@ impl Binance {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_161 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.eapi_private_get_position(&[__ws_arg_161]).await;
+        let mut response: crate::value::List = self.eapi_private_get_position(&[__ws_arg_161]).await.into_list();
         //
         //     [
         //         {
@@ -16494,7 +16495,7 @@ impl Binance {
         //     ]
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut positions: crate::value::List = self.to_array(response).into_list();
+        let mut positions: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_307: bool = true;
@@ -18498,8 +18499,8 @@ if _try_result.is_err() {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_193 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.sapi_get_margin_isolated_margin_data(&[__ws_arg_193]).await;
-        return self.parse_isolated_borrow_rates(response);
+        let mut response: crate::value::List = self.sapi_get_margin_isolated_margin_data(&[__ws_arg_193]).await.into_list();
+        return self.parse_isolated_borrow_rates(&response);
         Value::Null
         }).await?))
     }
@@ -19685,8 +19686,8 @@ if _try_result.is_err() {
             }
         }
         let __ws_arg_219 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.eapi_public_get_mark(&[__ws_arg_219]).await;
-        return self.parse_all_greeks(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut response: crate::value::List = self.eapi_public_get_mark(&[__ws_arg_219]).await.into_list();
+        return self.parse_all_greeks(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -20178,7 +20179,7 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.sapi_get_convert_asset_info(&[params]).await;
+        let mut response: crate::value::List = self.sapi_get_convert_asset_info(&[params]).await.into_list();
         //
         //     [
         //         {
@@ -20191,7 +20192,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut assets: crate::value::List = self.to_array(response).into_list();
+        let mut assets: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_315: bool = true;

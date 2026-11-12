@@ -669,18 +669,18 @@ impl Binance {
         }
         }
         let mut allQueriesLength: i64 = allQueries.len() as i64;
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]).into_dict();
         // keys dropped before the client-side pass; a server-side sort also drops its own keys
         let mut postOmitKeys: Vec<Value> = vec![Value::Str("tags".into()), Value::Str("l1Category".into()), Value::Str("l2Category".into())];
-        let mut userLimit: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "limit", &[]).as_i64();
+        let mut userLimit: Option<i64> = self.safe_integer_k(&paramsOmitted, "limit", &[]).as_i64();
         let mut fetchCap: Option<i64> = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]).as_i64();
         if (userLimit.is_some()) {
             fetchCap = userLimit;
         }
-        let mut rest: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("l1Category".into()), Value::Str("l2Category".into())]), &[]);
-        let mut eventId: Option<String> = self.safe_string_k(paramsOmitted.clone(), "eventId", &[]).as_str().map(str::to_owned);
-        let mut l1Category: Option<String> = self.safe_string_k(paramsOmitted.clone(), "l1Category", &[]).as_str().map(str::to_owned);
-        let mut l2Category: Option<String> = self.safe_string_k(paramsOmitted.clone(), "l2Category", &[]).as_str().map(str::to_owned);
+        let mut rest: Value = self.omit(&paramsOmitted, Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("l1Category".into()), Value::Str("l2Category".into())]), &[]);
+        let mut eventId: Option<String> = self.safe_string_k(&paramsOmitted, "eventId", &[]).as_str().map(str::to_owned);
+        let mut l1Category: Option<String> = self.safe_string_k(&paramsOmitted, "l1Category", &[]).as_str().map(str::to_owned);
+        let mut l2Category: Option<String> = self.safe_string_k(&paramsOmitted, "l2Category", &[]).as_str().map(str::to_owned);
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
@@ -701,7 +701,7 @@ impl Binance {
             if (l2Category.is_some()) {
                 listingRequest.insert("l2Category".into(), l2Category.map(Value::from).unwrap_or(Value::Null));
             }
-            let mut sortBy: Option<String> = self.safe_string_upper2(paramsOmitted.clone(), Value::Str("sortBy".into()), Value::Str("sort".into()), &[]).as_str().map(str::to_owned);
+            let mut sortBy: Option<String> = self.safe_string_upper2(&paramsOmitted, Value::Str("sortBy".into()), Value::Str("sort".into()), &[]).as_str().map(str::to_owned);
             if (sortBy.is_some()) {
                 // map the unified sort values onto the server enum, one of RECOMMENDED,
                 // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
@@ -750,7 +750,7 @@ impl Binance {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let mut postParams: Value = self.omit(paramsOmitted, Value::from(postOmitKeys), &[]);
+        let mut postParams: Value = self.omit(&paramsOmitted, Value::from(postOmitKeys), &[]);
         return self.apply_event_fetch_params(Value::from(result), &[postParams, Value::from(vec![])]);
         Value::Null
         }).await?))
@@ -1195,8 +1195,8 @@ impl Binance {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_private_get_order_book_last_trade_price(&[__ws_arg_5]).await;
-        return self.parse_prediction_ticker(response, &[outcomeObj]);
+        let mut response: crate::value::Dict = self.sapi_private_get_order_book_last_trade_price(&[__ws_arg_5]).await.into_dict();
+        return self.parse_prediction_ticker(&response, &[outcomeObj]);
         Value::Null
         }).await?))
     }
@@ -1375,7 +1375,7 @@ impl Binance {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_private_get_order_book(&[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.sapi_private_get_order_book(&[__ws_arg_7]).await.into_dict();
         //
         //     {
         //         "outcome": "YES",
@@ -1385,8 +1385,8 @@ impl Binance {
         //         "asks": [ { "price": "0.52", "size": "3000.00" } ]
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        let mut orderbook: Value = self.parse_order_book(response, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        let mut orderbook: Value = self.parse_order_book(&response, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         return self.safe_prediction_order_book(orderbook, &[outcomeObj]);
         Value::Null
         }).await?))

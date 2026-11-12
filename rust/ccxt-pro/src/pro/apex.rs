@@ -721,7 +721,7 @@ impl Apex {
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         if isSnapshot {
-            let mut snapshot: Value = self.parse_order_book(Value::from(&data), symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
+            let mut snapshot: Value = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
             orderbook.reset(snapshot);
         }  else {
             let mut asks: Value = self.safe_list_k(&data, "a", &[Value::from(vec![])]);
@@ -869,14 +869,11 @@ impl Apex {
         // }
         let mut topic: String = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut updateType: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         let mut symbol: Value = Value::Null;
-        let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(data.clone(), &[]).as_map().cloned().unwrap_or_default();
+        let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(Value::from(&data), &[]).as_map().cloned().unwrap_or_default();
         if (updateType.as_deref() == Some("snapshot")) {
-            parsed = self.parse_ticker(data.clone(), &[]).as_map().cloned().unwrap_or_default();
+            parsed = self.parse_ticker(Value::from(&data), &[]).as_map().cloned().unwrap_or_default();
             symbol = self.safe_string(Value::Map(parsed.clone()), Value::Str("symbol".into()), &[]);
         }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: Value = Value::Array(topic.split(".").map(Value::from).collect());
@@ -892,7 +889,7 @@ impl Apex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut merged: Value = self.extend(rawTicker, &[data]);
+            let mut merged: Value = self.extend(rawTicker, &[&data]);
             parsed = self.parse_ticker(merged, &[]).as_map().cloned().unwrap_or_default();
         }
         let mut timestamp: Option<i64> = self.safe_integer_product_k(message, "ts", Value::Float(0.001), &[]).as_i64();

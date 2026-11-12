@@ -959,8 +959,8 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_info_instruments(&[params]).await;
-        return self.parse_markets(response);
+        let mut response: crate::value::List = self.public_get_info_instruments(&[params]).await.into_list();
+        return self.parse_markets(&response);
         Value::Null
         }).await?))
     }
@@ -1286,8 +1286,8 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.public_get_info_bbo(&[params]).await;
-        return self.parse_tickers(response, &[symbolsNormalized]);
+        let mut response: crate::value::List = self.public_get_info_bbo(&[params]).await.into_list();
+        return self.parse_tickers(&response, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -1325,7 +1325,7 @@ impl Polymarket {
             request.insert("depth".into(), limit);
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_info_book(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get_info_book(&[__ws_arg_0]).await.into_dict();
         //
         //     {
         //         "instrument_id": 1,
@@ -1335,9 +1335,9 @@ impl Polymarket {
         //         "sequence": 35631219797
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), Value::from((market).symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(response, "sequence", &[]));
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&response, "sequence", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))
@@ -1607,8 +1607,8 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut response: Value = self.public_get_info_tickers(&[params]).await;
-        let mut result: Value = self.parse_funding_rates(response, &[]);
+        let mut response: crate::value::List = self.public_get_info_tickers(&[params]).await.into_list();
+        let mut result: Value = self.parse_funding_rates(&response, &[]);
         return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
@@ -1804,8 +1804,8 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut response: Value = self.public_get_info_tickers(&[params]).await;
-        let mut result: Value = self.parse_open_interests(response, &[]);
+        let mut response: crate::value::List = self.public_get_info_tickers(&[params]).await.into_list();
+        let mut result: Value = self.parse_open_interests(&response, &[]);
         return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
@@ -2866,8 +2866,8 @@ impl Polymarket {
             request.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_account_open_orders(&[__ws_arg_6]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_account_open_orders(&[__ws_arg_6]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2924,8 +2924,8 @@ impl Polymarket {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.private_get_account_orders(&[__ws_arg_7]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_account_orders(&[__ws_arg_7]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3475,13 +3475,13 @@ impl Polymarket {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.trade_post_account_withdraw(&[__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.trade_post_account_withdraw(&[__ws_arg_13]).await.into_dict();
         //
         //     { "status": "ok", "withdraw_id": 123 }
         //
         // the ack status is the request discriminator, the accepted
         // withdrawal itself starts out pending
-        let mut stripped: Value = self.omit(response, Value::Str("status".into()), &[]);
+        let mut stripped: Value = self.omit(&response, Value::Str("status".into()), &[]);
         let mut transaction: indexmap::IndexMap<String, Value> = self.parse_transaction(stripped, &[currency]).as_map().cloned().unwrap_or_default();
         transaction.insert("status".into(), Value::Str("pending".into()));
         return Value::Map(transaction);

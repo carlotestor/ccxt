@@ -2965,11 +2965,11 @@ impl Xt {
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer2(&orderBook, Value::Str("timestamp".into()), Value::Str("t".into()), &[]).as_i64();
         if (market).spot {
-            let mut ob: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::from(&orderBook), symbol.clone(), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+            let mut ob: indexmap::IndexMap<String, Value> = self.parse_order_book(&orderBook, symbol.clone(), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
             ob.insert("nonce".into(), self.safe_integer_k(&orderBook, "lastUpdateId", &[]));
             return Value::Map(ob);
         }
-        let mut swapOb: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::from(&orderBook), symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
+        let mut swapOb: indexmap::IndexMap<String, Value> = self.parse_order_book(&orderBook, symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
         swapOb.insert("nonce".into(), self.safe_integer2(&orderBook, Value::Str("u".into()), Value::Str("lastUpdateId".into()), &[]));
         return Value::Map(swapOb);
         Value::Null
@@ -6543,14 +6543,15 @@ impl Xt {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.parse_leverage_tiers(data, &[symbolsNormalized, Value::Str("symbol".into())]);
+        return self.parse_leverage_tiers(&data, &[symbolsNormalized, Value::Str("symbol".into())]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_leverage_tiers(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_leverage_tiers(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut marketIdKey = get_arg(optional_args, 1, Value::Null);
         //
@@ -6658,16 +6659,17 @@ impl Xt {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_market_leverage_tiers(data, &[(market).raw.clone()]);
+        })]).into_dict();
+        return self.parse_market_leverage_tiers(&data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut info: Value = info.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -7833,8 +7835,8 @@ impl Xt {
             m
         });
         let __ws_arg_105 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_spot_post_balance_transfer(&[__ws_arg_105]).await;
-        return self.parse_transfer(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_spot_post_balance_transfer(&[__ws_arg_105]).await.into_dict();
+        return self.parse_transfer(&response, &[currency]);
         Value::Null
         }).await?))
     }

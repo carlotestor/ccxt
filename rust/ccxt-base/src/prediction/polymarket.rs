@@ -2165,7 +2165,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.clob_public_get_book(&[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.clob_public_get_book(&[__ws_arg_2]).await.into_dict();
         //
         //     {
         //         "market": "0x42d42b30124ed2d93800358dfd1d48253114e4d58cff15cb765cd0c69956555f",
@@ -2186,8 +2186,8 @@ impl Polymarket {
         //         "last_trade_price": "0.002"
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        let mut orderbook: Value = self.parse_order_book(response, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        let mut orderbook: Value = self.parse_order_book(&response, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         return self.safe_prediction_order_book(orderbook, &[outcomeObj]);
         Value::Null
         }).await?))
@@ -2815,8 +2815,8 @@ impl Polymarket {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&rest]);
-        let mut response: Value = self.clob_private_get_balance_allowance(&[__ws_arg_8]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.clob_private_get_balance_allowance(&[__ws_arg_8]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -3091,8 +3091,8 @@ impl Polymarket {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.clob_private_get_data_order_id(&[__ws_arg_11]).await;
-        return self.parse_prediction_order(response, &[]);
+        let mut response: crate::value::Dict = self.clob_private_get_data_order_id(&[__ws_arg_11]).await.into_dict();
+        return self.parse_prediction_order(&response, &[]);
         Value::Null
         }).await?))
     }

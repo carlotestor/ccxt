@@ -1117,8 +1117,8 @@ impl Alpaca {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut assets: Value = self.trader_private_get_v2_assets(&[__ws_arg_0]).await;
-        return self.parse_markets(assets);
+        let mut assets: crate::value::List = self.trader_private_get_v2_assets(&[__ws_arg_0]).await.into_list();
+        return self.parse_markets(&assets);
         Value::Null
         }).await?))
     }
@@ -2010,8 +2010,8 @@ impl Alpaca {
         let mut paramsOmitted: Value = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
         request.insert("client_order_id".into(), self.generate_client_order_id(paramsOmitted.clone()).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
-        let mut order: Value = self.trader_private_post_v2_orders(&[__ws_arg_11]).await;
-        return self.parse_order(order, &[market]);
+        let mut order: crate::value::Dict = self.trader_private_post_v2_orders(&[__ws_arg_11]).await.into_dict();
+        return self.parse_order(&order, &[market]);
         Value::Null
         }).await?))
     }
@@ -2044,8 +2044,8 @@ impl Alpaca {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.trader_private_delete_v2_orders_order_id(&[__ws_arg_12]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.trader_private_delete_v2_orders_order_id(&[__ws_arg_12]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -2118,10 +2118,10 @@ impl Alpaca {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut order: Value = self.trader_private_get_v2_orders_order_id(&[__ws_arg_13]).await;
-        let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut order: crate::value::Dict = self.trader_private_get_v2_orders_order_id(&[__ws_arg_13]).await.into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
-        return self.parse_order(order, &[market]);
+        return self.parse_order(&order, &[market]);
         Value::Null
         }).await?))
     }
@@ -2182,8 +2182,8 @@ impl Alpaca {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.trader_private_get_v2_orders(&[__ws_arg_14]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.trader_private_get_v2_orders(&[__ws_arg_14]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2327,8 +2327,8 @@ impl Alpaca {
         }
         request.insert("client_order_id".into(), self.generate_client_order_id(Value::from(&paramsTimeInForce)).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
-        let mut response: Value = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await;
-        return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        let mut response: crate::value::Dict = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await.into_dict();
+        return self.parse_order(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
     }
@@ -2520,8 +2520,8 @@ impl Alpaca {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.trader_private_get_v2_account_activities_activity_type(&[__ws_arg_18]).await;
-        return self.parse_trades(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        let mut response: crate::value::List = self.trader_private_get_v2_account_activities_activity_type(&[__ws_arg_18]).await.into_list();
+        return self.parse_trades(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2623,8 +2623,8 @@ impl Alpaca {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.trader_private_get_v2_wallets(&[__ws_arg_19]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.trader_private_get_v2_wallets(&[__ws_arg_19]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -2702,8 +2702,8 @@ impl Alpaca {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: Value = self.trader_private_post_v2_wallets_transfers(&[__ws_arg_20]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.trader_private_post_v2_wallets_transfers(&[__ws_arg_20]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }

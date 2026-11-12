@@ -1699,10 +1699,11 @@ pub trait ExchangeBase:
         }).await?))
     } }
 
-    fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut info: Value = info.into();
+
         // virtual-dispatch (static: DerivedExchange::parse_market_leverage_tiers(self, ...))
         { let __v = crate::exchange::DerivedExchange::parse_market_leverage_tiers(self, info, crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
-
         let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" parseMarketLeverageTiers() is not supported yet".into()))));
 
@@ -4614,7 +4615,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_order_book_bids_asks(&self, mut bidasks: Value, optional_args: &[Value]) -> Value {
+    fn parse_order_book_bids_asks(&self, bidasks: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut bidasks: Value = bidasks.into();
         let mut priceKey = get_arg(optional_args, 0, Value::Int(0));
         let mut amountKey = get_arg(optional_args, 1, Value::Int(1));
         let mut countOrIdKey = get_arg(optional_args, 2, Value::Int(2));
@@ -4887,11 +4889,12 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn parse_order_book(&self, orderbook: impl Into<crate::Value>, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut orderbook: Value = orderbook.into();
+
         // virtual-dispatch (static: DerivedExchange::parse_order_book(self, ...))
         { let __v = crate::exchange::DerivedExchange::parse_order_book(self, orderbook.clone(), symbol.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3,
             crate::Value::Null), crate::runtime::get_arg(optional_args, 4, crate::Value::Null), crate::runtime::get_arg(optional_args, 5, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
-
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
         let mut bidsKey = get_arg(optional_args, 1, Value::Str("bids".into()));
         let mut asksKey = get_arg(optional_args, 2, Value::Str("asks".into()));
@@ -4961,7 +4964,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_leverage_tiers(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_leverage_tiers(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut marketIdKey = get_arg(optional_args, 1, Value::Null);
         // marketIdKey should only be undefined when response is a dictionary.
@@ -8144,7 +8148,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_last_prices(&self, mut pricesData: Value, optional_args: &[Value]) -> Value {
+    fn parse_last_prices(&self, pricesData: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut pricesData: Value = pricesData.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8195,7 +8200,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_tickers(&self, mut tickers: Value, optional_args: &[Value]) -> Value {
+    fn parse_tickers(&self, tickers: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut tickers: Value = tickers.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8999,7 +9005,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    fn parse_deposit_withdraw_fees(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_deposit_withdraw_fees(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut currencyIdKey = get_arg(optional_args, 1, Value::Null);
         /*
@@ -9123,7 +9130,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_incomes(&self, mut incomes: Value, optional_args: &[Value]) -> Value {
+    fn parse_incomes(&self, incomes: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut incomes: Value = incomes.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9897,7 +9905,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_all_greeks(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
+    fn parse_all_greeks(&self, greeks: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut greeks: Value = greeks.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();

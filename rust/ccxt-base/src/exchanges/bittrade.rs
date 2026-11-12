@@ -2738,12 +2738,12 @@ impl Bittrade {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.private_post_order_orders_id_submitcancel(&[Value::Map({
+        let mut response: crate::value::Dict = self.private_post_order_orders_id_submitcancel(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
             m
-        })]).await;
-        let __ws_arg_14 = self.parse_order(response, &[]);
+        })]).await.into_dict();
+        let __ws_arg_14 = self.parse_order(&response, &[]);
         return self.extend(__ws_arg_14, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -3232,8 +3232,8 @@ impl Bittrade {
         }
         let mut paramsNetwork: Value = (if (network != Value::Null) { self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]) } else { Value::from(&paramsWithdrawTag) });
         let __ws_arg_19 = self.extend(Value::Map(request), &[paramsNetwork]);
-        let mut response: Value = self.private_post_dw_withdraw_api_create(&[__ws_arg_19]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_dw_withdraw_api_create(&[__ws_arg_19]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }

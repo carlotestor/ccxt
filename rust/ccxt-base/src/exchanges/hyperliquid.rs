@@ -1417,16 +1417,16 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_806: bool = true;
             while { if !__for_first_806 { i += 1; } __for_first_806 = false; i < (meta.len() as i64) } {
-            let mut market: Value = self.safe_dict(&meta, Value::Int(i), &[Value::Map({
+            let mut market: crate::value::Dict = self.safe_dict(&meta, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut index: Value = self.safe_integer_k(market.clone(), "index", &[]);
+})]).into_dict();
+            let mut index: Value = self.safe_integer_k(&market, "index", &[]);
             let mut extraData: crate::value::Dict = self.safe_dict(&second, index.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut marketName: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
+            let mut marketName: Option<String> = self.safe_string_k(&market, "name", &[]).as_str().map(str::to_owned);
             // if (marketName.indexOf ('/') < 0) {
             //     // there are some weird spot markets in testnet, eg @2
             //     continue;
@@ -1440,7 +1440,7 @@ impl Hyperliquid {
 })]).into_dict();
             let mut taker: Option<f64> = self.safe_number_k(&fees, "taker", &[]).as_f64();
             let mut maker: Option<f64> = self.safe_number_k(&fees, "maker", &[]).as_f64();
-            let mut tokensPos: crate::value::List = self.safe_list_k(market.clone(), "tokens", &[Value::from(vec![])]).into_list();
+            let mut tokensPos: crate::value::List = self.safe_list_k(&market, "tokens", &[Value::from(vec![])]).into_list();
             let mut baseTokenIndex: Option<String> = self.safe_string(&tokensPos, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut quoteTokenIndex: Option<String> = self.safe_string(&tokensPos, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut baseTokenInfo: crate::value::Dict = self.safe_dict(Value::Map(tokensByIndex.clone()), baseTokenIndex.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -1543,7 +1543,7 @@ impl Hyperliquid {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), self.extend(extraData, &[market]));
+                    m.insert("info".to_string(), self.extend(extraData, &[&market]));
                 m
             });
             markets.push(self.safe_market_structure(&[Value::Map(entry)]));
@@ -2351,10 +2351,10 @@ impl Hyperliquid {
     m
 }));
         let mut userAddress: Option<String> = self.safe_string(self.handle_public_address("fetchTrades", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut paramsPublicAddress: Value = self.safe_dict(self.handle_public_address("fetchTrades", params), Value::Int(1), &[Value::Map({
+        let mut paramsPublicAddress: crate::value::Dict = self.safe_dict(self.handle_public_address("fetchTrades", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2373,8 +2373,8 @@ impl Hyperliquid {
         }  else {
             request.insert("type".into(), Value::Str("userFills".into()));
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPublicAddress.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPublicAddress, Value::Str("until".into()), &[]).into_dict();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPublicAddress, "until", &[]).as_i64();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPublicAddress, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
@@ -4750,10 +4750,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut userAddress: Option<String> = self.safe_string(self.handle_public_address("fetchOrders", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut paramsPublicAddress: Value = self.safe_dict(self.handle_public_address("fetchOrders", params), Value::Int(1), &[Value::Map({
+        let mut paramsPublicAddress: crate::value::Dict = self.safe_dict(self.handle_public_address("fetchOrders", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4772,7 +4772,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 request.insert("dex".into(), dexName);
             }
         }
-        let __ws_arg_24 = self.extend(Value::Map(request), &[paramsPublicAddress]);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
         let mut response: Value = self.public_post_info(&[__ws_arg_24]).await;
         //
         //     [
@@ -5165,10 +5165,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut userAddress: Option<String> = self.safe_string(self.handle_public_address("fetchMyTrades", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut paramsPublicAddress: Value = self.safe_dict(self.handle_public_address("fetchMyTrades", params), Value::Int(1), &[Value::Map({
+        let mut paramsPublicAddress: crate::value::Dict = self.safe_dict(self.handle_public_address("fetchMyTrades", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5187,8 +5187,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             request.insert("type".into(), Value::Str("userFills".into()));
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPublicAddress.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPublicAddress, Value::Str("until".into()), &[]).into_dict();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPublicAddress, "until", &[]).as_i64();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPublicAddress, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
@@ -5322,10 +5322,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut userAddress: Option<String> = self.safe_string(self.handle_public_address("fetchMyLiquidations", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut paramsPublicAddress: Value = self.safe_dict(self.handle_public_address("fetchMyLiquidations", params), Value::Int(1), &[Value::Map({
+        let mut paramsPublicAddress: crate::value::Dict = self.safe_dict(self.handle_public_address("fetchMyLiquidations", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5344,8 +5344,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             request.insert("type".into(), Value::Str("userFills".into()));
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPublicAddress.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPublicAddress, Value::Str("until".into()), &[]).into_dict();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPublicAddress, "until", &[]).as_i64();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPublicAddress, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
@@ -5525,10 +5525,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = self.safe_string(self.handle_public_address("fetchPositions", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut paramsPublicAddress: Value = self.safe_dict(self.handle_public_address("fetchPositions", params), Value::Int(1), &[Value::Map({
+        let mut paramsPublicAddress: crate::value::Dict = self.safe_dict(self.handle_public_address("fetchPositions", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5540,7 +5540,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (dexName != Value::Null) {
             request.insert("dex".into(), dexName);
         }
-        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsPublicAddress]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
         let mut response: crate::value::Dict = self.public_post_info(&[__ws_arg_28]).await.into_dict();
         //
         //     {
@@ -5928,9 +5928,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (vaultAddress != Value::Null) {
             request.insert("vaultAddress".into(), vaultAddress);
         }
-        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
-        let __ws_arg_29 = self.parse_margin_modification(response.clone(), &[(market).raw.clone()]);
-        let __ws_arg_30 = self.safe_string_k(response, "status", &[]);
+        let mut response: crate::value::Dict = self.private_post_exchange(&[Value::Map(request)]).await.into_dict();
+        let __ws_arg_29 = self.parse_margin_modification(&response, &[(market).raw.clone()]);
+        let __ws_arg_30 = self.safe_string_k(&response, "status", &[]);
         return self.extend(__ws_arg_29, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("code".to_string(), __ws_arg_30);
@@ -6039,14 +6039,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("signature".to_string(), transferSig);
                 m
             });
-            let mut transferResponse: Value = self.private_post_exchange(&[Value::Map(transferRequest)]).await;
+            let mut transferResponse: crate::value::Dict = self.private_post_exchange(&[Value::Map(transferRequest)]).await.into_dict();
             //
             // {'response': {'type': 'default'}, 'status': 'ok'}
             //
             // the sub-account branches below already hand back the unified structure; the
             // spot <> swap branch returned the raw acknowledgement, breaking the shape
             let mut currency: Value = self.safe_currency(code.clone(), &[]);
-            return self.parse_transfer(transferResponse, &[currency.clone()]);
+            return self.parse_transfer(&transferResponse, &[currency.clone()]);
         }
         // transfer between main account and subaccount
         let mut isDeposit: bool = false;
@@ -6124,8 +6124,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("signature".to_string(), sendAssetSig);
                 m
             });
-            let mut sendAssetResponse: Value = self.private_post_exchange(&[Value::Map(sendAssetRequest)]).await;
-            return self.parse_transfer(sendAssetResponse, &[sendAssetCurrency]);
+            let mut sendAssetResponse: crate::value::Dict = self.private_post_exchange(&[Value::Map(sendAssetRequest)]).await.into_dict();
+            return self.parse_transfer(&sendAssetResponse, &[sendAssetCurrency]);
         }
         // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
@@ -6150,8 +6150,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("signature".to_string(), sig.clone());
                 m
             });
-            let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
-            return self.parse_transfer(response.clone(), &[self.safe_currency(code.clone(), &[])]);
+            let mut response: crate::value::Dict = self.private_post_exchange(&[request.clone()]).await.into_dict();
+            return self.parse_transfer(&response, &[self.safe_currency(code.clone(), &[])]);
         }  else {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
             // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
@@ -6180,8 +6180,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("signature".to_string(), sig);
                 m
             });
-            let mut response: Value = self.private_post_exchange(&[request]).await;
-            return self.parse_transfer(response, &[currency]);
+            let mut response: crate::value::Dict = self.private_post_exchange(&[request]).await.into_dict();
+            return self.parse_transfer(&response, &[currency]);
         }
         Value::Null
         }).await?))
@@ -6289,8 +6289,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("signature".to_string(), sig);
             m
         });
-        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
-        return self.parse_transaction(response, &[]);
+        let mut response: crate::value::Dict = self.private_post_exchange(&[Value::Map(request)]).await.into_dict();
+        return self.parse_transaction(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -6385,10 +6385,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = self.safe_string(self.handle_public_address("fetchTradingFee", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut paramsPublicAddress: Value = self.safe_dict(self.handle_public_address("fetchTradingFee", params), Value::Int(1), &[Value::Map({
+        let mut paramsPublicAddress: crate::value::Dict = self.safe_dict(self.handle_public_address("fetchTradingFee", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -6396,7 +6396,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_31 = self.extend(Value::Map(request), &[paramsPublicAddress]);
+        let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
         let mut response: crate::value::Dict = self.public_post_info(&[__ws_arg_31]).await.into_dict();
         //
         //     {
@@ -6962,10 +6962,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut userAddress: Option<String> = self.safe_string(self.handle_public_address("fetchFundingHistory", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut paramsPublicAddress: Value = self.safe_dict(self.handle_public_address("fetchFundingHistory", params), Value::Int(1), &[Value::Map({
+        let mut paramsPublicAddress: crate::value::Dict = self.safe_dict(self.handle_public_address("fetchFundingHistory", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
@@ -6975,14 +6975,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPublicAddress.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPublicAddress, Value::Str("until".into()), &[]).into_dict();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPublicAddress, "until", &[]).as_i64();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPublicAddress, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_36]).await;
-        return self.parse_incomes(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        let mut response: crate::value::Dict = self.public_post_info(&[__ws_arg_36]).await.into_dict();
+        return self.parse_incomes(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }

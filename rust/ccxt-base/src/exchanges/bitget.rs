@@ -6290,8 +6290,8 @@ if _try_result.is_err() {
             let mut __for_first_370: bool = true;
             while { if !__for_first_370 { i += 1; } __for_first_370 = false; i < (results.len() as i64) } {
             let mut res: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
-            let mut data: Value = self.safe_list_k(&res, "data", &[Value::from(vec![])]);
-            markets = self.array_concat(Value::Arr(markets), data).into_list();
+            let mut data: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
+            markets = self.array_concat(Value::Arr(markets), &data).into_list();
         }
         }
         //
@@ -6900,13 +6900,14 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_market_leverage_tiers(result, &[(market).raw.clone()]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_market_leverage_tiers(&result, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut info: Value = info.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // swap and future
@@ -7765,7 +7766,7 @@ if _try_result.is_err() {
             asksKey = "a".to_string();
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
-        return self.parse_order_book(Value::Dict(data), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
+        return self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
         Value::Null
         }).await?))
     }
@@ -8368,8 +8369,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_tickers(data, &[symbolsResolved]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_tickers(&data, &[symbolsResolved]);
         Value::Null
         }).await?))
     }
@@ -10762,9 +10763,9 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut failure: Value = self.safe_list_k(&data, "failureList", &[Value::from(vec![])]);
-        let mut orderInfo: Value = self.safe_list_k(&data, "successList", &[Value::from(vec![])]);
-        let mut both: Value = self.array_concat(orderInfo, failure);
+        let mut failure: crate::value::List = self.safe_list_k(&data, "failureList", &[Value::from(vec![])]).into_list();
+        let mut orderInfo: crate::value::List = self.safe_list_k(&data, "successList", &[Value::from(vec![])]).into_list();
+        let mut both: Value = self.array_concat(&orderInfo, &failure);
         return self.parse_orders(both, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -14754,7 +14755,7 @@ if _try_result.is_err() {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsProductType, Value::Str("holdSide".into()), &[]).into_dict();
         let __ws_arg_122 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin(&[__ws_arg_122]).await;
+        let mut response: crate::value::Dict = self.private_mix_post_v2_mix_account_set_margin(&[__ws_arg_122]).await.into_dict();
         //
         //     {
         //         "code": "00000",
@@ -14763,7 +14764,7 @@ if _try_result.is_err() {
         //         "data": ""
         //     }
         //
-        let mut marginModification: Value = self.parse_margin_modification(response, &[(market).raw.clone()]);
+        let mut marginModification: Value = self.parse_margin_modification(&response, &[(market).raw.clone()]);
         let __ws_arg_123 = self.parse_number(amount, &[]);
         return self.extend(marginModification, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -15641,8 +15642,8 @@ if _try_result.is_err() {
         //         "requestTime": "1700120731773"
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_deposit_withdraw_fees(data, &[codes, Value::Str("coin".into())]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_deposit_withdraw_fees(&data, &[codes, Value::Str("coin".into())]);
         Value::Null
         }).await?))
     }

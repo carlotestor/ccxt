@@ -1164,8 +1164,8 @@ impl Ndax {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_get_products(&[__ws_arg_2]).await;
-        return self.parse_currencies(response);
+        let mut response: crate::value::List = self.public_get_get_products(&[__ws_arg_2]).await.into_list();
+        return self.parse_currencies(&response);
         Value::Null
         }).await?))
     }
@@ -1247,8 +1247,8 @@ impl Ndax {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_get_instruments(&[__ws_arg_3]).await;
-        return self.parse_markets(response);
+        let mut response: crate::value::List = self.public_get_get_instruments(&[__ws_arg_3]).await.into_list();
+        return self.parse_markets(&response);
         Value::Null
         }).await?))
     }
@@ -1334,7 +1334,8 @@ impl Ndax {
     Value::Null
 }
 
-    pub fn parse_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order_book(&self, orderbook: impl Into<crate::Value>, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut orderbook: Value = orderbook.into();
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
         let mut bidsKey = get_arg(optional_args, 1, Value::Str("bids".into()));
         let mut asksKey = get_arg(optional_args, 2, Value::Str("asks".into()));
@@ -1423,8 +1424,8 @@ impl Ndax {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_get_l2_snapshot(&[__ws_arg_4]).await;
-        return self.parse_order_book(response, symbol, &[]);
+        let mut response: crate::value::List = self.public_get_get_l2_snapshot(&[__ws_arg_4]).await.into_list();
+        return self.parse_order_book(&response, symbol, &[]);
         Value::Null
         }).await?))
     }
@@ -1543,7 +1544,7 @@ impl Ndax {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.public_get_summary(&[params]).await;
+        let mut response: crate::value::List = self.public_get_summary(&[params]).await.into_list();
         //
         //     [
         //         {
@@ -1559,7 +1560,7 @@ impl Ndax {
         //         }
         //     ]
         //
-        let mut tickers: Value = self.parse_tickers(response, &[]);
+        let mut tickers: Value = self.parse_tickers(&response, &[]);
         return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -1597,8 +1598,8 @@ impl Ndax {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_get_level1(&[__ws_arg_5]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_get_get_level1(&[__ws_arg_5]).await.into_dict();
+        return self.parse_ticker(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1905,8 +1906,8 @@ impl Ndax {
             request.insert("Count".into(), limit.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_get_last_trades(&[__ws_arg_7]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_get_last_trades(&[__ws_arg_7]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2386,8 +2387,8 @@ impl Ndax {
             request.insert("StopPrice".into(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_send_order(&[__ws_arg_11]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.private_post_send_order(&[__ws_arg_11]).await.into_dict();
+        return self.parse_order(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2457,8 +2458,8 @@ impl Ndax {
             request.insert("ClientOrderId".into(), Value::from(clientOrderId));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_cancel_replace_order(&[__ws_arg_12]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.private_post_cancel_replace_order(&[__ws_arg_12]).await.into_dict();
+        return self.parse_order(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2513,8 +2514,8 @@ impl Ndax {
             request.insert("Depth".into(), limit.clone());
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_get_trades_history(&[__ws_arg_13]).await;
-        return self.parse_trades(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_get_trades_history(&[__ws_arg_13]).await.into_list();
+        return self.parse_trades(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2616,8 +2617,8 @@ impl Ndax {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("ClOrderId".into())]), &[]).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_cancel_order(&[__ws_arg_15]).await;
-        let mut order: Value = self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        let mut response: crate::value::Dict = self.private_post_cancel_order(&[__ws_arg_15]).await.into_dict();
+        let mut order: Value = self.parse_order(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         return self.extend(order, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -2671,8 +2672,8 @@ impl Ndax {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_get_open_orders(&[__ws_arg_16]).await;
-        return self.parse_orders(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        let mut response: crate::value::List = self.private_get_get_open_orders(&[__ws_arg_16]).await.into_list();
+        return self.parse_orders(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2727,8 +2728,8 @@ impl Ndax {
             request.insert("Depth".into(), limit.clone());
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_get_orders_history(&[__ws_arg_17]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_get_orders_history(&[__ws_arg_17]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2775,8 +2776,8 @@ impl Ndax {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_get_order_status(&[__ws_arg_18]).await;
-        return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        let mut response: crate::value::Dict = self.private_get_get_order_status(&[__ws_arg_18]).await.into_dict();
+        return self.parse_order(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
     }
@@ -2921,8 +2922,8 @@ impl Ndax {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_get_deposit_info(&[__ws_arg_20]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_get_get_deposit_info(&[__ws_arg_20]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -3123,8 +3124,8 @@ impl Ndax {
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_get_withdraws(&[__ws_arg_23]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_get_withdraws(&[__ws_arg_23]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3334,7 +3335,7 @@ impl Ndax {
     m
 }));
         let mut tagWithdrawTag: Option<String> = self.safe_string_k(params.clone(), "tag", &[]).as_str().map(str::to_owned);
-        let mut paramsWithdrawTag: Value = self.omit(params, Value::Str("tag".into()), &[]);
+        let mut paramsWithdrawTag: crate::value::Dict = self.omit(params, Value::Str("tag".into()), &[]).into_dict();
         // this method required login, password and twofa key
         let mut sessionToken: Option<String> = self.safe_string_k(self.options.clone(), "sessionToken", &[]).as_str().map(str::to_owned);
         if (sessionToken.is_none()) {
@@ -3350,8 +3351,8 @@ impl Ndax {
         }
         self.load_accounts(&[]).await;
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[self.parse_to_int(self.safe_string(self.safe_dict(self.accounts.clone(), Value::Int(0), &[]), Value::Str("id".into()), &[]))]);
-        let mut accountId: Value = self.safe_integer2(paramsWithdrawTag.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]).into_dict();
+        let mut accountId: Value = self.safe_integer2(&paramsWithdrawTag, Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]).into_dict();
         let mut currency: Value = self.currency(code);
         let mut withdrawTemplateTypesRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3424,8 +3425,8 @@ impl Ndax {
                 m.insert("Payload".to_string(), json_stringify(&Value::Map(withdrawPayload)));
             m
         });
-        let mut response: Value = self.private_post_create_withdraw_ticket(&[self.deep_extend(Value::Map(withdrawRequest), &[&paramsOmitted])]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_create_withdraw_ticket(&[self.deep_extend(Value::Map(withdrawRequest), &[&paramsOmitted])]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }

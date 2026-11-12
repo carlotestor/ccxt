@@ -1695,8 +1695,8 @@ impl Blofin {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.public_get_market_tickers(&[params]).await.into_dict();
-        let mut tickers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_tickers(tickers, &[symbolsNormalized]);
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_tickers(&tickers, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -3804,11 +3804,11 @@ impl Blofin {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let __ws_arg_25 = self.extend(Value::Map(request), &[data]);
+        })]).into_dict();
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&data]);
         return self.parse_transaction(__ws_arg_25, &[currency]);
         Value::Null
         }).await?))

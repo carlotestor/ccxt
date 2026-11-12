@@ -1865,9 +1865,9 @@ impl Phemex {
         let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut parsedOrders: Vec<Value> = Vec::new();
         if (in_op(&message, &Value::Str("closed".into()))) || (in_op(&message, &Value::Str("fills".into()))) || (in_op(&message, &Value::Str("open".into()))) {
-            let mut closed: Value = self.safe_list_k(message.clone(), "closed", &[Value::from(vec![])]);
-            let mut open: Value = self.safe_list_k(message.clone(), "open", &[Value::from(vec![])]);
-            let mut orders: crate::value::List = self.array_concat(open, closed).into_list();
+            let mut closed: crate::value::List = self.safe_list_k(message.clone(), "closed", &[Value::from(vec![])]).into_list();
+            let mut open: crate::value::List = self.safe_list_k(message.clone(), "open", &[Value::from(vec![])]).into_list();
+            let mut orders: crate::value::List = self.array_concat(&open, &closed).into_list();
             let mut ordersLength: i64 = orders.len() as i64;
             if (ordersLength == 0) {
                 return;

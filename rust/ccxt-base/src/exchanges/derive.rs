@@ -1655,8 +1655,8 @@ impl Derive {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut data: Value = self.safe_list_k(&result, "instruments", &[Value::from(vec![])]);
-            allInstruments = self.array_concat(Value::Arr(allInstruments), data).into_list();
+            let mut data: crate::value::List = self.safe_list_k(&result, "instruments", &[Value::from(vec![])]).into_list();
+            allInstruments = self.array_concat(Value::Arr(allInstruments), &data).into_list();
             let mut pagination: crate::value::Dict = self.safe_dict_k(&result, "pagination", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -4684,8 +4684,8 @@ impl Derive {
                 return Value::from(vec![]);
             }
         }
-        let mut events: Value = self.safe_list_k(&result, "events", &[Value::from(vec![])]);
-        return self.parse_incomes(events, &[market, since, limit]);
+        let mut events: crate::value::List = self.safe_list_k(&result, "events", &[Value::from(vec![])]).into_list();
+        return self.parse_incomes(&events, &[market, since, limit]);
         Value::Null
         }).await?))
     }

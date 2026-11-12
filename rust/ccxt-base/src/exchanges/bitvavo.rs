@@ -859,8 +859,8 @@ impl Bitvavo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_markets(&[params]).await;
-        return self.parse_markets(response);
+        let mut response: crate::value::List = self.public_get_markets(&[params]).await.into_list();
+        return self.parse_markets(&response);
         Value::Null
         }).await?))
     }
@@ -973,8 +973,8 @@ impl Bitvavo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_assets(&[params]).await;
-        return self.parse_currencies(response);
+        let mut response: crate::value::List = self.public_get_assets(&[params]).await.into_list();
+        return self.parse_currencies(&response);
         Value::Null
         }).await?))
     }
@@ -1217,8 +1217,8 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_ticker24h(&[params]).await;
-        return self.parse_tickers(response, &[symbols]);
+        let mut response: crate::value::Dict = self.public_get_ticker24h(&[params]).await.into_dict();
+        return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -1274,8 +1274,8 @@ impl Bitvavo {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.public_get_market_trades(&[__ws_arg_1]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_market_trades(&[__ws_arg_1]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1539,7 +1539,7 @@ impl Bitvavo {
             request.insert("depth".into(), limit);
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_market_book(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.public_get_market_book(&[__ws_arg_3]).await.into_dict();
         //
         //     {
         //         "market":"BTC-EUR",
@@ -1556,8 +1556,8 @@ impl Bitvavo {
         //         ]
         //     }
         //
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), Value::from((market).symbol.clone()), &[]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(response, "nonce", &[]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&response, "nonce", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))
@@ -1646,8 +1646,8 @@ impl Bitvavo {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(1440)]).await;
         }
         let mut request: Value = self.fetch_ohlcv_request(symbol.as_str(), &[timeframe.clone(), since.clone(), limit.clone(), paramsPaginate]);
-        let mut response: Value = self.public_get_market_candles(&[request]).await;
-        return self.parse_ohlc_vs(self.to_array(response), &[market, timeframe, since, limit]);
+        let mut response: crate::value::List = self.public_get_market_candles(&[request]).await.into_list();
+        return self.parse_ohlc_vs(self.to_array(&response), &[market, timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1821,8 +1821,8 @@ impl Bitvavo {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("subaccountId".into()), &[])]);
-        let mut response: Value = self.private_post_subaccounts_transfers(&[__ws_arg_4]).await;
-        return self.parse_transfer(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_subaccounts_transfers(&[__ws_arg_4]).await.into_dict();
+        return self.parse_transfer(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -1940,8 +1940,8 @@ impl Bitvavo {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_subaccounts_transfers_transfer_id(&[__ws_arg_6]).await;
-        return self.parse_transfer(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_get_subaccounts_transfers_transfer_id(&[__ws_arg_6]).await.into_dict();
+        return self.parse_transfer(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -2194,8 +2194,8 @@ impl Bitvavo {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: Value = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]);
-        let mut response: Value = self.private_post_order(&[request]).await;
-        return self.parse_order(response, &[market]);
+        let mut response: crate::value::Dict = self.private_post_order(&[request]).await.into_dict();
+        return self.parse_order(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -2286,8 +2286,8 @@ impl Bitvavo {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: Value = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, params]);
-        let mut response: Value = self.private_put_order(&[request]).await;
-        return self.parse_order(response, &[market]);
+        let mut response: crate::value::Dict = self.private_put_order(&[request]).await.into_dict();
+        return self.parse_order(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -2352,8 +2352,8 @@ impl Bitvavo {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: Value = self.cancel_order_request(id.as_str(), symbol.as_str(), &[params]);
-        let mut response: Value = self.private_delete_order(&[request]).await;
-        return self.parse_order(response, &[market]);
+        let mut response: crate::value::Dict = self.private_delete_order(&[request]).await.into_dict();
+        return self.parse_order(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -2399,8 +2399,8 @@ impl Bitvavo {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOperatorId]);
-        let mut response: Value = self.private_delete_orders(&[__ws_arg_8]).await;
-        return self.parse_orders(response, &[market]);
+        let mut response: crate::value::List = self.private_delete_orders(&[__ws_arg_8]).await.into_list();
+        return self.parse_orders(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -2484,8 +2484,8 @@ impl Bitvavo {
             request.insert("orderId".into(), id);
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_order(&[__ws_arg_10]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.private_get_order(&[__ws_arg_10]).await.into_dict();
+        return self.parse_order(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2558,8 +2558,8 @@ impl Bitvavo {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: Value = self.fetch_orders_request(symbol.as_str(), since.as_i64(), limit.as_i64(), &[paramsPaginate]);
-        let mut response: Value = self.private_get_orders(&[request]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_orders(&[request]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2601,8 +2601,8 @@ impl Bitvavo {
             request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders_open(&[__ws_arg_11]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_orders_open(&[__ws_arg_11]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2807,8 +2807,8 @@ impl Bitvavo {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: Value = self.fetch_my_trades_request(symbol.as_str(), since.as_i64(), limit.as_i64(), &[paramsPaginate]);
-        let mut response: Value = self.private_get_trades(&[request]).await;
-        return self.parse_trades(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_trades(&[request]).await.into_list();
+        return self.parse_trades(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3015,8 +3015,8 @@ impl Bitvavo {
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = self.withdraw_request(code.as_str(), amount, address.as_str().unwrap_or_default(), tagWithdrawTag.as_deref(), &[paramsWithdrawTag]);
-        let mut response: Value = self.private_post_withdrawal(&[request]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_withdrawal(&[request]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -3081,8 +3081,8 @@ impl Bitvavo {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut response: Value = self.private_get_withdrawal_history(&[request]).await;
-        return self.parse_transactions(response, &[currency, since, limit, Value::Map({
+        let mut response: crate::value::List = self.private_get_withdrawal_history(&[request]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".into()));
     m
@@ -3151,8 +3151,8 @@ impl Bitvavo {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut response: Value = self.private_get_deposit_history(&[request]).await;
-        return self.parse_transactions(response, &[currency, since, limit, Value::Map({
+        let mut response: crate::value::List = self.private_get_deposit_history(&[request]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".into()));
     m
@@ -3354,8 +3354,8 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_assets(&[params]).await;
-        return self.parse_deposit_withdraw_fees(response, &[codes, Value::Str("symbol".into())]);
+        let mut response: crate::value::List = self.public_get_assets(&[params]).await.into_list();
+        return self.parse_deposit_withdraw_fees(&response, &[codes, Value::Str("symbol".into())]);
         Value::Null
         }).await?))
     }

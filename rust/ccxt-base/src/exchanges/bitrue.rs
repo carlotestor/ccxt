@@ -1455,11 +1455,11 @@ impl Bitrue {
         }
         let mut promises: Value = promise_all(&Value::from(promisesRaw)).await;
         let mut spotMarkets: Value = self.safe_list(self.safe_dict(promises.clone(), Value::Int(0), &[]), Value::Str("symbols".into()), &[Value::from(vec![])]);
-        let mut futureMarkets: Value = self.safe_list(promises.clone(), Value::Int(1), &[Value::from(vec![])]);
-        let mut deliveryMarkets: Value = self.safe_list(promises, Value::Int(2), &[Value::from(vec![])]);
+        let mut futureMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut deliveryMarkets: crate::value::List = self.safe_list(promises, Value::Int(2), &[Value::from(vec![])]).into_list();
         let mut markets: Value = spotMarkets;
-        markets = self.array_concat(markets.clone(), futureMarkets);
-        markets = self.array_concat(markets.clone(), deliveryMarkets);
+        markets = self.array_concat(markets.clone(), &futureMarkets);
+        markets = self.array_concat(markets.clone(), &deliveryMarkets);
         //
         // spot
         //
@@ -2968,8 +2968,8 @@ impl Bitrue {
             request.insert("limit".into(), limit.clone()); // default 100, max 1000
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.spot_v1_private_get_all_orders(&[__ws_arg_21]).await;
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.spot_v1_private_get_all_orders(&[__ws_arg_21]).await.into_list();
+        return self.parse_orders(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

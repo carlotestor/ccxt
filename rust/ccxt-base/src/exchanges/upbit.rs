@@ -1037,8 +1037,8 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_market_all(&[params]).await;
-        return self.parse_markets(response);
+        let mut response: crate::value::List = self.public_get_market_all(&[params]).await.into_list();
+        return self.parse_markets(&response);
         Value::Null
         }).await?))
     }
@@ -1234,7 +1234,7 @@ impl Upbit {
             request.insert("count".into(), limit);
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_orderbook(&[__ws_arg_2]).await;
+        let mut response: crate::value::List = self.public_get_orderbook(&[__ws_arg_2]).await.into_list();
         //
         //     [ {          market:   "BTC-ETH",
         //               "timestamp":    1542899030043,
@@ -1267,7 +1267,7 @@ impl Upbit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut orderbooks: crate::value::List = self.to_array(response).into_list();
+        let mut orderbooks: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1138: bool = true;
@@ -1646,8 +1646,8 @@ impl Upbit {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trades_ticks(&[__ws_arg_5]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, Value::from(limitResolved)]);
+        let mut response: crate::value::List = self.public_get_trades_ticks(&[__ws_arg_5]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2087,8 +2087,8 @@ impl Upbit {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_order(&[__ws_arg_11]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_delete_order(&[__ws_arg_11]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -2287,8 +2287,8 @@ impl Upbit {
             request.insert("limit".into(), limit.clone()); // default is 100
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_deposits(&[__ws_arg_13]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_deposits(&[__ws_arg_13]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2326,8 +2326,8 @@ impl Upbit {
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_deposit(&[__ws_arg_14]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_get_deposit(&[__ws_arg_14]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
 
     Value::Null
 }
@@ -2373,8 +2373,8 @@ impl Upbit {
             request.insert("limit".into(), limit.clone()); // default is 100
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_withdraws(&[__ws_arg_15]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_withdraws(&[__ws_arg_15]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2412,8 +2412,8 @@ impl Upbit {
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_withdraw(&[__ws_arg_16]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_get_withdraw(&[__ws_arg_16]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
 
     Value::Null
 }
@@ -2745,8 +2745,8 @@ impl Upbit {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders_open(&[__ws_arg_17]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_orders_open(&[__ws_arg_17]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2800,8 +2800,8 @@ impl Upbit {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.private_get_orders_closed(&[__ws_arg_18]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_orders_closed(&[__ws_arg_18]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2855,8 +2855,8 @@ impl Upbit {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.private_get_orders_closed(&[__ws_arg_19]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_orders_closed(&[__ws_arg_19]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2893,8 +2893,8 @@ impl Upbit {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_order(&[__ws_arg_20]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_get_order(&[__ws_arg_20]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -2923,8 +2923,8 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_deposits_coin_addresses(&[params]).await;
-        return self.parse_deposit_addresses(response, &[codes, Value::Bool(false)]);
+        let mut response: crate::value::List = self.private_get_deposits_coin_addresses(&[params]).await.into_list();
+        return self.parse_deposit_addresses(&response, &[codes, Value::Bool(false)]);
         Value::Null
         }).await?))
     }
@@ -2997,8 +2997,8 @@ impl Upbit {
                 m.insert("net_type".to_string(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency, "code", &[])]));
             m
         }), &[&paramsNetworkCode]);
-        let mut response: Value = self.private_get_deposits_coin_address(&[__ws_arg_21]).await;
-        return self.parse_deposit_address(response, &[]);
+        let mut response: crate::value::Dict = self.private_get_deposits_coin_address(&[__ws_arg_21]).await.into_dict();
+        return self.parse_deposit_address(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -3035,7 +3035,7 @@ impl Upbit {
         });
         // https://github.com/ccxt/ccxt/issues/6452
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_deposits_generate_coin_address(&[__ws_arg_22]).await;
+        let mut response: crate::value::Dict = self.private_post_deposits_generate_coin_address(&[__ws_arg_22]).await.into_dict();
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:
@@ -3051,11 +3051,11 @@ impl Upbit {
         //         "secondary_address": null
         //     }
         //
-        let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
+        let mut message: Option<String> = self.safe_string_k(&response, "message", &[]).as_str().map(str::to_owned);
         if (message.is_some()) {
             panic!("{}", crate::exchange_errors::address_pending(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" is generating ".into())).into()), code).into()), Value::Str(" deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address".into()))));
         }
-        return self.parse_deposit_address(response, &[]);
+        return self.parse_deposit_address(&response, &[]);
         Value::Null
         }).await?))
     }

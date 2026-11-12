@@ -1921,8 +1921,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        return self.parse_tickers(data, &[symbolsNormalized]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        return self.parse_tickers(&data, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -2225,7 +2225,7 @@ impl Paradex {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params]);
-        let mut response: Value = self.public_get_orderbook_market(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.public_get_orderbook_market(&[__ws_arg_5]).await.into_dict();
         //
         //     {
         //         "market": "BTC-USD-PERP",
@@ -2248,9 +2248,9 @@ impl Paradex {
         if (limit != Value::Null) {
             request.insert("depth".into(), limit);
         }
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "last_updated_at", &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), Value::from((market).symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(response, "seq_no", &[]));
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "last_updated_at", &[]).as_i64();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&response, "seq_no", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))
@@ -3141,7 +3141,7 @@ impl Paradex {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]);
         request = self.sign_order_request(request.clone(), &[]).await;
-        let mut response: Value = self.private_post_orders(&[request]).await;
+        let mut response: crate::value::Dict = self.private_post_orders(&[request]).await.into_dict();
         //
         // {
         //     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -3170,7 +3170,7 @@ impl Paradex {
         //     "type": "MARKET"
         // }
         //
-        let mut order: Value = self.parse_order(response, &[market]);
+        let mut order: Value = self.parse_order(&response, &[market]);
         return order;
         Value::Null
         }).await?))
@@ -3227,8 +3227,8 @@ impl Paradex {
         add_element_to_object(&mut request, &Value::Str("order_id".into()), id.clone());
         add_element_to_object(&mut request, &Value::Str("id".into()), id);
         request = self.sign_order_request(request.clone(), &[Value::Bool(true)]).await;
-        let mut response: Value = self.private_put_orders_order_id(&[request]).await;
-        return self.parse_order(response, &[market]);
+        let mut response: crate::value::Dict = self.private_put_orders_order_id(&[request]).await.into_dict();
+        return self.parse_order(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -3268,11 +3268,11 @@ impl Paradex {
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
             let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut extendedParams: Value = self.extend(params.clone(), &[orderParams]);
+            })]).into_dict();
+            let mut extendedParams: Value = self.extend(params.clone(), &[&orderParams]);
             let mut orderRequest: Value = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), extendedParams]);
             orderRequest = self.sign_order_request(orderRequest.clone(), &[]).await;
             ordersRequests.push(orderRequest);
@@ -5028,8 +5028,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut results: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        return self.parse_all_greeks(results, &[symbolsNormalized]);
+        let mut results: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        return self.parse_all_greeks(&results, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }

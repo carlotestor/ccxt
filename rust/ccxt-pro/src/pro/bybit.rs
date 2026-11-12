@@ -1115,11 +1115,8 @@ impl Bybit {
         //
         let mut topic: String = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut updateType: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut isSpot: bool = self.safe_string_k(data.clone(), "usdIndexPrice", &[]) != Value::Null;
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut isSpot: bool = self.safe_string_k(&data, "usdIndexPrice", &[]) != Value::Null;
         let mut type_var: String = "contract".to_string();
         if isSpot {
             type_var = "spot".to_string();
@@ -1127,7 +1124,7 @@ impl Bybit {
         let mut symbol: Option<String> = None;
         let mut parsed: Value = Value::Null;
         if (updateType.as_deref() == Some("snapshot")) {
-            parsed = self.parse_ticker(data.clone(), &[]);
+            parsed = self.parse_ticker(Value::from(&data), &[]);
             symbol = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
         }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: Value = Value::Array(topic.split(".").map(Value::from).collect());
@@ -1144,7 +1141,7 @@ impl Bybit {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut merged: Value = self.extend(rawTicker, &[data]);
+            let mut merged: Value = self.extend(rawTicker, &[&data]);
             parsed = self.parse_ticker(merged, &[]);
         }
         if (parsed == Value::Null) || (symbol.is_none()) {
@@ -1743,7 +1740,7 @@ impl Bybit {
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         orderbook.set_book_meta("symbol", symbol.clone());
         if isSnapshot {
-            let mut snapshot: Value = self.parse_order_book(Value::from(&data), symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
+            let mut snapshot: Value = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
             orderbook.reset(snapshot);
         }  else {
             let mut asks: Value = self.safe_list_k(&data, "a", &[Value::from(vec![])]);
@@ -3288,8 +3285,8 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_205: bool = true;
                 while { if !__for_first_205 { i += 1; } __for_first_205 = false; i < (data.len() as i64) } {
-                let mut B: Value = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "B", &[Value::from(vec![])]);
-                rawBalances = self.array_concat(rawBalances.clone(), B);
+                let mut B: crate::value::List = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "B", &[Value::from(vec![])]).into_list();
+                rawBalances = self.array_concat(rawBalances.clone(), &B);
             }
             }
             info = rawBalances.clone();

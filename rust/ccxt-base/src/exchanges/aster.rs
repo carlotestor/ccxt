@@ -1915,7 +1915,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut sapiRows: Value = self.safe_list_k(&sapiResult, "symbols", &[Value::from(vec![])]);
+        let mut sapiRows: crate::value::List = self.safe_list_k(&sapiResult, "symbols", &[Value::from(vec![])]).into_list();
         let mut fapiResult: crate::value::Dict = self.safe_dict(results, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2027,7 +2027,7 @@ impl Aster {
             }
         }
         }
-        let mut rows: Value = self.array_concat(sapiRows, Value::from(fapiRowsFiltered));
+        let mut rows: Value = self.array_concat(&sapiRows, Value::from(fapiRowsFiltered));
         return self.parse_markets(rows);
         Value::Null
         }).await?))
@@ -3062,8 +3062,8 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.fapi_public_get_v3_funding_info(&[params]).await;
-        return self.parse_funding_rates(response, &[symbolsNormalized]);
+        let mut response: crate::value::List = self.fapi_public_get_v3_funding_info(&[params]).await.into_list();
+        return self.parse_funding_rates(&response, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -3115,8 +3115,8 @@ impl Aster {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_17 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.fapi_public_get_v3_funding_rate(&[__ws_arg_17]).await;
-        return self.parse_funding_rate_histories(response, &[market]);
+        let mut response: crate::value::List = self.fapi_public_get_v3_funding_rate(&[__ws_arg_17]).await.into_list();
+        return self.parse_funding_rate_histories(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -3847,8 +3847,8 @@ impl Aster {
             m
         });
         let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.fapi_private_post_v3_batch_orders(&[__ws_arg_30]).await;
-        return self.parse_orders(response, &[]);
+        let mut response: crate::value::List = self.fapi_private_post_v3_batch_orders(&[__ws_arg_30]).await.into_list();
+        return self.parse_orders(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -4270,8 +4270,8 @@ impl Aster {
     m
 }));
         self.load_markets_and_sign_in().await;
-        let mut response: Value = self.fapi_private_get_v3_position_risk(&[params]).await;
-        return self.parse_leverages(self.to_array(response), &[symbols, Value::Str("symbol".into())]);
+        let mut response: crate::value::List = self.fapi_private_get_v3_position_risk(&[params]).await.into_list();
+        return self.parse_leverages(self.to_array(&response), &[symbols, Value::Str("symbol".into())]);
         Value::Null
         }).await?))
     }
@@ -4346,8 +4346,8 @@ impl Aster {
     m
 }));
         self.load_markets_and_sign_in().await;
-        let mut response: Value = self.fapi_private_get_v3_position_risk(&[params]).await;
-        return self.parse_margin_modes(self.to_array(response), &[symbols, Value::Str("symbol".into()), Value::Str("swap".into())]);
+        let mut response: crate::value::List = self.fapi_private_get_v3_position_risk(&[params]).await.into_list();
+        return self.parse_margin_modes(self.to_array(&response), &[symbols, Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
     }
@@ -4439,7 +4439,7 @@ impl Aster {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.fapi_private_get_v3_position_margin_history(&[__ws_arg_38]).await;
+        let mut response: crate::value::List = self.fapi_private_get_v3_position_margin_history(&[__ws_arg_38]).await.into_list();
         //
         //     [
         //         {
@@ -4452,7 +4452,7 @@ impl Aster {
         //         }
         //     ]
         //
-        let mut modifications: Value = self.parse_margin_modifications(self.to_array(response), &[]);
+        let mut modifications: Value = self.parse_margin_modifications(self.to_array(&response), &[]);
         return self.filter_by_symbol_since_limit(modifications, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
@@ -4521,8 +4521,8 @@ impl Aster {
         });
         let mut code: Value = Value::from((market).quote.clone());
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.fapi_private_post_v3_position_margin(&[__ws_arg_39]).await;
-        let __ws_arg_40 = self.parse_margin_modification(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.fapi_private_post_v3_position_margin(&[__ws_arg_39]).await.into_dict();
+        let __ws_arg_40 = self.parse_margin_modification(&response, &[(market).raw.clone()]);
         return self.extend(__ws_arg_40, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("code".to_string(), code);
@@ -4667,8 +4667,8 @@ impl Aster {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_41 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_41]).await;
-        return self.parse_incomes(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.fapi_private_get_v3_income(&[__ws_arg_41]).await.into_list();
+        return self.parse_incomes(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -5013,7 +5013,7 @@ impl Aster {
             m
         });
         let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.fapi_private_get_v3_position_risk(&[__ws_arg_43]).await;
+        let mut response: crate::value::List = self.fapi_private_get_v3_position_risk(&[__ws_arg_43]).await.into_list();
         //
         //     [
         //         {
@@ -5033,7 +5033,7 @@ impl Aster {
         //         }
         //     ]
         //
-        let mut rawPositions: crate::value::List = self.to_array(response).into_list();
+        let mut rawPositions: crate::value::List = self.to_array(&response).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5387,7 +5387,7 @@ impl Aster {
         // it contains useful stuff like the maintenance margin and initial margin for positions
         let mut leverageBrackets: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]).into_opt_dict();
         if (leverageBrackets.is_none()) || reload {
-            let mut response: Value = self.fapi_private_get_v3_leverage_bracket(&[params]).await;
+            let mut response: crate::value::List = self.fapi_private_get_v3_leverage_bracket(&[params]).await.into_list();
             //
             //    [
             //        {
@@ -5412,7 +5412,7 @@ impl Aster {
             //                ...
             //
             { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("leverageBrackets".into(), __be_tmp); } }
-            let mut entries: crate::value::List = self.to_array(response).into_list();
+            let mut entries: crate::value::List = self.to_array(&response).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_239: bool = true;
@@ -5594,8 +5594,8 @@ impl Aster {
         request.insert("amount".into(), self.currency_to_precision(code, amount, &[network.clone()]));
         { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
         let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.sapi_private_post_v3_aster_user_withdraw(&[__ws_arg_45]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.sapi_private_post_v3_aster_user_withdraw(&[__ws_arg_45]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -5682,8 +5682,8 @@ impl Aster {
         request.insert("kindType".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         request.insert("clientTranId".into(), clientTranId);
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_private_post_v3_asset_wallet_transfer(&[__ws_arg_46]).await;
-        return self.parse_transfer(response, &[currency]);
+        let mut response: crate::value::Dict = self.sapi_private_post_v3_asset_wallet_transfer(&[__ws_arg_46]).await.into_dict();
+        return self.parse_transfer(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -5973,7 +5973,7 @@ impl Aster {
         if approvedBuilderFee {
             return Value::Bool(true);
         }
-        let mut result: Value = self.fapi_private_get_v3_builder(&[]).await;
+        let mut result: crate::value::List = self.fapi_private_get_v3_builder(&[]).await.into_list();
         //
         //    [
         //        {
@@ -5984,7 +5984,7 @@ impl Aster {
         //        }
         //    ]
         //
-        let mut approvedBuilders: crate::value::List = self.to_array(result).into_list();
+        let mut approvedBuilders: crate::value::List = self.to_array(&result).into_list();
         let mut length: f64 = ((approvedBuilders.len() as i64) as f64);
         let mut found: bool = false;
         let mut builderAddress: Option<String> = self.safe_string_k(self.options.clone(), "builder", &[]).as_str().map(str::to_owned);

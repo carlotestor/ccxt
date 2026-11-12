@@ -1520,7 +1520,7 @@ if _try_result.is_err() {
         let mut isMarketOrder: bool = orderType.as_deref() == Some("MARKET");
         let mut timeInForce: Option<String> = self.safe_string_lower_k(&paramsOrderExpiry, "timeInForce", &[Value::Str("gtt".into())]).as_str().map(str::to_owned);
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[Value::from(&paramsOrderExpiry)]).as_bool() == Some(true);
-        let mut paramsOmitted: Value = self.omit(&paramsOrderExpiry, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("timeInForce".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOrderExpiry, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
         let mut orderTypeNum: Option<i64> = None;
         let mut timeInForceNum: Option<i64> = None;
         if isMarketOrder {
@@ -1558,8 +1558,8 @@ if _try_result.is_err() {
         let mut priceScale: Value = self.pow("10", marketInfo.get("price_decimals").cloned().unwrap_or(Value::Null));
         let mut triggerPriceStr: Option<String> = Some("0".to_string()); // default is 0
         let mut defaultClientOrderId: Value = self.rand_number(Value::Int(9)); // c# only support int32 2147483647.
-        let mut clientOrderId: Value = self.safe_integer2(paramsOmitted.clone(), Value::Str("client_order_index".into()), Value::Str("clientOrderId".into()), &[defaultClientOrderId]);
-        let mut paramsRequest: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("nonce".into()), Value::Str("apiKeyIndex".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
+        let mut clientOrderId: Value = self.safe_integer2(&paramsOmitted, Value::Str("client_order_index".into()), Value::Str("clientOrderId".into()), &[defaultClientOrderId]);
+        let mut paramsRequest: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("nonce".into()), Value::Str("apiKeyIndex".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
             Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("client_order_index".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
         if isConditional {
             amountStr = self.number_to_string(amount.clone());
@@ -1903,8 +1903,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo);
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return self.parse_order(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2072,9 +2072,9 @@ if _try_result.is_err() {
         //        ]
         //    }
         //
-        let mut spotMarkets: Value = self.safe_list_k(&response, "spot_order_book_details", &[Value::from(vec![])]);
-        let mut swapMarkets: Value = self.safe_list_k(&response, "order_book_details", &[Value::from(vec![])]);
-        let mut markets: crate::value::List = self.array_concat(spotMarkets, swapMarkets).into_list();
+        let mut spotMarkets: crate::value::List = self.safe_list_k(&response, "spot_order_book_details", &[Value::from(vec![])]).into_list();
+        let mut swapMarkets: crate::value::List = self.safe_list_k(&response, "order_book_details", &[Value::from(vec![])]).into_list();
+        let mut markets: crate::value::List = self.array_concat(&spotMarkets, &swapMarkets).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2316,7 +2316,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(250)));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_order_book_orders(&[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.public_get_order_book_orders(&[__ws_arg_12]).await.into_dict();
         //
         //     {
         //         "code": 200,
@@ -2346,7 +2346,7 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut result: Value = self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("remaining_base_amount".into())]);
+        let mut result: Value = self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("remaining_base_amount".into())]);
         return result;
         Value::Null
         }).await?))
@@ -2532,9 +2532,9 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut spotTickers: Value = self.safe_list_k(&response, "spot_order_book_details", &[Value::from(vec![])]);
-        let mut swapTickers: Value = self.safe_list_k(&response, "order_book_details", &[Value::from(vec![])]);
-        let mut tickers: Value = self.array_concat(spotTickers, swapTickers);
+        let mut spotTickers: crate::value::List = self.safe_list_k(&response, "spot_order_book_details", &[Value::from(vec![])]).into_list();
+        let mut swapTickers: crate::value::List = self.safe_list_k(&response, "order_book_details", &[Value::from(vec![])]).into_list();
+        let mut tickers: Value = self.array_concat(&spotTickers, &swapTickers);
         let mut first: crate::value::Dict = self.safe_dict(tickers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2569,9 +2569,9 @@ if _try_result.is_err() {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.public_get_order_book_details(&[params]).await.into_dict();
-        let mut spotTickers: Value = self.safe_list_k(&response, "spot_order_book_details", &[Value::from(vec![])]);
-        let mut swapTickers: Value = self.safe_list_k(&response, "order_book_details", &[Value::from(vec![])]);
-        let mut tickers: Value = self.array_concat(spotTickers, swapTickers);
+        let mut spotTickers: crate::value::List = self.safe_list_k(&response, "spot_order_book_details", &[Value::from(vec![])]).into_list();
+        let mut swapTickers: crate::value::List = self.safe_list_k(&response, "order_book_details", &[Value::from(vec![])]).into_list();
+        let mut tickers: Value = self.array_concat(&spotTickers, &swapTickers);
         return self.parse_tickers(tickers, &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -3725,8 +3725,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo);
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return self.parse_transfer(response, &[]);
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return self.parse_transfer(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -4185,8 +4185,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo);
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return self.parse_transaction(response, &[]);
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return self.parse_transaction(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -4663,8 +4663,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo);
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return self.parse_order(response, &[market]);
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return self.parse_order(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -4942,8 +4942,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo);
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return self.parse_margin_modification(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return self.parse_margin_modification(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }

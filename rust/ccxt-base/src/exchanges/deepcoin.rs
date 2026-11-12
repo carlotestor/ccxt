@@ -1278,11 +1278,11 @@ impl Deepcoin {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_order_book(data, symbol, &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+        })]).into_dict();
+        return self.parse_order_book(&data, symbol, &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
         Value::Null
         }).await?))
     }
@@ -1449,8 +1449,8 @@ impl Deepcoin {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let mut response: crate::value::Dict = self.public_get_deepcoin_market_tickers(&[__ws_arg_11]).await.into_dict();
-        let mut tickers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_tickers(tickers, &[symbolsNormalized]);
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_tickers(&tickers, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -1700,8 +1700,8 @@ impl Deepcoin {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: Value = self.private_get_deepcoin_account_balances(&[__ws_arg_13]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_get_deepcoin_account_balances(&[__ws_arg_13]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }

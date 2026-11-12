@@ -796,8 +796,8 @@ impl Blockchaincom {
             request.insert("depth".into(), limit);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_l2_symbol(&[__ws_arg_1]).await;
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into())]);
+        let mut response: crate::value::Dict = self.public_get_l2_symbol(&[__ws_arg_1]).await.into_dict();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into())]);
 
     Value::Null
 }
@@ -876,8 +876,8 @@ impl Blockchaincom {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_2]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_get_tickers_symbol(&[__ws_arg_2]).await.into_dict();
+        return self.parse_ticker(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -905,8 +905,8 @@ impl Blockchaincom {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut tickers: Value = self.public_get_tickers(&[params]).await;
-        return self.parse_tickers(tickers, &[symbols]);
+        let mut tickers: crate::value::List = self.public_get_tickers(&[params]).await.into_list();
+        return self.parse_tickers(&tickers, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -1024,7 +1024,7 @@ impl Blockchaincom {
         let mut orderType: Option<String> = self.safe_string_k(params.clone(), "ordType", &[type_var]).as_str().map(str::to_owned);
         let mut uppercaseOrderType: Option<String> = orderType.as_deref().map(str::to_uppercase);
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[self.uuid16(&[])]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("ordType".into()), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("ordType".into()), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]).into_dict();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1035,8 +1035,8 @@ impl Blockchaincom {
                 m.insert("clOrdId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut triggerPrice: Value = self.safe_value_n(paramsOmitted.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
-        let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
+        let mut triggerPrice: Value = self.safe_value_n(&paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
         if (uppercaseOrderType.as_deref() == Some("STOP")) || (uppercaseOrderType.as_deref() == Some("STOPLIMIT")) {
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a stopPx or triggerPrice param for a ".into())).into()), uppercaseOrderType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" order".into()))));
@@ -1065,8 +1065,8 @@ impl Blockchaincom {
             request.insert("stopPx".into(), self.price_to_precision(symbol, triggerPrice));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-        let mut response: Value = self.private_post_orders(&[__ws_arg_3]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_3]).await.into_dict();
+        return self.parse_order(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1324,8 +1324,8 @@ impl Blockchaincom {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders(&[__ws_arg_6]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.private_get_orders(&[__ws_arg_6]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
 
     Value::Null
 }
@@ -1428,8 +1428,8 @@ impl Blockchaincom {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params.clone()]);
-        let mut trades: Value = self.private_get_fills(&[__ws_arg_7]).await;
-        return self.parse_trades(trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, params]);
+        let mut trades: crate::value::List = self.private_get_fills(&[__ws_arg_7]).await.into_list();
+        return self.parse_trades(&trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -1623,8 +1623,8 @@ impl Blockchaincom {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_withdrawals(&[__ws_arg_9]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_withdrawals(&[__ws_arg_9]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -1668,8 +1668,8 @@ impl Blockchaincom {
             currency = self.currency(code);
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_withdrawals(&[__ws_arg_10]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_withdrawals(&[__ws_arg_10]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1700,8 +1700,8 @@ impl Blockchaincom {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_withdrawals_withdrawal_id(&[__ws_arg_11]).await;
-        return self.parse_transaction(response, &[]);
+        let mut response: crate::value::Dict = self.private_get_withdrawals_withdrawal_id(&[__ws_arg_11]).await.into_dict();
+        return self.parse_transaction(&response, &[]);
 
     Value::Null
 }
@@ -1745,8 +1745,8 @@ impl Blockchaincom {
             currency = self.currency(code);
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_deposits(&[__ws_arg_12]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        let mut response: crate::value::List = self.private_get_deposits(&[__ws_arg_12]).await.into_list();
+        return self.parse_transactions(&response, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1778,8 +1778,8 @@ impl Blockchaincom {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut deposit: Value = self.private_get_deposits_deposit_id(&[__ws_arg_13]).await;
-        return self.parse_transaction(deposit, &[]);
+        let mut deposit: crate::value::Dict = self.private_get_deposits_deposit_id(&[__ws_arg_13]).await.into_dict();
+        return self.parse_transaction(&deposit, &[]);
 
     Value::Null
 }
@@ -1889,8 +1889,8 @@ impl Blockchaincom {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders_order_id(&[__ws_arg_15]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_get_orders_order_id(&[__ws_arg_15]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }

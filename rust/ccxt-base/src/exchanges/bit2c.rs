@@ -638,8 +638,8 @@ impl Bit2c {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_account_balance_v2(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_get_account_balance_v2(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -786,8 +786,8 @@ impl Bit2c {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_exchanges_pair_ticker(&[__ws_arg_1]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_get_exchanges_pair_ticker(&[__ws_arg_1]).await.into_dict();
+        return self.parse_ticker(&response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1029,8 +1029,8 @@ impl Bit2c {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_order_cancel_order(&[__ws_arg_7]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_post_order_cancel_order(&[__ws_arg_7]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -1077,9 +1077,9 @@ impl Bit2c {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut asks: Value = self.safe_list_k(&orders, "ask", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(&orders, "bid", &[Value::from(vec![])]);
-        return self.parse_orders(self.array_concat(asks, bids), &[(market).raw.clone(), since, limit]);
+        let mut asks: crate::value::List = self.safe_list_k(&orders, "ask", &[Value::from(vec![])]).into_list();
+        let mut bids: crate::value::List = self.safe_list_k(&orders, "bid", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(self.array_concat(&asks, &bids), &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1116,8 +1116,8 @@ impl Bit2c {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_order_get_by_id(&[__ws_arg_9]).await;
-        return self.parse_order(response, &[market]);
+        let mut response: crate::value::Dict = self.private_get_order_get_by_id(&[__ws_arg_9]).await.into_dict();
+        return self.parse_order(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -1288,7 +1288,7 @@ impl Bit2c {
             request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_order_order_history(&[__ws_arg_10]).await;
+        let mut response: crate::value::List = self.private_get_order_order_history(&[__ws_arg_10]).await.into_list();
         //
         //     [
         //         {
@@ -1327,7 +1327,7 @@ impl Bit2c {
         //         }
         //     ]
         //
-        let mut responseList: Value = self.to_array(response);
+        let mut responseList: Value = self.to_array(&response);
         return self.parse_trades(responseList, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -1496,8 +1496,8 @@ impl Bit2c {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_funds_add_coin_funds_request(&[__ws_arg_11]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_funds_add_coin_funds_request(&[__ws_arg_11]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }

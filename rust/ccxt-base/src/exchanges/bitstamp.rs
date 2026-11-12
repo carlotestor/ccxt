@@ -2322,7 +2322,7 @@ impl Bitstamp {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_order_book_pair(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get_order_book_pair(&[__ws_arg_0]).await.into_dict();
         //
         //     {
         //         "timestamp": "1583652948",
@@ -2339,12 +2339,12 @@ impl Bitstamp {
         //         ]
         //     }
         //
-        let mut microtimestamp: Value = self.safe_integer_k(response.clone(), "microtimestamp", &[]);
+        let mut microtimestamp: Value = self.safe_integer_k(&response, "microtimestamp", &[]);
         if (microtimestamp == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() missing microtimestamp".into()))));
         }
         let mut timestamp: Value = self.parse_to_int((match ((microtimestamp).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response, Value::from((market).symbol.clone()), &[timestamp]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, Value::from((market).symbol.clone()), &[timestamp]).as_map().cloned().unwrap_or_default();
         orderbook.insert("nonce".into(), microtimestamp);
         return Value::Map(orderbook);
         Value::Null
@@ -2435,8 +2435,8 @@ impl Bitstamp {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: Value = self.public_get_ticker_pair(&[__ws_arg_1]).await;
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        let mut ticker: crate::value::Dict = self.public_get_ticker_pair(&[__ws_arg_1]).await.into_dict();
+        return self.parse_ticker(&ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2464,8 +2464,8 @@ impl Bitstamp {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_ticker(&[params]).await;
-        return self.parse_tickers(response, &[symbols]);
+        let mut response: crate::value::List = self.public_get_ticker(&[params]).await.into_list();
+        return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -2729,8 +2729,8 @@ impl Bitstamp {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_transactions_pair(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_transactions_pair(&[__ws_arg_2]).await.into_list();
+        return self.parse_trades(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3330,8 +3330,8 @@ impl Bitstamp {
         }
         let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_replace_order(&[__ws_arg_11]).await;
-        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(response, &[market]).as_map().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.private_post_replace_order(&[__ws_arg_11]).await.into_dict();
+        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(&response, &[market]).as_map().cloned().unwrap_or_default();
         order.insert("type".into(), type_var);
         return Value::Map(order);
         Value::Null
@@ -3369,8 +3369,8 @@ impl Bitstamp {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_cancel_order(&[__ws_arg_12]).await;
-        return self.parse_order(response, &[]);
+        let mut response: crate::value::Dict = self.private_post_cancel_order(&[__ws_arg_12]).await.into_dict();
+        return self.parse_order(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -3523,8 +3523,8 @@ impl Bitstamp {
         }
         let mut paramsOmitted: crate::value::Dict = (if (clientOrderId != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_order_status(&[__ws_arg_16]).await;
-        return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        let mut response: crate::value::Dict = self.private_post_order_status(&[__ws_arg_16]).await.into_dict();
+        return self.parse_order(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
     }
@@ -3787,8 +3787,8 @@ impl Bitstamp {
             request.insert("timedelta".into(), Value::Int(50000000)); // use max bitstamp approved value
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_withdrawal_requests(&[__ws_arg_21]).await;
-        return self.parse_transactions(response, &[Value::Null, since, limit]);
+        let mut response: crate::value::List = self.private_post_withdrawal_requests(&[__ws_arg_21]).await.into_list();
+        return self.parse_transactions(&response, &[Value::Null, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4330,8 +4330,8 @@ impl Bitstamp {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: Value = self.private_post_open_orders_all(&[params]).await;
-        return self.parse_orders(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, Value::Map({
+        let mut response: crate::value::List = self.private_post_open_orders_all(&[params]).await.into_list();
+        return self.parse_orders(&response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("open".into()));
         m.insert("type".to_string(), Value::Str("limit".into()));

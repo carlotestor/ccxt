@@ -4588,8 +4588,8 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut preLaunchMarketsList: Value = self.safe_list_k(&preLaunchData, "list", &[Value::from(vec![])]);
-        markets = self.array_concat(markets.clone(), preLaunchMarketsList);
+        let mut preLaunchMarketsList: crate::value::List = self.safe_list_k(&preLaunchData, "list", &[Value::from(vec![])]).into_list();
+        markets = self.array_concat(markets.clone(), &preLaunchMarketsList);
         let mut result: Vec<Value> = Vec::new();
         let mut category: Option<String> = self.safe_string_k(&data, "category", &[]).as_str().map(str::to_owned);
         {
@@ -6210,7 +6210,7 @@ impl Bybit {
             m
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&result, "ts", &[]).as_i64();
-        return self.parse_order_book(Value::Dict(result), symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
+        return self.parse_order_book(&result, symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
         Value::Null
         }).await?))
     }
@@ -7336,10 +7336,10 @@ impl Bybit {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_512: bool = true;
             while { if !__for_first_512 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_512 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
-            let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut retCode: Option<i64> = self.safe_integer_k(code.clone(), "code", &[]).as_i64();
+            let mut code: crate::value::Dict = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut retCode: Option<i64> = self.safe_integer_k(&code, "code", &[]).as_i64();
             if (retCode != Some(0)) {
-                { let __be_tmp = self.extend(get_value(&data, &i), &[code]); add_element_to_object(&mut data, &i, __be_tmp); };
+                { let __be_tmp = self.extend(get_value(&data, &i), &[&code]); add_element_to_object(&mut data, &i, __be_tmp); };
             }
         }
         }
@@ -7585,10 +7585,10 @@ impl Bybit {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_514: bool = true;
             while { if !__for_first_514 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_514 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
-            let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut retCode: Option<i64> = self.safe_integer_k(code.clone(), "code", &[]).as_i64();
+            let mut code: crate::value::Dict = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut retCode: Option<i64> = self.safe_integer_k(&code, "code", &[]).as_i64();
             if (retCode != Some(0)) {
-                { let __be_tmp = self.extend(get_value(&data, &i), &[code]); add_element_to_object(&mut data, &i, __be_tmp); };
+                { let __be_tmp = self.extend(get_value(&data, &i), &[&code]); add_element_to_object(&mut data, &i, __be_tmp); };
             }
         }
         }
@@ -11955,8 +11955,8 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return self.parse_deposit_withdraw_fees(rows, &[codes, Value::Str("coin".into())]);
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return self.parse_deposit_withdraw_fees(&rows, &[codes, Value::Str("coin".into())]);
         Value::Null
         }).await?))
     }
@@ -12453,8 +12453,8 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
-        return self.parse_all_greeks(data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut data: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_all_greeks(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -12777,7 +12777,8 @@ impl Bybit {
         }).await?))
     }
 
-    pub fn parse_leverage_tiers(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_leverage_tiers(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut marketIdKey = get_arg(optional_args, 1, Value::Null);
         //
@@ -12826,7 +12827,8 @@ impl Bybit {
     Value::Null
 }
 
-    pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut info: Value = info.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //  [

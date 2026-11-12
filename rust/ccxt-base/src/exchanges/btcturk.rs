@@ -742,8 +742,8 @@ impl Btcturk {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_users_balances(&[params]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.private_get_users_balances(&[params]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -797,7 +797,7 @@ impl Btcturk {
             m
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
-        return self.parse_order_book(Value::Dict(data), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+        return self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
         Value::Null
         }).await?))
     }
@@ -1372,9 +1372,9 @@ impl Btcturk {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
-        let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
-        return self.parse_orders(self.array_concat(bids, asks), &[market, since, limit]);
+        let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(self.array_concat(&bids, &asks), &[market, since, limit]);
         Value::Null
         }).await?))
     }

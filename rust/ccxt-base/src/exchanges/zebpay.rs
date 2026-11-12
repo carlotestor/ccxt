@@ -803,9 +803,9 @@ impl Zebpay {
         }
         }
         let mut promises: Value = promise_all(&Value::from(promisesUnresolved)).await;
-        let mut spotMarkets: Value = self.safe_list(promises.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut futureMarkets: Value = self.safe_list(promises, Value::Int(1), &[Value::from(vec![])]);
-        return self.array_concat(spotMarkets, futureMarkets);
+        let mut spotMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut futureMarkets: crate::value::List = self.safe_list(promises, Value::Int(1), &[Value::from(vec![])]).into_list();
+        return self.array_concat(&spotMarkets, &futureMarkets);
         Value::Null
         }).await?))
     }
@@ -1195,7 +1195,7 @@ impl Zebpay {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::from(&bookData), Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&bookData, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
         orderbook.insert("nonce".into(), self.safe_integer_k(&bookData, "nonce", &[]));
         return Value::Map(orderbook);
         Value::Null
@@ -1298,8 +1298,8 @@ impl Zebpay {
         //        }
         //     ]
         //
-        let mut tickerList: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_tickers(tickerList, &[symbolsNormalized]);
+        let mut tickerList: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_tickers(&tickerList, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }

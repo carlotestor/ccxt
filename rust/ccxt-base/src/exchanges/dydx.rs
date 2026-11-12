@@ -1568,8 +1568,8 @@ impl Dydx {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut order: Value = self.indexer_get_orders_order_id(&[__ws_arg_4]).await;
-        return self.parse_order(order, &[]);
+        let mut order: crate::value::Dict = self.indexer_get_orders_order_id(&[__ws_arg_4]).await.into_dict();
+        return self.parse_order(&order, &[]);
         Value::Null
         }).await?))
     }
@@ -1624,8 +1624,8 @@ impl Dydx {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsSubAccountNumber]);
-        let mut response: Value = self.indexer_get_orders(&[__ws_arg_5]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        let mut response: crate::value::List = self.indexer_get_orders(&[__ws_arg_5]).await.into_list();
+        return self.parse_orders(&response, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2631,8 +2631,8 @@ impl Dydx {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.indexer_get_orderbooks_perpetual_market_market(&[__ws_arg_9]).await;
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        let mut response: crate::value::Dict = self.indexer_get_orderbooks_perpetual_market_market(&[__ws_arg_9]).await.into_dict();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         Value::Null
         }).await?))
     }
@@ -2935,8 +2935,8 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: Value = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await;
-        return self.parse_transfer(response, &[]);
+        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
+        return self.parse_transfer(&response, &[]);
         Value::Null
         }).await?))
     }

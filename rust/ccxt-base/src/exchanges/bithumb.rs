@@ -1060,10 +1060,10 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-                let mut extension: Value = self.safe_dict(&quoteCurrencies, quote.clone(), &[Value::Map({
+                let mut extension: crate::value::Dict = self.safe_dict(&quoteCurrencies, quote.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
                 let mut currencyIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
@@ -1145,7 +1145,7 @@ impl Bithumb {
                             m.insert("created".to_string(), Value::Null);
                             m.insert("info".to_string(), market);
                         m
-                    }), &[extension.clone()]);
+                    }), &[&extension]);
                     result.push(entry);
                 }
                 }
@@ -2680,8 +2680,8 @@ impl Bithumb {
         }
         request.insert("side".into(), sideRequest.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let mut response: Value = self.private_post_v1_twap(&[__ws_arg_22]).await;
-        return self.parse_order(response, &[market]);
+        let mut response: crate::value::Dict = self.private_post_v1_twap(&[__ws_arg_22]).await.into_dict();
+        return self.parse_order(&response, &[market]);
         Value::Null
         }).await?))
     }
@@ -3613,10 +3613,10 @@ impl Bithumb {
         let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tagWithdrawTag: Option<String> = self.safe_string_k(&paramsGeneration, "tag", &[]).as_str().map(str::to_owned);
-        let mut paramsWithdrawTag: Value = self.omit(&paramsGeneration, Value::Str("tag".into()), &[]);
+        let mut paramsWithdrawTag: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("tag".into()), &[]).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut network: Option<String> = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsNetwork: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
+        let mut network: Option<String> = self.safe_string2(&paramsWithdrawTag, Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
+        let mut paramsNetwork: Value = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3877,8 +3877,8 @@ impl Bithumb {
             request.insert("uuid".into(), id);
         }
         let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let mut response: Value = self.private_get_v1_withdraw(&[__ws_arg_41]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_get_v1_withdraw(&[__ws_arg_41]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
 
     Value::Null
 }
@@ -3990,8 +3990,8 @@ impl Bithumb {
             request.insert("uuid".into(), id);
         }
         let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let mut response: Value = self.private_get_v1_deposit(&[__ws_arg_44]).await;
-        return self.parse_transaction(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_get_v1_deposit(&[__ws_arg_44]).await.into_dict();
+        return self.parse_transaction(&response, &[currency]);
 
     Value::Null
 }
@@ -4106,8 +4106,8 @@ impl Bithumb {
         }
         request.insert("net_type".into(), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[code]));
         let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_v1_deposits_generate_coin_address(&[__ws_arg_47]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_v1_deposits_generate_coin_address(&[__ws_arg_47]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -4156,8 +4156,8 @@ impl Bithumb {
         }
         request.insert("net_type".into(), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[code]));
         let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_v1_deposits_coin_address(&[__ws_arg_48]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_get_v1_deposits_coin_address(&[__ws_arg_48]).await.into_dict();
+        return self.parse_deposit_address(&response, &[currency]);
         Value::Null
         }).await?))
     }
@@ -4192,8 +4192,8 @@ impl Bithumb {
         if (generation != Some(2.0)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() is only supported for the generation 2 API".into()))));
         }
-        let mut response: Value = self.private_get_v1_deposits_coin_addresses(&[paramsGeneration]).await;
-        return self.parse_deposit_addresses(response, &[codes, Value::Bool(false), Value::Map({
+        let mut response: crate::value::List = self.private_get_v1_deposits_coin_addresses(&[paramsGeneration]).await.into_list();
+        return self.parse_deposit_addresses(&response, &[codes, Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
