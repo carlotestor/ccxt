@@ -6808,25 +6808,25 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut i: i64 = 0;
             let mut __for_first_80: bool = true;
             while { if !__for_first_80 { i += 1; } __for_first_80 = false; i < (rates.len() as i64) } {
-            let mut rate: Value = self.safe_dict(&rates, Value::Int(i), &[Value::Map({
+            let mut rate: crate::value::Dict = self.safe_dict(&rates, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut stockSymbol: Option<String> = self.safe_string_k(rate.clone(), "s", &[]).as_str().map(str::to_owned);
+            })]).into_dict();
+            let mut stockSymbol: Option<String> = self.safe_string_k(&rate, "s", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.get_stock_unified_symbol(stockSymbol.map(Value::from).unwrap_or(Value::Null), &[Value::Str("USDC".into())]);
             if (symbol == Value::Null) {
                 continue;
             }
-            let mut timestamp: Option<i64> = self.safe_integer_k(rate.clone(), "t", &[]).as_i64();
+            let mut timestamp: Option<i64> = self.safe_integer_k(&rate, "t", &[]).as_i64();
             let mut parsed: Value = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-                    m.insert("last".to_string(), self.safe_string_k(rate.clone(), "p", &[]));
-                    m.insert("close".to_string(), self.safe_string_k(rate.clone(), "p", &[]));
-                    m.insert("previousClose".to_string(), self.safe_string_k(rate.clone(), "pc", &[]));
-                    m.insert("info".to_string(), rate);
+                    m.insert("last".to_string(), self.safe_string_k(&rate, "p", &[]));
+                    m.insert("close".to_string(), self.safe_string_k(&rate, "p", &[]));
+                    m.insert("previousClose".to_string(), self.safe_string_k(&rate, "pc", &[]));
+                    m.insert("info".to_string(), Value::from(&rate));
                 m
             }), &[]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }

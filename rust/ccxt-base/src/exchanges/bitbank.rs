@@ -802,12 +802,12 @@ impl Bitbank {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_pair_depth(&[__ws_arg_1]).await.into_dict();
-        let mut orderbook: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut orderbook: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(orderbook.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&orderbook, "timestamp", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(orderbook), Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }

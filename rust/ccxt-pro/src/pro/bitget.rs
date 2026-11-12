@@ -778,45 +778,45 @@ impl Bitget {
         //
         let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
+        let mut ticker: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut utaTimestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "ts", &[Value::from(utaTimestamp)]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "ts", &[Value::from(utaTimestamp)]).as_i64();
         let mut instType: Option<String> = self.safe_string_lower_k(&arg, "instType", &[]).as_str().map(str::to_owned);
         let mut marketType: String = "contract".to_string();
         if (instType.as_deref() == Some("spot")) {
             marketType = "spot".to_string();
         }
         let mut utaMarketId: Option<String> = self.safe_string_k(&arg, "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instId", &[utaMarketId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&ticker, "instId", &[utaMarketId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::from(marketType)]);
-        let mut close: Option<String> = self.safe_string2(ticker.clone(), Value::Str("lastPr".into()), Value::Str("lastPrice".into()), &[]).as_str().map(str::to_owned);
-        let mut changeCoefficient: Option<String> = self.safe_string2(ticker.clone(), Value::Str("price24hPcnt".into()), Value::Str("change24h".into()), &[]).as_str().map(str::to_owned);
+        let mut close: Option<String> = self.safe_string2(&ticker, Value::Str("lastPr".into()), Value::Str("lastPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut changeCoefficient: Option<String> = self.safe_string2(&ticker, Value::Str("price24hPcnt".into()), Value::Str("change24h".into()), &[]).as_str().map(str::to_owned);
         let mut changePercentage: Value = crate::precise::Precise::stringMul(&changeCoefficient.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("high".to_string(), self.safe_string2(ticker.clone(), Value::Str("high24h".into()), Value::Str("highPrice24h".into()), &[]));
-        m.insert("low".to_string(), self.safe_string2(ticker.clone(), Value::Str("low24h".into()), Value::Str("lowPrice24h".into()), &[]));
-        m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("bidPr".into()), Value::Str("bid1Price".into()), &[]));
-        m.insert("bidVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("bidSz".into()), Value::Str("bid1Size".into()), &[]));
-        m.insert("ask".to_string(), self.safe_string2(ticker.clone(), Value::Str("askPr".into()), Value::Str("ask1Price".into()), &[]));
-        m.insert("askVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("askSz".into()), Value::Str("ask1Size".into()), &[]));
+        m.insert("high".to_string(), self.safe_string2(&ticker, Value::Str("high24h".into()), Value::Str("highPrice24h".into()), &[]));
+        m.insert("low".to_string(), self.safe_string2(&ticker, Value::Str("low24h".into()), Value::Str("lowPrice24h".into()), &[]));
+        m.insert("bid".to_string(), self.safe_string2(&ticker, Value::Str("bidPr".into()), Value::Str("bid1Price".into()), &[]));
+        m.insert("bidVolume".to_string(), self.safe_string2(&ticker, Value::Str("bidSz".into()), Value::Str("bid1Size".into()), &[]));
+        m.insert("ask".to_string(), self.safe_string2(&ticker, Value::Str("askPr".into()), Value::Str("ask1Price".into()), &[]));
+        m.insert("askVolume".to_string(), self.safe_string2(&ticker, Value::Str("askSz".into()), Value::Str("ask1Size".into()), &[]));
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_string2(ticker.clone(), Value::Str("open24h".into()), Value::Str("openPrice24h".into()), &[]));
+        m.insert("open".to_string(), self.safe_string2(&ticker, Value::Str("open24h".into()), Value::Str("openPrice24h".into()), &[]));
         m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("last".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), changePercentage);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("baseVolume".into()), Value::Str("volume24h".into()), &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("quoteVolume".into()), Value::Str("turnover24h".into()), &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("baseVolume".to_string(), self.safe_string2(&ticker, Value::Str("baseVolume".into()), Value::Str("volume24h".into()), &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string2(&ticker, Value::Str("quoteVolume".into()), Value::Str("turnover24h".into()), &[]));
+        m.insert("info".to_string(), Value::from(&ticker));
     m
 }), &[marketResolved]);
 
@@ -918,30 +918,30 @@ impl Bitget {
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
+        let mut ticker: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut utaTimestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "ts", &[Value::from(utaTimestamp)]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "ts", &[Value::from(utaTimestamp)]).as_i64();
         let mut instType: Option<String> = self.safe_string_lower_k(&arg, "instType", &[]).as_str().map(str::to_owned);
         let mut marketType: String = "contract".to_string();
         if (instType.as_deref() == Some("spot")) {
             marketType = "spot".to_string();
         }
         let mut utaMarketId: Option<String> = self.safe_string_k(&arg, "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instId", &[utaMarketId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&ticker, "instId", &[utaMarketId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::from(marketType)]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("ask".to_string(), self.safe_string2(ticker.clone(), Value::Str("askPr".into()), Value::Str("ask1Price".into()), &[]));
-        m.insert("askVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("askSz".into()), Value::Str("ask1Size".into()), &[]));
-        m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("bidPr".into()), Value::Str("bid1Price".into()), &[]));
-        m.insert("bidVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("bidSz".into()), Value::Str("bid1Size".into()), &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("ask".to_string(), self.safe_string2(&ticker, Value::Str("askPr".into()), Value::Str("ask1Price".into()), &[]));
+        m.insert("askVolume".to_string(), self.safe_string2(&ticker, Value::Str("askSz".into()), Value::Str("ask1Size".into()), &[]));
+        m.insert("bid".to_string(), self.safe_string2(&ticker, Value::Str("bidPr".into()), Value::Str("bid1Price".into()), &[]));
+        m.insert("bidVolume".to_string(), self.safe_string2(&ticker, Value::Str("bidSz".into()), Value::Str("bid1Size".into()), &[]));
+        m.insert("info".to_string(), Value::from(&ticker));
     m
 }), &[marketResolved]);
 

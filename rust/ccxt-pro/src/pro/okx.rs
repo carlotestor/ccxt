@@ -2743,30 +2743,30 @@ impl Okx {
 
     pub fn order_to_trade(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut info: Value = self.safe_dict_k(order.clone(), "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(order.clone(), "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(info.clone(), "fillTime", &[]).as_i64();
-        let mut feeMarketId: Option<String> = self.safe_string_k(info.clone(), "fillFeeCcy", &[]).as_str().map(str::to_owned);
-        let mut isTaker: bool = self.safe_string_k(info.clone(), "execType", &[Value::Str("".into())]).as_str() == Some("T");
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&info, "fillTime", &[]).as_i64();
+        let mut feeMarketId: Option<String> = self.safe_string_k(&info, "fillFeeCcy", &[]).as_str().map(str::to_owned);
+        let mut isTaker: bool = self.safe_string_k(&info, "execType", &[Value::Str("".into())]).as_str() == Some("T");
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), info.clone());
+        m.insert("info".to_string(), Value::from(&info));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), self.safe_string_k(order.clone(), "symbol", &[]));
-        m.insert("id".to_string(), self.safe_string_k(info.clone(), "tradeId", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&info, "tradeId", &[]));
         m.insert("order".to_string(), self.safe_string_k(order.clone(), "id", &[]));
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "type", &[]));
         m.insert("takerOrMaker".to_string(), (if (isTaker) { Value::Str("taker".into()) } else { Value::Str("maker".into()) }));
         m.insert("side".to_string(), self.safe_string_k(order.clone(), "side", &[]));
-        m.insert("price".to_string(), self.safe_number_k(info.clone(), "fillPx", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(info.clone(), "fillSz", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&info, "fillPx", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(&info, "fillSz", &[]));
         m.insert("cost".to_string(), self.safe_number_k(order, "cost", &[]));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), self.safe_number_k(info, "fillFee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(&info, "fillFee", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(feeMarketId.map(Value::from).unwrap_or(Value::Null), &[]));
     m
 }));

@@ -1020,9 +1020,9 @@ impl Opinion {
             end = self.safe_timestamp_k(rawEvent.clone(), "cutoffAt", &[]).as_i64();
         }
         let mut created: Option<i64> = self.safe_timestamp_k(rawEvent.clone(), "createdAt", &[]).as_i64();
-        let mut labels: Value = self.safe_list_k(rawEvent.clone(), "labels", &[Value::from(vec![])]);
+        let mut labels: crate::value::List = self.safe_list_k(rawEvent.clone(), "labels", &[Value::from(vec![])]).into_list();
         let __ws_arg_6 = self.safe_string_k(rawEvent.clone(), "rules", &[]);
-        let __ws_arg_7 = self.safe_string(labels.clone(), Value::Int(0), &[]);
+        let __ws_arg_7 = self.safe_string(&labels, Value::Int(0), &[]);
         let __ws_arg_8 = self.safe_number_k(rawEvent.clone(), "volume", &[]);
         let __ws_arg_9 = self.iso8601(Value::from(created));
         let __ws_arg_10 = self.iso8601(Value::from(end));
@@ -1035,7 +1035,7 @@ impl Opinion {
         m.insert("description".to_string(), __ws_arg_6);
         m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
         m.insert("category".to_string(), __ws_arg_7);
-        m.insert("tags".to_string(), labels);
+        m.insert("tags".to_string(), Value::from(&labels));
         m.insert("markets".to_string(), Value::from(marketsList));
         m.insert("active".to_string(), active);
         m.insert("resolved".to_string(), resolved);
@@ -1308,12 +1308,12 @@ impl Opinion {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(result.clone(), "timestamp", &[]).as_i64();
-        let mut orderbook: Value = self.parse_order_book(result, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
+        let mut orderbook: Value = self.parse_order_book(Value::Dict(result), self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         return self.safe_prediction_order_book(orderbook, &[outcomeObj]);
         Value::Null
         }).await?))

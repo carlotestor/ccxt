@@ -2253,34 +2253,34 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_429: bool = true;
             while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (arr.len() as i64) } {
-            let mut market: Value = self.safe_dict(&arr, Value::Int(i), &[Value::Map({
+            let mut market: crate::value::Dict = self.safe_dict(&arr, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_currency", &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "counter_currency", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut baseId: Option<String> = self.safe_string_k(&market, "base_currency", &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_k(&market, "counter_currency", &[]).as_str().map(str::to_owned);
             let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut description: Option<String> = self.safe_string_k(market.clone(), "description", &[]).as_str().map(str::to_owned);
+            let mut description: Option<String> = self.safe_string_k(&market, "description", &[]).as_str().map(str::to_owned);
             if (description.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing description".into()))));
             }
             let mut descriptionParts: Value = Value::Array(if let Some(__s) = description.as_deref() { __s.split(" / ").map(Value::from).collect() } else { Vec::new() });
             let mut baseDescription: Option<String> = self.safe_string(descriptionParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut quoteDescription: Option<String> = self.safe_string(descriptionParts, Value::Int(1), &[]).as_str().map(str::to_owned);
-            let mut minimumOrder: Option<String> = self.safe_string_k(market.clone(), "minimum_order_value", &[]).as_str().map(str::to_owned);
+            let mut minimumOrder: Option<String> = self.safe_string_k(&market, "minimum_order_value", &[]).as_str().map(str::to_owned);
             if (minimumOrder.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing minimumOrder".into()))));
             }
             let mut parts: Value = Value::Array(if let Some(__s) = minimumOrder.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let mut cost: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (base != Value::Null) && !(matches!(&base, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
-                let mut baseDecimals: Option<i64> = self.safe_integer_k(market.clone(), "base_decimals", &[]).as_i64();
-                result.insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.as_deref(), base.as_str(), baseDescription.as_deref(), Value::from(baseDecimals), Value::Null, market.clone()));
+                let mut baseDecimals: Option<i64> = self.safe_integer_k(&market, "base_decimals", &[]).as_i64();
+                result.insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.as_deref(), base.as_str(), baseDescription.as_deref(), Value::from(baseDecimals), Value::Null, Value::from(&market)));
             }
             if (quote != Value::Null) && !(matches!(&quote, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
-                let mut counterDecimals: Option<i64> = self.safe_integer_k(market.clone(), "counter_decimals", &[]).as_i64();
-                result.insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.as_deref(), quote.as_str(), quoteDescription.as_deref(), Value::from(counterDecimals), self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), market));
+                let mut counterDecimals: Option<i64> = self.safe_integer_k(&market, "counter_decimals", &[]).as_i64();
+                result.insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.as_deref(), quote.as_str(), quoteDescription.as_deref(), Value::from(counterDecimals), self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), Value::Dict(market)));
             }
         }
         }

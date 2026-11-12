@@ -2068,12 +2068,12 @@ impl Polymarket {
 })]).into_dict();
         let mut firstStatus: Option<String> = self.safe_string_k(&first, "status", &[]).as_str().map(str::to_owned);
         if (firstStatus.as_deref() == Some("rejected")) {
-            let mut firstInfo: Value = self.safe_dict_k(&first, "info", &[Value::Map({
+            let mut firstInfo: crate::value::Dict = self.safe_dict_k(&first, "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut errorId: Option<String> = self.safe_string_k(firstInfo.clone(), "error", &[]).as_str().map(str::to_owned);
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() rejected: ".into())).into()), json_stringify(&firstInfo));
+            })]).into_dict();
+            let mut errorId: Option<String> = self.safe_string_k(&firstInfo, "error", &[]).as_str().map(str::to_owned);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() rejected: ".into())).into()), json_stringify(&Value::Dict(firstInfo)));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorId.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::invalid_order(feedback));

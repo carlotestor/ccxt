@@ -2221,21 +2221,21 @@ impl Backpack {
             self.parent.fetch_securities(&[]).await;
         }
         let mut response: Value = self.watch_private(Value::from(vec![Value::Str("account.balanceUpdate".into())]), Value::from(vec![Value::Str("balance".into())]), &[self.omit(query, Value::Str("stock".into()), &[])]).await;
-        let mut balances: Value = self.safe_dict(Value::Map({
+        let mut balances: crate::value::Dict = self.safe_dict(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("balances".to_string(), response);
             m
         }), Value::Str("balances".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         if stock {
             let mut securities: crate::value::List = self.safe_list_k(self.options.clone(), "securities", &[Value::from(vec![])]).into_list();
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("timestamp".to_string(), self.safe_integer_k(balances.clone(), "timestamp", &[]));
-                    m.insert("datetime".to_string(), self.safe_string_k(balances.clone(), "datetime", &[]));
-                    m.insert("info".to_string(), self.safe_dict_k(balances.clone(), "info", &[]));
+                    m.insert("timestamp".to_string(), self.safe_integer_k(&balances, "timestamp", &[]));
+                    m.insert("datetime".to_string(), self.safe_string_k(&balances, "datetime", &[]));
+                    m.insert("info".to_string(), self.safe_dict_k(&balances, "info", &[]));
                 m
             });
             {
@@ -2250,7 +2250,7 @@ impl Backpack {
                 if (code == Value::Null) {
                     continue;
                 }
-                let mut account: Value = self.safe_dict(balances.clone(), code.clone(), &[]);
+                let mut account: Value = self.safe_dict(&balances, code.clone(), &[]);
                 if (account != Value::Null) {
                     result.insert(crate::runtime::stringify_param(&code), account);
                 }
@@ -2258,7 +2258,7 @@ impl Backpack {
             }
             return self.safe_balance(Value::Map(result));
         }
-        return self.safe_balance(balances);
+        return self.safe_balance(Value::Dict(balances));
         Value::Null
         }).await?))
     }

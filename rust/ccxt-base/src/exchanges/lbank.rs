@@ -2544,14 +2544,14 @@ impl Lbank {
         //          "ts":1648162321043
         //      }
         //
-        let mut result: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(result.clone(), "order_id", &[]));
-        m.insert("info".to_string(), result);
+        m.insert("id".to_string(), self.safe_string_k(&result, "order_id", &[]));
+        m.insert("info".to_string(), Value::from(&result));
     m
 }), &[(market).raw.clone()]);
         Value::Null
@@ -3463,14 +3463,14 @@ impl Lbank {
         //          "ts":1648992501414
         //      }
         //
-        let mut result: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), result.clone());
-        m.insert("id".to_string(), self.safe_string_k(result, "withdrawId", &[]));
+        m.insert("info".to_string(), Value::from(&result));
+        m.insert("id".to_string(), self.safe_string_k(&result, "withdrawId", &[]));
     m
 });
         Value::Null

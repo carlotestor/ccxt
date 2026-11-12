@@ -3925,12 +3925,12 @@ impl Poloniex {
             //       "msg": "Success"
             //    }
             //
-            let mut data: Value = self.safe_dict_k(&responseRaw, "data", &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict_k(&responseRaw, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut ts: Option<i64> = self.safe_integer_k(data.clone(), "ts", &[]).as_i64();
-            return self.parse_order_book(data, symbol.clone(), &[Value::from(ts)]);
+            })]).into_dict();
+            let mut ts: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
+            return self.parse_order_book(Value::Dict(data), symbol.clone(), &[Value::from(ts)]);
         }
         let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_markets_symbol_order_book(&[__ws_arg_30]).await.into_dict();

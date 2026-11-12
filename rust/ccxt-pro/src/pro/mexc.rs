@@ -1130,11 +1130,11 @@ impl Mexc {
             timeframe = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[self.options.as_map().and_then(|__m| __m.get("timeframes")).cloned().unwrap_or(Value::Null)]);
             parsed = self.parse_ws_ohlcv(Value::Dict(data), &[self.safe_market(&[symbol.clone()])]);
         }  else {
-            let mut d: Value = self.safe_dict2(message.clone(), Value::Str("d".into()), Value::Str("data".into()), &[Value::Map({
+            let mut d: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("d".into()), Value::Str("data".into()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut rawOhlcv: Value = self.safe_dict_k(d.clone(), "k", &[d.clone()]);
+            })]).into_dict();
+            let mut rawOhlcv: Value = self.safe_dict_k(&d, "k", &[Value::from(&d)]);
             let mut timeframeId: Option<String> = self.safe_string2_opt(rawOhlcv.clone(), Value::Str("i".into()), Value::Str("interval".into()), &[]);
             let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

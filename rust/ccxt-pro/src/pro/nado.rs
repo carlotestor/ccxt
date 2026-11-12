@@ -2677,12 +2677,12 @@ impl Nado {
             while { if !__for_first_513 { i += 1; } __for_first_513 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut bbo: Value = self.safe_dict(&bbos, marketId, &[Value::Map({
+            let mut bbo: crate::value::Dict = self.safe_dict(&bbos, marketId, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut bid: Option<String> = self.safe_string_k(bbo.clone(), "bid", &[]).as_str().map(str::to_owned);
-            let mut ask: Option<String> = self.safe_string_k(bbo.clone(), "ask", &[]).as_str().map(str::to_owned);
+            })]).into_dict();
+            let mut bid: Option<String> = self.safe_string_k(&bbo, "bid", &[]).as_str().map(str::to_owned);
+            let mut ask: Option<String> = self.safe_string_k(&bbo, "ask", &[]).as_str().map(str::to_owned);
             let mut maxPrice: String = "170141183460469231731687303715884105727".to_string();
             if crate::precise::Precise::stringGt(&bid.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&ask.clone().map(Value::from).unwrap_or(Value::Null),
                 &Value::Str("0".into())).as_bool() == Some(true) && !(crate::precise::Precise::stringEquals(&bid.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(maxPrice.clone())).as_bool() == Some(true)) && !(crate::precise::Precise::stringEquals(&ask.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(maxPrice)).as_bool() == Some(true)) {
@@ -2693,7 +2693,7 @@ impl Nado {
                         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                         m.insert("ask".to_string(), self.parent.parse_x18(ask.map(Value::from).unwrap_or(Value::Null)));
                         m.insert("bid".to_string(), self.parent.parse_x18(bid.map(Value::from).unwrap_or(Value::Null)));
-                        m.insert("info".to_string(), bbo);
+                        m.insert("info".to_string(), Value::Dict(bbo));
                     m
                 }), &[market.clone()]).as_map().cloned().unwrap_or_default();
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);

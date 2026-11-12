@@ -8024,21 +8024,21 @@ impl Binance {
                 let mut __for_first_279: bool = true;
                 while { if !__for_first_279 { i += 1; } __for_first_279 = false; i < (assets.len() as i64) } {
                 let mut asset: crate::value::Dict = self.safe_dict(&assets, Value::Int(i), &[]).into_dict();
-                let mut base: Value = self.safe_dict_k(&asset, "baseAsset", &[Value::Map({
+                let mut base: crate::value::Dict = self.safe_dict_k(&asset, "baseAsset", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut quote: Value = self.safe_dict_k(&asset, "quoteAsset", &[Value::Map({
+                })]).into_dict();
+                let mut quote: crate::value::Dict = self.safe_dict_k(&asset, "quoteAsset", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(base.clone(), "asset", &[]), &[]).as_str().map(str::to_owned);
-                let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(quote.clone(), "asset", &[]), &[]).as_str().map(str::to_owned);
+                })]).into_dict();
+                let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), &[]).as_str().map(str::to_owned);
+                let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), &[]).as_str().map(str::to_owned);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result.clone(), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(base));
+                    result = self.merge_balance_account(result.clone(), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result.clone(), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(quote));
+                    result = self.merge_balance_account(result.clone(), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
                 }
             }
             }
@@ -11045,12 +11045,12 @@ impl Binance {
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
             let mut amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut orderMarket: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if matches!((self.safe_bool_k((orderMarket).raw.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) && !(orderMarket).option && self.is_conditional_order(&[orderParams.clone()]).as_bool() == Some(true) {
+            if matches!((self.safe_bool_k((orderMarket).raw.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) && !(orderMarket).option && self.is_conditional_order(&[Value::from(&orderParams)]).as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support conditional order types for linear markets, use createOrder() instead".into()))));
             }
             // the inverse batch endpoint still accepts conditional order types in the regular (non-algo) format,

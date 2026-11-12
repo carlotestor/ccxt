@@ -2531,32 +2531,32 @@ impl Nado {
             while { if !__for_first_990 { i += 1; } __for_first_990 = false; i < (symbols.len() as i64) } {
             let mut market: crate::value::Dict = symbols.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "product_id", &[]).as_str().map(str::to_owned);
-            let mut pair: Value = self.safe_dict(Value::Map(pairsById.clone()), id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut pair: crate::value::Dict = self.safe_dict(Value::Map(pairsById.clone()), id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut asset: Value = self.safe_dict(Value::Map(assetsById.clone()), id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+})]).into_dict();
+            let mut asset: crate::value::Dict = self.safe_dict(Value::Map(assetsById.clone()), id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut rawType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
             let mut type_var: Option<String> = rawType.clone();
             if (rawType.as_deref() == Some("perp")) {
                 type_var = Some("swap".to_string());
             }
             let mut contract: bool = type_var.as_deref() == Some("swap");
-            let mut tickerId: Option<String> = self.safe_string2(pair.clone(), Value::Str("ticker_id".into()), Value::Str("tickerId".into()), &[]).as_str().map(str::to_owned);
+            let mut tickerId: Option<String> = self.safe_string2(&pair, Value::Str("ticker_id".into()), Value::Str("tickerId".into()), &[]).as_str().map(str::to_owned);
             if (tickerId.is_none()) {
                 continue;
             }
             let mut rawBaseId: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
-            let mut rawQuoteId: String = self.safe_string_k(pair.clone(), "quote", &[Value::Str("USDT0".into())]).as_str().unwrap_or("USDT0").to_string();
+            let mut rawQuoteId: String = self.safe_string_k(&pair, "quote", &[Value::Str("USDT0".into())]).as_str().unwrap_or("USDT0").to_string();
             let mut base: Option<String> = self.safe_currency_code(self.remove_market_suffix(rawBaseId.as_deref()).map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut quote: Option<String> = self.safe_currency_code(Value::from(rawQuoteId.clone()), &[]).as_str().map(str::to_owned);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut baseAsset: crate::value::Dict = self.safe_dict(Value::Map(assetsByCode.clone()), base.clone().map(Value::from).unwrap_or(Value::Null), &[asset.clone()]).into_dict();
+            let mut baseAsset: crate::value::Dict = self.safe_dict(Value::Map(assetsByCode.clone()), base.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(&asset)]).into_dict();
             let mut quoteAsset: crate::value::Dict = self.safe_dict(Value::Map(assetsByCode.clone()), quote.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let mut baseId: Option<String> = self.safe_string_k(&baseAsset, "product_id", &[rawBaseId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut quoteId: Value = self.safe_string_k(&quoteAsset, "product_id", &[Value::from(rawQuoteId)]);
@@ -2634,13 +2634,13 @@ impl Nado {
     m
 }));
         m.insert("created".to_string(), Value::Null);
-        let __ws_arg_16 = self.safe_string_k(asset.clone(), "name", &[]);
+        let __ws_arg_16 = self.safe_string_k(&asset, "name", &[]);
         m.insert("info".to_string(), self.extend(&market, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticker_id".to_string(), tickerId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), __ws_arg_16);
-        m.insert("v2Pair".to_string(), pair);
-        m.insert("v2Asset".to_string(), asset);
+        m.insert("v2Pair".to_string(), Value::Dict(pair));
+        m.insert("v2Asset".to_string(), Value::from(&asset));
     m
 })]));
     m

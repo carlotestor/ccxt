@@ -2344,13 +2344,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
         if (id.is_some()) {
-            let mut subscription: Value = self.safe_dict(subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut subscription: crate::value::Dict = self.safe_dict(subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut unsubscribe: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            })]).into_dict();
+            let mut unsubscribe: bool = self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if unsubscribe {
-                self.handle_un_subscription(client, subscription);
+                self.handle_un_subscription(client, Value::Dict(subscription));
             }
         }
         return message;

@@ -5369,16 +5369,16 @@ impl Mexc {
         //      "timestamp":1669109672717
         //  }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data.clone());
+        m.insert("info".to_string(), Value::from(&data));
         m.insert("symbol".to_string(), symbol);
-        m.insert("maker".to_string(), self.safe_number_k(data.clone(), "makerCommission", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(data, "takerCommission", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&data, "makerCommission", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&data, "takerCommission", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -5470,21 +5470,21 @@ impl Mexc {
                 let mut __for_first_952: bool = true;
                 while { if !__for_first_952 { i += 1; } __for_first_952 = false; i < (wallet.len() as i64) } {
                 let mut entry: Value = self.safe_dict(wallet.clone(), Value::Int(i), &[]);
-                let mut base: Value = self.safe_dict_k(entry.clone(), "baseAsset", &[Value::Map({
+                let mut base: crate::value::Dict = self.safe_dict_k(entry.clone(), "baseAsset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut quote: Value = self.safe_dict_k(entry.clone(), "quoteAsset", &[Value::Map({
+})]).into_dict();
+                let mut quote: crate::value::Dict = self.safe_dict_k(entry.clone(), "quoteAsset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(base.clone(), "asset", &[]), &[]).as_str().map(str::to_owned);
-                let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(quote.clone(), "asset", &[]), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+                let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), &[]).as_str().map(str::to_owned);
+                let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), &[]).as_str().map(str::to_owned);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result.clone(), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(base));
+                    result = self.merge_balance_account(result.clone(), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result.clone(), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(quote));
+                    result = self.merge_balance_account(result.clone(), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
                 }
             }
             }

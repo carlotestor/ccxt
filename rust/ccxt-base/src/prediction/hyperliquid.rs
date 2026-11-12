@@ -717,16 +717,16 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_1234: bool = true;
             while { if !__for_first_1234 { i += 1; } __for_first_1234 = false; i < (outcomesList.len() as i64) } {
-            let mut outcomeInfo: Value = self.safe_dict(&outcomesList, Value::Int(i), &[Value::Map({
+            let mut outcomeInfo: crate::value::Dict = self.safe_dict(&outcomesList, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut outcomeId: Value = self.safe_integer_k(outcomeInfo.clone(), "outcome", &[Value::Int(i)]);
+})]).into_dict();
+            let mut outcomeId: Value = self.safe_integer_k(&outcomeInfo, "outcome", &[Value::Int(i)]);
             let mut linkedQuestion: Value = self.safe_dict(Value::Map(outcomesToQuestions.clone()), Value::Str(format!("{}", outcomeId).into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut market: Value = self.parse_outcome_market(outcomeInfo, outcomeId, &[linkedQuestion]);
+            let mut market: Value = self.parse_outcome_market(Value::Dict(outcomeInfo), outcomeId, &[linkedQuestion]);
             markets.push(market.clone());
             // Build outcomes dictionary from market outcomes
             let mut marketOutcomes: crate::value::List = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]).into_list();

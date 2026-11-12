@@ -1960,17 +1960,17 @@ impl Whitebit {
             while { if !__for_first_1152 { i += 1; } __for_first_1152 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut fee: Value = self.safe_dict(response.clone(), Value::from((market).base_id.clone()), &[Value::Map({
+            let mut fee: crate::value::Dict = self.safe_dict(response.clone(), Value::from((market).base_id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut makerFee: Option<String> = self.safe_string_k(fee.clone(), "maker_fee", &[]).as_str().map(str::to_owned);
-            let mut takerFee: Option<String> = self.safe_string_k(fee.clone(), "taker_fee", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut makerFee: Option<String> = self.safe_string_k(&fee, "maker_fee", &[]).as_str().map(str::to_owned);
+            let mut takerFee: Option<String> = self.safe_string_k(&fee, "taker_fee", &[]).as_str().map(str::to_owned);
             makerFee = crate::precise::Precise::stringDiv(&makerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
             takerFee = crate::precise::Precise::stringDiv(&takerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), fee);
+        m.insert("info".to_string(), Value::Dict(fee));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
@@ -4472,19 +4472,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_1165: bool = true;
             while { if !__for_first_1165 { i += 1; } __for_first_1165 = false; i < (subAccounts.len() as i64) } {
-            let mut subAccount: Value = self.safe_dict(&subAccounts, Value::Int(i), &[Value::Map({
+            let mut subAccount: crate::value::Dict = self.safe_dict(&subAccounts, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut accountId: Option<String> = self.safe_string_k(subAccount.clone(), "id", &[]).as_str().map(str::to_owned);
-            let mut accountName: Option<String> = self.safe_string_k(subAccount.clone(), "alias", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut accountId: Option<String> = self.safe_string_k(&subAccount, "id", &[]).as_str().map(str::to_owned);
+            let mut accountName: Option<String> = self.safe_string_k(&subAccount, "alias", &[]).as_str().map(str::to_owned);
             accounts.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), Value::Str("subaccount".into()));
                     m.insert("name".to_string(), accountName.map(Value::from).unwrap_or(Value::Null));
                     m.insert("code".to_string(), Value::Null);
-                    m.insert("info".to_string(), subAccount);
+                    m.insert("info".to_string(), Value::Dict(subAccount));
                 m
             }));
         }

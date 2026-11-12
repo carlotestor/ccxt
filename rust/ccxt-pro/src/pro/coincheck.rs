@@ -338,12 +338,12 @@ impl Coincheck {
         //     ]
         //
         let mut symbol: Value = self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(message.clone(), Value::Int(0), &[])).as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]);
-        let mut data: Value = self.safe_dict(message, Value::Int(1), &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict(message, Value::Int(1), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_timestamp_k(data.clone(), "last_update_at", &[]).as_i64();
-        let mut snapshot: Value = self.parse_order_book(data, symbol.clone(), &[Value::from(timestamp)]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_timestamp_k(&data, "last_update_at", &[]).as_i64();
+        let mut snapshot: Value = self.parse_order_book(Value::Dict(data), symbol.clone(), &[Value::from(timestamp)]);
         let mut orderbook: Value = self.order_book(&[snapshot]);
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);

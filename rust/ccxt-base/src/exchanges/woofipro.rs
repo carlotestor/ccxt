@@ -2884,12 +2884,12 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(data), symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
         Value::Null
         }).await?))
     }
@@ -3369,19 +3369,19 @@ impl Woofipro {
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
             let mut amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut triggerPrice: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-            let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "stopLoss", &[]).into_opt_dict();
-            let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]).into_opt_dict();
-            let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k(orderParams.clone(), "childOrders", &[]).into_opt_list();
+            })]).into_dict();
+            let mut triggerPrice: Option<String> = self.safe_string2(&orderParams, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+            let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&orderParams, "stopLoss", &[]).into_opt_dict();
+            let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&orderParams, "takeProfit", &[]).into_opt_dict();
+            let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k(&orderParams, "childOrders", &[]).into_opt_list();
             let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss.is_some()) || (takeProfit.is_some()) || (paramsChildOrders.is_some());
             if isConditional {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".into()))));
             }
-            let mut orderRequest: Value = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[price, orderParams]);
+            let mut orderRequest: Value = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[price, Value::Dict(orderParams)]);
             ordersRequests.push(orderRequest);
         }
         }

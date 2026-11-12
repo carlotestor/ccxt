@@ -1463,12 +1463,12 @@ impl Btse {
         //         "time": 1786605670833
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(data), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
         Value::Null
         }).await?))
     }
@@ -3826,18 +3826,18 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_488: bool = true;
             while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (responseList.len() as i64) } {
-            let mut feeInfo: Value = self.safe_dict(&responseList, Value::Int(i), &[Value::Map({
+            let mut feeInfo: crate::value::Dict = self.safe_dict(&responseList, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut marketId: Option<String> = self.safe_string_k(feeInfo.clone(), "symbol", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&feeInfo, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-            let mut makerFee: Option<f64> = self.safe_number_k(feeInfo.clone(), "makerFee", &[]).as_f64();
-            let mut takerFee: Option<f64> = self.safe_number_k(feeInfo.clone(), "takerFee", &[]).as_f64();
+            let mut makerFee: Option<f64> = self.safe_number_k(&feeInfo, "makerFee", &[]).as_f64();
+            let mut takerFee: Option<f64> = self.safe_number_k(&feeInfo, "takerFee", &[]).as_f64();
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), feeInfo);
+        m.insert("info".to_string(), Value::Dict(feeInfo));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), Value::from(makerFee));
         m.insert("taker".to_string(), Value::from(takerFee));
@@ -4374,15 +4374,15 @@ impl Btse {
             response = self.private_get_futures_api_v23_user_fees(&[__ws_arg_31]).await;
         }
         let mut rows: crate::value::List = self.safe_list_k(response.clone(), "data", &[response.clone()]).into_list();
-        let mut feeInfo: Value = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
+        let mut feeInfo: crate::value::Dict = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut makerFee: Option<f64> = self.safe_number_k(feeInfo.clone(), "makerFee", &[]).as_f64();
-        let mut takerFee: Option<f64> = self.safe_number_k(feeInfo.clone(), "takerFee", &[]).as_f64();
+})]).into_dict();
+        let mut makerFee: Option<f64> = self.safe_number_k(&feeInfo, "makerFee", &[]).as_f64();
+        let mut takerFee: Option<f64> = self.safe_number_k(&feeInfo, "takerFee", &[]).as_f64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), feeInfo);
+        m.insert("info".to_string(), Value::Dict(feeInfo));
         m.insert("symbol".to_string(), symbol);
         m.insert("maker".to_string(), Value::from(makerFee));
         m.insert("taker".to_string(), Value::from(takerFee));
@@ -4626,15 +4626,15 @@ impl Btse {
         //         }
         //     ]
         //
-        let mut data: Value = self.safe_dict(response, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict(response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut positionMode: Option<String> = self.safe_string_k(data.clone(), "positionMode", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut positionMode: Option<String> = self.safe_string_k(&data, "positionMode", &[]).as_str().map(str::to_owned);
         let mut hedged: Value = Value::Bool((positionMode.as_deref() == Some("HEDGE")) || (positionMode.as_deref() == Some("ISOLATED")));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::Dict(data));
         m.insert("hedged".to_string(), hedged);
     m
 });

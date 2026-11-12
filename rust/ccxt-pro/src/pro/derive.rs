@@ -440,11 +440,11 @@ impl Derive {
         // }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "instrument_name", &[]).as_str().map(str::to_owned);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
@@ -458,8 +458,8 @@ impl Derive {
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), __be_tmp); } }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
-        let mut snapshot: Value = self.parse_order_book(data, Value::from(symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
+        let mut snapshot: Value = self.parse_order_book(Value::Dict(data), Value::from(symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
         orderbook.reset(snapshot);
         client.resolve(orderbook, topic.as_deref());
 }
@@ -1697,15 +1697,15 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_304: bool = true;
             while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut name: String = self.safe_string_k(entry.clone(), "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            })]).into_dict();
+            let mut name: String = self.safe_string_k(&entry, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if name.contains("-") {
                 // position deltas carry instrument names and do not belong into the balance structure
                 if (self.positions.clone() != Value::Null) && (self.positions.as_map().is_some_and(|__m| subaccountIdKey.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-                    let mut position: Value = self.handle_position_delta(subaccountIdKey.clone(), entry.clone());
+                    let mut position: Value = self.handle_position_delta(subaccountIdKey.clone(), Value::from(&entry));
                     positionUpdates.push(position);
                 }
                 continue;
@@ -1719,7 +1719,7 @@ impl Derive {
                 account = self.account();
             }
             // the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(entry, "new_balance", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&entry, "new_balance", &[])); }
             // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Null); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), Value::Null); }

@@ -1662,12 +1662,12 @@ impl Coinbase {
         let mut subKeys: Vec<Value> = object_keys(&crate::value::KeyRead::key_read(&&firstEvent, "subscriptions")).as_array().cloned().unwrap_or_default();
         let mut subKeysLength: i64 = subKeys.len() as i64;
         if isUnsub && (subKeysLength == 0) {
-            let mut unSubObject: Value = self.safe_dict_k(self.options.clone(), "unSubscription", &[Value::Map({
+            let mut unSubObject: crate::value::Dict = self.safe_dict_k(self.options.clone(), "unSubscription", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut messageHashes: crate::value::List = self.safe_list_k(unSubObject.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
-            let mut subMessageHashes: crate::value::List = self.safe_list_k(unSubObject.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
+            })]).into_dict();
+            let mut messageHashes: crate::value::List = self.safe_list_k(&unSubObject, "messageHashes", &[Value::from(vec![])]).into_list();
+            let mut subMessageHashes: crate::value::List = self.safe_list_k(&unSubObject, "subMessageHashes", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_236: bool = true;
@@ -1677,7 +1677,7 @@ impl Coinbase {
                 self.clean_unsubscription(client.clone(), subHash, messageHash, &[]);
             }
             }
-            self.clean_cache(unSubObject);
+            self.clean_cache(Value::Dict(unSubObject));
         }
         return message;
 

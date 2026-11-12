@@ -1337,11 +1337,11 @@ impl Derive {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut subaccountIds: crate::value::List = self.safe_list_k(result.clone(), "subaccount_ids", &[Value::from(vec![])]).into_list();
+        })]).into_dict();
+        let mut subaccountIds: crate::value::List = self.safe_list_k(&result, "subaccount_ids", &[Value::from(vec![])]).into_list();
         let mut accounts: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1353,7 +1353,7 @@ impl Derive {
                     m.insert("id".to_string(), subaccountId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), Value::Null);
                     m.insert("code".to_string(), Value::Null);
-                    m.insert("info".to_string(), result.clone());
+                    m.insert("info".to_string(), Value::from(&result));
                 m
             }));
         }

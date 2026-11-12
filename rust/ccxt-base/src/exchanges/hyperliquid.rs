@@ -1440,15 +1440,15 @@ impl Hyperliquid {
             let mut tokensPos: crate::value::List = self.safe_list_k(market.clone(), "tokens", &[Value::from(vec![])]).into_list();
             let mut baseTokenIndex: Option<String> = self.safe_string(&tokensPos, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut quoteTokenIndex: Option<String> = self.safe_string(&tokensPos, Value::Int(1), &[]).as_str().map(str::to_owned);
-            let mut baseTokenInfo: Value = self.safe_dict(Value::Map(tokensByIndex.clone()), baseTokenIndex.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut baseTokenInfo: crate::value::Dict = self.safe_dict(Value::Map(tokensByIndex.clone()), baseTokenIndex.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut quoteTokenInfo: crate::value::Dict = self.safe_dict(Value::Map(tokensByIndex.clone()), quoteTokenIndex.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut baseName: Option<String> = self.safe_string_k(baseTokenInfo.clone(), "name", &[]).as_str().map(str::to_owned);
+            let mut baseName: Option<String> = self.safe_string_k(&baseTokenInfo, "name", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(&quoteTokenInfo, "name", &[]).as_str().map(str::to_owned);
             if (baseName.is_none()) || (quoteId.is_none()) {
                 continue;
@@ -1463,7 +1463,7 @@ impl Hyperliquid {
             let mut mappedBase: Option<String> = self.safe_currency_code(mappedBaseName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut mappedQuote: Option<String> = self.safe_currency_code(mappedQuoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut mappedSymbol: String = format!("{}{}", Value::Str(format!("{}{}", mappedBase.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), mappedQuote.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut innerBaseTokenInfo: crate::value::Dict = self.safe_dict_k(baseTokenInfo.clone(), "spec", &[baseTokenInfo.clone()]).into_dict();
+            let mut innerBaseTokenInfo: crate::value::Dict = self.safe_dict_k(&baseTokenInfo, "spec", &[Value::from(&baseTokenInfo)]).into_dict();
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             let mut amountPrecisionStr: Option<String> = self.safe_string_k(&innerBaseTokenInfo, "szDecimals", &[]).as_str().map(str::to_owned);
             let mut amountPrecision: Value = self.parse_to_int(amountPrecisionStr.clone().map(Value::from).unwrap_or(Value::Null));

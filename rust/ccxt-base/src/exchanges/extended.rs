@@ -4259,11 +4259,11 @@ impl Extended {
 }));
         self.check_required_credentials(&[]);
         let mut extendedOrderRequest: Value = self.create_extended_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).await;
-        let mut request: Value = self.safe_dict_k(extendedOrderRequest.clone(), "request", &[Value::Map({
+        let mut request: crate::value::Dict = self.safe_dict_k(extendedOrderRequest.clone(), "request", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut response: crate::value::Dict = self.v1_private_post_user_order(&[request.clone()]).await.into_dict();
+})]).into_dict();
+        let mut response: crate::value::Dict = self.v1_private_post_user_order(&[Value::from(&request)]).await.into_dict();
         //
         //     {
         //         "status": "OK",
@@ -4374,11 +4374,11 @@ impl Extended {
             m
         })]);
         let mut extendedOrderRequest: Value = self.create_extended_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amountValue), &[Value::from(priceValue), requestParams]).await;
-        let mut request: Value = self.safe_dict_k(extendedOrderRequest.clone(), "request", &[Value::Map({
+        let mut request: crate::value::Dict = self.safe_dict_k(extendedOrderRequest.clone(), "request", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut editResponse: crate::value::Dict = self.v1_private_post_user_order(&[request.clone()]).await.into_dict();
+})]).into_dict();
+        let mut editResponse: crate::value::Dict = self.v1_private_post_user_order(&[Value::from(&request)]).await.into_dict();
         //
         //     {
         //         "status": "OK",

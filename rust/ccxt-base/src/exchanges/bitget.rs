@@ -6096,14 +6096,14 @@ if _try_result.is_err() {
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseCoin", &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut supportMarginCoins: Value = self.safe_list_k(market.clone(), "supportMarginCoins", &[Value::from(vec![])]);
+        let mut supportMarginCoins: crate::value::List = self.safe_list_k(market.clone(), "supportMarginCoins", &[Value::from(vec![])]).into_list();
         let mut settleId: Option<String> = None;
-        if self.in_array(baseId.clone().map(Value::from).unwrap_or(Value::Null), supportMarginCoins.clone()).as_bool() == Some(true) {
+        if self.in_array(baseId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(&supportMarginCoins)).as_bool() == Some(true) {
             settleId = baseId.clone();
-        }  else if self.in_array(quoteId.clone().map(Value::from).unwrap_or(Value::Null), supportMarginCoins.clone()).as_bool() == Some(true) {
+        }  else if self.in_array(quoteId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(&supportMarginCoins)).as_bool() == Some(true) {
             settleId = quoteId.clone();
         }  else {
-            settleId = self.safe_string(supportMarginCoins, Value::Int(0), &[]).as_str().map(str::to_owned);
+            settleId = self.safe_string(&supportMarginCoins, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
         let mut settle: Value = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
@@ -7753,18 +7753,18 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut bidsKey: String = "bids".to_string();
         let mut asksKey: String = "asks".to_string();
         if isStockOrUta {
             bidsKey = "b".to_string();
             asksKey = "a".to_string();
         }
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "ts", &[]).as_i64();
-        return self.parse_order_book(data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(data), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
         Value::Null
         }).await?))
     }

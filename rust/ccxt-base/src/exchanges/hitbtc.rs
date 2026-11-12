@@ -2600,13 +2600,13 @@ impl Hitbtc {
             let mut __for_first_748: bool = true;
             while { if !__for_first_748 { i += 1; } __for_first_748 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut orderbook: Value = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
+            let mut orderbook: crate::value::Dict = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut symbol: Value = self.safe_symbol(marketId, &[]);
-            let mut timestamp: Value = self.parse8601(self.safe_string_k(orderbook.clone(), "timestamp", &[]));
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_order_book(orderbook, symbol.clone(), &[timestamp, Value::Str("bid".into()), Value::Str("ask".into())]));
+            let mut timestamp: Value = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_order_book(Value::Dict(orderbook), symbol.clone(), &[timestamp, Value::Str("bid".into()), Value::Str("ask".into())]));
         }
         }
         return Value::Map(result);

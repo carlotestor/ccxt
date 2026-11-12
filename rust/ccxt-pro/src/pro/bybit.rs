@@ -2330,23 +2330,23 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_196: bool = true;
             while { if !__for_first_196 { i += 1; } __for_first_196 = false; i < (data.len() as i64) } {
-            let mut rawTrade: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut rawTrade: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut parsed: Value = Value::Null;
             if spot && !executionFast {
-                parsed = self.parse_ws_trade(rawTrade.clone(), &[]);
+                parsed = self.parse_ws_trade(&rawTrade, &[]);
             }  else {
                 // filter unified trades
-                let mut execType: String = self.safe_string_k(rawTrade.clone(), "execType", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut execType: String = self.safe_string_k(&rawTrade, "execType", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 if executionFast {
                     execType = "Trade".to_string();
                 }
                 if (execTypes != Value::Null) && !(self.in_array(Value::from(execType), execTypes.clone()).as_bool() == Some(true)) {
                     continue;
                 }
-                parsed = self.parse_trade(rawTrade, &[]);
+                parsed = self.parse_trade(Value::Dict(rawTrade), &[]);
             }
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol == Value::Null) {

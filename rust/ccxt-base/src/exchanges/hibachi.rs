@@ -3305,15 +3305,15 @@ impl Hibachi {
         //     "tradePrice": "2372.746570"
         // }
         //
-        let mut funding: Value = self.safe_dict_k(&response, "fundingRateEstimation", &[Value::Map({
+        let mut funding: crate::value::Dict = self.safe_dict_k(&response, "fundingRateEstimation", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
-        let mut nextFundingTimestamp: Value = self.safe_integer_product_k(funding.clone(), "nextFundingTimestamp", Value::Int(1000), &[]);
+        let mut nextFundingTimestamp: Value = self.safe_integer_product_k(&funding, "nextFundingTimestamp", Value::Int(1000), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), funding.clone());
+        m.insert("info".to_string(), Value::from(&funding));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
@@ -3321,7 +3321,7 @@ impl Hibachi {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("fundingRate".to_string(), self.safe_number_k(funding, "estimatedFundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(&funding, "estimatedFundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), nextFundingTimestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);

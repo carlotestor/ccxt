@@ -964,12 +964,12 @@ impl Cryptomus {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_timestamp_k(data.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_timestamp_k(&data, "timestamp", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(data), symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
         Value::Null
         }).await?))
     }

@@ -1403,13 +1403,13 @@ impl Apex {
         //     "u": 18665465
         // }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(data.clone(), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(data, "u", &[]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::from(&data), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&data, "u", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))

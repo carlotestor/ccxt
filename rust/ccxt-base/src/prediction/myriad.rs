@@ -849,16 +849,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_1343: bool = true;
                 while { if !__for_first_1343 { i += 1; } __for_first_1343 = false; (i as f64) < questionsLength } {
-                let mut q: Value = self.safe_dict(&questions, Value::Int(i), &[Value::Map({
+                let mut q: crate::value::Dict = self.safe_dict(&questions, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut qId: String = self.safe_string_k(q.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut qSlug: String = self.safe_string_k(q.clone(), "slug", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut qTitle: String = self.safe_string_k(q.clone(), "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+})]).into_dict();
+                let mut qId: String = self.safe_string_k(&q, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut qSlug: String = self.safe_string_k(&q, "slug", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut qTitle: String = self.safe_string_k(&q, "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut qHandle: Option<String> = self.shorten_slug(Value::from(qSlug.clone())).as_str().map(str::to_owned);
                 if ((qId.to_lowercase()) == idLower) || ((qSlug.to_lowercase()) == idLower) || ((qTitle.to_lowercase()) == idLower) || ((qHandle.is_some()) && ((qHandle.as_deref().map(str::to_lowercase)).as_deref() == Some(idLower.as_str()))) {
-                    return q;
+                    return Value::Dict(q);
                 }
             }
             }
@@ -1984,13 +1984,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_1351: bool = true;
                 while { if !__for_first_1351 { i += 1; } __for_first_1351 = false; (i as f64) < responsesLength } {
-                let mut current: Value = self.safe_dict(&orderResponses, Value::Int(i), &[Value::Map({
+                let mut current: crate::value::Dict = self.safe_dict(&orderResponses, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut currentId: Option<String> = self.safe_string_n(current.clone(), Value::from(vec![Value::Str("orderHash".into()), Value::Str("hash".into()), Value::Str("id".into())]), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+                let mut currentId: Option<String> = self.safe_string_n(&current, Value::from(vec![Value::Str("orderHash".into()), Value::Str("hash".into()), Value::Str("id".into())]), &[]).as_str().map(str::to_owned);
                 if (currentId.is_some()) && (currentId == id.as_str().map(str::to_owned)) {
-                    return current;
+                    return Value::Dict(current);
                 }
             }
             }

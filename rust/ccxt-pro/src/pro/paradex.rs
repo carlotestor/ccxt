@@ -870,11 +870,11 @@ impl Paradex {
         //     }
         //
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut parsedTrade: Value = self.parse_trade(data.clone(), &[]);
+        })]).into_dict();
+        let mut parsedTrade: Value = self.parse_trade(Value::from(&data), &[]);
         let mut symbol: Value = parsedTrade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -884,10 +884,10 @@ impl Paradex {
         }
         stored.append(parsedTrade);
         client.resolve(stored.clone(), messageHash.as_deref());
-        if (self.safe_string_k(data.clone(), "trade_type", &[]).as_str() == Some("LIQUIDATION")) {
+        if (self.safe_string_k(&data, "trade_type", &[]).as_str() == Some("LIQUIDATION")) {
             // one cache per market, kept in the options next to the request id counter: this.liquidations
             // is typed as a single cache in some languages and initialized as a map in others
-            let mut liquidation: Value = self.parse_ws_liquidation(data, &[]);
+            let mut liquidation: Value = self.parse_ws_liquidation(Value::Dict(data), &[]);
             let mut caches: Value = self.safe_dict_k(self.options.clone(), "liquidationsBySymbol", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2066,15 +2066,15 @@ impl Paradex {
         //     }
         //
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
-        let mut ticker: Value = self.parse_ticker(data, &[market]);
+        let mut ticker: Value = self.parse_ticker(Value::Dict(data), &[market]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         client.resolve(ticker.clone(), channel.as_deref());
         // watchTicker waits on the symbol whichever channel, per-market or all, carried it

@@ -1528,20 +1528,20 @@ if _try_result.is_err() {
         //   "error": null,
         //   "code": null
         // }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), data.clone());
+                m.insert("info".to_string(), Value::from(&data));
             m
         });
         let mut usdcAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-        usdcAccount.insert("total".into(), self.safe_string_k(data.clone(), "balance", &[]));
-        usdcAccount.insert("used".into(), self.safe_string_k(data.clone(), "total_margin_used", &[]));
+        usdcAccount.insert("total".into(), self.safe_string_k(&data, "balance", &[]));
+        usdcAccount.insert("used".into(), self.safe_string_k(&data, "total_margin_used", &[]));
         result.insert("USDC".into(), Value::Map(usdcAccount));
-        let mut spotBalances: crate::value::List = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]).into_list();
+        let mut spotBalances: crate::value::List = self.safe_list_k(&data, "spot_balances", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1043: bool = true;
@@ -1558,7 +1558,7 @@ if _try_result.is_err() {
             }
         }
         }
-        let mut timestamp: Option<i64> = self.safe_integer_k(data, "updated_at", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "updated_at", &[]).as_i64();
         result.insert("timestamp".into(), Value::from(timestamp));
         result.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
         return self.safe_balance(Value::Map(result));

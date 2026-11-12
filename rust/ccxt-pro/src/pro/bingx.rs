@@ -2461,10 +2461,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut isSpot: bool = matches!(&message, Value::Dict(__d) if __d.contains_key("dataType"));
-        let mut result: Value = self.safe_dict2(message.clone(), Value::Str("data".into()), Value::Str("o".into()), &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("data".into()), Value::Str("o".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut cachedTrades: Value = self.myTrades.clone();
         if (cachedTrades == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2475,9 +2475,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isSpot {
             type_var = "spot".to_string();
         }
-        let mut marketId: Option<String> = self.safe_string_k(result.clone(), "s", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&result, "s", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into()), Value::from(type_var)]);
-        let mut parsed: Value = self.parse_trade(result, &[market]);
+        let mut parsed: Value = self.parse_trade(Value::Dict(result), &[market]);
         let mut symbol: String = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut spotHash: String = "spot:mytrades".to_string();
         let mut swapHash: String = "swap:mytrades".to_string();
@@ -2665,13 +2665,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-        let mut subscription: Value = self.safe_dict(subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+        let mut subscription: crate::value::Dict = self.safe_dict(subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut isUnSubMessage: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        })]).into_dict();
+        let mut isUnSubMessage: bool = self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isUnSubMessage {
-            self.handle_un_subscription(client, subscription);
+            self.handle_un_subscription(client, Value::Dict(subscription));
         }
         return message;
 

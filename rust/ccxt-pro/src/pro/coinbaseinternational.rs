@@ -2279,14 +2279,14 @@ impl Coinbaseinternational {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut type_var: Option<String> = self.safe_string_k(data.clone(), "type", &[Value::Str("snapshot".into())]).as_str().map(str::to_owned);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut type_var: Option<String> = self.safe_string_k(&data, "type", &[Value::Str("snapshot".into())]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&data, "instrument_name", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut channelParts: Vec<Value> = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut channelPartsLength: i64 = channelParts.len() as i64;
@@ -2307,9 +2307,9 @@ impl Coinbaseinternational {
             return;
         }
         if isGrouped {
-            orderbook.reset(self.parse_order_book(data.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
+            orderbook.reset(self.parse_order_book(Value::from(&data), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
         }  else {
-            let mut previousChangeId: Option<i64> = self.safe_integer_k(data.clone(), "prev_change_id", &[]).as_i64();
+            let mut previousChangeId: Option<i64> = self.safe_integer_k(&data, "prev_change_id", &[]).as_i64();
             if (type_var.as_deref() != Some("snapshot")) && (nonce.is_some()) && (previousChangeId != nonce) {
                 // drop the stale book and reject only this channels future
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
@@ -2320,11 +2320,11 @@ impl Coinbaseinternational {
                 self.spawn(&[Value::Str("resubscribe_order_book".into()).clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
                 return;
             }
-            self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
-            self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
+            self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
+            self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
         }
         orderbook.set_book_meta("symbol", symbol.clone());
-        orderbook.set_book_meta("nonce", self.safe_integer_k(data, "change_id", &[]));
+        orderbook.set_book_meta("nonce", self.safe_integer_k(&data, "change_id", &[]));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }

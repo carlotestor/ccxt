@@ -6204,21 +6204,21 @@ impl Kucoin {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Value = self.safe_integer_k(data.clone(), "time", &[]);
+        })]).into_dict();
+        let mut timestamp: Value = self.safe_integer_k(&data, "time", &[]);
         if (timestamp == Value::Null) {
-            let mut nanoseconds: Value = self.safe_integer_k(data.clone(), "ts", &[]);
+            let mut nanoseconds: Value = self.safe_integer_k(&data, "ts", &[]);
             if (nanoseconds != Value::Null) {
                 timestamp = self.parse_to_int((match ((nanoseconds).as_f64(), (Value::Int(1000000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             }
         }
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(data.clone(), Value::from((market).symbol.clone()), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), (match (&(level), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y),
-            (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), (match (&(level), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(data, "sequence", &[]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::from(&data), Value::from((market).symbol.clone()), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), (match (&(level), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x),
+            Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), (match (&(level), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x),
+            Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&data, "sequence", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))
@@ -11488,21 +11488,21 @@ impl Kucoin {
                 let mut __for_first_896: bool = true;
                 while { if !__for_first_896 { i += 1; } __for_first_896 = false; i < (assets.len() as i64) } {
                 let mut entry: crate::value::Dict = self.safe_dict(&assets, Value::Int(i), &[]).into_dict();
-                let mut base: Value = self.safe_dict_k(&entry, "baseAsset", &[Value::Map({
+                let mut base: crate::value::Dict = self.safe_dict_k(&entry, "baseAsset", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut quote: Value = self.safe_dict_k(&entry, "quoteAsset", &[Value::Map({
+                })]).into_dict();
+                let mut quote: crate::value::Dict = self.safe_dict_k(&entry, "quoteAsset", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(base.clone(), "currency", &[]), &[]).as_str().map(str::to_owned);
-                let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(quote.clone(), "currency", &[]), &[]).as_str().map(str::to_owned);
+                })]).into_dict();
+                let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "currency", &[]), &[]).as_str().map(str::to_owned);
+                let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "currency", &[]), &[]).as_str().map(str::to_owned);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result.clone(), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(base));
+                    result = self.merge_balance_account(result.clone(), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result.clone(), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(quote));
+                    result = self.merge_balance_account(result.clone(), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
                 }
             }
             }
@@ -15348,14 +15348,14 @@ if _try_result.is_err() {
     m
 }));
         let mut response: crate::value::Dict = self.futures_private_get_position_get_position_mode(&[params]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut positionMode: Option<i64> = self.safe_integer_k(data.clone(), "positionMode", &[]).as_i64();
+        })]).into_dict();
+        let mut positionMode: Option<i64> = self.safe_integer_k(&data, "positionMode", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::Dict(data));
         m.insert("hedged".to_string(), Value::Bool(positionMode == Some(1)));
     m
 });
@@ -15527,23 +15527,23 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_908: bool = true;
             while { if !__for_first_908 { i += 1; } __for_first_908 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
-            let mut tier: Value = self.safe_dict(info.clone(), Value::Int(i), &[Value::Map({
+            let mut tier: crate::value::Dict = self.safe_dict(info.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut marketId: Option<String> = self.safe_string_k(tier.clone(), "symbol", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&tier, "symbol", &[]).as_str().map(str::to_owned);
             let mut tierMarket: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), marketCursor.clone()]);
             marketCursor = tierMarket.clone();
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.safe_number2(tier.clone(), Value::Str("level".into()), Value::Str("tier".into()), &[]));
+                    m.insert("tier".to_string(), self.safe_number2(&tier, Value::Str("level".into()), Value::Str("tier".into()), &[]));
                     m.insert("symbol".to_string(), tierMarket.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
                     m.insert("currency".to_string(), tierMarket.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
-                    m.insert("minNotional".to_string(), self.safe_number2(tier.clone(), Value::Str("minRiskLimit".into()), Value::Str("minSize".into()), &[]));
-                    m.insert("maxNotional".to_string(), self.safe_number2(tier.clone(), Value::Str("maxRiskLimit".into()), Value::Str("maxSize".into()), &[]));
-                    m.insert("maintenanceMarginRate".to_string(), self.safe_number2(tier.clone(), Value::Str("maintainMargin".into()), Value::Str("maintainMarginRate".into()), &[]));
-                    m.insert("maxLeverage".to_string(), self.safe_number_k(tier.clone(), "maxLeverage", &[]));
-                    m.insert("info".to_string(), tier);
+                    m.insert("minNotional".to_string(), self.safe_number2(&tier, Value::Str("minRiskLimit".into()), Value::Str("minSize".into()), &[]));
+                    m.insert("maxNotional".to_string(), self.safe_number2(&tier, Value::Str("maxRiskLimit".into()), Value::Str("maxSize".into()), &[]));
+                    m.insert("maintenanceMarginRate".to_string(), self.safe_number2(&tier, Value::Str("maintainMargin".into()), Value::Str("maintainMarginRate".into()), &[]));
+                    m.insert("maxLeverage".to_string(), self.safe_number_k(&tier, "maxLeverage", &[]));
+                    m.insert("info".to_string(), Value::from(&tier));
                 m
             }));
         }

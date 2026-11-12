@@ -2578,19 +2578,19 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut payload: Value = self.safe_dict_k(&response, "payload", &[Value::Map({
+        let mut payload: crate::value::Dict = self.safe_dict_k(&response, "payload", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut status: Option<String> = self.safe_string_k(payload.clone(), "status", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut status: Option<String> = self.safe_string_k(&payload, "status", &[]).as_str().map(str::to_owned);
         if (status.is_some()) && (status.as_deref() != Some("ok")) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&payload))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&Value::from(&payload)))));
             client.reject(error.clone(), id.as_deref());
             return Value::Bool(true);
         }
-        let mut type_var: Option<String> = self.safe_string_k(payload.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string_k(&payload, "type", &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("error")) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&payload))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&Value::from(&payload)))));
             client.reject(error, id.as_deref());
             return Value::Bool(true);
         }
@@ -2598,7 +2598,7 @@ impl Hyperliquid {
             self.handle_errors(Value::Int(0), Value::Str("".into()), Value::Str("".into()), Value::Str("".into()), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), json_stringify(&payload), payload.clone(), Value::Map({
+            }), json_stringify(&Value::from(&payload)), Value::from(&payload), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));

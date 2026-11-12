@@ -625,13 +625,13 @@ impl Deribit {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "instrument_name", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut ticker: Value = self.parse_ticker(data, &[]);
+        let mut ticker: Value = self.parse_ticker(Value::Dict(data), &[]);
         let mut messageHash: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
         client.resolve(ticker, messageHash.as_deref());

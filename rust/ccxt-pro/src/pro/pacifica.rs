@@ -2321,23 +2321,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut method: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (method.as_deref() == Some("unsubscribe")) {
-            let mut subscription: Value = self.safe_dict_k(&data, "data", &[Value::Map({
+            let mut subscription: crate::value::Dict = self.safe_dict_k(&data, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut type_var: Option<String> = self.safe_string_k(subscription.clone(), "source", &[]).as_str().map(str::to_owned);
+            })]).into_dict();
+            let mut type_var: Option<String> = self.safe_string_k(&subscription, "source", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("book")) {
-                self.handle_order_book_unsubscription(client.clone(), subscription.clone());
+                self.handle_order_book_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("trades")) {
-                self.handle_trades_unsubscription(client.clone(), subscription.clone());
+                self.handle_trades_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("prices")) {
-                self.handle_tickers_unsubscription(client.clone(), subscription.clone());
+                self.handle_tickers_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("candle")) {
-                self.handle_ohlcv_unsubscription(client.clone(), subscription.clone());
+                self.handle_ohlcv_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("account_order_updates")) {
-                self.handle_order_unsubscription(client.clone(), subscription.clone());
+                self.handle_order_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("account_trades")) {
-                self.handle_my_trades_unsubscription(client, subscription);
+                self.handle_my_trades_unsubscription(client, Value::Dict(subscription));
             }
         }
 }

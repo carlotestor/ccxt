@@ -1738,22 +1738,22 @@ impl Predictfun {
         //         "success":true
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "updateTimestampMs", &[]).as_i64();
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "updateTimestampMs", &[]).as_i64();
         // The outcome lables are not the same as the outcome indexSet values, so we need to check the indexSet to determine which outcome is being requested
         let mut indexSet: Option<i64> = self.safe_integer_k(&info, "indexSet", &[]).as_i64();
         let mut isYesOutcome: bool = indexSet == Some(1);
         let mut outcomeSymbol: Value = self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]);
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
         if isYesOutcome {
-            let mut yesOrderbook: Value = self.parse_order_book(data.clone(), outcomeSymbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+            let mut yesOrderbook: Value = self.parse_order_book(Value::from(&data), outcomeSymbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
             return self.safe_prediction_order_book(yesOrderbook, &[outcomeObj.clone()]);
         }  else {
-            let mut bids: crate::value::List = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]).into_list();
-            let mut asks: crate::value::List = self.safe_list_k(data, "asks", &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
             let mut noBids: Vec<Value> = Vec::new();
             let mut noAsks: Vec<Value> = Vec::new();
             {
@@ -4852,14 +4852,14 @@ impl Predictfun {
         //         }
         //     }
         //
-        let mut details: Value = self.safe_dict_k(event.clone(), "details", &[Value::Map({
+        let mut details: crate::value::Dict = self.safe_dict_k(event.clone(), "details", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut outcomeObj: Value = self.wallet_event_outcome(details.clone());
+})]).into_dict();
+        let mut outcomeObj: Value = self.wallet_event_outcome(Value::from(&details));
         let mut eventType: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<String> = self.safe_string_k(details.clone(), "quantity", &[]).as_str().map(str::to_owned);
-        let mut filled: Option<String> = self.safe_string_k(details.clone(), "quantityFilled", &[]).as_str().map(str::to_owned);
+        let mut amount: Option<String> = self.safe_string_k(&details, "quantity", &[]).as_str().map(str::to_owned);
+        let mut filled: Option<String> = self.safe_string_k(&details, "quantityFilled", &[]).as_str().map(str::to_owned);
         // every variant names a state of one order, so the event type is the status
         let mut status: Option<String> = None;
         if (eventType.as_deref() == Some("orderAccepted")) || (eventType.as_deref() == Some("orderMarketMatchPlan")) || (eventType.as_deref() == Some("orderTransactionSubmitted")) || (eventType.as_deref() == Some("orderTransactionFailed")) {
@@ -4879,7 +4879,7 @@ impl Predictfun {
                 status = Some("closed".to_string());
             }
         }
-        let mut quoteType: Option<String> = self.safe_string_lower_k(details.clone(), "quoteType", &[]).as_str().map(str::to_owned);
+        let mut quoteType: Option<String> = self.safe_string_lower_k(&details, "quoteType", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if (quoteType.as_deref() == Some("bid")) {
             side = Some("buy".to_string());
@@ -4900,15 +4900,15 @@ impl Predictfun {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(timestamp));
         m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), self.safe_string_lower_k(details.clone(), "strategyType", &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(&details, "strategyType", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), self.safe_number_k(details.clone(), "price", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&details, "price", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("filled".to_string(), self.parse_number(filled.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("remaining".to_string(), self.parse_number(remaining.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("cost".to_string(), self.safe_number_k(details, "valueFilled", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(&details, "valueFilled", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
@@ -5050,17 +5050,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // by it - see handleSubscriptionStatus in pro/binance.ts
             let mut id: Option<String> = (match __pro_message.get("requestId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-            let mut subscription: Value = self.safe_dict(subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut subscription: crate::value::Dict = self.safe_dict(subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut success: bool = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
             if !success {
-                self.handle_subscription_error(client.clone(), message.clone(), subscription.clone());
+                self.handle_subscription_error(client.clone(), message.clone(), Value::from(&subscription));
                 return;
             }
-            if matches!(self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]), Value::Bool(true)) {
-                self.handle_un_subscription(client.clone(), subscription);
+            if matches!(self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]), Value::Bool(true)) {
+                self.handle_un_subscription(client.clone(), Value::Dict(subscription));
             }
             return;
         }

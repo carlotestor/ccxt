@@ -2959,18 +2959,18 @@ impl Xt {
         //         }
         //     }
         //
-        let mut orderBook: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut orderBook: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer2(orderBook.clone(), Value::Str("timestamp".into()), Value::Str("t".into()), &[]).as_i64();
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer2(&orderBook, Value::Str("timestamp".into()), Value::Str("t".into()), &[]).as_i64();
         if (market).spot {
-            let mut ob: indexmap::IndexMap<String, Value> = self.parse_order_book(orderBook.clone(), symbol.clone(), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
-            ob.insert("nonce".into(), self.safe_integer_k(orderBook.clone(), "lastUpdateId", &[]));
+            let mut ob: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::from(&orderBook), symbol.clone(), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+            ob.insert("nonce".into(), self.safe_integer_k(&orderBook, "lastUpdateId", &[]));
             return Value::Map(ob);
         }
-        let mut swapOb: indexmap::IndexMap<String, Value> = self.parse_order_book(orderBook.clone(), symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
-        swapOb.insert("nonce".into(), self.safe_integer2(orderBook, Value::Str("u".into()), Value::Str("lastUpdateId".into()), &[]));
+        let mut swapOb: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::from(&orderBook), symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
+        swapOb.insert("nonce".into(), self.safe_integer2(&orderBook, Value::Str("u".into()), Value::Str("lastUpdateId".into()), &[]));
         return Value::Map(swapOb);
         Value::Null
         }).await?))

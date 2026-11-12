@@ -2199,12 +2199,12 @@ impl Coinbaseinternational {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(result.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(result, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(result), Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -2493,19 +2493,19 @@ impl Coinbaseinternational {
         //     }
         // }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
-            let mut summaries: Option<crate::value::List> = self.safe_list_k(result.clone(), "summaries", &[]).into_opt_list();
+            let mut summaries: Option<crate::value::List> = self.safe_list_k(&result, "summaries", &[]).into_opt_list();
             if (summaries.is_some()) {
                 return self.parse_balance_list(summaries.map_or(Value::Null, Value::Arr));
             }
-            return self.parse_balance_list(self.safe_dict_k(result.clone(), "summaries", &[Value::from(vec![])]));
+            return self.parse_balance_list(self.safe_dict_k(&result, "summaries", &[Value::from(vec![])]));
         }
-        return self.parse_balance_list(result);
+        return self.parse_balance_list(Value::Dict(result));
         Value::Null
         }).await?))
     }

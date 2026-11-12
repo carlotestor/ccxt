@@ -5834,13 +5834,13 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "pricebook", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "pricebook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut time: Option<String> = self.safe_string_k(data.clone(), "time", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut time: Option<String> = self.safe_string_k(&data, "time", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse8601(time.map(Value::from).unwrap_or(Value::Null));
-        return self.parse_order_book(data, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        return self.parse_order_book(Value::Dict(data), symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         Value::Null
         }).await?))
     }

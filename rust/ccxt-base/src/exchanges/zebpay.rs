@@ -1191,12 +1191,12 @@ impl Zebpay {
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
             response = self.public_swap_get_v1_market_order_book(&[__ws_arg_3]).await.into_opt_dict();
         }
-        let mut bookData: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut bookData: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(bookData.clone(), Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(bookData, "nonce", &[]));
+        })]).into_dict();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::from(&bookData), Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&bookData, "nonce", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))

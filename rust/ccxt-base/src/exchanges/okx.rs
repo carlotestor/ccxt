@@ -4706,12 +4706,12 @@ impl Okx {
         // rpi liquidity, so index 0 and 1 stay the price and the amount
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(first.clone(), "ts", &[]).as_i64();
-        return self.parse_order_book(first, symbol, &[Value::from(timestamp)]);
+})]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&first, "ts", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(first), symbol, &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }

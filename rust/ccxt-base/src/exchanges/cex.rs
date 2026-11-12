@@ -1254,12 +1254,12 @@ impl Cex {
         //                ],
         //                ...
         //
-        let mut orderBook: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut orderBook: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(orderBook.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(orderBook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&orderBook, "timestamp", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(orderBook), Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }

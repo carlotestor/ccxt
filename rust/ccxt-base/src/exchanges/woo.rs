@@ -2245,16 +2245,16 @@ impl Woo {
             let mut __for_first_1169: bool = true;
             while { if !__for_first_1169 { j += 1; } __for_first_1169 = false; j < (keys.len() as i64) } {
             let mut networkId: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
+            let mut tokenEntry: crate::value::Dict = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut networkEntry: Value = self.safe_dict(chainsByNetworkId.clone(), networkId.clone(), &[Value::Map({
+})]).into_dict();
+            let mut networkEntry: crate::value::Dict = self.safe_dict(chainsByNetworkId.clone(), networkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut specialNetworkId: Option<String> = self.safe_string_k(tokenEntry.clone(), "token", &[]).as_str().map(str::to_owned);
+            let mut specialNetworkId: Option<String> = self.safe_string_k(&tokenEntry, "token", &[]).as_str().map(str::to_owned);
             if (networkCode != Value::Null) {
                 resultingNetworks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2262,15 +2262,15 @@ impl Woo {
         m.insert("currencyNetworkId".to_string(), specialNetworkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool(self.safe_string_k(networkEntry.clone(), "allow_deposit", &[]).as_str() == Some("1")));
-        m.insert("withdraw".to_string(), Value::Bool(self.safe_string_k(networkEntry.clone(), "allow_withdraw", &[]).as_str() == Some("1")));
-        m.insert("fee".to_string(), self.safe_number_k(networkEntry.clone(), "withdrawal_fee", &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(tokenEntry.clone(), "decimals", &[])]), &[]));
+        m.insert("deposit".to_string(), Value::Bool(self.safe_string_k(&networkEntry, "allow_deposit", &[]).as_str() == Some("1")));
+        m.insert("withdraw".to_string(), Value::Bool(self.safe_string_k(&networkEntry, "allow_withdraw", &[]).as_str() == Some("1")));
+        m.insert("fee".to_string(), self.safe_number_k(&networkEntry, "withdrawal_fee", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&tokenEntry, "decimals", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(networkEntry.clone(), "minimum_withdrawal", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&networkEntry, "minimum_withdrawal", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -2284,8 +2284,8 @@ impl Woo {
 }));
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("network".to_string(), networkEntry);
-        m.insert("token".to_string(), tokenEntry);
+        m.insert("network".to_string(), Value::from(&networkEntry));
+        m.insert("token".to_string(), Value::from(&tokenEntry));
     m
 }));
     m

@@ -1000,13 +1000,13 @@ impl Hollaex {
             let mut __for_first_761: bool = true;
             while { if !__for_first_761 { i += 1; } __for_first_761 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut orderbook: Value = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
+            let mut orderbook: crate::value::Dict = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("-".into())]);
-            let mut timestamp: Value = self.parse8601(self.safe_string_k(orderbook.clone(), "timestamp", &[]));
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_order_book(orderbook, symbol.clone(), &[timestamp]));
+            let mut timestamp: Value = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_order_book(Value::Dict(orderbook), symbol.clone(), &[timestamp]));
         }
         }
         return Value::Map(result);
@@ -1404,18 +1404,18 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fees: Value = self.safe_dict_k(&firstTier, "fees", &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict_k(&firstTier, "fees", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut makerFees: crate::value::Dict = self.safe_dict_k(fees.clone(), "maker", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut takerFees: crate::value::Dict = self.safe_dict_k(fees.clone(), "taker", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        })]).into_dict();
+        let mut makerFees: crate::value::Dict = self.safe_dict_k(&fees, "maker", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut takerFees: crate::value::Dict = self.safe_dict_k(&fees, "taker", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1431,7 +1431,7 @@ impl Hollaex {
             let mut takerString: Option<String> = self.safe_string(&takerFees, Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), fees.clone());
+        m.insert("info".to_string(), Value::from(&fees));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]));
         m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]));

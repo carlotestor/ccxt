@@ -2930,15 +2930,15 @@ impl Weex {
         //
         let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-        let mut subscription: Value = self.safe_dict(subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+        let mut subscription: crate::value::Dict = self.safe_dict(subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut unsubscribe: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        })]).into_dict();
+        let mut unsubscribe: bool = self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if unsubscribe {
-            let mut subHashIsPrefix: bool = self.safe_bool_k(subscription.clone(), "subHashIsPrefix", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut messageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
-            let mut subHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
+            let mut subHashIsPrefix: bool = self.safe_bool_k(&subscription, "subHashIsPrefix", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut messageHashes: crate::value::List = self.safe_list_k(&subscription, "messageHashes", &[Value::from(vec![])]).into_list();
+            let mut subHashes: crate::value::List = self.safe_list_k(&subscription, "subMessageHashes", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_689: bool = true;
@@ -2948,7 +2948,7 @@ impl Weex {
                 self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), unSubHash.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(subHashIsPrefix)]);
             }
             }
-            self.clean_cache(subscription);
+            self.clean_cache(Value::Dict(subscription));
         }
         return message;
 

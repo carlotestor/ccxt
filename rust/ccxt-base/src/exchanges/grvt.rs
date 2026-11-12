@@ -1901,13 +1901,13 @@ if _try_result.is_err() {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Value = self.parse8601(self.safe_string_k(result.clone(), "event_time", &[]));
-        let mut marketId: Option<String> = self.safe_string_k(result.clone(), "instrument", &[]).as_str().map(str::to_owned);
-        return self.parse_order_book(result, self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        })]).into_dict();
+        let mut timestamp: Value = self.parse8601(self.safe_string_k(&result, "event_time", &[]));
+        let mut marketId: Option<String> = self.safe_string_k(&result, "instrument", &[]).as_str().map(str::to_owned);
+        return self.parse_order_book(Value::Dict(result), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         Value::Null
         }).await?))
     }

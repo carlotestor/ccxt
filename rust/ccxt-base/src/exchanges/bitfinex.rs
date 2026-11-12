@@ -1503,7 +1503,7 @@ impl Bitfinex {
             while { if !__for_first_339 { i += 1; } __for_first_339 = false; i < (markets.len() as i64) } {
             let mut pairObj: crate::value::List = self.safe_list(&markets, Value::Int(i), &[]).into_list();
             let mut id: Value = self.safe_string_upper(&pairObj, Value::Int(0), &[Value::Str("".into())]);
-            let mut market: Value = self.safe_list(&pairObj, Value::Int(1), &[Value::from(vec![])]);
+            let mut market: crate::value::List = self.safe_list(&pairObj, Value::Int(1), &[Value::from(vec![])]).into_list();
             let mut spot: bool = true;
             let mut type_var: Option<String> = None;
             if id.as_str().unwrap_or("").contains("F0") {
@@ -1542,8 +1542,8 @@ impl Bitfinex {
                 settleId = quote.clone();
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle);
             }
-            let mut minOrderSizeString: Option<String> = self.safe_string(market.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
-            let mut maxOrderSizeString: Option<String> = self.safe_string(market.clone(), Value::Int(4), &[]).as_str().map(str::to_owned);
+            let mut minOrderSizeString: Option<String> = self.safe_string(&market, Value::Int(3), &[]).as_str().map(str::to_owned);
+            let mut maxOrderSizeString: Option<String> = self.safe_string(&market, Value::Int(4), &[]).as_str().map(str::to_owned);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str("t".into()), id).into()));
@@ -1604,7 +1604,7 @@ impl Bitfinex {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), market);
+                    m.insert("info".to_string(), Value::Arr(market));
                 m
             }));
         }

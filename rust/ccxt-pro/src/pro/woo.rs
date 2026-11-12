@@ -2390,12 +2390,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut subscribeHash: String = (match message.get("data") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut unsubscribeHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), subscribeHash);
-        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::from(unsubscribeHash), &[Value::Map({
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(unsubscribeHash), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
-        let mut unsubMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "unsubMessageHashes", &[Value::from(vec![])]).into_list();
+        })]).into_dict();
+        let mut subMessageHashes: crate::value::List = self.safe_list_k(&subscription, "subMessageHashes", &[Value::from(vec![])]).into_list();
+        let mut unsubMessageHashes: crate::value::List = self.safe_list_k(&subscription, "unsubMessageHashes", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_707: bool = true;
@@ -2405,7 +2405,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
         }
         }
-        self.clean_cache(subscription);
+        self.clean_cache(Value::Dict(subscription));
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {

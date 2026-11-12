@@ -1032,10 +1032,10 @@ impl Bitteam {
         let mut maxWithdraw: Option<String> = self.safe_string_k(&txLimits, "maxWithdraw", &[]).as_str().map(str::to_owned);
         let mut minDeposit: Option<String> = self.safe_string_k(&txLimits, "minDeposit", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
-        let mut withdrawCommissionFixed: Value = self.safe_dict_k(&txLimits, "withdrawCommissionFixed", &[Value::Map({
+        let mut withdrawCommissionFixed: crate::value::Dict = self.safe_dict_k(&txLimits, "withdrawCommissionFixed", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut feesByNetworkId: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1043,7 +1043,7 @@ impl Bitteam {
         let mut blockChain: Option<String> = self.safe_string_k_opt(currency.clone(), "blockChain", &[]);
         // if only one blockChain
         if (blockChain.is_some()) && (blockChain.as_deref() != Some("")) {
-            fee = self.parse_number(withdrawCommissionFixed.clone(), &[]);
+            fee = self.parse_number(Value::from(&withdrawCommissionFixed), &[]);
             if let Value::Dict(__d) = &mut feesByNetworkId { std::sync::Arc::make_mut(__d).insert(blockChain.as_deref().unwrap_or("null").to_string(), fee.clone()); }
         }  else {
             feesByNetworkId = self.extend(withdrawCommissionFixed, &[Value::Map({

@@ -2144,11 +2144,11 @@ impl Sxbet {
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_get_orders_v3_order_id(&[__ws_arg_12]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut row: Value = self.safe_dict_k(data.clone(), "order", &[data.clone()]);
+        })]).into_dict();
+        let mut row: Value = self.safe_dict_k(&data, "order", &[Value::from(&data)]);
         return self.parse_prediction_order(row, &[outcomeObj]);
         Value::Null
         }).await?))

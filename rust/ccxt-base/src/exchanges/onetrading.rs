@@ -1077,15 +1077,15 @@ impl Onetrading {
         //     },
         // ];
         //
-        let mut spotFees: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+        let mut spotFees: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut futuresFees: crate::value::Dict = self.safe_dict(response, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut spotFeeTiers: Value = self.safe_list_k(spotFees.clone(), "fee_tiers", &[Value::from(vec![])]);
+        let mut spotFeeTiers: Value = self.safe_list_k(&spotFees, "fee_tiers", &[Value::from(vec![])]);
         let mut futuresFeeTiers: Value = self.safe_list_k(&futuresFees, "fee_tiers", &[Value::from(vec![])]);
         let mut spotTiers: Value = self.parse_fee_tiers(spotFeeTiers, &[]);
         let mut futuresTiers: Value = self.parse_fee_tiers(futuresFeeTiers, &[]);
@@ -1111,7 +1111,7 @@ impl Onetrading {
             let mut tierObject: Value = (if matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), spotFees.clone());
+        m.insert("info".to_string(), Value::from(&spotFees));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(tierObject.clone(), "maker_fee", &[]));
         m.insert("taker".to_string(), self.safe_number_k(tierObject, "taker_fee", &[]));

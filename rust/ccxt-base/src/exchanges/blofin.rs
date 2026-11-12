@@ -2011,16 +2011,16 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_459: bool = true;
             while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (data.len() as i64) } {
-            let mut rate: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut rate: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut timestamp: Option<i64> = self.safe_integer_k(rate.clone(), "fundingTime", &[]).as_i64();
+})]).into_dict();
+            let mut timestamp: Option<i64> = self.safe_integer_k(&rate, "fundingTime", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), rate.clone());
+                    m.insert("info".to_string(), Value::from(&rate));
                     m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(rate, "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(&rate, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                 m
@@ -5037,14 +5037,14 @@ impl Blofin {
     m
 }));
         let mut response: crate::value::Dict = self.private_get_account_position_mode(&[params]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut positionMode: Option<String> = self.safe_string_k(data.clone(), "positionMode", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut positionMode: Option<String> = self.safe_string_k(&data, "positionMode", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::Dict(data));
         m.insert("hedged".to_string(), Value::Bool(positionMode.as_deref() == Some("long_short_mode")));
     m
 });

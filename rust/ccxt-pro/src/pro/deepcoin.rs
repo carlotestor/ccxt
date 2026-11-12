@@ -688,14 +688,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_dict_k(&first, "d", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&first, "d", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "I", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "I", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("/".into())]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
-        let mut parsedTicker: Value = self.parse_ws_ticker(data, &[market]);
+        let mut parsedTicker: Value = self.parse_ws_ticker(Value::Dict(data), &[market]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str("::".into())).into()), symbol);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
         client.resolve(parsedTicker, messageHash.as_str());
@@ -1778,11 +1778,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_dict_k(&first, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&first, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "I", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "I", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("/".into())]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
         let mut messageHash: String = "positions".to_string();
@@ -1791,7 +1791,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.positions.clone() == Value::Null) {
                 self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
             }
-            let mut parsed: Value = self.parse_ws_position(data, &[market]);
+            let mut parsed: Value = self.parse_ws_position(Value::Dict(data), &[market]);
             self.positions.append(parsed);
             client.resolve(self.positions.clone(), messageHash.as_str());
             client.resolve(self.positions.clone(), symbolMessageHash.as_str());

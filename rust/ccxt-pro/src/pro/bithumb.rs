@@ -820,8 +820,8 @@ impl Bithumb {
         //
         let mut content: Option<crate::value::Dict> = __pro_message.get("content").cloned().unwrap_or_default().into_opt_dict();
         if (content.is_some()) {
-            let mut list: Value = self.safe_list_k(&content, "list", &[Value::from(vec![])]);
-            let mut first: crate::value::Dict = self.safe_dict(list.clone(), Value::Int(0), &[Value::Map({
+            let mut list: crate::value::List = self.safe_list_k(&content, "list", &[Value::from(vec![])]).into_list();
+            let mut first: crate::value::Dict = self.safe_dict(&list, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -841,7 +841,7 @@ impl Bithumb {
                 if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&legacySymbol), ob); }
             }
             let mut legacyOrderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), legacySymbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            self.handle_book_deltas(legacyOrderbook.clone(), list);
+            self.handle_book_deltas(legacyOrderbook.clone(), Value::Arr(list));
             legacyOrderbook.set_book_meta("timestamp", legacyTimestamp.clone());
             legacyOrderbook.set_book_meta("datetime", self.iso8601(legacyTimestamp));
             let mut legacyMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), legacySymbol);

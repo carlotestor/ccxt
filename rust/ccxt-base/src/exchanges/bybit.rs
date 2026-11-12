@@ -6205,12 +6205,12 @@ impl Bybit {
         //         "time": 1672765737734
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(result.clone(), "ts", &[]).as_i64();
-        return self.parse_order_book(result, symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&result, "ts", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(result), symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
         Value::Null
         }).await?))
     }

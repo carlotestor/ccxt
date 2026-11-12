@@ -3236,13 +3236,13 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut orderbook: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut orderbook: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "lastUpdateId", &[]).as_i64();
-        let mut timestamp: Option<i64> = self.safe_integer2(orderbook.clone(), Value::Str("T".into()), Value::Str("ts".into()), &[]).as_i64();
-        let mut result: indexmap::IndexMap<String, Value> = self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut nonce: Option<i64> = self.safe_integer_k(&orderbook, "lastUpdateId", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer2(&orderbook, Value::Str("T".into()), Value::Str("ts".into()), &[]).as_i64();
+        let mut result: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::Dict(orderbook), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
         result.insert("nonce".into(), Value::from(nonce));
         return Value::Map(result);
         Value::Null
@@ -6114,11 +6114,11 @@ impl Bingx {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut order: Value = self.safe_dict_k(data.clone(), "order", &[data.clone()]);
+        })]).into_dict();
+        let mut order: Value = self.safe_dict_k(&data, "order", &[Value::from(&data)]);
         return self.parse_order(order, &[market]);
         Value::Null
         }).await?))
@@ -6407,11 +6407,11 @@ impl Bingx {
                 }
             }
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut order: Value = self.safe_dict_k(data.clone(), "order", &[data.clone()]);
+        })]).into_dict();
+        let mut order: Value = self.safe_dict_k(&data, "order", &[Value::from(&data)]);
         return self.parse_order(order, &[market]);
         Value::Null
         }).await?))
