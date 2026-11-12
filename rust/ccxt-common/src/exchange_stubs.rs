@@ -2005,7 +2005,8 @@ impl Exchange {
 
     // ── array / object utilities ────────────────────────────────────────────
 
-    pub fn to_array(&self, v: Value) -> Value {
+    pub fn to_array(&self, v: impl Into<Value>) -> Value {
+        let v: Value = v.into();
         // A WS cache (ArrayCache / order-book cache) keeps its entries in `_data`
         // or the shared cache registry, not the dict's meta fields — surface
         // those, else `to_array` would leak `__cacheKind`/counters/flags as rows.
@@ -2020,8 +2021,8 @@ impl Exchange {
         }
     }
 
-    pub fn array_concat(&self, a: Value, b: Value) -> Value {
-        crate::runtime::concat_arrays(&a, &b)
+    pub fn array_concat(&self, a: impl Into<Value>, b: impl Into<Value>) -> Value {
+        crate::runtime::concat_arrays(&a.into(), &b.into())
     }
 
     pub fn array_slice(&self, v: Value, start: Value, optional_args: &[Value]) -> Value {
