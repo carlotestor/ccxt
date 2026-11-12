@@ -2047,7 +2047,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::handle_margin_mode_and_params(self, method_name, &[params, default_value])
     }
-    fn super_safe_currency_code(&self, currency_id: Value, currency: Value) -> Value {
+    fn super_safe_currency_code(&self, currency_id: Value, currency: Value) -> Option<String> {
         <Self as crate::exchange_generated::ExchangeBase>::safe_currency_code(self, currency_id, &[currency])
     }
     fn super_set_markets(&mut self, markets: Value, currencies: Value) -> Value {
@@ -3081,7 +3081,8 @@ mod typed_by_id_tests {
         let mut cur = IndexMap::new();
         cur.insert("XBt".to_string(), market("XBt", "BTC"));
         ex.currencies_by_id = Value::Map(cur);
-        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].id, "XBt");
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].id.as_deref(), Some("XBt"));
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].code, None);
         assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].active, None);
         ex.markets_by_id = Value::Null;
         assert!(ex.markets_by_id_typed().records_by_id("BTCUSDT").is_none());
