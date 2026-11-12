@@ -8234,12 +8234,12 @@ if _try_result.is_err() {
         if isStock && (symbols == Value::Null) {
             // for returning only tokenized stock symbols
             symbolsResolved = Value::from(vec![]);
-            let mut allSymbols: Value = self.symbols.clone();
+            let mut allSymbols: crate::value::List = self.symbols.clone();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_374: bool = true;
                 while { if !__for_first_374 { i += 1; } __for_first_374 = false; i < (allSymbols.len() as i64) } {
-                let mut symbol: Option<String> = allSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut symbol: Option<String> = allSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut entry: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
                 let mut isStockMarket: bool = self.safe_bool_k(&entry, "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if isStockMarket {

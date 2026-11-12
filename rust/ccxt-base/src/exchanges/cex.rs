@@ -1428,12 +1428,12 @@ impl Cex {
             }
         }
         }
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_529: bool = true;
             while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(matches!(&symbol, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
                 result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), &[market]));

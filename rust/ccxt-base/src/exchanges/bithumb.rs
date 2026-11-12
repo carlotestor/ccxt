@@ -1575,7 +1575,7 @@ impl Bithumb {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             let mut marketIds: Vec<Value> = Vec::new();
-            let mut symbolsForMarketIds: Value = self.symbols.clone();
+            let mut symbolsForMarketIds: Value = Value::Arr(self.symbols.clone());
             if (symbols != Value::Null) {
                 symbolsForMarketIds = symbols.clone();
             }

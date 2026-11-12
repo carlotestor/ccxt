@@ -5262,7 +5262,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_601: bool = true;
             while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < (self.symbols.len() as i64) } {
-            let mut symbol: String = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut symbol: String = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str())).into_dict();
             let mut isSwap: bool = self.safe_bool_k(&market, "swap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut takerFeeKey: String = "effective_spot_taker_rate_bps".to_string();

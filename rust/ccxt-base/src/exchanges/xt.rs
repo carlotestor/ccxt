@@ -7158,12 +7158,12 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1195: bool = true;
             while { if !__for_first_1195 { i += 1; } __for_first_1195 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut matchesSubType: Value = (if (isInverse) { (market).inverse.map(Value::Bool).unwrap_or_default() } else { (market).linear.map(Value::Bool).unwrap_or_default() });
             if matches!((self.safe_bool_k((market).raw.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && (matchesSubType.as_bool() == Some(true)) {

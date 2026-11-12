@@ -1130,7 +1130,7 @@ impl Bittrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = (if (symbols == Value::Null) { self.symbols.clone() } else { symbols });
+        let mut symbolsResolved: Value = (if (symbols == Value::Null) { Value::Arr(self.symbols.clone()) } else { symbols });
         if (symbolsResolved == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
         }

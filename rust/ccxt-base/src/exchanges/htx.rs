@@ -3741,7 +3741,7 @@ impl Htx {
         }
         let mut symbolsValue: Value = symbols.clone();
         if (symbols == Value::Null) {
-            symbolsValue = self.symbols.clone();
+            symbolsValue = Value::Arr(self.symbols.clone());
         }
         if (symbolsValue == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));

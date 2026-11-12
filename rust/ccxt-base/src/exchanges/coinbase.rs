@@ -7062,7 +7062,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_548: bool = true;
             while { if !__for_first_548 { i += 1; } __for_first_548 = false; i < (self.symbols.len() as i64) } {
-            let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let mut symbol: Value = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (isSpot && matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true))) || (!isSpot && !(market).spot) {
                 result.insert(crate::runtime::stringify_param(&symbol), Value::Map({

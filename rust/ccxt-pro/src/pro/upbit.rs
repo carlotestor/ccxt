@@ -294,7 +294,7 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsRequested: Value = (if (symbols == Value::Null) { self.symbols.clone() } else { symbols });
+        let mut symbolsRequested: Value = (if (symbols == Value::Null) { Value::Arr(self.symbols.clone()) } else { symbols });
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested]).into_opt_list();
         let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
         let mut url: String = self.implode_params(self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Map({

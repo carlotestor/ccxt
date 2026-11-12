@@ -2660,7 +2660,7 @@ impl Modetrade {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: Value = Value::Arr(self.symbols.clone());
         if (symbols != Value::Null) {
             {
                                 let mut i: i64 = 0;

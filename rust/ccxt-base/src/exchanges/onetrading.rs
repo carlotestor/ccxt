@@ -1101,12 +1101,12 @@ impl Onetrading {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1036: bool = true;
             while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
             let mut tierObject: Value = (if matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -1190,12 +1190,12 @@ impl Onetrading {
             m
         });
         // const tiers = this.parseFeeTiers (feeTiers);
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1037: bool = true;
             while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
             let mut makerFee: Value = (if matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotMakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresMakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
             let mut takerFee: Value = (if matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotTakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresTakerFee.clone().map(Value::from).unwrap_or(Value::Null) });

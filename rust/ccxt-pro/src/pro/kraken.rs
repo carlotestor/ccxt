@@ -1579,7 +1579,7 @@ impl Kraken {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut symbols: Value = self.symbols.clone(); // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            let mut symbols: Value = Value::Arr(self.symbols.clone()); // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
             if (symbols != Value::Null) {
                 {
                                         let mut i: i64 = 0;

@@ -1434,7 +1434,7 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_454: bool = true;
             while { if !__for_first_454 { i += 1; } __for_first_454 = false; i < (self.symbols.len() as i64) } {
-            let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let mut symbol: Value = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fees.clone());

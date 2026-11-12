@@ -1674,7 +1674,7 @@ impl Cryptomus {
             m
         });
         let mut tiers: indexmap::IndexMap<String, Value> = self.parse_fee_tiers(feeTiers, &[]).as_map().cloned().unwrap_or_default();
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: Value = Value::Arr(self.symbols.clone());
         if (symbols == Value::Null) {
             return Value::Map(result);
         }

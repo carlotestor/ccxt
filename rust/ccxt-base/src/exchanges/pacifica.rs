@@ -4356,12 +4356,12 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1053: bool = true;
             while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(data.clone(), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()))]));
         }
         }

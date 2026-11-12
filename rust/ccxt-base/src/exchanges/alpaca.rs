@@ -1685,7 +1685,7 @@ impl Alpaca {
         }
         // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
         // symbol iteration order differs per language
-        let mut symbolsSorted: Value = (if (symbols == Value::Null) { self.sort(self.symbols.clone(), &[]) } else { symbols });
+        let mut symbolsSorted: Value = (if (symbols == Value::Null) { self.sort(Value::Arr(self.symbols.clone()), &[]) } else { symbols });
         let mut symbolsNormalized: Value = self.market_symbols(&[symbolsSorted]);
         let mut loc: String = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
         let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone()]).into_opt_list();

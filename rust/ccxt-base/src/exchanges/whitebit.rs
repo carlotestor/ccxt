@@ -1954,12 +1954,12 @@ impl Whitebit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1152: bool = true;
             while { if !__for_first_1152 { i += 1; } __for_first_1152 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut fee: Value = self.safe_dict(response.clone(), Value::from((market).base_id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

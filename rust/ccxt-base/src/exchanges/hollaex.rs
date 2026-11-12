@@ -1420,12 +1420,12 @@ impl Hollaex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_763: bool = true;
             while { if !__for_first_763 { i += 1; } __for_first_763 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut makerString: Option<String> = self.safe_string(&makerFees, Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
             let mut takerString: Option<String> = self.safe_string(&takerFees, Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);

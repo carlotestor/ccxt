@@ -1904,7 +1904,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1105: bool = true;
             while { if !__for_first_1105 { i += 1; } __for_first_1105 = false; i < (self.symbols.len() as i64) } {
-            let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let mut symbol: Value = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]);
             let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
             let mut category: Option<String> = self.safe_string_k(market.get("info").cloned().unwrap_or(Value::Null), "category", &[]).as_str().map(str::to_owned);
             let mut entry: Value = self.safe_dict(Value::Map(byCategory.clone()), category.map(Value::from).unwrap_or(Value::Null), &[fallback.clone()]);

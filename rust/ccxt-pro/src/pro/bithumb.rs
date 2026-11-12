@@ -428,7 +428,7 @@ impl Bithumb {
         if isGenerationTwo && (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires symbols for the generation 2 API".into()))));
         }
-        let mut symbolsResolved: Value = self.symbols.clone();
+        let mut symbolsResolved: Value = Value::Arr(self.symbols.clone());
         if (symbolsNormalized != Value::Null) {
             symbolsResolved = symbolsNormalized;
         }

@@ -465,7 +465,7 @@ pub trait ExchangeBase:
         self.ids = Value::Null;
         self.markets = Value::Null;
         self.markets_by_id = Value::Null;
-        self.symbols = Value::from(vec![]);
+        self.symbols = Value::from(vec![]).into_list();
         self.codes = Value::Null;
         { let __t = self.create_safe_dictionary(&[]); self.currencies = __t; }
         self.currencies_by_id = Value::Null;
@@ -3017,7 +3017,7 @@ pub trait ExchangeBase:
         { let __t = self.map_to_safe_map(marketsById); self.markets_by_id = __t; }
         let mut marketsSortedBySymbol: indexmap::IndexMap<String, Value> = self.keysort(self.markets.clone(), &[]).as_map().cloned().unwrap_or_default();
         let mut marketsSortedById: indexmap::IndexMap<String, Value> = self.keysort(self.markets_by_id.clone(), &[]).as_map().cloned().unwrap_or_default();
-        self.symbols = Value::Array(marketsSortedBySymbol.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+        self.symbols = Value::Array(marketsSortedBySymbol.keys().map(|__k| Value::Str(__k.clone().into())).collect()).into_list();
         self.ids = Value::Array(marketsSortedById.keys().map(|__k| Value::Str(__k.clone().into())).collect());
         let mut numCurrencies: i64 = 0;
         if (currencies != Value::Null) {
@@ -3125,7 +3125,7 @@ pub trait ExchangeBase:
         // Set all market-related data
         self.markets = get_value(&sourceExchange, &Value::Str("markets".into()));
         self.markets_by_id = get_value(&sourceExchange, &Value::Str("markets_by_id".into()));
-        self.symbols = get_value(&sourceExchange, &Value::Str("symbols".into()));
+        self.symbols = get_value(&sourceExchange, &Value::Str("symbols".into())).into_list();
         self.ids = get_value(&sourceExchange, &Value::Str("ids".into()));
         self.currencies = get_value(&sourceExchange, &Value::Str("currencies".into()));
         self.currencies_by_id = get_value(&sourceExchange, &Value::Str("currencies_by_id".into()));

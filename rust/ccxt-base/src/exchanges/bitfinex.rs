@@ -4163,7 +4163,7 @@ impl Bitfinex {
                         let mut i: i64 = 0;
             let mut __for_first_357: bool = true;
             while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (self.symbols.len() as i64) } {
-            let mut symbol: String = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut symbol: String = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut fee: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

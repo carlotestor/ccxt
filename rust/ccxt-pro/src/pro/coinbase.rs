@@ -682,7 +682,7 @@ impl Coinbase {
         }
         let mut symbolsResolved: Value = symbols.clone();
         if (symbols == Value::Null) {
-            symbolsResolved = self.symbols.clone();
+            symbolsResolved = Value::Arr(self.symbols.clone());
         }
         let mut name: String = "ticker_batch".to_string();
         let mut ticker: Value = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbolsResolved, params]).await;
@@ -724,7 +724,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbols == Value::Null) {
-            return self.un_subscribe_multiple("ticker", "ticker_batch", &[Value::Bool(false), self.symbols.clone()]).await;
+            return self.un_subscribe_multiple("ticker", "ticker_batch", &[Value::Bool(false), Value::Arr(self.symbols.clone())]).await;
         }
         return self.un_subscribe_multiple("ticker", "ticker_batch", &[Value::Bool(false), symbols]).await;
         Value::Null

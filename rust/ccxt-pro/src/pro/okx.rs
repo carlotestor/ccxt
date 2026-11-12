@@ -484,7 +484,7 @@ impl Okx {
         }
         let mut symbolsRequested: Value = symbols.clone();
         if (symbols == Value::Null) {
-            symbolsRequested = self.symbols.clone();
+            symbolsRequested = Value::Arr(self.symbols.clone());
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested]).into_opt_list();
         let mut url: Option<String> = self.get_url(channel.clone(), &[access]);
