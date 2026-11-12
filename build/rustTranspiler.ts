@@ -11651,19 +11651,20 @@ export class RustTranspilerBuilder {
      * and return kinds per method). Only two facts come from the final text, because later passes decide them:
      * whether the method is `async`, and whether its receiver was promoted to `&mut self`.
      */
-    collectExchangeMethodSignatures(table: Array<{ name: string, params: Array<{ kind: string }>, ret: string }> | undefined, content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean }> {
+    collectExchangeMethodSignatures(table: Array<{ name: string, params: Array<{ kind: string }>, ret: string }> | undefined, content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean | string }> {
         const facts = this.receiverFacts(content, allowNoPub);
-        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean }> = [];
+        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean | string }> = [];
         for (const sig of table ?? []) {
             const fact = facts.get(sig.name);
             if (fact === undefined || [ 'new', 'bind', 'dispatch_virtual', 'super_describe', 'super_set_sandbox_mode' ].includes(sig.name)) continue;
             // a sync method dispatches only when it returns a value (sync void handlers go through dispatch_ws_handler)
             const isValue = sig.ret === 'value';
-            const isTyped = sig.ret === 'typed';
-            if (!isValue && !fact.isAsync && !isTyped) continue;
+            // a typed or native return boxes back to `Value` once, inside the arm (`isTyped` carries the return kind)
+            const isTyped: boolean | string = sig.ret === 'typed' ? true : rustDispatch.isNativeReturn(sig.ret) ? sig.ret : false;
+            if (!isValue && !fact.isAsync && isTyped === false) continue;
             const paramKinds = sig.params.map(p => p.kind);
             if (paramKinds.some(k => k === 'other')) continue;
-            out.push({ name: sig.name, isAsync: fact.isAsync, paramKinds, isMut: fact.isMut, isVoid: !isValue && !isTyped, isTyped });
+            out.push({ name: sig.name, isAsync: fact.isAsync, paramKinds, isMut: fact.isMut, isVoid: !isValue && isTyped === false, isTyped });
         }
         return out;
     }
