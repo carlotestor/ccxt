@@ -5580,7 +5580,7 @@ impl Woo {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolValue.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolValue.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

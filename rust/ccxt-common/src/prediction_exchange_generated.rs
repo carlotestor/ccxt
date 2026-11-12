@@ -2460,8 +2460,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        let mut result: Value = self.filter_by_array(array, Value::Str("outcome".into()), &[outcomes, Value::Bool(false)]);
-        return self.filter_by_since_limit(result, &[since, limit, Value::Str("timestamp".into()), tail]);
+        let mut result: Value = self.filter_by_array(array, Value::Str("outcome".into()), outcomes, &[Value::Bool(false)]);
+        return self.filter_by_since_limit(result, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }

@@ -2707,7 +2707,7 @@ impl Polymarket {
             }
         }
         }
-        return self.filter_by_since_limit(Value::from(result), &[since, limit]);
+        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4975,7 +4975,7 @@ if _try_result.is_err() {
         });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut trades: Value = self.watch(url, messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(subscribeHash)]).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

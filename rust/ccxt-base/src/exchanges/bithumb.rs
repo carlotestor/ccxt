@@ -3148,7 +3148,7 @@ impl Bithumb {
     m
 })]);
             let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_26).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), &[since.clone(), limit]);
+            return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]);
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".into()))));
@@ -3324,7 +3324,7 @@ impl Bithumb {
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("done".into())); }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), &[since, limit]);
+        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3359,7 +3359,7 @@ impl Bithumb {
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("cancel".into())); }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), &[since, limit]);
+        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -1603,10 +1603,10 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: Value = self.public_get_info_tickers(&[params]).await;
         let mut result: Value = self.parse_funding_rates(response, &[]);
-        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -1738,7 +1738,7 @@ impl Polymarket {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1800,10 +1800,10 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: Value = self.public_get_info_tickers(&[params]).await;
         let mut result: Value = self.parse_open_interests(response, &[]);
-        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -3142,7 +3142,7 @@ impl Polymarket {
             }));
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(result), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(result), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

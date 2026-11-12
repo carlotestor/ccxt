@@ -406,7 +406,7 @@ impl Upbit {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbols, &[]);
         Value::Null
         }).await?))
     }
@@ -471,7 +471,7 @@ impl Upbit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -842,7 +842,7 @@ impl Upbit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -881,7 +881,7 @@ impl Upbit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

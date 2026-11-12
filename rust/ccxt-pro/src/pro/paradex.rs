@@ -709,7 +709,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -764,7 +764,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -805,7 +805,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = liquidations.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(liquidations, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(liquidations, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1319,7 +1319,7 @@ impl Paradex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1509,7 +1509,7 @@ impl Paradex {
             result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&newBidAsk, "symbol"))), newBidAsk.clone());
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1619,7 +1619,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1724,7 +1724,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1836,7 +1836,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1882,7 +1882,7 @@ impl Paradex {
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
         let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut cached: Value = self.filter_by_symbol_since_limit(cache.clone(), &[symbol.clone(), Value::Null, Value::Null, Value::Bool(true)]);
+        let mut cached: Value = self.filter_by_symbol_since_limit(cache.clone(), symbol.as_str(), None, None, &[Value::Bool(true)]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_595: bool = true;
@@ -2179,7 +2179,7 @@ impl Paradex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.fundingRates.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.fundingRates.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }

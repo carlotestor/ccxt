@@ -439,7 +439,7 @@ impl Blofin {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(firstSymbol.as_deref(), limit.as_i64());
         }
-        let mut result: Value = self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut result: Value = self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
         Value::Null
         }).await?))
@@ -731,7 +731,7 @@ impl Blofin {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbols, &[]);
         Value::Null
         }).await?))
     }
@@ -843,7 +843,7 @@ impl Blofin {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -962,7 +962,7 @@ impl Blofin {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(Some(symbol.as_str()), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(Value::from(symbol), Value::from(timeframe), filtered);
         Value::Null
         }).await?))
@@ -1245,7 +1245,7 @@ impl Blofin {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1323,7 +1323,7 @@ impl Blofin {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbols, since, limit]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), symbols, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

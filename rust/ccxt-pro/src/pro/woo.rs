@@ -932,7 +932,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut name: String = "tickers".to_string();
         let mut topic: Value = Value::from(name);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -943,7 +943,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch_public(topic.clone(), message.clone()).await;
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1059,7 +1059,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut name: String = "bbos".to_string();
         let mut topic: Value = Value::from(name);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1073,7 +1073,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             return bidsasks;
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1229,7 +1229,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1360,7 +1360,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolValue.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolValue.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1665,7 +1665,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1723,7 +1723,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2048,7 +2048,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && (self.positions.clone() == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2060,7 +2060,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

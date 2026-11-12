@@ -4527,7 +4527,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -4793,7 +4793,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

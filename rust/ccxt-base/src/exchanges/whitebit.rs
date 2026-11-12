@@ -2945,7 +2945,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
             results = self.sort_by2(results.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
-            return self.filter_by_since_limit(results, &[since, limit, Value::Str("timestamp".into())]);
+            return self.filter_by_since_limit(results, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         }
         Value::Null
         }).await?))
@@ -3848,7 +3848,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market, "symbol", &[]) } else { symbol });
+        let mut symbolResolved: Option<String> = (if (market != Value::Null) { self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); // default 50 max 100
         }
@@ -3895,7 +3895,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(results), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5322,7 +5322,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -5729,7 +5729,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     ]
         //
         let mut positions: Value = self.parse_positions(response, &[]);
-        return self.filter_by_symbol_since_limit(positions, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(positions, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

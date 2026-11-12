@@ -1312,7 +1312,7 @@ impl Revolutx {
             result.push(self.parse_trade(trade, &[market.clone()]));
         }
         }
-        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1968,7 +1968,7 @@ impl Revolutx {
             result.push(self.parse_order(order, &[]));
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(result), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(result), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2065,7 +2065,7 @@ impl Revolutx {
             result.push(self.parse_order(order, &[]));
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(result), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(result), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

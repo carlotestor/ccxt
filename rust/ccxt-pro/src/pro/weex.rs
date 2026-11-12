@@ -645,7 +645,7 @@ impl Weex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -922,7 +922,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1225,7 +1225,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -1725,7 +1725,7 @@ impl Weex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1893,7 +1893,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2160,7 +2160,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2706,13 +2706,13 @@ impl Weex {
             Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && (self.positions.clone() == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut newPositions: Value = self.subscribe_private(Value::from(messageHash), subscriptionHash, Value::from(channel), &[Value::Bool(true), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2864,8 +2864,8 @@ impl Weex {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }

@@ -1721,7 +1721,7 @@ impl Coinbase {
         let mut paramsCurrencyType: Value = currencyTypeparamsCurrencyTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (currencyType.as_deref() == Some("crypto")) {
             let mut results: Value = self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdTransactions".into()), &[code.clone(), since.clone(), limit.clone(), paramsCurrencyType.clone()]).await;
-            return self.to_array(self.filter_by_array(results, Value::Str("type".into()), &[Value::Str("withdrawal".into()), Value::Bool(false)]));
+            return self.to_array(self.filter_by_array(results, Value::Str("type".into()), Value::Str("withdrawal".into()), &[Value::Bool(false)]));
         }
         return self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdWithdrawals".into()), &[code, since, limit, paramsCurrencyType]).await;
         Value::Null
@@ -1759,7 +1759,7 @@ impl Coinbase {
         let mut paramsCurrencyType: Value = currencyTypeparamsCurrencyTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (currencyType.as_deref() == Some("crypto")) {
             let mut results: Value = self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdTransactions".into()), &[code.clone(), since.clone(), limit.clone(), paramsCurrencyType.clone()]).await;
-            return self.to_array(self.filter_by_array(results, Value::Str("type".into()), &[Value::Str("deposit".into()), Value::Bool(false)]));
+            return self.to_array(self.filter_by_array(results, Value::Str("type".into()), Value::Str("deposit".into()), &[Value::Bool(false)]));
         }
         return self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdDeposits".into()), &[code, since, limit, paramsCurrencyType]).await;
         Value::Null
@@ -1794,7 +1794,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut results: Value = self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdTransactions".into()), &[code, since, limit, params]).await;
-        return self.to_array(self.filter_by_array(results, Value::Str("type".into()), &[Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]), Value::Bool(false)]));
+        return self.to_array(self.filter_by_array(results, Value::Str("type".into()), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]), &[Value::Bool(false)]));
         Value::Null
         }).await?))
     }

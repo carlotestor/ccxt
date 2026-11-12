@@ -517,10 +517,10 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut channel: String = "ticker24h".to_string();
-        let mut tickers: Value = self.watch_public_multiple(Value::from(channel.clone()), Value::from(channel), symbolsNormalized.clone(), &[params]).await;
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut tickers: Value = self.watch_public_multiple(Value::from(channel.clone()), Value::from(channel), Value::Arr(symbolsNormalized.clone()), &[params]).await;
+        return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -596,10 +596,10 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut channel: String = "ticker24h".to_string();
-        let mut tickers: Value = self.watch_public_multiple(Value::Str("bidask".into()), Value::from(channel), symbolsNormalized.clone(), &[params]).await;
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut tickers: Value = self.watch_public_multiple(Value::Str("bidask".into()), Value::from(channel), Value::Arr(symbolsNormalized.clone()), &[params]).await;
+        return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -680,7 +680,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -775,7 +775,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -910,7 +910,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1072,7 +1072,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -1742,7 +1742,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1799,7 +1799,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2070,7 +2070,7 @@ impl Bitvavo {
         self.authenticate(&[]).await;
         let mut request: Value = self.parent.fetch_orders_request(&[symbol.clone(), since.clone(), limit.clone(), params]);
         let mut orders: Value = self.watch_request(Value::Str("privateGetOrders".into()), request).await;
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2133,7 +2133,7 @@ impl Bitvavo {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut orders: Value = self.watch_request(Value::Str("privateGetOrdersOpen".into()), __ws_arg_3).await;
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2171,7 +2171,7 @@ impl Bitvavo {
         self.authenticate(&[]).await;
         let mut request: Value = self.parent.fetch_my_trades_request(&[symbol.clone(), since.clone(), limit.clone(), params]);
         let mut myTrades: Value = self.watch_request(Value::Str("privateGetTrades".into()), request).await;
-        return self.filter_by_symbol_since_limit(myTrades, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(myTrades, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2368,7 +2368,7 @@ impl Bitvavo {
         let mut request: Value = self.parent.fetch_ohlcv_request(symbol, &[timeframe, since.clone(), limit.clone(), params]);
         let mut action: String = "getCandles".to_string();
         let mut ohlcv: Value = self.watch_request(Value::from(action), request).await;
-        return self.filter_by_since_limit(ohlcv, &[since, limit, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limit.as_i64(), &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -557,7 +557,7 @@ impl Aster {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsList]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsList, &[]);
         Value::Null
         }).await?))
     }
@@ -761,7 +761,7 @@ impl Aster {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsList]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsList, &[]);
         Value::Null
         }).await?))
     }
@@ -991,7 +991,7 @@ impl Aster {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsList]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), symbolsList, &[]);
         Value::Null
         }).await?))
     }
@@ -1238,7 +1238,7 @@ impl Aster {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1888,7 +1888,7 @@ impl Aster {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -2401,13 +2401,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut newPositions: Value = self.watch_multiple(url, Value::from(messageHashes), &[Value::Null, Value::from(vec![Value::from(type_var)])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(cache, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2640,7 +2640,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2700,7 +2700,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

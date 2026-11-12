@@ -660,7 +660,7 @@ impl Okx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -908,7 +908,7 @@ impl Okx {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.fundingRates.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.fundingRates.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1037,15 +1037,15 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTickers".into()), Value::Str("channel".into()), &[Value::Str("tickers".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut newTickers: Value = self.subscribe_multiple(Value::Str("public".into()), channel, &[symbolsNormalized.clone(), paramsChannel]).await;
+        let mut newTickers: Value = self.subscribe_multiple(Value::Str("public".into()), channel, &[Value::Arr(symbolsNormalized.clone()), paramsChannel]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1110,15 +1110,15 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchMarkPrices".into()), Value::Str("channel".into()), &[Value::Str("mark-price".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut newTickers: Value = self.subscribe_multiple(Value::Str("public".into()), channel, &[symbolsNormalized.clone(), paramsChannel]).await;
+        let mut newTickers: Value = self.subscribe_multiple(Value::Str("public".into()), channel, &[Value::Arr(symbolsNormalized.clone()), paramsChannel]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1302,7 +1302,7 @@ impl Okx {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1476,7 +1476,7 @@ impl Okx {
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
-        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1601,7 +1601,7 @@ impl Okx {
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
-        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1807,7 +1807,7 @@ impl Okx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1909,7 +1909,7 @@ impl Okx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -2855,7 +2855,7 @@ impl Okx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2919,7 +2919,7 @@ impl Okx {
         if self.newUpdates.as_bool() == Some(true) {
             return (if (newPositions == Value::Null) { Value::from(vec![]) } else { newPositions });
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3112,7 +3112,7 @@ impl Okx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

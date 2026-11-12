@@ -956,7 +956,7 @@ impl Binance {
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
-        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1216,7 +1216,7 @@ impl Binance {
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
-        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit]);
+        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2105,7 +2105,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2620,7 +2620,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if self.newUpdates.as_bool() == Some(true) {
                 stockLimit = stockCandles.get_limit(stockSymbol.as_str(), limit.as_i64());
             }
-            let mut stockFiltered: Value = self.filter_by_since_limit(stockCandles, &[since.clone(), Value::from(stockLimit), Value::Int(0), Value::Bool(true)]);
+            let mut stockFiltered: Value = self.filter_by_since_limit(stockCandles, since.as_i64(), stockLimit, &[Value::Int(0), Value::Bool(true)]);
             return self.create_ohlcv_object(stockSymbol, stockTimeframe, stockFiltered);
         }
         let klineTypeparamsChannelVariable: Vec<Value> = self.handle_param_string2(&paramsStock, Value::Str("channel".into()), Value::Str("name".into()), &[Value::Str("kline".into())]).as_array().cloned().unwrap_or_default();
@@ -2699,7 +2699,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol.clone(), timeframe, filtered);
         Value::Null
         }).await?))
@@ -3252,7 +3252,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbols, &[]);
         Value::Null
         }).await?))
     }
@@ -3299,7 +3299,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if self.newUpdates.as_bool() == Some(true) {
                 return stockResult;
             }
-            return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.clone()]);
+            return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsNormalized.clone(), &[]);
         }
         let channelNameparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(&paramsStock, Value::Str("watchTickers".into()), Value::Str("name".into()), &[Value::Str("miniTicker".into())]).as_array().cloned().unwrap_or_default();
         let mut channelName: Option<String> = channelNameparamsNameVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -3311,7 +3311,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -3521,14 +3521,14 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if self.newUpdates.as_bool() == Some(true) {
                 return stockResult;
             }
-            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(stockSymbols)]);
+            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &stockSymbols, &[]);
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(false), Value::Bool(true)]);
-        let mut result: Value = self.watch_multi_ticker_helper(Value::Str("watchBidsAsks".into()), Value::Str("bookTicker".into()), &[symbolsNormalized.clone(), paramsStock]).await;
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(false), Value::Bool(true)]).into_opt_list();
+        let mut result: Value = self.watch_multi_ticker_helper(Value::Str("watchBidsAsks".into()), Value::Str("bookTicker".into()), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), paramsStock]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return result;
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -6070,7 +6070,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut orders: Value = self.watch(url.as_deref(), messageHash.clone(), &[Value::Map(message), messageHash.clone(), Value::Map(subscription)]).await;
-        return self.filter_by_symbol_since_limit(orders, &[symbol.clone(), since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -6190,7 +6190,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut orders: Value = self.watch(url.as_deref(), messageHash.clone(), &[Value::Map(message), messageHash.clone(), Value::Map(subscription)]).await;
-        return self.filter_by_symbol_since_limit(orders, &[symbol.clone(), since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -6277,7 +6277,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if self.newUpdates.as_bool() == Some(true) {
                 stockLimit = stockOrders.get_limit(symbol.as_str(), limit.as_i64());
             }
-            return self.filter_by_symbol_since_limit(stockOrders, &[symbol.clone(), since.clone(), Value::from(stockLimit), Value::Bool(true)]);
+            return self.filter_by_symbol_since_limit(stockOrders, symbol.as_str(), since.as_i64(), stockLimit, &[Value::Bool(true)]);
         }
         let mut messageHash: String = "orders".to_string();
         let mut market: Option<crate::types::Market> = None;
@@ -6346,7 +6346,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -7049,13 +7049,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut newPositions: Value = self.watch(url, messageHash.as_str(), &[Value::Null, type_var]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(cache, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -7208,8 +7208,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }
@@ -7418,7 +7418,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut trades: Value = self.watch(url.as_deref(), messageHash.clone(), &[Value::Map(message), messageHash.clone(), Value::Map(subscription)]).await;
-        return self.filter_by_symbol_since_limit(trades, &[symbol.clone(), since, limit]);
+        return self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7500,7 +7500,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut trades: Value = self.watch(url.as_deref(), messageHash.clone(), &[Value::Map(message), messageHash.clone(), Value::Map(subscription)]).await;
-        return self.filter_by_since_limit(trades, &[since, limit]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7662,7 +7662,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -7896,8 +7896,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }

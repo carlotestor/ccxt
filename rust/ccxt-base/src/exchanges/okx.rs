@@ -5505,7 +5505,7 @@ impl Okx {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -10441,7 +10441,7 @@ impl Okx {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]) } else { symbol });
+        let mut symbolResolved: Option<String> = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchFundingHistory".into()), &[market, paramsUntil]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -10509,7 +10509,7 @@ impl Okx {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -12270,7 +12270,7 @@ impl Okx {
         // rows cover every contract of the instrument family, including expired ids missing from markets
         let mut settlements: Value = self.parse_settlements(data, Value::Null);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -12347,7 +12347,7 @@ impl Okx {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (self.safe_string_k(market, "symbol", &[])).as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -13623,7 +13623,7 @@ impl Okx {
         //
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut modifications: Value = self.parse_margin_modifications(data, &[]);
-        return self.filter_by_symbol_since_limit(modifications, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(modifications, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -13722,7 +13722,7 @@ impl Okx {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&data, &[symbols, paramsOmitted]);
-        return self.filter_by_since_limit(positions, &[since, Value::from(limitResolved)]);
+        return self.filter_by_since_limit(positions, since.as_i64(), Some(limitResolved), &[]);
         Value::Null
         }).await?))
     }

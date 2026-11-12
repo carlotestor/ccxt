@@ -464,7 +464,7 @@ impl Bitfinex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -645,7 +645,7 @@ impl Bitfinex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -711,7 +711,7 @@ impl Bitfinex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1648,7 +1648,7 @@ impl Bitfinex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

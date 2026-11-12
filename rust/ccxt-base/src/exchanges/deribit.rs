@@ -4943,7 +4943,7 @@ impl Deribit {
             rates.push(rate);
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(rates), &[symbol, sinceResolved, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), sinceResolved.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

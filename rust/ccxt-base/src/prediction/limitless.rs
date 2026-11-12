@@ -2243,7 +2243,7 @@ impl Limitless {
             result.push(self.safe_value(candles.clone(), bucketOrder.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]));
         }
         }
-        return self.filter_by_since_limit(Value::from(result), &[since, limit, Value::Int(0)]);
+        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[Value::Int(0)]);
         Value::Null
         }).await?))
     }

@@ -852,7 +852,7 @@ impl Lighter {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1165,7 +1165,7 @@ impl Lighter {
         let mut messageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[Value::from((market).symbol.clone())]).map(Value::from).unwrap_or(Value::Null);
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.subscribe_public(messageHash, &[__ws_arg_9]).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1440,7 +1440,7 @@ impl Lighter {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1855,7 +1855,7 @@ impl Lighter {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

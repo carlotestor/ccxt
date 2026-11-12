@@ -527,7 +527,7 @@ impl Cex {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), &[request, subscriptionHash]).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -730,7 +730,7 @@ impl Cex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -963,7 +963,7 @@ impl Cex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1017,7 +1017,7 @@ impl Cex {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut orders: Value = self.watch(url.as_str(), messageHash.as_str(), &[request.clone(), Value::from(subscriptionHash), request]).await;
-        return self.filter_by_symbol_since_limit(orders, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(orders, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1712,7 +1712,7 @@ impl Cex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

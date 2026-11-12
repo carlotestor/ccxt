@@ -4221,7 +4221,7 @@ impl Paradex {
 })]);
             let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code, since.clone(), Value::Null, __ws_arg_18, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
             let mut transactionsOfKind: Value = self.filter_transactions_by_kind(transactions, Value::Str("DEPOSIT".into()));
-            return self.filter_by_since_limit(transactionsOfKind, &[since.clone(), limit.clone()]);
+            return self.filter_by_since_limit(transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
         }
         let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
@@ -4329,7 +4329,7 @@ impl Paradex {
 })]);
             let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), Value::Null, __ws_arg_20, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
             let mut transactionsOfKind: Value = self.filter_transactions_by_kind(transactions, Value::Str("WITHDRAWAL".into()));
-            return self.filter_by_since_limit(transactionsOfKind, &[since.clone(), limit.clone()]);
+            return self.filter_by_since_limit(transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
         }
         let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
@@ -5295,7 +5295,7 @@ impl Paradex {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

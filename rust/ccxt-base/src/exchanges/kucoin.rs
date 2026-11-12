@@ -12784,7 +12784,7 @@ if _try_result.is_err() {
         }
         let mut interest: Value = self.parse_borrow_interests(assets, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         let mut filteredByCurrency: Value = self.filter_by_currency_since_limit(interest, &[code, since.clone(), limit.clone()]);
-        return self.filter_by_symbol_since_limit(filteredByCurrency, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(filteredByCurrency, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

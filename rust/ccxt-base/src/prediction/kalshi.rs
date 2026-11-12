@@ -2262,7 +2262,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         }
-        return self.filter_by_since_limit(Value::from(result), &[since, limit, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -2550,7 +2550,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         }
-        return self.filter_by_since_limit(Value::from(result), &[since, limit, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -2827,7 +2827,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         }
-        return self.filter_by_since_limit(Value::from(result), &[since, limit, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }

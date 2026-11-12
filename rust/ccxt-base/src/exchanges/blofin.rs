@@ -2025,7 +2025,7 @@ impl Blofin {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4380,7 +4380,7 @@ impl Blofin {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&data, &[symbols, Value::Dict(paramsUntil)]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

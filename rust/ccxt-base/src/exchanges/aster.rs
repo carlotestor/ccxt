@@ -2827,8 +2827,8 @@ impl Aster {
             results.push(priceData);
         }
         }
-        let mut symbolsNormalized2: Value = self.market_symbols(&[symbolsNormalized]);
-        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized2, Value::Bool(false)]), Value::Str("symbol".into()));
+        let mut symbolsNormalized2: Option<crate::value::List> = self.market_symbols(&[symbolsNormalized]).into_opt_list();
+        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &symbolsNormalized2, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -4438,7 +4438,7 @@ impl Aster {
         //     ]
         //
         let mut modifications: Value = self.parse_margin_modifications(self.to_array(response), &[]);
-        return self.filter_by_symbol_since_limit(modifications, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(modifications, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

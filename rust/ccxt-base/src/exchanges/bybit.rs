@@ -5785,7 +5785,7 @@ impl Bybit {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolValue, since, Value::from(limitResolved)]);
+        return self.filter_by_symbol_since_limit(sorted, symbolValue.as_str(), since.as_i64(), Some(limitResolved), &[]);
         Value::Null
         }).await?))
     }
@@ -11997,7 +11997,7 @@ impl Bybit {
         let mut data: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, market.clone());
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (self.safe_string_k(market, "symbol", &[])).as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -12079,7 +12079,7 @@ impl Bybit {
         let mut data: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, market.clone());
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (self.safe_string_k(market, "symbol", &[])).as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -12759,9 +12759,9 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut marketIds: Value = self.market_ids(&[symbols]);
+        let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbols]).into_opt_list();
         let mut idKey: Value = (if (marketIdKey == Value::Null) { Value::Str("symbol".into()) } else { marketIdKey });
-        let mut filteredResults: Value = self.filter_by_array(response, idKey.clone(), &[marketIds, Value::Bool(false)]);
+        let mut filteredResults: Value = self.filter_by_array(response, idKey.clone(), &marketIds, &[Value::Bool(false)]);
         let mut grouped: Value = self.group_by(filteredResults, idKey, &[]);
         let mut keys: Vec<Value> = Value::Array(grouped.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
@@ -13293,7 +13293,7 @@ impl Bybit {
             rawPositionsList = rawPositions;
         }
         let mut positions: Value = self.parse_positions(rawPositionsList, &[symbols, paramsOmitted]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

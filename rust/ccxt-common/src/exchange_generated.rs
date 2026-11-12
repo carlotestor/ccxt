@@ -998,15 +998,13 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn filter_by_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
-        let mut key = get_arg(optional_args, 2, Value::Str("timestamp".into()));
-        let mut tail = get_arg(optional_args, 3, Value::Bool(false));
+    fn filter_by_since_limit(&self, mut array: Value, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+        let mut key = get_arg(optional_args, 0, Value::Str("timestamp".into()));
+        let mut tail = get_arg(optional_args, 1, Value::Bool(false));
         if (array == Value::Null) {
             return Value::from(vec![]);
         }
-        let mut sinceIsDefined: bool = (since != Value::Null) && (since != Value::Null);
+        let mut sinceIsDefined: bool = (Value::from(since) != Value::Null) && (Value::from(since) != Value::Null);
         let mut parsedArray: Value = self.to_array(array);
         let mut result: Value = parsedArray.clone();
         if sinceIsDefined {
@@ -1017,19 +1015,19 @@ pub trait ExchangeBase:
                 while { if !__for_first_77 { i += 1; } __for_first_77 = false; i < (parsedArray.len() as i64) } {
                 let mut entry: Value = parsedArray.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut value: Value = self.safe_integer(entry.clone(), key.clone(), &[]);
-                if (value != Value::Null) && (value.as_f64() != Some(0.0)) && (value.as_f64().unwrap_or(f64::NAN) >= since.as_f64().unwrap_or(f64::NAN)) {
+                if (value != Value::Null) && (value.as_f64() != Some(0.0)) && (value.as_f64().unwrap_or(f64::NAN) >= Value::from(since).as_f64().unwrap_or(f64::NAN)) {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(entry); }
                 }
             }
             }
         }
-        if tail.as_bool() == Some(true) && (limit != Value::Null) {
-            return self.array_slice(result.clone(), (match &(limit) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
+        if tail.as_bool() == Some(true) && (Value::from(limit) != Value::Null) {
+            return self.array_slice(result.clone(), (match &(Value::from(limit)) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
         let mut shouldFilterFromStart: Value = Value::Bool(!is_true(&tail) && sinceIsDefined);
-        return self.filter_by_limit(result, &[limit, key, shouldFilterFromStart]);
+        return self.filter_by_limit(result, &[Value::from(limit), key, shouldFilterFromStart]);
 
     Value::Null
 }
@@ -3601,7 +3599,7 @@ pub trait ExchangeBase:
         }
         results = self.sort_by(results.clone(), Value::Str("timestamp".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(results, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(results, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -4972,7 +4970,7 @@ pub trait ExchangeBase:
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(results), Value::Int(0), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit, Value::Int(0), tail]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0), tail]);
 
     Value::Null
 }
@@ -5495,7 +5493,7 @@ pub trait ExchangeBase:
         }
         result = self.sort_by2(result.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(result, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -5813,15 +5811,15 @@ pub trait ExchangeBase:
         if symbolWithUnknownStatus.as_bool() == Some(true) {
             activeStatuses.push(Value::Null);
         }
-        filteredMarkets = self.filter_by_array(filteredMarkets.clone(), Value::Str("active".into()), &[Value::from(activeStatuses), Value::Bool(false)]);
+        filteredMarkets = self.filter_by_array(filteredMarkets.clone(), Value::Str("active".into()), Value::from(activeStatuses), &[Value::Bool(false)]);
         return self.get_list_from_object_values(filteredMarkets, Value::Str("symbol".into()));
 
     Value::Null
 }
 
-    fn filter_by_array(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
-        let mut values = get_arg(optional_args, 0, Value::Null);
-        let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
+    fn filter_by_array(&self, mut objects: Value, mut key: Value, values: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut values: Value = values.into();
+        let mut indexed = get_arg(optional_args, 0, Value::Bool(true));
         let mut objectsValue: Value = self.to_array(objects);
         // return all of them if no values were passed
         if (values == Value::Null) || (values == Value::Null) || ((match &(values) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
@@ -8134,12 +8132,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn filter_by_symbol_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        return self.filter_by_value_since_limit(array, Value::Str("symbol".into()), &[symbol, since, limit, Value::Str("timestamp".into()), tail]);
+    fn filter_by_symbol_since_limit(&self, mut array: Value, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+        let mut tail = get_arg(optional_args, 0, Value::Bool(false));
+        return self.filter_by_value_since_limit(array, Value::Str("symbol".into()), &[Value::from(symbol), Value::from(since), Value::from(limit), Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
@@ -8154,13 +8149,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn filter_by_symbols_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        let mut result: Value = self.filter_by_array(array, Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-        return self.filter_by_since_limit(result, &[since, limit, Value::Str("timestamp".into()), tail]);
+    fn filter_by_symbols_since_limit(&self, mut array: Value, symbols: impl Into<crate::Value>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+        let mut symbols: Value = symbols.into();
+        let mut tail = get_arg(optional_args, 0, Value::Bool(false));
+        let mut result: Value = self.filter_by_array(array, Value::Str("symbol".into()), symbols, &[Value::Bool(false)]);
+        return self.filter_by_since_limit(result, since, limit, &[Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
@@ -8211,7 +8204,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }
-        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &[self.market_symbols(&[symbols]), Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[symbols]), &[Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -8290,10 +8283,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         if (codes != Value::Null) {
-            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), &[codes, Value::Bool(false)])).into_list();
+            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), codes, &[Value::Bool(false)])).into_list();
         }
         if indexed.as_bool() == Some(true) {
-            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), &[Value::Null, indexed])).into_list();
+            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), Value::Null, &[indexed])).into_list();
         }
         return Value::Arr(result);
 
@@ -8383,7 +8376,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8425,7 +8418,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return self.index_by(self.filter_by_array(Value::Map(fundingRates), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::Map(fundingRates), Value::Str("symbol".into()), symbols, &[Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -8454,7 +8447,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8709,7 +8702,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return self.index_by(self.filter_by_array(Value::Map(result), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::Map(result), Value::Str("symbol".into()), symbols, &[Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -8730,7 +8723,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(interests), Value::Str("timestamp".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -9167,7 +9160,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -9245,14 +9238,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn filter_by_array_positions(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
-        return self.to_array(self.filter_by_array(objects, key, &[values, Value::Bool(false)]));
+        return self.to_array(self.filter_by_array(objects, key, values, &[Value::Bool(false)]));
 
     Value::Null
 }
 
     fn filter_by_array_tickers(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
-        return self.index_by(self.filter_by_array(objects, key.clone(), &[values, Value::Bool(false)]), key);
+        return self.index_by(self.filter_by_array(objects, key.clone(), values, &[Value::Bool(false)]), key);
 
     Value::Null
 }
@@ -9260,7 +9253,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn filter_by_array_adl_ranks(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
-        return self.to_array(self.filter_by_array(objects, key, &[values, indexed]));
+        return self.to_array(self.filter_by_array(objects, key, values, &[indexed]));
 
     Value::Null
 }
@@ -9414,7 +9407,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut key: Value = (if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) });
         let mut sortedRes: Value = self.sort_by(uniqueResults, key.clone(), &[]);
-        return self.filter_by_since_limit(sortedRes, &[since, limit, key]);
+        return self.filter_by_since_limit(sortedRes, since.as_i64(), limit.as_i64(), &[key]);
 
     Value::Null
 } }
@@ -9537,7 +9530,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut uniqueResults: Value = self.remove_repeated_elements_from_array(result, &[]);
         let mut key: Value = (if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) });
-        return self.filter_by_since_limit(uniqueResults, &[since, limit, key]);
+        return self.filter_by_since_limit(uniqueResults, since.as_i64(), limit.as_i64(), &[key]);
 
     Value::Null
 } }
@@ -9659,7 +9652,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_cursor_paginated_result(result);
         let mut key: Value = (if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) });
-        return self.filter_by_since_limit(sorted, &[since, limit, key]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[key]);
 
     Value::Null
 } }
@@ -9716,7 +9709,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return self.filter_by_since_limit(self.sort_cursor_paginated_result(result), &[since, limit, (if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) })]);
+        return self.filter_by_since_limit(self.sort_cursor_paginated_result(result), since.as_i64(), limit.as_i64(), &[(if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) })]);
 
     Value::Null
 } }
@@ -9899,7 +9892,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -9944,7 +9937,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }
-        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &[self.market_symbols(&[symbols]), Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[symbols]), &[Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -10093,7 +10086,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
         if (code == Value::Null) {
-            return self.filter_by_since_limit(sorted.clone(), &[since.clone(), limit.clone()]);
+            return self.filter_by_since_limit(sorted.clone(), since.as_i64(), limit.as_i64(), &[]);
         }
         let mut currency: Value = self.safe_currency(code, &[]);
         if (currency == Value::Null) {
@@ -10103,7 +10096,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut fromConversion: Value = self.filter_by(sorted.clone(), Value::Str("fromCurrency".into()), currencyCode.clone(), &[]);
         let mut toConversion: Value = self.filter_by(sorted, Value::Str("toCurrency".into()), currencyCode, &[]);
         let mut both: Value = self.array_concat(fromConversion, toConversion);
-        return self.filter_by_since_limit(both, &[since, limit]);
+        return self.filter_by_since_limit(both, since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -13610,17 +13603,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_web_endpoint" => self.fetch_web_endpoint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
             "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_withdrawals_ws" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals_ws(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-            "filter_by_array" => self.filter_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "filter_by_array" => self.filter_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
             "filter_by_array_adl_ranks" => self.filter_by_array_adl_ranks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_array_positions" => self.filter_by_array_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_array_tickers" => self.filter_by_array_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_currency_since_limit" => self.filter_by_currency_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "filter_by_key" => self.filter_by_key(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_limit" => self.filter_by_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "filter_by_since_limit" => self.filter_by_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "filter_by_since_limit" => self.filter_by_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]),
             "filter_by_symbol" => self.filter_by_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "filter_by_symbol_since_limit" => self.filter_by_symbol_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "filter_by_symbols_since_limit" => self.filter_by_symbols_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "filter_by_symbol_since_limit" => self.filter_by_symbol_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]),
+            "filter_by_symbols_since_limit" => self.filter_by_symbols_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]),
             "filter_by_value_since_limit" => self.filter_by_value_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_out_by_array" => self.filter_out_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "find_broadly_matched_key" => self.find_broadly_matched_key(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),

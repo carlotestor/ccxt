@@ -827,7 +827,7 @@ impl Poloniex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -926,12 +926,12 @@ impl Poloniex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "ticker".to_string();
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut newTickers: Value = self.subscribe(Value::from(name.clone()), Value::from(name), Value::Bool(false), &[symbolsNormalized.clone(), params]).await;
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut newTickers: Value = self.subscribe(Value::from(name.clone()), Value::from(name), Value::Bool(false), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1021,7 +1021,7 @@ impl Poloniex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1161,7 +1161,7 @@ impl Poloniex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1203,7 +1203,7 @@ impl Poloniex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1852,8 +1852,8 @@ impl Poloniex {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut tickers: Value = self.filter_by_array(newTickers.clone(), Value::Str("symbol".into()), &[symbols]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut tickers: Value = self.filter_by_array(newTickers.clone(), Value::Str("symbol".into()), &symbols, &[]);
             if !(self.is_empty(tickers.clone()).as_bool() == Some(true)) {
                 client.resolve(tickers, messageHash.as_deref());
             }

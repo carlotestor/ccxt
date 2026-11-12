@@ -587,7 +587,7 @@ impl Deribit {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -696,7 +696,7 @@ impl Deribit {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -823,7 +823,7 @@ impl Deribit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -908,7 +908,7 @@ impl Deribit {
         if (symbol != Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { Value::Null });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { None });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("interval".into()), &[]).into_dict();
@@ -927,7 +927,7 @@ impl Deribit {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
         let mut trades: Value = self.watch(url, &channel[..], &[request.clone(), Value::from(channel.clone()), request]).await;
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1262,7 +1262,7 @@ impl Deribit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1404,7 +1404,7 @@ impl Deribit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))

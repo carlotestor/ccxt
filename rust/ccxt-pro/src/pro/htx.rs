@@ -666,7 +666,7 @@ impl Htx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -808,7 +808,7 @@ impl Htx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1484,7 +1484,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1653,7 +1653,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2311,7 +2311,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.safe_value(self.safe_value(self.positions.clone(), url, &[]), marginMode, &[]), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(false)]);
+        return self.filter_by_symbols_since_limit(self.safe_value(self.safe_value(self.positions.clone(), url, &[]), marginMode, &[]), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(false)]);
         Value::Null
         }).await?))
     }
@@ -2480,8 +2480,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut messageHash: Option<String> = messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-                let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-                let mut positions: Value = self.filter_by_array(marginModePositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+                let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+                let mut positions: Value = self.filter_by_array(marginModePositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
                 if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                     client.resolve(positions, messageHash.as_deref());
                 }

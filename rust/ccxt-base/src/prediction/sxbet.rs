@@ -3764,7 +3764,7 @@ impl Sxbet {
         let mut sym: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
         let mut trades: Value = self.subscribe_sxbet_channel(Value::from(messageHash), Value::Str("recent_trades_v3:global".into())).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3888,7 +3888,7 @@ impl Sxbet {
         }
         let mut channel: String = format!("{}{}", Value::Str("account:fills_v3_#".into()), self.walletAddress.clone());
         let mut trades: Value = self.subscribe_sxbet_channel(Value::from(messageHash), Value::from(channel)).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3959,7 +3959,7 @@ impl Sxbet {
         }
         let mut channel: String = format!("{}{}", Value::Str("account:orders_v3_#".into()), self.walletAddress.clone());
         let mut orders: Value = self.subscribe_sxbet_channel(Value::from(messageHash), Value::from(channel)).await;
-        return self.filter_by_since_limit(orders, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

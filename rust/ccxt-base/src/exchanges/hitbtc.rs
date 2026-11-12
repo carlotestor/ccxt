@@ -4095,7 +4095,7 @@ impl Hitbtc {
             fundingRates.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fundingRate));
         }
         }
-        return self.index_by(self.filter_by_array(Value::Map(fundingRates), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::Map(fundingRates), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -4201,8 +4201,8 @@ impl Hitbtc {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        let mut symbolResolved: Value = (if (market == Value::Null) { symbol } else { self.safe_string_k(market, "symbol", &[]) });
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
+        let mut symbolResolved: Option<String> = (if (market == Value::Null) { symbol.as_str().map(str::to_owned) } else { self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned) });
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4569,7 +4569,7 @@ impl Hitbtc {
             results.push(self.parse_open_interest(openInterest, &[marketInner]));
         }
         }
-        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }

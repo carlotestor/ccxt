@@ -5434,7 +5434,7 @@ impl Htx {
         }
         }
         result = self.sort_by(result.clone(), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(result, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(result, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -10377,7 +10377,7 @@ impl Htx {
             }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

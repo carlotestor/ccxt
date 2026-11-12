@@ -451,7 +451,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -530,7 +530,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -772,7 +772,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -835,7 +835,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(resultSymbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(resultSymbol, resultTimeframe, filtered);
         Value::Null
         }).await?))
@@ -1011,7 +1011,7 @@ impl Nado {
         let mut ticker: Value = self.watch_public(Value::from(streamType), market, Value::from(messageHash.clone()), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if (messageHash == "ticker") {
-                return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+                return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
             }
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1023,7 +1023,7 @@ impl Nado {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1104,7 +1104,7 @@ impl Nado {
         let mut ticker: Value = self.watch_public(Value::from(streamType), market, Value::from(messageHash.clone()), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if (messageHash == "bidask") {
-                return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+                return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
             }
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1116,7 +1116,7 @@ impl Nado {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1222,7 +1222,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1344,7 +1344,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1466,7 +1466,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

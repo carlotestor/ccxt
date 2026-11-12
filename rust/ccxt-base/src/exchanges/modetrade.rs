@@ -2146,7 +2146,7 @@ impl Modetrade {
             }));
         }
         }
-        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]), &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2434,7 +2434,7 @@ impl Modetrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.v1_public_get_public_futures(&[params]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2460,7 +2460,7 @@ impl Modetrade {
             result.push(self.parse_open_interest(interest, &[]));
         }
         }
-        return self.index_by(self.filter_by_array(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::from(result), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }

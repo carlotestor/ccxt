@@ -625,7 +625,7 @@ impl Derive {
             result.insert(tickerSymbol, ticker);
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsResolved)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsResolved, &[]);
         Value::Null
         }).await?))
     }
@@ -966,7 +966,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1128,7 +1128,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1335,7 +1335,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1529,7 +1529,7 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
+        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]).into_opt_list();
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSnapshot: crate::value::Dict = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1601,7 +1601,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), subaccountIdKey, &[]), &[symbolsResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), subaccountIdKey, &[]), &symbolsResolved, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

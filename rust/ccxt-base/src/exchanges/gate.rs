@@ -5185,7 +5185,7 @@ if _try_result.is_err() {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -6189,7 +6189,7 @@ if _try_result.is_err() {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -8537,7 +8537,7 @@ if _try_result.is_err() {
             result = spotResult;
         }
         let mut orders: Value = self.parse_orders(result, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since.clone(), limit.clone()]);
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -10437,7 +10437,7 @@ if _try_result.is_err() {
         //
         let mut settlements: Value = self.parse_settlements(response, &[(market).raw.clone()]);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -10542,7 +10542,7 @@ if _try_result.is_err() {
         let mut data: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, &[market]);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }

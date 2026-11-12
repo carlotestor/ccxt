@@ -1898,7 +1898,7 @@ impl Bittrade {
         }
         }
         result = self.sort_by(result.clone(), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(result, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(result, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

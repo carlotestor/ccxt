@@ -3499,9 +3499,9 @@ impl Krakenfutures {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         }
         // todo: lastFillTime: this.iso8601(end)
         let mut response: crate::value::Dict = self.private_get_fills(&[params]).await.into_dict();
@@ -3528,7 +3528,7 @@ impl Krakenfutures {
         let mut fills: crate::value::List = self.safe_list_k(&response, "fills", &[Value::from(vec![])]).into_list();
         // the endpoint returns the fills of every contract, each row resolves its own market
         let mut trades: Value = self.parse_trades(&fills, &[]);
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4314,7 +4314,7 @@ impl Krakenfutures {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4485,7 +4485,7 @@ impl Krakenfutures {
         }
         }
         let mut positions: Value = self.parse_positions(Value::from(updates), &[symbols]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

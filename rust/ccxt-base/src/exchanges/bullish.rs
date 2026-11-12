@@ -2138,7 +2138,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }));
         }
         }
-        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]), &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

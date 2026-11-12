@@ -14217,7 +14217,7 @@ if _try_result.is_err() {
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         let mut marketSymbol: Option<String> = self.safe_string_k((market).raw.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, &[marketSymbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, marketSymbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -14623,7 +14623,7 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut bills: Value = self.safe_list2(&data, Value::Str("bills".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         if (uta.as_bool() == Some(true)) {
-            bills = self.filter_by_array(bills.clone(), Value::Str("type".into()), &[Value::from(vec![Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_IN".into()), Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_OUT".into())]), Value::Bool(false)]);
+            bills = self.filter_by_array(bills.clone(), Value::Str("type".into()), Value::from(vec![Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_IN".into()), Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_OUT".into())]), &[Value::Bool(false)]);
         }
         return self.parse_funding_histories(bills, &[(market).raw.clone(), since, limit]);
         Value::Null
@@ -14698,7 +14698,7 @@ if _try_result.is_err() {
         if (market != Value::Null) {
             symbol = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
         }
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -16861,7 +16861,7 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut responseList: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&responseList, &[symbols, Value::Dict(paramsUTA)]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -577,9 +577,9 @@ impl Backpack {
             self.watch_public(topics, Value::from(messageHashes), &[payload]).await;
         }
         if bidAsk.as_bool() == Some(true) {
-            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::from(symbolsResolved)]);
+            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::from(symbolsResolved)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
 
     Value::Null
 }
@@ -1325,7 +1325,7 @@ impl Backpack {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -1550,7 +1550,7 @@ impl Backpack {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        let mut result: Value = self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut result: Value = self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
         Value::Null
         }).await?))
@@ -2039,7 +2039,7 @@ impl Backpack {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         if matches!(self.safe_bool_k(query, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.parent.filter_stock_structures(filtered.clone());
         }
@@ -2487,7 +2487,7 @@ impl Backpack {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

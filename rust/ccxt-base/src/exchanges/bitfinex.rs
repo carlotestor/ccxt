@@ -4901,7 +4901,7 @@ impl Bitfinex {
         }
         }
         let mut reversedArray: Vec<Value> = Vec::new();
-        let mut rawRates: Value = self.filter_by_symbol_since_limit(Value::from(rates), &[symbol, since, limit]);
+        let mut rawRates: Value = self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         let mut ratesLength: Value = Value::Int(rawRates.len() as i64);
         {
                         let mut i: Value = Value::Int(0);

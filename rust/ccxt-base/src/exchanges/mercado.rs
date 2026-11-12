@@ -1586,7 +1586,7 @@ impl Mercado {
         let mut ordersRaw: Value = self.safe_list_k(&responseData, "orders", &[Value::from(vec![])]);
         let mut orders: Value = self.parse_orders(ordersRaw, &[(market).raw.clone(), since.clone(), limit.clone()]);
         let mut trades: Value = self.orders_to_trades(orders);
-        return self.filter_by_symbol_since_limit(trades, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(trades, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

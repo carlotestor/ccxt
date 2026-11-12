@@ -657,7 +657,7 @@ impl Polymarket {
             result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&newTicker, "symbol"))), newTicker.clone());
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -752,7 +752,7 @@ impl Polymarket {
             result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&ticker, "symbol"))), ticker.clone());
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -834,7 +834,7 @@ impl Polymarket {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolResolved.as_str()), limitResolved.clone());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1033,7 +1033,7 @@ impl Polymarket {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolResolved.as_str()), limitResolved.clone());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1239,7 +1239,7 @@ impl Polymarket {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limitResolved.clone());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1362,7 +1362,7 @@ impl Polymarket {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limitResolved.clone());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1470,10 +1470,10 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.authenticate(&[]).await;
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
-        self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone()]);
+        self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
         if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
@@ -1482,7 +1482,7 @@ impl Polymarket {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut subscribeHashes: Value = Value::from(vec![Value::Str("portfolio".into())]);
         let mut request: Value = self.send_subscription(Value::Str("sub".into()), Value::from(vec![Value::Str("portfolio".into())]), Value::from(vec![Value::Str("positions".into())]), subscribeHashes.clone(), &[Value::Map({
@@ -1491,9 +1491,9 @@ impl Polymarket {
 }), params, subscribeHashes]);
         let mut newPositions: Value = self.watch(url.as_deref(), Value::Str("positions".into()), &[request, Value::Str("portfolio".into())]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            return self.filter_by_symbols_since_limit(newPositions, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(newPositions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

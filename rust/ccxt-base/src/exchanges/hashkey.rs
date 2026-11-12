@@ -4773,7 +4773,7 @@ impl Hashkey {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

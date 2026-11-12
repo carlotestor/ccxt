@@ -1591,7 +1591,7 @@ impl Mudrex {
             orders.push(self.parse_order(rows.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]));
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(orders), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(orders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -1796,7 +1796,7 @@ impl Mudrex {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&data, &[symbolsNormalized]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

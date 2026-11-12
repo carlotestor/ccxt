@@ -2277,7 +2277,7 @@ impl Hibachi {
         //
         let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(orders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
-        return self.filter_by_symbol_since_limit(parsedOrders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(parsedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -2310,7 +2310,7 @@ impl Hibachi {
 }));
         let mut orders: Value = self.fetch_orders_by_status(Value::Str("filled".into()), &[symbol, since.clone(), limit.clone(), params]).await;
         let mut filtered: Value = self.filter_by(orders, Value::Str("status".into()), Value::Str("closed".into()), &[]);
-        return self.filter_by_since_limit(filtered, &[since, limit]);
+        return self.filter_by_since_limit(filtered, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2343,7 +2343,7 @@ impl Hibachi {
 }));
         let mut orders: Value = self.fetch_orders_by_status(Value::Null, &[symbol, since.clone(), limit.clone(), params]).await;
         let mut filtered: Value = self.filter_by(orders, Value::Str("status".into()), Value::Str("canceled".into()), &[]);
-        return self.filter_by_since_limit(filtered, &[since, limit]);
+        return self.filter_by_since_limit(filtered, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3012,7 +3012,7 @@ impl Hibachi {
 }));
         let mut transactions: Vec<crate::types::Transaction> = (match self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut deposits: Value = self.filter_by(crate::types::IntoRaw::into_raw(transactions), Value::Str("type".into()), Value::Str("deposit".into()), &[]);
-        return self.filter_by_since_limit(deposits, &[since, limit, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(deposits, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -3043,7 +3043,7 @@ impl Hibachi {
 }));
         let mut transactions: Vec<crate::types::Transaction> = (match self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut withdrawals: Value = self.filter_by(crate::types::IntoRaw::into_raw(transactions), Value::Str("type".into()), Value::Str("withdrawal".into()), &[]);
-        return self.filter_by_since_limit(withdrawals, &[since, limit, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(withdrawals, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -3158,7 +3158,7 @@ impl Hibachi {
         let mut data: Value = self.safe_list_k(&response, "settlements", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, &[market]);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -3380,7 +3380,7 @@ impl Hibachi {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -1190,8 +1190,8 @@ impl Kraken {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[symbolsNormalized.clone(), Value::Null, params]).await;
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[Value::Arr(symbolsNormalized.clone()), Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1203,7 +1203,7 @@ impl Kraken {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1229,9 +1229,9 @@ impl Kraken {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("event_trigger".into(), Value::Str("bbo".into())); }
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".into()), Value::Str("ticker".into()), &[symbolsNormalized.clone(), Value::Null, params]).await;
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".into()), Value::Str("ticker".into()), &[Value::Arr(symbolsNormalized.clone()), Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1243,7 +1243,7 @@ impl Kraken {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1308,7 +1308,7 @@ impl Kraken {
             let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1509,7 +1509,7 @@ impl Kraken {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1979,7 +1979,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = Value::from(result.get_limit(symbolResolved.as_deref(), limit.as_i64()));
         }
-        return self.filter_by_symbol_since_limit(result, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(result, symbolResolved.as_deref(), since.as_i64(), limitResolved.as_i64(), &[Value::Bool(true)]);
 
     Value::Null
 }

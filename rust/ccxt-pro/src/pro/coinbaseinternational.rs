@@ -738,7 +738,7 @@ impl Coinbaseinternational {
             channel = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.trades.".into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval);
         }
         let mut trades: Value = self.subscribe(Value::from(vec![Value::from(channel.clone())]), Value::from(vec![Value::from(channel)]), &[Value::Bool(true), paramsInterval]).await;
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -849,7 +849,7 @@ impl Coinbaseinternational {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -903,8 +903,8 @@ impl Coinbaseinternational {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(None::<&str>, limit.as_i64());
         }
-        let mut ordersForSymbols: Value = self.filter_by_array(orders, Value::Str("symbol".into()), &[Value::Arr(symbolsResolved), Value::Bool(false)]);
-        return self.filter_by_since_limit(ordersForSymbols, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut ordersForSymbols: Value = self.filter_by_array(orders, Value::Str("symbol".into()), &symbolsResolved, &[Value::Bool(false)]);
+        return self.filter_by_since_limit(ordersForSymbols, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1033,7 +1033,7 @@ impl Coinbaseinternational {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsResolved.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsResolved, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1370,7 +1370,7 @@ impl Coinbaseinternational {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsResolved)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsResolved, &[]);
         Value::Null
         }).await?))
     }
@@ -1580,7 +1580,7 @@ impl Coinbaseinternational {
             result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&ticker, "symbol"))), ticker.clone());
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsResolved)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsResolved, &[]);
         Value::Null
         }).await?))
     }
@@ -1772,7 +1772,7 @@ impl Coinbaseinternational {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_deref(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol.map(Value::from).unwrap_or(Value::Null), timeframe.map(Value::from).unwrap_or(Value::Null), filtered);
         Value::Null
         }).await?))
@@ -1983,7 +1983,7 @@ impl Coinbaseinternational {
             let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

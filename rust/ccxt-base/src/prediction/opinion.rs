@@ -1390,7 +1390,7 @@ impl Opinion {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(candles), Value::Int(0), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit, Value::Int(0)]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0)]);
         Value::Null
         }).await?))
     }
@@ -2956,7 +2956,7 @@ if _try_result.is_err() {
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
         let mut trades: Value = self.subscribe_opinion_channel(Value::from(messageHash), Value::Str("market.last.trade".into()), Value::from(marketId)).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

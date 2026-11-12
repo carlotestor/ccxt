@@ -421,7 +421,7 @@ impl Apex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -836,7 +836,7 @@ impl Apex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -987,7 +987,7 @@ impl Apex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -1105,7 +1105,7 @@ impl Apex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1155,14 +1155,14 @@ impl Apex {
         let mut cache: Value = self.positions.clone();
         if (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized2.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized2.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut topics: Value = Value::from(vec![Value::Str("positions".into())]);
         let mut newPositions: Value = self.watch_topics(url, Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized2, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(cache, symbolsNormalized2, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1208,7 +1208,7 @@ impl Apex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1442,8 +1442,8 @@ impl Apex {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Value = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() });
             let mut symbolsString: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut symbols: Value = Value::Array(symbolsString.split(",").map(Value::from).collect());
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(symbolsString.split(",").map(Value::from).collect()).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }

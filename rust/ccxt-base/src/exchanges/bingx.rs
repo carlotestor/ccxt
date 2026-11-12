@@ -4526,7 +4526,7 @@ impl Bingx {
         })]).into_dict();
         let mut records: crate::value::List = self.safe_list_k(&data, "positionHistory", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&records, &[]);
-        return self.filter_by_symbol_since_limit(positions, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(positions, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -3736,7 +3736,7 @@ impl Bitstamp {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut transactions: Value = self.filter_by_array(response, Value::Str("type".into()), &[Value::from(vec![Value::Str("0".into()), Value::Str("1".into())]), Value::Bool(false)]);
+        let mut transactions: Value = self.filter_by_array(response, Value::Str("type".into()), Value::from(vec![Value::Str("0".into()), Value::Str("1".into())]), &[Value::Bool(false)]);
         return self.parse_transactions(transactions, &[currency, since, limit]);
         Value::Null
         }).await?))

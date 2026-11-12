@@ -576,7 +576,7 @@ impl Toobit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -740,7 +740,7 @@ impl Toobit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -916,7 +916,7 @@ impl Toobit {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1418,7 +1418,7 @@ impl Toobit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1563,7 +1563,7 @@ impl Toobit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1674,13 +1674,13 @@ impl Toobit {
         let mut cache: Value = self.safe_value(self.positions.clone(), Value::from(type_var.clone()), &[]);
         if (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut newPositions: Value = self.watch(url, &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(cache, symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1789,8 +1789,8 @@ impl Toobit {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut filtered: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut filtered: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(filtered.clone()).as_bool() == Some(true)) {
                 client.resolve(filtered, messageHash.as_deref());
             }

@@ -2889,7 +2889,7 @@ impl Backpack {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3055,7 +3055,7 @@ impl Backpack {
             }
             }
             let mut sorted: Value = self.sort_by(Value::from(filtered), Value::Str("timestamp".into()), &[]);
-            return self.filter_by_since_limit(sorted, &[since.clone(), limit.clone()]);
+            return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
         }
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
@@ -4218,7 +4218,7 @@ impl Backpack {
         if stock {
             orders = self.filter_stock_structures(orders.clone());
         }
-        return self.filter_by_since_limit(self.sort_by(orders, Value::Str("timestamp".into()), &[]), &[since, limit]);
+        return self.filter_by_since_limit(self.sort_by(orders, Value::Str("timestamp".into()), &[]), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4558,7 +4558,7 @@ impl Backpack {
         if stock {
             orders = self.filter_stock_structures(orders.clone());
         }
-        return self.filter_by_since_limit(self.sort_by(orders, Value::Str("timestamp".into()), &[]), &[since, limit]);
+        return self.filter_by_since_limit(self.sort_by(orders, Value::Str("timestamp".into()), &[]), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

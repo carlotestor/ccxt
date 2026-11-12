@@ -4738,7 +4738,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades:".into()), networkId).into()), Value::Str(":".into())).into()), marketId);
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
         let mut trades: Value = self.subscribe_myriad_channel(Value::from(messageHash), Value::from(channel), &[params]).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -5026,7 +5026,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut tickers: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("tickers".into()))).await;
-        return self.filter_by_array(tickers, Value::Str("outcome".into()), &[Value::from(resolvedSymbols), Value::Bool(true)]);
+        return self.filter_by_array(tickers, Value::Str("outcome".into()), Value::from(resolvedSymbols), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -5071,7 +5071,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 candle.as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null), candle.as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null), candle.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null)]));
         }
         }
-        return self.filter_by_since_limit(Value::from(result), &[since, limit, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

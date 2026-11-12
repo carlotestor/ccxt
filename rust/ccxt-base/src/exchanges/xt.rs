@@ -5102,7 +5102,7 @@ impl Xt {
             // otherwise since/limit could cut off matching rows
             let mut parsedOrders: Value = self.parse_orders(orders.clone(), &[market.clone()]);
             let mut filteredOrders: Value = self.filter_by(parsedOrders, Value::Str("status".into()), status, &[]);
-            return self.filter_by_since_limit(filteredOrders, &[since.clone(), limit.clone()]);
+            return self.filter_by_since_limit(filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         }
         return self.parse_orders(orders, &[market, since, limit]);
 
@@ -6804,7 +6804,7 @@ impl Xt {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7261,7 +7261,7 @@ impl Xt {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7659,7 +7659,7 @@ impl Xt {
         })]).into_dict();
         let mut items: crate::value::List = self.safe_list_k(&result, "items", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&items, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
