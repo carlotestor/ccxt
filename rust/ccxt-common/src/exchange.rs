@@ -404,9 +404,9 @@ pub struct Exchange {
 
     // runtime state
     pub orderbooks:        Value,
-    pub orders:            Value,
+    pub orders:            Option<crate::pro::cache::Cache>,
     pub trades:            Value,
-    pub myTrades:          Value,
+    pub myTrades:          Option<crate::pro::cache::Cache>,
     pub positions:         Value,
     // WS state — mirrors `ts/src/base/Exchange.ts` `newUpdates: boolean = true`.
     // Per-exchange WS code reads `self.newUpdates` to decide whether to call
@@ -419,8 +419,8 @@ pub struct Exchange {
     pub clients:           Value,
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub balance:           Value,
-    pub liquidations:      Value,
-    pub myLiquidations:    Value,
+    pub liquidations:      Option<crate::pro::cache::Cache>,
+    pub myLiquidations:    Option<crate::pro::cache::Cache>,
     pub fundingRates:      Value,
     pub triggerOrders:     Value,
     pub transactions:      Value,
@@ -769,9 +769,9 @@ impl Exchange {
             accountsById:      Value::Null,
 
             orderbooks:    Value::Map(HashMap::new()),
-            orders:        Value::Null,
+            orders:        None,
             trades:        Value::Map(HashMap::new()),
-            myTrades:      Value::Null,
+            myTrades:      None,
             positions:     Value::Null,
             newUpdates:    Value::Bool(true),
             tickers:       Value::Map(HashMap::new()),
@@ -779,8 +779,8 @@ impl Exchange {
             ohlcvs:        Value::Map(HashMap::new()),
             clients:       Value::Map(HashMap::new()),
             balance:       Value::Map(HashMap::new()),
-            liquidations:  Value::Null,
-            myLiquidations: Value::Null,
+            liquidations:  None,
+            myLiquidations: None,
             fundingRates:  Value::Null,
             triggerOrders: Value::Null,
             transactions:  Value::Map(HashMap::new()),
