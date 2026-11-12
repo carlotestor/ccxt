@@ -4673,12 +4673,12 @@ impl Coinbaseinternational {
             }
             let mut requestData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("\n".into())).into()), signedRequest).into()), Value::Str("\n".into())).into()), Value::Str("\n".into())); // eslint-disable-line quotes
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, Value::Str("\n".into())).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("\n".into())).into()), requestData); // eslint-disable-line quotes
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("deri-hmac-sha256 id=".into()), self.apiKey.clone()).into()), Value::Str(",ts=".into())).into()),
-                        timestamp).into()), Value::Str(",sig=".into())).into()), signature.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(",nonce=".into())).into()), nonce.map(Value::from).unwrap_or(Value::Null)).into()));
+                        timestamp).into()), Value::Str(",sig=".into())).into()), signature).into()), Value::Str(",nonce=".into())).into()), nonce.map(Value::from).unwrap_or(Value::Null)).into()));
                 m
             });
         }  else if (access.as_str() == Some("private")) {

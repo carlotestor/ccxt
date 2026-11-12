@@ -3484,7 +3484,7 @@ impl Ndax {
             if (sessionToken.is_none()) {
                 let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
                 let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone());
-                let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                let mut signature: Value = Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
                 if isPost {
                     headersSigned = Value::Map({
                         let mut m = indexmap::IndexMap::new();

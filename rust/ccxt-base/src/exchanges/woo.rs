@@ -5088,7 +5088,7 @@ impl Woo {
                 }
             }
             let mut paramsSigned: Value = self.keysort(Value::Map(paramsSorted), &[]);
-            let mut auth: Option<String> = Some("".to_string());
+            let mut auth: String = "".to_string();
             let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
             let mut authBase: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), pathWithParams);
             url = format!("{}{}", urlPrefix, pathWithParams);
@@ -5099,33 +5099,33 @@ impl Woo {
                 m
             });
             if (version.as_str() == Some("v3")) {
-                auth = Some(authBase.clone());
+                auth = authBase.clone();
                 if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                     let mut jsonBody: Option<String> = json_stringify(&paramsSigned).as_str().map(str::to_owned);
                     requestBody = jsonBody.clone();
-                    auth = Some(format!("{}{}", authBase, jsonBody.map(Value::from).unwrap_or(Value::Null)));
+                    auth = format!("{}{}", authBase, jsonBody.map(Value::from).unwrap_or(Value::Null));
                     if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/json".into())); }
                 }  else {
                     if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                        let mut query: Value = self.urlencode(paramsSigned.clone(), &[]);
+                        let mut query: String = self.urlencode(paramsSigned.clone(), &[]);
                         url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), Value::Str("?".into())).into()), query);
-                        auth = Some(format!("{}{}", Value::Str(format!("{}{}", authBase, Value::Str("?".into())).into()), query));
+                        auth = format!("{}{}", Value::Str(format!("{}{}", authBase, Value::Str("?".into())).into()), query);
                     }
                 }
             }  else {
-                let mut encodedParams: Option<String> = self.urlencode(paramsSigned.clone(), &[]).as_str().map(str::to_owned);
+                let mut encodedParams: String = self.urlencode(paramsSigned.clone(), &[]);
                 auth = encodedParams.clone();
                 if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE")) {
-                    requestBody = encodedParams.clone();
+                    requestBody = Some(encodedParams.clone());
                 }  else {
                     if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), Value::Str("?".into())).into()), encodedParams.clone().map(Value::from).unwrap_or(Value::Null));
+                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), Value::Str("?".into())).into()), encodedParams);
                     }
                 }
-                auth = Some(format!("{}{}", Value::Str(format!("{}{}", encodedParams.map(Value::from).unwrap_or(Value::Null), Value::Str("|".into())).into()), ts));
+                auth = format!("{}{}", Value::Str(format!("{}{}", encodedParams, Value::Str("|".into())).into()), ts);
                 if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into())); }
             }
-            if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("x-api-signature".into(), self.hmac(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])); }
+            if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("x-api-signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]))); }
             requestHeaders = signedHeaders;
         }
         return Value::Map({

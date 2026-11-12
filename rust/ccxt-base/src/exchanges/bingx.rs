@@ -9148,10 +9148,10 @@ impl Bingx {
                 encodeRequest = self.custom_encode(paramsSorted.clone()).map(Value::from).unwrap_or(Value::Null);
             }  else {
                 parsedParams = self.parse_params(paramsSorted.clone());
-                encodeRequest = self.rawencode(parsedParams.clone(), &[Value::Bool(true)]);
+                encodeRequest = Value::from(self.rawencode(parsedParams.clone(), &[Value::Bool(true)]));
             }
             let mut encodeRequestSafe: Value = (if (encodeRequest == Value::Null) { Value::Str("".into()) } else { encodeRequest });
-            let mut signature: Value = self.hmac(self.encode(encodeRequestSafe), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(encodeRequestSafe), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-BX-APIKEY".to_string(), self.apiKey.clone());
@@ -9164,11 +9164,11 @@ impl Bingx {
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
                 })]);
-                add_element_to_object(&mut paramsSorted, &Value::Str("signature".into()), signature.clone());
+                add_element_to_object(&mut paramsSorted, &Value::Str("signature".into()), Value::from(signature.clone()));
                 requestBody = json_stringify(&paramsSorted);
             }  else {
-                let mut query: Option<String> = self.urlencode(parsedParams, &[Value::Bool(true)]).as_str().map(str::to_owned);
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("&".into())).into()), Value::Str("signature=".into())).into()), signature).into())).into());
+                let mut query: String = self.urlencode(parsedParams, &[Value::Bool(true)]);
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("?".into()), query).into()), Value::Str("&".into())).into()), Value::Str("signature=".into())).into()), signature).into())).into());
             }
         }
         let mut bodyResult: Value = requestBody;

@@ -1741,7 +1741,7 @@ impl Blofin {
         let mut timestamp: Value = Value::Str(format!("{}", milliseconds).into());
         let mut nonce: String = format!("{}{}", Value::Str("n_".into()), timestamp);
         let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/users/self/verify".into()), Value::Str("GET".into())).into()), timestamp).into()), Value::Str("".into())).into()), nonce);
-        let mut signature: Option<String> = self.string_to_base64(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]), &[]).as_str().map(str::to_owned);
+        let mut signature: Option<String> = self.string_to_base64(Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("login".into()));

@@ -4798,11 +4798,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), requestPath);
-        let mut queryString: Option<String> = Some("".to_string());
+        let mut queryString: String = "".to_string();
         if (method.as_str() == Some("GET")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                queryString = self.urlencode(query, &[]).as_str().map(str::to_owned);
-                url.push_str(&format!("{}{}", Value::Str("?".into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)));
+                queryString = self.urlencode(query, &[]);
+                url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
             }
         }  else if (method.as_str() == Some("POST")) {
             // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
@@ -4823,8 +4823,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut isPrivate: bool = apiName.as_deref().unwrap_or_default().starts_with("private");
         if isPrivate {
             self.check_required_credentials(&[]);
-            if (queryString.as_deref() != Some("")) {
-                requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, Value::Str("?".into())).into()), queryString.map(Value::from).unwrap_or(Value::Null)).into());
+            if (queryString != "") {
+                requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, Value::Str("?".into())).into()), queryString).into());
             }
             if (requestPath.as_str().unwrap_or("").ends_with("auth/api_key/login")) || (requestPath.as_str().unwrap_or("").ends_with("auth/wallet/login")) {
                 requestHeaders = Value::Map({

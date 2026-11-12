@@ -3912,9 +3912,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut querystring: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
-        if (method.as_str() == Some("GET")) && (querystring.as_deref() != Some("")) {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.clone().map(Value::from).unwrap_or(Value::Null)));
+        let mut querystring: String = self.urlencode(query.clone(), &[]);
+        if (method.as_str() == Some("GET")) && (querystring != "") {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), querystring));
         }
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3951,7 +3951,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("KALSHI-ACCESS-TIMESTAMP".to_string(), Value::from(timestamp));
                 m
             })]);
-            if (method.as_str() != Some("GET")) && (querystring.as_deref() != Some("")) {
+            if (method.as_str() != Some("GET")) && (querystring != "") {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 bodyValue = json_stringify(&query);
             }

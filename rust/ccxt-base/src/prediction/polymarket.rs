@@ -4388,9 +4388,9 @@ impl Polymarket {
             }
             let mut querystring: Option<String> = None;
             if hasArrayParam {
-                querystring = self.urlencode_with_array_repeat(query.clone()).as_str().map(str::to_owned);
+                querystring = Some(self.urlencode_with_array_repeat(query.clone()));
             }  else {
-                querystring = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+                querystring = Some(self.urlencode(query.clone(), &[]));
             }
             if (querystring.as_deref() != Some("")) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.as_deref().unwrap_or("null")));
@@ -4468,16 +4468,16 @@ impl Polymarket {
                 let mut plusSecret: Option<String> = (if let Some(__s) = secret.as_deref() { Some(__s.replace("-", "+")) } else { None });
                 let mut normalizedSecret: Option<String> = (if let Some(__s) = plusSecret.as_deref() { Some(__s.replace("_", "/")) } else { None });
                 let mut secretBytes: Value = self.base64_to_binary(normalizedSecret.map(Value::from).unwrap_or(Value::Null), &[]);
-                let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), secretBytes, Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+                let mut signature: String = self.hmac(self.encode(Value::from(auth)), secretBytes, Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 // url-safe base64, preserving '=' padding (matches the reference client)
-                signature = (if let Some(__s) = signature.as_deref() { Some(__s.replace("+", "-")) } else { None });
-                signature = (if let Some(__s) = signature.as_deref() { Some(__s.replace("/", "_")) } else { None });
+                signature = signature.replace("+", "-");
+                signature = signature.replace("/", "_");
                 headersValue = self.extend(headersValue.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("POLY_ADDRESS".to_string(), address);
                         m.insert("POLY_API_KEY".to_string(), apiKey.map(Value::from).unwrap_or(Value::Null));
                         m.insert("POLY_PASSPHRASE".to_string(), passphrase.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("POLY_SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                        m.insert("POLY_SIGNATURE".to_string(), Value::from(signature));
                         m.insert("POLY_TIMESTAMP".to_string(), timestamp);
                     m
                 })]);

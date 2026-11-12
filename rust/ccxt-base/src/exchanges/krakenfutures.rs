@@ -5150,40 +5150,40 @@ impl Krakenfutures {
         let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", version.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, self.extract_params(path.clone()), &[]);
         let mut query: String = endpoint.clone();
-        let mut postData: Option<String> = Some("".to_string());
+        let mut postData: String = "".to_string();
         if (path.as_str() == Some("batchorder")) {
-            postData = Some(format!("{}{}", Value::Str("json=".into()), json_stringify(&paramsOmitted2)));
+            postData = format!("{}{}", Value::Str("json=".into()), json_stringify(&paramsOmitted2));
         }  else if ((Value::Array(paramsOmitted2.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
             if (matches!(&paramsOmitted2, Value::Dict(__d) if __d.contains_key("orderIds"))) {
-                postData = self.urlencode_with_array_repeat(paramsOmitted2.clone()).as_str().map(str::to_owned);
+                postData = self.urlencode_with_array_repeat(paramsOmitted2.clone());
             }  else {
-                postData = self.urlencode(paramsOmitted2, &[]).as_str().map(str::to_owned);
+                postData = self.urlencode(paramsOmitted2, &[]);
             }
-            query.push_str(&format!("{}{}", Value::Str("?".into()), postData.clone().map(Value::from).unwrap_or(Value::Null)));
+            query.push_str(&format!("{}{}", Value::Str("?".into()), postData));
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), query);
-        let mut requestBody: Option<String> = (if (path.as_str() == Some("batchorder")) { postData.clone() } else { None });
+        let mut requestBody: Option<String> = (if (path.as_str() == Some("batchorder")) { Some(postData.clone()) } else { None });
         let mut privateHeaders: Value = Value::Null;
         if (apiName.as_str() == Some("private")) || (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut auth: String = format!("{}{}", postData.map(Value::from).unwrap_or(Value::Null), Value::Str("/api/".into()));
+            let mut auth: String = format!("{}{}", postData, Value::Str("/api/".into()));
             if (apiName.as_str() != Some("private")) {
                 auth.push_str(&format!("{}{}", apiName, Value::Str("/".into())));
             }
             auth.push_str(&endpoint); // 1
             let mut hash: Value = self.hash(self.encode(Value::from(auth)), Value::Str("sha256".into()), &[Value::Str("binary".into())]); // 2
             let mut secret: Value = self.base64_to_binary(self.secret.clone(), &[]); // 3
-            let mut signature: Option<String> = self.hmac(hash, secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned); // 4-5
+            let mut signature: String = self.hmac(hash, secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]); // 4-5
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Accept".to_string(), Value::Str("application/json".into()));
                     m.insert("APIKey".to_string(), self.apiKey.clone());
-                    m.insert("Authent".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("Authent".to_string(), Value::from(signature));
                 m
             });
         }

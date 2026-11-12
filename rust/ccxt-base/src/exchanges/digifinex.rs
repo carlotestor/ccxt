@@ -6462,7 +6462,7 @@ impl Digifinex {
         if signed && (pathPart == "/swap/v2") && (method.as_str() == Some("POST")) {
             urlencoded = json_stringify(&params);
         }  else {
-            urlencoded = self.urlencode(self.keysort(query, &[]), &[]);
+            urlencoded = Value::from(self.urlencode(self.keysort(query, &[]), &[]));
         }
         if signed {
             let mut auth: Value = Value::Str("".into());
@@ -6481,7 +6481,7 @@ impl Digifinex {
                 nonce = format!("{}", self.seconds().as_i64().unwrap_or_default());
                 auth = urlencoded.clone();
             }
-            let mut signature: Option<String> = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             if (method.as_str() == Some("GET")) {
                 if (urlencoded.as_str() != Some("")) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), urlencoded));
@@ -6495,7 +6495,7 @@ impl Digifinex {
             let mut privateHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("ACCESS-SIGN".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("ACCESS-SIGN".to_string(), Value::from(signature));
                     m.insert("ACCESS-TIMESTAMP".to_string(), Value::from(nonce));
                 m
             });

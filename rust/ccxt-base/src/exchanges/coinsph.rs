@@ -3150,9 +3150,9 @@ impl Coinsph {
             }
         }
         }
-        let mut encodedQuery: Option<String> = self.urlencode(remainingQuery, &[]).as_str().map(str::to_owned);
-        if (((encodedQuery.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", encodedQuery.map(Value::from).unwrap_or(Value::Null), Value::Str("&".into())).into()), encodedArrayParams).into());
+        let mut encodedQuery: String = self.urlencode(remainingQuery, &[]);
+        if (((encodedQuery.chars().count() as i64)) != 0) {
+            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", encodedQuery, Value::Str("&".into())).into()), encodedArrayParams).into());
         }  else {
             return encodedArrayParams;
         }
@@ -3203,7 +3203,7 @@ impl Coinsph {
                 }
             }
             let mut signedQuery: Value = self.url_encode_query(&[query.clone()]);
-            let mut signature: Value = self.hmac(self.encode(signedQuery.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(signedQuery.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint).into()), Value::Str("?".into())).into()), signedQuery).into()), Value::Str("&signature=".into())).into()), signature);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

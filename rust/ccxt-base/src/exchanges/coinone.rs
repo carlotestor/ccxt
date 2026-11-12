@@ -2002,7 +2002,7 @@ impl Coinone {
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             let mut nonce: Value = Value::Null;
             if (apiName.as_deref() == Some("v2_1Private")) {
-                nonce = self.uuid(&[]);
+                nonce = Value::from(self.uuid(&[]));
             }  else {
                 nonce = self.number_to_string(self.nonce());
             }
@@ -2016,12 +2016,12 @@ impl Coinone {
             let mut payload: Value = self.string_to_base64(json.map(Value::from).unwrap_or(Value::Null), &[]);
             requestBody = payload.clone();
             let mut secret: Value = (if let Some(__s) = self.secret.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-            let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), self.encode(secret), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(secret), Value::Str("sha512".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-COINONE-PAYLOAD".to_string(), payload);
-                    m.insert("X-COINONE-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("X-COINONE-SIGNATURE".to_string(), Value::from(signature));
                 m
             });
         }

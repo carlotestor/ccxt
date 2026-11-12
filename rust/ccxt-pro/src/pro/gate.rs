@@ -3496,13 +3496,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut time: i64 = self.seconds().as_i64().unwrap_or_default();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
         let mut signatureString: Value = Value::Str((Value::from(vec![Value::from(event.clone()), channel.clone(), json_stringify(&reqParams), Value::Str(format!("{}", time).into())])).as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
-        let mut signature: Option<String> = self.hmac(self.encode(signatureString), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
+        let mut signature: String = self.hmac(self.encode(signatureString), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("hex".into())]);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("req_id".to_string(), requestIdResolved.clone());
                 m.insert("timestamp".to_string(), Value::Str(format!("{}", time).into()));
                 m.insert("api_key".to_string(), self.apiKey.clone());
-                m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                m.insert("signature".to_string(), Value::from(signature));
                 m.insert("req_param".to_string(), reqParams);
             m
         });
@@ -3549,12 +3549,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut event: String = "subscribe".to_string();
         let mut signaturePayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("channel=".into()), channel).into()), Value::Str("&".into())).into()), Value::Str("event=".into())).into()), event).into()),
             Value::Str("&".into())).into()), Value::Str("time=".into())).into()), Value::Str(format!("{}", time).into()));
-        let mut signature: Option<String> = self.hmac(self.encode(Value::from(signaturePayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
+        let mut signature: String = self.hmac(self.encode(Value::from(signaturePayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("hex".into())]);
         let mut auth: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("api_key".into()));
                 m.insert("KEY".to_string(), self.apiKey.clone());
-                m.insert("SIGN".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                m.insert("SIGN".to_string(), Value::from(signature));
             m
         });
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();

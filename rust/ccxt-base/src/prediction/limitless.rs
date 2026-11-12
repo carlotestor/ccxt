@@ -4375,9 +4375,9 @@ if _try_result.is_err() {
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("limitless")).cloned().unwrap_or(Value::Null)]);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut querystring: Option<String> = self.urlencode_with_array_repeat(query.clone()).as_str().map(str::to_owned);
-        if (method.as_str() == Some("GET")) && (querystring.as_deref() != Some("")) {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.clone().map(Value::from).unwrap_or(Value::Null)));
+        let mut querystring: String = self.urlencode_with_array_repeat(query.clone());
+        if (method.as_str() == Some("GET")) && (querystring != "") {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), querystring));
         }
         let mut headersValue: Value = Value::Null;
         let mut bodyValue: Value = Value::Null;
@@ -4387,7 +4387,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            if (method.as_str() == Some("POST")) && (querystring.as_deref() != Some("")) {
+            if (method.as_str() == Some("POST")) && (querystring != "") {
                 bodyString = json_stringify(&query).as_str().map(str::to_owned);
                 bodyValue = bodyString.clone().map(Value::from).unwrap_or(Value::Null);
                 headersValue = self.extend(Value::Map({
@@ -4401,11 +4401,11 @@ if _try_result.is_err() {
             let mut timestamp: Option<String> = self.iso8601(self.milliseconds()).as_str().map(str::to_owned);
             let mut newline: String = "\n".to_string(); // eslint-disable-line quotes
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.clone().map(Value::from).unwrap_or(Value::Null), newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString.map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue = self.extend(headersValue.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("lmts-timestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("lmts-signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("lmts-signature".to_string(), Value::from(signature));
                 m
             })]);
             let mut headerKey: String = format!("{}{}", Value::Str("lmts-api".into()), Value::Str("-key".into())); // concatenating because of the php version

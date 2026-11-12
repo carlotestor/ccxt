@@ -5114,11 +5114,11 @@ impl Btse {
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
         let mut isBodyDelete: bool = (method.as_str() == Some("DELETE")) && (path.as_str().unwrap_or("").starts_with("futures/api/v3/"));
-        let mut queryString: Option<String> = Some("".to_string());
+        let mut queryString: String = "".to_string();
         if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && !isBodyDelete {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                queryString = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
-                url.push_str(&format!("{}{}", Value::Str("?".into()), queryString.map(Value::from).unwrap_or(Value::Null)));
+                queryString = self.urlencode(query.clone(), &[]);
+                url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
             }
         }
         if (apiName.as_deref() == Some("private")) {
@@ -5141,12 +5141,12 @@ impl Btse {
                 signPath = self.clean_path(path.as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
             }
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", signPath, Value::Str(format!("{}", nonce).into())).into()), bodyString);
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("request-api".to_string(), self.apiKey.clone());
                     m.insert("request-nonce".to_string(), self.number_to_string(nonce));
-                    m.insert("request-sign".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("request-sign".to_string(), Value::from(signature));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("BROKER-ID".to_string(), Value::Str("ccxt".into()));
                 m

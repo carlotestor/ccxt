@@ -5479,9 +5479,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (method.as_str() == Some("GET")) {
-            let mut querystring: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
-            if (querystring.as_deref() != Some("")) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.map(Value::from).unwrap_or(Value::Null)));
+            let mut querystring: String = self.urlencode(query.clone(), &[]);
+            if (querystring != "") {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), querystring));
             }
         }
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({

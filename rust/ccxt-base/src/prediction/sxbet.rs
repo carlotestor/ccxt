@@ -4097,9 +4097,9 @@ impl Sxbet {
         }
         let mut bodyValue: Value = Value::Null;
         if sendAsQuery {
-            let mut querystring: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
-            if (querystring.as_deref() != Some("")) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.map(Value::from).unwrap_or(Value::Null)));
+            let mut querystring: String = self.urlencode(query.clone(), &[]);
+            if (querystring != "") {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), querystring));
             }
         }  else {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {

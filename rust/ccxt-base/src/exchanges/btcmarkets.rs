@@ -2057,7 +2057,7 @@ impl Btcmarkets {
                 requestBody = jsonBody.clone();
                 auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, request).into()), nonce).into()), jsonBody);
             }
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Accept".to_string(), Value::Str("application/json".into()));
@@ -2065,7 +2065,7 @@ impl Btcmarkets {
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("BM-AUTH-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("BM-AUTH-TIMESTAMP".to_string(), nonce);
-                    m.insert("BM-AUTH-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("BM-AUTH-SIGNATURE".to_string(), Value::from(signature));
                 m
             });
         }  else if (apiName.as_deref() == Some("public")) {

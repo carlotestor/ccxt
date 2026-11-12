@@ -3173,7 +3173,7 @@ impl Bigone {
 })]).into_dict();
         let mut fromId: Option<String> = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]).as_str().map(str::to_owned);
         let mut toId: Option<String> = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]).as_str().map(str::to_owned);
-        let mut guid: Value = self.safe_string_k(params.clone(), "guid", &[self.uuid(&[])]);
+        let mut guid: Value = self.safe_string_k(params.clone(), "guid", &[Value::from(self.uuid(&[]))]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));

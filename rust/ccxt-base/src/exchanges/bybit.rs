@@ -7104,7 +7104,7 @@ impl Bybit {
                 request.insert("orderLinkId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }  else if (market).option {
                 // mandatory field for options
-                request.insert("orderLinkId".into(), self.uuid16(&[]));
+                request.insert("orderLinkId".into(), Value::from(self.uuid16(&[])));
             }
             if isLimit {
                 request.insert("price".into(), priceString.clone());
@@ -11209,7 +11209,7 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut transferId: Option<String> = self.safe_string_k(params.clone(), "transferId", &[self.uuid(&[])]).as_str().map(str::to_owned);
+        let mut transferId: Option<String> = self.safe_string_k(params.clone(), "transferId", &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
         let mut accountTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -14234,7 +14234,7 @@ impl Bybit {
                     requestBody = Value::Str("{}".into());
                 }
                 let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), requestBody);
-                let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+                let mut signature: Value = Value::from(self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]));
                 requestHeaders = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -14259,7 +14259,7 @@ impl Bybit {
                     let mut m = indexmap::IndexMap::new();
                     m
                 }), &[params.clone()]);
-                let mut queryEncoded: Value = self.rawencode(query.clone(), &[]);
+                let mut queryEncoded: String = self.rawencode(query.clone(), &[]);
                 let mut auth_base: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("".into())]));
                 let mut authFull: Value = Value::Null;
                 if (method.as_str() == Some("POST")) {
@@ -14273,7 +14273,7 @@ impl Bybit {
                 if self.secret.as_str().unwrap_or("").contains("PRIVATE KEY") {
                     signature = rsa(authFull.clone(), self.secret.clone(), Value::Str("sha256".into()));
                 }  else {
-                    signature = self.hmac(self.encode(authFull), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    signature = Value::from(self.hmac(self.encode(authFull), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
                 }
                 add_element_to_object(&mut requestHeaders, &Value::Str("X-BAPI-SIGN".into()), signature.clone());
             }  else {
@@ -14286,12 +14286,12 @@ impl Bybit {
                     m
                 })]);
                 let mut sortedQuery: Value = self.keysort(query.clone(), &[]);
-                let mut auth: Value = self.rawencode(sortedQuery.clone(), &[Value::Bool(true)]);
+                let mut auth: Value = Value::from(self.rawencode(sortedQuery.clone(), &[Value::Bool(true)]));
                 let mut signature: Value = Value::Null;
                 if self.secret.as_str().unwrap_or("").contains("PRIVATE KEY") {
                     signature = rsa(auth.clone(), self.secret.clone(), Value::Str("sha256".into()));
                 }  else {
-                    signature = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    signature = Value::from(self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
                 }
                 if (method.as_str() == Some("POST")) {
                     let mut isSpot: bool = url.contains("spot");
@@ -14301,7 +14301,7 @@ impl Bybit {
                         m
                     })]);
                     if isSpot {
-                        requestBody = self.urlencode(extendedQuery.clone(), &[]);
+                        requestBody = Value::from(self.urlencode(extendedQuery.clone(), &[]));
                         requestHeaders = Value::Map({
                             let mut m = indexmap::IndexMap::new();
                                 m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));

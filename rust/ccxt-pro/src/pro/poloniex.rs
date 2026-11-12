@@ -401,7 +401,7 @@ impl Poloniex {
         if (future == Value::Null) {
             let mut accessPath: String = "/ws".to_string();
             let mut requestString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("GET\n".into()), accessPath).into()), Value::Str("\nsignTimestamp=".into())).into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(requestString)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(requestString)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("event".to_string(), Value::Str("subscribe".into()));
@@ -410,7 +410,7 @@ impl Poloniex {
     let mut m = indexmap::IndexMap::new();
         m.insert("key".to_string(), self.apiKey.clone());
         m.insert("signTimestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
-        m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+        m.insert("signature".to_string(), Value::from(signature));
         m.insert("signatureMethod".to_string(), Value::Str("HmacSHA256".into()));
         m.insert("signatureVersion".to_string(), Value::Str("2".into()));
     m

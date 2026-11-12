@@ -3266,11 +3266,11 @@ impl Coinbaseexchange {
 if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" sign() invalid base64 secret".into()))));
             }
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(what)), secret.clone(), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(what)), secret.clone(), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("CB-ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("CB-ACCESS-SIGN".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("CB-ACCESS-SIGN".to_string(), Value::from(signature));
                     m.insert("CB-ACCESS-TIMESTAMP".to_string(), nonce);
                     m.insert("CB-ACCESS-PASSPHRASE".to_string(), self.password.clone());
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));

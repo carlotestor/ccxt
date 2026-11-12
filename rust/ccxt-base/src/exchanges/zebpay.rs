@@ -1811,7 +1811,7 @@ impl Zebpay {
         let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut quoteOrderQty: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[Value::Null]);
         let mut timeInForce: String = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().unwrap_or("GTC").to_string();
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[self.uuid(&[])]);
+        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[Value::from(self.uuid(&[]))]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("cost".into()), Value::Str("timeInForce".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
         request.insert("type".into(), Value::from(upperCaseType.clone()));
         request.insert("clientOrderId".into(), clientOrderId);
@@ -2935,7 +2935,7 @@ impl Zebpay {
         let mut tail: String = format!("{}{}", Value::Str("/api/".into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         let mut suffix: String = "".to_string();
         let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
-        let mut signature: Option<String> = Some("".to_string());
+        let mut signature: String = "".to_string();
         let mut query: Value = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]);
         let mut access: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         if (access.as_deref() == Some("public")) {
@@ -2971,19 +2971,19 @@ impl Zebpay {
             })]);
             if (method.as_str() == Some("GET")) || ((method.as_str() == Some("DELETE")) && isSpot) {
                 // For GET/DELETE: Append params to URL and sign the query string
-                let mut queryString: Value = self.urlencode(paramsSigned.clone(), &[]);
-                signature = self.hmac(self.encode(queryString.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
+                let mut queryString: String = self.urlencode(paramsSigned.clone(), &[]);
+                signature = self.hmac(self.encode(Value::from(queryString.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 suffix = format!("{}{}", Value::Str("?".into()), queryString);
             }  else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 bodySigned = json_stringify(&paramsSigned);
-                signature = self.hmac(self.encode(bodySigned.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
+                signature = self.hmac(self.encode(bodySigned.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             }
             headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Referrer".to_string(), Value::Str("ccxt".into()));
                     m.insert("X-AUTH-APIKEY".to_string(), self.apiKey.clone());
-                    m.insert("X-AUTH-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("X-AUTH-SIGNATURE".to_string(), Value::from(signature));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
             });

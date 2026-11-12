@@ -5988,11 +5988,11 @@ impl Weex {
             if hasJsonBody {
                 payload = Value::Str(format!("{}{}", payload, requestBody).into());
             }
-            let mut signature: Option<String> = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             requestHeaders = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("ACCESS-SIGN".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("ACCESS-SIGN".to_string(), Value::from(signature));
                     m.insert("ACCESS-PASSPHRASE".to_string(), self.password.clone());
                     m.insert("ACCESS-TIMESTAMP".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                 m

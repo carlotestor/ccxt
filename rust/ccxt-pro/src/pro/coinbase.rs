@@ -577,7 +577,7 @@ impl Coinbase {
         if !isCloudAPiKey && !isV2CloudAPiKey {
             subscribe.insert("api_key".into(), self.apiKey.clone());
             subscribe.insert("timestamp".into(), timestamp.map(Value::from).unwrap_or(Value::Null));
-            subscribe.insert("signature".into(), self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+            subscribe.insert("signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
         }  else {
             if isCloudAPiKey && (self.apiKey.as_str().unwrap_or("").starts_with("-----BEGIN")) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));

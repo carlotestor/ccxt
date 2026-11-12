@@ -1579,12 +1579,12 @@ impl Bitfinex {
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
             let mut nonce: Value = self.incrementing_nonce();
             let mut payload: String = format!("{}{}", Value::Str("AUTH".into()), Value::Str(format!("{}", nonce).into()));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload.clone())), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[Value::Str("hex".into())]);
             let mut event: String = "auth".to_string();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("apiKey".to_string(), self.apiKey.clone());
-                    m.insert("authSig".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("authSig".to_string(), Value::from(signature));
                     m.insert("authNonce".to_string(), nonce);
                     m.insert("authPayload".to_string(), Value::from(payload));
                     m.insert("event".to_string(), Value::from(event));

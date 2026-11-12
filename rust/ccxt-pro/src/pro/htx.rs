@@ -3875,10 +3875,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 });
             }
             signatureParams = self.keysort(signatureParams.clone(), &[]);
-            let mut auth: Option<String> = self.urlencode(signatureParams, &[Value::Bool(true)]).as_str().map(str::to_owned); // true required in go
+            let mut auth: String = self.urlencode(signatureParams, &[Value::Bool(true)]); // true required in go
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("GET".into()), Value::Str("\n".into())).into()), hostname.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("\n".into())).into()),
-                relativePath).into()), Value::Str("\n".into())).into()), auth.map(Value::from).unwrap_or(Value::Null)); // eslint-disable-line quotes
-            let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+                relativePath).into()), Value::Str("\n".into())).into()), auth); // eslint-disable-line quotes
+            let mut signature: Value = Value::from(self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]));
             let mut request: Value = Value::Null;
             if (type_var.as_deref() == Some("spot")) {
                 let mut newParams: indexmap::IndexMap<String, Value> = ({

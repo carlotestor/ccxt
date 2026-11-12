@@ -2318,14 +2318,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.check_required_credentials(&[]);
             let mut nonce: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
             let mut auth: String = format!("{}{}", nonce, self.apiKey.clone());
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("e".to_string(), Value::Str("auth".into()));
                     m.insert("auth".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("key".to_string(), self.apiKey.clone());
-        m.insert("signature".to_string(), signature.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
+        m.insert("signature".to_string(), Value::from(signature.to_uppercase()));
         m.insert("timestamp".to_string(), Value::from(nonce));
     m
 }));

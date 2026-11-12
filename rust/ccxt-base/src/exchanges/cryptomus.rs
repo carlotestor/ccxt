@@ -1758,9 +1758,9 @@ impl Cryptomus {
                 jsonParams = json_stringify(&paramsOmitted).as_str().map(str::to_owned);
                 privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
             }  else {
-                let mut query: Option<String> = self.urlencode(paramsOmitted.clone(), &[]).as_str().map(str::to_owned);
-                if (((query.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+                let mut query: String = self.urlencode(paramsOmitted.clone(), &[]);
+                if (((query.chars().count() as i64)) != 0) {
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), query));
                 }
             }
             let mut jsonParamsBase64: Option<String> = self.string_to_base64(jsonParams.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1777,9 +1777,9 @@ impl Cryptomus {
     m
 });
         }  else {
-            let mut query: Option<String> = self.urlencode(paramsOmitted, &[]).as_str().map(str::to_owned);
-            if (((query.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+            let mut query: String = self.urlencode(paramsOmitted, &[]);
+            if (((query.chars().count() as i64)) != 0) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
             }
         }
         return Value::Map({

@@ -5349,7 +5349,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut paramsKeys: Vec<Value> = Value::Array(requestParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut strSortKey: Value = self.params_to_string(requestParams, Value::Int(0));
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), self.apiKey.clone()).into()), strSortKey).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut paramsKeysLength: i64 = paramsKeys.len() as i64;
             requestBody = self.json(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5357,7 +5357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("method".to_string(), path);
                     m.insert("params".to_string(), params);
                     m.insert("api_key".to_string(), self.apiKey.clone());
-                    m.insert("sig".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("sig".to_string(), Value::from(signature));
                     m.insert("nonce".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             }));

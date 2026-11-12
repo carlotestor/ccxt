@@ -1392,12 +1392,12 @@ impl Zaif {
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[params]);
-            let mut bodyEncoded: Value = self.urlencode(__ws_arg_8, &[]);
+            let mut bodyEncoded: Value = Value::from(self.urlencode(__ws_arg_8, &[]));
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), self.hmac(self.encode(bodyEncoded.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
+                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(bodyEncoded.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
             });
             return Value::Map({

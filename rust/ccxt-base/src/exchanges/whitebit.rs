@@ -4645,7 +4645,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut uniqueIdParam: Value = self.safe_value_k(&paramsWithdrawTag, "uniqueId", &[]);
-        let mut uniqueId: Value = (if (uniqueIdParam == Value::Null) { self.uuid22(&[]) } else { uniqueIdParam });
+        let mut uniqueId: Value = (if (uniqueIdParam == Value::Null) { Value::from(self.uuid22(&[])) } else { uniqueIdParam });
         request.insert("uniqueId".into(), uniqueId.clone());
         if (tag.is_some()) {
             request.insert("memo".into(), tag.map(Value::from).unwrap_or(Value::Null));
@@ -6075,13 +6075,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }), &[&requestParams]);
             privateBody = self.json(__ws_arg_43);
             let mut payload: Value = self.string_to_base64(privateBody.clone(), &[]);
-            let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), secret, Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(payload.clone()), secret, Value::Str("sha512".into()), &[]);
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-TXC-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("X-TXC-PAYLOAD".to_string(), payload);
-                    m.insert("X-TXC-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("X-TXC-SIGNATURE".to_string(), Value::from(signature));
                 m
             });
         }

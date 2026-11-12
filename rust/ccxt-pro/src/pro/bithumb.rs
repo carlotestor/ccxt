@@ -377,7 +377,7 @@ impl Bithumb {
             let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id((market).raw.clone()).as_str().map(str::to_owned);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ticket".to_string(), self.uuid(&[]));
+        m.insert("ticket".to_string(), Value::from(self.uuid(&[])));
     m
 }), self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -471,7 +471,7 @@ impl Bithumb {
         if isGenerationTwo {
             message = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ticket".to_string(), self.uuid(&[]));
+        m.insert("ticket".to_string(), Value::from(self.uuid(&[])));
     m
 }), self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -753,7 +753,7 @@ impl Bithumb {
             let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id((market).raw.clone()).as_str().map(str::to_owned);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ticket".to_string(), self.uuid(&[]));
+        m.insert("ticket".to_string(), Value::from(self.uuid(&[])));
     m
 }), self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -975,7 +975,7 @@ impl Bithumb {
             let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id((market).raw.clone()).as_str().map(str::to_owned);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ticket".to_string(), self.uuid(&[]));
+        m.insert("ticket".to_string(), Value::from(self.uuid(&[])));
     m
 }), self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1346,7 +1346,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut payload: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
-                    m.insert("nonce".to_string(), self.uuid(&[]));
+                    m.insert("nonce".to_string(), Value::from(self.uuid(&[])));
                     m.insert("timestamp".to_string(), self.milliseconds());
                 m
             });

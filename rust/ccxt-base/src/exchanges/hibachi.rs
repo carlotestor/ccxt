@@ -2043,7 +2043,7 @@ impl Hibachi {
     pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Value {
         let mut privateKey: Value = privateKey.into();
         if (Value::Int(privateKey.len() as i64).as_f64() == Some(44.0)) {
-            return self.hmac(message.clone(), self.encode(privateKey.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+            return Value::from(self.hmac(message.clone(), self.encode(privateKey.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]));
         }  else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             let mut hash: Value = self.hash(message, Value::Str("sha256".into()), &[Value::Str("hex".into())]);
@@ -2593,9 +2593,9 @@ impl Hibachi {
         });
         if (method.as_str() == Some("GET")) {
             let mut request: Value = self.omit(params.clone(), self.extract_params(path), &[]);
-            let mut query: Option<String> = self.urlencode(request, &[]).as_str().map(str::to_owned);
-            if (((query.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+            let mut query: String = self.urlencode(request, &[]);
+            if (((query.chars().count() as i64)) != 0) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
             }
         }
         let mut hasJsonBody: bool = (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE"));

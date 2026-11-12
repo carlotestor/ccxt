@@ -2849,13 +2849,13 @@ impl Bitvavo {
             let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
             let mut stringTimestamp: Value = Value::Str(format!("{}", timestamp).into());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", stringTimestamp, Value::Str("GET/".into())).into()), self.version.clone()).into()), Value::Str("/websocket".into()));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut action: String = "authenticate".to_string();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::from(action));
                     m.insert("key".to_string(), self.apiKey.clone());
-                    m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("signature".to_string(), Value::from(signature));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                 m
             });

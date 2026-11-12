@@ -1900,7 +1900,7 @@ impl P2b {
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-TXC-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("X-TXC-PAYLOAD".to_string(), payload.clone());
-                    m.insert("X-TXC-SIGNATURE".to_string(), self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
+                    m.insert("X-TXC-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
             });
             let mut bodyJson: Option<String> = json_stringify(&paramsOmitted).as_str().map(str::to_owned);

@@ -2441,7 +2441,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("postAction() requires a \"operationType\" argument!".into()))));
         }
         // the venue requires a full uuid v4 request id
-        let mut requestId: Option<String> = self.uuid(&[]).as_str().map(str::to_owned);
+        let mut requestId: String = self.uuid(&[]);
         let mut postParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2449,7 +2449,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         postParams.insert(crate::runtime::stringify_param(&operationType), request);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.map(Value::from).unwrap_or(Value::Null));
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::Map(postParams));
             m
         });

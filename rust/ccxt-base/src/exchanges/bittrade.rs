@@ -3275,16 +3275,16 @@ impl Bittrade {
                 request = self.extend(request.clone(), &[query.clone()]);
             }
             let mut requestSorted: Value = self.keysort(request, &[]);
-            let mut auth: Value = self.urlencode(requestSorted, &[]);
+            let mut auth: String = self.urlencode(requestSorted, &[]);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("\n".into())).into()), self.hostname.clone()).into()), Value::Str("\n".into())).into()), url).into()), Value::Str("\n".into())).into()), auth);
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
-            auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
+            let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            auth.push_str(&format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+        m.insert("Signature".to_string(), Value::from(signature));
     m
-}), &[])).into())).into());
+}), &[])));
             url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
             if (method.as_str() == Some("POST")) {
                 requestBody = json_stringify(&query);

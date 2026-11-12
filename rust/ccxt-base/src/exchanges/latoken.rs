@@ -2159,7 +2159,7 @@ impl Latoken {
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("condition".to_string(), Value::Str("GTC".into()));
                 m.insert("type".to_string(), Value::from(uppercaseType.clone()));
-                m.insert("clientOrderId".to_string(), self.uuid(&[]));
+                m.insert("clientOrderId".to_string(), Value::from(self.uuid(&[])));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
                 m.insert("timestamp".to_string(), self.seconds());
             m
@@ -2655,20 +2655,20 @@ impl Latoken {
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut requestString: String = request.clone();
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut urlencodedQuery: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+        let mut urlencodedQuery: String = self.urlencode(query.clone(), &[]);
         if (method.as_str() == Some("GET")) {
-            if (urlencodedQuery.as_deref() != Some("")) {
-                requestString.push_str(&format!("{}{}", Value::Str("?".into()), urlencodedQuery.clone().map(Value::from).unwrap_or(Value::Null)));
+            if (urlencodedQuery != "") {
+                requestString.push_str(&format!("{}{}", Value::Str("?".into()), urlencodedQuery));
             }
         }
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery.map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-LA-APIKEY".to_string(), self.apiKey.clone());
-                    m.insert("X-LA-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("X-LA-SIGNATURE".to_string(), Value::from(signature));
                     m.insert("X-LA-DIGEST".to_string(), Value::Str("HMAC-SHA512".into()));
                 m
             });
