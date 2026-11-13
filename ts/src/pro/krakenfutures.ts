@@ -347,7 +347,7 @@ export default class krakenfutures extends krakenfuturesRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache: ArrayCacheBySymbolBySide = this.positions;
-        const rawPositions = this.safeList (message, 'positions');
+        const rawPositions: Dict[] = this.safeList (message, 'positions');
         if (rawPositions === undefined) {
             // an open_positions frame without the positions key is malformed;
             // do not resolve with a fabricated empty list (the caller cannot
@@ -926,7 +926,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //            ...
         //        ]
         //    }
-        const orders = this.safeList (message, 'orders', []);
+        const orders: Dict[] = this.safeList (message, 'orders', []);
         // reuse the existing cache: replacing it would orphan consumers holding
         // a reference to the old one across a reconnect snapshot
         if (this.orders === undefined) {

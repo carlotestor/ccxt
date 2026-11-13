@@ -2012,7 +2012,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const dataResponse = this.safeList (response, 'data', []) as List;
+        const dataResponse: Dict[] = this.safeList (response, 'data', []) as List;
         const marketsWithoutTest: List = [];
         for (let i = 0; i < dataResponse.length; i++) {
             const data = dataResponse[i];
@@ -4453,7 +4453,7 @@ export default class okx extends Exchange {
         let stopLossPrice: Num = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
         let takeProfitPrice: Num = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
         // regular orders carry attached sl/tp inside attachAlgoOrds
-        const attachAlgoOrds = this.safeList (order, 'attachAlgoOrds', []);
+        const attachAlgoOrds: Dict[] = this.safeList (order, 'attachAlgoOrds', []);
         for (let i = 0; i < attachAlgoOrds.length; i++) {
             const attached = attachAlgoOrds[i];
             if (stopLossPrice === undefined) {

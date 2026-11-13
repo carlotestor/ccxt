@@ -1889,7 +1889,7 @@ export default class bitget extends bitgetRest {
         } else {
             marketType = 'contract';
         }
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0, {});
         const category = this.safeStringLower (first, 'category', instType);
         const isLinearSwap = (category === 'usdt-futures');

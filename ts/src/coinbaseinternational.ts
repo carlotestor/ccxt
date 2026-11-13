@@ -1999,7 +1999,7 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const logs = this.safeList (result, 'logs', []);
+        const logs: Dict[] = this.safeList (result, 'logs', []);
         if (!this.isNativeDeribitCredentials ()) {
             return this.parseTransactions (logs, currency, since, limit);
         }

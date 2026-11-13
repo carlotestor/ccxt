@@ -236,7 +236,7 @@ export default class limitless extends Exchange {
             for (let i = 0; i < queries.length; i++) {
                 const q = queries[i];
                 const response = await this.limitlessPublicGetMarketsSearch (this.extend ({ 'query': q, 'limit': limit }, searchRest));
-                const found = this.safeList (response, 'markets', []);
+                const found: Dict[] = this.safeList (response, 'markets', []);
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const slug = this.safeString (raw, 'slug');
@@ -849,7 +849,7 @@ export default class limitless extends Exchange {
         const hasEndDate = (endDate !== undefined) && (endDate !== '');
         const endTimestamp = hasEndDate ? this.parse8601 (endDate) : undefined;
         const markets: Market[] = [];
-        const rawMarkets = this.safeList (event, 'markets', []);
+        const rawMarkets: Dict[] = this.safeList (event, 'markets', []);
         // aggregate 24h volume across the markets so sort by volume works
         let totalVolume = 0;
         for (let i = 0; i < rawMarkets.length; i++) {
@@ -2981,7 +2981,7 @@ export default class limitless extends Exchange {
                     'query': q,
                     'limit': limit,
                 }, rest));
-                const found = this.safeList (response, 'markets', []);
+                const found: Dict[] = this.safeList (response, 'markets', []);
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const rawSlug = this.safeString (raw, 'slug');

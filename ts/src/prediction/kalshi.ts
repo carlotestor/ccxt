@@ -1223,7 +1223,7 @@ export default class kalshi extends Exchange {
         //         "ticker": "KXGDPSHAREMANU-29"
         //     }
         //
-        const candles = this.safeList (response, 'candlesticks', []);
+        const candles: Dict[] = this.safeList (response, 'candlesticks', []);
         const usableCandles: Dict[] = [];
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
