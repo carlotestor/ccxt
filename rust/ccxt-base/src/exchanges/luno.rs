@@ -48,21 +48,21 @@ impl Luno {
 }
 
 impl crate::exchange::DerivedExchange for Luno {
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Luno.
-        Luno::parse_ticker(self, ticker, &[market])
+        Luno::parse_ticker(self, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Luno.
-        Luno::parse_trade(self, trade, &[market])
+        Luno::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Luno.
-        Luno::parse_order(self, order, &[market])
+        Luno::parse_order(self, order, market)
     }
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Luno.
-        Luno::parse_ohlcv(self, ohlcv, &[market])
+        Luno::parse_ohlcv(self, ohlcv, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on Luno.
@@ -127,10 +127,10 @@ impl crate::exchange_generated::ExchangeBase for Luno {
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ledger_comment" => self.parse_ledger_comment(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -1234,9 +1234,8 @@ impl Luno {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "base": "string",
@@ -1264,7 +1263,7 @@ impl Luno {
             side = Some("buy".to_string());
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "pair", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "limit_price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "limit_volume", &[]).as_str().map(str::to_owned);
         let mut quoteFee: Option<f64> = self.safe_number_k(order.clone(), "fee_counter", &[]).as_f64();
@@ -1349,7 +1348,7 @@ impl Luno {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_id(&[__ws_arg_4]).await;
-        return self.parse_order(response, &[]);
+        return self.parse_order(response, None);
         Value::Null
         }).await?))
     }
@@ -1473,9 +1472,8 @@ impl Luno {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         // {
         //     "pair":"XBTAUD",
         //     "timestamp":1642201439301,
@@ -1487,7 +1485,7 @@ impl Luno {
         // }
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "pair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last_trade", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1512,7 +1510,7 @@ impl Luno {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market);
 
     Value::Null
 }
@@ -1554,10 +1552,10 @@ impl Luno {
             let mut __for_first_942: bool = true;
             while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]));
-            let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut market: crate::types::Market = self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut ticker: Value = (if let (Some(__m), Some(__k)) = (tickers.as_map(), id.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market]));
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, Some(&market)));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
@@ -1596,14 +1594,13 @@ impl Luno {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_6]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        return self.parse_ticker(response, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
         //
@@ -1663,12 +1660,12 @@ impl Luno {
         let mut feeCost: Option<String> = None;
         if (feeBaseString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeBaseString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
-                feeCurrency = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
+                feeCurrency = self.safe_string_k(&market, "base", &[]).as_str().map(str::to_owned);
                 feeCost = feeBaseString.clone();
             }
         }  else if (feeCounterString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeCounterString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
-                feeCurrency = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
+                feeCurrency = self.safe_string_k(&market, "quote", &[]).as_str().map(str::to_owned);
                 feeCost = feeCounterString.clone();
             }
         }
@@ -1679,7 +1676,7 @@ impl Luno {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1694,7 +1691,7 @@ impl Luno {
     m
 }));
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market.clone());
 
     Value::Null
 }
@@ -1822,8 +1819,7 @@ impl Luno {
         }).await?))
     }
 
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "timestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null

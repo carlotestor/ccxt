@@ -52,29 +52,29 @@ impl crate::exchange::DerivedExchange for Kraken {
         // Forward to the inherent method on Kraken.
         Kraken::nonce(self, )
     }
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Kraken.
-        Kraken::parse_ticker(self, ticker, &[market])
+        Kraken::parse_ticker(self, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Kraken.
-        Kraken::parse_trade(self, trade, &[market])
+        Kraken::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Kraken.
-        Kraken::parse_order(self, order, &[market])
+        Kraken::parse_order(self, order, market)
     }
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Kraken.
-        Kraken::parse_ohlcv(self, ohlcv, &[market])
+        Kraken::parse_ohlcv(self, ohlcv, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on Kraken.
         Kraken::parse_balance(self, response)
     }
-    fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_position(&self, position: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Kraken.
-        Kraken::parse_position(self, position, &[market])
+        Kraken::parse_position(self, position, market)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Kraken.
@@ -163,12 +163,12 @@ impl crate::exchange_generated::ExchangeBase for Kraken {
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order_book_bid_ask" => self.parse_order_book_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transactions_by_type" => self.parse_transactions_by_type(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str), args.get(3).and_then(crate::Value::as_i64), args.get(4).and_then(crate::Value::as_i64)),
@@ -1062,7 +1062,7 @@ impl Kraken {
 }
 
     pub fn fee_to_precision(&self, mut symbol: Value, mut fee: Value) -> Value {
-        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketPrecision: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "precision", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1681,10 +1681,10 @@ impl Kraken {
         let mut orderbook: Value = self.safe_dict(&result, Value::from((market).id.as_deref()), &[]);
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
-        let mut marketInfo: crate::value::Dict = self.safe_dict_k((market).raw.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut marketInfo: crate::value::Dict = self.safe_dict_k(&market, "info", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut wsName: Option<String> = self.safe_string_k(&marketInfo, "wsname", &[]).as_str().map(str::to_owned);
         if (wsName.is_some()) {
             orderbook = self.safe_dict(&result, wsName.map(Value::from).unwrap_or(Value::Null), &[orderbook.clone()]);
@@ -1694,9 +1694,8 @@ impl Kraken {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "a":["2432.77000","1","1.000"],
@@ -1710,7 +1709,7 @@ impl Kraken {
         //         "o":"2571.56000"
         //     }
         //
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
         let mut v: crate::value::List = self.safe_list_k(ticker.clone(), "v", &[Value::from(vec![])]).into_list();
         let mut baseVolume: Option<String> = self.safe_string(&v, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut p: crate::value::List = self.safe_list_k(ticker.clone(), "p", &[Value::from(vec![])]).into_list();
@@ -1745,7 +1744,7 @@ impl Kraken {
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market);
 
     Value::Null
 }
@@ -1812,7 +1811,7 @@ impl Kraken {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = tickers.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market]));
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -1856,13 +1855,12 @@ impl Kraken {
             m
         })]).into_dict();
         let mut ticker: Value = self.safe_value(&tickerResult, Value::from((market).id.as_deref()), &[]);
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        return self.parse_ticker(ticker, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, Value::Int(6), &[])]);
 
     Value::Null
@@ -2179,9 +2177,8 @@ impl Kraken {
         }).await?))
     }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
         //
@@ -2255,9 +2252,9 @@ impl Kraken {
         let mut fee: Value = Value::Null;
         let mut symbol: Option<String> = None;
         let mut isOrderTrade: bool = (!(matches!(&trade, Value::Arr(_)))) && (!matches!(&trade, Value::Str(_))) && (matches!(&trade, Value::Dict(__d) if __d.contains_key("ordertxid")));
-        let mut marketResolved: Value = market.clone();
+        let mut marketResolved: Value = crate::Value::from(market);
         if isOrderTrade {
-            marketResolved = self.resolve_market_by_altname_or_id((self.safe_string_k(trade.clone(), "pair", &[])).as_str(), &[market]);
+            marketResolved = self.resolve_market_by_altname_or_id((self.safe_string_k(trade.clone(), "pair", &[])).as_str(), &[crate::Value::from(market)]);
         }
         if (matches!(&trade, Value::Arr(_))) {
             timestamp = self.safe_timestamp(trade.clone(), Value::Int(2), &[]);
@@ -2611,7 +2608,7 @@ impl Kraken {
             m
         })]).as_map().cloned().unwrap_or_default();
         result.insert("usingCost".into(), Value::Bool(isUsingCost));
-        return self.parse_order(Value::Map(result), &[]);
+        return self.parse_order(Value::Map(result), None);
         Value::Null
         }).await?))
     }
@@ -2831,9 +2828,8 @@ impl Kraken {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
         //
@@ -2976,7 +2972,7 @@ impl Kraken {
         }
         let mut rawType: Option<String> = self.safe_string_k(&description, "ordertype", &[descriptionType.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned); // orderType has dash, e.g. trailing-stop
         marketId = self.safe_string_k(&description, "pair", &[marketId.clone()]);
-        let mut marketResolved: Value = self.resolve_market_by_altname_or_id(marketId.as_str(), &[market]);
+        let mut marketResolved: Value = self.resolve_market_by_altname_or_id(marketId.as_str(), &[crate::Value::from(market)]);
         let mut symbol: Option<String> = None;
         let mut timestamp: Option<i64> = self.safe_timestamp_k(orderOmitted.clone(), "opentm", &[]).as_i64();
         let mut orderAmount: Option<String> = self.safe_string_k(orderOmitted.clone(), "vol", &[]).as_str().map(str::to_owned);
@@ -3308,7 +3304,7 @@ impl Kraken {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).spot {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".into())).into()), self.safe_string_k((market).raw.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders, only spot orders are accepted".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".into())).into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), Value::Str(" orders, only spot orders are accepted".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3357,7 +3353,7 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_order(&result, &[(market).raw.clone()]);
+        return self.parse_order(&result, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3447,7 +3443,7 @@ impl Kraken {
         m.insert("id".to_string(), id.clone());
     m
 }), &[(if let (Some(__m), Some(__k)) = (result.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })]);
-        return self.parse_order(__ws_arg_11, &[]);
+        return self.parse_order(__ws_arg_11, None);
         Value::Null
         }).await?))
     }
@@ -3614,11 +3610,11 @@ impl Kraken {
             let mut id: Option<String> = orderIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut item: Value = result.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let __ws_arg_13 = self.extend(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-    m
-}), &[item]);
-            let mut order: Value = self.parse_order(__ws_arg_13, &[]);
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                m
+            }), &[item]);
+            let mut order: Value = self.parse_order(__ws_arg_13, None);
             orders.push(order);
         }
         }
@@ -4887,9 +4883,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub fn parse_position(&self, position: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut position: Value = position.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //             {
         //                 "pair": "ETHUSDT",
@@ -4913,7 +4908,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), Value::Null);

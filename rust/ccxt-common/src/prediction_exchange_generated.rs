@@ -2285,45 +2285,40 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    fn parse_prediction_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    fn parse_prediction_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTicker() is not supported yet".into()))));
 
     Value::Null
 }
 
-    fn parse_prediction_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    fn parse_prediction_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_prediction_order(self, ...))
-        { let __v = crate::exchange::DerivedExchange::parse_prediction_order(self, order, crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+        { let __v = crate::exchange::DerivedExchange::parse_prediction_order(self, order, market); if !matches!(__v, crate::Value::Null) { return __v; } }
 
-        let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionOrder() is not supported yet".into()))));
 
     Value::Null
 }
 
-    fn parse_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    fn parse_prediction_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_prediction_trade(self, ...))
-        { let __v = crate::exchange::DerivedExchange::parse_prediction_trade(self, trade, crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+        { let __v = crate::exchange::DerivedExchange::parse_prediction_trade(self, trade, market); if !matches!(__v, crate::Value::Null) { return __v; } }
 
-        let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() is not supported yet".into()))));
 
     Value::Null
 }
 
-    fn parse_prediction_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
+    fn parse_prediction_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_prediction_position(self, ...))
-        { let __v = crate::exchange::DerivedExchange::parse_prediction_position(self, position, crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+        { let __v = crate::exchange::DerivedExchange::parse_prediction_position(self, position, market); if !matches!(__v, crate::Value::Null) { return __v; } }
 
-        let mut market = get_arg(optional_args, 0, Value::Null);
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionPosition() is not supported yet".into()))));
 
     Value::Null
 }
 
-    fn parse_prediction_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    fn parse_prediction_open_interest(&self, mut interest: Value, market: Option<&crate::types::Market>) -> Value {
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionOpenInterest() is not supported yet".into()))));
 
     Value::Null
@@ -2359,7 +2354,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_214: bool = true;
             while { if !__for_first_214 { i += 1; } __for_first_214 = false; i < (rows.len() as i64) } {
-            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), &[outcomeObj.clone()]);
+            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
             let mut trade: Value = self.extend(parsed, &[params.clone()]);
             if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(trade); }
         }
@@ -2398,7 +2393,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_215: bool = true;
             while { if !__for_first_215 { i += 1; } __for_first_215 = false; i < (rows.len() as i64) } {
-            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), &[outcomeObj.clone()]);
+            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
             let mut order: Value = self.extend(parsed, &[params.clone()]);
             if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(order); }
         }
@@ -2434,7 +2429,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_216: bool = true;
             while { if !__for_first_216 { i += 1; } __for_first_216 = false; i < (rows.len() as i64) } {
-            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), None);
             let mut position: Value = self.extend(parsed, &[params.clone()]);
             results.push(position);
         }
@@ -2735,13 +2730,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             "outcome_search_query" => <Self as crate::prediction_exchange_generated::PredictionBase>::outcome_search_query(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "pad_hex_address" => <Self as crate::prediction_exchange_generated::PredictionBase>::pad_hex_address(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "pad_hex_to_even" => <Self as crate::prediction_exchange_generated::PredictionBase>::pad_hex_to_even(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_prediction_open_interest" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_open_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_prediction_order" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_prediction_open_interest" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_open_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_prediction_order" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_prediction_orders" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_orders(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_prediction_position" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_prediction_position" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_prediction_positions" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_positions(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_prediction_ticker" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_ticker(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_prediction_trade" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_prediction_ticker" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_ticker(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_prediction_trade" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_prediction_trades" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trades(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_search_queries" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_search_queries(self, &args[..]),
             "price_to_prediction_precision" => <Self as crate::prediction_exchange_generated::PredictionBase>::price_to_prediction_precision(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),

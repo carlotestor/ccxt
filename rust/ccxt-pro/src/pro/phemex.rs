@@ -52,19 +52,19 @@ impl crate::exchange::DerivedExchange for Phemex {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ticker(&self.parent, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_trade(&self.parent, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_order(&self.parent, order, market)
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_market(&self.parent, market)
     }
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ohlcv(&self.parent, ohlcv, market)
     }
     fn parse_order_book(&self, ob: crate::Value, symbol: crate::Value, ts: crate::Value, bk: crate::Value, ak: crate::Value, pk: crate::Value, ak2: crate::Value, ck: crate::Value) -> crate::Value {
@@ -73,10 +73,10 @@ impl crate::exchange::DerivedExchange for Phemex {
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_balance(&self.parent, response)
     }
-    fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_position(&self, position: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_position(&self.parent, position, market)
     }
-    fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_funding_rate(&self, rate: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_funding_rate(&self.parent, rate, market)
     }
     fn parse_deposit(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
@@ -85,7 +85,7 @@ impl crate::exchange::DerivedExchange for Phemex {
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_address(&self.parent, depositAddress, currency)
     }
-    fn parse_last_price(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_last_price(&self, entry: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_last_price(&self.parent, entry, market)
     }
     fn parse_withdrawal(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
@@ -100,43 +100,43 @@ impl crate::exchange::DerivedExchange for Phemex {
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_currency(&self.parent, currency)
     }
-    fn parse_bid_ask(&self, bidask: crate::Value, price_key: crate::Value, amount_key: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_bid_ask(&self, bidask: crate::Value, price_key: crate::Value, amount_key: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_bid_ask(&self.parent, bidask, price_key, amount_key, market)
     }
-    fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_open_interest(&self, interest: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_open_interest(&self.parent, interest, market)
     }
-    fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_liquidation(&self, liquidation: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_liquidation(&self.parent, liquidation, market)
     }
-    fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_funding_rate_history(&self, entry: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_funding_rate_history(&self.parent, entry, market)
     }
-    fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_margin_modification(&self, data: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_margin_modification(&self.parent, data, market)
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_account(&self.parent, account)
     }
-    fn parse_my_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_my_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_my_trade(&self.parent, trade, market)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transaction(&self.parent, transaction, currency)
     }
-    fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_borrow_interest(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_borrow_interest(&self.parent, info, market)
     }
-    fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_adl_rank(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_adl_rank(&self.parent, info, market)
     }
-    fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_income(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_income(&self.parent, info, market)
     }
-    fn parse_greeks(&self, greeks: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_greeks(&self, greeks: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_greeks(&self.parent, greeks, market)
     }
-    fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_margin_mode(&self, margin_mode: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_margin_mode(&self.parent, margin_mode, market)
     }
     fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
@@ -145,22 +145,22 @@ impl crate::exchange::DerivedExchange for Phemex {
     fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_borrow_rate(&self.parent, info, currency)
     }
-    fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_leverage(&self, leverage: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_leverage(&self.parent, leverage, market)
     }
-    fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_market_leverage_tiers(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_market_leverage_tiers(&self.parent, info, market)
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
-    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_prediction_trade(&self.parent, trade, market)
     }
-    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_prediction_order(&self.parent, order, market)
     }
-    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_position(&self, position: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_prediction_position(&self.parent, position, market)
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
@@ -189,9 +189,9 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
                 "from_er" => self.from_er(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "from_ev" => self.from_ev(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "request_id" => self.request_id(),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "un_subscribe_public" => self.un_subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
@@ -235,9 +235,9 @@ impl Phemex {
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "request_id" => self.request_id(),
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
             "un_subscribe_public" => { crate::exchange_stubs::enqueue_spawn("un_subscribe_public", args.to_vec()); crate::Value::Null },
@@ -371,8 +371,7 @@ impl Phemex {
     Value::Null
 }
 
-    pub fn parse_swap_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_swap_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
         //
         //     {
         //         "close": 442800,
@@ -390,7 +389,7 @@ impl Phemex {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]));
+        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]));
         let mut marketValue: Value = marketResolved.clone();
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
@@ -438,8 +437,7 @@ impl Phemex {
     Value::Null
 }
 
-    pub fn parse_perpetual_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_perpetual_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
         //
         //    [
         //        "STXUSDT",
@@ -457,7 +455,7 @@ impl Phemex {
         //    ]
         //
         let mut marketId: Option<String> = self.safe_string(ticker.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]));
+        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]));
         let mut marketValue: Value = marketResolved.clone();
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut lastString: Value = self.from_ep(self.safe_string(ticker.clone(), Value::Int(4), &[]), &[marketValue.clone()]);
@@ -586,20 +584,20 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            tickers.push(self.parse_swap_ticker(ticker.clone(), &[]));
+            tickers.push(self.parse_swap_ticker(ticker.clone(), None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) {
             let mut ticker: Value = (match __pro_message.get("spot_market24h").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            tickers.push(self.parse_ticker(ticker.clone(), &[]));
+            tickers.push(self.parse_ticker(ticker.clone(), None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("data"))) {
             let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_621: bool = true;
                 while { if !__for_first_621 { i += 1; } __for_first_621 = false; i < (data.len() as i64) } {
-                tickers.push(self.parse_perpetual_ticker(data.get(i as usize).cloned().unwrap_or(Value::Null), &[]));
+                tickers.push(self.parse_perpetual_ticker(data.get(i as usize).cloned().unwrap_or(Value::Null), None));
             }
             }
         }
@@ -1609,7 +1607,7 @@ impl Phemex {
             let mut rawTrade: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(rawTrade.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]));
-            let mut parsed: Value = self.parse_trade(rawTrade, &[]);
+            let mut parsed: Value = self.parse_trade(rawTrade, None);
             cachedTrades.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (type_var == Value::Null) {
@@ -1878,7 +1876,7 @@ impl Phemex {
                 let mut __for_first_631: bool = true;
                 while { if !__for_first_631 { i += 1; } __for_first_631 = false; i < (orders.len() as i64) } {
                 let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut parsedOrder: Value = self.parse_order(rawOrder, &[]);
+                let mut parsedOrder: Value = self.parse_order(rawOrder, None);
                 parsedOrders.push(parsedOrder.clone());
             }
             }
@@ -1897,7 +1895,7 @@ impl Phemex {
                     // order + trade info together
                     std::sync::Arc::make_mut(&mut trades).push(update.clone());
                 }
-                let mut parsedOrder: Value = self.parse_ws_swap_order(update, &[]);
+                let mut parsedOrder: Value = self.parse_ws_swap_order(update, None);
                 parsedOrders.push(parsedOrder);
             }
             }
@@ -1942,8 +1940,7 @@ impl Phemex {
         client.resolve(self.orders.clone(), messageHash.as_str());
 }
 
-    pub fn parse_ws_swap_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ws_swap_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {
         //
         // swap
         //    {
@@ -2072,7 +2069,7 @@ impl Phemex {
             clientOrderId = None.clone();
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]));
+        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]));
         let mut marketValue: Value = marketResolved.clone();
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut status: Option<String> = self.parent.parse_order_status((self.safe_string_k(order.clone(), "ordStatus", &[])).as_str());

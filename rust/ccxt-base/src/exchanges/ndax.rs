@@ -52,25 +52,25 @@ impl crate::exchange::DerivedExchange for Ndax {
         // Forward to the inherent method on Ndax.
         Ndax::nonce(self, )
     }
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Ndax.
-        Ndax::parse_ticker(self, ticker, &[market])
+        Ndax::parse_ticker(self, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Ndax.
-        Ndax::parse_trade(self, trade, &[market])
+        Ndax::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Ndax.
-        Ndax::parse_order(self, order, &[market])
+        Ndax::parse_order(self, order, market)
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Ndax.
         Ndax::parse_market(self, market)
     }
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Ndax.
-        Ndax::parse_ohlcv(self, ohlcv, &[market])
+        Ndax::parse_ohlcv(self, ohlcv, market)
     }
     fn parse_order_book(&self, ob: crate::Value, symbol: crate::Value, ts: crate::Value, bk: crate::Value, ak: crate::Value, pk: crate::Value, ak2: crate::Value, ck: crate::Value) -> crate::Value {
         // Forward to the inherent method on Ndax.
@@ -142,11 +142,11 @@ impl crate::exchange_generated::ExchangeBase for Ndax {
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order_book" => self.parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_in" => self.sign_in(&args[..]).await,
@@ -1429,9 +1429,8 @@ impl Ndax {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTicker
         //
@@ -1483,7 +1482,7 @@ impl Ndax {
         if (marketId.is_none()) {
             marketId = self.safe_string_k(ticker.clone(), "trading_pairs", &[]).as_str().map(str::to_owned);
         }
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), crate::Value::from(market), Value::Str("_".into())]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string2(ticker.clone(), Value::Str("LastTradedPx".into()), Value::Str("last_price".into()), &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.safe_string2(ticker.clone(), Value::Str("Rolling24HrPxChangePercent".into()), Value::Str("price_change_percent_24h".into()), &[]).as_str().map(str::to_owned);
@@ -1598,13 +1597,12 @@ impl Ndax {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_level1(&[__ws_arg_5]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        return self.parse_ticker(response, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, Value::Int(5), &[])]);
 
     Value::Null
@@ -1684,9 +1682,8 @@ impl Ndax {
         }).await?))
     }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
         //
@@ -1845,7 +1842,7 @@ impl Ndax {
                 });
             }
         }
-        let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
@@ -1862,7 +1859,7 @@ impl Ndax {
         m.insert("cost".to_string(), costString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market);
 
     Value::Null
 }
@@ -2209,9 +2206,8 @@ impl Ndax {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
         //
@@ -2290,7 +2286,7 @@ impl Ndax {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "LastUpdatedTime", &[]));
         m.insert("status".to_string(), self.parse_order_status((self.safe_string_k(order.clone(), "OrderState", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "OrderType", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
@@ -2305,7 +2301,7 @@ impl Ndax {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market);
 
     Value::Null
 }
@@ -2387,7 +2383,7 @@ impl Ndax {
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_send_order(&[__ws_arg_11]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2458,7 +2454,7 @@ impl Ndax {
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_cancel_replace_order(&[__ws_arg_12]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2617,7 +2613,7 @@ impl Ndax {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("ClOrderId".into())]), &[]).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_cancel_order(&[__ws_arg_15]).await;
-        let mut order: Value = self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        let mut order: Value = self.parse_order(response, market.as_ref());
         return self.extend(order, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -2776,7 +2772,7 @@ impl Ndax {
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_get_get_order_status(&[__ws_arg_18]).await;
-        return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        return self.parse_order(response, market.as_ref());
         Value::Null
         }).await?))
     }

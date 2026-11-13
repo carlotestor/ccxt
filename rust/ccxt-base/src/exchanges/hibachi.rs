@@ -52,33 +52,33 @@ impl crate::exchange::DerivedExchange for Hibachi {
         // Forward to the inherent method on Hibachi.
         Hibachi::nonce(self, )
     }
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Hibachi.
-        Hibachi::parse_ticker(self, ticker, &[market])
+        Hibachi::parse_ticker(self, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Hibachi.
-        Hibachi::parse_trade(self, trade, &[market])
+        Hibachi::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Hibachi.
-        Hibachi::parse_order(self, order, &[market])
+        Hibachi::parse_order(self, order, market)
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Hibachi.
         Hibachi::parse_market(self, market)
     }
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Hibachi.
-        Hibachi::parse_ohlcv(self, ohlcv, &[market])
+        Hibachi::parse_ohlcv(self, ohlcv, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on Hibachi.
         Hibachi::parse_balance(self, response)
     }
-    fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_position(&self, position: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Hibachi.
-        Hibachi::parse_position(self, position, &[market])
+        Hibachi::parse_position(self, position, market)
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Hibachi.
@@ -150,13 +150,13 @@ impl crate::exchange_generated::ExchangeBase for Hibachi {
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_settlements" => self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_settlements" => self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default()),
@@ -898,9 +898,8 @@ impl Hibachi {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         let mut prices: crate::value::Dict = self.safe_dict_k(ticker.clone(), "prices", &[]).into_dict();
         let mut stats: crate::value::Dict = self.safe_dict_k(ticker.clone(), "stats", &[]).into_dict();
         let mut bid: Option<f64> = self.safe_number_k(&prices, "bidPrice", &[]).as_f64();
@@ -911,7 +910,7 @@ impl Hibachi {
         let mut volume: Option<f64> = self.safe_number_k(&stats, "volume24h", &[]).as_f64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market.clone(), &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("bid".to_string(), Value::from(bid));
@@ -932,14 +931,13 @@ impl Hibachi {
         m.insert("quoteVolume".to_string(), Value::from(volume));
         m.insert("info".to_string(), ticker);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market);
 
     Value::Null
 }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         // public fetchTrades:
         //      {
         //          "price": "3512.431902",
@@ -965,7 +963,7 @@ impl Hibachi {
         //          "timestamp": 1752543391
         //      }
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -1134,7 +1132,7 @@ impl Hibachi {
                 m.insert("stats".to_string(), statsResponse);
             m
         });
-        return self.parse_ticker(Value::Map(ticker), &[(market).raw.clone()]);
+        return self.parse_ticker(Value::Map(ticker), Some(&market));
         Value::Null
         }).await?))
     }
@@ -1158,11 +1156,10 @@ impl Hibachi {
         return self.safe_string(&statuses, uppercaseStatus.map(Value::from).unwrap_or(Value::Null), &[status]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
         let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_lower_k(order.clone(), "orderType", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("avgFillPrice".into()), &[]).as_str().map(str::to_owned);
@@ -1270,7 +1267,7 @@ impl Hibachi {
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_trade_order(&[__ws_arg_3]).await;
-        return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        return self.parse_order(response, market.as_ref());
         Value::Null
         }).await?))
     }
@@ -1407,8 +1404,8 @@ impl Hibachi {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut takerFee: Value = self.safe_number_k((market).raw.clone(), "taker", &[self.safe_number(self.options.clone(), Value::Str("defaultTakerFee".into()), &[Value::Float(0.00045)])]);
-        let mut makerFee: Value = self.safe_number_k((market).raw.clone(), "maker", &[self.safe_number(self.options.clone(), Value::Str("defaultMakerFee".into()), &[Value::Float(0.00015)])]);
+        let mut takerFee: Value = self.safe_number_k(&market, "taker", &[self.safe_number_k(self.options.clone(), "defaultTakerFee", &[Value::Float(0.00045)])]);
+        let mut makerFee: Value = self.safe_number_k(&market, "maker", &[self.safe_number_k(self.options.clone(), "defaultMakerFee", &[Value::Float(0.00015)])]);
         let mut takerFeeValue: Value = (if (takerFee == Value::Null) { Value::Int(0) } else { takerFee });
         let mut makerFeeValue: Value = (if (makerFee == Value::Null) { Value::Int(0) } else { makerFee });
         let mut feeRate: Value = self.parse_number(crate::precise::Precise::stringMax(&self.number_to_string(takerFeeValue), &self.number_to_string(makerFeeValue)), &[]);
@@ -1899,7 +1896,7 @@ impl Hibachi {
             m
         });
         if (symbol != Value::Null) {
-            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("contractId".into(), self.safe_integer_k(&market, "numericId", &[]));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
@@ -2171,8 +2168,7 @@ impl Hibachi {
         }).await?))
     }
 
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         return Value::from(vec![self.safe_integer_product_k(ohlcv.clone(), "timestamp", Value::Int(1000), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volumeNotional", &[])]);
 
     Value::Null
@@ -2517,9 +2513,8 @@ impl Hibachi {
         }).await?))
     }
 
-    pub fn parse_position(&self, position: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut position: Value = position.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // {
         //     "direction": "Short",
@@ -2532,7 +2527,7 @@ impl Hibachi {
         // }
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut side: Option<String> = self.safe_string_lower_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
         let mut quantity: Option<String> = self.safe_string_k(position.clone(), "quantity", &[]).as_str().map(str::to_owned);
@@ -3075,8 +3070,7 @@ impl Hibachi {
         }).await?))
     }
 
-    pub fn parse_settlement(&self, mut settlement: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_settlement(&self, mut settlement: Value, market: Option<&crate::types::Market>) -> Value {
         //
         //     {
         //         "direction": "Long",
@@ -3093,7 +3087,7 @@ impl Hibachi {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("price".to_string(), self.safe_number_k(settlement, "indexPrice", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -3103,8 +3097,7 @@ impl Hibachi {
     Value::Null
 }
 
-    pub fn parse_settlements(&self, mut settlements: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_settlements(&self, mut settlements: Value, market: Option<&crate::types::Market>) -> Value {
         let __settlements_empty = Vec::new();
         let settlements = settlements.as_array().unwrap_or(&__settlements_empty);
         let mut result: Vec<Value> = Vec::new();
@@ -3112,7 +3105,7 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_741: bool = true;
             while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (settlements.len() as i64) } {
-            result.push(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
+            result.push(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), market.clone()));
         }
         }
         return Value::from(result);
@@ -3183,7 +3176,7 @@ impl Hibachi {
         //     }
         //
         let mut data: Value = self.safe_list_k(&response, "settlements", &[Value::from(vec![])]);
-        let mut settlements: Value = self.parse_settlements(data, &[market]);
+        let mut settlements: Value = self.parse_settlements(data, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
         return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 

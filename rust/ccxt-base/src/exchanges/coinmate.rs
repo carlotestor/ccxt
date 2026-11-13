@@ -52,17 +52,17 @@ impl crate::exchange::DerivedExchange for Coinmate {
         // Forward to the inherent method on Coinmate.
         Coinmate::nonce(self, )
     }
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Coinmate.
-        Coinmate::parse_ticker(self, ticker, &[market])
+        Coinmate::parse_ticker(self, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Coinmate.
-        Coinmate::parse_trade(self, trade, &[market])
+        Coinmate::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Coinmate.
-        Coinmate::parse_order(self, order, &[market])
+        Coinmate::parse_order(self, order, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on Coinmate.
@@ -110,9 +110,9 @@ impl crate::exchange_generated::ExchangeBase for Coinmate {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
@@ -1062,7 +1062,7 @@ impl Coinmate {
         //     }
         //
         let mut data: Value = self.safe_dict_k(&response, "data", &[]);
-        return self.parse_ticker(data, &[(market).raw.clone()]);
+        return self.parse_ticker(data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -1125,7 +1125,7 @@ impl Coinmate {
             let mut __for_first_569: bool = true;
             while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (keys.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((keys.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(self.safe_value(&data, keys.get(i as usize).cloned().unwrap_or(Value::Null), &[]), &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
+            let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(self.safe_value(&data, keys.get(i as usize).cloned().unwrap_or(Value::Null), &[]), Some(&market)).as_map().cloned().unwrap_or_default();
             result.insert(crate::runtime::stringify_param(&(Value::from((market).symbol.clone()))), Value::Map(ticker));
         }
         }
@@ -1134,9 +1134,8 @@ impl Coinmate {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "last": "0.001337",
@@ -1154,7 +1153,7 @@ impl Coinmate {
         let mut last: Option<f64> = self.safe_number_k(ticker.clone(), "last", &[]).as_f64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "high", &[]));
@@ -1175,7 +1174,7 @@ impl Coinmate {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market.clone());
 
     Value::Null
 }
@@ -1485,9 +1484,8 @@ impl Coinmate {
         }).await?))
     }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchMyTrades (private)
         //
@@ -1516,7 +1514,7 @@ impl Coinmate {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "currencyPair", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market), Value::Str("_".into())]);
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("type".into()), Value::Str("tradeType".into()), &[]).as_str().map(str::to_owned);
@@ -1787,9 +1785,8 @@ impl Coinmate {
         return self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // limit sell
         //
@@ -1849,7 +1846,7 @@ impl Coinmate {
         let mut type_var: Option<String> = self.parse_order_type((self.safe_string_k(order.clone(), "orderTradeType", &[])).as_str());
         let mut averageString: Option<String> = self.safe_string_k(order.clone(), "avgPrice", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "currencyPair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1875,7 +1872,7 @@ impl Coinmate {
         m.insert("info".to_string(), order);
         m.insert("fee".to_string(), Value::Null);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market);
 
     Value::Null
 }
@@ -1995,7 +1992,7 @@ impl Coinmate {
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_order_by_id(&[__ws_arg_8]).await.into_dict();
         let mut data: Value = self.safe_dict_k(&response, "data", &[]);
-        return self.parse_order(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        return self.parse_order(data, market.as_ref());
         Value::Null
         }).await?))
     }
@@ -2041,7 +2038,7 @@ impl Coinmate {
         //    }
         //
         let mut data: Value = self.safe_dict_k(&response, "data", &[]);
-        return self.parse_order(data, &[]);
+        return self.parse_order(data, None);
         Value::Null
         }).await?))
     }

@@ -48,21 +48,21 @@ impl Alpaca {
 }
 
 impl crate::exchange::DerivedExchange for Alpaca {
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Alpaca.
-        Alpaca::parse_trade(self, trade, &[market])
+        Alpaca::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Alpaca.
-        Alpaca::parse_order(self, order, &[market])
+        Alpaca::parse_order(self, order, market)
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Alpaca.
         Alpaca::parse_market(self, market)
     }
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Alpaca.
-        Alpaca::parse_ohlcv(self, ohlcv, &[market])
+        Alpaca::parse_ohlcv(self, ohlcv, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on Alpaca.
@@ -124,9 +124,9 @@ impl crate::exchange_generated::ExchangeBase for Alpaca {
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1378,7 +1378,7 @@ impl Alpaca {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut id: Option<String> = self.safe_string_k((market).raw.clone(), "id", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
         let mut loc: String = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1606,8 +1606,7 @@ impl Alpaca {
         }).await?))
     }
 
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         //
         //     {
         //        "c":22895,
@@ -1972,8 +1971,8 @@ impl Alpaca {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut id: Option<String> = self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2011,7 +2010,7 @@ impl Alpaca {
         request.insert("client_order_id".into(), self.generate_client_order_id(paramsOmitted.clone()).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
         let mut order: Value = self.trader_private_post_v2_orders(&[__ws_arg_11]).await;
-        return self.parse_order(order, &[market]);
+        return self.parse_order(order, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2045,7 +2044,7 @@ impl Alpaca {
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.trader_private_delete_v2_orders_order_id(&[__ws_arg_12]).await;
-        return self.parse_order(response, &[]);
+        return self.parse_order(response, None);
         Value::Null
         }).await?))
     }
@@ -2120,8 +2119,8 @@ impl Alpaca {
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut order: Value = self.trader_private_get_v2_orders_order_id(&[__ws_arg_13]).await;
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]));
-        return self.parse_order(order, &[market]);
+        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        return self.parse_order(order, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2328,14 +2327,13 @@ impl Alpaca {
         request.insert("client_order_id".into(), self.generate_client_order_id(Value::from(&paramsTimeInForce)).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
         let mut response: Value = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await;
-        return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        return self.parse_order(response, market.as_ref());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
         //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -2375,7 +2373,7 @@ impl Alpaca {
         //    }
         //
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
         let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         let mut alpacaStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status(alpacaStatus.as_deref());
@@ -2526,9 +2524,8 @@ impl Alpaca {
         }).await?))
     }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
         //
@@ -2560,7 +2557,7 @@ impl Alpaca {
         //     },
         //
         let mut marketId: Option<String> = self.safe_string2(trade.clone(), Value::Str("S".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.safe_string2(trade.clone(), Value::Str("t".into()), Value::Str("transaction_time".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null)).as_i64();
         let mut alpacaSide: Option<String> = self.safe_string_k(trade.clone(), "tks", &[]).as_str().map(str::to_owned);
@@ -2588,7 +2585,7 @@ impl Alpaca {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market);
 
     Value::Null
 }

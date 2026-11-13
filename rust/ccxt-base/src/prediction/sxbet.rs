@@ -51,9 +51,9 @@ impl Sxbet {
 }
 
 impl crate::exchange::DerivedExchange for Sxbet {
-    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Sxbet.
-        Sxbet::parse_prediction_order(self, order, &[market])
+        Sxbet::parse_prediction_order(self, order, market)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Sxbet.
@@ -109,15 +109,15 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "load_sx_obv3_metadata" => self.load_sx_obv3_metadata().await,
                 "matches_event_query" => self.matches_event_query(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_sxbet_cancel_response" => self.parse_sxbet_cancel_response(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_market" => self.parse_sxbet_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_snapshot_best_odds" => self.parse_sxbet_snapshot_best_odds(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_tickers_by_hash" => self.parse_sxbet_tickers_by_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_v3_book_sides" => self.parse_sxbet_v3_book_sides(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy)),
-                "parse_sxbet_v3_fill" => self.parse_sxbet_v3_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_sxbet_v3_fill" => self.parse_sxbet_v3_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_sxbet_v3_position" => self.parse_sxbet_v3_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_v3_public_trade" => self.parse_sxbet_v3_public_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -1919,9 +1919,8 @@ impl Sxbet {
  * @param {object} [market] the outcome object the order belongs to (resolved from the cache by outcomeId when omitted)
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
@@ -1949,7 +1948,7 @@ impl Sxbet {
         }  else {
             outcomeId = Some(format!("{}{}", marketHash, Value::Str("-2".into())));
         }
-        let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
+        let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]);
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut percentageOdds: Option<String> = self.safe_string_k(order.clone(), "percentageOdds", &[]).as_str().map(str::to_owned);
@@ -2150,7 +2149,7 @@ impl Sxbet {
             m
         })]).into_dict();
         let mut row: Value = self.safe_dict_k(&data, "order", &[Value::from(&data)]);
-        return self.parse_prediction_order(row, &[outcomeObj]);
+        return self.parse_prediction_order(row, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -2271,7 +2270,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1511: bool = true;
             while { if !__for_first_1511 { i += 1; } __for_first_1511 = false; (i as f64) < rawFillsLength } {
-            if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(self.parse_sxbet_v3_fill(rawFills.get(i as usize).cloned().unwrap_or(Value::Null), &[])); }
+            if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(self.parse_sxbet_v3_fill(rawFills.get(i as usize).cloned().unwrap_or(Value::Null), None)); }
         }
         }
         trades = self.sort_by(trades.clone(), Value::Str("timestamp".into()), &[]);
@@ -2290,8 +2289,7 @@ impl Sxbet {
  * @param {object} [market] the outcome object labelling hint
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-    pub fn parse_sxbet_v3_fill(&self, mut fill: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_sxbet_v3_fill(&self, mut fill: Value, market: Option<&crate::types::Market>) -> Value {
         //
         //     {
         //         "id": "0xec8e...:0x02d2...:0x1fec...",
@@ -2314,7 +2312,7 @@ impl Sxbet {
         }  else {
             outcomeId = Some(format!("{}{}", marketHash, Value::Str("-2".into())));
         }
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut fillOdds: Option<String> = self.safe_string_k(fill.clone(), "fillOdds", &[]).as_str().map(str::to_owned);
@@ -2347,7 +2345,7 @@ impl Sxbet {
         m.insert("cost".to_string(), amount);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market]);
+}), &[crate::Value::from(market)]);
 
     Value::Null
 }
@@ -2624,7 +2622,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1515: bool = true;
             while { if !__for_first_1515 { i += 1; } __for_first_1515 = false; (i as f64) < rawTradesLength } {
-            let mut settlement: Value = self.parse_settlement(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut settlement: Value = self.parse_settlement(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None);
             if (wantedOutcomeId.is_none()) || (self.safe_string_k(settlement.clone(), "outcomeId", &[]).as_str() == wantedOutcomeId.as_deref()) {
                 result.push(settlement);
             }
@@ -2644,8 +2642,7 @@ impl Sxbet {
  * @param {object} [market] a resolved outcome/market hint
  * @returns {object} a prediction settlement structure
  */
-    pub fn parse_settlement(&self, mut trade: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_settlement(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {
         //
         //     TradeV3 row with a settlement sub-object:
         //     {
@@ -2666,7 +2663,7 @@ impl Sxbet {
         }  else {
             outcomeId = Some(format!("{}{}", marketHash, Value::Str("-2".into())));
         }
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
         let mut settlement: crate::value::Dict = self.safe_dict_k(trade.clone(), "settlement", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2774,7 +2771,7 @@ impl Sxbet {
         // route needs an apiKey, so it only pays off for the multi-market path
         let mut snapshot: Value = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
         let mut raw: Value = self.parse_sxbet_snapshot_best_odds(snapshot);
-        return self.parse_prediction_ticker(raw, &[outcomeObj]);
+        return self.parse_prediction_ticker(raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -2979,7 +2976,7 @@ impl Sxbet {
             if (raw == Value::Null) {
                 continue;
             }
-            let mut ticker: Value = self.parse_prediction_ticker(raw, &[outcomeObj]);
+            let mut ticker: Value = self.parse_prediction_ticker(raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
             let mut sym: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_some()) {
                 result.insert(sym.as_deref().unwrap_or("null").to_string(), ticker);
@@ -3000,9 +2997,8 @@ impl Sxbet {
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut raw: Value = raw.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "marketHash": "0x48ce0ef287c59fb3bb3ca6deb80de0d5791eb761ea8e16d6f03c8e93ef28d1de",
@@ -3011,7 +3007,7 @@ impl Sxbet {
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        let mut marketAny: Value = market.clone();
+        let mut marketAny: Value = crate::Value::from(market);
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
         let mut outcomeId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
         let mut marketHash: Option<String> = self.safe_string_k(raw.clone(), "marketHash", &[]).as_str().map(str::to_owned);
@@ -3070,7 +3066,7 @@ impl Sxbet {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), raw);
     m
-}), &[market]);
+}), &[crate::Value::from(market)]);
 
     Value::Null
 }
@@ -3660,7 +3656,7 @@ impl Sxbet {
             // for every newly watched market, not only on a fresh subscription
             let mut snapshot: Value = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
             let mut raw: Value = self.parse_sxbet_snapshot_best_odds(snapshot);
-            let mut ticker: Value = self.parse_prediction_ticker(raw, &[outcomeObj]);
+            let mut ticker: Value = self.parse_prediction_ticker(raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
             self.set_ws_option("wsTickers", sym.as_str(), ticker);
             hydrated = true;
         }
@@ -3748,7 +3744,7 @@ impl Sxbet {
                     continue;
                 }
                 let mut outcomeObj: Value = self.outcome(sym.clone().map(Value::from).unwrap_or(Value::Null));
-                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(raw.clone()), &[outcomeObj]);
+                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(raw.clone()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
                 self.set_ws_option("wsTickers", sym.as_deref().unwrap_or_default(), ticker.clone());
                 client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
             }
@@ -3928,7 +3924,7 @@ impl Sxbet {
             while { if !__for_first_1530 { i += 1; } __for_first_1530 = false; (i as f64) < rowsLength } {
             let mut rawRow: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "fill", &[rawRow.clone()]);
-            let mut trade: Value = self.parse_sxbet_v3_fill(row, &[]);
+            let mut trade: Value = self.parse_sxbet_v3_fill(row, None);
             let mut sym: Option<String> = self.safe_string_k(trade.clone(), "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_none()) {
                 continue;
@@ -3999,7 +3995,7 @@ impl Sxbet {
             while { if !__for_first_1531 { i += 1; } __for_first_1531 = false; (i as f64) < rowsLength } {
             let mut rawRow: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "order", &[rawRow.clone()]);
-            let mut order: Value = self.parse_prediction_order(row, &[]);
+            let mut order: Value = self.parse_prediction_order(row, None);
             if (self.orders.clone() == Value::Null) {
                 let mut cacheLimit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = ArrayCacheByOutcomeById::new(cacheLimit);

@@ -48,25 +48,25 @@ impl Bitteam {
 }
 
 impl crate::exchange::DerivedExchange for Bitteam {
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Bitteam.
-        Bitteam::parse_ticker(self, ticker, &[market])
+        Bitteam::parse_ticker(self, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Bitteam.
-        Bitteam::parse_trade(self, trade, &[market])
+        Bitteam::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Bitteam.
-        Bitteam::parse_order(self, order, &[market])
+        Bitteam::parse_order(self, order, market)
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Bitteam.
         Bitteam::parse_market(self, market)
     }
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Bitteam.
-        Bitteam::parse_ohlcv(self, ohlcv, &[market])
+        Bitteam::parse_ohlcv(self, ohlcv, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on Bitteam.
@@ -120,10 +120,10 @@ impl crate::exchange_generated::ExchangeBase for Bitteam {
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -1226,8 +1226,7 @@ impl Bitteam {
         }).await?))
     }
 
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         return Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
@@ -1513,7 +1512,7 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_order(&result, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        return self.parse_order(&result, market.as_ref());
         Value::Null
         }).await?))
     }
@@ -1663,10 +1662,10 @@ impl Bitteam {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pairId".to_string(), self.safe_string_k(market.clone(), "numericId", &[]));
+                m.insert("pairId".to_string(), self.safe_string_k(&market, "numericId", &[]));
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("side".to_string(), side);
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
@@ -1708,7 +1707,7 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_order(&order, &[market]);
+        return self.parse_order(&order, Some(&market));
         Value::Null
         }).await?))
     }
@@ -1757,7 +1756,7 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_order(&result, &[]);
+        return self.parse_order(&result, None);
         Value::Null
         }).await?))
     }
@@ -1816,9 +1815,8 @@ impl Bitteam {
         }).await?))
     }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOrders
         //     {
@@ -1906,7 +1904,7 @@ impl Bitteam {
         //
         let mut id: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "pair", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "orderCid", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = Value::Null;
         let mut createdAt: Option<String> = self.safe_string_k(order.clone(), "createdAt", &[]).as_str().map(str::to_owned);
@@ -2071,7 +2069,7 @@ impl Bitteam {
             let mut __for_first_441: bool = true;
             while { if !__for_first_441 { i += 1; } __for_first_441 = false; i < (rawTickers.len() as i64) } {
             let mut rawTicker: Value = rawTickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = self.parse_ticker(rawTicker, &[]);
+            let mut ticker: Value = self.parse_ticker(rawTicker, None);
             tickers.push(ticker);
         }
         }
@@ -2302,14 +2300,13 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_ticker(&pair, &[(market).raw.clone()]);
+        return self.parse_ticker(&pair, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTicker
         //     {
@@ -2390,7 +2387,7 @@ impl Bitteam {
         //         "lowest_price_24h": 37574.894999
         //     }
         let mut marketId: Option<String> = self.safe_string_lower_k(ticker.clone(), "trading_pairs", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
         let mut bestBidPrice: Option<String> = None;
         let mut bestAskPrice: Option<String> = None;
         let mut bestBidVolume: Option<String> = None;
@@ -2671,9 +2668,8 @@ impl Bitteam {
         }).await?))
     }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
         //     {
@@ -2729,7 +2725,7 @@ impl Bitteam {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "pair", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("trade_id".into()), &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);

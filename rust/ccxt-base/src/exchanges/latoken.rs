@@ -52,17 +52,17 @@ impl crate::exchange::DerivedExchange for Latoken {
         // Forward to the inherent method on Latoken.
         Latoken::nonce(self, )
     }
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Latoken.
-        Latoken::parse_ticker(self, ticker, &[market])
+        Latoken::parse_ticker(self, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Latoken.
-        Latoken::parse_trade(self, trade, &[market])
+        Latoken::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Latoken.
-        Latoken::parse_order(self, order, &[market])
+        Latoken::parse_order(self, order, market)
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Latoken.
@@ -117,9 +117,9 @@ impl crate::exchange_generated::ExchangeBase for Latoken {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1363,9 +1363,8 @@ impl Latoken {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
         //        "symbol": "BTC/USDT",
@@ -1394,7 +1393,7 @@ impl Latoken {
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut symbol: Value = Value::Null;
-        let mut marketResolved: Value = market.clone();
+        let mut marketResolved: Value = crate::Value::from(market);
         if (base.is_some()) && (quote.is_some()) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1463,7 +1462,7 @@ impl Latoken {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_ticker_base_quote(&[__ws_arg_1]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        return self.parse_ticker(response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -1497,9 +1496,8 @@ impl Latoken {
         }).await?))
     }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
         //
@@ -1556,7 +1554,7 @@ impl Latoken {
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut symbol: Value = Value::Null;
-        let mut marketResolved: Value = market.clone();
+        let mut marketResolved: Value = crate::Value::from(market);
         if (base.is_some()) && (quote.is_some()) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into());
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1830,9 +1828,8 @@ impl Latoken {
         return self.safe_string(&timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
         //
@@ -1887,7 +1884,7 @@ impl Latoken {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
         }
         let mut symbolKnown: bool = (symbol != Value::Null) && (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())));
-        let mut marketResolved: Value = market.clone();
+        let mut marketResolved: Value = crate::Value::from(market);
         if symbolKnown {
             marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
@@ -2107,7 +2104,7 @@ impl Latoken {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_auth_order_get_order_id(&[__ws_arg_14]).await;
         }
-        return self.parse_order(response, &[]);
+        return self.parse_order(response, None);
         Value::Null
         }).await?))
     }
@@ -2178,7 +2175,7 @@ impl Latoken {
             let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_auth_order_place(&[__ws_arg_16]).await;
         }
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2225,7 +2222,7 @@ impl Latoken {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_auth_order_cancel(&[__ws_arg_18]).await;
         }
-        return self.parse_order(response, &[]);
+        return self.parse_order(response, None);
         Value::Null
         }).await?))
     }

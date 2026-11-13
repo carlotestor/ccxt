@@ -55,17 +55,17 @@ impl crate::exchange::DerivedExchange for Binance {
         // Forward to the inherent method on Binance.
         Binance::nonce(self, )
     }
-    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Binance.
-        Binance::parse_prediction_trade(self, trade, &[market])
+        Binance::parse_prediction_trade(self, trade, market)
     }
-    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Binance.
-        Binance::parse_prediction_order(self, order, &[market])
+        Binance::parse_prediction_order(self, order, market)
     }
-    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_position(&self, position: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Binance.
-        Binance::parse_prediction_position(self, position, &[market])
+        Binance::parse_prediction_position(self, position, market)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Binance.
@@ -111,10 +111,10 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_topic_market" => self.parse_topic_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1196,7 +1196,7 @@ impl Binance {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sapi_private_get_order_book_last_trade_price(&[__ws_arg_5]).await;
-        return self.parse_prediction_ticker(response, &[outcomeObj]);
+        return self.parse_prediction_ticker(response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -1210,13 +1210,12 @@ impl Binance {
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut raw: Value = raw.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        let mut marketAny: Value = market.clone();
+        let mut marketAny: Value = crate::Value::from(market);
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
@@ -1267,7 +1266,7 @@ impl Binance {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), raw);
     m
-}), &[market]);
+}), &[crate::Value::from(market)]);
 
     Value::Null
 }
@@ -1329,7 +1328,7 @@ impl Binance {
                 response = self.sapi_private_get_order_book_last_trade_price(&[__ws_arg_6]).await;
                 responsesByMarketId.insert(marketId.as_deref().unwrap_or("null").to_string(), response.clone());
             }
-            let mut ticker: Value = self.parse_prediction_ticker(response, &[outcomeObj]);
+            let mut ticker: Value = self.parse_prediction_ticker(response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
             let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
             result.insert(crate::runtime::stringify_param(&symbolKey), ticker);
         }
@@ -1460,9 +1459,8 @@ impl Binance {
  * @param {object} [outcomeObj] the ourtome the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, outcomeObj: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
         //
         // {
         //     "orderId": "54124",
@@ -1491,7 +1489,7 @@ impl Binance {
         // }
         //
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
-        let mut outcomeObjResolved: Value = outcomeObj;
+        let mut outcomeObjResolved: Value = crate::Value::from(outcomeObj);
         if (outcomeObjResolved == Value::Null) {
             let mut marketId: Option<String> = self.safe_string_k(order.clone(), "marketId", &[]).as_str().map(str::to_owned);
             let mut outcome: Option<String> = self.safe_string_upper_k(order.clone(), "outcome", &[]).as_str().map(str::to_owned);
@@ -1951,10 +1949,9 @@ impl Binance {
  * @param {object} [outcomeObj] the ourtome the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, outcomeObj: Option<&crate::types::Market>) -> Value {
         let mut position: Value = position.into();
-        let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
-        let mut outcomeObjResolved: Value = outcomeObj;
+        let mut outcomeObjResolved: Value = crate::Value::from(outcomeObj);
         if (outcomeObjResolved == Value::Null) {
             let mut marketId: Option<String> = self.safe_string_k(position.clone(), "marketId", &[]).as_str().map(str::to_owned);
             let mut outcome: Option<String> = self.safe_string_upper_k(position.clone(), "outcomeName", &[]).as_str().map(str::to_owned);
@@ -2128,9 +2125,8 @@ impl Binance {
  * @param {object} [outcomeObj] the outcome the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, outcomeObj: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
         //
         // {
         //     "orderId": "54124",
@@ -2158,7 +2154,7 @@ impl Binance {
         //     "networkFee": "0.000001"
         // }
         //
-        let mut outcomeObjResolved: Value = outcomeObj;
+        let mut outcomeObjResolved: Value = crate::Value::from(outcomeObj);
         if (outcomeObjResolved == Value::Null) {
             let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "marketId", &[]).as_str().map(str::to_owned);
             let mut outcome: Option<String> = self.safe_string_upper_k(trade.clone(), "outcome", &[]).as_str().map(str::to_owned);

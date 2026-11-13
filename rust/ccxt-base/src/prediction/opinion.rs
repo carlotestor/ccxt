@@ -51,25 +51,25 @@ impl Opinion {
 }
 
 impl crate::exchange::DerivedExchange for Opinion {
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Opinion.
-        Opinion::parse_ohlcv(self, ohlcv, &[market])
+        Opinion::parse_ohlcv(self, ohlcv, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on Opinion.
         Opinion::parse_balance(self, response)
     }
-    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Opinion.
-        Opinion::parse_prediction_trade(self, trade, &[market])
+        Opinion::parse_prediction_trade(self, trade, market)
     }
-    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Opinion.
-        Opinion::parse_prediction_order(self, order, &[market])
+        Opinion::parse_prediction_order(self, order, market)
     }
-    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_position(&self, position: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Opinion.
-        Opinion::parse_prediction_position(self, position, &[market])
+        Opinion::parse_prediction_position(self, position, market)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Opinion.
@@ -119,12 +119,12 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
                 "opinion_outcome_by_market_id_side" => self.opinion_outcome_by_market_id_side(args.get(0).and_then(crate::Value::as_i64), args.get(1).and_then(crate::Value::as_i64)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_opinion_market" => self.parse_opinion_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str)),
-                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64)).await,
                 "set_api_credentials" => self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1093,7 +1093,7 @@ impl Opinion {
                 m.insert("book".to_string(), bookResponse);
             m
         });
-        return self.parse_prediction_ticker(Value::Map(response), &[outcomeObj]);
+        return self.parse_prediction_ticker(Value::Map(response), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -1107,9 +1107,8 @@ impl Opinion {
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "price": {
@@ -1124,7 +1123,7 @@ impl Opinion {
         //         }
         //     }
         //
-        let mut marketAny: Value = market.clone();
+        let mut marketAny: Value = crate::Value::from(market);
         let mut priceResponse: crate::value::Dict = self.safe_dict_k(ticker.clone(), "price", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1180,7 +1179,7 @@ impl Opinion {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), &[crate::Value::from(market)]);
 
     Value::Null
 }
@@ -1250,7 +1249,7 @@ impl Opinion {
                     m.insert("book".to_string(), bookResponse);
                 m
             });
-            let mut ticker: Value = self.parse_prediction_ticker(Value::Map(response), &[outcomeObj]);
+            let mut ticker: Value = self.parse_prediction_ticker(Value::Map(response), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
             let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
             if (symbolKey.is_some()) {
                 result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
@@ -1404,8 +1403,7 @@ impl Opinion {
  * @param {object} [market] the outcome object the candle belongs to
  * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
  */
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         // Unused: fetchOHLCV maps { p, t } points directly.
         //
         //     { "p": "0.001", "t": 1785495600 }
@@ -1769,7 +1767,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_prediction_order(&orderData, &[outcomeObj]);
+        return self.parse_prediction_order(&orderData, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -1854,9 +1852,8 @@ impl Opinion {
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "orderId": "...",
@@ -1879,7 +1876,7 @@ impl Opinion {
         //     }
         //
         let mut id: Option<String> = self.safe_string_k(order.clone(), "orderId", &[]).as_str().map(str::to_owned);
-        let mut marketAny: Value = market.clone();
+        let mut marketAny: Value = crate::Value::from(market);
         let mut statusEnum: Option<String> = self.safe_string_k(order.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status(statusEnum.as_deref());
         let mut sideEnum: Option<String> = self.safe_string_lower_k(order.clone(), "sideEnum", &[]).as_str().map(str::to_owned);
@@ -1907,7 +1904,7 @@ impl Opinion {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::from(vec![]));
     m
-}), &[market]);
+}), &[crate::Value::from(market)]);
 
     Value::Null
 }
@@ -2003,7 +2000,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_prediction_order(&orderData, &[outcomeObj]);
+        return self.parse_prediction_order(&orderData, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -2211,11 +2208,10 @@ impl Opinion {
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         let mut tokenId: Option<String> = self.safe_string_k(trade.clone(), "tokenId", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "createdAt", &[]).as_i64();
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         return self.safe_prediction_trade(Value::Map({
@@ -2422,11 +2418,10 @@ impl Opinion {
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut position: Value = position.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         let mut tokenId: Option<String> = self.safe_string_k(position.clone(), "tokenId", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
         let mut outcomeSideEnum: Option<String> = self.safe_string_lower_k(position.clone(), "outcomeSideEnum", &[]).as_str().map(str::to_owned);
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();

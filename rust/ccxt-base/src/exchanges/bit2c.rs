@@ -52,17 +52,17 @@ impl crate::exchange::DerivedExchange for Bit2c {
         // Forward to the inherent method on Bit2c.
         Bit2c::nonce(self, )
     }
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Bit2c.
-        Bit2c::parse_ticker(self, ticker, &[market])
+        Bit2c::parse_ticker(self, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Bit2c.
-        Bit2c::parse_trade(self, trade, &[market])
+        Bit2c::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Bit2c.
-        Bit2c::parse_order(self, order, &[market])
+        Bit2c::parse_order(self, order, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on Bit2c.
@@ -108,9 +108,9 @@ impl crate::exchange_generated::ExchangeBase for Bit2c {
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -721,10 +721,9 @@ impl Bit2c {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
         let mut averagePrice: Option<String> = self.safe_string_k(ticker.clone(), "av", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "a", &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "ll", &[]).as_str().map(str::to_owned);
@@ -751,7 +750,7 @@ impl Bit2c {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market);
 
     Value::Null
 }
@@ -787,7 +786,7 @@ impl Bit2c {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_exchanges_pair_ticker(&[__ws_arg_1]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        return self.parse_ticker(response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -996,7 +995,7 @@ impl Bit2c {
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_order_add_order(&[__ws_arg_6]).await;
         }
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -1030,7 +1029,7 @@ impl Bit2c {
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_order_cancel_order(&[__ws_arg_7]).await;
-        return self.parse_order(response, &[]);
+        return self.parse_order(response, None);
         Value::Null
         }).await?))
     }
@@ -1109,7 +1108,7 @@ impl Bit2c {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
@@ -1117,14 +1116,13 @@ impl Bit2c {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_order_get_by_id(&[__ws_arg_9]).await;
-        return self.parse_order(response, &[market]);
+        return self.parse_order(response, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //      createOrder
         //      {
@@ -1165,7 +1163,7 @@ impl Bit2c {
             orderUnified = order.clone();
         }
         let mut id: Option<String> = self.safe_string_k(orderUnified.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(orderUnified.clone(), "created", Value::Int(1000), &[]).as_i64();
         // status field vary between responses
         // bit2c status type:
@@ -1238,7 +1236,7 @@ impl Bit2c {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market);
 
     Value::Null
 }
@@ -1347,9 +1345,8 @@ impl Bit2c {
         return newString.as_str().map(str::to_owned);
 }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public fetchTrades
         //
@@ -1402,7 +1399,7 @@ impl Bit2c {
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]).as_str().map(str::to_owned);
             let mut reference_parts: Vec<Value> = Value::Array(if let Some(__s) = reference.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "pair", &[]).as_str().map(str::to_owned);
-            let mut marketByPair: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]));
+            let mut marketByPair: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]));
             tradeMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[reference_parts.get(0).cloned().unwrap_or(Value::Null), marketByPair]));
             let mut isMaker: bool = self.safe_bool_k(trade.clone(), "isMaker", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             makerOrTaker = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
@@ -1427,7 +1424,7 @@ impl Bit2c {
             id = self.safe_string_k(trade.clone(), "tid", &[]);
             price = self.safe_string_k(trade.clone(), "price", &[]);
             amount = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
-            tradeMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[Value::Null, market]));
+            tradeMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[Value::Null, crate::Value::from(market)]));
             side = self.safe_value_k(trade.clone(), "isBid", &[]);
             if (side != Value::Null) {
                 // safeValue already drops an empty string, so a present isBid is a buy here

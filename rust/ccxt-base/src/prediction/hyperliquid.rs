@@ -55,21 +55,21 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         // Forward to the inherent method on Hyperliquid.
         Hyperliquid::nonce(self, )
     }
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Hyperliquid.
-        Hyperliquid::parse_ohlcv(self, ohlcv, &[market])
+        Hyperliquid::parse_ohlcv(self, ohlcv, market)
     }
-    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Hyperliquid.
-        Hyperliquid::parse_prediction_trade(self, trade, &[market])
+        Hyperliquid::parse_prediction_trade(self, trade, market)
     }
-    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Hyperliquid.
-        Hyperliquid::parse_prediction_order(self, order, &[market])
+        Hyperliquid::parse_prediction_order(self, order, market)
     }
-    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_position(&self, position: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Hyperliquid.
-        Hyperliquid::parse_prediction_position(self, position, &[market])
+        Hyperliquid::parse_prediction_position(self, position, market)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Hyperliquid.
@@ -120,13 +120,13 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "outcome_asset_id" => self.outcome_asset_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "outcome_encoding" => self.outcome_encoding(args.get(0).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_outcome_description" => self.parse_outcome_description(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()),
                 "parse_outcome_market" => self.parse_outcome_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "resolve_outcome_input" => self.resolve_outcome_input(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
@@ -1043,7 +1043,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_prediction_ticker(&tickerData, &[outcomeObj]);
+        return self.parse_prediction_ticker(&tickerData, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -1139,11 +1139,11 @@ impl Hyperliquid {
             }
             // Build minimal ticker from mid price
             let mut ticker: Value = self.parse_prediction_ticker(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("levels".to_string(), Value::from(vec![Value::from(vec![]), Value::from(vec![])]));
-        m.insert("mid".to_string(), Value::from(mid));
-    m
-}), &[outcomeObj]);
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("levels".to_string(), Value::from(vec![Value::from(vec![]), Value::from(vec![])]));
+                    m.insert("mid".to_string(), Value::from(mid));
+                m
+            }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
             tickers.insert(crate::runtime::stringify_param(&outcomeHandle), ticker);
         }
         }
@@ -1161,9 +1161,8 @@ impl Hyperliquid {
  * @param {object} [market] the market the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut raw: Value = raw.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "coin": "#10",
@@ -1176,7 +1175,7 @@ impl Hyperliquid {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(raw.clone(), "time", &[]).as_i64();
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
-        let mut mkt: crate::value::Dict = self.safe_outcome(Value::Null, &[market.clone()]).into_dict();
+        let mut mkt: crate::value::Dict = self.safe_outcome(Value::Null, &[crate::Value::from(market)]).into_dict();
         let mut outcome: Option<String> = self.safe_string_k(&mkt, "outcome", &[]).as_str().map(str::to_owned);
         let mut levels: crate::value::List = self.safe_list_k(raw.clone(), "levels", &[Value::from(vec![])]).into_list();
         let mut rawBids: crate::value::List = self.safe_list(&levels, Value::Int(0), &[Value::from(vec![])]).into_list();
@@ -1235,7 +1234,7 @@ impl Hyperliquid {
         m.insert("quoteVolume".to_string(), Value::from(dayVolume));
         m.insert("info".to_string(), raw);
     m
-}), &[market]);
+}), &[crate::Value::from(market)]);
 
     Value::Null
 }
@@ -1420,8 +1419,7 @@ impl Hyperliquid {
  * @param {object} [market] the market the candle belongs to
  * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
  */
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
@@ -1599,7 +1597,7 @@ impl Hyperliquid {
                     m.insert("markPx".to_string(), __ws_arg_7);
                 m
             })]).into_dict();
-            positions.push(self.parse_prediction_position(&enriched, &[outcomeObj]));
+            positions.push(self.parse_prediction_position(&enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()));
         }
         }
         return Value::from(positions);
@@ -1616,13 +1614,12 @@ impl Hyperliquid {
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut position: Value = position.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
         // value / entry price / pnl for outcome tokens, so they are computed here
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(Value::Null, &[market]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(Value::Null, &[crate::Value::from(market)]).into_dict();
         let mut totalStr: Option<String> = self.safe_string_k(position.clone(), "total", &[]).as_str().map(str::to_owned);
         let mut total: Value = self.parse_number(totalStr.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut entryNtlStr: Option<String> = self.safe_string_k(position.clone(), "entryNtl", &[]).as_str().map(str::to_owned);
@@ -2390,7 +2387,7 @@ impl Hyperliquid {
             orderStatus = response.clone();
         }
         let mut orderWrapper: Value = self.safe_dict_k(orderStatus.clone(), "order", &[orderStatus.clone()]);
-        let mut parsed: Value = self.parse_prediction_order(orderWrapper, &[Value::Null]);
+        let mut parsed: Value = self.parse_prediction_order(orderWrapper, None);
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
@@ -2413,9 +2410,8 @@ impl Hyperliquid {
  * @param {object} [market] the market the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // from frontendOpenOrders:
         // {
@@ -2438,11 +2434,11 @@ impl Hyperliquid {
         let mut entry: Value = self.safe_dict_k(order.clone(), "order", &[order.clone()]); // eslint-disable-line
         let mut status: Option<String> = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("ccxtStatus".into()), Value::Str("status".into()), &[])).as_str());
         let mut coin: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(coin.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(coin.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        let mut resolvedMarket: Value = market.clone();
+        let mut resolvedMarket: Value = crate::Value::from(market);
         if (marketSymbol.is_some()) && (marketSymbol.as_deref() != Some("")) {
-            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), market]));
+            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]));
         }
         let mut sideRaw: Option<String> = self.safe_string_k(&entry, "side", &[]).as_str().map(str::to_owned);
         let mut side: String = "sell".to_string();
@@ -2673,9 +2669,8 @@ impl Hyperliquid {
  * @param {object} [market] the market the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // {
         //   "closedPnl": "0.19343",
@@ -2699,11 +2694,11 @@ impl Hyperliquid {
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "px", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "sz", &[]).as_str().map(str::to_owned);
         let mut coin: Option<String> = self.safe_string_k(trade.clone(), "coin", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(coin.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(coin.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        let mut resolvedMarket: Value = market.clone();
+        let mut resolvedMarket: Value = crate::Value::from(market);
         if (marketSymbol.is_some()) && (marketSymbol.as_deref() != Some("")) {
-            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), market]));
+            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]));
         }
         let mut rawSide: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: String = "sell".to_string();
@@ -2978,7 +2973,7 @@ impl Hyperliquid {
 }
 
     pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
-        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(outcome.as_str().unwrap_or_default())).into_dict();
+        let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2997,7 +2992,7 @@ impl Hyperliquid {
 }
 
     pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Value {
-        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(outcome.as_str().unwrap_or_default())).into_dict();
+        let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
