@@ -1227,7 +1227,7 @@ export default class polymarket extends Exchange {
         //         ]
         //     }
         //
-        const schedule: Dict[] = this.safeList (response, 'fee_schedule', []);
+        const schedule = this.safeList (response, 'fee_schedule', []);
         const byCategory: Dict = {};
         for (let i = 0; i < schedule.length; i++) {
             const entry = schedule[i];
