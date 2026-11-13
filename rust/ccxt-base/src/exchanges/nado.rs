@@ -2143,9 +2143,9 @@ impl Nado {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires walletAddress".into()))));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(self.currency(code.clone()));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName, Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2165,8 +2165,8 @@ impl Nado {
                 m.insert("limit".to_string(), Value::Map(limitRequest));
             m
         });
-        if (currency != Value::Null) {
-            eventsRequest.insert("product_ids".into(), Value::from(vec![self.parse_to_int(currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]));
+        if (currency.is_some()) {
+            eventsRequest.insert("product_ids".into(), Value::from(vec![self.parse_to_int(crate::value::KeyRead::key_read(&&currency, "id"))]));
         }
         let eventsRequestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("max_time".into()), Value::Map(eventsRequest), &paramsSubaccount, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut eventsRequestUntil: Value = eventsRequestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2240,7 +2240,7 @@ impl Nado {
             }), &[tx]);
             transaction = self.extend(transaction.clone(), &[event]);
             add_element_to_object(&mut transaction, &Value::Str("transaction_type".into()), transactionType.clone());
-            transactions.push(self.parse_transaction(transaction, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref()));
+            transactions.push(self.parse_transaction(transaction, currency.as_ref()));
         }
         }
         return self.filter_by_currency_since_limit(Value::from(transactions), &[code, since, limit]);

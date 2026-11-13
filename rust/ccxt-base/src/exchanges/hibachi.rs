@@ -2719,7 +2719,7 @@ impl Hibachi {
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
-        m.insert("currency".to_string(), self.currency(Value::Str("USDT".into())));
+        m.insert("currency".to_string(), Value::Str("USDT".into()));
         m.insert("account".to_string(), self.number_to_string(self.accountId.clone()));
         m.insert("referenceAccount".to_string(), referenceAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceId".to_string(), referenceId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2766,7 +2766,7 @@ impl Hibachi {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(Value::Str("USDT".into()));
+        let mut currency: crate::types::Currency = self.currency(Value::Str("USDT".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
@@ -2859,7 +2859,7 @@ impl Hibachi {
         //
         let mut rowsTradingHistory: Value = self.safe_list_k(&responseTradingHistory, "tradingHistory", &[Value::from(vec![])]);
         let mut rows: Value = self.array_concat(rowsCapitalHistory, rowsTradingHistory);
-        return self.parse_ledger(rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, params]);
+        return self.parse_ledger(rows, Some(&currency), &[since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -2966,7 +2966,7 @@ impl Hibachi {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut currency: Value = self.safe_currency(code, None);
+        let mut currency: crate::types::Currency = self.safe_currency(code, None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
@@ -3006,7 +3006,7 @@ impl Hibachi {
         //     ]
         // }
         let mut transactions: crate::value::List = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&transactions, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, params]);
+        return self.parse_transactions(&transactions, Some(&currency), &[since, limit, params]);
         Value::Null
         }).await?))
     }

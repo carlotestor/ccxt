@@ -4178,10 +4178,10 @@ impl Modetrade {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
-            request.insert("token".into(), self.safe_string_k(currency.clone(), "id", &[]));
+            currency = Some(self.currency(code));
+            request.insert("token".into(), self.safe_string_k(&currency, "id", &[]));
         }
         if (since != Value::Null) {
             request.insert("start_t".into(), since);
@@ -4225,7 +4225,8 @@ impl Modetrade {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return Value::from(vec![currency, self.safe_list_k(&data, "rows", &[Value::from(vec![])])]);
+        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
+        return rows;
 
     Value::Null
 }
@@ -4248,7 +4249,7 @@ impl Modetrade {
         //
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "token", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone());
-        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
+        let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut amount: Option<f64> = self.safe_number_k(item.clone(), "amount", &[]).as_f64();
         let mut side: Option<String> = self.safe_string_k(item.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut direction: Value = Value::Null;
@@ -4284,7 +4285,7 @@ impl Modetrade {
         m.insert("type".to_string(), self.parse_ledger_entry_type((self.safe_string2(item.clone(), Value::Str("type".into()), Value::Str("side".into()), &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), item);
     m
-}), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currencyResolved).as_ref());
+}), Some(&currencyResolved));
 
     Value::Null
 }
@@ -4326,10 +4327,12 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut currencyRows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[params.clone()]).await;
-        let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
-        let mut rows: Value = self.safe_list(currencyRows, Value::Int(1), &[]);
-        return self.parse_ledger(rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, params]);
+        let mut rows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[params.clone()]).await;
+        let mut currency: Option<crate::types::Currency> = None;
+        if (code != Value::Null) {
+            currency = Some(self.currency(code));
+        }
+        return self.parse_ledger(rows, currency.as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -4514,9 +4517,11 @@ impl Modetrade {
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[params.clone()]);
-        let mut currencyRows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_32]).await;
-        let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
-        let mut rows: crate::value::List = self.safe_list(currencyRows, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut rows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_32]).await;
+        let mut currency: Option<crate::types::Currency> = None;
+        if (code != Value::Null) {
+            currency = Some(self.currency(code));
+        }
         //
         //     {
         //         "rows":[],
@@ -4529,7 +4534,7 @@ impl Modetrade {
         //     }
         //
         let mut paramsOmitted: Value = self.omit(params, Value::Str("side".into()), &[]); // request-side filter, not a unified transaction field
-        return self.parse_transactions(&rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, paramsOmitted]);
+        return self.parse_transactions(rows, currency.as_ref(), &[since, limit, paramsOmitted]);
         Value::Null
         }).await?))
     }
@@ -4602,13 +4607,13 @@ impl Modetrade {
         if (codeUpper != "USDC") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
-        let mut currency: Value = self.currency(Value::from(codeUpper.clone()));
+        let mut currency: crate::types::Currency = self.currency(Value::from(codeUpper.clone()));
         let mut verifyingContractAddress: Option<String> = self.safe_string_k(self.options.clone(), "verifyingContractAddress", &[]).as_str().map(str::to_owned);
         let mut chainId: Option<String> = self.safe_string_k(params.clone(), "chainId", &[]).as_str().map(str::to_owned);
-        let mut currencyNetworks: crate::value::Dict = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut currencyNetworks: crate::value::Dict = self.safe_dict_k(&currency, "networks", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut coinNetwork: Value = (if (chainId.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4707,7 +4712,7 @@ impl Modetrade {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_transaction(&data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        return self.parse_transaction(&data, Some(&currency));
         Value::Null
         }).await?))
     }

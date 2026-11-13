@@ -6045,8 +6045,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //
             // the sub-account branches below already hand back the unified structure; the
             // spot <> swap branch returned the raw acknowledgement, breaking the shape
-            let mut currency: Value = self.safe_currency(code.clone(), None);
-            return self.parse_transfer(transferResponse, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref());
+            let mut currency: crate::types::Currency = self.safe_currency(code.clone(), None);
+            return self.parse_transfer(transferResponse, Some(&currency));
         }
         // transfer between main account and subaccount
         let mut isDeposit: bool = false;
@@ -6080,11 +6080,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if useSendAsset {
             let mut paramsSendAsset: Value = query;
-            let mut sendAssetCurrency: Value = self.currency(code.clone());
-            let mut sendAssetCurrencyInfo: crate::value::Dict = self.safe_dict_k(sendAssetCurrency.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut sendAssetCurrency: crate::types::Currency = self.currency(code.clone());
+            let mut sendAssetCurrencyInfo: crate::value::Dict = self.safe_dict_k(&sendAssetCurrency, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut sendAssetToken: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&sendAssetCurrencyInfo, "name", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&sendAssetCurrencyInfo, "tokenId", &[Value::Str("".into())]));
             // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
             // keeps every balance in the spot clearinghouse so spot is the default on both sides
@@ -6125,7 +6125,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let mut sendAssetResponse: Value = self.private_post_exchange(&[Value::Map(sendAssetRequest)]).await;
-            return self.parse_transfer(sendAssetResponse, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(sendAssetCurrency).as_ref());
+            return self.parse_transfer(sendAssetResponse, Some(&sendAssetCurrency));
         }
         // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
@@ -6151,18 +6151,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
-            return self.parse_transfer(response.clone(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(self.safe_currency(code.clone(), None)).as_ref());
+            return self.parse_transfer(response.clone(), Some(&self.safe_currency(code.clone(), None)));
         }  else {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
             // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a currency code for spot sub-account transfers".into()))));
             }
-            let mut currency: Value = self.currency(code);
-            let mut currencyInfo: crate::value::Dict = self.safe_dict_k(currency.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut currency: crate::types::Currency = self.currency(code);
+            let mut currencyInfo: crate::value::Dict = self.safe_dict_k(&currency, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut action: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountSpotTransfer".into()));
@@ -6181,7 +6181,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let mut response: Value = self.private_post_exchange(&[request]).await;
-            return self.parse_transfer(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+            return self.parse_transfer(response, Some(&currency));
         }
         Value::Null
         }).await?))

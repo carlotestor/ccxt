@@ -2580,7 +2580,7 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code);
         let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut sinceResolved: Value = since.clone();
         if (since == Value::Null) {
@@ -2588,7 +2588,7 @@ impl Coinbaseinternational {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("start_timestamp".to_string(), sinceResolved);
                 m.insert("end_timestamp".to_string(), Value::from(now));
                 m.insert("query".to_string(), Value::Str("transfer".into()));
@@ -2647,7 +2647,7 @@ impl Coinbaseinternational {
             m
         })]).into_dict();
         let mut transfers: crate::value::List = self.safe_list_k(&result, "logs", &[Value::from(vec![])]).into_list();
-        return self.parse_transfers(&transfers, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
+        return self.parse_transfers(&transfers, Some(&currency), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2975,7 +2975,7 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code);
         let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut sinceResolved: Value = since.clone();
         if (since == Value::Null) {
@@ -2983,7 +2983,7 @@ impl Coinbaseinternational {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("start_timestamp".to_string(), sinceResolved);
                 m.insert("end_timestamp".to_string(), Value::from(now));
             m
@@ -3042,7 +3042,7 @@ impl Coinbaseinternational {
         })]).into_dict();
         let mut logs: crate::value::List = self.safe_list_k(&result, "logs", &[Value::from(vec![])]).into_list();
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
-            return self.parse_transactions(Value::Arr(logs.clone()), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref(), &[since.clone(), limit.clone()]);
+            return self.parse_transactions(Value::Arr(logs.clone()), Some(&currency), &[since.clone(), limit.clone()]);
         }
         let mut transactions: Vec<Value> = Vec::new();
         {
@@ -3056,7 +3056,7 @@ impl Coinbaseinternational {
             }
         }
         }
-        return self.parse_transactions(Value::from(transactions), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
+        return self.parse_transactions(Value::from(transactions), Some(&currency), &[since, limit]);
         Value::Null
         }).await?))
     }

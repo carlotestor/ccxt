@@ -4451,9 +4451,9 @@ impl Paradex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.safe_currency(code, None);
+            currency = Some(self.safe_currency(code, None));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -4497,7 +4497,7 @@ impl Paradex {
             add_element_to_object(get_value_mut(&mut rows, &Value::Int(i)), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
-        return self.parse_transfers(rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
+        return self.parse_transfers(rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

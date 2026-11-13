@@ -2548,9 +2548,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (symbol.is_some()) {
                 market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
-            let mut currencyCode: Value = Value::Null;
+            let mut currencyCode: Option<crate::types::Currency> = None;
             if (currency.is_some()) {
-                currencyCode = self.currency(currency.map(Value::from).unwrap_or(Value::Null));
+                currencyCode = Some(self.currency(currency.map(Value::from).unwrap_or(Value::Null)));
             }
             marginMode = self.safe_string_k(paramsOmitted, "margin", &[Value::Str("cross".into())]).as_str().map(str::to_owned);
             let mut prefix: String = "accounts".to_string();
@@ -2578,8 +2578,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         }
                     }  else {
                         // cross margin
-                        if (currencyCode != Value::Null) {
-                            channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(".".into())).into()), self.safe_string_k(currencyCode.clone(), "id", &[Value::Str("".into())])).into());
+                        if (currencyCode.is_some()) {
+                            channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(".".into())).into()), self.safe_string_k(&currencyCode, "id", &[Value::Str("".into())])).into());
                             messageHash = channel.clone();
                         }  else {
                             // subscribe to all
@@ -2589,8 +2589,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }  else if (type_var.as_deref() == Some("future")) {
                 // inverse futures account
-                if (currencyCode != Value::Null) {
-                    messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), self.safe_string_k(currencyCode, "id", &[Value::Str("".into())])).into())).into());
+                if (currencyCode.is_some()) {
+                    messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), self.safe_string_k(&currencyCode, "id", &[Value::Str("".into())])).into())).into());
                     channel = messageHash.clone();
                 }  else {
                     // subscribe to all
