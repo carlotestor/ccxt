@@ -3109,7 +3109,8 @@ class woo extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return array( $currency, $this->safe_list($data, 'rows', array()) );
+        $rows = $this->safe_list($data, 'rows', array());
+        return $rows;
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3128,9 +3129,11 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1);
+        $rows = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
@@ -3195,19 +3198,15 @@ class woo extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function get_currency_from_chaincode(string $networkizedCode, ?array $currency = null): array {
-        if ($currency !== null) {
-            return $currency;
-        } else {
-            $parts = explode('_', $networkizedCode);
-            $partsLength = count($parts);
-            $firstPart = $this->safe_string($parts, 0);
-            $currencyId = $this->safe_string($parts, 1, $firstPart);
-            if ($partsLength > 2) {
-                $currencyId .= '_' . $this->safe_string($parts, 2, '');
-            }
-            return $this->safe_currency($currencyId);
+    public function get_currency_code_from_chaincode(string $networkizedCode): ?string {
+        $parts = explode('_', $networkizedCode);
+        $partsLength = count($parts);
+        $firstPart = $this->safe_string($parts, 0);
+        $currencyId = $this->safe_string($parts, 1, $firstPart);
+        if ($partsLength > 2) {
+            $currencyId .= '_' . $this->safe_string($parts, 2, '');
         }
+        return $this->safe_currency_code($currencyId);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3273,9 +3272,11 @@ class woo extends Exchange {
         $request = array(
             'type' => 'BALANCE',
         );
-        $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1, array());
+        $rows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         return $this->parse_transactions($rows, $currency, $since, $limit, $this->omit($params, 'tokenSide'));
     }
 
@@ -3303,8 +3304,12 @@ class woo extends Exchange {
         //     }
         //
         $networkizedCode = $this->safe_string($transaction, 'token', '');
-        $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
-        $code = $this->safe_string($currencyDefined, 'code');
+        $code = null;
+        if ($currency !== null) {
+            $code = $this->safe_string($currency, 'code');
+        } else {
+            $code = $this->get_currency_code_from_chaincode($networkizedCode);
+        }
         $movementDirection = $this->safe_string_lower_n($transaction, array( 'token_side', 'tokenSide', 'type' ));
         if ($movementDirection === 'withdraw') {
             $movementDirection = 'withdrawal';
