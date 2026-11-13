@@ -3306,7 +3306,8 @@ public partial class woo : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return new List<object>() {currency, this.safeList(data, "rows", new List<object>() {})};
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
+        return rows;
     }
 
     /**
@@ -3323,9 +3324,12 @@ public partial class woo : Exchange
     public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> currencyRows = await this.getAssetHistoryRows(code, since, limit, parameters);
-        object currency = this.safeValue(currencyRows, 0);
-        List<object> rows = this.safeList(currencyRows, 1);
+        List<object> rows = await this.getAssetHistoryRows(code, since, limit, parameters);
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+        }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit, parameters));
     }
 
@@ -3393,23 +3397,17 @@ public partial class woo : Exchange
         return this.safeString(types, type, type);
     }
 
-    public virtual object getCurrencyFromChaincode(string networkizedCode, object currency = null)
+    public virtual string? getCurrencyCodeFromChaincode(string networkizedCode)
     {
-        if ((currency != null))
+        List<object> parts = networkizedCode.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        int partsLength = parts.Count;
+        string? firstPart = this.safeString(parts, 0);
+        object currencyId = this.safeString(parts, 1, firstPart);
+        if (partsLength > 2)
         {
-            return currency;
-        } else
-        {
-            List<object> parts = networkizedCode.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            int partsLength = parts.Count;
-            string? firstPart = this.safeString(parts, 0);
-            object currencyId = this.safeString(parts, 1, firstPart);
-            if (partsLength > 2)
-            {
-                currencyId = ((object)(currencyId == null ? null : currencyId + ("_" + this.safeString(parts, 2, ""))));
-            }
-            return this.safeCurrency(currencyId);
+            currencyId = ((object)(currencyId == null ? null : currencyId + ("_" + this.safeString(parts, 2, ""))));
         }
+        return this.safeCurrencyCode(currencyId);
     }
 
     /**
@@ -3469,9 +3467,12 @@ public partial class woo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "BALANCE" },
         };
-        List<object> currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
-        object currency = this.safeValue(currencyRows, 0);
-        List<object> rows = this.safeList(currencyRows, 1, new List<object>() {});
+        List<object> rows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+        }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit, this.omit(parameters, "tokenSide")));
     }
 
@@ -3500,8 +3501,14 @@ public partial class woo : Exchange
         //     }
         //
         string? networkizedCode = this.safeString(transaction, "token", "");
-        object currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
-        string? code = this.safeString(currencyDefined, "code");
+        object code = null;
+        if ((currency != null))
+        {
+            code = this.safeString(currency, "code");
+        } else
+        {
+            code = this.getCurrencyCodeFromChaincode(networkizedCode);
+        }
         string? movementDirection = this.safeStringLowerN(transaction, new List<object>() {"token_side", "tokenSide", "type"});
         if (movementDirection == "withdraw")
         {
