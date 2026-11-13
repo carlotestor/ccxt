@@ -4404,7 +4404,7 @@ export class BaseExchange {
                 }
             }
         }
-        const fee = this.safeValue (entry, 'fee');
+        const fee = this.safeDict (entry, 'fee');
         if (fee !== undefined) {
             fee['cost'] = this.safeNumber (fee, 'cost');
         }
@@ -4916,7 +4916,7 @@ export class BaseExchange {
                                 fees.push (this.extend ({}, tradeFee));
                             }
                         } else {
-                            const tradeFee = this.safeValue (trade, 'fee');
+                            const tradeFee = this.safeDict (trade, 'fee');
                             if (tradeFee !== undefined) {
                                 fees.push (this.extend ({}, tradeFee));
                             }
@@ -8049,7 +8049,7 @@ export class BaseExchange {
     parseBorrowInterests (response: List, market: Market = undefined): BorrowInterest[] {
         const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
-            const row = this.safeValue (response, i);
+            const row = this.safeDict (response, i);
             interests.push (this.parseBorrowInterest (row, market));
         }
         return interests as BorrowInterest[];
@@ -8062,7 +8062,7 @@ export class BaseExchange {
     parseBorrowRateHistory (response: any, code: Str, since: Int, limit: Int) {
         const result: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
-            const item = this.safeValue (response, i);
+            const item = this.safeDict (response, i);
             const borrowRate = this.parseBorrowRate (item);
             result.push (borrowRate);
         }
@@ -8073,7 +8073,7 @@ export class BaseExchange {
     parseIsolatedBorrowRates (info: List): IsolatedBorrowRates {
         const result: Dict = {};
         for (let i = 0; i < info.length; i++) {
-            const item = this.safeValue (info, i);
+            const item = this.safeDict (info, i);
             const borrowRate = this.parseIsolatedBorrowRate (item);
             const symbol = this.safeString (borrowRate, 'symbol');
             result[symbol as string] = borrowRate;
