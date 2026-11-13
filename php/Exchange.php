@@ -6300,7 +6300,7 @@ class BaseExchange {
         );
     }
 
-    public function parse_ohlcvs(?array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
+    public function parse_ohlcvs(?array $ohlcvs, ?array $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
         if ($ohlcvs === null) {
             return array();
         }
