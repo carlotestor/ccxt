@@ -1779,7 +1779,7 @@ export default class htx extends htxRest {
         if (clientPositions === undefined) {
             this.positions[url] = {};
         }
-        const rawPositions = this.safeList (message, 'data', []);
+        const rawPositions: Dict[] = this.safeList (message, 'data', []);
         if (this.isEmpty (rawPositions)) {
             const prefixes = [ 'cross:positions', 'isolated:positions' ];
             for (let i = 0; i < prefixes.length; i++) {

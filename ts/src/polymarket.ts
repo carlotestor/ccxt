@@ -410,7 +410,7 @@ export default class polymarket extends Exchange {
             this.publicGetInfoAssets (params),
         ];
         const responses = await Promise.all (promises);
-        const instruments = this.safeList (responses, 0, []);
+        const instruments: Dict[] = this.safeList (responses, 0, []);
         const assets: Dict[] = this.safeList (responses, 1, []);
         const result: Dict = {};
         for (let i = 0; i < instruments.length; i++) {
@@ -1227,7 +1227,7 @@ export default class polymarket extends Exchange {
         //         ]
         //     }
         //
-        const schedule = this.safeList (response, 'fee_schedule', []);
+        const schedule: Dict[] = this.safeList (response, 'fee_schedule', []);
         const byCategory: Dict = {};
         for (let i = 0; i < schedule.length; i++) {
             const entry = schedule[i];
