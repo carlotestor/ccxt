@@ -68,21 +68,21 @@ impl crate::exchange::DerivedExchange for Hollaex {
         // Forward to the inherent method on Hollaex.
         Hollaex::parse_balance(self, response)
     }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Hollaex.
-        Hollaex::parse_deposit_address(self, depositAddress, &[currency])
+        Hollaex::parse_deposit_address(self, depositAddress, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Hollaex.
         Hollaex::parse_currency(self, currency)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Hollaex.
-        Hollaex::parse_transaction(self, transaction, &[currency])
+        Hollaex::parse_transaction(self, transaction, currency)
     }
-    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Hollaex.
-        Hollaex::parse_deposit_withdraw_fee(self, fee, &[currency])
+        Hollaex::parse_deposit_withdraw_fee(self, fee, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Hollaex.
@@ -129,14 +129,14 @@ impl crate::exchange_generated::ExchangeBase for Hollaex {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_tickers" => self.parse_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -2127,9 +2127,8 @@ impl Hollaex {
         }).await?))
     }
 
-    pub fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut depositAddress: Value = depositAddress.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "currency":"usdt",
@@ -2149,7 +2148,7 @@ impl Hollaex {
         }
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currencyId: Option<String> = self.safe_string_k(depositAddress.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).as_map().cloned().unwrap_or_default();
+        let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency).as_map().cloned().unwrap_or_default();
         let mut networkId: Option<String> = self.safe_string_k(depositAddress.clone(), "network", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2315,7 +2314,7 @@ impl Hollaex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&data, &[currency, since, limit]);
+        return self.parse_transactions(&data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2380,7 +2379,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_transaction(&transaction, &[currency]);
+        return self.parse_transaction(&transaction, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
 
     Value::Null
 }
@@ -2453,14 +2452,13 @@ impl Hollaex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&data, &[currency, since, limit]);
+        return self.parse_transactions(&data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // fetchWithdrawals, fetchDeposits
         //
@@ -2512,7 +2510,7 @@ impl Hollaex {
             tagTo = tag.clone();
         }
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut completed: bool = self.safe_bool_k(transaction.clone(), "status", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut dismissed: bool = self.safe_bool_k(transaction.clone(), "dismissed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut rejected: bool = self.safe_bool_k(transaction.clone(), "rejected", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2617,14 +2615,13 @@ impl Hollaex {
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[])]);
         let mut response: Value = self.private_post_user_withdrawal(&[__ws_arg_17]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut fee: Value = fee.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //    "bch":{
         //        "id":4,

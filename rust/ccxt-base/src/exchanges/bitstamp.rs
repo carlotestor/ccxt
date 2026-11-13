@@ -72,25 +72,25 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         // Forward to the inherent method on Bitstamp.
         Bitstamp::parse_funding_rate(self, rate, &[market])
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Bitstamp.
-        Bitstamp::parse_ledger_entry(self, entry, &[currency])
+        Bitstamp::parse_ledger_entry(self, entry, currency)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Bitstamp.
-        Bitstamp::parse_transfer(self, transfer, &[currency])
+        Bitstamp::parse_transfer(self, transfer, currency)
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Bitstamp.
         Bitstamp::parse_funding_rate_history(self, entry, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Bitstamp.
-        Bitstamp::parse_transaction(self, transaction, &[currency])
+        Bitstamp::parse_transaction(self, transaction, currency)
     }
-    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Bitstamp.
-        Bitstamp::parse_deposit_withdraw_fee(self, fee, &[currency])
+        Bitstamp::parse_deposit_withdraw_fee(self, fee, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Bitstamp.
@@ -146,19 +146,19 @@ impl crate::exchange_generated::ExchangeBase for Bitstamp {
                 "nonce" => self.nonce(),
                 "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currencies" => self.parse_currencies(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fees" => self.parse_trading_fees(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction_fees" => self.parse_transaction_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
@@ -3146,13 +3146,10 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut fee: Value = fee.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
-        let __currency_empty = indexmap::IndexMap::new();
-        let currency = currency.as_map().unwrap_or(&__currency_empty);
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee.clone()).as_map().cloned().unwrap_or_default();
-        let mut code: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
         let mut feeEntries: crate::value::List = self.to_array(fee).into_list();
         {
                         let mut j: i64 = 0;
@@ -3745,7 +3742,7 @@ impl Bitstamp {
             currency = self.currency(code);
         }
         let mut transactions: Value = self.filter_by_array(response, Value::Str("type".into()), Value::from(vec![Value::Str("0".into()), Value::Str("1".into())]), &[Value::Bool(false)]);
-        return self.parse_transactions(transactions, &[currency, since, limit]);
+        return self.parse_transactions(transactions, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3788,14 +3785,13 @@ impl Bitstamp {
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_withdrawal_requests(&[__ws_arg_21]).await;
-        return self.parse_transactions(response, &[Value::Null, since, limit]);
+        return self.parse_transactions(response, None, &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // fetchDepositsWithdrawals
         //
@@ -3837,15 +3833,15 @@ impl Bitstamp {
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "datetime", &[])).as_i64();
         let mut currencyId: Value = self.get_currency_id_from_transaction(transaction.clone());
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), currency.clone());
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Value = Value::Null;
         let mut amount: Option<String> = None;
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("amount"))) {
             amount = self.safe_string_k(transaction.clone(), "amount", &[]).as_str().map(str::to_owned);
-        }  else if (currency != Value::Null) {
-            amount = self.safe_string(transaction.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-            feeCurrency = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
+        }  else if (currency.is_some()) {
+            amount = self.safe_string(transaction.clone(), crate::value::KeyRead::key_read(&currency, "id"), &[]).as_str().map(str::to_owned);
+            feeCurrency = crate::value::KeyRead::key_read(&currency, "code");
         }  else if (code.is_some()) && (currencyId != Value::Null) {
             amount = self.safe_string(transaction.clone(), currencyId, &[]).as_str().map(str::to_owned);
             feeCurrency = code.clone().map(Value::from).unwrap_or(Value::Null);
@@ -4066,9 +4062,8 @@ impl Bitstamp {
         return self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut item: Value = item.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     [
         //         {
@@ -4135,13 +4130,13 @@ impl Bitstamp {
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("fee".to_string(), parsedTrade.get("fee").cloned().unwrap_or(Value::Null));
     m
-}), &[currency.clone()]);
+}), currency.clone());
         }  else {
-            let mut parsedTransaction: indexmap::IndexMap<String, Value> = self.parse_transaction(item.clone(), &[currency.clone()]).as_map().cloned().unwrap_or_default();
+            let mut parsedTransaction: indexmap::IndexMap<String, Value> = self.parse_transaction(item.clone(), currency.clone()).as_map().cloned().unwrap_or_default();
             let mut direction: Value = Value::Null;
             let mut transactionCurrency: Option<String> = self.safe_string(Value::Map(parsedTransaction.clone()), Value::Str("currency".into()), &[]).as_str().map(str::to_owned);
             let mut hasTransactionCurrency: bool = !(matches!(&item, Value::Dict(__d) if __d.contains_key("amount"))) && (transactionCurrency.is_some());
-            let mut currencyResolved: Value = currency.clone();
+            let mut currencyResolved: Value = crate::Value::from(currency);
             if hasTransactionCurrency {
                 currencyResolved = self.currency(self.safe_string(Value::Map(parsedTransaction.clone()), Value::Str("currency".into()), &[]));
             }
@@ -4170,7 +4165,7 @@ impl Bitstamp {
         m.insert("status".to_string(), parsedTransaction.get("status").cloned().unwrap_or(Value::Null));
         m.insert("fee".to_string(), parsedTransaction.get("fee").cloned().unwrap_or(Value::Null));
     m
-}), &[currencyResolved]);
+}), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currencyResolved).as_ref());
         }
 
     Value::Null
@@ -4216,7 +4211,7 @@ impl Bitstamp {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        return self.parse_ledger(response, &[currency, since, limit]);
+        return self.parse_ledger(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4460,7 +4455,7 @@ impl Bitstamp {
             let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
             response = self.private_post_withdrawal_open(&[__ws_arg_26]).await;
         }
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
@@ -4517,7 +4512,7 @@ impl Bitstamp {
         //
         //    { status: 'ok' }
         //
-        let mut transfer: Value = self.parse_transfer(response, &[currency]);
+        let mut transfer: Value = self.parse_transfer(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
         if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
         if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
@@ -4526,14 +4521,13 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //    { status: 'ok' }
         //
         let mut status: Option<String> = self.safe_string_k(transfer.clone(), "status", &[]).as_str().map(str::to_owned);
-        if (currency == Value::Null) {
+        if (currency.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseTransfer() could not resolve currency".into()))));
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -4542,7 +4536,7 @@ impl Bitstamp {
                 m.insert("id".to_string(), Value::Null);
                 m.insert("timestamp".to_string(), Value::Null);
                 m.insert("datetime".to_string(), Value::Null);
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), crate::value::KeyRead::key_read(&currency, "code"));
                 m.insert("amount".to_string(), Value::Null);
                 m.insert("fromAccount".to_string(), Value::Null);
                 m.insert("toAccount".to_string(), Value::Null);

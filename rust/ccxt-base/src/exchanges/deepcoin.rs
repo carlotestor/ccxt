@@ -76,25 +76,25 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         // Forward to the inherent method on Deepcoin.
         Deepcoin::parse_funding_rate(self, rate, &[market])
     }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Deepcoin.
-        Deepcoin::parse_deposit_address(self, depositAddress, &[currency])
+        Deepcoin::parse_deposit_address(self, depositAddress, currency)
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Deepcoin.
-        Deepcoin::parse_ledger_entry(self, entry, &[currency])
+        Deepcoin::parse_ledger_entry(self, entry, currency)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Deepcoin.
-        Deepcoin::parse_transfer(self, transfer, &[currency])
+        Deepcoin::parse_transfer(self, transfer, currency)
     }
     fn parse_funding_rate_history(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Deepcoin.
         Deepcoin::parse_funding_rate_history(self, entry, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Deepcoin.
-        Deepcoin::parse_transaction(self, transaction, &[currency])
+        Deepcoin::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Deepcoin.
@@ -157,17 +157,17 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
                 "handle_market_type_and_params" => self.handle_market_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "handle_type_post_only_and_time_in_force" => self.handle_type_post_only_and_time_in_force(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "set_markets" => self.set_markets(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1816,7 +1816,7 @@ impl Deepcoin {
                 m.insert("type".to_string(), Value::Str("deposit".into()));
             m
         });
-        return self.parse_transactions(&items, &[currency, since, limit, Value::Map(transactionParams)]);
+        return self.parse_transactions(&items, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, Value::Map(transactionParams)]);
         Value::Null
         }).await?))
     }
@@ -1888,14 +1888,13 @@ impl Deepcoin {
                 m.insert("type".to_string(), Value::Str("withdrawal".into()));
             m
         });
-        return self.parse_transactions(&items, &[currency, since, limit, Value::Map(transactionParams)]);
+        return self.parse_transactions(&items, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, Value::Map(transactionParams)]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // fetchDeposits
         //     {
@@ -1909,7 +1908,7 @@ impl Deepcoin {
         //
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txHash", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "coin", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(transaction.clone(), "createTime", &[]).as_i64();
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "chainName", &[]).as_str().map(str::to_owned);
@@ -2103,11 +2102,8 @@ impl Deepcoin {
         }).await?))
     }
 
-    pub fn parse_deposit_address(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_address(&self, response: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut response: Value = response.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
-        let __currency_empty = indexmap::IndexMap::new();
-        let currency = currency.as_map().unwrap_or(&__currency_empty);
         //
         //     {
         //         "chain": "TRC20",
@@ -2129,7 +2125,7 @@ impl Deepcoin {
         let mut chain: Option<String> = self.safe_string_k(response.clone(), "chain", &[]).as_str().map(str::to_owned);
         let mut address: Option<String> = self.safe_string_k(response.clone(), "address", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut code: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -2225,14 +2221,13 @@ impl Deepcoin {
         //     }
         //
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ledger(data, &[currency, since, limit]);
+        return self.parse_ledger(data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut item: Value = item.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "billId": "1001044652247714",
@@ -2252,7 +2247,7 @@ impl Deepcoin {
             direction = "out".to_string();
         }
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "ccy", &[]).as_str().map(str::to_owned);
-        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut type_var: Option<String> = self.safe_string_k(item.clone(), "type", &[]).as_str().map(str::to_owned);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2272,7 +2267,7 @@ impl Deepcoin {
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[currencyResolved]);
+}), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currencyResolved).as_ref());
 
     Value::Null
 }
@@ -2366,7 +2361,7 @@ impl Deepcoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut transfer: Value = self.parse_transfer(&data, &[currency]);
+        let mut transfer: Value = self.parse_transfer(&data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2382,9 +2377,8 @@ impl Deepcoin {
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "retCode": 0,
@@ -2393,7 +2387,7 @@ impl Deepcoin {
         //     }
         //
         let mut status: Option<String> = self.safe_string_k(transfer.clone(), "retCode", &[]).as_str().map(str::to_owned);
-        let mut currencyCode: Option<String> = self.safe_currency_code(Value::Null, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut currencyCode: Option<String> = self.safe_currency_code(Value::Null, currency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer);

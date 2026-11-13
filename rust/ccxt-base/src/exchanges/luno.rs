@@ -68,13 +68,13 @@ impl crate::exchange::DerivedExchange for Luno {
         // Forward to the inherent method on Luno.
         Luno::parse_balance(self, response)
     }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Luno.
-        Luno::parse_deposit_address(self, depositAddress, &[currency])
+        Luno::parse_deposit_address(self, depositAddress, currency)
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Luno.
-        Luno::parse_ledger_entry(self, entry, &[currency])
+        Luno::parse_ledger_entry(self, entry, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Luno.
@@ -124,9 +124,9 @@ impl crate::exchange_generated::ExchangeBase for Luno {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ledger_comment" => self.parse_ledger_comment(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -2153,7 +2153,7 @@ impl Luno {
         let __ws_arg_15 = self.extend(params, &[Value::Map(request)]);
         let mut response: crate::value::Dict = self.private_get_accounts_id_transactions(&[__ws_arg_15]).await.into_dict();
         let mut entries: Value = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]);
-        return self.parse_ledger(entries, &[currency, since, limit]);
+        return self.parse_ledger(entries, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2197,16 +2197,15 @@ impl Luno {
     Value::Null
 }
 
-    pub fn parse_ledger_entry(&self, entry: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, entry: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut entry: Value = entry.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         // const details = this.safeValue (entry, 'details', {});
         let mut id: Option<String> = self.safe_string_k(entry.clone(), "row_index", &[]).as_str().map(str::to_owned);
         let mut account_id: Option<String> = self.safe_string_k(entry.clone(), "account_id", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref());
-        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone());
+        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut available_delta: Option<String> = self.safe_string_k(entry.clone(), "available_delta", &[]).as_str().map(str::to_owned);
         let mut balance_delta: Option<String> = self.safe_string_k(entry.clone(), "balance_delta", &[]).as_str().map(str::to_owned);
         let mut after: Option<String> = self.safe_string_k(entry.clone(), "balance", &[]).as_str().map(str::to_owned);
@@ -2252,7 +2251,7 @@ impl Luno {
         m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[currencyResolved]);
+}), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currencyResolved).as_ref());
 
     Value::Null
 }
@@ -2291,7 +2290,7 @@ impl Luno {
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_funding_address(&[__ws_arg_16]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
@@ -2329,14 +2328,13 @@ impl Luno {
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_funding_address(&[__ws_arg_17]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut depositAddress: Value = depositAddress.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "account_id": "string",
@@ -2358,7 +2356,7 @@ impl Luno {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string_upper_k(depositAddress.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());

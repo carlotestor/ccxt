@@ -68,9 +68,9 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         // Forward to the inherent method on Tokocrypto.
         Tokocrypto::parse_ohlcv(self, ohlcv, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Tokocrypto.
-        Tokocrypto::parse_transaction(self, transaction, &[currency])
+        Tokocrypto::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Tokocrypto.
@@ -118,7 +118,7 @@ impl crate::exchange_generated::ExchangeBase for Tokocrypto {
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -3126,7 +3126,7 @@ impl Tokocrypto {
             m
         })]).into_dict();
         let mut deposits: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&deposits, &[currency, since, limit]);
+        return self.parse_transactions(&deposits, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3207,7 +3207,7 @@ impl Tokocrypto {
             m
         })]).into_dict();
         let mut withdrawals: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&withdrawals, &[currency, since, limit]);
+        return self.parse_transactions(&withdrawals, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3243,9 +3243,8 @@ impl Tokocrypto {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // fetchDeposits
         //
@@ -3302,7 +3301,7 @@ impl Tokocrypto {
             txid = txid.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(18); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         }
         let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("coin".into()), Value::Str("fiatCurrency".into()), &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = None;
         let mut insertTime: Option<i64> = self.safe_integer_k(transaction.clone(), "insertTime", &[]).as_i64();
         let mut createTime: Option<i64> = self.safe_integer2(transaction.clone(), Value::Str("createTime".into()), Value::Str("timestamp".into()), &[]).as_i64();
@@ -3422,7 +3421,7 @@ impl Tokocrypto {
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
         let mut response: Value = self.private_post_open_v1_withdraws(&[__ws_arg_19]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }

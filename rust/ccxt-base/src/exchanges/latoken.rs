@@ -64,17 +64,17 @@ impl crate::exchange::DerivedExchange for Latoken {
         // Forward to the inherent method on Latoken.
         Latoken::parse_order(self, order, &[market])
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Latoken.
-        Latoken::parse_transfer(self, transfer, &[currency])
+        Latoken::parse_transfer(self, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Latoken.
         Latoken::parse_currency(self, currency)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Latoken.
-        Latoken::parse_transaction(self, transaction, &[currency])
+        Latoken::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Latoken.
@@ -120,8 +120,8 @@ impl crate::exchange_generated::ExchangeBase for Latoken {
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -2357,14 +2357,13 @@ impl Latoken {
             currency = self.currency(code);
         }
         let mut content: crate::value::List = self.safe_list_k(&response, "content", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&content, &[currency, since, limit]);
+        return self.parse_transactions(&content, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
@@ -2386,7 +2385,7 @@ impl Latoken {
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut addressFrom: Option<String> = self.safe_string_k(transaction.clone(), "senderAddress", &[]).as_str().map(str::to_owned);
@@ -2521,7 +2520,7 @@ impl Latoken {
         //     }
         //
         let mut transfers: crate::value::List = self.safe_list_k(&response, "content", &[Value::from(vec![])]).into_list();
-        return self.parse_transfers(&transfers, &[currency, since, limit]);
+        return self.parse_transfers(&transfers, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2576,14 +2575,13 @@ impl Latoken {
             let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_auth_transfer_phone(&[__ws_arg_26]).await;
         }
-        return self.parse_transfer(response, &[]);
+        return self.parse_transfer(response, None);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
@@ -2615,7 +2613,7 @@ impl Latoken {
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "id", &[]));
         m.insert("timestamp".to_string(), self.safe_integer_k(transfer.clone(), "timestamp", &[]));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "transferringFunds", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(transfer.clone(), "fromAccount", &[]));
         m.insert("toAccount".to_string(), self.safe_string_k(transfer, "toAccount", &[]));

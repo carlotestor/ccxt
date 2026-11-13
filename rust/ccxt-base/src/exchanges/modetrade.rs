@@ -84,9 +84,9 @@ impl crate::exchange::DerivedExchange for Modetrade {
         // Forward to the inherent method on Modetrade.
         Modetrade::parse_funding_rate(self, rate, &[market])
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Modetrade.
-        Modetrade::parse_ledger_entry(self, entry, &[currency])
+        Modetrade::parse_ledger_entry(self, entry, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Modetrade.
@@ -96,9 +96,9 @@ impl crate::exchange::DerivedExchange for Modetrade {
         // Forward to the inherent method on Modetrade.
         Modetrade::parse_open_interest(self, interest, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Modetrade.
-        Modetrade::parse_transaction(self, transaction, &[currency])
+        Modetrade::parse_transaction(self, transaction, currency)
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Modetrade.
@@ -174,7 +174,7 @@ impl crate::exchange_generated::ExchangeBase for Modetrade {
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -184,7 +184,7 @@ impl crate::exchange_generated::ExchangeBase for Modetrade {
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_token_and_fee_temp" => self.parse_token_and_fee_temp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -4230,9 +4230,8 @@ impl Modetrade {
     Value::Null
 }
 
-    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut item: Value = item.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": "230707030600002",
@@ -4248,8 +4247,8 @@ impl Modetrade {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref());
-        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone());
+        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut amount: Option<f64> = self.safe_number_k(item.clone(), "amount", &[]).as_f64();
         let mut side: Option<String> = self.safe_string_k(item.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut direction: Value = Value::Null;
@@ -4285,7 +4284,7 @@ impl Modetrade {
         m.insert("type".to_string(), self.parse_ledger_entry_type((self.safe_string2(item.clone(), Value::Str("type".into()), Value::Str("side".into()), &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), item);
     m
-}), &[currencyResolved]);
+}), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currencyResolved).as_ref());
 
     Value::Null
 }
@@ -4330,14 +4329,13 @@ impl Modetrade {
         let mut currencyRows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[params.clone()]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
         let mut rows: Value = self.safe_list(currencyRows, Value::Int(1), &[]);
-        return self.parse_ledger(rows, &[currency, since, limit, params]);
+        return self.parse_ledger(rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": "230707030600002",
@@ -4353,7 +4351,7 @@ impl Modetrade {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut movementDirection: Option<String> = self.safe_string_lower_k(transaction.clone(), "side", &[]).as_str().map(str::to_owned);
         if (movementDirection.as_deref() == Some("withdraw")) {
             movementDirection = Some("withdrawal".to_string());
@@ -4531,7 +4529,7 @@ impl Modetrade {
         //     }
         //
         let mut paramsOmitted: Value = self.omit(params, Value::Str("side".into()), &[]); // request-side filter, not a unified transaction field
-        return self.parse_transactions(&rows, &[currency, since, limit, paramsOmitted]);
+        return self.parse_transactions(&rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, paramsOmitted]);
         Value::Null
         }).await?))
     }
@@ -4709,7 +4707,7 @@ impl Modetrade {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_transaction(&data, &[currency]);
+        return self.parse_transaction(&data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }

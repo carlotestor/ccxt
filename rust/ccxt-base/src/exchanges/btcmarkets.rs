@@ -72,9 +72,9 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
         // Forward to the inherent method on Btcmarkets.
         Btcmarkets::parse_ohlcv(self, ohlcv, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Btcmarkets.
-        Btcmarkets::parse_transaction(self, transaction, &[currency])
+        Btcmarkets::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Btcmarkets.
@@ -123,7 +123,7 @@ impl crate::exchange_generated::ExchangeBase for Btcmarkets {
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -668,7 +668,7 @@ impl Btcmarkets {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_withdrawals(&[__ws_arg_2]).await;
         }
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
 
     Value::Null
 }
@@ -785,9 +785,8 @@ impl Btcmarkets {
         return self.safe_string(&statuses, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //    {
         //         "id": "6500230339",
@@ -2018,7 +2017,7 @@ impl Btcmarkets {
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_15]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }

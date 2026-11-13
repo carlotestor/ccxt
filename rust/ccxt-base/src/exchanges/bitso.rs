@@ -72,17 +72,17 @@ impl crate::exchange::DerivedExchange for Bitso {
         // Forward to the inherent method on Bitso.
         Bitso::parse_balance(self, response)
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Bitso.
-        Bitso::parse_ledger_entry(self, entry, &[currency])
+        Bitso::parse_ledger_entry(self, entry, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Bitso.
         Bitso::parse_currency(self, currency)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Bitso.
-        Bitso::parse_transaction(self, transaction, &[currency])
+        Bitso::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Bitso.
@@ -131,12 +131,12 @@ impl crate::exchange_generated::ExchangeBase for Bitso {
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_withdraw_fees" => self.parse_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -713,7 +713,7 @@ impl Bitso {
         //
         let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         let mut currency: Value = self.safe_currency(code, None);
-        return self.parse_ledger(payload, &[currency, since, limit]);
+        return self.parse_ledger(payload, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -731,9 +731,8 @@ impl Bitso {
         return self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut item: Value = item.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "eid": "2510b3e2bc1c87f584500a18084f35ed",
@@ -799,8 +798,8 @@ impl Bitso {
         let mut fee: Value = Value::Null;
         let mut amount: Option<String> = self.safe_string_k(&firstBalance, "amount", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(&firstBalance, "currency", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref());
-        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone());
+        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut details: crate::value::Dict = self.safe_dict_k(item.clone(), "details", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -844,7 +843,7 @@ impl Bitso {
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("fee".to_string(), fee);
     m
-}), &[currencyResolved]);
+}), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currencyResolved).as_ref());
 
     Value::Null
 }
@@ -2199,7 +2198,7 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_transaction(&first, &[]);
+        return self.parse_transaction(&first, None);
 
     Value::Null
 }
@@ -2260,7 +2259,7 @@ impl Bitso {
         //     }
         //
         let mut transactions: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&transactions, &[currency, since, limit, params]);
+        return self.parse_transactions(&transactions, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -2714,14 +2713,13 @@ impl Bitso {
         //
         let mut payload: crate::value::List = self.safe_list_k(response, "payload", &[Value::from(vec![])]).into_list();
         let mut first: Value = self.safe_dict(&payload, Value::Int(0), &[]);
-        return self.parse_transaction(first, &[currency]);
+        return self.parse_transaction(first, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // deposit
         //     {
@@ -2759,7 +2757,7 @@ impl Bitso {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("currency".into()), Value::Str("asset".into()), &[]).as_str().map(str::to_owned);
-        let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut details: crate::value::Dict = self.safe_dict_k(transaction.clone(), "details", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

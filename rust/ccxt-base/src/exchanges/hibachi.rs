@@ -80,13 +80,13 @@ impl crate::exchange::DerivedExchange for Hibachi {
         // Forward to the inherent method on Hibachi.
         Hibachi::parse_position(self, position, &[market])
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Hibachi.
-        Hibachi::parse_ledger_entry(self, entry, &[currency])
+        Hibachi::parse_ledger_entry(self, entry, currency)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Hibachi.
-        Hibachi::parse_transaction(self, transaction, &[currency])
+        Hibachi::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Hibachi.
@@ -148,7 +148,7 @@ impl crate::exchange_generated::ExchangeBase for Hibachi {
                 "nonce" => self.nonce(),
                 "order_message" => self.order_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str), args.get(4).and_then(crate::Value::as_str), args.get(5).cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..]),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -157,7 +157,7 @@ impl crate::exchange_generated::ExchangeBase for Hibachi {
                 "parse_settlements" => self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default()),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
@@ -2672,9 +2672,8 @@ impl Hibachi {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut item: Value = item.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut transactionType: Option<String> = self.safe_string_k(item.clone(), "transactionType", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = Value::Null;
         let mut type_var: Value = Value::Null;
@@ -2735,7 +2734,7 @@ impl Hibachi {
         m.insert("type".to_string(), type_var);
         m.insert("info".to_string(), item);
     m
-}), &[currency]);
+}), currency);
 
     Value::Null
 }
@@ -2860,7 +2859,7 @@ impl Hibachi {
         //
         let mut rowsTradingHistory: Value = self.safe_list_k(&responseTradingHistory, "tradingHistory", &[Value::from(vec![])]);
         let mut rows: Value = self.array_concat(rowsCapitalHistory, rowsTradingHistory);
-        return self.parse_ledger(rows, &[currency, since, limit, params]);
+        return self.parse_ledger(rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -2907,9 +2906,8 @@ impl Hibachi {
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(transaction.clone(), "timestampSec", Value::Int(1000), &[]).as_i64();
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "withdrawalAddress", &[]).as_str().map(str::to_owned);
         let mut transactionType: Value = self.safe_string_k(transaction.clone(), "transactionType", &[]);
@@ -3008,7 +3006,7 @@ impl Hibachi {
         //     ]
         // }
         let mut transactions: crate::value::List = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&transactions, &[currency, since, limit, params]);
+        return self.parse_transactions(&transactions, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
     }

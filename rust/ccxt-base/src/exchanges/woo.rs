@@ -84,17 +84,17 @@ impl crate::exchange::DerivedExchange for Woo {
         // Forward to the inherent method on Woo.
         Woo::parse_funding_rate(self, rate, &[market])
     }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Woo.
-        Woo::parse_deposit_address(self, depositAddress, &[currency])
+        Woo::parse_deposit_address(self, depositAddress, currency)
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Woo.
-        Woo::parse_ledger_entry(self, entry, &[currency])
+        Woo::parse_ledger_entry(self, entry, currency)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Woo.
-        Woo::parse_transfer(self, transfer, &[currency])
+        Woo::parse_transfer(self, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Woo.
@@ -104,9 +104,9 @@ impl crate::exchange::DerivedExchange for Woo {
         // Forward to the inherent method on Woo.
         Woo::parse_account(self, account)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Woo.
-        Woo::parse_transaction(self, transaction, &[currency])
+        Woo::parse_transaction(self, transaction, currency)
     }
     fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Woo.
@@ -116,9 +116,9 @@ impl crate::exchange::DerivedExchange for Woo {
         // Forward to the inherent method on Woo.
         Woo::parse_income(self, info, &[market])
     }
-    fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
+    fn parse_conversion(&self, conversion: crate::Value, from_currency: Option<&crate::types::Currency>, to_currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Woo.
-        Woo::parse_conversion(self, conversion, &[from_currency, to_currency])
+        Woo::parse_conversion(self, conversion, from_currency, to_currency)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Woo.
@@ -204,14 +204,14 @@ impl crate::exchange_generated::ExchangeBase for Woo {
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_margin_loan" => self.parse_margin_loan(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_margin_loan" => self.parse_margin_loan(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -220,8 +220,8 @@ impl crate::exchange_generated::ExchangeBase for Woo {
                 "parse_token_and_fee_temp" => self.parse_token_and_fee_temp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "repay_margin" => crate::types::IntoRaw::into_raw(self.repay_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str), args.get(3).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
@@ -4209,7 +4209,7 @@ impl Woo {
         m.insert("network".to_string(), self.safe_string_k(Value::Map(request), "network", &[]));
     m
 })]);
-        return self.parse_deposit_address(__ws_arg_22, &[currency]);
+        return self.parse_deposit_address(__ws_arg_22, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
@@ -4235,19 +4235,16 @@ impl Woo {
     Value::Null
 }
 
-    pub fn parse_deposit_address(&self, depositEntry: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_address(&self, depositEntry: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut depositEntry: Value = depositEntry.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
-        let __currency_empty = indexmap::IndexMap::new();
-        let currency = currency.as_map().unwrap_or(&__currency_empty);
         let mut address: Option<String> = self.safe_string_k(depositEntry.clone(), "address", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut networkId: Option<String> = self.safe_string_k(depositEntry.clone(), "network", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositEntry.clone());
-        m.insert("currency".to_string(), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]));
+        m.insert("currency".to_string(), self.safe_string_k(&currency, "code", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&currency, "code", &[])]));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(depositEntry, "extra", &[]));
     m
@@ -4366,14 +4363,13 @@ impl Woo {
         let mut currencyRows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[params.clone()]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
         let mut rows: Value = self.safe_list(currencyRows, Value::Int(1), &[]);
-        return self.parse_ledger(rows, &[currency, since, limit, params]);
+        return self.parse_ledger(rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut item: Value = item.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "createdTime": "1734964440.523",
@@ -4397,8 +4393,8 @@ impl Woo {
         //     }
         //
         let mut networkizedCode: Option<String> = self.safe_string_k(item.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(networkizedCode.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref());
-        let mut currencyResolved: Value = self.safe_currency(code.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(networkizedCode.map(Value::from).unwrap_or(Value::Null), currency.clone());
+        let mut currencyResolved: Value = self.safe_currency(code.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut amount: Option<f64> = self.safe_number_k(item.clone(), "amount", &[]).as_f64();
         let mut side: Option<String> = self.safe_string_k(item.clone(), "tokenSide", &[]).as_str().map(str::to_owned);
         let mut direction: String = "out".to_string();
@@ -4425,7 +4421,7 @@ impl Woo {
         m.insert("type".to_string(), self.parse_ledger_entry_type((self.safe_string_k(item, "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
-}), &[currencyResolved]);
+}), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currencyResolved).as_ref());
 
     Value::Null
 }
@@ -4563,14 +4559,13 @@ impl Woo {
         let mut currencyRows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_26]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
         let mut rows: crate::value::List = self.safe_list(currencyRows, Value::Int(1), &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&rows, &[currency, since, limit, self.omit(params, Value::Str("tokenSide".into()), &[])]);
+        return self.parse_transactions(&rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, self.omit(params, Value::Str("tokenSide".into()), &[])]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "createdTime": "1734964440.523",
@@ -4594,7 +4589,7 @@ impl Woo {
         //     }
         //
         let mut networkizedCode: String = self.safe_string_k(transaction.clone(), "token", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut currencyDefined: Value = self.get_currency_from_chaincode(networkizedCode.as_str(), &[currency]);
+        let mut currencyDefined: Value = self.get_currency_from_chaincode(networkizedCode.as_str(), &[crate::Value::from(currency)]);
         let mut code: Option<String> = self.safe_string_k(currencyDefined, "code", &[]).as_str().map(str::to_owned);
         let mut movementDirection: Option<String> = self.safe_string_lower_n(transaction.clone(), Value::from(vec![Value::Str("token_side".into()), Value::Str("tokenSide".into()), Value::Str("type".into())]), &[]).as_str().map(str::to_owned);
         if (movementDirection.as_deref() == Some("withdraw")) {
@@ -4707,7 +4702,7 @@ impl Woo {
         data.insert("timestamp".into(), self.safe_integer_k(&response, "timestamp", &[]));
         data.insert("token".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         data.insert("status".into(), Value::Str("ok".into()));
-        let mut transfer: Value = self.parse_transfer(Value::Map(data), &[currency]);
+        let mut transfer: Value = self.parse_transfer(Value::Map(data), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4805,14 +4800,13 @@ impl Woo {
             m
         })]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
-        return self.parse_transfers(&rows, &[currency, since, limit, paramsOmitted]);
+        return self.parse_transfers(&rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, paramsOmitted]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //    fetchTransfers
         //     {
@@ -4850,7 +4844,7 @@ impl Woo {
         //            "id": 200
         //        }
         //
-        let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(transfer.clone(), "token", &[]), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(transfer.clone(), "token", &[]), currency);
         let mut timestamp: Option<i64> = self.safe_timestamp2(transfer.clone(), Value::Str("createdTime".into()), Value::Str("timestamp".into()), &[]).as_i64();
         let mut success: Option<bool> = self.safe_bool_k(transfer.clone(), "success", &[]).as_bool();
         let mut status: Value = Value::Null;
@@ -4959,7 +4953,7 @@ impl Woo {
                 m.insert("status".to_string(), Value::Str("pending".into()));
             m
         })]).into_dict();
-        return self.parse_transaction(&transactionData, &[currency]);
+        return self.parse_transaction(&transactionData, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
@@ -5006,7 +5000,7 @@ impl Woo {
         //         "success": true,
         //     }
         //
-        let mut transaction: Value = self.parse_margin_loan(response, &[currency]);
+        let mut transaction: Value = self.parse_margin_loan(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);
@@ -5017,12 +5011,11 @@ impl Woo {
         }).await?))
     }
 
-    pub fn parse_margin_loan(&self, mut info: Value, optional_args: &[Value]) -> Value {
-        let mut currency = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_margin_loan(&self, mut info: Value, currency: Option<&crate::types::Currency>) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
-        m.insert("currency".to_string(), self.safe_currency_code(Value::Null, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(Value::Null, currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::Null);
         m.insert("symbol".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
@@ -6207,7 +6200,7 @@ impl Woo {
         let mut fromCurrency: Value = self.currency(fromCurrencyId.map(Value::from).unwrap_or(Value::Null));
         let mut toCurrencyId: Option<String> = self.safe_string_k(&data, "buyToken", &[toCode]).as_str().map(str::to_owned);
         let mut toCurrency: Value = self.currency(toCurrencyId.map(Value::from).unwrap_or(Value::Null));
-        return self.parse_conversion(&data, &[fromCurrency, toCurrency]);
+        return self.parse_conversion(&data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(fromCurrency).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(toCurrency).as_ref());
         Value::Null
         }).await?))
     }
@@ -6262,7 +6255,7 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_conversion(&data, &[]);
+        return self.parse_conversion(&data, None, None);
         Value::Null
         }).await?))
     }
@@ -6327,7 +6320,7 @@ impl Woo {
         if (toCurrencyId.is_some()) {
             toCurrency = self.currency(toCurrencyId.map(Value::from).unwrap_or(Value::Null));
         }
-        return self.parse_conversion(&data, &[fromCurrency, toCurrency]);
+        return self.parse_conversion(&data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(fromCurrency).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(toCurrency).as_ref());
         Value::Null
         }).await?))
     }
@@ -6405,10 +6398,8 @@ impl Woo {
         }).await?))
     }
 
-    pub fn parse_conversion(&self, conversion: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_conversion(&self, conversion: impl Into<crate::Value>, fromCurrency: Option<&crate::types::Currency>, toCurrency: Option<&crate::types::Currency>) -> Value {
         let mut conversion: Value = conversion.into();
-        let mut fromCurrency = get_arg(optional_args, 0, Value::Null);
-        let mut toCurrency = get_arg(optional_args, 1, Value::Null);
         //
         // fetchConvertQuote
         //
@@ -6446,9 +6437,9 @@ impl Woo {
         //
         let mut timestamp: Option<i64> = self.safe_integer2(conversion.clone(), Value::Str("expireTimestamp".into()), Value::Str("createdTime".into()), &[]).as_i64();
         let mut fromCurr: Option<String> = self.safe_string2(conversion.clone(), Value::Str("sellToken".into()), Value::Str("buyAsset".into()), &[]).as_str().map(str::to_owned);
-        let mut fromCode: Option<String> = self.safe_currency_code(fromCurr.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(fromCurrency).as_ref());
+        let mut fromCode: Option<String> = self.safe_currency_code(fromCurr.map(Value::from).unwrap_or(Value::Null), fromCurrency);
         let mut to: Option<String> = self.safe_string2(conversion.clone(), Value::Str("buyToken".into()), Value::Str("sellAsset".into()), &[]).as_str().map(str::to_owned);
-        let mut toCode: Option<String> = self.safe_currency_code(to.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(toCurrency).as_ref());
+        let mut toCode: Option<String> = self.safe_currency_code(to.map(Value::from).unwrap_or(Value::Null), toCurrency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());

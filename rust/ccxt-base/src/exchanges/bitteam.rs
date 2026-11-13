@@ -76,9 +76,9 @@ impl crate::exchange::DerivedExchange for Bitteam {
         // Forward to the inherent method on Bitteam.
         Bitteam::parse_currency(self, currency)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Bitteam.
-        Bitteam::parse_transaction(self, transaction, &[currency])
+        Bitteam::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Bitteam.
@@ -124,7 +124,7 @@ impl crate::exchange_generated::ExchangeBase for Bitteam {
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -3035,14 +3035,13 @@ impl Bitteam {
             m
         })]).into_dict();
         let mut transactions: crate::value::List = self.safe_list_k(&result, "transactions", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&transactions, &[currency, since, limit]);
+        return self.parse_transactions(&transactions, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": 1329229,
@@ -3092,7 +3091,7 @@ impl Bitteam {
         //
         let mut currencyObject: Value = self.safe_dict_k(transaction.clone(), "currency", &[]);
         let mut currencyId: Option<String> = self.safe_string_k(currencyObject.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut params: crate::value::Dict = self.safe_dict_k(transaction.clone(), "params", &[]).into_dict();
         let mut txid: Option<String> = self.safe_string_k(&params, "tx_id", &[]).as_str().map(str::to_owned);

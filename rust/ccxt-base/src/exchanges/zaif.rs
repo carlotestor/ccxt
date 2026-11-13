@@ -68,9 +68,9 @@ impl crate::exchange::DerivedExchange for Zaif {
         // Forward to the inherent method on Zaif.
         Zaif::parse_balance(self, response)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Zaif.
-        Zaif::parse_transaction(self, transaction, &[currency])
+        Zaif::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Zaif.
@@ -105,7 +105,7 @@ impl crate::exchange_generated::ExchangeBase for Zaif {
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -1291,14 +1291,13 @@ impl Zaif {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_transaction(&returnData, &[currency]);
+        return self.parse_transaction(&returnData, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": 23634,
@@ -1312,7 +1311,7 @@ impl Zaif {
         //         }
         //     }
         //
-        let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(Value::Null, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).as_map().cloned().unwrap_or_default();
+        let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(Value::Null, currency).as_map().cloned().unwrap_or_default();
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<f64> = self.safe_number_k(transaction.clone(), "fee", &[]).as_f64();
         if (feeCost.is_some()) {

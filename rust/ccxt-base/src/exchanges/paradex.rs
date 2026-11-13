@@ -76,9 +76,9 @@ impl crate::exchange::DerivedExchange for Paradex {
         // Forward to the inherent method on Paradex.
         Paradex::parse_funding_rate(self, rate, &[market])
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Paradex.
-        Paradex::parse_transfer(self, transfer, &[currency])
+        Paradex::parse_transfer(self, transfer, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Paradex.
@@ -88,9 +88,9 @@ impl crate::exchange::DerivedExchange for Paradex {
         // Forward to the inherent method on Paradex.
         Paradex::parse_liquidation(self, liquidation, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Paradex.
-        Paradex::parse_transaction(self, transaction, &[currency])
+        Paradex::parse_transaction(self, transaction, currency)
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Paradex.
@@ -185,8 +185,8 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "prepare_paradex_domain" => self.prepare_paradex_domain(&args[..]).await,
                 "retrieve_account" => self.retrieve_account().await,
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
@@ -4298,7 +4298,7 @@ impl Paradex {
             }
         }
         }
-        return self.parse_transactions(Value::from(deposits), &[Value::Null, since, limit]);
+        return self.parse_transactions(Value::from(deposits), None, &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4406,7 +4406,7 @@ impl Paradex {
             }
         }
         }
-        return self.parse_transactions(Value::from(deposits), &[Value::Null, since, limit]);
+        return self.parse_transactions(Value::from(deposits), None, &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4497,14 +4497,13 @@ impl Paradex {
             add_element_to_object(get_value_mut(&mut rows, &Value::Int(i)), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
-        return self.parse_transfers(rows, &[currency, since, limit]);
+        return self.parse_transfers(rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": "1718940471200201703989430000",
@@ -4521,7 +4520,7 @@ impl Paradex {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "created_at", &[]).as_i64();
         let mut kind: Option<String> = self.safe_string_k(transfer.clone(), "kind", &[]).as_str().map(str::to_owned);
         let mut fromAccount: Option<String> = None;
@@ -4550,9 +4549,8 @@ impl Paradex {
     Value::Null
 }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // fetchDeposits & fetchWithdrawals
         //
@@ -4574,7 +4572,7 @@ impl Paradex {
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "account", &[]).as_str().map(str::to_owned);
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txn_hash", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "created_at", &[]).as_i64();
         let mut updated: Option<i64> = self.safe_integer_k(transaction.clone(), "last_updated_at", &[]).as_i64();
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "kind", &[]).as_str().map(str::to_owned);

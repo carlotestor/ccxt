@@ -84,9 +84,9 @@ impl crate::exchange::DerivedExchange for Nado {
         // Forward to the inherent method on Nado.
         Nado::parse_open_interest(self, interest, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Nado.
-        Nado::parse_transaction(self, transaction, &[currency])
+        Nado::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Nado.
@@ -154,7 +154,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_x18" => self.parse_x18(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "query_contracts" => self.query_contracts(&args[..]).await,
                 "query_transactions_by_event_type" => self.query_transactions_by_event_type(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str),
@@ -2240,7 +2240,7 @@ impl Nado {
             }), &[tx]);
             transaction = self.extend(transaction.clone(), &[event]);
             add_element_to_object(&mut transaction, &Value::Str("transaction_type".into()), transactionType.clone());
-            transactions.push(self.parse_transaction(transaction, &[currency.clone()]));
+            transactions.push(self.parse_transaction(transaction, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref()));
         }
         }
         return self.filter_by_currency_since_limit(Value::from(transactions), &[code, since, limit]);
@@ -3680,9 +3680,8 @@ impl Nado {
     Value::Null
 }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "submission_idx": "563011",
@@ -3708,7 +3707,7 @@ impl Nado {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut preBalance: crate::value::Dict = self.safe_dict_k(transaction.clone(), "pre_balance", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

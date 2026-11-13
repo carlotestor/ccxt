@@ -76,9 +76,9 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         // Forward to the inherent method on Coinbaseinternational.
         Coinbaseinternational::parse_funding_rate(self, rate, &[market])
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Coinbaseinternational.
-        Coinbaseinternational::parse_transfer(self, transfer, &[currency])
+        Coinbaseinternational::parse_transfer(self, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Coinbaseinternational.
@@ -88,9 +88,9 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         // Forward to the inherent method on Coinbaseinternational.
         Coinbaseinternational::parse_funding_rate_history(self, entry, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Coinbaseinternational.
-        Coinbaseinternational::parse_transaction(self, transaction, &[currency])
+        Coinbaseinternational::parse_transaction(self, transaction, currency)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Coinbaseinternational.
@@ -156,8 +156,8 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseinternational {
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_time_in_force" => self.parse_time_in_force(args.get(0).and_then(crate::Value::as_str)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "resolve_route" => self.resolve_route(&args[..]),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -2647,14 +2647,13 @@ impl Coinbaseinternational {
             m
         })]).into_dict();
         let mut transfers: crate::value::List = self.safe_list_k(&result, "logs", &[Value::from(vec![])]).into_list();
-        return self.parse_transfers(&transfers, &[currency, since, limit]);
+        return self.parse_transfers(&transfers, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "balance": 3001.22270418,
@@ -2706,7 +2705,7 @@ impl Coinbaseinternational {
         m.insert("id".to_string(), self.safe_string_k(transfer, "id", &[]));
         m.insert("timestamp".to_string(), Value::from(transactionTimestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(transactionTimestamp)));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
@@ -3043,7 +3042,7 @@ impl Coinbaseinternational {
         })]).into_dict();
         let mut logs: crate::value::List = self.safe_list_k(&result, "logs", &[Value::from(vec![])]).into_list();
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
-            return self.parse_transactions(Value::Arr(logs.clone()), &[currency.clone(), since.clone(), limit.clone()]);
+            return self.parse_transactions(Value::Arr(logs.clone()), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref(), &[since.clone(), limit.clone()]);
         }
         let mut transactions: Vec<Value> = Vec::new();
         {
@@ -3057,7 +3056,7 @@ impl Coinbaseinternational {
             }
         }
         }
-        return self.parse_transactions(Value::from(transactions), &[currency, since, limit]);
+        return self.parse_transactions(Value::from(transactions), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3146,9 +3145,8 @@ impl Coinbaseinternational {
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "balance": 3003.72054712,
@@ -3192,7 +3190,7 @@ impl Coinbaseinternational {
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             amount = self.parse_number(crate::precise::Precise::stringAbs(&self.safe_string2(transaction.clone(), Value::Str("cashflow".into()), Value::Str("change".into()), &[])), &[]);
             feeCost = self.safe_number_k(transaction.clone(), "commission", &[]);
-            feeCurrency = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref()).map(Value::from).unwrap_or(Value::Null);
+            feeCurrency = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone()).map(Value::from).unwrap_or(Value::Null);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3210,7 +3208,7 @@ impl Coinbaseinternational {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), transactionType.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("updated".to_string(), Value::from(transactionTimestamp));
         m.insert("fee".to_string(), Value::Map({

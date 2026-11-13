@@ -72,13 +72,13 @@ impl crate::exchange::DerivedExchange for Extended {
         // Forward to the inherent method on Extended.
         Extended::parse_position(self, position, &[market])
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Extended.
-        Extended::parse_ledger_entry(self, entry, &[currency])
+        Extended::parse_ledger_entry(self, entry, currency)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Extended.
-        Extended::parse_transfer(self, transfer, &[currency])
+        Extended::parse_transfer(self, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Extended.
@@ -96,9 +96,9 @@ impl crate::exchange::DerivedExchange for Extended {
         // Forward to the inherent method on Extended.
         Extended::parse_account(self, account)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Extended.
-        Extended::parse_transaction(self, transaction, &[currency])
+        Extended::parse_transaction(self, transaction, currency)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Extended.
@@ -180,7 +180,7 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "parse_funding_histories" => self.parse_funding_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_funding_history" => self.parse_funding_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -190,8 +190,8 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
@@ -2583,14 +2583,13 @@ impl Extended {
             result.push(entry);
         }
         }
-        return self.parse_ledger(Value::from(result), &[currency, since, limit]);
+        return self.parse_ledger(Value::from(result), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut item: Value = item.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": "1951255127004282880",
@@ -2606,8 +2605,8 @@ impl Extended {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "time", &[]).as_i64();
         let mut assetId: Option<String> = self.safe_string_k(item.clone(), "asset", &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.get_extended_currency_code_by_id(assetId.as_deref(), &[currency.clone()]);
-        let mut ledgerCurrency: Value = self.safe_currency(code.clone(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Value = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]);
+        let mut ledgerCurrency: Value = self.safe_currency(code.clone(), currency);
         let mut amountString: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut direction: Value = Value::Null;
         if (amountString.is_some()) {
@@ -2641,7 +2640,7 @@ impl Extended {
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_k(item, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
-}), &[ledgerCurrency]);
+}), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(ledgerCurrency).as_ref());
 
     Value::Null
 }
@@ -2739,7 +2738,7 @@ impl Extended {
             result.push(entry);
         }
         }
-        return self.parse_transactions(Value::from(result), &[currency, since, limit]);
+        return self.parse_transactions(Value::from(result), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2978,7 +2977,7 @@ impl Extended {
             result.push(entry);
         }
         }
-        return self.parse_transfers(Value::from(result), &[currency, since, limit]);
+        return self.parse_transfers(Value::from(result), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3076,12 +3075,11 @@ impl Extended {
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "time", &[]).as_i64();
         let mut assetId: Option<String> = self.safe_string_k(transfer.clone(), "asset", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[currency]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(transfer.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut amount: Value = (if (amountString.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]) });
         let mut accountId: Option<String> = self.safe_string_k(transfer.clone(), "accountId", &[]).as_str().map(str::to_owned);
@@ -3168,9 +3166,8 @@ impl Extended {
         return self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": "1951255127004282880",
@@ -3186,7 +3183,7 @@ impl Extended {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "time", &[]).as_i64();
         let mut assetId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.get_extended_currency_code_by_id(assetId.as_deref(), &[currency]);
+        let mut code: Value = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]);
         let mut amountString: Option<String> = self.safe_string_k(transaction.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut amount: Value = (if (amountString.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]) });
         let mut fee: Value = Value::Null;

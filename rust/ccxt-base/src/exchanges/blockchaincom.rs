@@ -60,9 +60,9 @@ impl crate::exchange::DerivedExchange for Blockchaincom {
         // Forward to the inherent method on Blockchaincom.
         Blockchaincom::parse_order(self, order, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Blockchaincom.
-        Blockchaincom::parse_transaction(self, transaction, &[currency])
+        Blockchaincom::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Blockchaincom.
@@ -108,7 +108,7 @@ impl crate::exchange_generated::ExchangeBase for Blockchaincom {
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -1501,9 +1501,8 @@ impl Blockchaincom {
         return self.safe_string(&states, state.clone(), &[state.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // deposit
         //
@@ -1534,7 +1533,7 @@ impl Blockchaincom {
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut state: Option<String> = self.safe_string_k(transaction.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut depositId: Option<String> = self.safe_string_k(transaction.clone(), "depositId", &[]).as_str().map(str::to_owned);
         let mut withdrawalId: Option<String> = self.safe_string_k(transaction.clone(), "withdrawalId", &[]).as_str().map(str::to_owned);
@@ -1624,7 +1623,7 @@ impl Blockchaincom {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_9]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
@@ -1669,7 +1668,7 @@ impl Blockchaincom {
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_withdrawals(&[__ws_arg_10]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1701,7 +1700,7 @@ impl Blockchaincom {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_withdrawals_withdrawal_id(&[__ws_arg_11]).await;
-        return self.parse_transaction(response, &[]);
+        return self.parse_transaction(response, None);
 
     Value::Null
 }
@@ -1746,7 +1745,7 @@ impl Blockchaincom {
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_deposits(&[__ws_arg_12]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1779,7 +1778,7 @@ impl Blockchaincom {
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut deposit: Value = self.private_get_deposits_deposit_id(&[__ws_arg_13]).await;
-        return self.parse_transaction(deposit, &[]);
+        return self.parse_transaction(deposit, None);
 
     Value::Null
 }

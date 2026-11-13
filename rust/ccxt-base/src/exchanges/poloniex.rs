@@ -76,9 +76,9 @@ impl crate::exchange::DerivedExchange for Poloniex {
         // Forward to the inherent method on Poloniex.
         Poloniex::parse_position(self, position, &[market])
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Poloniex.
-        Poloniex::parse_transfer(self, transfer, &[currency])
+        Poloniex::parse_transfer(self, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Poloniex.
@@ -88,17 +88,17 @@ impl crate::exchange::DerivedExchange for Poloniex {
         // Forward to the inherent method on Poloniex.
         Poloniex::parse_margin_modification(self, data, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Poloniex.
-        Poloniex::parse_transaction(self, transaction, &[currency])
+        Poloniex::parse_transaction(self, transaction, currency)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Poloniex.
         Poloniex::parse_leverage(self, leverage, &[market])
     }
-    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Poloniex.
-        Poloniex::parse_deposit_withdraw_fee(self, fee, &[currency])
+        Poloniex::parse_deposit_withdraw_fee(self, fee, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Poloniex.
@@ -164,7 +164,7 @@ impl crate::exchange_generated::ExchangeBase for Poloniex {
                 "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address_special" => self.parse_deposit_address_special(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_deposit_withdraw_fees" => self.parse_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_margin_modification" => self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -177,8 +177,8 @@ impl crate::exchange_generated::ExchangeBase for Poloniex {
                 "parse_swap_market" => self.parse_swap_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "prepare_request_for_deposit_address" => self.prepare_request_for_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
@@ -4174,7 +4174,7 @@ impl Poloniex {
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_accounts_transfer(&[__ws_arg_33]).await;
-        let __ws_arg_34 = self.parse_transfer(response, &[currency]);
+        let __ws_arg_34 = self.parse_transfer(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         let __ws_arg_35 = self.parse_number(amountToPrecision, &[]);
         return self.extend(__ws_arg_34, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4217,7 +4217,7 @@ impl Poloniex {
         });
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_accounts_transfer_id(&[__ws_arg_36]).await;
-        return self.parse_transfer(response, &[]);
+        return self.parse_transfer(response, None);
         Value::Null
         }).await?))
     }
@@ -4268,7 +4268,7 @@ impl Poloniex {
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_37 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_accounts_transfer(&[__ws_arg_37]).await;
-        return self.parse_transfers(response, &[currency, since, limit]);
+        return self.parse_transfers(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4286,9 +4286,8 @@ impl Poloniex {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // transfer
         //
@@ -4321,7 +4320,7 @@ impl Poloniex {
         m.insert("id".to_string(), self.safe_string2(transfer.clone(), Value::Str("id".into()), Value::Str("transferId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(transfer.clone(), "currency", &[]), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(transfer.clone(), "currency", &[]), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), self.safe_string(&accountIds, fromAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
         m.insert("toAccount".to_string(), self.safe_string(&accountIds, toAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
@@ -4381,7 +4380,7 @@ impl Poloniex {
         }
         let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: Value = self.private_post_v2_wallets_withdraw(&[__ws_arg_38]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
@@ -4451,8 +4450,8 @@ impl Poloniex {
         }
         let mut withdrawals: crate::value::List = self.safe_list_k(response.clone(), "withdrawals", &[Value::from(vec![])]).into_list();
         let mut deposits: crate::value::List = self.safe_list_k(response, "deposits", &[Value::from(vec![])]).into_list();
-        let mut withdrawalTransactions: Value = self.parse_transactions(&withdrawals, &[currency.clone(), since.clone(), limit.clone()]);
-        let mut depositTransactions: Value = self.parse_transactions(&deposits, &[currency, since.clone(), limit.clone()]);
+        let mut withdrawalTransactions: Value = self.parse_transactions(&withdrawals, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref(), &[since.clone(), limit.clone()]);
+        let mut depositTransactions: Value = self.parse_transactions(&deposits, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since.clone(), limit.clone()]);
         let mut transactions: Value = self.array_concat(depositTransactions, withdrawalTransactions);
         return self.filter_by_currency_since_limit(self.sort_by(transactions, Value::Str("timestamp".into()), &[]), &[code, since, limit]);
         Value::Null
@@ -4489,7 +4488,7 @@ impl Poloniex {
             currency = self.currency(code.clone());
         }
         let mut withdrawals: crate::value::List = self.safe_list_k(response, "withdrawals", &[Value::from(vec![])]).into_list();
-        let mut transactions: Value = self.parse_transactions(&withdrawals, &[currency, since.clone(), limit.clone()]);
+        let mut transactions: Value = self.parse_transactions(&withdrawals, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since.clone(), limit.clone()]);
         return self.filter_by_currency_since_limit(transactions, &[code, since, limit]);
         Value::Null
         }).await?))
@@ -4610,7 +4609,7 @@ impl Poloniex {
             let mut feeInfo: Value = self.safe_dict(response.clone(), currencyId, &[]);
             if (code != Value::Null) && ((codesValue == Value::Null) || self.in_array(code.clone(), codesValue.clone()).as_bool() == Some(true)) {
                 let mut currency: Value = self.currency(code.clone());
-                depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(feeInfo.clone(), &[currency.clone()]));
+                depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(feeInfo.clone(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref()));
                 let mut parsedFee: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(depositWithdrawFees.clone()), code.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4666,17 +4665,14 @@ impl Poloniex {
     Value::Null
 }
 
-    pub fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut fee: Value = fee.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
-        let __currency_empty = indexmap::IndexMap::new();
-        let currency = currency.as_map().unwrap_or(&__currency_empty);
-        let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
         let mut info: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        info.insert(crate::runtime::stringify_param(&currencyCode), fee.clone());
+        info.insert(currencyCode.as_deref().unwrap_or("null").to_string(), fee.clone());
         let mut depositWithdrawFee: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(Value::Map(info)).as_map().cloned().unwrap_or_default();
         let mut networkId: Option<String> = self.safe_string_k(fee.clone(), "blockchain", &[]).as_str().map(str::to_owned);
         let mut withdrawFee: Option<f64> = self.safe_number_k(fee, "withdrawalFee", &[]).as_f64();
@@ -4694,7 +4690,7 @@ impl Poloniex {
         });
         depositWithdrawFee.insert("withdraw".into(), Value::Map(withdrawResult.clone()));
         depositWithdrawFee.insert("deposit".into(), Value::Map(depositResult.clone()));
-        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]).as_str().map(str::to_owned);
+        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&currency, "code", &[])]).as_str().map(str::to_owned);
         if (networkCode.is_some()) {
             let mut networks: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -4743,7 +4739,7 @@ impl Poloniex {
             currency = self.currency(code.clone());
         }
         let mut deposits: crate::value::List = self.safe_list_k(response, "deposits", &[Value::from(vec![])]).into_list();
-        let mut transactions: Value = self.parse_transactions(&deposits, &[currency, since.clone(), limit.clone()]);
+        let mut transactions: Value = self.parse_transactions(&deposits, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since.clone(), limit.clone()]);
         return self.filter_by_currency_since_limit(transactions, &[code, since, limit]);
         Value::Null
         }).await?))
@@ -4766,9 +4762,8 @@ impl Poloniex {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // deposits
         //

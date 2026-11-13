@@ -76,9 +76,9 @@ impl crate::exchange::DerivedExchange for Apex {
         // Forward to the inherent method on Apex.
         Apex::parse_position(self, position, &[market])
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Apex.
-        Apex::parse_transfer(self, transfer, &[currency])
+        Apex::parse_transfer(self, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Apex.
@@ -150,7 +150,7 @@ impl crate::exchange_generated::ExchangeBase for Apex {
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "safe_market" => self.safe_market(&args[..]),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -2217,7 +2217,7 @@ impl Apex {
             })]);
             let mut currentTime: i64 = self.milliseconds().as_i64().unwrap_or_default();
             let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
-            let __ws_arg_8 = self.parse_transfer(data.clone(), &[self.currency(code.clone())]);
+            let __ws_arg_8 = self.parse_transfer(data.clone(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(self.currency(code.clone())).as_ref());
             let __ws_arg_9 = self.iso8601(Value::from(currentTime));
             return self.extend(__ws_arg_8, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2269,7 +2269,7 @@ impl Apex {
                 m
             })]);
             let mut currentTime: i64 = self.milliseconds().as_i64().unwrap_or_default();
-            let __ws_arg_11 = self.parse_transfer(data, &[self.currency(code)]);
+            let __ws_arg_11 = self.parse_transfer(data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(self.currency(code)).as_ref());
             let __ws_arg_12 = self.iso8601(Value::from(currentTime));
             let __ws_arg_13 = self.parse_number(amount, &[]);
             return self.extend(__ws_arg_11, &[Value::Map({
@@ -2286,9 +2286,8 @@ impl Apex {
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "coin", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "timestamp", &[]).as_i64();
         let mut fromAccount: Option<String> = self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str().map(str::to_owned);
@@ -2299,7 +2298,7 @@ impl Apex {
         m.insert("id".to_string(), self.safe_string2(transfer.clone(), Value::Str("transferId".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));

@@ -80,9 +80,9 @@ impl crate::exchange::DerivedExchange for Polymarket {
         // Forward to the inherent method on Polymarket.
         Polymarket::parse_open_interest(self, interest, &[market])
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Polymarket.
-        Polymarket::parse_transaction(self, transaction, &[currency])
+        Polymarket::parse_transaction(self, transaction, currency)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on Polymarket.
@@ -161,7 +161,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
@@ -3167,9 +3167,8 @@ impl Polymarket {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // deposit row
         //
@@ -3204,7 +3203,7 @@ impl Polymarket {
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "withdraw_id", &[]).as_str().map(str::to_owned);
         let mut type_var: String = (if (withdrawId.is_some()) { "withdrawal".to_string() } else { "deposit".to_string() });
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "created_timestamp", &[]).as_i64();
         let mut rawHash: Option<String> = self.safe_string_k(transaction.clone(), "hash", &[]).as_str().map(str::to_owned);
         // the venue reports the literal 0x prefix while the transaction is unmined
@@ -3294,7 +3293,7 @@ impl Polymarket {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        return self.parse_transactions(&data, &[currency, since, limit]);
+        return self.parse_transactions(&data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3346,7 +3345,7 @@ impl Polymarket {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        return self.parse_transactions(&data, &[currency, since, limit]);
+        return self.parse_transactions(&data, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3482,7 +3481,7 @@ impl Polymarket {
         // the ack status is the request discriminator, the accepted
         // withdrawal itself starts out pending
         let mut stripped: Value = self.omit(response, Value::Str("status".into()), &[]);
-        let mut transaction: indexmap::IndexMap<String, Value> = self.parse_transaction(stripped, &[currency]).as_map().cloned().unwrap_or_default();
+        let mut transaction: indexmap::IndexMap<String, Value> = self.parse_transaction(stripped, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).as_map().cloned().unwrap_or_default();
         transaction.insert("status".into(), Value::Str("pending".into()));
         return Value::Map(transaction);
         Value::Null

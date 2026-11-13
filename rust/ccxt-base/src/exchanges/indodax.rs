@@ -72,9 +72,9 @@ impl crate::exchange::DerivedExchange for Indodax {
         // Forward to the inherent method on Indodax.
         Indodax::parse_balance(self, response)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Indodax.
-        Indodax::parse_transaction(self, transaction, &[currency])
+        Indodax::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Indodax.
@@ -118,7 +118,7 @@ impl crate::exchange_generated::ExchangeBase for Indodax {
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -1854,7 +1854,7 @@ impl Indodax {
             let mut deposits: Value = self.safe_list(Value::Map(deposit), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]);
             transactions = self.array_concat(withdraws, deposits);
         }
-        return self.parse_transactions(transactions, &[currency, since, limit]);
+        return self.parse_transactions(transactions, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1912,14 +1912,13 @@ impl Indodax {
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.private_post_withdraw_coin(&[__ws_arg_13]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // withdraw
         //
@@ -1969,7 +1968,7 @@ impl Indodax {
         if (feeCost.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), self.safe_currency_code(Value::Null, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref()).map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), self.safe_currency_code(Value::Null, currency.clone()).map(Value::from).unwrap_or(Value::Null));
                     m.insert("cost".to_string(), Value::from(feeCost));
                     m.insert("rate".to_string(), Value::Null);
                 m
@@ -1987,7 +1986,7 @@ impl Indodax {
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_n(transaction.clone(), Value::from(vec![Value::Str("amount".into()), Value::Str("withdraw_amount".into()), Value::Str("deposit_amount".into())]), &[]));
         m.insert("type".to_string(), (if (depositId.is_none()) { Value::Str("withdraw".into()) } else { Value::Str("deposit".into()) }));
-        m.insert("currency".to_string(), self.safe_currency_code(Value::Null, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(Value::Null, currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);

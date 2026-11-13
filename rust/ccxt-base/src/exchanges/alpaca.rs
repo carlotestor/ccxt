@@ -68,13 +68,13 @@ impl crate::exchange::DerivedExchange for Alpaca {
         // Forward to the inherent method on Alpaca.
         Alpaca::parse_balance(self, response)
     }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Alpaca.
-        Alpaca::parse_deposit_address(self, depositAddress, &[currency])
+        Alpaca::parse_deposit_address(self, depositAddress, currency)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Alpaca.
-        Alpaca::parse_transaction(self, transaction, &[currency])
+        Alpaca::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Alpaca.
@@ -122,12 +122,12 @@ impl crate::exchange_generated::ExchangeBase for Alpaca {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
@@ -2624,14 +2624,13 @@ impl Alpaca {
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.trader_private_get_v2_wallets(&[__ws_arg_19]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut depositAddress: Value = depositAddress.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -2640,8 +2639,8 @@ impl Alpaca {
         //     }
         //
         let mut parsedCurrency: Option<String> = None;
-        if (currency != Value::Null) {
-            parsedCurrency = self.safe_string_k(currency, "id", &[]).as_str().map(str::to_owned);
+        if (currency.is_some()) {
+            parsedCurrency = self.safe_string_k(&currency, "id", &[]).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2703,7 +2702,7 @@ impl Alpaca {
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.trader_private_post_v2_wallets_transfers(&[__ws_arg_20]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         Value::Null
         }).await?))
     }
@@ -2778,7 +2777,7 @@ impl Alpaca {
                 }
             }
             }
-            return self.parse_transactions(Value::from(filtered), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
+            return self.parse_transactions(Value::from(filtered), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref(), &[since.clone(), limit.clone(), params.clone()]);
         }
         let mut response: Value = self.trader_private_get_v2_wallets_transfers(&[params.clone()]).await;
         //
@@ -2816,7 +2815,7 @@ impl Alpaca {
             }
         }
         }
-        return self.parse_transactions(Value::from(results), &[currency, since, limit, params]);
+        return self.parse_transactions(Value::from(results), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit, params]);
 
     Value::Null
 }
@@ -2911,9 +2910,8 @@ impl Alpaca {
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
         //
@@ -2975,7 +2973,7 @@ impl Alpaca {
             }  else if (activityType.as_deref() == Some("CSD")) || (activityType.as_deref() == Some("CSW")) {
                 code = Value::Str("USD".into());
             }  else {
-                code = self.safe_currency_code(Value::Null, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency.clone()).as_ref()).map(Value::from).unwrap_or(Value::Null);
+                code = self.safe_currency_code(Value::Null, currency.clone()).map(Value::from).unwrap_or(Value::Null);
             }
             status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
             comment = activityType.clone().map(Value::from).unwrap_or(Value::Null);
@@ -2990,7 +2988,7 @@ impl Alpaca {
             type_var = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "direction", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
             amount = self.parse_number(self.safe_string_k(transaction.clone(), "amount", &[]), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
-            code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(Value::from).unwrap_or(Value::Null);
+            code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null);
             network = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[]), code.clone()]);
             status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
             let mut fees: Option<String> = self.safe_string_k(transaction.clone(), "fees", &[]).as_str().map(str::to_owned);
