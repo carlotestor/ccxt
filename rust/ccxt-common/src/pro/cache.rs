@@ -94,6 +94,56 @@ impl CacheSlot for Option<Cache> {
     fn hashmap(&self) -> Value { self.as_ref().map_or(Value::Null, Cache::hashmap) }
 }
 
+/// A dictionary of caches keyed by symbol (`Exchange::trades`). Entries are only ever
+/// written from a `Cache`, so every element read is a `Cache` or absent.
+pub type CacheMap = IndexMap<String, Cache>;
+
+/// A map key as the transpiled code holds it. `strict` is the key only when it is a
+/// string (what `in`, `m[k]` and `delete` match on); `text` is the stringified key the
+/// `safe_*` readers and the dict insert use (`Null` becomes `"null"`).
+pub trait CacheKey {
+    fn strict(&self) -> Option<&str>;
+    fn text(&self) -> String;
+}
+impl CacheKey for Value {
+    fn strict(&self) -> Option<&str> { self.as_str() }
+    fn text(&self) -> String { crate::runtime::stringify_param(self) }
+}
+impl CacheKey for String {
+    fn strict(&self) -> Option<&str> { Some(self.as_str()) }
+    fn text(&self) -> String { self.clone() }
+}
+impl CacheKey for Option<String> {
+    fn strict(&self) -> Option<&str> { self.as_deref() }
+    fn text(&self) -> String { self.as_deref().unwrap_or("null").to_string() }
+}
+
+/// Keyed access to a `CacheMap`, with the semantics the untyped dict had for the same
+/// key: `has` / `at` / `forget` match string keys only, `lookup` / `put` stringify.
+pub trait CacheStore {
+    fn has<K: CacheKey + ?Sized>(&self, key: &K) -> bool;
+    fn at<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache>;
+    fn lookup<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache>;
+    fn put<K: CacheKey + ?Sized>(&mut self, key: &K, cache: impl Into<Option<Cache>>);
+    fn forget<K: CacheKey + ?Sized>(&mut self, key: &K);
+}
+
+impl CacheStore for CacheMap {
+    fn has<K: CacheKey + ?Sized>(&self, key: &K) -> bool { key.strict().is_some_and(|k| self.contains_key(k)) }
+    fn at<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache> { key.strict().and_then(|k| self.get(k)).cloned() }
+    fn lookup<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache> { self.get(key.text().as_str()).cloned() }
+    /// Writing an absent cache leaves the map as it is (the untyped dict stored a `Null` entry there).
+    fn put<K: CacheKey + ?Sized>(&mut self, key: &K, cache: impl Into<Option<Cache>>) {
+        if let Some(c) = cache.into() { self.insert(key.text(), c); }
+    }
+    fn forget<K: CacheKey + ?Sized>(&mut self, key: &K) { if let Some(k) = key.strict() { self.shift_remove(k); } }
+}
+
+/// The map as a plain dict of cache markers (the `to_value` snapshot); each entry is an Arc bump.
+impl From<&CacheMap> for Value {
+    fn from(m: &CacheMap) -> Value { Value::Map(m.iter().map(|(k, c)| (k.clone(), Value::from(c))).collect()) }
+}
+
 // ─── public factories ─────────────────────────────────────────────────────
 
 pub struct ArrayCache;
