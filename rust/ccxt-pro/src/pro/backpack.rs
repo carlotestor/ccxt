@@ -2246,7 +2246,7 @@ impl Backpack {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
-                let mut code: Value = self.safe_currency_code(self.safe_string_k(&security, "asset", &[]), &[]);
+                let mut code: Value = self.safe_currency_code(self.safe_string_k(&security, "asset", &[]), None).map(Value::from).unwrap_or(Value::Null);
                 if (code == Value::Null) {
                     continue;
                 }

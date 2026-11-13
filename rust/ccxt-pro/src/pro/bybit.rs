@@ -3371,7 +3371,7 @@ impl Bybit {
         //
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         let mut currencyId: Option<String> = self.safe_string2(balance.clone(), Value::Str("a".into()), Value::Str("coin".into()), &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
         account.insert("free".into(), self.safe_string_n(balance.clone(), Value::from(vec![Value::Str("availableToWithdraw".into()), Value::Str("f".into()), Value::Str("free".into())]), &[]));
         let mut used: Option<String> = self.safe_string2(balance.clone(), Value::Str("l".into()), Value::Str("locked".into()), &[]).as_str().map(str::to_owned);
         if (used.is_some()) {

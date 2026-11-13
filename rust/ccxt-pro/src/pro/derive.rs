@@ -1710,7 +1710,7 @@ impl Derive {
                 }
                 continue;
             }
-            let mut code: Value = self.safe_currency_code(Value::from(name), &[]);
+            let mut code: Value = self.safe_currency_code(Value::from(name), None).map(Value::from).unwrap_or(Value::Null);
             if (code == Value::Null) {
                 continue;
             }

@@ -2054,7 +2054,7 @@ impl Poloniex {
             while { if !__for_first_648 { i += 1; } __for_first_648 = false; i < (data.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut newAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             newAccount.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             newAccount.insert("used".into(), self.safe_string_k(&balance, "hold", &[]));

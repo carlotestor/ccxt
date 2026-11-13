@@ -934,7 +934,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "f", &[]), &[]));
+                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "f", &[]), None).map(Value::from).unwrap_or(Value::Null));
                 m
             });
         }

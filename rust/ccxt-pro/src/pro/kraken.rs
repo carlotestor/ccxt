@@ -2504,7 +2504,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_430: bool = true;
             while { if !__for_first_430 { i += 1; } __for_first_430 = false; i < (data.len() as i64) } {
             let mut currencyId: Option<String> = self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "asset", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut eq: Option<String> = self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "balance", &[]).as_str().map(str::to_owned);
             account.insert("total".into(), eq.map(Value::from).unwrap_or(Value::Null));

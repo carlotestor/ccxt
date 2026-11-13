@@ -1106,8 +1106,8 @@ impl Extended {
             baseId = baseId.replace("SPOT", "");
         }
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "collateralAssetName", &[]).as_str().map(str::to_owned);
-        let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.clone()), &[]).as_str().map(str::to_owned);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.clone()), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (quoteId.as_deref() == Some("USD")) {
             quote = Some("USDC".to_string());
         }
@@ -1291,7 +1291,7 @@ impl Extended {
         if (currencyId != Value::Null) && (currencyId.as_str().unwrap_or("").contains("SPOT")) {
             currencyId = currencyId.as_str().map(|__s| Value::Str(__s.replace("SPOT", "").into())).unwrap_or_else(|| currencyId.clone());
         }
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), None);
         if (currencyId.as_str() == Some("USD")) {
             code = Some("USDC".to_string());
         }
@@ -2389,7 +2389,7 @@ impl Extended {
     m
 })]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "availableToWithdraw", &[]));
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
@@ -2607,7 +2607,7 @@ impl Extended {
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "time", &[]).as_i64();
         let mut assetId: Option<String> = self.safe_string_k(item.clone(), "asset", &[]).as_str().map(str::to_owned);
         let mut code: Value = self.get_extended_currency_code_by_id(assetId.as_deref(), &[currency.clone()]);
-        let mut ledgerCurrency: Value = self.safe_currency(code.clone(), &[currency]);
+        let mut ledgerCurrency: Value = self.safe_currency(code.clone(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         let mut amountString: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut direction: Value = Value::Null;
         if (amountString.is_some()) {
@@ -3133,7 +3133,7 @@ impl Extended {
         if (currency != Value::Null) {
             return self.safe_string_k(currency, "code", &[]);
         }
-        let mut code: Option<String> = self.safe_currency_code(assetId, &[]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(assetId, None);
         if (code.as_deref() == Some("USD")) {
             code = Some("USDC".to_string());
         }

@@ -1028,7 +1028,7 @@ impl Woofipro {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeValue.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "feeAsset", &[]), &[]));
+                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "feeAsset", &[]), None).map(Value::from).unwrap_or(Value::Null));
                 m
             });
         }
@@ -1907,7 +1907,7 @@ impl Woofipro {
             while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: crate::value::Dict = self.safe_dict(&balances, key.clone(), &[]).into_dict();
-            let mut code: Value = self.safe_currency_code(key, &[]);
+            let mut code: Value = self.safe_currency_code(key, None).map(Value::from).unwrap_or(Value::Null);
             let mut account: Value = self.account();
             if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut cachedAccount: Value = self.safe_dict(self.balance.clone(), code.clone(), &[]);

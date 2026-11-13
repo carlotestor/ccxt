@@ -608,7 +608,7 @@ impl Extended {
         let mut balance: Option<crate::value::Dict> = self.safe_dict_k(data.clone(), "balance", &[]).into_opt_dict();
         if (balance.is_some()) {
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "collateralName", &[]).as_str().map(str::to_owned);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             if (code.is_some()) {
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&balance, "availableForWithdrawal", &[])); }
@@ -626,7 +626,7 @@ impl Extended {
                 m
             })]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&spotBalance, "asset", &[]).as_str().map(str::to_owned);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             if (code.is_some()) {
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&spotBalance, "availableToWithdraw", &[])); }

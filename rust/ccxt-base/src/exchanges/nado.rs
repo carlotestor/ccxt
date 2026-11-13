@@ -2507,7 +2507,7 @@ impl Nado {
             while { if !__for_first_989 { i += 1; } __for_first_989 = false; i < (assets.len() as i64) } {
             let mut rawAsset: Value = assets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut assetSymbol: Option<String> = self.safe_string_k(rawAsset.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut assetCode: Value = self.safe_currency_code(self.remove_market_suffix(assetSymbol.as_deref()).map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut assetCode: Value = self.safe_currency_code(self.remove_market_suffix(assetSymbol.as_deref()).map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             if (assetCode == Value::Null) {
                 continue;
             }
@@ -2552,8 +2552,8 @@ impl Nado {
             }
             let mut rawBaseId: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             let mut rawQuoteId: String = self.safe_string_k(&pair, "quote", &[Value::Str("USDT0".into())]).as_str().unwrap_or("USDT0").to_string();
-            let mut base: Option<String> = self.safe_currency_code(self.remove_market_suffix(rawBaseId.as_deref()).map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-            let mut quote: Option<String> = self.safe_currency_code(Value::from(rawQuoteId.clone()), &[]).as_str().map(str::to_owned);
+            let mut base: Option<String> = self.safe_currency_code(self.remove_market_suffix(rawBaseId.as_deref()).map(Value::from).unwrap_or(Value::Null), None);
+            let mut quote: Option<String> = self.safe_currency_code(Value::from(rawQuoteId.clone()), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
@@ -3584,7 +3584,7 @@ impl Nado {
         let mut canWithdraw: bool = self.safe_bool_k(rawCurrency.clone(), "can_withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(rawCurrency.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(self.remove_market_suffix(currencyId.as_deref()).map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(self.remove_market_suffix(currencyId.as_deref()).map(Value::from).unwrap_or(Value::Null), None);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -3652,7 +3652,7 @@ impl Nado {
             while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (balances.len() as i64) } {
             let mut rawBalance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&rawBalance, "product_id", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             if (code.as_str() == Some("0")) {
                 code = Value::Str("USDT0".into());
             }  else if (code.as_str() == currencyId.as_deref()) {
@@ -3708,7 +3708,7 @@ impl Nado {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref());
         let mut timestamp: Option<i64> = self.safe_timestamp_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut preBalance: crate::value::Dict = self.safe_dict_k(transaction.clone(), "pre_balance", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
