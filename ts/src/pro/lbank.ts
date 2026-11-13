@@ -287,13 +287,12 @@ export default class lbank extends lbankRest {
             ];
             const timeframeId = this.safeString (message, 'kbar', '');
             const timeframe = this.findTimeframe (timeframeId, timeframes);
-            const ohlcvsForSymbol: Dict = this.safeDict (this.ohlcvs, symbol, {});
-            this.ohlcvs[symbol] = ohlcvsForSymbol;
-            let stored = this.safeValue (ohlcvsForSymbol, timeframe);
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                ohlcvsForSymbol[timeframe as string] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
@@ -316,16 +315,15 @@ export default class lbank extends lbankRest {
                 return;
             }
             const timeframe = this.findTimeframe (timeframeId, timeframes);
-            const ohlcvsForSymbol: Dict = this.safeDict (this.ohlcvs, symbol, {});
-            this.ohlcvs[symbol] = ohlcvsForSymbol;
-            let stored = this.safeValue (ohlcvsForSymbol, timeframe);
-            if (stored === undefined) {
+            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+            let subStored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
+            if (subStored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                ohlcvsForSymbol[timeframe as string] = stored;
+                subStored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol][timeframe as string] = subStored;
             }
-            stored.append (parsed);
-            client.resolve (stored, messageHash);
+            subStored.append (parsed);
+            client.resolve (subStored, messageHash);
         }
     }
 
