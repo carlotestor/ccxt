@@ -4173,7 +4173,7 @@ func (this *BaseExchange) ParseOrderBookL3(orderbook any, symbol any, optionalAr
 	}
 }
 func (this *BaseExchange) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timeframe string = GetArgString(optionalArgs, 1, "1m")
 	_ = timeframe
