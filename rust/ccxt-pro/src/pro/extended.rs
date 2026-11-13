@@ -186,7 +186,7 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "find_subscription" => self.find_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "parse_ws_funding_rate" => self.parse_ws_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ws_funding_rate" => self.parse_ws_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_funding_rate" => crate::types::IntoRaw::into_raw(self.watch_funding_rate(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_mark_price" => crate::types::IntoRaw::into_raw(self.watch_mark_price(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -224,7 +224,7 @@ impl Extended {
             "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "parse_ws_funding_rate" => self.parse_ws_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_ws_funding_rate" => self.parse_ws_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_funding_rate" => { crate::exchange_stubs::enqueue_spawn("watch_funding_rate", args.to_vec()); crate::Value::Null },
             "watch_mark_price" => { crate::exchange_stubs::enqueue_spawn("watch_mark_price", args.to_vec()); crate::Value::Null },
@@ -372,7 +372,7 @@ impl Extended {
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "m", &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
@@ -516,9 +516,9 @@ impl Extended {
         let mut messageHash: String = "orders".to_string();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-            symbolResolved = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
-            messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbolResolved = Value::from((market).symbol.as_str()).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str("orders:".into()), Value::from((market).symbol.as_str()));
         }
         let mut orders: Value = self.watch_private(messageHash.as_str(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -672,9 +672,9 @@ impl Extended {
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-            symbolResolved = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbolResolved = Value::from((market).symbol.as_str()).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str("myTrades:".into()), Value::from((market).symbol.as_str()));
         }
         let mut trades: Value = self.watch_private(messageHash.as_str(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1033,20 +1033,19 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut fundingRate: Value = self.parse_ws_funding_rate(data, &[Value::Null, message]);
+        let mut fundingRate: Value = self.parse_ws_funding_rate(data, None, &[message]);
         let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
         let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), symbol);
         client.resolve(fundingRate, messageHash.as_str());
 }
 
-    pub fn parse_ws_funding_rate(&self, mut fundingRate: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut message = get_arg(optional_args, 1, Value::Null);
+    pub fn parse_ws_funding_rate(&self, mut fundingRate: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut message = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut marketId: Option<String> = self.safe_string_k(fundingRate.clone(), "m", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut fundingTimestamp: Option<i64> = self.safe_integer_k(fundingRate.clone(), "T", &[]).as_i64();
         return Value::Map({
@@ -1134,7 +1133,7 @@ impl Extended {
         //
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "m", &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
         if (timestamp.is_none()) || (timestamp == Some(0)) {
@@ -1231,7 +1230,7 @@ impl Extended {
             return;
         }
         let mut marketId: Option<String> = self.safe_string_k(&first, "m", &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol);
         let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({

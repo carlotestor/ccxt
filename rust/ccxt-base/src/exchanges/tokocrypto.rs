@@ -111,7 +111,7 @@ impl crate::exchange_generated::ExchangeBase for Tokocrypto {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "is_native_market" => self.is_native_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "is_native_market" => self.is_native_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
                 "nonce" => self.nonce(),
                 "parse_balance_custom" => self.parse_balance_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_str)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1333,17 +1333,17 @@ impl Tokocrypto {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.get_market_id_by_type(market.clone()).map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), self.get_market_id_by_type(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
             request.insert("limit".into(), limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let mut response: Value = Value::Null;
-        if self.is_native_market(market).as_bool() == Some(true) {
+        if self.is_native_market(Some(&market)).as_bool() == Some(true) {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_get_open_v1_market_depth(&[__ws_arg_0]).await;
         }  else {
@@ -1569,7 +1569,7 @@ impl Tokocrypto {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1577,8 +1577,8 @@ impl Tokocrypto {
         // the venue routes market data by the symbol type reported by fetchMarkets,
         // not by the quote currency: type 1 markets are served by the binance host
         // with the underscore-less id, every other type by open/v1 with the raw id
-        request.insert("symbol".into(), self.get_market_id_by_type(market.clone()).map(Value::from).unwrap_or(Value::Null));
-        if self.is_native_market(market.clone()).as_bool() == Some(true) {
+        request.insert("symbol".into(), self.get_market_id_by_type(Some(&market)).map(Value::from).unwrap_or(Value::Null));
+        if self.is_native_market(Some(&market)).as_bool() == Some(true) {
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());
             }
@@ -1611,7 +1611,7 @@ impl Tokocrypto {
                 m
             })]).into_dict();
             let mut list: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-            return self.parse_trades(&list, &[market.clone(), since.clone(), limit.clone()]);
+            return self.parse_trades(&list, Some(&market), &[since.clone(), limit.clone()]);
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default = 500, maximum = 1000
@@ -1669,7 +1669,7 @@ impl Tokocrypto {
         //     ]
         //
         let mut responseList: Value = self.to_array(response);
-        return self.parse_trades(responseList, &[market, since, limit]);
+        return self.parse_trades(responseList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1807,10 +1807,11 @@ impl Tokocrypto {
  * @param {object} market a unified market structure
  * @returns {boolean} true when the symbol type of the market is known and is not 1
  */
-    pub fn is_native_market(&self, mut market: Value) -> Value {
-        let __market_empty = indexmap::IndexMap::new();
-        let market = market.as_map().unwrap_or(&__market_empty);
-        let mut marketInfo: crate::value::Dict = market.get("info").cloned().unwrap_or_default().into_dict();
+    pub fn is_native_market(&self, market: Option<&crate::types::Market>) -> Value {
+        let mut marketInfo: crate::value::Dict = self.safe_dict_k(&market, "info", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut symbolType: Option<String> = self.safe_string_k(&marketInfo, "type", &[]).as_str().map(str::to_owned);
         return Value::Bool((symbolType.is_some()) && (symbolType.as_deref() != Some("1")));
 
@@ -1825,11 +1826,11 @@ impl Tokocrypto {
  * @param {object} market a unified market structure
  * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
  */
-    pub fn get_market_id_by_type(&self, mut market: Value) -> Option<String> {
+    pub fn get_market_id_by_type(&self, market: Option<&crate::types::Market>) -> Option<String> {
         if self.is_native_market(market.clone()).as_bool() == Some(true) {
-            return self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
+            return self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
         }
-        return Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market, "quoteId", &[Value::Str("".into())])).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", self.safe_string_k(&market, "baseId", &[Value::Str("".into())]), self.safe_string_k(&market, "quoteId", &[Value::Str("".into())])).into()).as_str().map(str::to_owned);
 }
 
 /*
@@ -1855,13 +1856,13 @@ impl Tokocrypto {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if self.is_native_market(market.clone()).as_bool() == Some(true) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if self.is_native_market(Some(&market)).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() does not support ".into())).into()), symbol).into()), Value::Str(" yet, the venue serves 24hr ticker statistics only for its binance backed markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.get_market_id_by_type(market.clone()).map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), self.get_market_id_by_type(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -1871,9 +1872,9 @@ impl Tokocrypto {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            return self.parse_ticker(&firstTicker, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref());
+            return self.parse_ticker(&firstTicker, Some(&market));
         }
-        return self.parse_ticker(response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        return self.parse_ticker(response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -1965,7 +1966,7 @@ impl Tokocrypto {
         if (price.as_deref() == Some("index")) {
             request.insert("pair".into(), Value::from((market).id.as_deref())); // Index price takes this argument instead of symbol
         }  else {
-            request.insert("symbol".into(), self.get_market_id_by_type((market).raw.clone()).map(Value::from).unwrap_or(Value::Null));
+            request.insert("symbol".into(), self.get_market_id_by_type(Some(&market)).map(Value::from).unwrap_or(Value::Null));
         }
         // const duration = this.parseTimeframe (timeframe);
         if (since != Value::Null) {
@@ -1975,7 +1976,7 @@ impl Tokocrypto {
             request.insert("endTime".into(), Value::from(until));
         }
         let mut response: Value = Value::Null;
-        if self.is_native_market((market).raw.clone()).as_bool() == Some(true) {
+        if self.is_native_market(Some(&market)).as_bool() == Some(true) {
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.public_get_open_v1_market_klines(&[__ws_arg_6]).await;
         }  else {
@@ -2737,7 +2738,7 @@ impl Tokocrypto {
             m
         })]).into_dict();
         let mut orders: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&orders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&orders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2956,7 +2957,7 @@ impl Tokocrypto {
             m
         })]).into_dict();
         let mut trades: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

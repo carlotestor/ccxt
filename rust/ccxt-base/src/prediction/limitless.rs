@@ -117,7 +117,7 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "get_outcome_by_slug_and_label" => self.get_outcome_by_slug_and_label(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]),
+                "get_outcome_by_slug_and_label" => self.get_outcome_by_slug_and_label(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).and_then(crate::Value::as_str), &args[1.min(args.len())..]),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -3717,7 +3717,7 @@ if _try_result.is_err() {
         if (outcomeIndex == Some(0)) {
             label = "yes".to_string();
         }
-        let mut outcome: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), Some(label.as_str()), &[crate::Value::from(market)]);
+        let mut outcome: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), Some(label.as_str()), market);
         let mut tradeOutcome: Option<String> = self.safe_string_k(outcome.clone(), "outcome", &[]).as_str().map(str::to_owned);
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3743,11 +3743,10 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn get_outcome_by_slug_and_label(&self, slug: Option<&str>, label: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn get_outcome_by_slug_and_label(&self, slug: Option<&str>, label: Option<&str>, market: Option<&crate::types::Market>) -> Value {
         let mut slug: Value = slug.into();
         let mut label: Value = label.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut mkt: crate::types::Market = self.safe_market(&[slug, market]);
+        let mut mkt: crate::types::Market = self.safe_market(slug, market, &[]);
         let mut outcomes: crate::value::List = self.safe_list_k(&mkt, "outcomes", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
@@ -3919,7 +3918,7 @@ if _try_result.is_err() {
 })]).into_dict();
         let mut rawMarket: crate::value::Dict = self.safe_dict_k(entry.clone(), "market", &[]).into_dict();
         let mut slug: Option<String> = self.safe_string_k(&rawMarket, "slug", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), label.as_str(), &[]);
+        let mut outcomeObj: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), label.as_str(), None);
         let mut parsed: indexmap::IndexMap<String, Value> = self.parse_prediction_position(&position, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).as_map().cloned().unwrap_or_default();
         parsed.insert("contracts".into(), self.parse_number(self.apply_scale(contracts.as_deref(), &[]), &[]));
         let mut latestTrade: crate::value::Dict = self.safe_dict_k(entry.clone(), "latestTrade", &[]).into_dict();

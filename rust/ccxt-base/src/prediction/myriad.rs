@@ -4848,7 +4848,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (sym == Value::Null) {
             return;
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[sym.clone()]));
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(sym.clone(), None, &[]));
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(sym.clone(), &[]).into_dict();
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
@@ -4909,7 +4909,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut makerTrader: Option<String> = self.safe_string_lower_k(maker.clone(), "trader", &[]).as_str().map(str::to_owned);
                 if (makerTrader == myWallet) {
                     let mut makerSym: Value = self.market_outcome_to_symbol(networkId.as_deref(), marketId.as_deref(), (self.safe_string_k(maker.clone(), "outcome", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-                    let mut makerMarket: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[makerSym.clone()]));
+                    let mut makerMarket: Value = crate::types::IntoRaw::into_raw(self.safe_market(makerSym.clone(), None, &[]));
                     let mut makerOutcomeObj: crate::value::Dict = self.safe_outcome(makerSym.clone(), &[]).into_dict();
                     let mut makerFees: crate::value::Dict = self.safe_dict_k(maker.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5134,7 +5134,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (sym == Value::Null) {
                 continue;
             }
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[sym.clone()]));
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(sym.clone(), None, &[]));
             let mut outcomeObj: crate::value::Dict = self.safe_outcome(sym.clone(), &[]).into_dict();
             let mut last: Value = self.from_wei((self.safe_string_k(&oc, "last", &[])).as_str());
             let mut ticker: Value = self.safe_prediction_ticker(Value::Map({

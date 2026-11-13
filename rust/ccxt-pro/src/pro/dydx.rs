@@ -392,8 +392,8 @@ impl Dydx {
         // }
         //
         let mut marketId: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]));
-        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut content: crate::value::Dict = message.get("contents").cloned().unwrap_or_default().into_dict();
         let mut rawTrades: crate::value::List = self.safe_list_k(&content, "trades", &[Value::from(vec![])]).into_list();
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -402,7 +402,7 @@ impl Dydx {
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut parsedTrades: Value = self.parse_trades(&rawTrades, &[market]);
+        let mut parsedTrades: Value = self.parse_trades(&rawTrades, Some(&market), &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_306: bool = true;
@@ -557,7 +557,7 @@ impl Dydx {
         // }
         //
         let mut marketId: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut content: crate::value::Dict = message.get("contents").cloned().unwrap_or_default().into_dict();
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
@@ -616,14 +616,14 @@ impl Dydx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), Value::from((market).symbol.as_str()));
         let mut resolution: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_candles".into()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&market, "id", &[Value::Str("".into())]), Value::Str("/".into())).into()), resolution.map(Value::from).unwrap_or(Value::Null)).into()));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("/".into())).into()), resolution.map(Value::from).unwrap_or(Value::Null)).into()));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -664,14 +664,14 @@ impl Dydx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), Value::from((market).symbol.as_str()));
         let mut resolution: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_candles".into()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&market, "id", &[Value::Str("".into())]), Value::Str("/".into())).into()), resolution.map(Value::from).unwrap_or(Value::Null)).into()));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("/".into())).into()), resolution.map(Value::from).unwrap_or(Value::Null)).into()));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -739,7 +739,7 @@ impl Dydx {
         let mut interval: Option<String> = self.safe_string(part.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut marketId: Option<String> = self.safe_string(part, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut content: Value = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut candles: crate::value::List = self.safe_list_k(content.clone(), "candles", &[]).into_list();

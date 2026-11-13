@@ -1542,7 +1542,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut feeCost: Option<String> = self.safe_string_k(order.clone(), "paid_fee", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
         if (feeCost.is_some()) {
-            let mut marketForFee: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+            let mut marketForFee: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]);
             let mut feeCurrency: Option<String> = self.safe_string_k(&marketForFee, "quote", &[]).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -1196,7 +1196,7 @@ impl Coinspot {
             let mut __for_first_584: bool = true;
             while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: crate::types::Market = self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut market: crate::types::Market = self.safe_market(id.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
             if (market).spot {
                 let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
                 let mut ticker: Value = prices.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
@@ -1253,7 +1253,7 @@ impl Coinspot {
         //     }
         //
         let mut trades: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1341,7 +1341,7 @@ impl Coinspot {
         }
         }
         let mut trades: Value = self.array_concat(buyTrades, sellTrades);
-        return self.parse_trades(trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        return self.parse_trades(trades, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

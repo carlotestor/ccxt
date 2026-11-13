@@ -1633,7 +1633,7 @@ impl Latoken {
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trade_history_currency_quote(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1773,22 +1773,22 @@ impl Latoken {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100
         }
         let mut response: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
+            request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_get_auth_trade_pair_currency_quote(&[__ws_arg_5]).await;
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_auth_trade(&[__ws_arg_6]).await;
         }
-        return self.parse_trades(response, &[market, since, limit]);
+        return self.parse_trades(response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1990,7 +1990,7 @@ impl Latoken {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_auth_order_pair_currency_quote_active(&[__ws_arg_8]).await;
         }
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2030,7 +2030,7 @@ impl Latoken {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         if (limit != Value::Null) {
@@ -2038,9 +2038,9 @@ impl Latoken {
         }
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
+            request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             if (isTrigger == Some(true)) {
                 let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_auth_stop_order_pair_currency_quote(&[__ws_arg_9]).await;
@@ -2057,7 +2057,7 @@ impl Latoken {
                 response = self.private_get_auth_order(&[__ws_arg_12]).await;
             }
         }
-        return self.parse_orders(response, &[market, since, limit]);
+        return self.parse_orders(response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

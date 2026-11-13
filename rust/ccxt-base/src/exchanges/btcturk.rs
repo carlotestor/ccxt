@@ -825,7 +825,7 @@ impl Btcturk {
         //   }
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "pair", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
@@ -1059,7 +1059,7 @@ impl Btcturk {
         if (data != Value::Null) {
             dataList = data;
         }
-        return self.parse_trades(dataList, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(dataList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1358,10 +1358,10 @@ impl Btcturk {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("pairSymbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("pairSymbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_open_orders(&[__ws_arg_5]).await.into_dict();
@@ -1371,7 +1371,7 @@ impl Btcturk {
         })]).into_dict();
         let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
         let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
-        return self.parse_orders(self.array_concat(bids, asks), &[market, since, limit]);
+        return self.parse_orders(self.array_concat(bids, asks), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1439,7 +1439,7 @@ impl Btcturk {
         //   ]
         // }
         let mut data: Value = self.safe_list_k(&response, "data", &[]);
-        return self.parse_orders(data, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(data, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1587,7 +1587,7 @@ impl Btcturk {
         if (data != Value::Null) {
             dataList = data;
         }
-        return self.parse_trades(dataList, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        return self.parse_trades(dataList, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

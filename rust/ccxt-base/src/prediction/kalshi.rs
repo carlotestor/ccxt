@@ -1484,17 +1484,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(interest.clone(), "updated_time", &[])).as_i64();
         let mut openInterest: Value = self.safe_open_interest(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market.clone(), &[]));
-        m.insert("openInterestAmount".to_string(), self.safe_number2(interest.clone(), Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]));
-        m.insert("openInterestValue".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), Value::Null);
-        m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("info".to_string(), interest);
-    m
-}), &[crate::Value::from(market)]);
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market.clone(), &[]));
+                m.insert("openInterestAmount".to_string(), self.safe_number2(interest.clone(), Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]));
+                m.insert("openInterestValue".to_string(), Value::Null);
+                m.insert("baseVolume".to_string(), Value::Null);
+                m.insert("quoteVolume".to_string(), Value::Null);
+                m.insert("timestamp".to_string(), Value::from(timestamp));
+                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("info".to_string(), interest);
+            m
+        }), market.clone());
         add_element_to_object(&mut openInterest, &Value::Str("outcome".into()), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
         add_element_to_object(&mut openInterest, &Value::Str("outcomeId".into()), self.safe_string_k(&market, "outcomeId", &[]));
         remove(&mut openInterest, &Value::Str("symbol".into()));

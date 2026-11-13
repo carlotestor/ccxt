@@ -1342,7 +1342,7 @@ impl Poloniex {
         let mut channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut market: crate::types::Market = self.safe_market(&[symbol.clone()]);
+        let mut market: crate::types::Market = self.safe_market(symbol.clone(), None, &[]);
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1468,7 +1468,7 @@ impl Poloniex {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "createTime", &[]).as_i64();
         let mut takerMaker: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("matchRole".into()), Value::Str("taker".into()), &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
@@ -1930,7 +1930,7 @@ impl Poloniex {
             while { if !__for_first_647 { i += 1; } __for_first_647 = false; i < (data.len() as i64) } {
             let mut item: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&item, "symbol", &[]).as_str().map(str::to_owned);
-            let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+            let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut name: String = "book_lv2".to_string();
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol);

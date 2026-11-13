@@ -748,7 +748,7 @@ impl Coincheck {
         }
         let mut response: crate::value::Dict = self.private_get_exchange_orders_opens(&[params]).await.into_dict();
         let mut rawOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
-        let mut parsedOrders: Value = self.parse_orders(&rawOrders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        let mut parsedOrders: Value = self.parse_orders(&rawOrders, market.as_ref(), &[since, limit]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -977,7 +977,7 @@ impl Coincheck {
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "rate", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "pair", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market), Value::Str("_".into())]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]);
         let mut baseId: Value = crate::value::KeyRead::key_read(&&marketResolved, "baseId");
         let mut quoteId: Value = crate::value::KeyRead::key_read(&&marketResolved, "quoteId");
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
@@ -1060,7 +1060,7 @@ impl Coincheck {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1093,7 +1093,7 @@ impl Coincheck {
         //      }
         //
         let mut transactions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&transactions, &[market, since, limit]);
+        return self.parse_trades(&transactions, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1147,7 +1147,7 @@ impl Coincheck {
         //      }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&data, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

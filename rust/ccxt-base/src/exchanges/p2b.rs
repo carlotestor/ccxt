@@ -1019,7 +1019,7 @@ impl P2b {
         //    }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&result, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&result, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1474,7 +1474,7 @@ impl P2b {
         //    }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&result, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&result, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1511,7 +1511,7 @@ impl P2b {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[symbol]));
+        let mut market: crate::types::Market = self.safe_market(symbol, None, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id);
@@ -1550,7 +1550,7 @@ impl P2b {
             m
         })]).into_dict();
         let mut records: crate::value::List = self.safe_list_k(&result, "records", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&records, &[market, since, limit]);
+        return self.parse_trades(&records, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1657,7 +1657,7 @@ impl P2b {
             m
         })]).into_dict();
         let mut deals: crate::value::List = self.safe_list_k(&result, "deals", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&deals, &[(market).raw.clone(), sinceResolved, limit]);
+        return self.parse_trades(&deals, Some(&market), &[sinceResolved, limit]);
         Value::Null
         }).await?))
     }
@@ -1695,9 +1695,9 @@ impl P2b {
         }
         let mut untilParam: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut until: Value = self.parse_to_int(Value::Int(0));
         let mut sinceResolved: Value = self.parse_to_int(Value::Int(0));
@@ -1727,8 +1727,8 @@ impl P2b {
                 m.insert("endTime".to_string(), untilSec);
             m
         });
-        if (market != Value::Null) {
-            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if (market.is_some()) {
+            request.insert("market".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -1773,7 +1773,7 @@ impl P2b {
             while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            let mut parsedOrders: Value = self.parse_orders(marketOrders, &[market.clone(), sinceResolved.clone(), limit.clone()]);
+            let mut parsedOrders: Value = self.parse_orders(marketOrders, market.as_ref(), &[sinceResolved.clone(), limit.clone()]);
             orders = self.array_concat(orders.clone(), parsedOrders);
         }
         }
@@ -1823,7 +1823,7 @@ impl P2b {
         //
         let mut timestamp: Option<i64> = self.safe_integer_product2(order.clone(), Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());

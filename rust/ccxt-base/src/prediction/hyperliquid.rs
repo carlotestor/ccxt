@@ -111,7 +111,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "find_outcome_in_market" => self.find_outcome_in_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str)),
+                "find_outcome_in_market" => self.find_outcome_in_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).and_then(crate::Value::as_str)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_public_address" => self.handle_public_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -1193,11 +1193,11 @@ impl Hyperliquid {
         }
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         let mut parentSymbol: Option<String> = self.safe_string_k(&mkt, "market", &[]).as_str().map(str::to_owned);
-        let mut parentMarket: Value = Value::Null;
+        let mut parentMarket: Option<crate::types::Market> = None;
         if (parentSymbol.is_some()) {
-            parentMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[parentSymbol.map(Value::from).unwrap_or(Value::Null)]));
+            parentMarket = Some(self.safe_market(parentSymbol.map(Value::from).unwrap_or(Value::Null), None, &[]));
         }
-        let mut ctx: Value = (if (parentMarket != Value::Null) { self.safe_dict(self.safe_dict_k(parentMarket, "info", &[Value::Map({
+        let mut ctx: Value = (if (parentMarket.is_some()) { self.safe_dict(self.safe_dict_k(&parentMarket, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ctx".into()), &[Value::Map({
@@ -1672,11 +1672,9 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn find_outcome_in_market(&self, mut market: Value, sideHint: Option<&str>) -> Value {
+    pub fn find_outcome_in_market(&self, market: Option<&crate::types::Market>, sideHint: Option<&str>) -> Value {
         let mut sideHint: Value = sideHint.into();
-        let __market_empty = indexmap::IndexMap::new();
-        let market = market.as_map().unwrap_or(&__market_empty);
-        let mut outcomesList: crate::value::List = market.get("outcomes").cloned().unwrap_or_default().into_list();
+        let mut outcomesList: crate::value::List = self.safe_list_k(&market, "outcomes", &[Value::from(vec![])]).into_list();
         let mut normalizedHint: Option<String> = (if ((sideHint != Value::Null) && (sideHint.as_str() != Some(""))) { sideHint.as_str().map(str::to_owned).as_deref().map(str::to_uppercase) } else { None });
         if (normalizedHint.is_some()) {
             {
@@ -1799,12 +1797,12 @@ impl Hyperliquid {
         }
         }
         if ((self.markets.clone() != Value::Null) && (matches!((&self.markets, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[outcomeInput.clone()]));
+            let mut market: crate::types::Market = self.safe_market(outcomeInput.clone(), None, &[]);
             let mut sideHintOrDefault: Value = Value::Str("YES".into());
             if (sideHint != Value::Null) {
                 sideHintOrDefault = sideHint;
             }
-            let mut found: Value = self.find_outcome_in_market(market, sideHintOrDefault.as_str());
+            let mut found: Value = self.find_outcome_in_market(Some(&market), sideHintOrDefault.as_str());
             if ((object_keys(&found).len() as i64) as f64) > ((0i64) as f64) {
                 return found;
             }
@@ -2438,7 +2436,7 @@ impl Hyperliquid {
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         let mut resolvedMarket: Value = crate::Value::from(market);
         if (marketSymbol.is_some()) && (marketSymbol.as_deref() != Some("")) {
-            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]));
+            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(marketSymbol.map(Value::from).unwrap_or(Value::Null), market, &[]));
         }
         let mut sideRaw: Option<String> = self.safe_string_k(&entry, "side", &[]).as_str().map(str::to_owned);
         let mut side: String = "sell".to_string();
@@ -2698,7 +2696,7 @@ impl Hyperliquid {
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         let mut resolvedMarket: Value = crate::Value::from(market);
         if (marketSymbol.is_some()) && (marketSymbol.as_deref() != Some("")) {
-            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]));
+            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(marketSymbol.map(Value::from).unwrap_or(Value::Null), market, &[]));
         }
         let mut rawSide: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: String = "sell".to_string();

@@ -859,7 +859,7 @@ impl Bit2c {
             }
             responseList = self.to_array(response);
         }
-        return self.parse_trades(responseList, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(responseList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1078,7 +1078,7 @@ impl Bit2c {
 })]).into_dict();
         let mut asks: Value = self.safe_list_k(&orders, "ask", &[Value::from(vec![])]);
         let mut bids: Value = self.safe_list_k(&orders, "bid", &[Value::from(vec![])]);
-        return self.parse_orders(self.array_concat(asks, bids), &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(self.array_concat(asks, bids), Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1268,7 +1268,7 @@ impl Bit2c {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1282,8 +1282,8 @@ impl Bit2c {
             request.insert("fromTime".into(), self.yyyymmdd(since.clone(), &[Value::Str(".".into())]));
         }
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_order_order_history(&[__ws_arg_10]).await;
@@ -1326,7 +1326,7 @@ impl Bit2c {
         //     ]
         //
         let mut responseList: Value = self.to_array(response);
-        return self.parse_trades(responseList, &[market, since, limit]);
+        return self.parse_trades(responseList, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1387,7 +1387,7 @@ impl Bit2c {
         let mut fee: Value = Value::Null;
         let mut side: Value = Value::Null;
         let mut makerOrTaker: Value = Value::Null;
-        let mut tradeMarket: Value = Value::Null;
+        let mut tradeMarket: Option<crate::types::Market> = None;
         let mut reference: Option<String> = self.safe_string_k_opt(trade.clone(), "reference", &[]);
         if (reference.is_some()) {
             id = reference.clone().map(Value::from).unwrap_or(Value::Null);
@@ -1399,8 +1399,8 @@ impl Bit2c {
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]).as_str().map(str::to_owned);
             let mut reference_parts: Vec<Value> = Value::Array(if let Some(__s) = reference.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "pair", &[]).as_str().map(str::to_owned);
-            let mut marketByPair: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]));
-            tradeMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[reference_parts.get(0).cloned().unwrap_or(Value::Null), marketByPair]));
+            let mut marketByPair: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]);
+            tradeMarket = Some(self.safe_market(reference_parts.get(0).cloned().unwrap_or(Value::Null), Some(&marketByPair), &[]));
             let mut isMaker: bool = self.safe_bool_k(trade.clone(), "isMaker", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             makerOrTaker = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
             orderId = (if isMaker { reference_parts.get(2).cloned().unwrap_or(Value::Null) } else { reference_parts.get(1).cloned().unwrap_or(Value::Null) });
@@ -1424,14 +1424,14 @@ impl Bit2c {
             id = self.safe_string_k(trade.clone(), "tid", &[]);
             price = self.safe_string_k(trade.clone(), "price", &[]);
             amount = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
-            tradeMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[Value::Null, crate::Value::from(market)]));
+            tradeMarket = Some(self.safe_market(Value::Null, market, &[]));
             side = self.safe_value_k(trade.clone(), "isBid", &[]);
             if (side != Value::Null) {
                 // safeValue already drops an empty string, so a present isBid is a buy here
                 side = Value::Str("buy".into());
             }
         }
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, tradeMarket]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, tradeMarket.as_ref(), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);

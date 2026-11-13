@@ -1337,7 +1337,7 @@ impl Coinone {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut isSellerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "is_seller_maker", &[]).as_bool();
         let mut side: Option<String> = None;
         if (isSellerMaker.is_some()) {
@@ -1445,7 +1445,7 @@ impl Coinone {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&data, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1619,7 +1619,7 @@ impl Coinone {
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut marketResolved: Value = (if (symbol.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null), crate::Value::from(market), Value::Str("/".into())])) } else { crate::Value::from(market) });
+        let mut marketResolved: Value = (if (symbol.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("/".into())])) } else { crate::Value::from(market) });
         let mut timestamp: Option<i64> = self.safe_timestamp2(order.clone(), Value::Str("timestamp".into()), Value::Str("updatedAt".into()), &[]).as_i64();
         if (timestamp.is_none()) {
             timestamp = self.safe_integer2(order.clone(), Value::Str("ordered_at".into()), Value::Str("updated_at".into()), &[]).as_i64(); // v2.1 sends milliseconds
@@ -1748,7 +1748,7 @@ impl Coinone {
         //     }
         //
         let mut openOrders: crate::value::List = self.safe_list2(&response, Value::Str("open_orders".into()), Value::Str("limitOrders".into()), &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&openOrders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&openOrders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1811,7 +1811,7 @@ impl Coinone {
         //     }
         //
         let mut completeOrders: crate::value::List = self.safe_list_k(&response, "completeOrders", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&completeOrders, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&completeOrders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

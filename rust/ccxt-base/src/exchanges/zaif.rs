@@ -943,7 +943,7 @@ impl Zaif {
                 trades = Value::from(vec![]);
             }
         }
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1147,14 +1147,14 @@ impl Zaif {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("currency_pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("currency_pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_active_orders(&[__ws_arg_5]).await.into_dict();
@@ -1162,7 +1162,7 @@ impl Zaif {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), &[market, since, limit]);
+        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1194,14 +1194,14 @@ impl Zaif {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("currency_pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("currency_pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (since != Value::Null) {
             request.insert("since".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
@@ -1215,7 +1215,7 @@ impl Zaif {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), &[market, since, limit]);
+        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

@@ -803,7 +803,7 @@ impl Mudrex {
             if (sym.is_none()) {
                 continue;
             }
-            let mut m: crate::types::Market = self.safe_market(&[sym.map(Value::from).unwrap_or(Value::Null)]);
+            let mut m: crate::types::Market = self.safe_market(sym.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Value = crate::value::KeyRead::key_read(&&m, "symbol");
             if (symbols != Value::Null) && !(self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true)) {
                 continue;
@@ -819,7 +819,7 @@ impl Mudrex {
     pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
         let mut ms: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[ms.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(ms.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut pct: Option<f64> = self.safe_number_k(ticker.clone(), "change_perc", &[]).as_f64();
         return self.safe_ticker(Value::Map({
@@ -1030,7 +1030,7 @@ impl Mudrex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default();
+        let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut requested: Option<String> = self.safe_string_n(Value::from(&paramsMarketType), Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).as_str().map(str::to_owned);
@@ -1389,7 +1389,7 @@ impl Mudrex {
     pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
         let mut oms: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[oms.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(oms.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut oid: Option<String> = self.safe_string2(order.clone(), Value::Str("order_id".into()), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_upper_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
@@ -1728,7 +1728,7 @@ impl Mudrex {
             while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < (rows.len() as i64) } {
             let mut p: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symRaw: Option<String> = self.safe_string_k(p.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut m: crate::types::Market = self.safe_market(&[symRaw.map(Value::from).unwrap_or(Value::Null)]);
+            let mut m: crate::types::Market = self.safe_market(symRaw.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut pos: Value = self.parse_position(p, Some(&m));
             outPos.push(pos);
         }
@@ -1806,7 +1806,7 @@ impl Mudrex {
 
     pub fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut position: Value = position.into();
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut ms: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(ms.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         // open positions use "order_type", closed positions (history) use "position_type"
@@ -2048,9 +2048,9 @@ impl Mudrex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let maxCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]).as_array().cloned().unwrap_or_default();
         let mut maxCalls: Value = maxCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2083,7 +2083,7 @@ impl Mudrex {
                 allRows.push(entry.clone());
                 if (self.safe_string_k(entry.clone(), "fee_type", &[]).as_str() == Some("TRANSACTION")) {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (market == Value::Null) || (self.safe_string_k(entry.clone(), "symbol", &[]).as_str() == market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str()) {
+                    if (market.is_none()) || (self.safe_string_k(entry.clone(), "symbol", &[]).as_str() == crate::value::KeyRead::key_read(&&market, "id").as_str()) {
                         transactionsCount = self.parse_to_int((match (&(transactionsCount), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                     }
                 }
@@ -2151,7 +2151,7 @@ impl Mudrex {
             }
         }
         }
-        return self.parse_trades(Value::from(rows), &[market, since, limit]);
+        return self.parse_trades(Value::from(rows), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2174,7 +2174,7 @@ impl Mudrex {
         //     }
         //
         let mut ms: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[ms.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(ms.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut ts: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[])).as_i64();
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
