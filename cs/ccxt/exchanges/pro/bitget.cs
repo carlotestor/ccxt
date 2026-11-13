@@ -764,8 +764,7 @@ public partial class bitget : ccxt.bitget
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = this.safeString(market, "symbol", "");
-        IDictionary<string, object> symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        this.ohlcvs[(string)symbol] = symbolOhlcvs;
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         string? channel = this.safeString2(arg, "channel", "topic", "");
         string? interval = this.safeString(arg, "interval");
         bool? isUta = null;
@@ -783,18 +782,18 @@ public partial class bitget : ccxt.bitget
         {
             return;
         }
-        object stored = this.safeValue(symbolOhlcvs, timeframe);
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            symbolOhlcvs[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
             List<object> parsed = this.parseWsOHLCV(data[i], market);
-            ccxt.pro.BaseCache.appendTo(stored, parsed);
+            stored.append(parsed);
         }
         string? messageHash = null;
         if ((isUta == true))
@@ -1649,7 +1648,7 @@ public partial class bitget : ccxt.bitget
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(newPositions, symbolsNormalized, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(newPositions), symbolsNormalized, since, limit, true));
     }
 
     public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
@@ -1732,16 +1731,12 @@ public partial class bitget : ccxt.bitget
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string instType = this.safeString(arg, "instType", "");
-        if ((this.positions == null))
-        {
-            this.positions = new Dictionary<string, object>() {};
-        }
         string? action = this.safeString(message, "action");
-        if (!((((IDictionary<string,object>)this.positions) != null && instType != null && ((IDictionary<string,object>)this.positions).ContainsKey(instType))) || (action == "snapshot"))
+        if (!((this.positionsByType != null && this.positionsByType.ContainsKey(instType))) || (action == "snapshot"))
         {
-            ((IDictionary<string,object>)this.positions)[instType] = new ArrayCacheBySymbolBySide();
+            this.positionsByType[instType] = new ArrayCacheBySymbolBySide();
         }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && instType != null && ((IDictionary<string,object>)this.positions).ContainsKey(instType) ? ((IDictionary<string,object>)this.positions)[instType] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.positionsByType != null && instType != null && this.positionsByType.ContainsKey(instType) ? this.positionsByType[instType] : null));
         List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < rawPositions.Count; i++)
@@ -2022,7 +2017,7 @@ public partial class bitget : ccxt.bitget
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -2565,7 +2560,7 @@ public partial class bitget : ccxt.bitget
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)

@@ -287,9 +287,9 @@ public partial class gemini : ccxt.gemini
         for (int i = 0; i < symbols.Count; i++)
         {
             string? symbol = ((string)symbols[i]);
-            object stored = (symbol != null && storesForSymbols.ContainsKey(symbol) ? storesForSymbols[symbol] : null);
+            object symbolStore = (symbol != null && storesForSymbols.ContainsKey(symbol) ? storesForSymbols[symbol] : null);
             string messageHash = ("trades:" + symbol);
-            client.resolve(stored, messageHash);
+            client.resolve(symbolStore, messageHash);
         }
     }
 
@@ -375,8 +375,7 @@ public partial class gemini : ccxt.gemini
         string? symbol = this.safeSymbol(marketId, market);
         List<object> changes = this.safeList(message, "changes", new List<object>() {});
         string? timeframe = this.findTimeframe(timeframeId);
-        IDictionary<string, object> ohlcvsBySymbol = this.safeDict(this.ohlcvs, symbol);
-        if ((ohlcvsBySymbol == null))
+        if (!(((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }

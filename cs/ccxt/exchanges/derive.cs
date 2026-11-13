@@ -2822,7 +2822,7 @@ public partial class derive : Exchange
         {
             // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
             object allOrders = await this.fetchPaginatedCallIncremental("fetchCanceledAndClosedOrders", null, since, null, paramsPaginate, "page", 500);
-            return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(allOrders, symbol, since, limit));
+            return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(allOrders), symbol, since, limit));
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
