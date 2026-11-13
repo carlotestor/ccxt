@@ -725,7 +725,7 @@ export default class mexc extends mexcRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            if (timeframe !== undefined) {
+            if (symbol !== undefined && timeframe !== undefined) {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
         }
