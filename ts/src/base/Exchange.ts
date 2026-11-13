@@ -4404,7 +4404,7 @@ export class BaseExchange {
                 }
             }
         }
-        const fee = this.safeDict (entry, 'fee');
+        const fee = this.safeValue (entry, 'fee');
         if (fee !== undefined) {
             fee['cost'] = this.safeNumber (fee, 'cost');
         }
@@ -8049,7 +8049,7 @@ export class BaseExchange {
     parseBorrowInterests (response: List, market: Market = undefined): BorrowInterest[] {
         const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
-            const row = this.safeDict (response, i);
+            const row = this.safeDict (response, i, {});
             interests.push (this.parseBorrowInterest (row, market));
         }
         return interests as BorrowInterest[];
@@ -8073,7 +8073,7 @@ export class BaseExchange {
     parseIsolatedBorrowRates (info: List): IsolatedBorrowRates {
         const result: Dict = {};
         for (let i = 0; i < info.length; i++) {
-            const item = this.safeDict (info, i);
+            const item = this.safeDict (info, i, {});
             const borrowRate = this.parseIsolatedBorrowRate (item);
             const symbol = this.safeString (borrowRate, 'symbol');
             result[symbol as string] = borrowRate;
