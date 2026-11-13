@@ -2768,7 +2768,7 @@ class woo(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositEntry, 'extra'),
         }
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list:
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2824,7 +2824,8 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return [currency, self.safe_list(data, 'rows', [])]
+        rows = self.safe_list(data, 'rows', [])
+        return rows
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
@@ -2838,9 +2839,10 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        currencyRows = self.get_asset_history_rows(code, since, limit, params)
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1)
+        rows = self.get_asset_history_rows(code, since, limit, params)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -2901,17 +2903,14 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def get_currency_from_chaincode(self, networkizedCode: str, currency: Currency = None) -> CurrencyInterface:
-        if currency is not None:
-            return currency
-        else:
-            parts = networkizedCode.split('_')
-            partsLength = len(parts)
-            firstPart = self.safe_string(parts, 0)
-            currencyId = self.safe_string(parts, 1, firstPart)
-            if partsLength > 2:
-                currencyId += '_' + self.safe_string(parts, 2, '')
-            return self.safe_currency(currencyId)
+    def get_currency_code_from_chaincode(self, networkizedCode: str) -> Str:
+        parts = networkizedCode.split('_')
+        partsLength = len(parts)
+        firstPart = self.safe_string(parts, 0)
+        currencyId = self.safe_string(parts, 1, firstPart)
+        if partsLength > 2:
+            currencyId += '_' + self.safe_string(parts, 2, '')
+        return self.safe_currency_code(currencyId)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2962,9 +2961,10 @@ class woo(Exchange, ImplicitAPI):
         request = {
             'type': 'BALANCE',
         }
-        currencyRows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1, [])
+        rows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         return self.parse_transactions(rows, currency, since, limit, self.omit(params, 'tokenSide'))
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2991,8 +2991,11 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         networkizedCode = self.safe_string(transaction, 'token', '')
-        currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
-        code = self.safe_string(currencyDefined, 'code')
+        code = None
+        if currency is not None:
+            code = self.safe_string(currency, 'code')
+        else:
+            code = self.get_currency_code_from_chaincode(networkizedCode)
         movementDirection = self.safe_string_lower_n(transaction, ['token_side', 'tokenSide', 'type'])
         if movementDirection == 'withdraw':
             movementDirection = 'withdrawal'
