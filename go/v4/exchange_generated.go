@@ -395,6 +395,7 @@ func (this *BaseExchange) CleanWsData() {
 	this.Ohlcvs = map[string]map[string]any{}
 	this.MyTrades = nil
 	this.Positions = nil
+	this.PositionsByType = map[string]WsArrayCache{}
 }
 
 func (this *BaseExchange) SafeDictN(dictionaryOrList any, keys any, optionalArgs ...any) any {
@@ -4173,7 +4174,7 @@ func (this *BaseExchange) ParseOrderBookL3(orderbook any, symbol any, optionalAr
 	}
 }
 func (this *BaseExchange) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timeframe string = GetArgString(optionalArgs, 1, "1m")
 	_ = timeframe
@@ -5661,11 +5662,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes706315 map[string]any = r.Value
-	if retRes706315 == nil {
+	var retRes706615 map[string]any = r.Value
+	if retRes706615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes706315}
+		ch <- AsyncResult[map[string]any]{Value: retRes706615}
 	}
 	return nil
 }
@@ -7083,7 +7084,7 @@ func (this *BaseExchange) ParseBorrowInterests(response any, optionalArgs ...any
 	_ = market
 	var interests []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var row any = this.SafeValue(response, i)
+		var row any = this.SafeDict(response, i, map[string]any{})
 		interests = append(interests, this.DerivedExchange.ParseBorrowInterest(row, market))
 	}
 	return interests
@@ -7096,7 +7097,7 @@ func (this *BaseExchange) ParseBorrowRate(info any, optionalArgs ...any) map[str
 func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since any, limit any) []any {
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var item any = this.SafeValue(response, i)
+		var item any = this.SafeDict(response, i)
 
 		var borrowRate any = this.DerivedExchange.ParseBorrowRate(item)
 		PanicOnError(borrowRate)
@@ -7108,7 +7109,7 @@ func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since a
 func (this *BaseExchange) ParseIsolatedBorrowRates(info any) map[string]any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(info); i++ {
-		var item any = this.SafeValue(info, i)
+		var item map[string]any = this.SafeDictMap(info, i, map[string]any{})
 		var borrowRate map[string]any = this.ParseIsolatedBorrowRate(item)
 		var symbol *string = this.SafeString(borrowRate, "symbol")
 		if symbol != nil {
@@ -11537,12 +11538,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048015Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048015 []any = retRes1048015Recv
-	if retRes1048015 == nil {
+	retRes1048315Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048315 []any = retRes1048315Recv
+	if retRes1048315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048315)}
 	}
 	return nil
 }

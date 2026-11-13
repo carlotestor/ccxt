@@ -508,7 +508,7 @@ impl Sxbet {
 }));
         let mut userLimit = get_arg(optional_args, 1, Value::Null);
         let mut pageSize: Value = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(100)]);
-        let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]);
+        let mut maxPages: i64 = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]).as_i64().unwrap_or(50);
         let mut rawMarkets: Vec<Value> = Vec::new();
         let mut collectCap: Option<i64> = self.safe_integer(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -516,7 +516,7 @@ impl Sxbet {
     m
 }), Value::Str("limit".into()), &[]).as_i64();
         let mut paginationKey: Option<String> = None;
-        let mut page: Value = Value::from(self.parse_to_int(Value::Int(0)));
+        let mut page: Option<i64> = self.parse_to_int(Value::Int(0));
         loop {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -542,9 +542,9 @@ impl Sxbet {
             }
             }
             paginationKey = self.safe_string_k(&result, "nextKey", &[]).as_str().map(str::to_owned);
-            page = Value::from(self.parse_to_int((match (&(page), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
+            page = self.parse_to_int(Value::from((if let Some(__l) = page { Some(__l + 1) } else { None })));
             let mut collectedLength: Option<i64> = self.parse_to_int(Value::Int(rawMarkets.len() as i64));
-            if (pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || (paginationKey.is_none()) || ((collectCap.is_some()) && ((collectedLength.is_some() && collectCap.is_some() && collectedLength >= collectCap))) {
+            if (pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN)) || (page >= Some(maxPages)) || (paginationKey.is_none()) || ((collectCap.is_some()) && ((collectedLength.is_some() && collectCap.is_some() && collectedLength >= collectCap))) {
                 break;
             }
         }
@@ -991,8 +991,8 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1501: bool = true;
             while { if !__for_first_1501 { i += 1; } __for_first_1501 = false; (i as f64) < rawMarketsLength } {
-            let mut raw: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: Value = self.parse_sxbet_market(raw.clone());
+            let mut raw: crate::value::Dict = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: Value = self.parse_sxbet_market(Value::from(&raw));
             if (parsed == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseEvent() could not resolve parsed market".into()))));
             }
@@ -1001,11 +1001,11 @@ impl Sxbet {
                 anyActive = true;
             }
             if (teamOneName.is_none()) {
-                teamOneName = self.safe_string_k(raw.clone(), "teamOneName", &[]).as_str().map(str::to_owned);
-                teamTwoName = self.safe_string_k(raw.clone(), "teamTwoName", &[]).as_str().map(str::to_owned);
-                leagueLabel = self.safe_string_k(raw.clone(), "leagueLabel", &[]).as_str().map(str::to_owned);
+                teamOneName = self.safe_string_k(&raw, "teamOneName", &[]).as_str().map(str::to_owned);
+                teamTwoName = self.safe_string_k(&raw, "teamTwoName", &[]).as_str().map(str::to_owned);
+                leagueLabel = self.safe_string_k(&raw, "leagueLabel", &[]).as_str().map(str::to_owned);
             }
-            let mut gameTime: Option<i64> = self.safe_integer_k(raw, "gameTime", &[]).as_i64();
+            let mut gameTime: Option<i64> = self.safe_integer_k(&raw, "gameTime", &[]).as_i64();
             // skip the zero sentinel for "no scheduled game time" so it can't become the epoch
             if (gameTime.is_some()) && (gameTime != Some(0)) && ((earliestGameTime.is_none()) || ((gameTime.is_some() && earliestGameTime.is_some() && gameTime < earliestGameTime))) {
                 earliestGameTime = gameTime.clone();
@@ -1064,9 +1064,9 @@ impl Sxbet {
  * @returns {object} the cached obv3 metadata data object
  */
     pub async fn load_sx_obv3_metadata(&mut self) -> Value {
-        let mut cached: Value = self.safe_dict_k(self.options.clone(), "sxObv3Metadata", &[]);
-        if (cached != Value::Null) {
-            return cached;
+        let mut cached: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "sxObv3Metadata", &[]).into_opt_dict();
+        if (cached.is_some()) {
+            return cached.map_or(Value::Null, Value::Dict);
         }
         let mut response: crate::value::Dict = self.sxbet_public_get_metadata_obv3(&[]).await.into_dict();
         let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
@@ -1153,13 +1153,13 @@ impl Sxbet {
         let mut hex: Value = self.remove0x_prefix(result);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         let mut lengthHex: Value = hex.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(64); let __j = __l.min(128); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut length: Value = Value::from(self.parse_to_int(self.hex_to_int(lengthHex.as_str().unwrap_or_default())));
-        let mut dataEnd: Value = self.sum(&[Value::Int(128), (match (&(length), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+        let mut length: Option<i64> = self.parse_to_int(self.hex_to_int(lengthHex.as_str().unwrap_or_default()));
+        let mut dataEnd: Value = self.sum(&[Value::Int(128), Value::from((if let Some(__l) = length { Some(__l * 2) } else { None }))]);
         let mut dataHex: Value = (match (&(hex), 128i64, (match &(dataEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
             __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
             __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-        return self.decode(Value::from(self.base16_to_binary(dataHex, &[])));
+        return self.decode(self.base16_to_binary(dataHex, &[]));
 
     Value::Null
 }
@@ -1177,18 +1177,18 @@ impl Sxbet {
         let mut digits: String = "0123456789abcdef".to_string();
         let mut lowerHex: Value = (if let Some(__s) = hex.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut hexLength: f64 = ((lowerHex.len() as i64) as f64);
-        let mut result: Value = Value::from(self.parse_to_int(Value::Int(0)));
+        let mut result: Option<i64> = self.parse_to_int(Value::Int(0));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1502: bool = true;
             while { if !__for_first_1502 { i += 1; } __for_first_1502 = false; (i as f64) < hexLength } {
             let mut ch: Value = get_value(&lowerHex, &Value::Int(i));
             let mut digitValue: Option<i64> = self.parse_to_int(Value::Int((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })));
-            let mut shifted: Value = (match (&(result), &(Value::Int(16))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            result = Value::from(self.parse_to_int(self.sum(&[shifted, Value::from(digitValue)])));
+            let mut shifted: Option<i64> = (if let Some(__l) = result { Some(__l * 16) } else { None });
+            result = self.parse_to_int(self.sum(&[Value::from(shifted), Value::from(digitValue)]));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1260,8 +1260,8 @@ impl Sxbet {
         let mut usdcAddress: Option<String> = self.safe_string_k(&activeAsset, "baseToken", &[]).as_str().map(str::to_owned);
         // the permit spender is the venue's transfer-to-proxy executor, published in /metadata/obv3
         let mut executorAddress: Option<String> = self.safe_string_k(obv3, "transferToProxyExecutorAddress", &[]).as_str().map(str::to_owned);
-        let mut tokenAddress: Value = self.safe_string_k(params.clone(), "tokenAddress", &[usdcAddress.map(Value::from).unwrap_or(Value::Null)]);
-        if (tokenAddress == Value::Null) {
+        let mut tokenAddress: Option<String> = self.safe_string_k(params.clone(), "tokenAddress", &[usdcAddress.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (tokenAddress.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the base token address from /metadata/obv3".into()))));
         }
         let spenderparamsSpenderVariable: Vec<Value> = self.handle_option_string_and_params2(params, Value::Str("approve".into()), Value::Str("spender".into()), Value::Str("transferToProxySpender".into()), &[executorAddress.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
@@ -1278,21 +1278,21 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut rpcUrl: Value = self.safe_string_k(&paramsSpender, "rpcUrl", &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]);
-        if (rpcUrl == Value::Null) {
+        let mut rpcUrl: Option<String> = self.safe_string_k(&paramsSpender, "rpcUrl", &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]).as_str().map(str::to_owned);
+        if (rpcUrl.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() has no RPC endpoint configured for chainId ".into())).into()), Value::from(self.number_to_string(Value::from(chainId)))).into()), Value::Str(" - pass params.rpcUrl".into()))));
         }
         let mut owner: Value = self.walletAddress.clone();
         let mut nonceCallData: String = format!("{}{}", Value::Str("0x7ecebe00".into()), self.pad_hex_address(owner.clone())); // nonces(address)
-        let mut nonceResult: Value = self.eth_rpc(rpcUrl.clone(), Value::Str("eth_call".into()), Value::from(vec![Value::Map({
+        let mut nonceResult: Value = self.eth_rpc(Value::from(rpcUrl.as_deref()), Value::Str("eth_call".into()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("to".to_string(), tokenAddress.clone());
+        m.insert("to".to_string(), Value::from(tokenAddress.as_deref()));
         m.insert("data".to_string(), Value::from(nonceCallData));
     m
 }), Value::Str("latest".into())])).await;
         let mut nonceHex: Option<String> = self.hex_to_rlp_bytes(nonceResult).as_str().map(str::to_owned);
         let mut nonce: Option<String> = (if (nonceHex.as_deref() == Some("")) { Some("0".to_string()) } else { self.number_to_string(self.hex_to_int(nonceHex.as_deref().unwrap_or_default())) });
-        let mut tokenName: Option<String> = self.fetch_erc20_name(rpcUrl.as_str(), tokenAddress.as_str().unwrap_or_default()).await.as_str().map(str::to_owned);
+        let mut tokenName: Option<String> = self.fetch_erc20_name(rpcUrl.as_deref(), tokenAddress.as_deref().unwrap_or_default()).await.as_str().map(str::to_owned);
         let mut defaultDeadlineSeconds: i64 = self.safe_integer_k(self.options.clone(), "approveDeadlineSeconds", &[Value::Int(7200)]).as_i64().unwrap_or(7200);
         let mut deadline: Option<i64> = self.safe_integer_k(&paramsSpender, "deadline", &[Value::Int(((self.seconds().as_i64().unwrap_or_default()) + defaultDeadlineSeconds))]).as_i64();
         let mut value: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(amount))), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
@@ -1301,7 +1301,7 @@ impl Sxbet {
                 m.insert("name".to_string(), tokenName.map(Value::from).unwrap_or(Value::Null));
                 m.insert("version".to_string(), Value::Str("1".into()));
                 m.insert("chainId".to_string(), Value::from(chainId));
-                m.insert("verifyingContract".to_string(), tokenAddress.clone());
+                m.insert("verifyingContract".to_string(), Value::from(tokenAddress.as_deref()));
             m
         });
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
@@ -1350,7 +1350,7 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
                 m.insert("owner".to_string(), owner);
                 m.insert("spender".to_string(), spender.map(Value::from).unwrap_or(Value::Null));
-                m.insert("tokenAddress".to_string(), tokenAddress);
+                m.insert("tokenAddress".to_string(), tokenAddress.map(Value::from).unwrap_or(Value::Null));
                 m.insert("value".to_string(), value.clone());
                 m.insert("deadline".to_string(), Value::from(self.number_to_string(Value::from(deadline))));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
@@ -1437,10 +1437,10 @@ impl Sxbet {
         let mut priceStr: Option<String> = self.number_to_string(price);
         let mut probability: Option<String> = (if (isBuy) { priceStr.clone() } else { crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
         let mut obv3: Value = self.load_sx_obv3_metadata().await;
-        let mut domain: Value = self.safe_dict_k(obv3.clone(), "domain", &[Value::Map({
+        let mut domain: crate::value::Dict = self.safe_dict_k(obv3.clone(), "domain", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut activeAsset: crate::value::Dict = self.safe_dict_k(obv3.clone(), "activeAsset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1451,11 +1451,11 @@ impl Sxbet {
         let mut percentageOdds: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&roundedProbability, &Value::Str("100000000000000000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         let mut amountStr: Option<String> = self.number_to_string(amount.clone());
         let mut totalBetSize: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-        let mut saltNumber: Value = self.safe_string_k(params.clone(), "salt", &[Value::from(self.number_to_string(Value::Int(self.milliseconds())))]);
+        let mut saltNumber: Option<String> = self.safe_string_k(params.clone(), "salt", &[Value::from(self.number_to_string(Value::Int(self.milliseconds())))]).as_str().map(str::to_owned);
         // the request body carries the salt in 32-byte-hex form; the signed struct carries the
         // same value in uint256 form - both parse to one number server-side. assign to bare locals
         // before padStart - see the transpiler notes
-        let mut saltHexRaw: Value = Value::from(self.int_to_base16(Value::from(self.parse_to_int(saltNumber.clone())), &[]));
+        let mut saltHexRaw: Value = Value::from(self.int_to_base16(Value::from(self.parse_to_int(Value::from(saltNumber.as_deref()))), &[]));
         let mut saltHexPadded: Value = saltHexRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut saltHex: String = format!("{}{}", Value::Str("0x".into()), saltHexPadded);
         let mut defaultExpirySeconds: i64 = self.safe_integer_k(self.options.clone(), "defaultOrderExpirySeconds", &[Value::Int(86400)]).as_i64().unwrap_or(86400);
@@ -1525,13 +1525,13 @@ impl Sxbet {
                 m.insert("baseToken".to_string(), baseToken.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("totalBetSize".to_string(), totalBetSize.clone());
                 m.insert("percentageOdds".to_string(), percentageOdds.clone());
-                m.insert("salt".to_string(), saltNumber);
+                m.insert("salt".to_string(), saltNumber.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("maker".to_string(), maker.clone());
                 m.insert("isMakerBettingOutcomeOne".to_string(), isMakerBettingOutcomeOne.clone());
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(domain, Value::Map(messageTypes), Value::Map(messageData));
+        let mut encoded: Value = self.eth_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(messageData));
         let mut digest: Option<String> = self.hash_eip712_digest(encoded);
         let mut orderSignature: Option<String> = self.sign_digest(digest.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut orderItem: indexmap::IndexMap<String, Value> = {
@@ -1594,17 +1594,17 @@ impl Sxbet {
         // CANCELLED with cancelReason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
         let mut matchOutcome: Option<crate::value::Dict> = self.safe_dict_k(&first, "outcome", &[]).into_opt_dict();
         let mut usdcDecimals: String = "1000000".to_string();
-        let mut filled: Value = Value::Null;
-        let mut remaining: Value = Value::Null;
+        let mut filled: Option<f64> = None;
+        let mut remaining: Option<f64> = None;
         let mut orderStatus: Option<String> = None;
         if (matchOutcome.is_some()) {
             let mut fillAmountRaw: Option<String> = self.safe_string_k(&matchOutcome, "fillAmount", &[]).as_str().map(str::to_owned);
             let mut remainingRaw: Option<String> = self.safe_string_k(&matchOutcome, "remainingAmount", &[]).as_str().map(str::to_owned);
             if (fillAmountRaw.is_some()) {
-                filled = self.parse_number(crate::precise::Precise::stringDivPrec(&fillAmountRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]);
+                filled = self.parse_number(crate::precise::Precise::stringDivPrec(&fillAmountRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]).as_f64();
             }
             if (remainingRaw.is_some()) {
-                remaining = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals), &Value::Int(6)), &[]);
+                remaining = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals), &Value::Int(6)), &[]).as_f64();
             }
             let mut state: Option<String> = self.safe_string_upper_k(&matchOutcome, "state", &[]).as_str().map(str::to_owned);
             if (state.as_deref() == Some("RESTED")) || (state.as_deref() == Some("PARTIAL_FILL_RESTED")) {
@@ -1629,9 +1629,9 @@ impl Sxbet {
         m.insert("timestamp".to_string(), Value::from(now));
         m.insert("datetime".to_string(), self.iso8601(Value::from(now)));
         m.insert("status".to_string(), orderStatus.map(Value::from).unwrap_or(Value::Null));
-        m.insert("filled".to_string(), filled.clone());
-        m.insert("remaining".to_string(), remaining);
-        m.insert("cost".to_string(), filled);
+        m.insert("filled".to_string(), Value::from(filled));
+        m.insert("remaining".to_string(), Value::from(remaining));
+        m.insert("cost".to_string(), Value::from(filled));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), outcomeId.map(Value::from).unwrap_or(Value::Null));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
@@ -1751,8 +1751,8 @@ impl Sxbet {
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sxbet_private_delete_orders_v3(&[__ws_arg_7]).await;
         let mut orders: crate::value::List = self.parse_sxbet_cancel_response(response).into_list();
-        let mut first: Value = self.safe_dict(&orders, Value::Int(0), &[]);
-        return first;
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&orders, Value::Int(0), &[]).into_opt_dict();
+        return first.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1780,31 +1780,31 @@ impl Sxbet {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut idsLength: Value = Value::Int(ids.len() as i64);
-        if (idsLength.as_f64() == Some(0.0)) {
+        let mut idsLength: i64 = ids.len() as i64;
+        if (idsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a non-empty ids argument".into()))));
         }
         // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
         // chunk larger batches instead of letting the whole request 400
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "cancelOrdersBatchSize", &[Value::Int(100)]);
-        let mut chunkCount: Value = Value::from(self.parse_to_int((match ((self.sum(&[idsLength.clone(), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+        let mut chunkCount: Value = Value::from(self.parse_to_int((match ((self.sum(&[Value::from(idsLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         let mut result: Value = Value::from(vec![]);
         {
                         let mut c: i64 = 0;
             let mut __for_first_1508: bool = true;
             while { if !__for_first_1508 { c += 1; } __for_first_1508 = false; (c as f64) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
-            let mut chunkIndex: Value = Value::from(self.parse_to_int(Value::Int(c)));
-            let mut chunkWidth: Value = Value::from(self.parse_to_int(chunkSize.clone()));
-            let mut start: Value = (match (&(chunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut nextChunkIndex: Value = (match (&(chunkIndex), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            let mut chunkEnd: Value = (match (&(nextChunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut end: Value = chunkEnd.clone();
-            if chunkEnd.as_f64().unwrap_or(f64::NAN) > idsLength.as_f64().unwrap_or(f64::NAN) {
-                end = Value::from(self.parse_to_int(idsLength.clone()));
+            let mut chunkIndex: Option<i64> = self.parse_to_int(Value::Int(c));
+            let mut chunkWidth: Option<i64> = self.parse_to_int(chunkSize.clone());
+            let mut start: Option<i64> = (if let (Some(__l), Some(__r)) = (chunkIndex, chunkWidth) { Some(__l * __r) } else { None });
+            let mut nextChunkIndex: Option<i64> = (if let Some(__l) = chunkIndex { Some(__l + 1) } else { None });
+            let mut chunkEnd: Option<i64> = (if let (Some(__l), Some(__r)) = (nextChunkIndex, chunkWidth) { Some(__l * __r) } else { None });
+            let mut end: Option<i64> = chunkEnd;
+            if chunkEnd > Some(idsLength) {
+                end = self.parse_to_int(Value::from(idsLength));
             }
             let mut orderItems: Vec<Value> = Vec::new();
-            let mut chunkIds: Value = self.array_slice(ids.clone(), start, &[end]);
+            let mut chunkIds: Value = self.array_slice(ids.clone(), Value::from(start), &[Value::from(end)]);
             let mut chunkIdsLength: Value = get_array_length(&chunkIds);
             {
                                 let mut i: i64 = 0;
@@ -1952,13 +1952,13 @@ impl Sxbet {
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut percentageOdds: Option<String> = self.safe_string_k(order.clone(), "percentageOdds", &[]).as_str().map(str::to_owned);
-        let mut price: Value = (if (percentageOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]) } else { Value::Null });
+        let mut price: Option<f64> = (if (percentageOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]).as_f64() } else { None });
         let mut totalBetSize: String = self.safe_string_k(order.clone(), "totalBetSize", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut remainingSize: Value = self.safe_string_k(order.clone(), "remainingSize", &[Value::from(totalBetSize.clone())]);
         let mut filledRaw: Option<String> = crate::precise::Precise::stringSub(&Value::from(totalBetSize.clone()), &remainingSize).as_str().map(str::to_owned);
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(totalBetSize), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]);
-        let mut filled: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&filledRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]);
-        let mut remaining: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingSize, &Value::from(usdcDecimals), &Value::Int(6)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(totalBetSize), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]).as_f64();
+        let mut filled: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&filledRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]).as_f64();
+        let mut remaining: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingSize, &Value::from(usdcDecimals), &Value::Int(6)), &[]).as_f64();
         let mut orderStatus: Option<String> = self.safe_string_upper_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut inactiveReason: Option<String> = self.safe_string_upper_k(order.clone(), "inactiveReason", &[]).as_str().map(str::to_owned);
         let mut status: String = "open".to_string();
@@ -1985,11 +1985,11 @@ impl Sxbet {
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), Value::from(price));
         m.insert("average".to_string(), Value::Null);
-        m.insert("amount".to_string(), amount);
-        m.insert("filled".to_string(), filled);
-        m.insert("remaining".to_string(), remaining);
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("filled".to_string(), Value::from(filled));
+        m.insert("remaining".to_string(), Value::from(remaining));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), Value::Null);
@@ -2071,8 +2071,8 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rawOrders: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
-        return self.parse_prediction_orders(rawOrders, &[outcomeObj, since, limit]);
+        let mut rawOrders: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
+        return self.parse_prediction_orders(Value::Arr(rawOrders), &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2316,9 +2316,9 @@ impl Sxbet {
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut fillOdds: Option<String> = self.safe_string_k(fill.clone(), "fillOdds", &[]).as_str().map(str::to_owned);
-        let mut price: Value = (if (fillOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&fillOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]) } else { Value::Null });
+        let mut price: Option<f64> = (if (fillOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&fillOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]).as_f64() } else { None });
         let mut fillAmount: String = self.safe_string_k(fill.clone(), "fillAmount", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(fillAmount), &Value::from(usdcDecimals), &Value::Int(6)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(fillAmount), &Value::from(usdcDecimals), &Value::Int(6)), &[]).as_f64();
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(fill.clone(), "createdAt", &[]));
         // isMaker: true when the account's order was the resting one - absent on older rows
         let mut isMaker: Option<bool> = self.safe_bool_k(fill.clone(), "isMaker", &[]).as_bool();
@@ -2340,9 +2340,9 @@ impl Sxbet {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount.clone());
-        m.insert("cost".to_string(), amount);
+        m.insert("price".to_string(), Value::from(price));
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(amount));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[crate::Value::from(market)]);
@@ -2538,7 +2538,7 @@ impl Sxbet {
         }  else {
             ownOdds = self.safe_string_k(&odds, "outcomeTwo", &[]).as_str().map(str::to_owned);
         }
-        let mut entryPrice: Value = (if (ownOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]) } else { Value::Null });
+        let mut entryPrice: Option<f64> = (if (ownOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]).as_f64() } else { None });
         let mut totalStake: String = self.safe_string_k(raw.clone(), "totalStake", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut pnl: Option<String> = self.safe_string_k(raw.clone(), "pnl", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(raw.clone(), "betTime", &[]));
@@ -2552,7 +2552,7 @@ impl Sxbet {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(raw.clone(), "updatedAt", &[]))));
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(totalStake), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]));
-        m.insert("entryPrice".to_string(), entryPrice);
+        m.insert("entryPrice".to_string(), Value::from(entryPrice));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("realizedPnl".to_string(), (if (pnl.is_some()) { self.parse_number(crate::precise::Precise::stringDivPrec(&pnl.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals), &Value::Int(6)), &[]) } else { Value::Null }));
@@ -2671,7 +2671,7 @@ impl Sxbet {
         let mut winner: Option<i64> = self.safe_integer_k(&settlement, "outcome", &[]).as_i64();
         let mut isVoid: bool = winner == Some(0);
         let mut heldNumber: i64 = (if isBettingOutcomeOne { 1 } else { 2 });
-        let mut won: Value = (if ((winner.is_some()) && !isVoid) { (Value::Bool(winner == Some(heldNumber))) } else { Value::Null });
+        let mut won: Option<bool> = (if ((winner.is_some()) && !isVoid) { Some(winner == Some(heldNumber)) } else { None });
         let mut usdcDecimals: String = "1000000".to_string();
         let mut stake: Option<String> = crate::precise::Precise::stringDivPrec(&self.safe_string_k(trade.clone(), "totalStake", &[Value::Str("0".into())]), &Value::from(usdcDecimals.clone()), &Value::Int(6)).as_str().map(str::to_owned);
         let mut payout: Option<String> = crate::precise::Precise::stringDivPrec(&self.safe_string_k(&settlement, "settleReturnAmount", &[Value::Str("0".into())]), &Value::from(usdcDecimals), &Value::Int(6)).as_str().map(str::to_owned);
@@ -2693,8 +2693,8 @@ impl Sxbet {
         }
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&settlement, "settleDate", &[]));
         let mut settlePrice: Option<i64> = None;
-        if (won != Value::Null) {
-            settlePrice = (if won.as_bool() == Some(true) { Some(1) } else { Some(0) });
+        if (won.is_some()) {
+            settlePrice = (if (won == Some(true)) { Some(1) } else { Some(0) });
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2707,7 +2707,7 @@ impl Sxbet {
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("event".to_string(), Value::Null);
         m.insert("result".to_string(), resultLabel.map(Value::from).unwrap_or(Value::Null));
-        m.insert("won".to_string(), won);
+        m.insert("won".to_string(), won.map_or(Value::Null, Value::Bool));
         m.insert("amount".to_string(), self.parse_number(stake.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("price".to_string(), Value::from(settlePrice));
         m.insert("cost".to_string(), self.parse_number(stake.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2905,9 +2905,9 @@ impl Sxbet {
                                 let mut i: i64 = 0;
                 let mut __for_first_1517: bool = true;
                 while { if !__for_first_1517 { i += 1; } __for_first_1517 = false; (i as f64) < hashesLength.as_f64().unwrap_or(f64::NAN) } {
-                let mut marketHash: Value = hashesOrder.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut snapshot: Value = self.fetch_sxbet_book_snapshot(marketHash.as_str()).await;
-                rowsByHash.insert(crate::runtime::stringify_param(&marketHash), self.parse_sxbet_snapshot_best_odds(snapshot));
+                let mut marketHash: Option<String> = hashesOrder.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut snapshot: Value = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
+                rowsByHash.insert(marketHash.as_deref().unwrap_or("null").to_string(), self.parse_sxbet_snapshot_best_odds(snapshot));
             }
             }
             return self.parse_sxbet_tickers_by_hash(outcomesList.clone(), Value::Map(rowsByHash.clone()));
@@ -2919,16 +2919,16 @@ impl Sxbet {
                         let mut c: i64 = 0;
             let mut __for_first_1519: bool = true;
             while { if !__for_first_1519 { c += 1; } __for_first_1519 = false; (c as f64) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
-            let mut chunkIndex: Value = Value::from(self.parse_to_int(Value::Int(c)));
-            let mut chunkWidth: Value = Value::from(self.parse_to_int(chunkSize.clone()));
-            let mut start: Value = (match (&(chunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut nextChunkIndex: Value = (match (&(chunkIndex), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            let mut chunkEnd: Value = (match (&(nextChunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut chunkIndex: Option<i64> = self.parse_to_int(Value::Int(c));
+            let mut chunkWidth: Option<i64> = self.parse_to_int(chunkSize.clone());
+            let mut start: Option<i64> = (if let (Some(__l), Some(__r)) = (chunkIndex, chunkWidth) { Some(__l * __r) } else { None });
+            let mut nextChunkIndex: Option<i64> = (if let Some(__l) = chunkIndex { Some(__l + 1) } else { None });
+            let mut chunkEnd: Value = Value::from((if let (Some(__l), Some(__r)) = (nextChunkIndex, chunkWidth) { Some(__l * __r) } else { None }));
             let mut end: Value = chunkEnd.clone();
             if chunkEnd.as_f64().unwrap_or(f64::NAN) > hashesLength.as_f64().unwrap_or(f64::NAN) {
                 end = Value::from(self.parse_to_int(hashesLength.clone()));
             }
-            let mut chunk: Value = self.array_slice(Value::Arr(hashesOrder.clone()), start, &[end]);
+            let mut chunk: Value = self.array_slice(Value::Arr(hashesOrder.clone()), Value::from(start), &[end]);
             let mut rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[params.clone()]).await.as_array().cloned().unwrap_or_default();
             let mut rowsLength: f64 = ((rows.len() as i64) as f64);
             {
@@ -2976,10 +2976,10 @@ impl Sxbet {
             if (raw.is_none()) {
                 continue;
             }
-            let mut ticker: Value = self.parse_prediction_ticker(&raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
-            let mut sym: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
+            let mut ticker: crate::value::Dict = self.parse_prediction_ticker(&raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
+            let mut sym: Option<String> = self.safe_string_k(&ticker, "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_some()) {
-                result.insert(sym.as_deref().unwrap_or("null").to_string(), ticker);
+                result.insert(sym.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
         }
         }
@@ -3033,14 +3033,14 @@ impl Sxbet {
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut ownPercentage: Option<String> = self.safe_string_k(ownOdds.clone(), "percentageOdds", &[]).as_str().map(str::to_owned);
         let mut oppositePercentage: Option<String> = self.safe_string_k(oppositeOdds, "percentageOdds", &[]).as_str().map(str::to_owned);
-        let mut bid: Value = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom.clone())), &[]) } else { Value::Null });
-        let mut ask: Value = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom))), &[]) } else { Value::Null });
+        let mut bid: Option<f64> = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom.clone())), &[]).as_f64() } else { None });
+        let mut ask: Option<f64> = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom))), &[]).as_f64() } else { None });
         let mut updatedAt: Option<i64> = self.safe_integer_k(ownOdds, "updatedAt", &[]).as_i64();
         let mut now: i64 = self.milliseconds();
         let mut timestamp: Option<i64> = (if (updatedAt.is_some()) { updatedAt } else { Some(now) });
-        let mut average: Value = Value::Null;
-        if (bid != Value::Null) && (ask != Value::Null) {
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(bid.clone())), &Value::from(self.number_to_string(ask.clone()))), &Value::Str("2".into())), &[]);
+        let mut average: Option<f64> = None;
+        if (bid.is_some()) && (ask.is_some()) {
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(bid))), &Value::from(self.number_to_string(Value::from(ask)))), &Value::Str("2".into())), &[]).as_f64();
         }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3052,16 +3052,16 @@ impl Sxbet {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), bid.clone());
+        m.insert("bid".to_string(), Value::from(bid));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), ask);
+        m.insert("ask".to_string(), Value::from(ask));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), bid.clone());
-        m.insert("last".to_string(), bid);
+        m.insert("close".to_string(), Value::from(bid));
+        m.insert("last".to_string(), Value::from(bid));
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), average);
+        m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), raw);
@@ -3105,11 +3105,11 @@ impl Sxbet {
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_public_get_orderbook_v3_snapshot(&[__ws_arg_18]).await.into_dict();
-        let mut snapshot: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut snapshot: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(snapshot, isOutcomeOne).into_dict();
+        })]).into_dict();
+        let mut sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(Value::Dict(snapshot), isOutcomeOne).into_dict();
         let mut sortedBids: Value = self.safe_list_k(&sides, "bids", &[Value::from(vec![])]);
         let mut sortedAsks: Value = self.safe_list_k(&sides, "asks", &[Value::from(vec![])]);
         if (limit != Value::Null) {
@@ -3159,9 +3159,9 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1521: bool = true;
             while { if !__for_first_1521 { i += 1; } __for_first_1521 = false; (i as f64) < ownLevelsLength } {
-            let mut level: Value = self.safe_dict(ownLevels.clone(), Value::Int(i), &[]);
-            let mut percentageOdds: Option<String> = self.safe_string_k(level.clone(), "percentageOdds", &[]).as_str().map(str::to_owned);
-            let mut size: String = self.safe_string_k(level.clone(), "size", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
+            let mut level: crate::value::Dict = self.safe_dict(ownLevels.clone(), Value::Int(i), &[]).into_dict();
+            let mut percentageOdds: Option<String> = self.safe_string_k(&level, "percentageOdds", &[]).as_str().map(str::to_owned);
+            let mut size: String = self.safe_string_k(&level, "size", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             let mut price: Value = self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds.map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom.clone())), &[]);
             let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(size), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]);
             bids.push(Value::from(vec![price.clone(), amount.clone()]));
@@ -3173,9 +3173,9 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1522: bool = true;
             while { if !__for_first_1522 { i += 1; } __for_first_1522 = false; (i as f64) < oppositeLevelsLength } {
-            let mut level: Value = self.safe_dict(oppositeLevels.clone(), Value::Int(i), &[]);
-            let mut percentageOdds: Option<String> = self.safe_string_k_opt(level.clone(), "percentageOdds", &[]);
-            let mut size: Value = self.safe_string_k(level, "size", &[Value::Str("0".into())]);
+            let mut level: crate::value::Dict = self.safe_dict(oppositeLevels.clone(), Value::Int(i), &[]).into_dict();
+            let mut percentageOdds: Option<String> = self.safe_string_k_opt(&level, "percentageOdds", &[]);
+            let mut size: Value = self.safe_string_k(&level, "size", &[Value::Str("0".into())]);
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
             // complement, and the takeable amount follows the remaining-taker-space formula
             let mut price: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&percentageOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom.clone()))), &[]);
@@ -3429,8 +3429,8 @@ impl Sxbet {
         }  else {
             rows = Value::from(vec![data]);
         }
-        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
-        let mut channelType: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut channelType: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (channelType.as_deref() == Some("orderbook_v3")) {
             self.handle_order_book(client.clone(), rows.clone());
         }  else if (channelType.as_deref() == Some("best_odds_v3")) {
@@ -3471,7 +3471,7 @@ impl Sxbet {
 }));
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
-        let mut sym: Value = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]);
+        let mut sym: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketHash: String = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut channel: String = format!("{}{}", Value::Str("orderbook_v3:".into()), marketHash);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), sym);
@@ -3479,17 +3479,17 @@ impl Sxbet {
         self.connect_sxbet_centrifugo(url.as_deref()).await;
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut isNewSubscription: bool = self.safe_value((client).subscriptions.clone(), Value::from(channel.clone()), &[]) == Value::Null;
-        if (self.safe_value(self.orderbooks.clone(), sym.clone(), &[]) == Value::Null) {
+        if (self.orderbooks.lookup(&sym).is_none()) {
             // seed from the REST snapshot so the book is served before the first publication
-            self.set_ws_option("wsWatchedBooks", sym.as_str().unwrap_or_default(), Value::from(marketHash.clone()));
+            self.set_ws_option("wsWatchedBooks", sym.as_str(), Value::from(marketHash.clone()));
             let mut snapshot: Value = self.fetch_sxbet_book_snapshot(Some(marketHash.as_str())).await;
             self.apply_sxbet_ws_snapshot(snapshot);
-            if (self.safe_value(self.orderbooks.clone(), sym.clone(), &[]) == Value::Null) {
-                let mut emptyBook: Value = self.order_book(&[Value::Map({
+            if (self.orderbooks.lookup(&sym).is_none()) {
+                let mut emptyBook: crate::pro::order_book::Book = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), emptyBook); }
+                CacheStore::put(&mut self.orderbooks, &sym, emptyBook);
             }
         }
         let mut requestId: i64 = self.request_id(url.as_deref());
@@ -3507,7 +3507,7 @@ impl Sxbet {
         let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), channel.as_str(), Value::Null).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next publication
-            client.resolve(self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash.as_str());
+            client.resolve(Value::from(self.orderbooks.lookup(&sym)), messageHash.as_str());
         }
         let mut orderbook: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         return orderbook.limit();
@@ -3550,21 +3550,21 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1524: bool = true;
             while { if !__for_first_1524 { i += 1; } __for_first_1524 = false; (i as f64) < watchedSymsLength } {
-            let mut sym: Value = watchedSyms.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (self.safe_string(&watchedBooks, sym.clone(), &[]).as_str() != marketHash.as_str()) {
+            let mut sym: Option<String> = watchedSyms.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if (self.safe_string(&watchedBooks, Value::from(sym.as_deref()), &[]).as_str() != marketHash.as_str()) {
                 continue;
             }
-            let mut outcomeObj: crate::value::Dict = self.outcome(sym.clone()).into_dict();
+            let mut outcomeObj: crate::value::Dict = self.outcome(Value::from(sym.as_deref())).into_dict();
             let mut outcomeId: Value = self.safe_string_k(&outcomeObj, "outcomeId", &[]);
             let mut isOutcomeOne: bool = outcomeId == marketHash;
             let mut sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne).into_dict();
-            let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), sym.clone(), &[]);
-            if (orderbook == Value::Null) {
-                orderbook = self.order_book(&[Value::Map({
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&sym);
+            if (orderbook.is_none()) {
+                orderbook = Some(self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                if let Value::Dict(__d) = &mut self.orderbooks.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), orderbook.clone()); }
+})]));
+                CacheStore::put(&mut self.orderbooks.clone(), &sym, orderbook.clone());
             }
             let mut bookSnapshot: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3576,7 +3576,7 @@ impl Sxbet {
                 m
             });
             orderbook.reset(Value::Map(bookSnapshot));
-            refreshed.push(sym);
+            refreshed.push(sym.map(Value::from).unwrap_or(Value::Null));
         }
         }
         return Value::from(refreshed);
@@ -3606,8 +3606,8 @@ impl Sxbet {
                                 let mut j: i64 = 0;
                 let mut __for_first_1525: bool = true;
                 while { if !__for_first_1525 { j += 1; } __for_first_1525 = false; (j as f64) < refreshedLength } {
-                let mut sym: Value = refreshed.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
-                client.resolve(self.safe_value(self.orderbooks.clone(), sym.clone(), &[]), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())));
+                let mut sym: Option<String> = refreshed.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                client.resolve(Value::from(self.orderbooks.lookup(&sym)), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym.clone().map(Value::from).unwrap_or(Value::Null)).into())));
             }
             }
         }
@@ -3806,9 +3806,9 @@ impl Sxbet {
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut odds: Option<String> = self.safe_string_k(trade.clone(), "weightedAverageOdds", &[]).as_str().map(str::to_owned);
-        let mut price: Value = (if (odds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&odds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]) } else { Value::Null });
+        let mut price: Option<f64> = (if (odds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&odds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]).as_f64() } else { None });
         let mut stake: String = self.safe_string_k(trade.clone(), "totalStake", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(stake), &Value::from(usdcDecimals), &Value::Int(6)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(stake), &Value::from(usdcDecimals), &Value::Int(6)), &[]).as_f64();
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "betTime", &[]));
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3824,9 +3824,9 @@ impl Sxbet {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount.clone());
-        m.insert("cost".to_string(), amount);
+        m.insert("price".to_string(), Value::from(price));
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(amount));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[]);
@@ -3849,8 +3849,8 @@ impl Sxbet {
             while { if !__for_first_1529 { i += 1; } __for_first_1529 = false; (i as f64) < rowsLength } {
             let mut rawRow: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "trade", &[rawRow.clone()]);
-            let mut trade: Value = self.parse_sxbet_v3_public_trade(row);
-            let mut sym: Option<String> = self.safe_string_k(trade.clone(), "outcome", &[]).as_str().map(str::to_owned);
+            let mut trade: crate::value::Dict = self.parse_sxbet_v3_public_trade(row).into_dict();
+            let mut sym: Option<String> = self.safe_string_k(&trade, "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_none()) {
                 continue;
             }
@@ -3862,7 +3862,7 @@ impl Sxbet {
                 CacheStore::put(&mut self.trades, &sym, ArrayCache::new(tradesLimit));
             }
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&sym);
-            stored.append(trade);
+            stored.append(Value::Dict(trade));
             client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
         }
         }
@@ -3922,8 +3922,8 @@ impl Sxbet {
             while { if !__for_first_1530 { i += 1; } __for_first_1530 = false; (i as f64) < rowsLength } {
             let mut rawRow: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "fill", &[rawRow.clone()]);
-            let mut trade: Value = self.parse_sxbet_v3_fill(row, None);
-            let mut sym: Option<String> = self.safe_string_k(trade.clone(), "outcome", &[]).as_str().map(str::to_owned);
+            let mut trade: crate::value::Dict = self.parse_sxbet_v3_fill(row, None).into_dict();
+            let mut sym: Option<String> = self.safe_string_k(&trade, "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_none()) {
                 continue;
             }
@@ -3932,7 +3932,7 @@ impl Sxbet {
                 self.myTrades = Some(ArrayCacheByOutcomeById::new(myTradesLimit));
             }
             let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-            stored.append(trade);
+            stored.append(Value::Dict(trade));
             client.resolve(Value::from(&stored), "myTrades");
             client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
         }
@@ -3993,15 +3993,15 @@ impl Sxbet {
             while { if !__for_first_1531 { i += 1; } __for_first_1531 = false; (i as f64) < rowsLength } {
             let mut rawRow: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "order", &[rawRow.clone()]);
-            let mut order: Value = self.parse_prediction_order(row, None);
+            let mut order: crate::value::Dict = self.parse_prediction_order(row, None).into_dict();
             if (self.orders.is_none()) {
                 let mut cacheLimit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = Some(ArrayCacheByOutcomeById::new(cacheLimit));
             }
             let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
-            stored.append(order.clone());
+            stored.append(Value::from(&order));
             client.resolve(Value::from(&stored), "orders");
-            let mut sym: Option<String> = self.safe_string_k(order, "outcome", &[]).as_str().map(str::to_owned);
+            let mut sym: Option<String> = self.safe_string_k(&order, "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_some()) {
                 client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("orders::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
             }
@@ -4074,14 +4074,14 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut headersExtended: Value = self.extend(Value::Map({
+        let mut headersExtended: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
-        }), &[Value::Map(existingHeaders)]);
+        }), &[Value::Map(existingHeaders)]).into_dict();
         if (self.apiKey.clone() != Value::Null) {
-            add_element_to_object(&mut headersExtended, &Value::Str("x-sx-api-key".into()), self.apiKey.clone());
+            std::sync::Arc::make_mut(&mut headersExtended).insert("x-sx-api-key".into(), self.apiKey.clone());
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
@@ -4105,7 +4105,7 @@ impl Sxbet {
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyValue.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersExtended);
+        m.insert("headers".to_string(), Value::Dict(headersExtended));
     m
 });
 

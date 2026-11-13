@@ -1652,14 +1652,14 @@ export default class paradex extends paradexRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const position = this.parsePosition (data);
         const symbol = position['symbol'];
         const newPositions = [];
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
         const side = this.safeString (position, 'side');
-        const cached = this.filterBySymbolSinceLimit (cache, symbol, undefined, undefined, true);
+        const cached: Dict[] = this.filterBySymbolSinceLimit (cache, symbol, undefined, undefined, true);
         for (let i = 0; i < cached.length; i++) {
             const previous = cached[i];
             const previousSide = this.safeString (previous, 'side');

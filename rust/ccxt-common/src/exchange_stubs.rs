@@ -1170,20 +1170,20 @@ impl Exchange {
         }
         Value::Null
     }
-    pub fn order_book(&self, args: &[Value]) -> Value {
-        crate::pro::OrderBook::new(
+    pub fn order_book(&self, args: &[Value]) -> crate::pro::order_book::Book {
+        crate::pro::order_book::new_book(crate::pro::order_book::BOOK_PLAIN, 
             crate::runtime::get_arg(args, 0, Value::Null),
             crate::runtime::get_arg(args, 1, Value::Null),
         )
     }
-    pub fn indexed_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::IndexedOrderBook::new(
+    pub fn indexed_order_book(&self, args: &[Value]) -> crate::pro::order_book::Book {
+        crate::pro::order_book::new_book(crate::pro::order_book::BOOK_INDEXED, 
             crate::runtime::get_arg(args, 0, Value::Null),
             crate::runtime::get_arg(args, 1, Value::Null),
         )
     }
-    pub fn counted_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::CountedOrderBook::new(
+    pub fn counted_order_book(&self, args: &[Value]) -> crate::pro::order_book::Book {
+        crate::pro::order_book::new_book(crate::pro::order_book::BOOK_COUNTED, 
             crate::runtime::get_arg(args, 0, Value::Null),
             crate::runtime::get_arg(args, 1, Value::Null),
         )
@@ -1690,10 +1690,9 @@ impl Exchange {
 
     /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
     /// array values repeat the key (`a=1&a=2`); scalars encode normally.
-    pub fn urlencode_with_array_repeat(&self, params: Value) -> String {
-        let m = match &params {
-            Value::Dict(m) => m,
-            _ => return String::new(),
+    pub fn urlencode_with_array_repeat(&self, params: impl Into<Value>) -> String {
+        let Value::Dict(m) = Into::<Value>::into(params) else {
+            return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, v) in m.iter() {
@@ -1924,8 +1923,8 @@ impl Exchange {
     /// `isEmpty(value)` — true when an array/dict is empty, or the
     /// value is null/undefined. Scalars (strings, numbers, bools) are
     /// never considered empty — mirrors `functions/generic.ts`.
-    pub fn is_empty(&self, v: Value) -> Value {
-        let empty = match &v {
+    pub fn is_empty(&self, v: impl Into<Value>) -> Value {
+        let empty = match &Into::<Value>::into(v) {
             Value::Null => true,
             Value::Arr(a) => a.is_empty(),
             Value::Dict(m) => m.is_empty(),
@@ -2422,14 +2421,15 @@ impl Exchange {
         put("headers", &self.headers);
         put("accounts", &self.accounts);
         put("accountsById", &self.accountsById);
-        put("orderbooks", &self.orderbooks);
+        put("orderbooks", &Value::from(&self.orderbooks));
         put("orders", &Value::from(&self.orders));
         put("trades", &Value::from(&self.trades));
         put("myTrades", &Value::from(&self.myTrades));
-        put("positions", &self.positions);
+        put("positions", &Value::from(&self.positions));
+        put("positionsByType", &Value::from(&self.positionsByType));
         put("tickers", &self.tickers);
         put("bidsasks", &self.bidsasks);
-        put("ohlcvs", &self.ohlcvs);
+        put("ohlcvs", &Value::from(&self.ohlcvs));
         put("clients", &self.clients);
         put("balance", &self.balance);
         put("liquidations", &Value::from(&self.liquidations));
@@ -2484,8 +2484,8 @@ impl Exchange {
     /// `isBinaryMessage` — in this port a binary buffer is a
     /// `Value::Array` of byte-valued ints (see `base16_to_binary`,
     /// `string_to_binary`). `instanceof Uint8Array` can't transpile.
-    pub fn is_binary_message(&self, v: Value, _optional_args: &[Value]) -> Value {
-        Value::Bool(is_byte_array(&v))
+    pub fn is_binary_message(&self, v: impl Into<Value>, _optional_args: &[Value]) -> Value {
+        Value::Bool(is_byte_array(&v.into()))
     }
     /// `numberToBE(n, padding)` — big-endian byte array of width `padding`.
     pub fn number_to_be(&self, n: Value, optional_args: &[Value]) -> crate::value::Bytes {
@@ -2612,10 +2612,9 @@ impl Exchange {
     /// `urlencodeNested(object)` — `qs.stringify(object, { encodeValuesOnly: true })`:
     /// nested maps → `parent[child]`, arrays → `parent[index]`, only
     /// values are percent-encoded.
-    pub fn urlencode_nested(&self, v: Value, _optional_args: &[Value]) -> String {
-        let m = match &v {
-            Value::Dict(m) => m,
-            _ => return String::new(),
+    pub fn urlencode_nested(&self, v: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let Value::Dict(m) = Into::<Value>::into(v) else {
+            return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, val) in m.iter() {
@@ -2831,10 +2830,9 @@ impl Exchange {
     /// `rawencode(params, [doSeq])` — URL-encode without sorting.
     /// `rawencode(object)` — `qs.stringify(object, { encode: false })`:
     /// flat `key=value` pairs with no percent-encoding.
-    pub fn rawencode(&self, params: Value, _optional_args: &[Value]) -> String {
-        let m = match &params {
-            Value::Dict(m) => m,
-            _ => return String::new(),
+    pub fn rawencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let Value::Dict(m) = Into::<Value>::into(params) else {
+            return String::new();
         };
         let pairs: Vec<String> = m
             .iter()
@@ -2914,8 +2912,8 @@ impl Exchange {
     }
 
     /// `urlencode(params)` — wraps the typed `urlencode_kv` for Value args.
-    pub fn urlencode(&self, params: Value, _optional_args: &[Value]) -> String {
-        self.urlencode_kv(&params)
+    pub fn urlencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
+        self.urlencode_kv(&params.into())
     }
 
     /// `json(value)` — JSON-stringify.
@@ -2932,8 +2930,8 @@ impl Exchange {
     }
 
     /// `decode(bytes)` — decode bytes to a UTF-8 string.
-    pub fn decode(&self, b: Value) -> Value {
-        match b {
+    pub fn decode(&self, b: impl Into<Value>) -> Value {
+        match b.into() {
             Value::Str(s) => Value::Str(s),
             Value::Arr(a) => {
                 let bytes: Vec<u8> = a

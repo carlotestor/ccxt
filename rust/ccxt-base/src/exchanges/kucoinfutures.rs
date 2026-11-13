@@ -268,8 +268,8 @@ impl Kucoinfutures {
                 m.insert("method".to_string(), Value::Str("futuresPublicGetAllTickers".into()));
             m
         });
-        let mut extendedRequest: Value = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_tickers(symbols.to_opt_str_vec(), extendedRequest).await);
+        let mut extendedRequest: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_tickers(symbols.to_opt_str_vec(), Value::Dict(extendedRequest)).await);
         Value::Null
         }).await?))
     }
@@ -323,11 +323,11 @@ impl Kucoinfutures {
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".into()))));
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let __ws_arg_2 = self.parse_transfer(data, Some(&currency));
+        })]).into_dict();
+        let __ws_arg_2 = self.parse_transfer(Value::Dict(data), Some(&currency));
         let __ws_arg_3 = self.parse_number(amountToPrecision, &[]);
         return self.extend(__ws_arg_2, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

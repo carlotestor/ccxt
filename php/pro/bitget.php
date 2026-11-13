@@ -720,8 +720,7 @@ class bitget extends \ccxt\async\bitget {
         $marketId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $this->safe_string($market, 'symbol', '');
-        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $this->ohlcvs[$symbol] = $symbolOhlcvs;
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $channel = $this->safe_string_2($arg, 'channel', 'topic', '');
         $interval = $this->safe_string($arg, 'interval');
         $isUta = null;
@@ -736,11 +735,11 @@ class bitget extends \ccxt\async\bitget {
         if ($timeframe === null) {
             return;
         }
-        $stored = $this->safe_value($symbolOhlcvs, $timeframe);
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $symbolOhlcvs[$timeframe] = $stored;
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -1609,14 +1608,11 @@ class bitget extends \ccxt\async\bitget {
         //
         $arg = $this->safe_dict($message, 'arg', array());
         $instType = $this->safe_string($arg, 'instType', '');
-        if ($this->positions === null) {
-            $this->positions = array();
-        }
         $action = $this->safe_string($message, 'action');
-        if (!(is_array($this->positions) && array_key_exists($instType ?? '', $this->positions)) || ($action === 'snapshot')) {
-            $this->positions[$instType] = new ArrayCacheBySymbolBySide();
+        if (!(is_array($this->positionsByType) && array_key_exists($instType ?? '', $this->positionsByType)) || ($action === 'snapshot')) {
+            $this->positionsByType[$instType] = new ArrayCacheBySymbolBySide();
         }
-        $cache = $this->positions[$instType];
+        $cache = $this->positionsByType[$instType];
         $rawPositions = $this->safe_list($message, 'data', array());
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {

@@ -871,7 +871,7 @@ impl Zebpay {
         let mut currencyId: Option<String> = self.safe_string_k(rawCurrency.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut name: Option<String> = self.safe_string_k(rawCurrency.clone(), "name", &[]).as_str().map(str::to_owned);
-        let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
+        let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]).as_f64();
         let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -889,12 +889,12 @@ impl Zebpay {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chainId", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            let mut depositAllowed: bool = self.safe_bool_k_opt(&chain, "isDepositEnabled", &[Value::Bool(false)]).unwrap_or(false);
+            let mut depositAllowed: bool = self.safe_bool_k(&chain, "isDepositEnabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if depositAllowed {
                 deposit = true;
             }
-            let mut withdrawAllowed: Value = self.safe_bool_k(&chain, "isWithdrawEnabled", &[Value::Bool(false)]);
-            if withdrawAllowed.as_bool() == Some(true) {
+            let mut withdrawAllowed: bool = self.safe_bool_k(&chain, "isWithdrawEnabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            if withdrawAllowed {
                 withdraw = true;
             }
             let mut withdrawFeeString: Option<String> = self.safe_string_k(&chain, "withdrawalFee", &[]).as_str().map(str::to_owned);
@@ -927,11 +927,11 @@ impl Zebpay {
         m.insert("info".to_string(), Value::Dict(chain));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
-        m.insert("active".to_string(), Value::Bool(depositAllowed && withdrawAllowed.as_bool() == Some(true)));
+        m.insert("active".to_string(), Value::Bool((depositAllowed && withdrawAllowed)));
         m.insert("deposit".to_string(), Value::Bool(depositAllowed));
-        m.insert("withdraw".to_string(), withdrawAllowed);
+        m.insert("withdraw".to_string(), Value::Bool(withdrawAllowed));
         m.insert("fee".to_string(), self.parse_number(withdrawFeeString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("precision".to_string(), precision.clone());
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -959,11 +959,11 @@ impl Zebpay {
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), name.map(Value::from).unwrap_or(Value::Null));
-        m.insert("active".to_string(), Value::Bool(deposit && withdraw));
+        m.insert("active".to_string(), Value::Bool((deposit && withdraw)));
         m.insert("deposit".to_string(), Value::Bool(deposit));
         m.insert("withdraw".to_string(), Value::Bool(withdraw));
         m.insert("fee".to_string(), self.parse_number(minWithdrawFeeString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("precision".to_string(), precision);
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1278,7 +1278,7 @@ impl Zebpay {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_spot_get_v2_market_all_tickers(&[Value::Dict(paramsMarketType)]).await.into_dict();
         //
         //     [
@@ -1299,7 +1299,7 @@ impl Zebpay {
         //     ]
         //
         let mut tickerList: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_tickers(&tickerList, &[symbolsNormalized]);
+        return self.parse_tickers(&tickerList, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1413,7 +1413,7 @@ impl Zebpay {
         //             ]
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -1590,11 +1590,11 @@ impl Zebpay {
         //             "fees": "0.00145",
         //         }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut trades: Value = Value::from(vec![data]);
+        })]).into_dict();
+        let mut trades: Value = Value::from(vec![Value::Dict(data)]);
         return self.parse_trades(trades, None, &[]);
         Value::Null
         }).await?))
@@ -1979,11 +1979,11 @@ impl Zebpay {
             }
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_spot_get_v2_ex_orders(&[__ws_arg_15]).await.into_opt_dict();
-            let mut responseData: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut responseData: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            orders = self.safe_list_k(responseData.clone(), "items", &[Value::from(vec![])]);
+            })]).into_dict();
+            orders = self.safe_list_k(&responseData, "items", &[Value::from(vec![])]);
         }  else {
             if (since != Value::Null) {
                 request.insert("since".into(), since);
@@ -1993,11 +1993,11 @@ impl Zebpay {
             }
             let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
             response = self.private_swap_get_v1_trade_order_open_orders(&[__ws_arg_16]).await.into_opt_dict();
-            let mut responseData: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut responseData: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            orders = self.safe_list_k(responseData, "data", &[Value::from(vec![])]);
+            })]).into_dict();
+            orders = self.safe_list_k(&responseData, "data", &[Value::from(vec![])]);
         }
         return self.parse_orders(orders, Some(&market), &[Value::Null, limit]);
         Value::Null
@@ -2366,8 +2366,8 @@ impl Zebpay {
         //    }
         //
         let mut positions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut result: Value = self.parse_positions(&positions, &[]);
-        return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbols]);
+        let mut result: crate::value::List = self.parse_positions(&positions, &[]).into_list();
+        return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbols]);
         Value::Null
         }).await?))
     }
@@ -2912,7 +2912,7 @@ impl Zebpay {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut bodySigned: Value = Value::Null;
-        let mut headersSigned: Value = Value::Null;
+        let mut headersSigned: Option<crate::value::Dict> = None;
         let mut paramsOmitted: Value = self.omit(params, Value::Str("defaultType".into()), &[]);
         let mut isV1: bool = path.as_str().unwrap_or("").contains("v1/");
         let mut marketType: String = "spot".to_string();
@@ -2945,24 +2945,24 @@ impl Zebpay {
 }), &[]));
                 }
                 bodySigned = json_stringify(&paramsBody);
-                headersSigned = Value::Map({
+                headersSigned = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Referrer".to_string(), Value::Str("ccxt".into()));
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
-                });
+                }));
             }
         }  else {
             self.check_required_credentials(&[]);
             let mut isSpot: bool = marketType == "spot";
-            let mut paramsSigned: Value = self.extend(paramsOmitted, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("timestamp".to_string(), timestamp);
-                m
-            })]);
+            let mut paramsSigned: Option<crate::value::Dict> = self.extend(paramsOmitted, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("timestamp".to_string(), timestamp);
+    m
+})]).into_opt_dict();
             if (method.as_str() == Some("GET")) || ((method.as_str() == Some("DELETE")) && isSpot) {
                 // For GET/DELETE: Append params to URL and sign the query string
-                let mut queryString: String = self.urlencode(paramsSigned.clone(), &[]);
+                let mut queryString: String = self.urlencode(&paramsSigned, &[]);
                 signature = self.hmac(self.encode(Value::from(queryString.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 suffix = format!("{}{}", Value::Str("?".into()), queryString);
             }  else {
@@ -2970,17 +2970,17 @@ impl Zebpay {
                 bodySigned = json_stringify(&paramsSigned);
                 signature = self.hmac(self.encode(bodySigned.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             }
-            headersSigned = Value::Map({
+            headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Referrer".to_string(), Value::Str("ccxt".into()));
                     m.insert("X-AUTH-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("X-AUTH-SIGNATURE".to_string(), Value::from(signature));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
-            });
+            }));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.map(Value::from).unwrap_or(Value::Null), tail).into()), suffix);
-        let mut headersResolved: Value = headersSigned;
+        let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
         let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

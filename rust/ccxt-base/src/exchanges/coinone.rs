@@ -777,8 +777,8 @@ impl Coinone {
         let mut rawCurrency: Value = rawCurrency.into();
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut isWithdrawEnabled: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "withdraw_status", &[Value::Str("".into())]).as_str() == Some("normal"));
-        let mut isDepositEnabled: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "deposit_status", &[Value::Str("".into())]).as_str() == Some("normal"));
+        let mut isWithdrawEnabled: bool = (self.safe_string_k(rawCurrency.clone(), "withdraw_status", &[Value::Str("".into())]).as_str() == Some("normal"));
+        let mut isDepositEnabled: bool = (self.safe_string_k(rawCurrency.clone(), "deposit_status", &[Value::Str("".into())]).as_str() == Some("normal"));
         let mut type_var: String = "fiat".to_string();
         if (code.as_deref() != Some("KRW")) {
             type_var = "crypto".to_string();
@@ -790,8 +790,8 @@ impl Coinone {
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), isDepositEnabled);
-        m.insert("withdraw".to_string(), isWithdrawEnabled);
+        m.insert("deposit".to_string(), Value::Bool(isDepositEnabled));
+        m.insert("withdraw".to_string(), Value::Bool(isWithdrawEnabled));
         m.insert("fee".to_string(), self.safe_number_k(rawCurrency.clone(), "withdrawal_fee", &[]));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "max_precision", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
@@ -884,10 +884,10 @@ impl Coinone {
                         let mut i: i64 = 0;
             let mut __for_first_570: bool = true;
             while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (tickers.len() as i64) } {
-            let mut entry: Value = self.safe_dict(&tickers, Value::Int(i), &[]);
-            let mut id: Option<String> = self.safe_string_k(entry.clone(), "id", &[]).as_str().map(str::to_owned);
-            let mut baseId: Option<String> = self.safe_string_upper_k(entry.clone(), "target_currency", &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_upper_k(entry.clone(), "quote_currency", &[]).as_str().map(str::to_owned);
+            let mut entry: Option<crate::value::Dict> = self.safe_dict(&tickers, Value::Int(i), &[]).into_opt_dict();
+            let mut id: Option<String> = self.safe_string_k(&entry, "id", &[]).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = self.safe_string_upper_k(&entry, "target_currency", &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_upper_k(&entry, "quote_currency", &[]).as_str().map(str::to_owned);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
             if (base.is_none()) || (quote.is_none()) {
@@ -954,7 +954,7 @@ impl Coinone {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), entry);
+                    m.insert("info".to_string(), entry.map_or(Value::Null, Value::Dict));
                 m
             }));
         }
@@ -1920,27 +1920,27 @@ impl Coinone {
             if (value.is_none()) || (value.is_none()) || (value.as_deref() == Some("")) || (value.as_deref() == Some("-1")) {
                 continue;
             }
-            let mut parts: Value = Value::Array(if let Some(__s) = key.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut currencyId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            let mut address: Value = self.safe_string(self.safe_value(Value::Map(result.clone()), code.clone(), &[]), Value::Str("address".into()), &[value.clone().map(Value::from).unwrap_or(Value::Null)]);
-            self.check_address(&[address.clone()]);
+            let mut parts: crate::value::List = Value::Array(if let Some(__s) = key.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut currencyId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut secondPart: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+            let mut address: Option<String> = self.safe_string(self.safe_value(Value::Map(result.clone()), Value::from(code.as_deref()), &[]), Value::Str("address".into()), &[value.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            self.check_address(&[Value::from(address.as_deref())]);
             let mut depositAddress: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), address.clone());
-                    m.insert("currency".to_string(), code.clone());
+                    m.insert("info".to_string(), Value::from(address.as_deref()));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("network".to_string(), Value::Null);
-                    m.insert("address".to_string(), address.clone());
-                    m.insert("tag".to_string(), self.safe_string(self.safe_value(Value::Map(result.clone()), code.clone(), &[]), Value::Str("tag".into()), &[]));
+                    m.insert("address".to_string(), Value::from(address.as_deref()));
+                    m.insert("tag".to_string(), self.safe_string(self.safe_value(Value::Map(result.clone()), Value::from(code.as_deref()), &[]), Value::Str("tag".into()), &[]));
                 m
             });
             if ((secondPart.as_deref() == Some("tag")) || (secondPart.as_deref() == Some("memo"))) {
                 depositAddress.insert("tag".into(), value.clone().map(Value::from).unwrap_or(Value::Null));
-                depositAddress.insert("info".into(), Value::from(vec![address, value.map(Value::from).unwrap_or(Value::Null)]));
+                depositAddress.insert("info".into(), Value::from(vec![address.map(Value::from).unwrap_or(Value::Null), value.map(Value::from).unwrap_or(Value::Null)]));
             }
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(depositAddress));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(depositAddress));
             }
         }
         }
@@ -1987,7 +1987,7 @@ impl Coinone {
             url = format!("{}{}", apiUrl4.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()));
         }
         let mut requestBody: Value = Value::Null;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if isPublic {
             url.push_str(&request.to_string());
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -2014,16 +2014,16 @@ impl Coinone {
             requestBody = Value::from(payload.clone());
             let mut secret: Value = (if let Some(__s) = self.secret.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(secret), Value::Str("sha512".into()), &[]);
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-COINONE-PAYLOAD".to_string(), Value::from(payload));
                     m.insert("X-COINONE-SIGNATURE".to_string(), Value::from(signature));
                 m
-            });
+            }));
         }
         let mut bodyResolved: Value = requestBody;
-        let mut headersResolved: Value = requestHeaders;
+        let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

@@ -694,8 +694,7 @@ export default class bitget extends bitgetRest {
         const marketId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = this.safeString (market, 'symbol', '');
-        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         const channel = this.safeString2 (arg, 'channel', 'topic', '');
         let interval = this.safeString (arg, 'interval');
         let isUta: Bool = undefined;
@@ -710,11 +709,11 @@ export default class bitget extends bitgetRest {
         if (timeframe === undefined) {
             return;
         }
-        let stored = this.safeValue (symbolOhlcvs, timeframe);
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            symbolOhlcvs[timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -1547,14 +1546,11 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeString (arg, 'instType', '');
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
         const action = this.safeString (message, 'action');
-        if (!(instType in this.positions) || (action === 'snapshot')) {
-            this.positions[instType] = new ArrayCacheBySymbolBySide ();
+        if (!(instType in this.positionsByType) || (action === 'snapshot')) {
+            this.positionsByType[instType] = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions[instType];
+        const cache = this.positionsByType[instType];
         const rawPositions: Dict[] = this.safeList (message, 'data', []);
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -1889,7 +1885,7 @@ export default class bitget extends bitgetRest {
         } else {
             marketType = 'contract';
         }
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0, {});
         const category = this.safeStringLower (first, 'category', instType);
         const isLinearSwap = (category === 'usdt-futures');
