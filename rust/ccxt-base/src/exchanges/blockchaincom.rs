@@ -597,50 +597,50 @@ impl Blockchaincom {
             let mut __for_first_456: bool = true;
             while { if !__for_first_456 { i += 1; } __for_first_456 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = self.safe_dict(&markets, Value::from(marketId.as_deref()), &[]);
-            let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_currency", &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "counter_currency", &[]).as_str().map(str::to_owned);
+            let mut market: Option<crate::value::Dict> = self.safe_dict(&markets, Value::from(marketId.as_deref()), &[]).into_opt_dict();
+            let mut baseId: Option<String> = self.safe_string_k(&market, "base_currency", &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_k(&market, "counter_currency", &[]).as_str().map(str::to_owned);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut numericId: Option<f64> = self.safe_number_k(market.clone(), "id", &[]).as_f64();
+            let mut numericId: Option<f64> = self.safe_number_k(&market, "id", &[]).as_f64();
             let mut active: Option<bool> = None;
-            let mut marketState: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+            let mut marketState: Option<String> = self.safe_string_k(&market, "status", &[]).as_str().map(str::to_owned);
             if (marketState.as_deref() == Some("open")) {
                 active = Some(true);
             }  else {
                 active = Some(false);
             }
             // price precision
-            let mut minPriceIncrementString: Option<String> = self.safe_string_k(market.clone(), "min_price_increment", &[]).as_str().map(str::to_owned);
-            let mut minPriceIncrementScaleString: Option<String> = self.safe_string_k(market.clone(), "min_price_increment_scale", &[]).as_str().map(str::to_owned);
+            let mut minPriceIncrementString: Option<String> = self.safe_string_k(&market, "min_price_increment", &[]).as_str().map(str::to_owned);
+            let mut minPriceIncrementScaleString: Option<String> = self.safe_string_k(&market, "min_price_increment_scale", &[]).as_str().map(str::to_owned);
             let mut minPriceScalePrecisionString: Option<String> = self.parse_precision(&[minPriceIncrementScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut pricePrecisionString: Option<String> = crate::precise::Precise::stringMul(&minPriceIncrementString.map(Value::from).unwrap_or(Value::Null), &minPriceScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             // amount precision
-            let mut lotSizeString: Option<String> = self.safe_string_k(market.clone(), "lot_size", &[]).as_str().map(str::to_owned);
-            let mut lotSizeScaleString: Option<String> = self.safe_string_k(market.clone(), "lot_size_scale", &[]).as_str().map(str::to_owned);
+            let mut lotSizeString: Option<String> = self.safe_string_k(&market, "lot_size", &[]).as_str().map(str::to_owned);
+            let mut lotSizeScaleString: Option<String> = self.safe_string_k(&market, "lot_size_scale", &[]).as_str().map(str::to_owned);
             let mut lotSizeScalePrecisionString: Option<String> = self.parse_precision(&[lotSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut amountPrecisionString: Option<String> = crate::precise::Precise::stringMul(&lotSizeString.map(Value::from).unwrap_or(Value::Null), &lotSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             // minimum order size
-            let mut minOrderSizeString: Option<String> = self.safe_string_k(market.clone(), "min_order_size", &[]).as_str().map(str::to_owned);
-            let mut minOrderSizeScaleString: Option<String> = self.safe_string_k(market.clone(), "min_order_size_scale", &[]).as_str().map(str::to_owned);
+            let mut minOrderSizeString: Option<String> = self.safe_string_k(&market, "min_order_size", &[]).as_str().map(str::to_owned);
+            let mut minOrderSizeScaleString: Option<String> = self.safe_string_k(&market, "min_order_size_scale", &[]).as_str().map(str::to_owned);
             let mut minOrderSizeScalePrecisionString: Option<String> = self.parse_precision(&[minOrderSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut minOrderSizePreciseString: Option<String> = crate::precise::Precise::stringMul(&minOrderSizeString.map(Value::from).unwrap_or(Value::Null), &minOrderSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            let mut minOrderSize: Value = self.parse_number(minOrderSizePreciseString.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut minOrderSize: Option<f64> = self.parse_number(minOrderSizePreciseString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             // maximum order size
-            let mut maxOrderSize: Value = Value::Null;
-            let mut maxOrderSizeRaw: Option<String> = self.safe_string_k(market.clone(), "max_order_size", &[]).as_str().map(str::to_owned);
+            let mut maxOrderSize: Option<f64> = None;
+            let mut maxOrderSizeRaw: Option<String> = self.safe_string_k(&market, "max_order_size", &[]).as_str().map(str::to_owned);
             if (maxOrderSizeRaw.as_deref() != Some("0")) {
-                let mut maxOrderSizeScaleString: Option<String> = self.safe_string_k(market.clone(), "max_order_size_scale", &[]).as_str().map(str::to_owned);
+                let mut maxOrderSizeScaleString: Option<String> = self.safe_string_k(&market, "max_order_size_scale", &[]).as_str().map(str::to_owned);
                 let mut maxOrderSizeScalePrecisionString: Option<String> = self.parse_precision(&[maxOrderSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                 let mut maxOrderSizeValueString: Option<String> = crate::precise::Precise::stringMul(&maxOrderSizeRaw.map(Value::from).unwrap_or(Value::Null), &maxOrderSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                maxOrderSize = self.parse_number(maxOrderSizeValueString.map(Value::from).unwrap_or(Value::Null), &[]);
+                maxOrderSize = self.parse_number(maxOrderSizeValueString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), market);
+                    m.insert("info".to_string(), market.map_or(Value::Null, Value::Dict));
                     m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("numericId".to_string(), Value::from(numericId));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
@@ -681,8 +681,8 @@ impl Blockchaincom {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minOrderSize);
-        m.insert("max".to_string(), maxOrderSize);
+        m.insert("min".to_string(), Value::from(minOrderSize));
+        m.insert("max".to_string(), Value::from(maxOrderSize));
     m
 }));
         m.insert("price".to_string(), Value::Map({
@@ -1466,10 +1466,10 @@ impl Blockchaincom {
         let mut tag: Option<String> = None;
         let mut address: Option<String> = None;
         if (rawAddress.is_some()) {
-            let mut addressParts: Value = Value::Array(if let Some(__s) = rawAddress.as_deref() { __s.split(";").map(Value::from).collect() } else { Vec::new() });
+            let mut addressParts: crate::value::List = Value::Array(if let Some(__s) = rawAddress.as_deref() { __s.split(";").map(Value::from).collect() } else { Vec::new() }).into_list();
             // if a tag or memo is used it is separated by a colon in the 'address' value
-            tag = self.safe_string(addressParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            address = self.safe_string(addressParts, Value::Int(1), &[]).as_str().map(str::to_owned);
+            tag = self.safe_string(&addressParts, Value::Int(0), &[]).as_str().map(str::to_owned);
+            address = self.safe_string(&addressParts, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1840,11 +1840,11 @@ impl Blockchaincom {
             while { if !__for_first_458 { i += 1; } __for_first_458 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&entry, "available", &[]));
             account.insert("total".into(), self.safe_string_k(&entry, "balance", &[]));
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));
@@ -1918,7 +1918,7 @@ impl Blockchaincom {
         if isPrivate {
             requestHeaders = privateHeaders.clone();
         }
-        let mut isPrivatePost: bool = isPrivate && (method.as_str() != Some("GET"));
+        let mut isPrivatePost: bool = (isPrivate && (method.as_str() != Some("GET")));
         let mut requestBody: Option<String> = None;
         if isPrivatePost {
             requestBody = json_stringify(&query).as_str().map(str::to_owned);

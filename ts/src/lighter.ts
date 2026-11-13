@@ -1249,7 +1249,7 @@ export default class lighter extends Exchange {
         //
         const spotMarkets = this.safeList (response, 'spot_order_book_details', []);
         const swapMarkets = this.safeList (response, 'order_book_details', []);
-        const markets = this.arrayConcat (spotMarkets, swapMarkets);
+        const markets: Dict[] = this.arrayConcat (spotMarkets, swapMarkets);
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -2645,7 +2645,7 @@ export default class lighter extends Exchange {
         //         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
         //     }
         //
-        const rows = this.safeList (response, 'transfers', []);
+        const rows: Dict[] = this.safeList (response, 'transfers', []);
         const cursor = this.safeString (response, 'cursor');
         const first = this.safeDict (rows, 0);
         if ((first !== undefined) && (cursor !== undefined)) {
@@ -2747,7 +2747,7 @@ export default class lighter extends Exchange {
         //         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
         //     }
         //
-        const data = this.safeList (response, 'deposits', []);
+        const data: Dict[] = this.safeList (response, 'deposits', []);
         const cursor = this.safeString (response, 'cursor');
         const first = this.safeDict (data, 0);
         if ((first !== undefined) && (cursor !== undefined)) {
@@ -2808,7 +2808,7 @@ export default class lighter extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const data = this.safeList (response, 'withdraws', []);
+        const data: Dict[] = this.safeList (response, 'withdraws', []);
         const cursor = this.safeString (response, 'cursor');
         const first = this.safeDict (data, 0);
         if ((first !== undefined) && (cursor !== undefined)) {
@@ -3056,7 +3056,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'trades', []);
+        const data: Dict[] = this.safeList (response, 'trades', []);
         for (let i = 0; i < data.length; i++) {
             data[i]['account_index'] = accountIndex;
         }

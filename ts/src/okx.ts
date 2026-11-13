@@ -1721,7 +1721,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []) as List;
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -2861,7 +2861,7 @@ export default class okx extends Exchange {
         //     }
         //
         const rates: List = [];
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeInteger (rate, 'fundingTime');

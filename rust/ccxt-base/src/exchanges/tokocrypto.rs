@@ -1167,8 +1167,8 @@ impl Tokocrypto {
             }
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut filters: Value = self.safe_list_k(&market, "filters", &[Value::from(vec![])]);
-            let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".into()));
+            let mut filters: crate::value::List = self.safe_list_k(&market, "filters", &[Value::from(vec![])]).into_list();
+            let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
             let mut status: Option<String> = self.safe_string_k(&market, "spotTradingEnable", &[]).as_str().map(str::to_owned);
             let mut active: bool = status.as_deref() == Some("1");
             let mut permissions: crate::value::List = self.safe_list_k(&market, "permissions", &[Value::from(vec![])]).into_list();
@@ -1220,45 +1220,45 @@ impl Tokocrypto {
 }));
                 m
             });
-            if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("PRICE_FILTER"))) {
-                let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            if (filtersByType.contains_key("PRICE_FILTER")) {
+                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 limits.insert("price".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minPrice", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxPrice", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&filter, "minPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filter, "maxPrice", &[]));
     m
 }));
-                precision.insert("price".into(), filter.as_map().and_then(|__m| __m.get("tickSize")).cloned().unwrap_or(Value::Null));
+                precision.insert("price".into(), crate::value::KeyRead::key_read(&&filter, "tickSize"));
             }
-            if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("LOT_SIZE"))) {
-                let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-                precision.insert("amount".into(), self.safe_number_k(filter.clone(), "stepSize", &[]));
+            if (filtersByType.contains_key("LOT_SIZE")) {
+                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "LOT_SIZE", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
+                precision.insert("amount".into(), self.safe_number_k(&filter, "stepSize", &[]));
                 limits.insert("amount".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxQty", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&filter, "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filter, "maxQty", &[]));
     m
 }));
             }
-            if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MARKET_LOT_SIZE"))) {
-                let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "MARKET_LOT_SIZE", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            if (filtersByType.contains_key("MARKET_LOT_SIZE")) {
+                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "MARKET_LOT_SIZE", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 limits.insert("market".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxQty", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&filter, "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filter, "maxQty", &[]));
     m
 }));
             }
@@ -1294,12 +1294,12 @@ impl Tokocrypto {
                     m.insert("info".to_string(), Value::Dict(market));
                 m
             });
-            if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MIN_NOTIONAL"))) {
-                let mut filter: Value = self.safe_dict_k(filtersByType, "MIN_NOTIONAL", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-                costMin = self.safe_number2(filter, Value::Str("minNotional".into()), Value::Str("notional".into()), &[]).as_f64();
+            if (filtersByType.contains_key("MIN_NOTIONAL")) {
+                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "MIN_NOTIONAL", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
+                costMin = self.safe_number2(&filter, Value::Str("minNotional".into()), Value::Str("notional".into()), &[]).as_f64();
             }
             result.push(entry);
         }
@@ -1490,8 +1490,8 @@ impl Tokocrypto {
         let mut cost: Option<String> = self.safe_string2(trade.clone(), Value::Str("quoteQty".into()), Value::Str("baseQty".into()), &[]).as_str().map(str::to_owned); // inverse futures
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("t".into()), Value::Str("a".into()), &[]);
-        id = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[id.clone()]);
+        let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("t".into()), Value::Str("a".into()), &[]).as_str().map(str::to_owned);
+        id = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[Value::from(id.as_deref())]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "orderId", &[]).as_str().map(str::to_owned);
         let mut buyerMaker: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("m".into()), Value::Str("isBuyerMaker".into()), &[]).as_bool();
@@ -1527,7 +1527,7 @@ impl Tokocrypto {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -2032,7 +2032,7 @@ impl Tokocrypto {
                 data = self.safe_list_k(&dataDict, "list", &[Value::from(vec![])]);
             }
         }
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitValue]);
+        return self.parse_ohlc_vs(data, Some(&market), &[timeframe, since, limitValue]);
         Value::Null
         }).await?))
     }
@@ -2256,7 +2256,7 @@ impl Tokocrypto {
         }  else if (side.as_deref() == Some("1")) {
             side = Some("sell".to_string());
         }
-        let mut fills: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
+        let mut fills: crate::value::List = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]).into_list();
         let mut clientOrderId: Option<String> = self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[]).as_str().map(str::to_owned);
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         // the order type carries the post only flag on its own, 7 on the open/v1
@@ -2287,7 +2287,7 @@ impl Tokocrypto {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("trades".to_string(), fills);
+        m.insert("trades".to_string(), Value::Arr(fills));
     m
 }), market);
 
@@ -2360,10 +2360,10 @@ impl Tokocrypto {
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[]).as_str().map(str::to_owned);
         let mut requestedType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut requestedTimeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut isMarketOrder: Value = (Value::Bool(requestedType == "MARKET"));
+        let mut isMarketOrder: bool = requestedType == "MARKET";
         // GTX is the venue spelling of post only, on top of the two unified spellings
         let mut isPostOnlyTimeInForce: bool = requestedTimeInForce.as_deref() == Some("GTX");
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(isPostOnlyTimeInForce), &[params.clone()]).as_array().cloned().unwrap_or_default();
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(isPostOnlyTimeInForce), &[params.clone()]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // only supported for spot/margin api
@@ -2539,7 +2539,7 @@ impl Tokocrypto {
             // a market order fills immediately or not at all, so an IOC asks for
             // what the order type already does and gets accepted as a no-op, while
             // any other time force would be a promise the venue cannot keep here
-            let mut isRedundantImmediateOrCancel: bool = matches!(&isMarketOrder, Value::Bool(true)) && (timeInForceResolved.as_str() == Some("IOC"));
+            let mut isRedundantImmediateOrCancel: bool = (isMarketOrder && (timeInForceResolved.as_str() == Some("IOC")));
             if !isRedundantImmediateOrCancel {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the ".into())).into()), timeInForceResolved).into()), Value::Str(" timeInForce for ".into())).into()),
                     type_var).into()), Value::Str(" orders".into()))));
@@ -3478,24 +3478,24 @@ impl Tokocrypto {
             let mut query: String = "".to_string();
             let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
             let __ws_arg_21 = self.nonce();
-            let mut extendedParams: Value = self.extend(Value::Map({
+            let mut extendedParams: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), __ws_arg_21);
                 m
-            }), &[params.clone()]);
+            }), &[params.clone()]).into_dict();
             if (defaultRecvWindow.is_some()) {
-                if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("recvWindow".into(), Value::from(defaultRecvWindow)); }
+                std::sync::Arc::make_mut(&mut extendedParams).insert("recvWindow".into(), Value::from(defaultRecvWindow));
             }
             let mut recvWindow: Option<i64> = self.safe_integer_k(params.clone(), "recvWindow", &[]).as_i64();
             if (recvWindow.is_some()) {
-                if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("recvWindow".into(), Value::from(recvWindow)); }
+                std::sync::Arc::make_mut(&mut extendedParams).insert("recvWindow".into(), Value::from(recvWindow));
             }
             if (apiName.as_str() == Some("sapi")) && (path.as_str() == Some("asset/dust")) {
-                query = self.urlencode_with_array_repeat(extendedParams.clone());
+                query = self.urlencode_with_array_repeat(&extendedParams);
             }  else if (path.as_str() == Some("batchOrders")) || (path.as_str().unwrap_or("").contains("sub-account")) || (path.as_str() == Some("capital/withdraw/apply")) || (path.as_str().unwrap_or("").contains("staking")) {
-                query = self.rawencode(extendedParams.clone(), &[]);
+                query = self.rawencode(&extendedParams, &[]);
             }  else {
-                query = self.urlencode(extendedParams, &[]);
+                query = self.urlencode(&extendedParams, &[]);
             }
             let mut signature: String = self.hmac(self.encode(Value::from(query.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             query.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature));

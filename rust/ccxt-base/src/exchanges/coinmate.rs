@@ -928,13 +928,13 @@ impl Coinmate {
             let mut __for_first_568: bool = true;
             while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(Value::from(currencyId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut balance: crate::value::Dict = self.safe_dict(&balances, currencyId.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "reserved", &[]));
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));
@@ -1090,7 +1090,7 @@ impl Coinmate {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_ticker_all(&[params]).await.into_dict();
         //
         //     {
@@ -1132,7 +1132,7 @@ impl Coinmate {
             result.insert(crate::runtime::stringify_param(&(Value::from((market).symbol.clone()))), Value::Map(ticker));
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1365,14 +1365,14 @@ impl Coinmate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut methods: crate::value::Dict = self.safe_dict_k(&withdrawOptions, "methods", &[Value::Map({
+        let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
+        let mut methods: crate::value::Dict = self.safe_dict_k(&withdrawOptions, "methods", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut method: Option<String> = self.safe_string(&methods, code.clone(), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
             let mut allowedCurrencies: Value = Value::Array(methods.keys().cloned().map(Value::from).collect());
@@ -1387,26 +1387,26 @@ impl Coinmate {
         if (tagWithdrawTag.is_some()) {
             request.insert("destinationTag".into(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut requestParams: Value = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
+        let mut requestParams: crate::value::Dict = self.extend(Value::Map(request), &[&paramsWithdrawTag]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privatePostBitcoinWithdrawal")) {
-            response = self.private_post_bitcoin_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_bitcoin_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostLitecoinWithdrawal")) {
-            response = self.private_post_litecoin_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_litecoin_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostBitcoinCashWithdrawal")) {
-            response = self.private_post_bitcoin_cash_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_bitcoin_cash_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostEthereumWithdrawal")) {
-            response = self.private_post_ethereum_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_ethereum_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostRippleWithdrawal")) {
-            response = self.private_post_ripple_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_ripple_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostDashWithdrawal")) {
-            response = self.private_post_dash_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_dash_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostDaiWithdrawal")) {
-            response = self.private_post_dai_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_dai_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostAdaWithdrawal")) {
-            response = self.private_post_ada_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_ada_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostSolWithdrawal")) {
-            response = self.private_post_sol_withdrawal(&[requestParams]).await.into_opt_dict();
+            response = self.private_post_sol_withdrawal(&[Value::Dict(requestParams)]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not support the ".into())).into()), method.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" method".into()))));
         }
@@ -1659,14 +1659,14 @@ impl Coinmate {
         })]).into_dict();
         let mut makerString: Option<String> = self.safe_string_k(&data, "maker", &[]).as_str().map(str::to_owned);
         let mut takerString: Option<String> = self.safe_string_k(&data, "taker", &[]).as_str().map(str::to_owned);
-        let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
-        let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
+        let mut maker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
+        let mut taker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(data));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
-        m.insert("maker".to_string(), maker);
-        m.insert("taker".to_string(), taker);
+        m.insert("maker".to_string(), Value::from(maker));
+        m.insert("taker".to_string(), Value::from(taker));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -1932,16 +1932,16 @@ impl Coinmate {
             request.insert("price".into(), self.price_to_precision(symbol, price));
             method.push_str(&(self.capitalize(type_var.clone())).to_string());
         }
-        let mut requestParams: Value = self.extend(Value::Map(request), &[params]);
+        let mut requestParams: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         let mut response: Value = Value::Null;
         if (method == "privatePostBuyInstant") {
-            response = self.private_post_buy_instant(&[requestParams.clone()]).await;
+            response = self.private_post_buy_instant(&[Value::from(&requestParams)]).await;
         }  else if (method == "privatePostSellInstant") {
-            response = self.private_post_sell_instant(&[requestParams.clone()]).await;
+            response = self.private_post_sell_instant(&[Value::from(&requestParams)]).await;
         }  else if (method == "privatePostBuyLimit") {
-            response = self.private_post_buy_limit(&[requestParams.clone()]).await;
+            response = self.private_post_buy_limit(&[Value::from(&requestParams)]).await;
         }  else if (method == "privatePostSellLimit") {
-            response = self.private_post_sell_limit(&[requestParams]).await;
+            response = self.private_post_sell_limit(&[Value::Dict(requestParams)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
         }
@@ -2062,19 +2062,19 @@ impl Coinmate {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut bodySigned: Value = Value::Null;
-        let mut headersSigned: Value = Value::Null;
+        let mut headersSigned: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path);
         if (apiName.as_deref() == Some("public")) {
-            let mut publicQuery: Value = self.extend(Value::Map({
+            let mut publicQuery: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[params.clone()]);
-            if ((Value::Array(publicQuery.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(publicQuery, &[])));
+            }), &[params.clone()]).into_dict();
+            if ((Value::Array(publicQuery.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&publicQuery, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -2091,13 +2091,13 @@ impl Coinmate {
                 m
             }), &[params]);
             bodySigned = Value::from(self.urlencode(__ws_arg_10, &[]));
-            headersSigned = Value::Map({
+            headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                 m
-            });
+            }));
         }
-        let mut headersResolved: Value = headersSigned;
+        let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
         let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

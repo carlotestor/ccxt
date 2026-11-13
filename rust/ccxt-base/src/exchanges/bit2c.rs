@@ -600,16 +600,16 @@ impl Bit2c {
                         let mut i: i64 = 0;
             let mut __for_first_330: bool = true;
             while { if !__for_first_330 { i += 1; } __for_first_330 = false; i < (codes.len() as i64) } {
-            let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut currency: crate::types::Currency = self.currency(code.clone());
+            let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut uppercase: String = currencyId.to_uppercase();
             if (self.safe_string(response.clone(), Value::from(uppercase.clone()), &[]) != Value::Null) {
                 account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".into()), uppercase).into()), &[]));
                 account.insert("total".into(), self.safe_string(response.clone(), Value::from(uppercase), &[]));
             }
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));
@@ -917,17 +917,17 @@ impl Bit2c {
             while { if !__for_first_333 { i += 1; } __for_first_333 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(Value::from(marketId.as_deref()), None, &[]);
-            let mut fee: Value = self.safe_dict(&fees, marketId.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut makerString: Option<String> = self.safe_string_k(fee.clone(), "FeeMaker", &[]).as_str().map(str::to_owned);
-            let mut takerString: Option<String> = self.safe_string_k(fee.clone(), "FeeTaker", &[]).as_str().map(str::to_owned);
-            let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
-            let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
+            let mut fee: Option<crate::value::Dict> = self.safe_dict(&fees, marketId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut makerString: Option<String> = self.safe_string_k(&fee, "FeeMaker", &[]).as_str().map(str::to_owned);
+            let mut takerString: Option<String> = self.safe_string_k(&fee, "FeeTaker", &[]).as_str().map(str::to_owned);
+            let mut maker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
+            let mut taker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), fee);
+        m.insert("info".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("taker".to_string(), taker);
-        m.insert("maker".to_string(), maker);
+        m.insert("taker".to_string(), Value::from(taker));
+        m.insert("maker".to_string(), Value::from(maker));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -1544,37 +1544,37 @@ impl Bit2c {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path, params.clone()));
         let mut requestBody: Value = Value::Null;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
             url.push_str(".json");
         }  else {
             self.check_required_credentials(&[]);
             // bit2c requires an increasing nonce per key
             let mut nonce: i64 = self.incrementing_nonce();
-            let mut query: Value = self.extend(Value::Map({
+            let mut query: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
-            }), &[params]);
-            let mut auth: String = self.urlencode(query.clone(), &[]);
+            }), &[params]).into_dict();
+            let mut auth: String = self.urlencode(&query, &[]);
             if (method.as_str() == Some("GET")) {
-                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
                 }
             }  else {
                 requestBody = Value::from(auth.clone());
             }
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("base64".into())]);
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
                     m.insert("sign".to_string(), Value::from(signature));
                 m
-            });
+            }));
         }
         let mut bodyResult: Value = requestBody;
-        let mut headersResult: Value = requestHeaders;
+        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

@@ -1542,9 +1542,9 @@ if _try_result.is_err() {
             type_var = Some("swap".to_string());
         }
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
-        let mut isSwap: Value = (Value::Bool(type_var.as_deref() == Some("swap")));
-        let mut isFuture: Value = (Value::Bool(type_var.as_deref() == Some("future")));
-        let mut isContract: Value = Value::Bool(matches!(&isSwap, Value::Bool(true)) || matches!(&isFuture, Value::Bool(true)));
+        let mut isSwap: bool = type_var.as_deref() == Some("swap");
+        let mut isFuture: bool = type_var.as_deref() == Some("future");
+        let mut isContract: Value = Value::Bool((isSwap || isFuture));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -1558,13 +1558,13 @@ if _try_result.is_err() {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), isSwap.clone());
-        m.insert("future".to_string(), isFuture);
+        m.insert("swap".to_string(), Value::Bool(isSwap));
+        m.insert("future".to_string(), Value::Bool(isFuture));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Null);
         m.insert("contract".to_string(), isContract);
-        m.insert("linear".to_string(), (if matches!(&isSwap, Value::Bool(true)) { Value::Bool(true) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if matches!(&isSwap, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
+        m.insert("linear".to_string(), (if isSwap { Value::Bool(true) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if isSwap { Value::Bool(false) } else { Value::Null }));
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -2159,7 +2159,7 @@ if _try_result.is_err() {
         //    }
         //
         let mut candles: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2602,8 +2602,8 @@ if _try_result.is_err() {
         //    }
         //
         let mut rows: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        let mut transfers: Value = self.parse_transfers(&rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
-        return transfers;
+        let mut transfers: crate::value::List = self.parse_transfers(&rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]).into_list();
+        return Value::Arr(transfers);
 
     Value::Null
 }
@@ -2807,8 +2807,8 @@ if _try_result.is_err() {
         //    }
         //
         let mut rows: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        let mut transfers: Value = self.parse_transfers(&rows, Some(&currency), &[since, limit]);
-        return self.to_array(self.safe_list(self.filter_transfers_by_type(transfers, "internal", &[Value::Bool(false)]), Value::Int(1), &[Value::from(vec![])]));
+        let mut transfers: crate::value::List = self.parse_transfers(&rows, Some(&currency), &[since, limit]).into_list();
+        return self.to_array(self.safe_list(self.filter_transfers_by_type(Value::Arr(transfers), "internal", &[Value::Bool(false)]), Value::Int(1), &[Value::from(vec![])]));
         Value::Null
         }).await?))
     }
@@ -3389,8 +3389,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if (size.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" order leg requires a size".into()))));
             }
-            let mut sizeParts: Value = Value::Array(if let Some(__s) = size.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-            let mut sizeDec: String = self.safe_string(sizeParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut sizeParts: crate::value::List = Value::Array(if let Some(__s) = size.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut sizeDec: String = self.safe_string(&sizeParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut sizeDecLength: Value = Value::Int((((sizeDec.chars().count() as i64)) + 0)); // php tr
             let mut sizeDigits: Value = (match &(if let Some(__s) = size.as_deref() { Some(__s.replace(".", "")) } else { None }).map(Value::from).unwrap_or(Value::Null) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
             let mut denominator: Value = crate::runtime::Math::pow(&Value::Int(10), &sizeDecLength);
@@ -3406,8 +3406,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut limitPrice: Option<String> = self.safe_string_k(&leg, "limit_price", &[]).as_str().map(str::to_owned);
             if (limitPrice.is_some()) && (Value::from(self.omit_zero(limitPrice.clone().map(Value::from).unwrap_or(Value::Null))) != Value::Null) {
                 let mut price: Value = limitPrice.map(Value::from).unwrap_or(Value::Null);
-                let mut limitParts: Value = Value::Array(if let Some(__s) = price.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-                let mut limitDec: String = self.safe_string(limitParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut limitParts: crate::value::List = Value::Array(if let Some(__s) = price.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
+                let mut limitDec: String = self.safe_string(&limitParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut limitDecLength: Value = Value::Int((((limitDec.chars().count() as i64)) + 0)); // php tr
                 let mut priceDigits: Value = (match &price.as_str().map(|__s| Value::Str(__s.replace(".", "").into())).unwrap_or_else(|| price.clone()) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
                 denominator = crate::runtime::Math::pow(&Value::Int(10), &limitDecLength);
@@ -4538,11 +4538,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_orders(Value::from(vec![result]), None, &[]);
+        })]).into_dict();
+        return self.parse_orders(Value::from(vec![Value::Dict(result)]), None, &[]);
         Value::Null
         }).await?))
     }
@@ -4695,7 +4695,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut usesPrivKey: bool = self.uses_private_key().as_bool().unwrap_or_default(); // py transpiler needs this line separated
         let mut secretOrPrivkey: Value = (if usesPrivKey { self.privateKey.clone() } else { self.secret.clone() });
         let mut privateKeyWithoutZero: Value = self.remove0x_prefix(secretOrPrivkey);
-        let mut signature: crate::value::Dict = ecdsa(self.hash(ethEncodedMessage, Value::Str("keccak".into()), &[Value::Str("hex".into())]), privateKeyWithoutZero.clone(), Value::Str("secp256k1".into()), Value::Null);
+        let mut signature: crate::value::Dict = ecdsa(Value::from(self.hash(ethEncodedMessage, Value::Str("keccak".into()), &[Value::Str("hex".into())])), privateKeyWithoutZero.clone(), Value::Str("secp256k1".into()), Value::Null);
         request.insert("signature".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signer".to_string(), (if (signerAddress == Value::Null) { self.eth_get_address_from_private_key(Value::Str(format!("{}{}", Value::Str("0x".into()), privateKeyWithoutZero).into()), &[]) } else { signerAddress }));
@@ -4749,9 +4749,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }));
         let mut multiplier = get_arg(optional_args, 1, Value::Int(1));
-        let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]);
-        if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(self.number_to_string(Value::from(self.parse_to_int((match (&(until), &(multiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
+        let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_i64();
+        if (until.is_some()) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(self.number_to_string(Value::from(self.parse_to_int((match (&(Value::from(until)), &(multiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
                 (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))))); }
             return Value::from(vec![request.clone(), self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[])]);
         }

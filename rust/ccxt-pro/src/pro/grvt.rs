@@ -408,10 +408,10 @@ impl Grvt {
 
     pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
-        let mut newValue: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), newValue.clone()); }
+        let mut newValue: i64 = ((self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(newValue)); }
         self.unlock_id(&[]);
-        return newValue.as_i64().unwrap_or_default();
+        return newValue;
 }
 
 /*
@@ -486,8 +486,8 @@ impl Grvt {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_353: bool = true;
-            while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_352: bool = true;
+            while { if !__for_first_352 { i += 1; } __for_first_352 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), Value::Str(format!("{}", intervalOption).into())).into()));
@@ -602,8 +602,8 @@ impl Grvt {
     m
 }) });
         let mut selector: String = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut parts: Value = Value::Array(selector.split("@").map(Value::from).collect());
-        let mut marketId: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(selector.split("@").map(Value::from).collect()).into_list();
+        let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut ticker: Value = self.parse_ws_ticker(data, Some(&market));
@@ -679,8 +679,8 @@ impl Grvt {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_354: bool = true;
-            while { if !__for_first_354 { i += 1; } __for_first_354 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_353: bool = true;
+            while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut limitRaw: i64 = self.safe_integer_k(params.clone(), "limit", &[Value::Int(50)]).as_i64().unwrap_or(50); // 50, 200, 500, 1000
@@ -734,8 +734,8 @@ impl Grvt {
         //
         let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
         let mut selector: String = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut parts: Value = Value::Array(selector.split("@").map(Value::from).collect());
-        let mut marketId: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(selector.split("@").map(Value::from).collect()).into_list();
+        let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if !(self.trades.has(&symbol)) {
@@ -823,8 +823,8 @@ impl Grvt {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_355: bool = true;
-            while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (symbolsAndTimeframes.len() as i64) } {
+            let mut __for_first_354: bool = true;
+            while { if !__for_first_354 { i += 1; } __for_first_354 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut symbolString: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -883,29 +883,26 @@ impl Grvt {
     m
 }) });
         let mut selector: String = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut parts: Value = Value::Array(selector.split("@").map(Value::from).collect());
-        let mut marketId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(selector.split("@").map(Value::from).collect()).into_list();
+        let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        let mut secondPart: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut secondPart: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut timeframeId: String = secondPart.replace("-TRADE", "");
         let mut timeframe: Value = Value::from(self.find_timeframe(Value::from(timeframeId), &[]));
         if (timeframe == Value::Null) {
             return;
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe);
-        { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-        if !((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+        CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+        if !(self.ohlcvs.shelf(&symbol).has(&timeframe)) {
             let mut limit: Value = self.handle_option(Value::Str("watchOHLCV".into()), Value::Str("limit".into()), &[Value::Int(1000)]);
-            if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), Value::from(ArrayCacheByTimestamp::new(limit))); } }
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(limit));
         }
-        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         let mut parsed: crate::value::List = self.parse_ws_ohlcv(data, Some(&market)).into_list();
         stored.append(Value::Arr(parsed));
-        let mut resolveData: Value = Value::from(vec![symbol, timeframe, stored]);
+        let mut resolveData: Value = Value::from(vec![Value::from(symbol), timeframe, Value::from(&stored)]);
         client.resolve(resolveData, messageHash.as_str());
 }
 
@@ -1004,8 +1001,8 @@ impl Grvt {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_356: bool = true;
-            while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_355: bool = true;
+            while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), extraPart).into()));
@@ -1056,16 +1053,16 @@ impl Grvt {
         //
         let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
         let mut selector: String = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut parts: Value = Value::Array(selector.split("@").map(Value::from).collect());
-        let mut marketId: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(selector.split("@").map(Value::from).collect()).into_list();
+        let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(&data, "event_time", Value::Float(0.000001), &[]).as_i64();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol);
-        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+        if !(self.orderbooks.has(&symbol)) {
+            { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut sequenceNumber: Value = (match message.get("sequence_number") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) });
         let mut stream: Option<String> = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut isSnapshotChannel: bool = stream.as_deref() == Some("v1.book.s");
@@ -1074,10 +1071,10 @@ impl Grvt {
             let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
-            self.handle_deltas_with_keys(orderbook.book_field("asks"), asks, &[Value::Str("price".into()), Value::Str("size".into())]);
-            self.handle_deltas_with_keys(orderbook.book_field("bids"), bids, &[Value::Str("price".into()), Value::Str("size".into())]);
+            let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+            self.handle_deltas_with_keys(orderbook.book_field("asks"), Value::Arr(asks), &[Value::Str("price".into()), Value::Str("size".into())]);
+            self.handle_deltas_with_keys(orderbook.book_field("bids"), Value::Arr(bids), &[Value::Str("price".into()), Value::Str("size".into())]);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
@@ -1090,8 +1087,8 @@ impl Grvt {
         // unconditional assignment is correct for every language.
         orderbook.set_book_meta("symbol", symbol.clone());
         orderbook.set_book_meta("nonce", sequenceNumber);
-        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(orderbook, messageHash.as_str());
+        CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
+        client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
     pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
@@ -1288,8 +1285,8 @@ impl Grvt {
         if (symbolsNormalized.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_357: bool = true;
-                while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_356: bool = true;
+                while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".into())).into()), Value::from((market).id.as_deref())).into()));
@@ -1311,7 +1308,7 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1347,11 +1344,11 @@ impl Grvt {
         //        "prev_sequence_number": "0"
         //    }
         //
-        if (self.positions.clone() == Value::Null) {
-            self.positions = Value::from(ArrayCacheBySymbolBySide::new(Value::Null));
+        if (self.positions.is_none()) {
+            self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
-        let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut position: Value = self.parse_ws_position(data, None);
+        let mut data: Option<crate::value::Dict> = message.get("feed").cloned().unwrap_or_default().into_opt_dict();
+        let mut position: Value = self.parse_ws_position(data.map_or(Value::Null, Value::Dict), None);
         self.positions.append(position.clone());
         let mut newPositions: Value = Value::from(vec![]);
         if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }

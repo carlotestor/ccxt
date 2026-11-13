@@ -464,12 +464,12 @@ impl Coinbase {
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_222: bool = true;
+            while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut marketId: Value = Value::from((market).id.as_deref());
-            productIds.push(marketId);
+            let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+            productIds.push(marketId.map(Value::from).unwrap_or(Value::Null));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
@@ -524,12 +524,12 @@ impl Coinbase {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_opt_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_224: bool = true;
-            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_223: bool = true;
+            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut marketId: Value = Value::from((market).id.as_deref());
-            productIds.push(marketId);
+            let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+            productIds.push(marketId.map(Value::from).unwrap_or(Value::Null));
             watchMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into()));
             if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())); };
         }
@@ -583,14 +583,14 @@ impl Coinbase {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
             }
             let mut currentToken: Option<String> = self.safe_string_k(self.options.clone(), "wsToken", &[]).as_str().map(str::to_owned);
-            let mut tokenTimestamp: Value = Value::from(self.parse_to_int(self.safe_integer_k(self.options.clone(), "wsTokenTimestamp", &[Value::Int(0)])));
-            let mut seconds: Value = self.seconds();
-            let mut tokenExpiry: Value = (match (&(tokenTimestamp), &(Value::Int(90))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            if (currentToken.is_none()) || tokenExpiry.as_f64().unwrap_or(f64::NAN) < seconds.as_f64().unwrap_or(f64::NAN) {
+            let mut tokenTimestamp: Option<i64> = self.parse_to_int(self.safe_integer_k(self.options.clone(), "wsTokenTimestamp", &[Value::Int(0)]));
+            let mut seconds: i64 = self.seconds().as_i64().unwrap_or_default();
+            let mut tokenExpiry: Option<i64> = (if let Some(__l) = tokenTimestamp { Some(__l + 90) } else { None });
+            if (currentToken.is_none()) || (tokenExpiry.is_some() && tokenExpiry < Some(seconds)) {
                 // we should generate new token
-                let mut token: Value = self.parent.create_auth_token(seconds.clone(), "", None, &[self.parent.is_eddsa_api_key()]);
+                let mut token: Value = self.parent.create_auth_token(Value::from(seconds), "", None, &[self.parent.is_eddsa_api_key()]);
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".into(), token); }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".into(), seconds); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".into(), Value::from(seconds)); }
             }
             subscribe.insert("jwt".into(), self.safe_string_k(self.options.clone(), "wsToken", &[]));
         }
@@ -687,13 +687,13 @@ impl Coinbase {
         let mut name: String = "ticker_batch".to_string();
         let mut ticker: Value = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbolsResolved, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut symbol: String = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(symbol, ticker); }
-            return tickers;
+            tickers.insert(symbol, ticker);
+            return Value::Map(tickers);
         }
         return self.tickers.clone();
         Value::Null
@@ -830,31 +830,31 @@ impl Coinbase {
         let mut newTickers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_226: bool = true;
-            while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (events.len() as i64) } {
+            let mut __for_first_225: bool = true;
+            while { if !__for_first_225 { i += 1; } __for_first_225 = false; i < (events.len() as i64) } {
             let mut tickersObj: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut tickers: crate::value::List = self.safe_list_k(&tickersObj, "tickers", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_225: bool = true;
-                while { if !__for_first_225 { j += 1; } __for_first_225 = false; j < (tickers.len() as i64) } {
-                let mut ticker: Value = tickers.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut wsMarketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
+                let mut __for_first_224: bool = true;
+                while { if !__for_first_224 { j += 1; } __for_first_224 = false; j < (tickers.len() as i64) } {
+                let mut ticker: crate::value::Dict = tickers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut wsMarketId: Option<String> = self.safe_string_k(&ticker, "product_id", &[]).as_str().map(str::to_owned);
                 if (wsMarketId.is_none()) {
                     continue;
                 }
-                let mut result: Value = self.parse_ws_ticker(ticker, None);
-                if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
-                if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null)); }
-                let mut symbol: String = self.safe_string_k(result.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut result: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None).into_dict();
+                std::sync::Arc::make_mut(&mut result).insert("timestamp".into(), Value::from(timestamp));
+                std::sync::Arc::make_mut(&mut result).insert("datetime".into(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut symbol: String = self.safe_string_k(&result, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 if (true) {
-                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), result.clone()); }
+                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&result)); }
                 }
-                newTickers.push(result.clone());
+                newTickers.push(Value::from(&result));
                 if (channel.is_some()) {
                     let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol);
-                    client.resolve(result.clone(), messageHash.as_str());
-                    self.try_resolve_usdc(client.clone(), Value::from(messageHash), result);
+                    client.resolve(Value::from(&result), messageHash.as_str());
+                    self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::Dict(result));
                 }
             }
             }
@@ -984,33 +984,30 @@ impl Coinbase {
         let mut timeframe: String = "5m".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_228: bool = true;
-            while { if !__for_first_228 { i += 1; } __for_first_228 = false; i < (events.len() as i64) } {
-            let mut event: Value = events.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut candles: crate::value::List = self.safe_list_k(event, "candles", &[Value::from(vec![])]).into_list();
+            let mut __for_first_227: bool = true;
+            while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < (events.len() as i64) } {
+            let mut event: crate::value::Dict = events.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut candles: crate::value::List = self.safe_list_k(&event, "candles", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_227: bool = true;
-                while { if !__for_first_227 { j += 1; } __for_first_227 = false; j < (candles.len() as i64) } {
-                let mut candle: Value = candles.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut marketId: Option<String> = self.safe_string_k(candle.clone(), "product_id", &[]).as_str().map(str::to_owned);
+                let mut __for_first_226: bool = true;
+                while { if !__for_first_226 { j += 1; } __for_first_226 = false; j < (candles.len() as i64) } {
+                let mut candle: crate::value::Dict = candles.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut marketId: Option<String> = self.safe_string_k(&candle, "product_id", &[]).as_str().map(str::to_owned);
                 let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
                 let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-                let mut parsed: Value = Value::from(vec![self.safe_timestamp_k(candle.clone(), "start", &[]), self.safe_number_k(candle.clone(), "open", &[]), self.safe_number_k(candle.clone(), "high", &[]), self.safe_number_k(candle.clone(), "low", &[]), self.safe_number_k(candle.clone(), "close", &[]), self.safe_number_k(candle, "volume", &[])]);
-                { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-                let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(timeframe.clone()), &[]);
-                if (stored == Value::Null) {
+                let mut parsed: Value = Value::from(vec![self.safe_timestamp_k(&candle, "start", &[]), self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
+                CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+                let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
+                if (stored.is_none()) {
                     let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                    stored = Value::from(ArrayCacheByTimestamp::new(limit));
-                    if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(timeframe.clone(), stored.clone()); } }
+                    stored = Some(ArrayCacheByTimestamp::new(limit));
+                    CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
                 }
                 stored.append(parsed);
                 let mut messageHash: String = format!("{}{}", Value::Str("candles::".into()), symbol);
-                client.resolve(stored.clone(), messageHash.as_str());
-                self.try_resolve_usdc(client.clone(), Value::from(messageHash), stored);
+                client.resolve(Value::from(&stored), messageHash.as_str());
+                self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::from(&stored));
             }
             }
         }
@@ -1361,8 +1358,8 @@ impl Coinbase {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_230: bool = true;
-            while { if !__for_first_230 { i += 1; } __for_first_230 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_229: bool = true;
+            while { if !__for_first_229 { i += 1; } __for_first_229 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut currentEvent: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut currentTrades: Value = self.safe_list_k(&currentEvent, "trades", &[]);
             if (currentTrades == Value::Null) {
@@ -1372,11 +1369,11 @@ impl Coinbase {
             let mut tradesLength: Value = Value::Int(currentTrades.len() as i64);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_229: bool = true;
-                while { if !__for_first_229 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_229 = false; j.as_f64().unwrap_or(f64::NAN) < tradesLength.as_f64().unwrap_or(f64::NAN) } {
-                let mut item: Value = get_value(&currentTrades, &(match (&((match (&(tradesLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                    _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
-                tradesArray.append(self.parse_trade(item, None));
+                let mut __for_first_228: bool = true;
+                while { if !__for_first_228 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_228 = false; j.as_f64().unwrap_or(f64::NAN) < tradesLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut item: crate::value::Dict = get_value(&currentTrades, &(match (&((match (&(tradesLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).into_dict();
+                tradesArray.append(self.parse_trade(Value::Dict(item), None));
             }
             }
         }
@@ -1427,8 +1424,8 @@ impl Coinbase {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_232: bool = true;
-            while { if !__for_first_232 { i += 1; } __for_first_232 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_231: bool = true;
+            while { if !__for_first_231 { i += 1; } __for_first_231 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut responseOrders: Option<crate::value::List> = self.safe_list_k(&event, "orders", &[]).into_opt_list();
             if (responseOrders.is_none()) {
@@ -1436,12 +1433,12 @@ impl Coinbase {
             }
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_231: bool = true;
-                while { if !__for_first_231 { j += 1; } __for_first_231 = false; j < (responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut responseOrder: Value = responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut parsed: crate::value::Dict = self.parse_ws_order(responseOrder.clone(), None).into_dict();
+                let mut __for_first_230: bool = true;
+                while { if !__for_first_230 { j += 1; } __for_first_230 = false; j < (responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut responseOrder: crate::value::Dict = responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut parsed: crate::value::Dict = self.parse_ws_order(&responseOrder, None).into_dict();
                 let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
-                let mut marketId: Option<String> = self.safe_string_k_opt(responseOrder, "product_id", &[]);
+                let mut marketId: Option<String> = self.safe_string_k_opt(&responseOrder, "product_id", &[]);
                 if (marketId.is_some()) {
                     if !(in_op(&marketIds, &marketId.clone().map(Value::from).unwrap_or(Value::Null))) {
                         if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(marketId.map(Value::from).unwrap_or(Value::Null)); }
@@ -1454,8 +1451,8 @@ impl Coinbase {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_233: bool = true;
-            while { if !__for_first_233 { i += 1; } __for_first_233 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_232: bool = true;
+            while { if !__for_first_232 { i += 1; } __for_first_232 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
             let mut messageHash: String = format!("{}{}", Value::Str("user::".into()), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1527,8 +1524,8 @@ impl Coinbase {
     pub fn handle_order_book_helper(&self, mut orderbook: Value, mut updates: Value) {
         {
                         let mut i: i64 = 0;
-            let mut __for_first_234: bool = true;
-            while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (updates.len() as i64) } {
+            let mut __for_first_233: bool = true;
+            while { if !__for_first_233 { i += 1; } __for_first_233 = false; i < (updates.len() as i64) } {
             let mut trade: crate::value::Dict = self.safe_dict(updates.clone(), Value::Int(i), &[]).into_dict();
             let mut sideId: Option<String> = self.safe_string_k(&trade, "side", &[]).as_str().map(str::to_owned);
             let mut side: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("sides")).cloned().unwrap_or(Value::Null), sideId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1579,10 +1576,10 @@ impl Coinbase {
         let mut datetime: Option<String> = self.safe_string_k(message, "timestamp", &[]).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_235: bool = true;
-            while { if !__for_first_235 { i += 1; } __for_first_235 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_234: bool = true;
+            while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
-            let mut updates: Value = self.safe_list_k(&event, "updates", &[Value::from(vec![])]);
+            let mut updates: crate::value::List = self.safe_list_k(&event, "updates", &[Value::from(vec![])]).into_list();
             let mut marketId: Option<String> = self.safe_string_k(&event, "product_id", &[]).as_str().map(str::to_owned);
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -1595,16 +1592,16 @@ impl Coinbase {
             let mut limit: Value = self.safe_integer_k(&subscription, "limit", &[]);
             let mut type_var: Option<String> = self.safe_string_k(&event, "type", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("snapshot")) {
-                if !(matches!(&self.orderbooks, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
-                    { let __be_tmp = self.order_book(&[Value::Map({
+                if !(self.orderbooks.has(&symbol)) {
+                    { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), __be_tmp); } }
+}), limit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
                 }
-            }  else if !(matches!(&self.orderbooks, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+            }  else if !(self.orderbooks.has(&symbol)) {
                 continue;
             }
-            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             if (type_var.as_deref() == Some("snapshot")) {
                 // reset in place so consumers holding a reference keep receiving updates after a resync
                 orderbook.reset(Value::Map({
@@ -1612,12 +1609,12 @@ impl Coinbase {
                     m
                 }));
             }
-            self.handle_order_book_helper(orderbook.clone(), updates);
+            self.handle_order_book_helper(Value::from(&orderbook), Value::Arr(updates));
             orderbook.set_book_meta("timestamp", Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
             orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
             orderbook.set_book_meta("symbol", Value::from(symbol));
-            client.resolve(orderbook.clone(), messageHash.as_str());
-            self.try_resolve_usdc(client.clone(), Value::from(messageHash), orderbook);
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
+            self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::from(&orderbook));
         }
         }
 }
@@ -1668,8 +1665,8 @@ impl Coinbase {
             let mut subMessageHashes: crate::value::List = self.safe_list_k(&unSubObject, "subMessageHashes", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_236: bool = true;
-                while { if !__for_first_236 { i += 1; } __for_first_236 = false; i < (messageHashes.len() as i64) } {
+                let mut __for_first_235: bool = true;
+                while { if !__for_first_235 { i += 1; } __for_first_235 = false; i < (messageHashes.len() as i64) } {
                 let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut subHash: Option<String> = subMessageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);

@@ -1029,7 +1029,7 @@ impl Foxbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.v3_public_get_markets_ticker24hr(&[params]).await.into_dict();
         //  {
         //    "data": [
@@ -1053,7 +1053,7 @@ impl Foxbit {
         //    ]
         //  }
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_tickers(&data, &[symbolsNormalized]);
+        return self.parse_tickers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1259,11 +1259,11 @@ impl Foxbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
-                m.insert("interval".to_string(), interval.clone());
+                m.insert("interval".to_string(), Value::from(interval.as_deref()));
             m
         });
         if (since != Value::Null) {
@@ -1277,7 +1277,7 @@ impl Foxbit {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await.into_list();
-        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), interval, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[interval.map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2158,9 +2158,9 @@ impl Foxbit {
 }));
         let mut withdrawals: Vec<crate::types::Transaction> = (match self.fetch_withdrawals(code.as_str(), since.as_i64(), limit.as_i64(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut deposits: Vec<crate::types::Transaction> = (match self.fetch_deposits(code.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut allTransactions: Value = self.array_concat(crate::types::IntoRaw::into_raw(withdrawals), crate::types::IntoRaw::into_raw(deposits));
-        let mut result: Value = self.sort_by(allTransactions, Value::Str("timestamp".into()), &[]);
-        return result;
+        let mut allTransactions: crate::value::List = self.array_concat(crate::types::IntoRaw::into_raw(withdrawals), crate::types::IntoRaw::into_raw(deposits)).into_list();
+        let mut result: crate::value::List = self.sort_by(Value::Arr(allTransactions), Value::Str("timestamp".into()), &[]).into_list();
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }
@@ -2834,7 +2834,7 @@ impl Foxbit {
         let mut direction: String = "in".to_string();
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
         let mut realAmount: Value = amount.clone();
-        let mut balance: Value = self.safe_number_k(item.clone(), "balance", &[]);
+        let mut balance: Option<f64> = self.safe_number_k(item.clone(), "balance", &[]).as_f64();
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.safe_number_k(item.clone(), "fee", &[]));
@@ -2844,12 +2844,12 @@ impl Foxbit {
         if (amount == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() requires a amount argument".into()))));
         }
-        if (balance == Value::Null) {
+        if (balance.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() missing balance".into()))));
         }
         let mut before: Value = Value::Null;
-        if (amount != Value::Null) && (balance != Value::Null) {
-            before = (match (&(balance), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        if (amount != Value::Null) && (balance.is_some()) {
+            before = (match (&(Value::from(balance)), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if ((0i64) as f64) > amount.as_f64().unwrap_or(f64::NAN) {
                 direction = "out".to_string();
                 realAmount = (match &(amount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null });
@@ -2869,7 +2869,7 @@ impl Foxbit {
         m.insert("currency".to_string(), currencySymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), realAmount);
         m.insert("before".to_string(), before);
-        m.insert("after".to_string(), balance);
+        m.insert("after".to_string(), Value::from(balance));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("fee".to_string(), Value::Map(fee));
     m

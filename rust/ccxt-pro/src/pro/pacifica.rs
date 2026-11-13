@@ -464,7 +464,7 @@ impl Pacifica {
         }  else if (operationType.as_deref() == Some("set_position_tpsl")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!".into()))));
         }
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), Value::Dict(wsRequest), (&requestId).as_deref(), Value::Null).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
         // market order
         // {
@@ -560,8 +560,8 @@ impl Pacifica {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut request: Value = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, market, &[params]);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut request: Value = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[params]);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -581,7 +581,7 @@ impl Pacifica {
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), Value::Dict(wsRequest), (&requestId).as_deref(), Value::Null).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         // {
         //   "code": 200,
         //   "data": {
@@ -677,7 +677,7 @@ impl Pacifica {
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), Value::Dict(request)).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), Value::Dict(wsRequest), (&requestId).as_deref(), Value::Null).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
         // {
         //   "code": 200,
@@ -709,8 +709,8 @@ impl Pacifica {
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (results.len() as i64) } {
+            let mut __for_first_573: bool = true;
+            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (results.len() as i64) } {
             let mut order: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
             let mut error: Option<String> = self.safe_string_k(&order, "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -794,7 +794,7 @@ impl Pacifica {
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), Value::Dict(wsRequest), (&requestId).as_deref(), Value::Null).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
         //  {
         //   "code": 200,
@@ -886,7 +886,7 @@ impl Pacifica {
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), Value::Dict(wsRequest), (&requestId).as_deref(), Value::Null).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
@@ -1077,19 +1077,19 @@ impl Pacifica {
             m
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
-        let mut snapshot: Value = self.parse_order_book(Value::Map(result), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
+        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(result), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]).into_dict();
         let mut nonce: Option<i64> = self.safe_integer_k(&entry, "li", &[]).as_i64();
         if (nonce.is_some()) && (nonce != Some(0)) {
-            snapshot.set_book_meta("nonce", Value::from(nonce));
+            std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));
         }
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
-        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut ob: Value = self.order_book(&[snapshot.clone()]);
-            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
+        if !(self.orderbooks.has(&symbol)) {
+            let mut ob: crate::pro::order_book::Book = self.order_book(&[Value::from(&snapshot)]);
+            CacheStore::put(&mut self.orderbooks, &symbol, ob);
         }
-        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        orderbook.reset(snapshot);
-        client.resolve(orderbook, messageHash.as_str());
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+        orderbook.reset(Value::Dict(snapshot));
+        client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
 /*
@@ -1142,7 +1142,7 @@ impl Pacifica {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]).into_opt_list();
         let mut messageHash: String = "tickers".to_string();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
@@ -1174,7 +1174,7 @@ impl Pacifica {
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_0, &messageHash[..], Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
-            return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+            return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         }
         return self.tickers.clone();
         Value::Null
@@ -1408,8 +1408,8 @@ impl Pacifica {
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_575: bool = true;
-            while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (data.len() as i64) } {
+            let mut __for_first_574: bool = true;
+            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (data.len() as i64) } {
             let mut info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&info, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -1419,8 +1419,8 @@ impl Pacifica {
             parsedTickers.push(ticker);
         }
         }
-        let mut tickers: Value = self.index_by(Value::from(parsedTickers), Value::Str("symbol".into()));
-        client.resolve(tickers, "tickers");
+        let mut tickers: crate::value::Dict = self.index_by(Value::from(parsedTickers), Value::Str("symbol".into())).into_dict();
+        client.resolve(Value::Dict(tickers), "tickers");
         return Value::Bool(true);
 
     Value::Null
@@ -1475,10 +1475,10 @@ impl Pacifica {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (data.len() as i64) } {
-            let mut rawTrade: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: crate::value::Dict = self.parse_ws_trade(rawTrade, None).into_dict();
+            let mut __for_first_575: bool = true;
+            while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (data.len() as i64) } {
+            let mut rawTrade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None).into_dict();
             let mut symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
             if (symbol != Value::Null) {
                 if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
@@ -1489,8 +1489,8 @@ impl Pacifica {
         let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_577: bool = true;
-            while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (keys.len() as i64) } {
+            let mut __for_first_576: bool = true;
+            while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (keys.len() as i64) } {
             let mut currentMessageHash: String = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(&keys, Value::Int(i), &[Value::Str("".into())]));
             client.resolve(Value::from(&trades), currentMessageHash.as_str());
         }
@@ -1528,7 +1528,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
@@ -1562,7 +1562,7 @@ impl Pacifica {
         let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -1593,7 +1593,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -1667,8 +1667,8 @@ impl Pacifica {
         let mut trades: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_578: bool = true;
-            while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (entry.len() as i64) } {
+            let mut __for_first_577: bool = true;
+            while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (entry.len() as i64) } {
             let mut data: crate::value::Dict = self.safe_dict(&entry, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1800,9 +1800,9 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
-        let mut parsedTf: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut parsedTf: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
             urlKey = "test".to_string();
@@ -1826,17 +1826,17 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("candle".into()));
         m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-        m.insert("interval".to_string(), parsedTf.clone());
+        m.insert("interval".to_string(), Value::from(parsedTf.as_deref()));
     m
 }));
             m
         });
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), parsedTf).into()), Value::Str(":".into())).into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), parsedTf.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), symbolValue);
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
@@ -1869,7 +1869,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -1936,25 +1936,18 @@ impl Pacifica {
             return;
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), symbol);
-        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
+        if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
+            CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
-        let mut symbolOhlcvs: indexmap::IndexMap<String, Value> = self.safe_dict(self.ohlcvs.clone(), symbol, &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).as_map().cloned().unwrap_or_default();
-        let mut ohlcv: Value = self.safe_value(Value::Map(symbolOhlcvs.clone()), timeframe.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (ohlcv == Value::Null) {
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe.clone().map(Value::from).unwrap_or(Value::Null));
+        if (ohlcv.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            ohlcv = Value::from(ArrayCacheByTimestamp::new(limit));
-            symbolOhlcvs.insert(timeframe.as_deref().unwrap_or("null").to_string(), ohlcv.clone());
+            ohlcv = Some(ArrayCacheByTimestamp::new(limit));
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe.clone().map(Value::from).unwrap_or(Value::Null), ohlcv.clone());
         }
         let mut parsed: crate::value::List = self.parse_ohlcv(Value::Dict(data), None).into_list();
         ohlcv.append(Value::Arr(parsed));
-        client.resolve(ohlcv, messageHash.as_str());
+        client.resolve(Value::from(&ohlcv), messageHash.as_str());
 }
 
 /*
@@ -2147,10 +2140,10 @@ impl Pacifica {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_579: bool = true;
-            while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (data.len() as i64) } {
-            let mut rawOrder: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut order: crate::value::Dict = self.parse_order(rawOrder, None).into_dict();
+            let mut __for_first_578: bool = true;
+            while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (data.len() as i64) } {
+            let mut rawOrder: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None).into_dict();
             stored.append(Value::from(&order));
             let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             if (symbol.is_some()) {
@@ -2161,8 +2154,8 @@ impl Pacifica {
         let mut keys: Vec<Value> = Value::Array(marketSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_580: bool = true;
-            while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (keys.len() as i64) } {
+            let mut __for_first_579: bool = true;
+            while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (keys.len() as i64) } {
             let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
             client.resolve(Value::from(&stored), innerMessageHash.as_str());
@@ -2193,12 +2186,12 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut wsHeadersFinal: Value = self.safe_dict_k(&wsHeaders, "headers", &[Value::Map({
+        let mut wsHeadersFinal: crate::value::Dict = self.safe_dict_k(&wsHeaders, "headers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(Value::Int(0), Value::from(error), Value::Str("".into()), Value::from(postType), wsHeadersFinal.clone(), json_stringify(&data), message.clone(), Value::Map({
+            self.handle_errors(Value::Int(0), Value::from(error), Value::Str("".into()), Value::from(postType), Value::Dict(wsHeadersFinal), json_stringify(&data), message.clone(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));
@@ -2219,8 +2212,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
-        if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+        if (self.orderbooks.has(&symbol)) {
+            CacheStore::forget(&mut self.orderbooks, &symbol);
         }
 }
 
@@ -2243,8 +2236,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_581: bool = true;
-            while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_580: bool = true;
+            while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (symbols.len() as i64) } {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbols.get(i as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
         }
@@ -2264,9 +2257,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
-        if (symbol != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if ((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-                remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
+        if (symbol != Value::Null) && (CacheShelves::has(&self.ohlcvs, &symbol)) {
+            if (self.ohlcvs.shelf(&symbol).has(&timeframe)) {
+                CacheShelves::forget2(&mut self.ohlcvs, &symbol, &timeframe);
             }
         }
 }
@@ -2387,8 +2380,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut keys: Vec<Value> = Value::Array(methods.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_582: bool = true;
-            while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < (keys.len() as i64) } {
+            let mut __for_first_581: bool = true;
+            while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (match (&(topic), &(keys.get(i as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
                 Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),

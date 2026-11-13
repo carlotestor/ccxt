@@ -404,11 +404,12 @@ pub struct Exchange {
     pub accountsById:      Value,
 
     // runtime state
-    pub orderbooks:        Value,
+    pub orderbooks:        crate::pro::order_book::BookMap,
     pub orders:            Option<crate::pro::cache::Cache>,
     pub trades:            crate::pro::cache::CacheMap,
     pub myTrades:          Option<crate::pro::cache::Cache>,
-    pub positions:         Value,
+    pub positions:         Option<crate::pro::cache::Cache>,
+    pub positionsByType:   crate::pro::cache::CacheMap,
     // WS state — mirrors `ts/src/base/Exchange.ts` `newUpdates: boolean = true`.
     // Per-exchange WS code reads `self.newUpdates` to decide whether to call
     // `cache.getLimit(...)` (return only what's new since the last call) or
@@ -416,7 +417,7 @@ pub struct Exchange {
     pub newUpdates:        Value,
     pub tickers:           Value,
     pub bidsasks:          Value,
-    pub ohlcvs:            Value,
+    pub ohlcvs:            crate::pro::cache::CacheShelf,
     pub clients:           Value,
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub balance:           Value,
@@ -769,15 +770,16 @@ impl Exchange {
             accounts:          Value::Null,
             accountsById:      Value::Null,
 
-            orderbooks:    Value::Map(HashMap::new()),
+            orderbooks:    crate::pro::order_book::BookMap::new(),
             orders:        None,
             trades:        crate::pro::cache::CacheMap::new(),
             myTrades:      None,
-            positions:     Value::Null,
+            positions:     None,
+            positionsByType: crate::pro::cache::CacheMap::new(),
             newUpdates:    Value::Bool(true),
             tickers:       Value::Map(HashMap::new()),
             bidsasks:      Value::Map(HashMap::new()),
-            ohlcvs:        Value::Map(HashMap::new()),
+            ohlcvs:        crate::pro::cache::CacheShelf::new(),
             clients:       Value::Map(HashMap::new()),
             balance:       Value::Map(HashMap::new()),
             liquidations:  None,
@@ -1235,21 +1237,21 @@ impl Exchange {
         })
     }
 
-    pub fn hash(&self, data: impl Into<Value>, algo: Value, optional_args: &[Value]) -> Value {
-        // `data` may be a string OR the byte-array produced by `encode()`.
+    /// `hash` with a `'hex'` / `'base64'` digest (the default is hex); the `'binary'` digest is `hash_binary`.
+    pub fn hash(&self, data: impl Into<Value>, algo: Value, optional_args: &[Value]) -> String {
         let dbytes = value_to_bytes(&data.into());
         let a = match &algo { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        let raw = hash_raw(&dbytes, &a);
-        match digest.as_ref() {
-            // `binary` → a byte-array Value (consumed by another crypto step).
-            "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-            "base64" => Value::Str(B64.encode(&raw).into()),
-            _        => Value::Str(hex::encode(&raw).into()),
-        }
+        self.hash_typed(&dbytes, &a, &digest)
+    }
+
+    /// `hash(data, algo, 'binary')`: the raw digest bytes.
+    pub fn hash_binary(&self, data: impl Into<Value>, algo: Value) -> crate::value::Bytes {
+        let a = match &algo { Value::Str(s) => s.as_ref(), _ => "sha256" };
+        crate::value::Bytes::of(&hash_raw(&value_to_bytes(&data.into()), a))
     }
 
     pub fn hash_typed(&self, data: &[u8], algo: &str, digest: &str) -> String {
@@ -1632,14 +1634,14 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let err = |id: &Value| Value::Str(format!(
             "[ExchangeError] {} loadOrderBook() failed to synchronize",
             match id { Value::Str(s) => s.as_ref(), _ => "" }).into());
-        if !crate::runtime::in_op(&self.orderbooks, &symbol) {
+        if !crate::pro::cache::CacheStore::has(&self.orderbooks, &symbol) {
             crate::pro::ws_client::value_reject(&client, err(&self.id), message_hash.as_str());
             return;
         }
         let max_retries: i64 = 3;
         let mut tries = 0;
         while tries < max_retries {
-            let mut stored = crate::get_value(&self.orderbooks, &symbol);
+            let mut stored = Value::from(crate::pro::cache::CacheStore::at(&self.orderbooks, &symbol));
             let cache = crate::get_value(&stored, &Value::Str("cache".into()));
             let snapshot = self
                 .dispatch_to_derived("fetch_rest_order_book_safe",

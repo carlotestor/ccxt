@@ -1545,17 +1545,16 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             return;
         }
-        Map<String, Object> ohlcvsByTimeframe = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, (Object) null);
-        if (java.util.Objects.equals(ohlcvsByTimeframe, null))
+        if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
-        if (java.util.Objects.equals(this.safeValue(ohlcvsByTimeframe, timeframe), null))
+        if (java.util.Objects.equals(this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(kline, (Map<String, Object>) null);
         stored.append(parsed);
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
@@ -2265,7 +2264,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                                 Object orderFee = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
                                 if (java.util.Objects.equals(this.safeString(orderFee, "currency"), this.safeString(tradeFee, "currency")))
                                 {
-                                    Object feeCost = this.sum(tradeFee.get("cost"), Helpers.GetValue(orderFee, "cost"));
+                                    Object feeCost = this.sum(tradeFee.get("cost"), ((Map<String, Object>)orderFee).get("cost"));
                                     String feeCostString = (String) this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
                                     Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Double.parseDouble(feeCostString));
                                     insertNewFeeCurrency = false;

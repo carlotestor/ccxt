@@ -1674,8 +1674,8 @@ impl Woo {
     pub fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
         let mut market: Value = market.into();
         let mut marketId: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut parts: Value = Value::Array(marketId.split("_").map(Value::from).collect());
-        let mut first: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(marketId.split("_").map(Value::from).collect()).into_list();
+        let mut first: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketType: Option<String> = None;
         let mut spot: bool = false;
         let mut swap: Value = Value::Bool(false);
@@ -1686,8 +1686,8 @@ impl Woo {
             swap = Value::Bool(true);
             marketType = Some("swap".to_string());
         }
-        let mut baseId: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string(parts.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut quoteId: Option<String> = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -1696,21 +1696,21 @@ impl Woo {
         let mut settleId: Option<String> = None;
         let mut settle: Option<String> = None;
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut contractSize: Value = Value::Null;
+        let mut contractSize: Option<f64> = None;
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
         let mut margin: bool = true;
         let mut contract: Value = swap.clone();
         if contract.as_bool() == Some(true) {
             margin = false;
-            settleId = self.safe_string(parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+            settleId = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
             settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
-            contractSize = self.parse_number(Value::Str("1".into()), &[]);
+            contractSize = Some(1_f64);
             linear = Some(true);
             inverse = Some(false);
         }
-        let mut active: Value = Value::Bool(self.safe_string_k(market.clone(), "status", &[]).as_str() == Some("TRADING"));
+        let mut active: bool = (self.safe_string_k(market.clone(), "status", &[]).as_str() == Some("TRADING"));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(marketId));
@@ -1727,11 +1727,11 @@ impl Woo {
         m.insert("swap".to_string(), swap);
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("contract".to_string(), contract);
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2000,11 +2000,11 @@ impl Woo {
         //         "timestamp": 1751858977368
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_trading_fee(data, Some(&market));
+        })]).into_dict();
+        return self.parse_trading_fee(Value::Dict(data), Some(&market));
         Value::Null
         }).await?))
     }
@@ -2198,10 +2198,10 @@ impl Woo {
         let tokenResponsetokenNetworkResponseVariable: Vec<Value> = promise_all(&Value::from(vec![tokenResponsePromise, tokenNetworkResponsePromise])).await.as_array().cloned().unwrap_or_default();
         let mut tokenResponse: Value = tokenResponsetokenNetworkResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut tokenNetworkResponse: Value = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut tokenRows: Value = self.safe_list_k(tokenResponse, "rows", &[Value::from(vec![])]);
-        let mut tokenNetworkRows: Value = self.safe_list_k(tokenNetworkResponse, "rows", &[Value::from(vec![])]);
-        let mut networksById: Value = self.group_by(tokenNetworkRows, Value::Str("token".into()), &[]);
-        let mut tokensById: Value = self.group_by(tokenRows, Value::Str("balance_token".into()), &[]);
+        let mut tokenRows: crate::value::List = self.safe_list_k(tokenResponse, "rows", &[Value::from(vec![])]).into_list();
+        let mut tokenNetworkRows: crate::value::List = self.safe_list_k(tokenNetworkResponse, "rows", &[Value::from(vec![])]).into_list();
+        let mut networksById: Value = self.group_by(Value::Arr(tokenNetworkRows), Value::Str("token".into()), &[]);
+        let mut tokensById: Value = self.group_by(Value::Arr(tokenRows), Value::Str("balance_token".into()), &[]);
         let mut currencyIds: Vec<Value> = Value::Array(tokensById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -2215,10 +2215,10 @@ impl Woo {
                     m.insert("_networks_by_id".to_string(), (if let (Some(__m), Some(__k)) = (networksById.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 m
             });
-            let mut parsed: Value = self.parse_currency(Value::Map(customCurrency));
-            let mut code: Option<String> = self.safe_string_k(parsed.clone(), "code", &[]).as_str().map(str::to_owned);
+            let mut parsed: crate::value::Dict = self.parse_currency(Value::Map(customCurrency)).into_dict();
+            let mut code: Option<String> = self.safe_string_k(&parsed, "code", &[]).as_str().map(str::to_owned);
             if (code.is_some()) {
-                result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
             }
         }
         }
@@ -2231,9 +2231,9 @@ impl Woo {
         let mut rawCurrency: Value = rawCurrency.into();
         let mut currencyId: Option<String> = self.safe_string_k(rawCurrency.clone(), "_coin_id", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut tokensByNetworkId: Value = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_tokens_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into()));
-        let mut chainsByNetworkId: Value = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_networks_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into()));
-        let mut keys: Vec<Value> = Value::Array(chainsByNetworkId.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut tokensByNetworkId: crate::value::Dict = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_tokens_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into())).into_dict();
+        let mut chainsByNetworkId: crate::value::Dict = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_networks_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into())).into_dict();
+        let mut keys: Vec<Value> = Value::Array(chainsByNetworkId.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut resultingNetworks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2243,11 +2243,11 @@ impl Woo {
             let mut __for_first_1169: bool = true;
             while { if !__for_first_1169 { j += 1; } __for_first_1169 = false; j < (keys.len() as i64) } {
             let mut networkId: Option<String> = keys.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut tokenEntry: crate::value::Dict = self.safe_dict(tokensByNetworkId.clone(), Value::from(networkId.as_deref()), &[Value::Map({
+            let mut tokenEntry: crate::value::Dict = self.safe_dict(&tokensByNetworkId, Value::from(networkId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut networkEntry: crate::value::Dict = self.safe_dict(chainsByNetworkId.clone(), Value::from(networkId.as_deref()), &[Value::Map({
+            let mut networkEntry: crate::value::Dict = self.safe_dict(&chainsByNetworkId, Value::from(networkId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2526,7 +2526,7 @@ impl Woo {
     m
 }));
         let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]).into_dict();
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2539,7 +2539,7 @@ impl Woo {
                 m.insert("side".to_string(), orderSide.clone());
             m
         });
-        let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
+        let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marginMode.is_some()) {
@@ -2819,13 +2819,13 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut order: Value = self.extend(response, &[&data]);
+        let mut order: crate::value::Dict = self.extend(response, &[&data]).into_dict();
         if isByClientOrder {
-            add_element_to_object(&mut order, &Value::Str("clientOrderId".into()), clientOrderIdExchangeSpecific);
+            std::sync::Arc::make_mut(&mut order).insert("clientOrderId".into(), clientOrderIdExchangeSpecific);
         }  else {
-            add_element_to_object(&mut order, &Value::Str("orderId".into()), id);
+            std::sync::Arc::make_mut(&mut order).insert("orderId".into(), id);
         }
-        return self.parse_order(order, Some(&market));
+        return self.parse_order(&order, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3191,12 +3191,12 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut extendedParams: Value = self.extend(params, &[Value::Map({
+        let mut extendedParams: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("INCOMPLETE".into()));
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), extendedParams).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(extendedParams)).await);
         Value::Null
         }).await?))
     }
@@ -3234,12 +3234,12 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut extendedParams: Value = self.extend(params, &[Value::Map({
+        let mut extendedParams: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("COMPLETED".into()));
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), extendedParams).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(extendedParams)).await);
         Value::Null
         }).await?))
     }
@@ -3799,7 +3799,7 @@ impl Woo {
             m
         })]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&rows, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&rows, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4037,11 +4037,11 @@ impl Woo {
         let mainAccountResponsesubAccountResponseVariable: Vec<Value> = promise_all(&Value::from(vec![mainAccountPromise, subAccountPromise])).await.as_array().cloned().unwrap_or_default();
         let mut mainAccountResponse: Value = mainAccountResponsesubAccountResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut subAccountResponse: Value = mainAccountResponsesubAccountResponseVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut mainData: Value = self.safe_dict_k(mainAccountResponse, "data", &[Value::Map({
+        let mut mainData: crate::value::Dict = self.safe_dict_k(mainAccountResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut mainRows: Value = Value::from(vec![mainData]);
+})]).into_dict();
+        let mut mainRows: Value = Value::from(vec![Value::Dict(mainData)]);
         let mut subData: crate::value::Dict = self.safe_dict_k(subAccountResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4326,8 +4326,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return rows;
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return Value::Arr(rows);
 
     Value::Null
 }
@@ -4441,12 +4441,12 @@ impl Woo {
         if (currency != Value::Null) {
             return currency;
         }  else {
-            let mut parts: Value = Value::Array(if let Some(__s) = networkizedCode.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
+            let mut parts: crate::value::List = Value::Array(if let Some(__s) = networkizedCode.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut partsLength: i64 = parts.len() as i64;
-            let mut firstPart: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart.map(Value::from).unwrap_or(Value::Null)]);
+            let mut firstPart: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut currencyId: Value = self.safe_string(&parts, Value::Int(1), &[firstPart.map(Value::from).unwrap_or(Value::Null)]);
             if partsLength > 2 {
-                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".into()), self.safe_string(parts, Value::Int(2), &[Value::Str("".into())])).into())).into());
+                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".into()), self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())])).into())).into());
             }
             return crate::types::IntoRaw::into_raw(self.safe_currency(currencyId, None));
         }
@@ -5459,7 +5459,7 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.v3_public_get_funding_rate(&[params]).await.into_dict();
         //
         //     {
@@ -5486,7 +5486,7 @@ impl Woo {
             m
         })]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
-        return self.parse_funding_rates(&rows, &[symbolsNormalized]);
+        return self.parse_funding_rates(&rows, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5590,8 +5590,8 @@ impl Woo {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbolValue.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(&sorted, symbolValue.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

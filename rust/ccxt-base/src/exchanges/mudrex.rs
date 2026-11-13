@@ -561,14 +561,14 @@ impl Mudrex {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errCode.map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), text.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             let mut msg: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text);
-            let mut low: Value = (if let Some(__s) = text.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-            if (code.as_f64() == Some(401.0)) || low.as_str().unwrap_or("").contains("auth") {
+            let mut low: Option<String> = text.as_str().map(str::to_lowercase);
+            if (code.as_f64() == Some(401.0)) || low.as_deref().unwrap_or_default().contains("auth") {
                 panic!("{}", crate::exchange_errors::authentication_error(msg.clone()));
             }
-            if (code.as_f64() == Some(429.0)) || low.as_str().unwrap_or("").contains("rate") {
+            if (code.as_f64() == Some(429.0)) || low.as_deref().unwrap_or_default().contains("rate") {
                 panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg.clone()));
             }
-            if low.as_str().unwrap_or("").contains("insufficient") {
+            if low.as_deref().unwrap_or_default().contains("insufficient") {
                 panic!("{}", crate::exchange_errors::insufficient_funds(msg.clone()));
             }
             if (code.as_f64() == Some(400.0)) {
@@ -618,11 +618,11 @@ impl Mudrex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut priceType: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        let mut baseIdString: String = self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut quoteIdString: String = self.safe_string_k(market.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseIdString: String = self.safe_string_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut quoteIdString: String = self.safe_string_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut assetPair: String = format!("{}{}", Value::Str(format!("{}{}", baseIdString, Value::Str("/".into())).into()), quoteIdString);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -636,13 +636,13 @@ impl Mudrex {
         let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
         let mut windowLength: i64 = (duration * requestLimit);
         let mut defaultStart: i64 = (now - windowLength);
-        let mut startTime: Value = Value::from(self.parse_to_int((if (since != Value::Null) { ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::from(defaultStart) })));
-        let mut windowEnd: Option<i64> = self.parse_to_int((match (&(startTime), &(Value::Int((duration * requestLimit)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut startTime: Option<i64> = self.parse_to_int((if (since != Value::Null) { ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::from(defaultStart) }));
+        let mut windowEnd: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = startTime { Some(__l + ((duration * requestLimit))) } else { None })));
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut cappedEnd: Option<i64> = (if (windowEnd > Some(now)) { Some(now) } else { windowEnd });
-        let mut endTime: Option<i64> = self.parse_to_int((if (until != Value::Null) { ((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::from(cappedEnd) }));
-        request.insert("start_time".into(), startTime);
+        let mut endTime: Option<i64> = self.parse_to_int((if (until.is_some()) { (Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))) } else { Value::from(cappedEnd) }));
+        request.insert("start_time".into(), Value::from(startTime));
         request.insert("end_time".into(), Value::from(endTime));
         let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("mark")) {
@@ -671,7 +671,7 @@ impl Mudrex {
             m
         })]).into_dict();
         let mut ohlcvs: crate::value::List = self.safe_list(&assetTicks, Value::from(assetPair.to_lowercase()), &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlcvs, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -872,13 +872,13 @@ impl Mudrex {
         let mut pageLimit: i64 = 100;
         let mut paging: bool = true;
         while paging {
-            let mut q: Value = self.extend(Value::Map({
+            let mut q: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("limit".to_string(), Value::Int(pageLimit.clone()));
                     m.insert("offset".to_string(), offset.clone());
                 m
-            }), &[params.clone()]);
-            let mut response: crate::value::Dict = self.private_get_futures(&[q]).await.into_dict();
+            }), &[params.clone()]).into_dict();
+            let mut response: crate::value::Dict = self.private_get_futures(&[Value::Dict(q)]).await.into_dict();
             let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
             let mut items: Value = Value::from(vec![]);
             if matches!(&data, Value::Dict(_)) && !(matches!(&data, Value::Arr(_))) {
@@ -1572,12 +1572,12 @@ impl Mudrex {
         if (limit != Value::Null) {
             q.insert("limit".into(), limit.clone());
         }
-        let mut request: Value = self.extend(Value::Map(q), &[params]);
+        let mut request: crate::value::Dict = self.extend(Value::Map(q), &[params]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (state.as_str() == Some("closed")) {
-            response = self.private_get_futures_orders_history(&[request.clone()]).await.into_opt_dict();
+            response = self.private_get_futures_orders_history(&[Value::from(&request)]).await.into_opt_dict();
         }  else {
-            response = self.private_get_futures_orders(&[request]).await.into_opt_dict();
+            response = self.private_get_futures_orders(&[Value::Dict(request)]).await.into_opt_dict();
         }
         let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
         let mut rows: crate::value::List = self.to_array(data).into_list();
@@ -1725,10 +1725,10 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_973: bool = true;
             while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < (rows.len() as i64) } {
-            let mut p: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut symRaw: Option<String> = self.safe_string_k(p.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut p: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut symRaw: Option<String> = self.safe_string_k(&p, "symbol", &[]).as_str().map(str::to_owned);
             let mut m: crate::types::Market = self.safe_market(symRaw.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut pos: crate::value::Dict = self.parse_position(p, Some(&m)).into_dict();
+            let mut pos: crate::value::Dict = self.parse_position(&p, Some(&m)).into_dict();
             outPos.push(Value::Dict(pos));
         }
         }
@@ -1765,7 +1765,7 @@ impl Mudrex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1797,8 +1797,8 @@ impl Mudrex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut positions: Value = self.parse_positions(&data, &[symbolsNormalized]);
-        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
+        let mut positions: crate::value::List = self.parse_positions(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]).into_list();
+        return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1823,9 +1823,9 @@ impl Mudrex {
         let mut quantityString: Option<String> = self.safe_string_k(position.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut entryPriceString: Option<String> = self.safe_string_k(position.clone(), "entry_price", &[]).as_str().map(str::to_owned);
         let mut contractSizeString: String = self.safe_string_k(&marketResolved, "contractSize", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
-        let mut notional: Value = Value::Null;
+        let mut notional: Option<f64> = None;
         if (quantityString.is_some()) && (entryPriceString.is_some()) {
-            notional = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&quantityString.map(Value::from).unwrap_or(Value::Null), &entryPriceString.map(Value::from).unwrap_or(Value::Null)), &Value::from(contractSizeString)), &[]);
+            notional = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&quantityString.map(Value::from).unwrap_or(Value::Null), &entryPriceString.map(Value::from).unwrap_or(Value::Null)), &Value::from(contractSizeString)), &[]).as_f64();
         }
         let mut initialMargin: Option<String> = self.safe_string_k(position.clone(), "initial_margin", &[]).as_str().map(str::to_owned);
         return Value::Map({
@@ -1843,7 +1843,7 @@ impl Mudrex {
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entry_price", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closed_price", &[]));
-        m.insert("notional".to_string(), notional);
+        m.insert("notional".to_string(), Value::from(notional));
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "leverage", &[]));
         m.insert("positionMargin".to_string(), self.parse_number(initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("collateral".to_string(), self.parse_number(initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2057,7 +2057,7 @@ impl Mudrex {
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         let mut pageSize: Value = (if (limit == Value::Null) { Value::Int(0) } else { (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
         let mut allRows: Vec<Value> = Vec::new();
-        let mut transactionsCount: Value = Value::from(self.parse_to_int(Value::Int(0)));
+        let mut transactionsCount: Option<i64> = self.parse_to_int(Value::Int(0));
         let mut calls: Value = Value::from(self.parse_to_int(Value::Int(0)));
         let mut offset: Value = Value::Int(0);
         let mut paging: bool = true;
@@ -2083,7 +2083,7 @@ impl Mudrex {
                 if (self.safe_string_k(entry.clone(), "fee_type", &[]).as_str() == Some("TRANSACTION")) {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (market.is_none()) || (self.safe_string_k(entry.clone(), "symbol", &[]).as_str() == crate::value::KeyRead::key_read(&&market, "id").as_str()) {
-                        transactionsCount = Value::from(self.parse_to_int((match (&(transactionsCount), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
+                        transactionsCount = self.parse_to_int(Value::from((if let Some(__l) = transactionsCount { Some(__l + 1) } else { None })));
                     }
                 }
             }
@@ -2092,7 +2092,7 @@ impl Mudrex {
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (limit != Value::Null) && (dataLength.as_f64() == pageSize.as_f64()) {
-                if (transactionsCount.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN)) && (calls.as_f64().unwrap_or(f64::NAN) < maxCalls.as_f64().unwrap_or(f64::NAN)) {
+                if ((transactionsCount.is_some() && limit.as_i64().is_some() && transactionsCount < limit.as_i64())) && (calls.as_f64().unwrap_or(f64::NAN) < maxCalls.as_f64().unwrap_or(f64::NAN)) {
                     // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                     offset = self.sum(&[offset.clone(), pageSize.clone()]);
                     paging = true;
@@ -2261,12 +2261,12 @@ impl Mudrex {
                 m.insert("FUTURES".to_string(), Value::Str("FUTURES".into()));
             m
         });
-        let mut fw: Value = self.safe_string(mp.clone(), fromAccount.clone(), &[(if let Some(__s) = fromAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
-        let mut tw: Value = self.safe_string(mp, toAccount.clone(), &[(if let Some(__s) = toAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
+        let mut fw: Option<String> = self.safe_string(mp.clone(), fromAccount.clone(), &[(if let Some(__s) = fromAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]).as_str().map(str::to_owned);
+        let mut tw: Option<String> = self.safe_string(mp, toAccount.clone(), &[(if let Some(__s) = toAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]).as_str().map(str::to_owned);
         let mut body: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("from_wallet_type".to_string(), fw.clone());
-                m.insert("to_wallet_type".to_string(), tw.clone());
+                m.insert("from_wallet_type".to_string(), Value::from(fw.as_deref()));
+                m.insert("to_wallet_type".to_string(), Value::from(tw.as_deref()));
                 m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
             m
         });
@@ -2297,8 +2297,8 @@ impl Mudrex {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("currency".to_string(), code);
         m.insert("amount".to_string(), amount);
-        m.insert("fromAccount".to_string(), fw);
-        m.insert("toAccount".to_string(), tw);
+        m.insert("fromAccount".to_string(), fw.map(Value::from).unwrap_or(Value::Null));
+        m.insert("toAccount".to_string(), tw.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), Value::Str("ok".into()));
     m
 });

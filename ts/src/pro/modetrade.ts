@@ -946,7 +946,7 @@ export default class modetrade extends modetradeRest {
         const dataIsArray = Array.isArray (data);
         if (dataIsArray) {
             // algoexecutionreport
-            const dataList = this.safeList (message, 'data', []);
+            const dataList: Dict[] = this.safeList (message, 'data', []);
             const dataListLength = dataList.length;
             for (let i = 0; i < dataListLength; i++) {
                 const order = dataList[i];
@@ -1112,7 +1112,7 @@ export default class modetrade extends modetradeRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeString (position, 'contracts', '0');
@@ -1166,7 +1166,7 @@ export default class modetrade extends modetradeRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = this.safeDict (rawPositions, i);

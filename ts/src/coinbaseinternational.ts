@@ -764,7 +764,7 @@ export default class coinbaseinternational extends Exchange {
         const precision = this.parseNumber (this.parsePrecision (decimals));
         const networkFee = this.safeNumber (currency, 'network_fee');
         const withdrawalFee = this.safeNumber (currency, 'withdrawal_fee');
-        const rawNetworks = this.safeList (currency, 'coinbase_networks', []);
+        const rawNetworks: Dict[] = this.safeList (currency, 'coinbase_networks', []);
         const networks: Dict = {};
         for (let i = 0; i < rawNetworks.length; i++) {
             const rawNetwork = rawNetworks[i];
@@ -2003,7 +2003,7 @@ export default class coinbaseinternational extends Exchange {
         if (!this.isNativeDeribitCredentials ()) {
             return this.parseTransactions (logs, currency, since, limit);
         }
-        const transactions = [];
+        const transactions: Dict[] = [];
         for (let i = 0; i < logs.length; i++) {
             const transaction = logs[i];
             const transactionType = this.safeString (transaction, 'type');

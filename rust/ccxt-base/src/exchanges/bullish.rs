@@ -1377,8 +1377,8 @@ impl Bullish {
                 swap = true;
             }  else {
                 expiryDatetime = self.safe_string_k(market.clone(), "expiryDatetime", &[]).as_str().map(str::to_owned);
-                let mut idParts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                let mut datePart: Option<String> = self.safe_string_opt(idParts.clone(), Value::Int(2), &[]);
+                let mut idParts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
+                let mut datePart: Option<String> = self.safe_string_opt(&idParts, Value::Int(2), &[]);
                 let mut dateYmd: Value = datePart.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                 symbol.push_str(&format!("{}{}", Value::Str("-".into()), dateYmd));
                 if (type_var.as_str() == Some("future")) {
@@ -1387,7 +1387,7 @@ impl Bullish {
                     option = true;
                     optionType = self.safe_string_lower_k(market.clone(), "optionType", &[]).as_str().map(str::to_owned);
                     strike = self.parse_to_numeric(self.safe_string_k(market.clone(), "optionStrikePrice", &[]));
-                    symbol.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), Value::from(self.number_to_string(strike.clone()))).into()), Value::Str("-".into())).into()), self.safe_string(idParts, Value::Int(4), &[])));
+                    symbol.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), Value::from(self.number_to_string(strike.clone()))).into()), Value::Str("-".into())).into()), self.safe_string(&idParts, Value::Int(4), &[])));
                 }
             }
         }
@@ -1574,8 +1574,8 @@ impl Bullish {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            let mut paramsPagination: Value = self.handle_pagination_params("fetchTrades", since.as_i64(), &[Value::from(&paramsPaginate)]);
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, Value::from(maxLimit)]).await;
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTrades", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1644,8 +1644,8 @@ impl Bullish {
             let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if paginate {
-                let mut paramsPagination: Value = self.handle_pagination_params("fetchMyTrades", since.as_i64(), &[Value::from(&paramsPaginate)]);
-                return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol, since.clone(), limit.clone(), paramsPagination, Value::Int(100)]).await;
+                let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchMyTrades", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+                return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol, since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::Int(100)]).await;
             }
             let mut paramsSinceAndUntil: Value = self.handle_since_and_until(since.as_i64(), &[Value::from(&paramsPaginate)]);
             if (limit != Value::Null) {
@@ -2021,29 +2021,29 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("createdAtDatetime[lte]".into()), Value::Map(request.clone()), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut untilParam: Value = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]);
+        let mut untilParam: Option<i64> = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
         let mut until: Value = Value::Null;
-        if (untilParam != Value::Null) {
-            until = untilParam.clone();
+        if (untilParam.is_some()) {
+            until = Value::from(untilParam);
         }
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-        let mut maxDelta: Value = Value::Int((((duration * maxLimit)) * 1000));
+        let mut maxDelta: i64 = (((duration * maxLimit)) * 1000);
         let mut startTime: Value = since.clone();
         // both of since and until are required
-        if (since == Value::Null) && (untilParam == Value::Null) {
-            let mut now: Value = Value::Int(self.milliseconds());
-            until = now.clone();
-            startTime = (match (&(now), &(maxDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        }  else if (since == Value::Null) && (untilParam != Value::Null) {
-            startTime = (match (&(untilParam), &(maxDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        }  else if (untilParam == Value::Null) {
-            until = self.sum(&[startTime.clone(), maxDelta]);
+        if (since == Value::Null) && (untilParam.is_none()) {
+            let mut now: i64 = self.milliseconds();
+            until = Value::from(now);
+            startTime = Value::Int((now - maxDelta));
+        }  else if (since == Value::Null) && (untilParam.is_some()) {
+            startTime = Value::from((if let Some(__l) = untilParam { Some(__l - maxDelta) } else { None }));
+        }  else if (untilParam.is_none()) {
+            until = self.sum(&[startTime.clone(), Value::from(maxDelta)]);
         }
         request.insert("createdAtDatetime[gte]".into(), self.iso8601(startTime));
         request.insert("createdAtDatetime[lte]".into(), self.iso8601(until));
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.public_get_v1_markets_symbol_candle(&[__ws_arg_5]).await.into_list();
-        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2089,8 +2089,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            let mut paramsPagination: Value = self.handle_pagination_params("fetchFundingRateHistory", since.as_i64(), &[Value::from(&paramsPaginate)]);
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, Value::from(maxLimit)]).await;
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchFundingRateHistory", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {
@@ -2125,13 +2125,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_493: bool = true;
             while { if !__for_first_493 { i += 1; } __for_first_493 = false; i < (result.len() as i64) } {
-            let mut entry: Value = result.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut datetime: Option<String> = self.safe_string_k(entry.clone(), "updatedAtDatetime", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut datetime: Option<String> = self.safe_string_k(&entry, "updatedAtDatetime", &[]).as_str().map(str::to_owned);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), entry.clone());
+                    m.insert("info".to_string(), Value::from(&entry));
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
                     m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
                 m
@@ -2178,8 +2178,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut tradingAccountId: Option<String> = self.load_account(&[params.clone()]).await.as_str().map(str::to_owned);
         let mut paginate: bool = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if paginate {
-            let mut paramsPagination: Value = self.handle_pagination_params("fetchOrders", since.as_i64(), &[params.clone()]);
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, Value::Int(100)]).await;
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchOrders", since.as_i64(), &[params.clone()]).into_dict();
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::Int(100)]).await;
         }
         let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2256,20 +2256,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), method).into()), Value::Str("() only allows fetching entries up to 90 days in the past".into()))));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("paginate".into()), &[]).into_dict();
-        let mut paramsExtended: Value = self.extend(paramsOmitted, &[Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(paramsOmitted, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("paginationDirection".to_string(), Value::Str("backward".into()));
             m
-        })]);
-        let mut until: Option<i64> = self.safe_integer_k(paramsExtended.clone(), "until", &[]).as_i64();
+        })]).into_dict();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsExtended, "until", &[]).as_i64();
         if (until.is_none()) {
-            return self.extend(paramsExtended.clone(), &[Value::Map({
+            return self.extend(&paramsExtended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("until".to_string(), Value::from(now));
     m
 })]);
         }
-        return paramsExtended;
+        return Value::Dict(paramsExtended);
 
     Value::Null
 }
@@ -2282,29 +2282,26 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut sinceKey = get_arg(optional_args, 1, Value::Str("createdAtDatetime[gte]".into()));
         let mut untilKey = get_arg(optional_args, 2, Value::Str("createdAtDatetime[lte]".into()));
-        let mut untilParam: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut untilParam: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut until: Value = Value::Null;
-        if (untilParam != Value::Null) {
-            until = untilParam.clone();
+        if (untilParam.is_some()) {
+            until = Value::from(untilParam);
         }
-        let mut sinceFromUntil: bool = (since == Value::Null) && (untilParam != Value::Null);
+        let mut sinceFromUntil: bool = (since == Value::Null) && (untilParam.is_some());
         let mut paramsResult: Value = (if sinceFromUntil { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        if (since != Value::Null) || (untilParam != Value::Null) {
-            let mut timeDelta: Value = (match (&((match (&((match (&((match (&(Value::Int(7)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-                &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x),
-                Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // 7 days
+        if (since != Value::Null) || (untilParam.is_some()) {
+            let mut timeDelta: i64 = (((((((7 * 24)) * 60)) * 60)) * 1000); // 7 days
             let mut sinceResolved: Value = since.clone();
-            if (since == Value::Null) && (untilParam != Value::Null) {
-                sinceResolved = (match (&(untilParam), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            if (since == Value::Null) && (untilParam.is_some()) {
+                sinceResolved = Value::from((if let Some(__l) = untilParam { Some(__l - timeDelta) } else { None }));
             }
-            if (since != Value::Null) && (untilParam == Value::Null) {
-                let mut now: Value = Value::Int(self.milliseconds());
-                let mut latestSince: Value = (match (&(now), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                if since.as_f64().unwrap_or(f64::NAN) > latestSince.as_f64().unwrap_or(f64::NAN) {
-                    until = now;
+            if (since != Value::Null) && (untilParam.is_none()) {
+                let mut now: i64 = self.milliseconds();
+                let mut latestSince: i64 = (now - timeDelta);
+                if since.as_i64() > Some(latestSince) {
+                    until = Value::from(now);
                 }  else {
-                    until = self.sum(&[since, timeDelta]);
+                    until = self.sum(&[since, Value::from(timeDelta)]);
                 }
             }
             add_element_to_object(&mut paramsResult, &sinceKey, self.iso8601(sinceResolved));
@@ -2579,15 +2576,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let timeInForceparamsTimeInForceRawVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPostOnly, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Option<String> = timeInForceparamsTimeInForceRawVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimeInForceRaw: crate::value::Dict = timeInForceparamsTimeInForceRawVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // is mandatory
-        let mut paramsTimeInForce: Value = self.extend(paramsTimeInForceRaw, &[Value::Map({
+        let mut paramsTimeInForce: crate::value::Dict = self.extend(paramsTimeInForceRaw, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timeInForce".to_string(), timeInForce.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             m
-        })]);
+        })]).into_dict();
         if !(matches!(&isMarketOrder, Value::Bool(true))) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
-        let mut triggerPrice: Option<String> = self.safe_string_k(paramsTimeInForce.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.safe_string_k(&paramsTimeInForce, "triggerPrice", &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
             if matches!(&isMarketOrder, Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support market trigger orders".into()))));
@@ -2595,7 +2592,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
             orderType = "STOP_LIMIT".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(paramsTimeInForce.clone(), Value::Str("triggerPrice".into()), &[]) } else { paramsTimeInForce }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&paramsTimeInForce, Value::Str("triggerPrice".into()), &[]).into_dict() } else { paramsTimeInForce });
         request.insert("type".into(), Value::from(orderType.to_uppercase()));
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_v2_orders(&[__ws_arg_14]).await.into_dict();
@@ -3562,8 +3559,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            let mut paramsPagination: Value = self.handle_pagination_params("fetchTransfers", since.as_i64(), &[Value::from(&paramsPaginate)]);
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), paramsPagination, Value::from(maxLimit)]).await;
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTransfers", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3928,23 +3925,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             });
             if (method.as_str() == Some("GET")) {
                 let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, nonce).into()), method).into()), Value::Str("/trading-api/".into())).into()), path);
-                let mut signature: Value = Value::from(self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]));
+                let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("BX-TIMESTAMP".to_string(), timestamp.clone());
                         m.insert("BX-NONCE".to_string(), nonce.clone());
-                        m.insert("BX-SIGNATURE".to_string(), signature.clone());
+                        m.insert("BX-SIGNATURE".to_string(), Value::from(signature));
                     m
                 });
             }  else if (method.as_str() == Some("POST")) {
                 requestBody = json_stringify(&params).as_str().map(str::to_owned);
                 let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, nonce).into()), method).into()), Value::Str("/trading-api/".into())).into()), path).into()), requestBody.as_deref().unwrap_or("null"));
-                let mut signature: Value = Value::from(self.hmac(self.encode(self.hash(self.encode(Value::from(payload)), Value::Str("sha256".into()), &[Value::Str("hex".into())])), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]));
+                let mut signature: String = self.hmac(self.encode(Value::from(self.hash(self.encode(Value::from(payload)), Value::Str("sha256".into()), &[Value::Str("hex".into())]))), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("BX-TIMESTAMP".to_string(), timestamp);
                         m.insert("BX-NONCE".to_string(), nonce);
-                        m.insert("BX-SIGNATURE".to_string(), signature);
+                        m.insert("BX-SIGNATURE".to_string(), Value::from(signature));
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
                 });

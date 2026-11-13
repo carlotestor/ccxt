@@ -1428,10 +1428,10 @@ impl Poloniex {
         if (since != Value::Null) && (limit != Value::Null) && (self.safe_integer(requestUntil.clone(), Value::from(keyEnd.clone()), &[]) == Value::Null) {
             // without an end time the exchange returns the latest candles, not the ones starting at since,
             // so end the window at the start of the limit-th candle from the first one at or after since
-            let mut duration: Value = (match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut firstCandle: Value = (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut endTimeByLimit: Value = self.sum(&[firstCandle, (match (&(duration), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
+            let mut firstCandle: Value = (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)))), &(Value::from(duration))) { (Value::Int(x),
+                Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut endTimeByLimit: Value = self.sum(&[firstCandle, (match (&(Value::from(duration)), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert(keyEnd, crate::runtime::Math::min(&endTimeByLimit, &Value::Int(self.milliseconds()))); }
         }
@@ -1456,7 +1456,7 @@ impl Poloniex {
             //           ],
             //
             let mut data: Option<crate::value::List> = self.safe_list_k(&responseRaw, "data", &[]).into_opt_list();
-            return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+            return self.parse_ohlc_vs(&data, Some(&market), &[timeframe.clone(), since.clone(), limit.clone()]);
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_markets_symbol_candles(&[__ws_arg_1]).await;
@@ -1484,7 +1484,7 @@ impl Poloniex {
         if (matches!(&response, Value::Arr(_))) {
             candles = response.clone();
         }
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2045,26 +2045,26 @@ impl Poloniex {
                         let mut j: i64 = 0;
             let mut __for_first_1084: bool = true;
             while { if !__for_first_1084 { j += 1; } __for_first_1084 = false; (j as f64) < chainsLength } {
-            let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
-            let mut chainId: Option<String> = self.safe_string_k(chain.clone(), "blockchain", &[]).as_str().map(str::to_owned);
+            let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
+            let mut chainId: Option<String> = self.safe_string_k(&chain, "blockchain", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), chain.clone());
+        m.insert("info".to_string(), chain.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), chainId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), Value::Null);
         m.insert("code".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("fee".to_string(), self.safe_number_k(chain.clone(), "withdrawFee", &[]));
-        m.insert("deposit".to_string(), self.safe_bool_k(chain.clone(), "depositEnable", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(chain.clone(), "withdrawalEnable", &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(chain.clone(), "decimals", &[])]), &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&chain, "withdrawFee", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(&chain, "depositEnable", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(&chain, "withdrawalEnable", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&chain, "decimals", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain, "withdrawMin", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&chain, "withdrawMin", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -2132,8 +2132,8 @@ impl Poloniex {
         });
         if (market).contract {
             let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut contractTicker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol, &[]);
-            return contractTicker;
+            let mut contractTicker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol, &[]).into_opt_dict();
+            return contractTicker.map_or(Value::Null, Value::Dict);
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_markets_symbol_ticker24h(&[__ws_arg_3]).await.into_dict();
@@ -2622,7 +2622,7 @@ impl Poloniex {
         let mut marginMode: Option<String> = self.safe_string_lower_k(order.clone(), "mgnMode", &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
         let mut leverage: Option<i64> = self.safe_integer_k(order.clone(), "lever", &[]).as_i64();
-        let mut hedged: Value = Value::Bool(self.safe_string_k(order.clone(), "posSide", &[]).as_str() != Some("BOTH"));
+        let mut hedged: bool = (self.safe_string_k(order.clone(), "posSide", &[]).as_str() != Some("BOTH"));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -2649,7 +2649,7 @@ impl Poloniex {
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("leverage".to_string(), Value::from(leverage));
-        m.insert("hedged".to_string(), hedged);
+        m.insert("hedged".to_string(), Value::Bool(hedged));
     m
 }), Some(&marketResolved));
 
@@ -3059,17 +3059,17 @@ impl Poloniex {
             });
             { let __destr_tmp: Vec<Value> = self.order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), request.clone(), &[Value::from(price), extendedParams.clone()]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
                 extendedParams = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            let mut merged: Value = self.extend(request, &[extendedParams]);
+            let mut merged: crate::value::Dict = self.extend(request, &[extendedParams]).into_dict();
             if isContract {
                 // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
-                if !(merged.as_map().is_some_and(|__m| __m.contains_key("mgnMode"))) {
-                    if let Value::Dict(__r03d) = &mut merged { std::sync::Arc::make_mut(__r03d).insert("mgnMode".into(), Value::Str("CROSS".into())); }
+                if !(merged.contains_key("mgnMode")) {
+                    std::sync::Arc::make_mut(&mut merged).insert("mgnMode".into(), Value::Str("CROSS".into()));
                 }
-                if (self.safe_string_k(merged.clone(), "posSide", &[]) == Value::Null) {
-                    if let Value::Dict(__r03d) = &mut merged { std::sync::Arc::make_mut(__r03d).insert("posSide".into(), Value::Str("BOTH".into())); }
+                if (self.safe_string_k(&merged, "posSide", &[]) == Value::Null) {
+                    std::sync::Arc::make_mut(&mut merged).insert("posSide".into(), Value::Str("BOTH".into()));
                 }
             }
-            ordersRequests.push(merged);
+            ordersRequests.push(Value::Dict(merged));
             ordersMarkets.push(marketInner);
         }
         }
@@ -3691,14 +3691,14 @@ impl Poloniex {
                                 let mut i: i64 = 0;
                 let mut __for_first_1088: bool = true;
                 while { if !__for_first_1088 { i += 1; } __for_first_1088 = false; i < (details.len() as i64) } {
-                let mut balance: Value = self.safe_dict(&details, Value::Int(i), &[]);
-                let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "ccy", &[]).as_str().map(str::to_owned);
+                let mut balance: crate::value::Dict = self.safe_dict(&details, Value::Int(i), &[]).into_dict();
+                let mut currencyId: Option<String> = self.safe_string_k(&balance, "ccy", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-                let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "avail", &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "im", &[])); }
+                let mut account: crate::value::Dict = self.account().into_dict();
+                std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&balance, "avail", &[]));
+                std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&balance, "im", &[]));
                 if (code.is_some()) {
-                    result.insert(code.as_deref().unwrap_or("null").to_string(), account.clone());
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
             }
             }
@@ -3708,21 +3708,21 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_1090: bool = true;
             while { if !__for_first_1090 { i += 1; } __for_first_1090 = false; i < (response.len() as i64) } {
-            let mut account: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            let mut account: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut balances: crate::value::List = self.safe_list_k(account.clone(), "balances", &[Value::from(vec![])]).into_list();
+})]).into_dict();
+            let mut balances: crate::value::List = self.safe_list_k(&account, "balances", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1089: bool = true;
                 while { if !__for_first_1089 { j += 1; } __for_first_1089 = false; j < (balances.len() as i64) } {
-                let mut balance: Value = self.safe_dict(&balances, Value::Int(j), &[]);
-                let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+                let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(j), &[]).into_dict();
+                let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut newAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-                newAccount.insert("free".into(), self.safe_string_k(balance.clone(), "available", &[]));
-                newAccount.insert("used".into(), self.safe_string_k(balance, "hold", &[]));
+                newAccount.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
+                newAccount.insert("used".into(), self.safe_string_k(&balance, "hold", &[]));
                 if (code.is_some()) {
                     result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(newAccount));
                 }
@@ -3797,11 +3797,11 @@ impl Poloniex {
             //        }
             //    }
             //
-            let mut data: Value = self.safe_dict_k(&responseRaw, "data", &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict_k(&responseRaw, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            return self.parse_balance_list(data);
+            })]).into_dict();
+            return self.parse_balance_list(Value::Dict(data));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4446,10 +4446,10 @@ impl Poloniex {
         }
         let mut withdrawals: crate::value::List = self.safe_list_k(response.clone(), "withdrawals", &[Value::from(vec![])]).into_list();
         let mut deposits: crate::value::List = self.safe_list_k(response, "deposits", &[Value::from(vec![])]).into_list();
-        let mut withdrawalTransactions: Value = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]);
-        let mut depositTransactions: Value = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]);
-        let mut transactions: Value = self.array_concat(depositTransactions, withdrawalTransactions);
-        return self.filter_by_currency_since_limit(self.sort_by(transactions, Value::Str("timestamp".into()), &[]), &[code, since, limit]);
+        let mut withdrawalTransactions: crate::value::List = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        let mut depositTransactions: crate::value::List = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        let mut transactions: crate::value::List = self.array_concat(&depositTransactions, &withdrawalTransactions).into_list();
+        return self.filter_by_currency_since_limit(self.sort_by(Value::Arr(transactions), Value::Str("timestamp".into()), &[]), &[code, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4484,8 +4484,8 @@ impl Poloniex {
             currency = Some(self.currency(code.clone()));
         }
         let mut withdrawals: crate::value::List = self.safe_list_k(response, "withdrawals", &[Value::from(vec![])]).into_list();
-        let mut transactions: Value = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]);
-        return self.filter_by_currency_since_limit(transactions, &[code, since, limit]);
+        let mut transactions: crate::value::List = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        return self.filter_by_currency_since_limit(Value::Arr(transactions), &[code, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4664,7 +4664,7 @@ impl Poloniex {
 
     pub fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut fee: Value = fee.into();
-        let mut currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
+        let mut currencyCode: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
         let mut info: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4736,8 +4736,8 @@ impl Poloniex {
             currency = Some(self.currency(code.clone()));
         }
         let mut deposits: crate::value::List = self.safe_list_k(response, "deposits", &[Value::from(vec![])]).into_list();
-        let mut transactions: Value = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]);
-        return self.filter_by_currency_since_limit(transactions, &[code, since, limit]);
+        let mut transactions: crate::value::List = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        return self.filter_by_currency_since_limit(Value::Arr(transactions), &[code, since, limit]);
         Value::Null
         }).await?))
     }
@@ -5094,7 +5094,7 @@ impl Poloniex {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.swap_private_get_v3_trade_position_opens(&[params]).await.into_dict();
         //
         //    {
@@ -5132,7 +5132,7 @@ impl Poloniex {
         //    }
         //
         let mut positions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_positions(&positions, &[symbolsNormalized]);
+        return self.parse_positions(&positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5369,7 +5369,7 @@ impl Poloniex {
         // shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
         // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
         let mut bodyJson: Option<String> = None;
-        let mut signedHeaders: Value = Value::Null;
+        let mut signedHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("swapPublic")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query.clone(), &[]));
@@ -5398,17 +5398,17 @@ impl Poloniex {
                     url = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query, &[]));
                 }
             }
-            signedHeaders = Value::Map({
+            signedHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
                     m.insert("signTimestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                     m.insert("signature".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())])));
                 m
-            });
+            }));
         }
         let mut bodyResolved: Option<String> = bodyJson;
-        let mut headersResolved: Value = signedHeaders;
+        let mut headersResolved: Value = signedHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

@@ -386,14 +386,14 @@ impl Alpaca {
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
-        let mut ticker: Value = self.parse_ticker(message, None);
-        let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut tickerSymbol: String = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut ticker: crate::value::Dict = self.parse_ticker(message, None).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
+        let mut tickerSymbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), tickerSymbol);
         if (symbol != Value::Null) {
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
         }
-        client.resolve(ticker, messageHash.as_str());
+        client.resolve(Value::Dict(ticker), messageHash.as_str());
 }
 
     pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
@@ -480,12 +480,12 @@ impl Alpaca {
         });
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbolValue);
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -508,17 +508,18 @@ impl Alpaca {
         //    }
         //
         let mut marketId: Option<String> = (match __pro_message.get("S").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut stored: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]);
-        if (stored == Value::Null) {
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
+        CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&(Value::Str("1m".into())));
+        if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Value::from(ArrayCacheByTimestamp::new(limit));
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
+            stored = Some(ArrayCacheByTimestamp::new(limit));
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &(Value::Str("1m".into())), stored.clone());
         }
         let mut parsed: crate::value::List = self.parse_ohlcv(message, None).into_list();
         stored.append(Value::Arr(parsed));
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
-        client.resolve(stored, messageHash.as_str());
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
 /*
@@ -558,7 +559,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -593,10 +594,10 @@ impl Alpaca {
         let mut datetime: Option<String> = (match __pro_message.get("t").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         let mut isSnapshot: bool = (match __pro_message.get("r").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
-        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+        if !(self.orderbooks.has(&symbol)) {
+            { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         if isSnapshot {
             let mut snapshot: crate::value::Dict = self.parse_order_book(message, symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
@@ -609,13 +610,13 @@ impl Alpaca {
             orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol);
-        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(orderbook, messageHash.as_str());
+        CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
+        client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta, &[Value::Str("p".into()), Value::Str("s".into())]);
-        bookside.store_array(bidAsk);
+        let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("p".into()), Value::Str("s".into())]).into_list();
+        bookside.store_array(Value::Arr(bidAsk));
 }
 
 /*
@@ -657,12 +658,12 @@ impl Alpaca {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_3, &messageHash[..], Value::Null).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], __ws_arg_3, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -744,12 +745,12 @@ impl Alpaca {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_4, &messageHash[..], Value::Null).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], __ws_arg_4, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -801,12 +802,12 @@ impl Alpaca {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Null).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -865,16 +866,16 @@ impl Alpaca {
         //      }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut rawOrder: Value = self.safe_dict_k(&data, "order", &[Value::Map({
+        let mut rawOrder: crate::value::Dict = self.safe_dict_k(&data, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(limit));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut order: crate::value::Dict = self.parse_order(rawOrder, None).into_dict();
+        let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None).into_dict();
         orders.append(Value::from(&order));
         let mut messageHash: String = "orders".to_string();
         client.resolve(Value::from(&orders), messageHash.as_str());
@@ -936,16 +937,16 @@ impl Alpaca {
         if (event.as_deref() != Some("fill")) && (event.as_deref() != Some("partial_fill")) {
             return;
         }
-        let mut rawOrder: Value = self.safe_dict_k(&data, "order", &[Value::Map({
+        let mut rawOrder: crate::value::Dict = self.safe_dict_k(&data, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
-        let mut trade: Value = self.parse_my_trade(rawOrder, None);
+        let mut trade: Value = self.parse_my_trade(Value::Dict(rawOrder), None);
         if (trade == Value::Null) {
             return;
         }

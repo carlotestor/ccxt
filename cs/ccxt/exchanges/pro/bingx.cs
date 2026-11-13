@@ -1461,7 +1461,7 @@ public partial class bingx : ccxt.bingx
         if ((fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.positions == null))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future((type + ":fetchPositionsSnapshot")));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, subscriptionHash, subscription);
         if (this.newUpdates)
@@ -1515,7 +1515,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1611,9 +1611,9 @@ public partial class bingx : ccxt.bingx
         }
         List<object> rawPositions = this.safeList(data, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < (rawPositions?.Count ?? 0); i++)
+        for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             Dictionary<string, object> position = this.parseWsPosition(rawPosition);
             string? symbol = this.safeString(position, "symbol");
             if ((symbol == null))
@@ -2065,9 +2065,9 @@ public partial class bingx : ccxt.bingx
         ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
         ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
         ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
-        for (int i = 0; i < (data?.Count ?? 0); i++)
+        for (int i = 0; i < data.Count; i++)
         {
-            object balance = data[i];
+            IDictionary<string, object> balance = ((IDictionary<string, object>)data[i]);
             string? currencyId = this.safeString(balance, "a");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

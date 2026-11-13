@@ -657,16 +657,16 @@ impl Indodax {
                         let mut i: i64 = 0;
             let mut __for_first_838: bool = true;
             while { if !__for_first_838 { i += 1; } __for_first_838 = false; i < (rawMarkets.len() as i64) } {
-            let mut market: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
-            let mut baseId: Option<String> = self.safe_string_k(market.clone(), "traded_currency", &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "base_currency", &[]).as_str().map(str::to_owned);
+            let mut market: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Option<String> = self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = self.safe_string_k(&market, "traded_currency", &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_k(&market, "base_currency", &[]).as_str().map(str::to_owned);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut isMaintenance: Option<i64> = self.safe_integer_k(market.clone(), "is_maintenance", &[]).as_i64();
+            let mut isMaintenance: Option<i64> = self.safe_integer_k(&market, "is_maintenance", &[]).as_i64();
             let mut inMaintenance: bool = (isMaintenance.is_some()) && (isMaintenance != Some(0));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -688,7 +688,7 @@ impl Indodax {
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
-                    m.insert("taker".to_string(), self.safe_number_k(market.clone(), "trade_fee_percent", &[]));
+                    m.insert("taker".to_string(), self.safe_number_k(&market, "trade_fee_percent", &[]));
                     m.insert("contractSize".to_string(), Value::Null);
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);
@@ -698,8 +698,8 @@ impl Indodax {
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(Value::Str("1e-8".into()), &[]));
-        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "price_round", &[])]), &[]));
-        m.insert("cost".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "volume_precision", &[])]), &[]));
+        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "price_round", &[])]), &[]));
+        m.insert("cost".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "volume_precision", &[])]), &[]));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -712,13 +712,13 @@ impl Indodax {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "trade_min_traded_currency", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "trade_min_traded_currency", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "trade_min_base_currency", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "trade_min_base_currency", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -731,7 +731,7 @@ impl Indodax {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), market);
+                    m.insert("info".to_string(), Value::from(&market));
                 m
             }));
         }
@@ -1006,10 +1006,10 @@ impl Indodax {
             while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut rawTicker: Value = tickers.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            let mut marketId: Value = (if let Some(__s) = key.as_deref() { Some(__s.replace("_", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
-            let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
+            let mut marketId: Option<String> = (if let Some(__s) = key.as_deref() { Some(__s.replace("_", "")) } else { None });
+            let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
             let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(rawTicker, Some(&market)).as_map().cloned().unwrap_or_default();
-            parsedTickers.insert(crate::runtime::stringify_param(&marketId), Value::Map(parsed));
+            parsedTickers.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Map(parsed));
         }
         }
         return self.filter_by_array_tickers(Value::Map(parsedTickers), Value::Str("symbol".into()), &[symbols]);
@@ -1118,12 +1118,12 @@ impl Indodax {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut selectedTimeframe: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
-        let mut now: Value = self.seconds();
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[now.clone()]);
+        let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::from(now)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("to".to_string(), until);
+                m.insert("to".to_string(), Value::from(until));
                 m.insert("tf".to_string(), selectedTimeframe.map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
@@ -1132,20 +1132,18 @@ impl Indodax {
         if (since != Value::Null) {
             request.insert("from".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }  else {
-            let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
+            let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             if (limit == Value::Null) {
-                request.insert("from".into(), (match (&((match (&(now), &((match (&(Value::Int(1000)), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                request.insert("from".into(), Value::Int((((now - ((1000 * duration)))) - 1)));
+            }  else {
+                request.insert("from".into(), (match (&((match (&(Value::from(now)), &((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                     &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
-            }  else {
-                request.insert("from".into(), (match (&((match (&(now), &((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x),
-                    Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
             }
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_tradingview_history_v2(&[__ws_arg_3]).await.into_list();
-        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1382,8 +1380,8 @@ impl Indodax {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketOrders: Value = ordersDict.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             market = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
-            let mut parsedOrders: Value = self.parse_orders(marketOrders, market.as_ref(), &[since.clone(), limit.clone()]);
-            exchangeOrders = self.array_concat(exchangeOrders.clone(), parsedOrders);
+            let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[since.clone(), limit.clone()]).into_list();
+            exchangeOrders = self.array_concat(exchangeOrders.clone(), &parsedOrders);
         }
         }
         return exchangeOrders;
@@ -2156,7 +2154,7 @@ impl Indodax {
         }
         let mut url: Option<String> = apiUrl.clone();
         let mut privateBody: Value = Value::Null;
-        let mut privateHeaders: Value = Value::Null;
+        let mut privateHeaders: Option<crate::value::Dict> = None;
         let mut isPublic: bool = apiName.as_deref() == Some("public");
         if isPublic {
             let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
@@ -2175,19 +2173,19 @@ impl Indodax {
                 m
             }), &[params]);
             privateBody = Value::from(self.urlencode(__ws_arg_14, &[]));
-            privateHeaders = Value::Map({
+            privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
                     m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(privateBody.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
-            });
+            }));
         }
         let mut requestBody: Value = privateBody;
         if isPublic {
             requestBody = Value::Null;
         }
-        let mut requestHeaders: Value = privateHeaders;
+        let mut requestHeaders: Value = privateHeaders.map_or(Value::Null, Value::Dict);
         if isPublic {
             requestHeaders = Value::Null;
         }

@@ -247,7 +247,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': (this.safeBool (market, 'swap', false)) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (this.safeBool (market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -281,7 +281,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': (this.safeBool (market, 'swap', false)) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (this.safeBool (market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -364,7 +364,7 @@ export default class hyperliquid extends hyperliquidRest {
                 // always 'activeAssetCtx', the server routes spot coins to the spot channel,
                 // see https://github.com/ccxt/ccxt/issues/27475
                 'type': 'activeAssetCtx',
-                'coin': (this.safeBool (market, 'swap', false)) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (this.safeBool (market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         await this.waitForPendingUnsubscribe (url, messageHash);
@@ -393,7 +393,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'activeAssetCtx',
-                'coin': (this.safeBool (market, 'swap', false)) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (this.safeBool (market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
@@ -825,7 +825,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': (this.safeBool (market, 'swap', false)) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (this.safeBool (market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -860,7 +860,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': (this.safeBool (market, 'swap', false)) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (this.safeBool (market, 'swap', false)) ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -996,7 +996,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': (this.safeBool (market, 'swap', false)) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (this.safeBool (market, 'swap', false)) ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -1032,7 +1032,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': (this.safeBool (market, 'swap', false)) ? (market as Dict)['baseName'] : market['id'],
+                'coin': (this.safeBool (market, 'swap', false)) ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -1384,7 +1384,7 @@ export default class hyperliquid extends hyperliquidRest {
         await this.waitForPendingUnsubscribe (url, topic);
         const client = this.client (url);
         this.setPositionsCache (client, symbolsNormalized);
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const newPositions = await this.watch (url, messageHash, message, topic);
         if (this.newUpdates) {
             return newPositions;
@@ -1403,7 +1403,7 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const data = this.safeDict (message, 'data', {});
         const clearinghouseState = this.safeDict (data, 'clearinghouseState', {});
         const newPositions: Position[] = [];

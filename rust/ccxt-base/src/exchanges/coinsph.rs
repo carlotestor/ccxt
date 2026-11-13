@@ -1491,8 +1491,8 @@ impl Coinsph {
                 let mut __for_first_577: bool = true;
                 while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (symbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                let mut id: Value = Value::from((market).id.as_deref());
-                ids.push(id);
+                let mut id: Option<String> = (market).id.as_deref().map(str::to_owned);
+                ids.push(id.map(Value::from).unwrap_or(Value::Null));
             }
             }
             request.insert("symbols".into(), Value::Array(ids));
@@ -1747,7 +1747,7 @@ impl Coinsph {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]).as_str().map(str::to_owned);
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -1758,18 +1758,17 @@ impl Coinsph {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
             // since work properly only when it is "younger" than last "limit" candle
-            if (until != Value::Null) {
-                request.insert("endTime".into(), until.clone());
+            if (until.is_some()) {
+                request.insert("endTime".into(), Value::from(until));
             }  else {
                 let mut endTimeByLimit: Value = self.sum(&[since.clone(), Value::Int(((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))]);
                 let mut now: Value = Value::Int(self.milliseconds());
                 request.insert("endTime".into(), crate::runtime::Math::min(&endTimeByLimit, &now));
             }
-        }  else if (until != Value::Null) {
-            request.insert("endTime".into(), until.clone());
+        }  else if (until.is_some()) {
+            request.insert("endTime".into(), Value::from(until));
             // since work properly only when it is "younger" than last "limit" candle
-            request.insert("startTime".into(), (match (&(until), &((Value::Int(((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("startTime".into(), Value::from((if let Some(__l) = until { Some(__l - (((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))) } else { None })));
         }
         request.insert("limit".into(), Value::from(limitResolved));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
@@ -1793,7 +1792,7 @@ impl Coinsph {
         //     ]
         //
         let mut ohlcvs: Value = self.to_array(&response);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2514,7 +2513,7 @@ impl Coinsph {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("time".into()), Value::Str("transactTime".into()), &[]).as_i64();
-        let mut trades: Value = self.safe_list_k(order.clone(), "fills", &[]);
+        let mut trades: Option<crate::value::List> = self.safe_list_k(order.clone(), "fills", &[]).into_opt_list();
         let mut triggerPrice: Option<String> = self.safe_string_k(order.clone(), "stopPrice", &[]).as_str().map(str::to_owned);
         if crate::precise::Precise::stringEq(&triggerPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             triggerPrice = None.clone();
@@ -2540,7 +2539,7 @@ impl Coinsph {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::Null);
-        m.insert("trades".to_string(), trades);
+        m.insert("trades".to_string(), trades.map_or(Value::Null, Value::Arr));
         m.insert("info".to_string(), order);
     m
 }), Some(&marketResolved));
@@ -2681,11 +2680,11 @@ impl Coinsph {
         //       }
         //     ]
         //
-        let mut tradingFee: Value = self.safe_dict(&response, Value::Int(0), &[Value::Map({
+        let mut tradingFee: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.parse_trading_fee(tradingFee, Some(&market));
+})]).into_dict();
+        return self.parse_trading_fee(Value::Dict(tradingFee), Some(&market));
         Value::Null
         }).await?))
     }
@@ -2800,7 +2799,7 @@ impl Coinsph {
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[]);
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[]).into_dict();
         let mut warning: bool = self.safe_bool_k(&options, "warning", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if warning {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".into()))));
@@ -3179,23 +3178,23 @@ impl Coinsph {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let __ws_arg_23 = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut query: Value = self.extend(Value::Map({
+        let mut query: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        }), &[__ws_arg_23]);
+        }), &[__ws_arg_23]).into_dict();
         let mut endpoint: String = self.implode_params(path, params);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            add_element_to_object(&mut query, &Value::Str("timestamp".into()), Value::Int(self.milliseconds()));
-            let mut recvWindow: Option<i64> = self.safe_integer_k(query.clone(), "recvWindow", &[]).as_i64();
+            std::sync::Arc::make_mut(&mut query).insert("timestamp".into(), Value::Int(self.milliseconds()));
+            let mut recvWindow: Option<i64> = self.safe_integer_k(&query, "recvWindow", &[]).as_i64();
             if (recvWindow.is_none()) {
                 let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
                 if (defaultRecvWindow.is_some()) {
-                    add_element_to_object(&mut query, &Value::Str("recvWindow".into()), Value::from(defaultRecvWindow));
+                    std::sync::Arc::make_mut(&mut query).insert("recvWindow".into(), Value::from(defaultRecvWindow));
                 }
             }
-            let mut signedQuery: Value = self.url_encode_query(&[query.clone()]);
+            let mut signedQuery: Value = self.url_encode_query(&[Value::from(&query)]);
             let mut signature: String = self.hmac(self.encode(signedQuery.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint).into()), Value::Str("?".into())).into()), signedQuery).into()), Value::Str("&signature=".into())).into()), signature);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
@@ -3212,7 +3211,7 @@ impl Coinsph {
     m
 });
         }
-        let mut encodedQuery: Option<String> = self.url_encode_query(&[query]).as_str().map(str::to_owned);
+        let mut encodedQuery: Option<String> = self.url_encode_query(&[Value::Dict(query)]).as_str().map(str::to_owned);
         if (((encodedQuery.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint).into()), Value::Str("?".into())).into()), encodedQuery.map(Value::from).unwrap_or(Value::Null));
         }

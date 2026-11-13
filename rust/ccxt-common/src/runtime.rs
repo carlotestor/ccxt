@@ -700,8 +700,9 @@ pub fn concat_arrays(a: &Value, b: &Value) -> Value {
 
 pub use crate::exchange_errors::*;
 pub use crate::precise::Precise;
-pub use crate::value::KeyRead;
-pub use crate::pro::cache::{CacheSlot, CacheStore};
+pub use crate::value::{KeyRead, Rows};
+pub use crate::pro::cache::{CacheShelves, CacheSlot, CacheStore};
+pub use crate::pro::order_book::BookSlot;
 
 // ── Math (TS Math.min/max/abs/pow) ──────────────────────────────────────────
 
@@ -910,17 +911,15 @@ pub fn encode(s: Value) -> Value {
     }
 }
 
-/// Free-function `hash(data, algo, digest)` — used by transpiled crypto
-/// code that imports `hash` from `base/functions/crypto.js`.
-pub fn hash(data: Value, algo: Value, digest: Value) -> Value {
+/// Free-function `hash(data, algo, digest)` with a `'hex'` / `'base64'` digest (`base/functions/crypto.js`).
+pub fn hash(data: Value, algo: Value, digest: Value) -> String {
     let dbytes = crate::exchange::value_to_bytes(&data);
     let a = match &algo { Value::Str(s) => s.as_ref(), _ => "sha256" };
     let dg = match &digest { Value::Str(s) => s.as_ref(), _ => "hex" };
     let raw = crate::exchange::hash_raw(&dbytes, a);
     match dg {
-        "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-        "base64" => Value::Str(b64_encode(&raw).into()),
-        _        => Value::Str(hex::encode(&raw).into()),
+        "base64" => b64_encode(&raw),
+        _        => hex::encode(&raw),
     }
 }
 

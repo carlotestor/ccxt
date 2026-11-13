@@ -677,8 +677,7 @@ class bitget extends bitget$1["default"] {
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = this.safeString(market, 'symbol', '');
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         const channel = this.safeString2(arg, 'channel', 'topic', '');
         let interval = this.safeString(arg, 'interval');
         let isUta = undefined;
@@ -694,11 +693,11 @@ class bitget extends bitget$1["default"] {
         if (timeframe === undefined) {
             return;
         }
-        let stored = this.safeValue(symbolOhlcvs, timeframe);
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            symbolOhlcvs[timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -1520,14 +1519,11 @@ class bitget extends bitget$1["default"] {
         //
         const arg = this.safeDict(message, 'arg', {});
         const instType = this.safeString(arg, 'instType', '');
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
         const action = this.safeString(message, 'action');
-        if (!(instType in this.positions) || (action === 'snapshot')) {
-            this.positions[instType] = new Cache.ArrayCacheBySymbolBySide();
+        if (!(instType in this.positionsByType) || (action === 'snapshot')) {
+            this.positionsByType[instType] = new Cache.ArrayCacheBySymbolBySide();
         }
-        const cache = this.positions[instType];
+        const cache = this.positionsByType[instType];
         const rawPositions = this.safeList(message, 'data', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
