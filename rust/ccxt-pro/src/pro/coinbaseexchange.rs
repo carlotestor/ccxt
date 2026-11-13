@@ -522,12 +522,12 @@ impl Coinbaseexchange {
         }
         let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut name: String = "matches".to_string();
-        let mut trades: Value = self.subscribe(name.as_str(), symbolValue.as_deref(), Some(name.as_str()), &[params]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), symbolValue.as_deref(), Some(name.as_str()), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -610,12 +610,12 @@ impl Coinbaseexchange {
         let mut messageHash: String = "myTrades".to_string();
         let mut authentication: Value = self.authenticate();
         let __ws_arg_0 = self.extend(params, &[authentication]);
-        let mut trades: Value = self.subscribe(name.as_str(), symbolValue.as_deref(), Some(messageHash.as_str()), &[__ws_arg_0]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), symbolValue.as_deref(), Some(messageHash.as_str()), &[__ws_arg_0]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -740,12 +740,12 @@ impl Coinbaseexchange {
         let mut messageHash: String = "orders".to_string();
         let mut authentication: Value = self.authenticate();
         let __ws_arg_3 = self.extend(params, &[authentication]);
-        let mut orders: Value = self.subscribe(name.as_str(), symbolValue.as_deref(), Some(messageHash.as_str()), &[__ws_arg_3]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), symbolValue.as_deref(), Some(messageHash.as_str()), &[__ws_arg_3]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
