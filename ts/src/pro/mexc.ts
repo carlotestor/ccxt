@@ -716,7 +716,7 @@ export default class mexc extends mexcRest {
             timeframe = this.findTimeframe (timeframeId, timeframes);
             const marketId = this.safeString2 (message, 's', 'symbol');
             const market = this.safeMarket (marketId);
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
             parsed = this.parseWsOHLCV (rawOhlcv, market);
         }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
