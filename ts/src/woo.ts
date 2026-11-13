@@ -2922,7 +2922,7 @@ export default class woo extends Exchange {
         } as DepositAddress;
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<[Currency, Dict[]]> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2984,7 +2984,8 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return [ currency, this.safeList (data, 'rows', []) ];
+        const rows: Dict[] = this.safeList (data, 'rows', []);
+        return rows;
     }
 
     /**
@@ -2999,9 +3000,11 @@ export default class woo extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
-        const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
-        const currency = this.safeValue (currencyRows, 0);
-        const rows = this.safeList (currencyRows, 1);
+        const rows = await this.getAssetHistoryRows (code, since, limit, params);
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
@@ -3066,19 +3069,15 @@ export default class woo extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    getCurrencyFromChaincode (networkizedCode: string, currency: Currency = undefined): CurrencyInterface {
-        if (currency !== undefined) {
-            return currency;
-        } else {
-            const parts = networkizedCode.split ('_');
-            const partsLength = parts.length;
-            const firstPart = this.safeString (parts, 0);
-            let currencyId = this.safeString (parts, 1, firstPart);
-            if (partsLength > 2) {
-                currencyId += '_' + this.safeString (parts, 2, '');
-            }
-            return this.safeCurrency (currencyId);
+    getCurrencyCodeFromChaincode (networkizedCode: string): Str {
+        const parts = networkizedCode.split ('_');
+        const partsLength = parts.length;
+        const firstPart = this.safeString (parts, 0);
+        let currencyId = this.safeString (parts, 1, firstPart);
+        if (partsLength > 2) {
+            currencyId += '_' + this.safeString (parts, 2, '');
         }
+        return this.safeCurrencyCode (currencyId);
     }
 
     /**
@@ -3132,9 +3131,11 @@ export default class woo extends Exchange {
         const request: Dict = {
             'type': 'BALANCE',
         };
-        const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
-        const currency = this.safeValue (currencyRows, 0);
-        const rows: Dict[] = this.safeList (currencyRows, 1, []);
+        const rows: Dict[] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         return this.parseTransactions (rows, currency, since, limit, this.omit (params, 'tokenSide'));
     }
 
@@ -3162,8 +3163,12 @@ export default class woo extends Exchange {
         //     }
         //
         const networkizedCode = this.safeString (transaction, 'token', '');
-        const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
-        const code = this.safeString (currencyDefined, 'code');
+        let code: Str = undefined;
+        if (currency !== undefined) {
+            code = this.safeString (currency, 'code');
+        } else {
+            code = this.getCurrencyCodeFromChaincode (networkizedCode);
+        }
         let movementDirection = this.safeStringLowerN (transaction, [ 'token_side', 'tokenSide', 'type' ]);
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';

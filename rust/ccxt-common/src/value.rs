@@ -737,6 +737,16 @@ impl KeyRead for &Option<crate::types::Market> {
     fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
 }
 
+/// A typed currency reads its own map, as the boxed record did.
+impl KeyRead for &crate::types::Currency {
+    fn key_read(&self, key: &str) -> Value { get_value_k(&self.raw, key) }
+    fn read(&self, key: &Value) -> Value { get_value(&self.raw, key) }
+}
+/// An optional typed currency reads its own map (Null when empty).
+impl KeyRead for &Option<crate::types::Currency> {
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
+}
 /// An optional currency argument reads its own map (Null when absent).
 impl KeyRead for Option<&crate::types::Currency> {
     fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }

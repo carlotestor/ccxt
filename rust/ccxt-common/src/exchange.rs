@@ -172,7 +172,7 @@ pub struct Internals {
     /// `fetchWebEndpoint` treats a miss as fatal — see
     /// `crate::exchange::call_dynamic_required`.
     pub dynamic_dispatch_miss: Option<String>,
-    /// Typed views of `markets_by_id` / `currencies_by_id`, rebuilt only when the source map changes.
+    /// Typed views of `markets_by_id` / `currencies_by_id` / `currencies`, rebuilt only when the source map changes.
     pub typed_by_id: std::sync::Mutex<TypedByIdStores>,
 }
 
@@ -191,6 +191,7 @@ impl<T> Default for TypedById<T> {
 pub struct TypedByIdStores {
     pub markets:    Arc<TypedById<crate::types::Market>>,
     pub currencies: Arc<TypedById<crate::types::Currency>>,
+    pub currencies_by_code: Arc<TypedById<crate::types::Currency>>,
 }
 
 impl<T> TypedById<T> {
@@ -1103,6 +1104,15 @@ impl Exchange {
     pub fn currencies_by_id_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
         let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
         TypedById::refresh(&mut stores.currencies, &self.currencies_by_id, |v| match v {
+            Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
+            _ => Vec::new(),
+        })
+    }
+
+    /// Currencies by unified code, typed and shared (same store shape as the by-id one).
+    pub fn currencies_by_code_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
+        let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
+        TypedById::refresh(&mut stores.currencies_by_code, &self.currencies, |v| match v {
             Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
             _ => Vec::new(),
         })
