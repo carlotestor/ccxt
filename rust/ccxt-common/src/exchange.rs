@@ -403,7 +403,7 @@ pub struct Exchange {
     pub accountsById:      Value,
 
     // runtime state
-    pub orderbooks:        Value,
+    pub orderbooks:        crate::pro::order_book::BookMap,
     pub orders:            Option<crate::pro::cache::Cache>,
     pub trades:            crate::pro::cache::CacheMap,
     pub myTrades:          Option<crate::pro::cache::Cache>,
@@ -768,7 +768,7 @@ impl Exchange {
             accounts:          Value::Null,
             accountsById:      Value::Null,
 
-            orderbooks:    Value::Map(HashMap::new()),
+            orderbooks:    crate::pro::order_book::BookMap::new(),
             orders:        None,
             trades:        crate::pro::cache::CacheMap::new(),
             myTrades:      None,
@@ -1631,14 +1631,14 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let err = |id: &Value| Value::Str(format!(
             "[ExchangeError] {} loadOrderBook() failed to synchronize",
             match id { Value::Str(s) => s.as_ref(), _ => "" }).into());
-        if !crate::runtime::in_op(&self.orderbooks, &symbol) {
+        if !crate::pro::cache::CacheStore::has(&self.orderbooks, &symbol) {
             crate::pro::ws_client::value_reject(&client, err(&self.id), message_hash.as_str());
             return;
         }
         let max_retries: i64 = 3;
         let mut tries = 0;
         while tries < max_retries {
-            let mut stored = crate::get_value(&self.orderbooks, &symbol);
+            let mut stored = Value::from(crate::pro::cache::CacheStore::at(&self.orderbooks, &symbol));
             let cache = crate::get_value(&stored, &Value::Str("cache".into()));
             let snapshot = self
                 .dispatch_to_derived("fetch_rest_order_book_safe",

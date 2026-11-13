@@ -1745,6 +1745,9 @@ fn as_f64(v: &Value) -> f64 {
     }
 }
 
+/// Whether `v` is an order-book marker (carries `__bookKind`).
+pub(crate) fn book_kind_of(v: &Value) -> bool { book_kind(v).is_some() }
+
 fn book_kind(v: &Value) -> Option<String> {
     match v { Value::Dict(d) => match d.get("__bookKind") {
         Some(Value::Str(s)) => Some(s.to_string()), _ => None,

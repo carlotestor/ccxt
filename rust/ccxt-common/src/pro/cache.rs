@@ -125,17 +125,21 @@ impl CacheKey for Option<String> {
     fn text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_deref().unwrap_or("null")) }
 }
 
-/// Keyed access to a `CacheMap`, with the semantics the untyped dict had for the same
-/// key: `has` / `at` / `forget` match string keys only, `lookup` / `put` stringify.
+/// Keyed access to a map of ws handles (`CacheMap`, `BookMap`), with the semantics the untyped
+/// dict had for the same key: `has` / `at` / `forget` match string keys only, `lookup` / `put` stringify.
 pub trait CacheStore {
+    type Entry;
     fn has<K: CacheKey + ?Sized>(&self, key: &K) -> bool;
-    fn at<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache>;
-    fn lookup<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache>;
-    fn put<K: CacheKey + ?Sized>(&mut self, key: &K, cache: impl Into<Option<Cache>>);
+    fn at<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Self::Entry>;
+    fn lookup<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Self::Entry>;
+    fn put<K: CacheKey + ?Sized>(&mut self, key: &K, entry: impl Into<Option<Self::Entry>>);
     fn forget<K: CacheKey + ?Sized>(&mut self, key: &K);
+    /// `safeValue (m, k, dflt)`: the stringified-key entry, else the (already built) default.
+    fn lookup_or<K: CacheKey + ?Sized>(&self, key: &K, dflt: Self::Entry) -> Self::Entry { self.lookup(key).unwrap_or(dflt) }
 }
 
 impl CacheStore for CacheMap {
+    type Entry = Cache;
     fn has<K: CacheKey + ?Sized>(&self, key: &K) -> bool { key.strict().is_some_and(|k| self.contains_key(k)) }
     fn at<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache> { key.strict().and_then(|k| self.get(k)).cloned() }
     fn lookup<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache> { self.get(key.text().as_ref()).cloned() }
