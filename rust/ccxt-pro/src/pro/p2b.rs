@@ -642,7 +642,7 @@ impl P2b {
         let mut splitMethod: Value = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut channel: Option<String> = self.safe_string(splitMethod, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string(&data, Value::Int(7), &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -697,7 +697,7 @@ impl P2b {
         let mut data: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
         let mut trades: crate::value::List = self.safe_list(&data, Value::Int(1), &[Value::from(vec![])]).into_list();
         let mut marketId: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (tradesArray == Value::Null) {
@@ -758,7 +758,7 @@ impl P2b {
         //
         let mut data: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
         let mut marketId: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut method: Option<String> = match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
         let mut splitMethod: Value = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut messageHashStart: Option<String> = self.safe_string(splitMethod, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -815,7 +815,7 @@ impl P2b {
         let mut asks: Option<crate::value::List> = self.safe_list_k(&data, "asks", &[]).into_opt_list();
         let mut bids: Option<crate::value::List> = self.safe_list_k(&data, "bids", &[]).into_opt_list();
         let mut marketId: Option<String> = self.safe_string(&params, Value::Int(2), &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol);
         let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({

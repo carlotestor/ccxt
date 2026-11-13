@@ -229,7 +229,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), &args[3.min(args.len())..]).await,
-                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), &args[3.min(args.len())..]).await,
+                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_str), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), &args[3.min(args.len())..]).await,
                 "watch_public_multiple" => self.watch_public_multiple(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -446,7 +446,7 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), Value::from((market).symbol.clone()));
-        let mut trades: Value = self.watch_public(Some("trade"), (market).raw.clone(), messageHash.as_str(), &[params]).await;
+        let mut trades: Value = self.watch_public(Some("trade"), Some(&market), messageHash.as_str(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
@@ -606,7 +606,7 @@ impl Nado {
             let mut snapshot: crate::types::OrderBook = (match self.fetch_order_book(symbol.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             { let __be_tmp = self.order_book(&[crate::types::IntoRaw::into_raw(snapshot), limit.clone()]); add_element_to_object(&mut self.orderbooks, &Value::from((market).symbol.clone()), __be_tmp); };
         }
-        let mut orderbook: Value = self.watch_public(Some("book_depth"), (market).raw.clone(), messageHash.as_str(), &[params]).await;
+        let mut orderbook: Value = self.watch_public(Some("book_depth"), Some(&market), messageHash.as_str(), &[params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -766,7 +766,7 @@ impl Nado {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut result: Value = self.watch_public(Some("latest_candlestick"), (market).raw.clone(), messageHash.as_str(), &[__ws_arg_0]).await;
+        let mut result: Value = self.watch_public(Some("latest_candlestick"), Some(&market), messageHash.as_str(), &[__ws_arg_0]).await;
         let mut stored: Value = get_value(&result, &Value::Int(2));
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -996,19 +996,19 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "ticker".to_string();
         let mut streamType: String = "all_bbo".to_string();
         if (symbolsNormalized.is_some()) {
             let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if (symbolsLength == 1) {
-                let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-                market = symbolMarket.clone();
-                messageHash = format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(symbolMarket, "symbol", &[Value::Str("".into())]));
+                let mut symbolMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                market = Some(crate::types::Market::clone(&symbolMarket));
+                messageHash = format!("{}{}", Value::Str("ticker:".into()), Value::from((symbolMarket).symbol.as_str()));
                 streamType = "best_bid_offer".to_string();
             }
         }
-        let mut ticker: Value = self.watch_public(Some(streamType.as_str()), market, messageHash.as_str(), &[params]).await;
+        let mut ticker: Value = self.watch_public(Some(streamType.as_str()), market.as_ref(), messageHash.as_str(), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if (messageHash == "ticker") {
                 return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
@@ -1050,19 +1050,19 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "ticker".to_string();
         let mut streamType: String = "all_bbo".to_string();
         if (symbolsNormalized.is_some()) {
             let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if (symbolsLength == 1) {
-                let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-                market = symbolMarket.clone();
-                messageHash = format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(symbolMarket, "symbol", &[Value::Str("".into())]));
+                let mut symbolMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                market = Some(crate::types::Market::clone(&symbolMarket));
+                messageHash = format!("{}{}", Value::Str("ticker:".into()), Value::from((symbolMarket).symbol.as_str()));
                 streamType = "best_bid_offer".to_string();
             }
         }
-        return self.un_watch_public(Some(streamType.as_str()), market, messageHash.as_str(), &[params]).await;
+        return self.un_watch_public(Some(streamType.as_str()), crate::Value::from(market.as_ref()), messageHash.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1089,19 +1089,19 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "bidask".to_string();
         let mut streamType: String = "all_bbo".to_string();
         if (symbolsNormalized.is_some()) {
             let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if (symbolsLength == 1) {
-                let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-                market = symbolMarket.clone();
-                messageHash = format!("{}{}", Value::Str("bidask:".into()), self.safe_string_k(symbolMarket, "symbol", &[Value::Str("".into())]));
+                let mut symbolMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                market = Some(crate::types::Market::clone(&symbolMarket));
+                messageHash = format!("{}{}", Value::Str("bidask:".into()), Value::from((symbolMarket).symbol.as_str()));
                 streamType = "best_bid_offer".to_string();
             }
         }
-        let mut ticker: Value = self.watch_public(Some(streamType.as_str()), market, messageHash.as_str(), &[params]).await;
+        let mut ticker: Value = self.watch_public(Some(streamType.as_str()), market.as_ref(), messageHash.as_str(), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if (messageHash == "bidask") {
                 return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
@@ -1143,19 +1143,19 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "bidask".to_string();
         let mut streamType: String = "all_bbo".to_string();
         if (symbolsNormalized.is_some()) {
             let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if (symbolsLength == 1) {
-                let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-                market = symbolMarket.clone();
-                messageHash = format!("{}{}", Value::Str("bidask:".into()), self.safe_string_k(symbolMarket, "symbol", &[Value::Str("".into())]));
+                let mut symbolMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                market = Some(crate::types::Market::clone(&symbolMarket));
+                messageHash = format!("{}{}", Value::Str("bidask:".into()), Value::from((symbolMarket).symbol.as_str()));
                 streamType = "best_bid_offer".to_string();
             }
         }
-        return self.un_watch_public(Some(streamType.as_str()), market, messageHash.as_str(), &[params]).await;
+        return self.un_watch_public(Some(streamType.as_str()), crate::Value::from(market.as_ref()), messageHash.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1878,7 +1878,7 @@ impl Nado {
     Value::Null
 }
 
-    pub async fn watch_public(&mut self, streamType: Option<&str>, mut market: Value, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn watch_public(&mut self, streamType: Option<&str>, market: Option<&crate::types::Market>, messageHash: &str, optional_args: &[Value]) -> Value {
         let mut streamType: Value = streamType.into();
         let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -1891,8 +1891,8 @@ impl Nado {
                 m.insert("type".to_string(), streamType.clone());
             m
         });
-        if (market != Value::Null) {
-            stream.insert("product_id".into(), self.parse_to_int(self.safe_string_k(market.clone(), "id", &[])));
+        if (market.is_some()) {
+            stream.insert("product_id".into(), self.parse_to_int(self.safe_string_k(&market, "id", &[])));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1905,7 +1905,7 @@ impl Nado {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("streamType".to_string(), streamType);
-                m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
+                m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
             m
         });
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
@@ -2252,7 +2252,7 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Value = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into()));
         let mut isTakerBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker_buyer", &[]).as_bool();
         let mut side: Value = Value::Null;
@@ -2301,7 +2301,7 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Value = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into()));
         let mut isBid: Option<bool> = self.safe_bool_k(trade.clone(), "is_bid", &[]).as_bool();
         let mut side: Value = Value::Null;
@@ -2348,7 +2348,7 @@ impl Nado {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
         let mut trades: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -2391,7 +2391,7 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut granularity: Option<i64> = (match __pro_message.get("granularity").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
@@ -2433,7 +2433,7 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Value = self.parse_ws_timestamp(order.clone(), Value::Str("timestamp".into()));
         let mut id: Option<String> = self.safe_string_k(order.clone(), "digest", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
@@ -2512,7 +2512,7 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Value = self.parse_ws_timestamp(position.clone(), Value::Str("timestamp".into()));
         let mut amountString: Option<String> = self.safe_string_k(position.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut vQuoteAmount: Option<String> = self.safe_string_k(position.clone(), "v_quote_amount", &[]).as_str().map(str::to_owned);
@@ -2567,7 +2567,7 @@ impl Nado {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         if !(market).contract {
             return;
         }
@@ -2610,7 +2610,7 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(bidask.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Value = self.parse_ws_timestamp(bidask.clone(), Value::Str("timestamp".into()));
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2671,7 +2671,7 @@ impl Nado {
             let mut __for_first_513: bool = true;
             while { if !__for_first_513 { i += 1; } __for_first_513 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = self.safe_market(&[marketId.clone()]);
+            let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
             let mut bbo: crate::value::Dict = self.safe_dict(&bbos, marketId, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2741,7 +2741,7 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;

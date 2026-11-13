@@ -1736,7 +1736,7 @@ impl Coinbaseinternational {
             m
         })]);
         let mut candles: Value = self.convert_trading_view_to_ohlcv(result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2810,7 +2810,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut instrumentName: Option<String> = self.safe_string_k(position.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(instrumentName.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut side: Option<String> = self.safe_string_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("buy")) {
             side = Some("long".to_string());
@@ -3229,13 +3229,13 @@ impl Coinbaseinternational {
  * @param {float} amount unified order quantity
  * @returns {string} precision-formatted exchange order amount
  */
-    pub fn get_order_amount(&self, mut market: Value, amount: Option<f64>) -> Option<String> {
+    pub fn get_order_amount(&self, market: Option<&crate::types::Market>, amount: Option<f64>) -> Option<String> {
         let mut amount: Value = amount.into();
         let mut exchangeAmount: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
-        if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
-            exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(market.clone(), "contractSize", &[])).as_str().map(str::to_owned);
+        if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(&market, "contract", &[Value::Bool(false)])), Value::Bool(true)) {
+            exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
         }
-        return self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), exchangeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        return self.amount_to_precision(crate::value::KeyRead::key_read(&market, "symbol"), exchangeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
 }
 
 /*
@@ -3298,7 +3298,7 @@ impl Coinbaseinternational {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), self.get_order_amount((market).raw.clone(), amount.as_f64()).map(Value::from).unwrap_or(Value::Null));
+                m.insert("amount".to_string(), self.get_order_amount(Some(&market), amount.as_f64()).map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), type_var.clone());
             m
         });
@@ -3523,7 +3523,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut instrumentName: Option<String> = self.safe_string_k(order.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(instrumentName.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "creation_timestamp", &[]).as_i64();
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "last_update_timestamp", &[]).as_i64();
         let mut filled: Value = self.safe_number_k(order.clone(), "filled_amount", &[]);
@@ -3820,14 +3820,14 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
             m
         });
         if (amount != Value::Null) {
-            request.insert("amount".into(), self.get_order_amount(market.clone(), amount.as_f64()).map(Value::from).unwrap_or(Value::Null));
+            request.insert("amount".into(), self.get_order_amount(Some(&market), amount.as_f64()).map(Value::from).unwrap_or(Value::Null));
         }
         if (price != Value::Null) {
             request.insert("price".into(), self.price_to_precision(symbol, price));
@@ -3904,7 +3904,7 @@ impl Coinbaseinternational {
         })]).as_map().cloned().unwrap_or_default();
         let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
         order.insert("trades".into(), trades);
-        return self.parse_order(Value::Map(order), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        return self.parse_order(Value::Map(order), Some(&market));
         Value::Null
         }).await?))
     }
@@ -4073,7 +4073,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut rawOrders: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&rawOrders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&rawOrders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4214,7 +4214,7 @@ impl Coinbaseinternational {
             m
         })]).into_dict();
         let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4270,7 +4270,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut instrumentName: Option<String> = self.safe_string_k(trade.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(instrumentName.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut price: Option<f64> = self.safe_number_k(trade.clone(), "price", &[]).as_f64();
         let mut amount: Value = self.safe_number_k(trade.clone(), "amount", &[]);

@@ -560,8 +560,8 @@ impl Pacifica {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut request: Value = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, market, &[params]);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut request: Value = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[params]);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -715,7 +715,7 @@ impl Pacifica {
             let mut error: Option<String> = self.safe_string_k(&order, "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut marketId: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
-            let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+            let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut orderId: Option<String> = self.safe_string_k(&order, "i", &[]).as_str().map(str::to_owned);
             let mut clientOrderId: Option<String> = self.safe_string_k(&order, "I", &[]).as_str().map(str::to_owned);
             let mut status: Option<String> = None;
@@ -1067,7 +1067,7 @@ impl Pacifica {
         //
         let mut entry: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&entry, "s", &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut levels: crate::value::List = self.safe_list_k(&entry, "l", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1412,7 +1412,7 @@ impl Pacifica {
             while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (data.len() as i64) } {
             let mut info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&info, "symbol", &[]).as_str().map(str::to_owned);
-            let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+            let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut ticker: Value = self.parse_ws_ticker(Value::Dict(info), Some(&market));
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
@@ -1656,7 +1656,7 @@ impl Pacifica {
             m
         })]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&first, "s", &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1720,7 +1720,7 @@ impl Pacifica {
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "p", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "a", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "h", &[]).as_str().map(str::to_owned);
         let mut fee: Option<String> = self.safe_string_k(trade.clone(), "f", &[]).as_str().map(str::to_owned);
@@ -1929,7 +1929,7 @@ impl Pacifica {
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "s", &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut timeframe: Option<String> = self.safe_string_k_opt(&data, "i", &[]);
         if (timeframe.is_none()) {
@@ -2214,7 +2214,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_order_book_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
@@ -2226,7 +2226,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_trades_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
@@ -2254,7 +2254,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut interval: Option<String> = (match __pro_message.get("interval").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);

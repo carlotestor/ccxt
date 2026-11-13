@@ -504,9 +504,9 @@ impl Bullish {
         if (symbol.is_none()) {
             return;
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
-        let mut trades: Value = self.parse_trades(&rawTrades, &[market.clone()]);
+        let mut trades: Value = self.parse_trades(&rawTrades, Some(&market), &[]);
         if !(matches!((&self.trades, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut tradesArrayCache = ArrayCache::new(limit);
@@ -522,7 +522,7 @@ impl Bullish {
         }
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), tradesArray.clone()); }
-        let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())]));
+        let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), Value::from((market).symbol.as_str()));
         client.resolve(tradesArray, messageHash.as_str());
 }
 
@@ -614,7 +614,7 @@ impl Bullish {
     m
 }) });
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(data.clone(), Some(&market)).as_map().cloned().unwrap_or_default();
         if (updateType.as_deref() == Some("update")) {

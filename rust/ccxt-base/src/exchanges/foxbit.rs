@@ -1098,7 +1098,7 @@ impl Foxbit {
             while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "market_symbol", &[]).as_str().map(str::to_owned);
-            let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+            let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(Value::Dict(entry), Some(&market)));
         }
@@ -1224,7 +1224,7 @@ impl Foxbit {
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v3_public_get_markets_market_trades_history(&[__ws_arg_2]).await.into_dict();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&data, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1277,7 +1277,7 @@ impl Foxbit {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await;
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), interval, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(response), Some(&market), &[interval, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1457,7 +1457,7 @@ impl Foxbit {
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v3_private_get_orders(&[__ws_arg_4]).await.into_dict();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&data, &[]);
+        return self.parse_orders(&data, None, &[]);
 
     Value::Null
 }
@@ -1655,7 +1655,7 @@ impl Foxbit {
         //     ]
         // }
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&data, &[]);
+        return self.parse_orders(&data, None, &[]);
         Value::Null
         }).await?))
     }
@@ -1821,14 +1821,14 @@ impl Foxbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("market_symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("market_symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (since != Value::Null) {
             request.insert("start_time".into(), self.iso8601(since.clone()));
@@ -1865,7 +1865,7 @@ impl Foxbit {
         //     ]
         // }
         let mut list: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&list, &[market, since, limit]);
+        return self.parse_orders(&list, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1932,7 +1932,7 @@ impl Foxbit {
         //     ]
         // }
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&data, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

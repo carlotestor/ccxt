@@ -111,7 +111,7 @@ impl crate::exchange_generated::ExchangeBase for Bitflyer {
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(&args[..])),
+                "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -568,11 +568,9 @@ impl Bitflyer {
     Value::Null
 }
 
-    pub fn safe_market(&self, optional_args: &[Value]) -> crate::types::Market {
-        let mut marketId = get_arg(optional_args, 0, Value::Null);
-        let mut market = get_arg(optional_args, 1, Value::Null);
-        let mut delimiter = get_arg(optional_args, 2, Value::Null);
-        let mut marketType = get_arg(optional_args, 3, Value::Null);
+    pub fn safe_market(&self, mut marketId: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::types::Market {
+        let mut delimiter = get_arg(optional_args, 0, Value::Null);
+        let mut marketType = get_arg(optional_args, 1, Value::Null);
         return self.super_safe_market(marketId, market, delimiter, Value::Str("spot".into()));
 }
 
@@ -974,7 +972,7 @@ impl Bitflyer {
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1034,7 +1032,7 @@ impl Bitflyer {
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_getexecutions(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1296,9 +1294,9 @@ impl Bitflyer {
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_getchildorders(&[__ws_arg_6]).await;
         if (symbol != Value::Null) {
-            return self.filter_by(self.parse_orders(response.clone(), &[(market).raw.clone(), since.clone(), limit.clone()]), Value::Str("symbol".into()), symbol, &[]);
+            return self.filter_by(self.parse_orders(response.clone(), Some(&market), &[since.clone(), limit.clone()]), Value::Str("symbol".into()), symbol, &[]);
         }
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1450,7 +1448,7 @@ impl Bitflyer {
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_getexecutions(&[__ws_arg_9]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

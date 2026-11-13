@@ -754,7 +754,7 @@ impl Bitrue {
             market = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
         }  else {
             let mut marketId: Option<String> = self.safe_string_upper(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-            market = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]));
+            market = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
         }
         let mut symbol: Option<String> = self.safe_string_k_opt(market, "symbol", &[]);
         if (symbol.is_none()) {

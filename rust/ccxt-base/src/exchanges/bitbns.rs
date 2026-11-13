@@ -1366,7 +1366,7 @@ impl Bitbns {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&data, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&data, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1404,7 +1404,7 @@ impl Bitbns {
         //         "type":"buy"
         //     }
         //
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut orderId: Option<String> = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "date", &[]));
         timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[timestamp.clone()]);
@@ -1542,7 +1542,7 @@ impl Bitbns {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&data, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1585,7 +1585,7 @@ impl Bitbns {
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.www_get_exchange_data_tradedetails(&[__ws_arg_7]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

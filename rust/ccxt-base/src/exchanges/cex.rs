@@ -1159,7 +1159,7 @@ impl Cex {
             m
         })]).into_dict();
         let mut trades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1179,7 +1179,7 @@ impl Cex {
         //
         let mut dateStr: Option<String> = self.safe_string_k(trade.clone(), "dateISO", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(dateStr.map(Value::from).unwrap_or(Value::Null)).as_i64();
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -1346,7 +1346,7 @@ impl Cex {
         //            ...
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1414,11 +1414,11 @@ impl Cex {
             let mut __for_first_528: bool = true;
             while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = Value::Null;
+            let mut market: Option<crate::types::Market> = None;
             if useKeyAsId.as_bool() == Some(true) {
-                market = crate::types::IntoRaw::into_raw(self.safe_market(&[key.clone().map(Value::from).unwrap_or(Value::Null)]));
+                market = Some(self.safe_market(key.clone().map(Value::from).unwrap_or(Value::Null), None, &[]));
             }
-            let mut parsed: Value = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref());
+            let mut parsed: Value = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), market.as_ref());
             let mut parsedSymbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (parsedSymbol.is_some()) {
                 result.insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), parsed);
@@ -1432,8 +1432,8 @@ impl Cex {
             while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(matches!(&symbol, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
-                let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-                result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()));
+                let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), Some(&market)));
             }
         }
         }
@@ -1664,10 +1664,10 @@ impl Cex {
         if isClosedOrders {
             request.insert("archived".into(), Value::Bool(true));
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (limit != Value::Null) {
             request.insert("pageSize".into(), limit.clone());
@@ -1731,7 +1731,7 @@ impl Cex {
         //            ...
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&data, &[market, since, limit]);
+        return self.parse_orders(&data, market.as_ref(), &[since, limit]);
 
     Value::Null
 }
@@ -1927,7 +1927,7 @@ impl Cex {
         if (currency1.is_some()) && (currency2.is_some()) {
             marketId = Some(format!("{}{}", Value::Str(format!("{}{}", currency1.map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), currency2.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut fee: indexmap::IndexMap<String, Value> = ({
@@ -2200,7 +2200,7 @@ impl Cex {
             }));
         }
         }
-        return self.parse_orders(Value::from(orders), &[]);
+        return self.parse_orders(Value::from(orders), None, &[]);
         Value::Null
         }).await?))
     }

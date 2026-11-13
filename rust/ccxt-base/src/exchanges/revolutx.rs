@@ -1185,7 +1185,7 @@ impl Revolutx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1265,13 +1265,13 @@ impl Revolutx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market != Value::Null) {
-            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if (true) {
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
         }
         if (since != Value::Null) {
             request.insert("start_date".into(), since.clone());
@@ -1310,7 +1310,7 @@ impl Revolutx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            result.push(self.parse_trade(&trade, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
+            result.push(self.parse_trade(&trade, Some(&market)));
         }
         }
         return self.filter_by_symbol_since_limit(self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
