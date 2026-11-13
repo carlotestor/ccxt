@@ -1394,7 +1394,7 @@ impl Bitso {
         //     }
         //
         let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&payload, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&payload, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1554,7 +1554,7 @@ impl Bitso {
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_5]).await.into_dict();
         let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&payload, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&payload, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1713,7 +1713,7 @@ impl Bitso {
         let __ws_arg_7 = self.extend(Value::Map(request), &[paramsMarker]);
         let mut response: crate::value::Dict = self.private_get_user_trades(&[__ws_arg_7]).await.into_dict();
         let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&payload, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&payload, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2052,7 +2052,7 @@ impl Bitso {
         let __ws_arg_12 = self.extend(Value::Map(request), &[paramsMarker]);
         let mut response: crate::value::Dict = self.private_get_open_orders(&[__ws_arg_12]).await.into_dict();
         let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&payload, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&payload, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2126,7 +2126,7 @@ impl Bitso {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("oid".to_string(), id);
@@ -2135,7 +2135,7 @@ impl Bitso {
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_order_trades_oid(&[__ws_arg_13]).await.into_dict();
         let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&payload, &[market]);
+        return self.parse_trades(&payload, Some(&market), &[]);
         Value::Null
         }).await?))
     }

@@ -596,7 +596,7 @@ impl Bitfinex {
         let mut keyParts: Value = Value::Array(key.split(":").map(Value::from).collect());
         let mut interval: String = self.safe_string(keyParts.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: String = self.safe_string(keyParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut market: crate::types::Market = self.safe_market(&[Value::from(marketId.clone())]);
+        let mut market: crate::types::Market = self.safe_market(Value::from(marketId.clone()), None, &[]);
         let mut timeframe: Value = self.find_timeframe(Value::from(interval.clone()), &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), interval).into()), Value::Str(":".into())).into()), marketId);
@@ -853,7 +853,7 @@ impl Bitfinex {
         //
         let mut channel: Option<String> = self.safe_string_k(subscription.clone(), "channel", &[]).as_str().map(str::to_owned);
         let mut marketId: String = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut market: crate::types::Market = self.safe_market(&[Value::from(marketId.clone())]);
+        let mut market: crate::types::Market = self.safe_market(Value::from(marketId.clone()), None, &[]);
         let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -954,7 +954,7 @@ impl Bitfinex {
         if !isPublic {
             marketId = self.safe_string(&trade, Value::Int(1), &[]);
         }
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.clone(), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone(), market, &[]);
         let mut createdKey: i64 = (if isPublic { 1 } else { 2 });
         let mut priceKey: i64 = (if isPublic { 3 } else { 5 });
         let mut amountKey: i64 = (if isPublic { 2 } else { 4 });
@@ -1039,7 +1039,7 @@ impl Bitfinex {
         //
         let mut ticker: Value = self.safe_list(message, Value::Int(1), &[]);
         let mut marketId: String = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut market: crate::types::Market = self.safe_market(&[Value::from(marketId.clone())]);
+        let mut market: crate::types::Market = self.safe_market(Value::from(marketId.clone()), None, &[]);
         let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.clone()), None, &[]).as_str().map(str::to_owned);
         let mut parsed: Value = self.parse_ws_ticker(ticker, Some(&market));
         let mut channel: String = "ticker".to_string();
@@ -1063,7 +1063,7 @@ impl Bitfinex {
         //         220.05,        // 10 LOW float Daily low
         //     ]
         //
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut last: Option<String> = self.safe_string(ticker.clone(), Value::Int(6), &[]).as_str().map(str::to_owned);
         let mut change: Option<String> = self.safe_string(ticker.clone(), Value::Int(4), &[]).as_str().map(str::to_owned);
@@ -1802,7 +1802,7 @@ impl Bitfinex {
         let mut clientOrderId: Option<String> = self.safe_string(order.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string(order.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut amount: Option<String> = self.safe_string(order.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
         let mut side: String = "buy".to_string();
         if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {

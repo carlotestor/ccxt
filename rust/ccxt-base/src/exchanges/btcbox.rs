@@ -858,7 +858,7 @@ impl Btcbox {
         //      }
         //
         let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "date", &[]).as_i64();
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "tid", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
@@ -923,7 +923,7 @@ impl Btcbox {
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_orders(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1065,7 +1065,7 @@ impl Btcbox {
             }
         }
         let mut trades: Value = Value::Null; // todo: this.parseTrades (order['trades']);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut side: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1181,7 +1181,7 @@ impl Btcbox {
         if (type_var.as_str() == Some("open")) {
             extra.insert("status".into(), Value::Str("open".into()));
         }
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit, Value::Map(extra)]);
+        return self.parse_orders(response, Some(&market), &[since, limit, Value::Map(extra)]);
 
     Value::Null
 }

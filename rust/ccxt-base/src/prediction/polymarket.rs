@@ -2471,17 +2471,17 @@ impl Polymarket {
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
         let mut openInterest: Value = self.safe_open_interest(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
-        m.insert("openInterestAmount".to_string(), Value::Null);
-        m.insert("openInterestValue".to_string(), self.safe_number_k(interest.clone(), "value", &[]));
-        m.insert("baseVolume".to_string(), Value::Null);
-        m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), Value::Null);
-        m.insert("datetime".to_string(), Value::Null);
-        m.insert("info".to_string(), interest);
-    m
-}), &[crate::Value::from(market)]);
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
+                m.insert("openInterestAmount".to_string(), Value::Null);
+                m.insert("openInterestValue".to_string(), self.safe_number_k(interest.clone(), "value", &[]));
+                m.insert("baseVolume".to_string(), Value::Null);
+                m.insert("quoteVolume".to_string(), Value::Null);
+                m.insert("timestamp".to_string(), Value::Null);
+                m.insert("datetime".to_string(), Value::Null);
+                m.insert("info".to_string(), interest);
+            m
+        }), market.clone());
         add_element_to_object(&mut openInterest, &Value::Str("outcome".into()), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
         add_element_to_object(&mut openInterest, &Value::Str("outcomeId".into()), self.safe_string_k(&market, "outcomeId", &[]));
         add_element_to_object(&mut openInterest, &Value::Str("market".into()), self.safe_string_k(&market, "market", &[]));

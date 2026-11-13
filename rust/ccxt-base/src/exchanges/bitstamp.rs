@@ -2519,11 +2519,11 @@ impl Bitstamp {
             let mut secondCurrencyId: String = self.safe_string(&currencyIds, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: Value = Value::Str(format!("{}{}", firstCurrencyId, secondCurrencyId).into());
             if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.clone()]));
+                return crate::types::IntoRaw::into_raw(self.safe_market(marketId.clone(), None, &[]));
             }
             marketId = Value::Str(format!("{}{}", secondCurrencyId, firstCurrencyId).into());
             if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.clone()]));
+                return crate::types::IntoRaw::into_raw(self.safe_market(marketId.clone(), None, &[]));
             }
         }
         return Value::Null;
@@ -2591,7 +2591,7 @@ impl Bitstamp {
                 let mut currentKey: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if (currentKey.as_deref() != Some("order_id")) && currentKey.as_deref().unwrap_or_default().contains("_") {
                     rawMarketId = currentKey.clone();
-                    marketResolved = crate::types::IntoRaw::into_raw(self.safe_market(&[rawMarketId.clone().map(Value::from).unwrap_or(Value::Null), marketResolved.clone(), Value::Str("_".into())]));
+                    marketResolved = crate::types::IntoRaw::into_raw(self.safe_market(rawMarketId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved.clone()).as_ref(), &[Value::Str("_".into())]));
                 }
             }
             }
@@ -2728,7 +2728,7 @@ impl Bitstamp {
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_transactions_pair(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2846,7 +2846,7 @@ impl Bitstamp {
             m
         })]).into_dict();
         let mut ohlc: crate::value::List = self.safe_list_k(&data, "ohlc", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlc, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&ohlc, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3426,7 +3426,7 @@ impl Bitstamp {
         //    }
         //
         let mut canceled: Value = self.safe_list_k(&response, "canceled", &[]);
-        return self.parse_orders(canceled, &[]);
+        return self.parse_orders(canceled, None, &[]);
         Value::Null
         }).await?))
     }
@@ -3557,10 +3557,10 @@ impl Bitstamp {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -3574,7 +3574,7 @@ impl Bitstamp {
             response = self.private_post_user_transactions(&[__ws_arg_18]).await;
         }
         let mut result: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("2".into()), &[]);
-        return self.parse_trades(result, &[market, since, limit]);
+        return self.parse_trades(result, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3619,10 +3619,10 @@ impl Bitstamp {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (since != Value::Null) {
             request.insert("since_timestamp".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null));
@@ -3647,7 +3647,7 @@ impl Bitstamp {
         //     }
         //
         let mut values: crate::value::List = self.safe_list_k(&response, "funding_rate_history", &[Value::from(vec![])]).into_list();
-        return self.parse_funding_rate_histories(&values, &[market, since, limit]);
+        return self.parse_funding_rate_histories(&values, &[crate::Value::from(market.as_ref()), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4101,7 +4101,7 @@ impl Bitstamp {
                 let mut currentKey: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if currentKey.as_deref().unwrap_or_default().contains("_") {
                     let mut marketId: Option<String> = (if let Some(__s) = currentKey.as_deref() { Some(__s.replace("_", "")) } else { None });
-                    market = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]));
+                    market = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]));
                 }
             }
             }
@@ -4324,7 +4324,7 @@ impl Bitstamp {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = self.private_post_open_orders_all(&[params]).await;
-        return self.parse_orders(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, Value::Map({
+        return self.parse_orders(response, market.as_ref(), &[since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("open".into()));
         m.insert("type".to_string(), Value::Str("limit".into()));

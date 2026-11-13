@@ -1244,7 +1244,7 @@ impl Dydx {
         // }
         //
         let mut rows: crate::value::List = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&rows, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&rows, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1327,7 +1327,7 @@ impl Dydx {
         // }
         //
         let mut rows: crate::value::List = self.safe_list_k(&response, "candles", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&rows, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&rows, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1612,17 +1612,17 @@ impl Dydx {
                 m.insert("subaccountNumber".to_string(), subAccountNumber.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("ticker".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("ticker".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsSubAccountNumber]);
         let mut response: Value = self.indexer_get_orders(&[__ws_arg_5]).await;
-        return self.parse_orders(response, &[market, since, limit]);
+        return self.parse_orders(response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1724,7 +1724,7 @@ impl Dydx {
         // }
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut side: Option<String> = self.safe_string_lower_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut quantity: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         if (side.as_deref() != Some("long")) {
