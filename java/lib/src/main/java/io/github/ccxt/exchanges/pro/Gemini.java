@@ -318,9 +318,9 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            Object stored = (storesForSymbols == null || symbol == null ? null : storesForSymbols.get(symbol));
+            Object symbolStore = (storesForSymbols == null || symbol == null ? null : storesForSymbols.get(symbol));
             String messageHash = ("trades:" + symbol);
-            client.resolve(stored, messageHash);
+            client.resolve(symbolStore, messageHash);
         }
     }
 
@@ -408,8 +408,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
         String timeframe = this.findTimeframe(timeframeId, (Object) null);
-        Map<String, Object> ohlcvsBySymbol = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, (Object) null);
-        if (java.util.Objects.equals(ohlcvsBySymbol, null))
+        if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
