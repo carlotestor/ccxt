@@ -849,7 +849,7 @@ export default class limitless extends Exchange {
         const hasEndDate = (endDate !== undefined) && (endDate !== '');
         const endTimestamp = hasEndDate ? this.parse8601 (endDate) : undefined;
         const markets: Market[] = [];
-        const rawMarkets: Dict[] = this.safeList (event, 'markets', []);
+        const rawMarkets = this.safeList (event, 'markets', []);
         // aggregate 24h volume across the markets so sort by volume works
         let totalVolume = 0;
         for (let i = 0; i < rawMarkets.length; i++) {

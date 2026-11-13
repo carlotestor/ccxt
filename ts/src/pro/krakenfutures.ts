@@ -347,7 +347,7 @@ export default class krakenfutures extends krakenfuturesRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache: ArrayCacheBySymbolBySide = this.positions;
-        const rawPositions: Dict[] = this.safeList (message, 'positions');
+        const rawPositions = this.safeList (message, 'positions');
         if (rawPositions === undefined) {
             // an open_positions frame without the positions key is malformed;
             // do not resolve with a fabricated empty list (the caller cannot
