@@ -4674,7 +4674,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), channel.as_str(), Value::Null).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next delta
-            client.resolve(self.safe_value(self.orderbooks.clone(), sym.map(Value::from).unwrap_or(Value::Null), &[]), messageHash.as_str());
+            client.resolve(Value::from(self.orderbooks.lookup(&sym)), messageHash.as_str());
         }
         let mut orderbook: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         return orderbook.limit();
@@ -4688,12 +4688,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut limit: Value = limit.into();
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
         let mut snapshot: crate::types::OrderBook = (match self.fetch_order_book(outcome.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderbook: Value = self.order_book(&[Value::Map({
+        let mut orderbook: crate::pro::order_book::Book = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         orderbook.reset(crate::types::IntoRaw::into_raw(snapshot));
-        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), orderbook); }
+        CacheStore::put(&mut self.orderbooks, &sym, orderbook);
 
     Value::Null
 }
@@ -4720,10 +4720,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (sym == Value::Null) {
                 continue;
             }
-            if (self.safe_value(self.orderbooks.clone(), sym.clone(), &[]) == Value::Null) {
+            if (self.orderbooks.lookup(&sym).is_none()) {
                 continue;
             }
-            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&sym);
             let mut price: Value = self.from_wei((self.safe_string_k(&change, "price", &[])).as_str());
             let mut amount: Value = self.from_wei((self.safe_string_k(&change, "amount", &[])).as_str());
             let mut sideStr: Option<String> = self.safe_string_k(&change, "side", &[]).as_str().map(str::to_owned);
@@ -4741,7 +4741,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1377: bool = true;
             while { if !__for_first_1377 { k += 1; } __for_first_1377 = false; (k as f64) < updatedLength } {
             let mut sym: Value = updatedSymbols.get(k as usize).cloned().unwrap_or(Value::Null);
-            client.resolve((if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())));
+            client.resolve(Value::from(self.orderbooks.at(&sym)), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())));
         }
         }
 }
@@ -4887,16 +4887,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
     m
 }), &[market]);
-        if (self.trades.clone() == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.trades = __t; }
+        if (false) {
+            self.trades = crate::pro::cache::CacheMap::new();
         }
-        if (self.safe_value(self.trades.clone(), sym.clone(), &[]) == Value::Null) {
+        if (self.trades.lookup(&sym).is_none()) {
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ArrayCache::new(tradesLimit)); }
+            CacheStore::put(&mut self.trades, &sym, ArrayCache::new(tradesLimit));
         }
-        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&sym);
         stored.append(trade.clone());
-        client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())));
+        client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())));
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
         let mut myWallet: Option<String> = self.wallet_address_or_undefined();
         if (myWallet.is_some()) {
@@ -4952,11 +4952,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut myLegsLength: f64 = ((myLegs.len() as i64) as f64);
             if myLegsLength > ((0i64) as f64) {
-                if (self.myTrades.clone() == Value::Null) {
+                if (self.myTrades.is_none()) {
                     let mut myTradesLimit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                    self.myTrades = ArrayCacheByOutcomeById::new(myTradesLimit);
+                    self.myTrades = Some(ArrayCacheByOutcomeById::new(myTradesLimit));
                 }
-                let mut myStored: Value = self.myTrades.clone();
+                let mut myStored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
                 {
                                         let mut k: i64 = 0;
                     let mut __for_first_1379: bool = true;
@@ -4964,7 +4964,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     myStored.append(myLegs.get(k as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
-                client.resolve(myStored, "myTrades");
+                client.resolve(Value::from(&myStored), "myTrades");
             }
         }
 }
@@ -5225,9 +5225,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_order(&mut self, mut client: Value, mut data: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &data { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        if (self.orders.clone() == Value::Null) {
+        if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = ArrayCacheByOutcomeById::new(limit);
+            self.orders = Some(ArrayCacheByOutcomeById::new(limit));
         }
         let mut networkId: Option<String> = (match __pro_message.get("networkId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = (match __pro_message.get("marketId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -5266,11 +5266,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("trades".to_string(), Value::Null);
     m
 }), &[]);
-        let mut stored: Value = self.orders.clone();
+        let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         stored.append(parsed);
-        client.resolve(stored.clone(), "orders");
+        client.resolve(Value::from(&stored), "orders");
         if (sym != Value::Null) {
-            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("orders::".into()), sym).into())));
+            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("orders::".into()), sym).into())));
         }
 }
 
@@ -5365,9 +5365,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_position(&mut self, mut client: Value, mut data: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &data { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        if (self.positions.clone() == Value::Null) {
+        if (self.positions.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "positionsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.positions = ArrayCacheByOutcomeById::new(limit);
+            self.positions = Some(ArrayCacheByOutcomeById::new(limit));
         }
         let mut networkId: Option<String> = (match __pro_message.get("networkId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = (match __pro_message.get("marketId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -5418,9 +5418,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("unrealizedPnl".to_string(), Value::Null);
             m
         }));
-        let mut stored: Value = self.positions.clone();
+        let mut stored: Option<crate::pro::cache::Cache> = self.positions.clone();
         stored.append(parsed);
-        client.resolve(stored, "positions");
+        client.resolve(Value::from(&stored), "positions");
 }
 
     pub fn wallet_address_from_keys(&self) -> Option<String> {

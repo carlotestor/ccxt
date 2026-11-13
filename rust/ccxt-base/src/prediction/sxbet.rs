@@ -3477,7 +3477,7 @@ impl Sxbet {
 }));
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
-        let mut sym: Value = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]);
+        let mut sym: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketHash: String = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut channel: String = format!("{}{}", Value::Str("orderbook_v3:".into()), marketHash);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), sym);
@@ -3485,17 +3485,17 @@ impl Sxbet {
         self.connect_sxbet_centrifugo(url.as_deref()).await;
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut isNewSubscription: bool = self.safe_value((client).subscriptions.clone(), Value::from(channel.clone()), &[]) == Value::Null;
-        if (self.safe_value(self.orderbooks.clone(), sym.clone(), &[]) == Value::Null) {
+        if (self.orderbooks.lookup(&sym).is_none()) {
             // seed from the REST snapshot so the book is served before the first publication
-            self.set_ws_option("wsWatchedBooks", sym.as_str().unwrap_or_default(), Value::from(marketHash.clone()));
+            self.set_ws_option("wsWatchedBooks", sym.as_str(), Value::from(marketHash.clone()));
             let mut snapshot: Value = self.fetch_sxbet_book_snapshot(Some(marketHash.as_str())).await;
             self.apply_sxbet_ws_snapshot(snapshot);
-            if (self.safe_value(self.orderbooks.clone(), sym.clone(), &[]) == Value::Null) {
-                let mut emptyBook: Value = self.order_book(&[Value::Map({
+            if (self.orderbooks.lookup(&sym).is_none()) {
+                let mut emptyBook: crate::pro::order_book::Book = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), emptyBook); }
+                CacheStore::put(&mut self.orderbooks, &sym, emptyBook);
             }
         }
         let mut requestId: i64 = self.request_id(url.as_deref()).as_i64().unwrap_or_default();
@@ -3513,7 +3513,7 @@ impl Sxbet {
         let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), channel.as_str(), Value::Null).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next publication
-            client.resolve(self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash.as_str());
+            client.resolve(Value::from(self.orderbooks.lookup(&sym)), messageHash.as_str());
         }
         let mut orderbook: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         return orderbook.limit();
@@ -3564,13 +3564,13 @@ impl Sxbet {
             let mut outcomeId: Value = self.safe_string_k(&outcomeObj, "outcomeId", &[]);
             let mut isOutcomeOne: bool = outcomeId == marketHash;
             let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne);
-            let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), sym.clone(), &[]);
-            if (orderbook == Value::Null) {
-                orderbook = self.order_book(&[Value::Map({
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&sym);
+            if (orderbook.is_none()) {
+                orderbook = Some(self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                if let Value::Dict(__d) = &mut self.orderbooks.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), orderbook.clone()); }
+})]));
+                CacheStore::put(&mut self.orderbooks.clone(), &sym, orderbook.clone());
             }
             let mut bookSnapshot: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3612,8 +3612,8 @@ impl Sxbet {
                                 let mut j: i64 = 0;
                 let mut __for_first_1525: bool = true;
                 while { if !__for_first_1525 { j += 1; } __for_first_1525 = false; (j as f64) < refreshedLength } {
-                let mut sym: Value = refreshed.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
-                client.resolve(self.safe_value(self.orderbooks.clone(), sym.clone(), &[]), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())));
+                let mut sym: Option<String> = refreshed.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                client.resolve(Value::from(self.orderbooks.lookup(&sym)), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym.clone().map(Value::from).unwrap_or(Value::Null)).into())));
             }
             }
         }
@@ -3856,20 +3856,20 @@ impl Sxbet {
             let mut rawRow: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "trade", &[rawRow.clone()]);
             let mut trade: Value = self.parse_sxbet_v3_public_trade(row);
-            let mut sym: Option<String> = self.safe_string_k_opt(trade.clone(), "outcome", &[]);
+            let mut sym: Option<String> = self.safe_string_k(trade.clone(), "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_none()) {
                 continue;
             }
-            if (self.trades.clone() == Value::Null) {
-                { let __t = self.create_safe_dictionary(&[]); self.trades = __t; }
+            if (false) {
+                self.trades = crate::pro::cache::CacheMap::new();
             }
-            if (self.safe_value(self.trades.clone(), sym.clone().map(Value::from).unwrap_or(Value::Null), &[]) == Value::Null) {
+            if (self.trades.lookup(&sym).is_none()) {
                 let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(sym.as_deref().unwrap_or("null").to_string(), ArrayCache::new(tradesLimit)); }
+                CacheStore::put(&mut self.trades, &sym, ArrayCache::new(tradesLimit));
             }
-            let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&sym);
             stored.append(trade);
-            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
+            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
         }
         }
 }
@@ -3933,14 +3933,14 @@ impl Sxbet {
             if (sym.is_none()) {
                 continue;
             }
-            if (self.myTrades.clone() == Value::Null) {
+            if (self.myTrades.is_none()) {
                 let mut myTradesLimit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.myTrades = ArrayCacheByOutcomeById::new(myTradesLimit);
+                self.myTrades = Some(ArrayCacheByOutcomeById::new(myTradesLimit));
             }
-            let mut stored: Value = self.myTrades.clone();
+            let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
             stored.append(trade);
-            client.resolve(stored.clone(), "myTrades");
-            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
+            client.resolve(Value::from(&stored), "myTrades");
+            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
         }
         }
 }
@@ -4000,16 +4000,16 @@ impl Sxbet {
             let mut rawRow: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "order", &[rawRow.clone()]);
             let mut order: Value = self.parse_prediction_order(row, &[]);
-            if (self.orders.clone() == Value::Null) {
+            if (self.orders.is_none()) {
                 let mut cacheLimit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.orders = ArrayCacheByOutcomeById::new(cacheLimit);
+                self.orders = Some(ArrayCacheByOutcomeById::new(cacheLimit));
             }
-            let mut stored: Value = self.orders.clone();
+            let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
             stored.append(order.clone());
-            client.resolve(stored.clone(), "orders");
+            client.resolve(Value::from(&stored), "orders");
             let mut sym: Option<String> = self.safe_string_k(order, "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_some()) {
-                client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("orders::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
+                client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("orders::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
             }
         }
         }

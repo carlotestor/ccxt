@@ -479,16 +479,17 @@ pub trait ExchangeBase:
 
     fn clean_ws_data(&mut self) {
         { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.balance = __t; }
-        { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.orderbooks = __t; }
+        self.orderbooks = crate::pro::order_book::BookMap::new();
         { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.tickers = __t; }
-        self.liquidations = Value::Null;
-        self.myLiquidations = Value::Null;
-        self.orders = Value::Null;
-        { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.trades = __t; }
+        self.liquidations = None;
+        self.myLiquidations = None;
+        self.orders = None;
+        self.trades = crate::pro::cache::CacheMap::new();
         { let __t = self.create_safe_dictionary(&[]); self.transactions = __t; }
-        { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.ohlcvs = __t; }
-        self.myTrades = Value::Null;
-        self.positions = Value::Null;
+        self.ohlcvs = crate::pro::cache::CacheShelf::new();
+        self.myTrades = None;
+        self.positions = None;
+        self.positionsByType = crate::pro::cache::CacheMap::new();
 }
 
     fn safe_bool_n(&self, dictionaryOrList: impl KeyRead, mut keys: Value, optional_args: &[Value]) -> Value {
@@ -998,14 +999,14 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn filter_by_since_limit(&self, mut array: Value, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    fn filter_by_since_limit(&self, array: impl Rows, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
         let mut key = get_arg(optional_args, 0, Value::Str("timestamp".into()));
         let mut tail = get_arg(optional_args, 1, Value::Bool(false));
-        if (array == Value::Null) {
+        if (Rows::absent(&array)) {
             return Value::from(vec![]);
         }
         let mut sinceIsDefined: bool = (Value::from(since) != Value::Null) && (Value::from(since) != Value::Null);
-        let mut parsedArray: Value = self.to_array(array);
+        let mut parsedArray: Value = self.to_array(Rows::rows(array));
         let mut result: Value = parsedArray.clone();
         if sinceIsDefined {
             result = Value::from(vec![]);
@@ -5803,10 +5804,10 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn filter_by_array(&self, mut objects: Value, mut key: Value, values: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    fn filter_by_array(&self, objects: impl Rows, mut key: Value, values: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut values: Value = values.into();
         let mut indexed = get_arg(optional_args, 0, Value::Bool(true));
-        let mut objectsValue: Value = self.to_array(objects);
+        let mut objectsValue: Value = self.to_array(Rows::rows(objects));
         // return all of them if no values were passed
         if (values == Value::Null) || (values == Value::Null) || ((match &(values) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 0.0) })) || ((match &(values) { Value::Int(__x) => *__x == 0, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) || (values.as_str() == Some("")) {
@@ -8118,9 +8119,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn filter_by_symbol_since_limit(&self, mut array: Value, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    fn filter_by_symbol_since_limit(&self, array: impl Rows, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
         let mut tail = get_arg(optional_args, 0, Value::Bool(false));
-        return self.filter_by_value_since_limit(array, Value::Str("symbol".into()), &[Value::from(symbol), Value::from(since), Value::from(limit), Value::Str("timestamp".into()), tail]);
+        return self.filter_by_value_since_limit(Rows::rows(array), Value::Str("symbol".into()), &[Value::from(symbol), Value::from(since), Value::from(limit), Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
@@ -8135,7 +8136,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn filter_by_symbols_since_limit(&self, mut array: Value, symbols: impl Into<crate::Value>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    fn filter_by_symbols_since_limit(&self, array: impl Rows, symbols: impl Into<crate::Value>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
         let mut symbols: Value = symbols.into();
         let mut tail = get_arg(optional_args, 0, Value::Bool(false));
         let mut result: Value = self.filter_by_array(array, Value::Str("symbol".into()), symbols, &[Value::Bool(false)]);
@@ -8269,10 +8270,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         if (codes != Value::Null) {
-            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), codes, &[Value::Bool(false)])).into_list();
+            result = self.to_array(self.filter_by_array(&result, Value::Str("currency".into()), codes, &[Value::Bool(false)])).into_list();
         }
         if indexed.as_bool() == Some(true) {
-            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), Value::Null, &[indexed])).into_list();
+            result = self.to_array(self.filter_by_array(&result, Value::Str("currency".into()), Value::Null, &[indexed])).into_list();
         }
         return Value::Arr(result);
 
@@ -10427,17 +10428,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut __for_first_180: bool = true;
                 while { if !__for_first_180 { i += 1; } __for_first_180 = false; i < (symbolsAndTimeframes.len() as i64) } {
                 let mut symbolAndTimeFrame: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut symbol: Option<String> = self.safe_string_opt(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
-                let mut timeframe: Value = self.safe_string(symbolAndTimeFrame, Value::Int(1), &[]);
+                let mut symbol: Option<String> = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut timeframe: Option<String> = self.safe_string(symbolAndTimeFrame, Value::Int(1), &[]).as_str().map(str::to_owned);
                 if (symbol.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cleanCache() requires a symbol argument".into()))));
                 }
-                if (timeframe == Value::Null) {
+                if (timeframe.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cleanCache() requires a timeframe argument".into()))));
                 }
-                if (matches!((&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if ((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-                        remove(&mut get_value(&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), &timeframe);
+                if (CacheShelves::has(&self.ohlcvs, &symbol)) {
+                    if (self.ohlcvs.shelf(&symbol).has(&timeframe)) {
+                        self.ohlcvs.forget2(&symbol, &timeframe);
                     }
                 }
             }
@@ -10449,12 +10450,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 while { if !__for_first_181 { i += 1; } __for_first_181 = false; i < (symbols.len() as i64) } {
                 let mut symbol: Value = self.safe_string(&symbols, Value::Int(i), &[Value::Str("".into())]);
                 if (topic.as_deref() == Some("trades")) {
-                    if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades.clone(), &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                    if (self.trades.has(&symbol)) {
+                        self.trades.forget(&symbol);
                     }
                 }  else if (topic.as_deref() == Some("orderbook")) {
-                    if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks.clone(), &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                    if (self.orderbooks.has(&symbol)) {
+                        self.orderbooks.forget(&symbol);
                     }
                 }  else if (topic.as_deref() == Some("ticker")) {
                     if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -10469,11 +10470,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }  else {
             if (topic.as_deref() == Some("myTrades")) {
-                self.myTrades = Value::Null;
+                self.myTrades = None;
             }  else if (topic.as_deref() == Some("orders")) {
-                self.orders = Value::Null;
-            }  else if (topic.as_deref() == Some("positions")) && (self.positions.clone() != Value::Null) {
-                self.positions = Value::Null;
+                self.orders = None;
+            }  else if (topic.as_deref() == Some("positions")) && (self.positions.is_some()) {
+                self.positions = None;
                 let mut clients: Vec<Value> = Value::Array(self.clients.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: i64 = 0;
