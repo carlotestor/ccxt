@@ -2777,7 +2777,7 @@ impl Toobit {
         }
         let mut paramsOmitted: Value = self.omit(paramsTrigger, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
         if (self.safe_string_k(paramsOmitted.clone(), "newClientOrderId", &[]) == Value::Null) {
-            request.insert("newClientOrderId".into(), self.uuid(&[]));
+            request.insert("newClientOrderId".into(), Value::from(self.uuid(&[])));
         }
         return Value::from(vec![Value::Map(request), paramsOmitted]);
 
@@ -4326,12 +4326,12 @@ impl Toobit {
             extraQuery.insert("recvWindow".into(), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("5000".into())]));
             extraQuery.insert("timestamp".into(), Value::Str(format!("{}", timestamp).into()));
             let mut queryExtended: Value = self.extend(query.clone(), &[Value::Map(extraQuery.clone())]);
-            let mut queryString: Value = Value::Str("".into());
+            let mut queryString: String = "".to_string();
             let mut privateBody: Value = Value::Str("".into());
             if isPost || isDelete {
                 // everything else except Batch-Orders
                 if !(matches!(&params, Value::Arr(_))) {
-                    privateBody = self.urlencode(queryExtended.clone(), &[]);
+                    privateBody = Value::from(self.urlencode(queryExtended.clone(), &[]));
                 }  else {
                     queryString = self.urlencode(Value::Map(extraQuery), &[]);
                     privateBody = json_stringify(&query);
@@ -4339,13 +4339,13 @@ impl Toobit {
             }  else {
                 queryString = self.urlencode(queryExtended, &[]);
             }
-            let mut payload: Value = queryString.clone();
+            let mut payload: String = queryString.clone();
             if isPost || isDelete {
-                payload = Value::Str(format!("{}{}", privateBody, queryString).into());
+                payload = format!("{}{}", privateBody, queryString);
             }
-            let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
-            if (queryString.as_str() != Some("")) {
-                queryString = Value::Str(format!("{}{}", queryString, Value::Str(format!("{}{}", Value::Str("&signature=".into()), signature).into())).into());
+            let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+            if (queryString != "") {
+                queryString.push_str(&format!("{}{}", Value::Str("&signature=".into()), signature));
                 url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
             }  else {
                 privateBody = Value::Str(format!("{}{}", privateBody, Value::Str(format!("{}{}", Value::Str("&signature=".into()), signature).into())).into());

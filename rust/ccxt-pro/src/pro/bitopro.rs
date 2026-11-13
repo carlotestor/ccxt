@@ -752,8 +752,8 @@ impl Bitopro {
         m.insert("identity".to_string(), self.login.clone());
     m
 })).as_str().map(str::to_owned);
-        let mut payload: Value = self.string_to_base64(rawData.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]).as_str().map(str::to_owned);
+        let mut payload: String = self.string_to_base64(rawData.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
         let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({
@@ -785,8 +785,8 @@ impl Bitopro {
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-BITOPRO-API".to_string(), Value::Str("ccxt".into()));
                 m.insert("X-BITOPRO-APIKEY".to_string(), self.apiKey.clone());
-                m.insert("X-BITOPRO-PAYLOAD".to_string(), payload);
-                m.insert("X-BITOPRO-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                m.insert("X-BITOPRO-PAYLOAD".to_string(), Value::from(payload));
+                m.insert("X-BITOPRO-SIGNATURE".to_string(), Value::from(signature));
             m
         });
         wsInnerOptions.insert("headers".into(), Value::Map(headers));

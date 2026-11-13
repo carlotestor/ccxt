@@ -2909,15 +2909,15 @@ impl Foxbit {
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), fullPath);
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
         let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
-        let mut query: Option<String> = Some("".to_string());
+        let mut query: String = "".to_string();
         let mut signatureQuery: String = "".to_string();
         if (method.as_str() == Some("GET")) {
             let mut paramKeys: Vec<Value> = Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut paramKeysLength: i64 = paramKeys.len() as i64;
             let mut lastKeyIndex: i64 = (paramKeysLength - 1);
             if paramKeysLength > 0 {
-                query = self.urlencode(paramsOmitted.clone(), &[]).as_str().map(str::to_owned);
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+                query = self.urlencode(paramsOmitted.clone(), &[]);
+                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
             }
             {
                                 let mut i: Value = Value::Int(0);
@@ -2952,10 +2952,10 @@ impl Foxbit {
         if (urlPath.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut preHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", timestamp).into()), method).into()), fullPath).into()), signatureQuery).into()), bodyToSignature.map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(preHash)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(preHash)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             headersValue.insert("X-FB-ACCESS-KEY".into(), self.apiKey.clone());
             headersValue.insert("X-FB-ACCESS-TIMESTAMP".into(), Value::Str(format!("{}", timestamp).into()));
-            headersValue.insert("X-FB-ACCESS-SIGNATURE".into(), signature.map(Value::from).unwrap_or(Value::Null));
+            headersValue.insert("X-FB-ACCESS-SIGNATURE".into(), Value::from(signature));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

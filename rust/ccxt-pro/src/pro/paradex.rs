@@ -3021,56 +3021,56 @@ if _try_result.is_err() {
         // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
         // ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
-        let mut frameHex: Option<String> = self.binary_to_base16(message, &[]).as_str().map(str::to_owned);
-        let mut frameLength: Value = self.parse_to_int(Value::Float(((((frameHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
+        let mut frameHex: String = self.binary_to_base16(message, &[]);
+        let mut frameLength: Value = self.parse_to_int(Value::Float(((((frameHex.chars().count() as i64)) as f64) / 2.0)));
         if frameLength.as_f64().unwrap_or(f64::NAN) < ((8i64) as f64) {
             return Value::Null;
         }
-        let mut blockLength: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(0), Value::Int(2)));
-        let mut templateId: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(2), Value::Int(2)));
-        let mut schemaId: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(4), Value::Int(2)));
+        let mut blockLength: Value = self.parse_to_int(self.sbe_read_uint(Value::from(frameHex.clone()), Value::Int(0), Value::Int(2)));
+        let mut templateId: Value = self.parse_to_int(self.sbe_read_uint(Value::from(frameHex.clone()), Value::Int(2), Value::Int(2)));
+        let mut schemaId: Value = self.parse_to_int(self.sbe_read_uint(Value::from(frameHex.clone()), Value::Int(4), Value::Int(2)));
         if (schemaId.as_f64() != Some(1.0)) || (frameLength.as_f64().unwrap_or(f64::NAN) < self.sum(&[blockLength.clone(), Value::Int(8)]).as_f64().unwrap_or(f64::NAN)) {
             return Value::Null;
         }
         let mut channel: Option<String> = None;
         let mut data: Value = Value::Null;
         if (templateId.as_f64() == Some(1.0)) {
-            data = self.parse_sbe_trade(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+            data = self.parse_sbe_trade(Value::from(frameHex.clone()), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("trades.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId.as_f64() == Some(2.0)) {
-            data = self.parse_sbe_bbo(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+            data = self.parse_sbe_bbo(Value::from(frameHex.clone()), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("bbo.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId.as_f64() == Some(3.0)) {
             // the snapshot and deltas feeds send the same frame, handleOrderBook tells them apart by package type
-            data = self.parse_sbe_order_book(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+            data = self.parse_sbe_order_book(Value::from(frameHex.clone()), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("order_book.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId.as_f64() == Some(4.0)) {
-            data = self.parse_sbe_market_summary(client, frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+            data = self.parse_sbe_market_summary(client, Value::from(frameHex.clone()), blockLength.clone(), frameLength.clone());
             channel = Some("markets_summary".to_string());
         }  else if (templateId.as_f64() == Some(5.0)) {
-            data = self.parse_sbe_funding_data(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+            data = self.parse_sbe_funding_data(Value::from(frameHex.clone()), blockLength.clone(), frameLength.clone());
             channel = Some("funding_data".to_string());
         }  else if (templateId.as_f64() == Some(20.0)) {
-            data = self.parse_sbe_order(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+            data = self.parse_sbe_order(Value::from(frameHex.clone()), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("orders.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId.as_f64() == Some(21.0)) {
-            data = self.parse_sbe_fill(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+            data = self.parse_sbe_fill(Value::from(frameHex.clone()), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("fills.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId.as_f64() == Some(22.0)) {
-            data = self.parse_sbe_position(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+            data = self.parse_sbe_position(Value::from(frameHex.clone()), blockLength.clone(), frameLength.clone());
             channel = Some("positions".to_string());
         }  else if (templateId.as_f64() == Some(23.0)) {
-            data = self.parse_sbe_account(frameHex.map(Value::from).unwrap_or(Value::Null), blockLength, frameLength);
+            data = self.parse_sbe_account(Value::from(frameHex), blockLength, frameLength);
             channel = Some("account".to_string());
         }
         if (data == Value::Null) {
@@ -3177,10 +3177,10 @@ if _try_result.is_err() {
         let mut size: Value = self.parse_to_int(length);
         let mut start: Value = (match (&(first), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut end: Value = self.sum(&[start.clone(), (match (&(size), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        return self.binary_to_string(self.base16_to_binary((match (&(frameHex), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(end) { Value::Int(__n) => Some(*__n),
+        return Value::from(self.binary_to_string(self.base16_to_binary((match (&(frameHex), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(end) { Value::Int(__n) => Some(*__n),
             Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-            __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }), &[]), &[]).as_str().map(str::to_owned);
+            __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }), &[]), &[])).as_str().map(str::to_owned);
 }
 
     pub fn sbe_read_address(&self, mut frameHex: Value, mut offset: Value) -> Option<String> {

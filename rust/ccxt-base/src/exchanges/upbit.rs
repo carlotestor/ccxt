@@ -3168,11 +3168,11 @@ impl Upbit {
         });
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Option<String> = self.uuid(&[]).as_str().map(str::to_owned);
+            let mut nonce: String = self.uuid(&[]);
             let mut request: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
-                    m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("nonce".to_string(), Value::from(nonce));
                 m
             };
             let mut auth: Option<String> = None;
@@ -3180,14 +3180,14 @@ impl Upbit {
                 if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
             if (numQueryKeys != 0.0) {
-                auth = self.rawencode(query, &[]).as_str().map(str::to_owned);
+                auth = Some(self.rawencode(query, &[]));
             }
             if (auth.is_some()) {
                 let mut hash: Option<String> = self.hash(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
                 request.insert("query_hash".into(), hash.map(Value::from).unwrap_or(Value::Null));
                 request.insert("query_hash_alg".into(), Value::Str("SHA512".into()));
             }
-            let mut token: Value = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            let mut token: String = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into())); }
         }
         let mut requestHeaders: Value = (if (apiName.as_deref() == Some("private")) { headers } else { Value::Null });

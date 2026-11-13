@@ -1463,7 +1463,7 @@ impl Apex {
         let mut request_path: String = "/ws/accounts".to_string();
         let mut http_method: String = "GET".to_string();
         let mut messageString: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, http_method).into()), request_path);
-        let mut signature: Option<String> = self.hmac(self.encode(Value::from(messageString)), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+        let mut signature: String = self.hmac(self.encode(Value::from(messageString)), self.encode(Value::from(self.string_to_base64(self.secret.clone(), &[]))), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
         let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
@@ -1479,7 +1479,7 @@ impl Apex {
                     m.insert("apiKey".to_string(), self.apiKey.clone());
                     m.insert("passphrase".to_string(), self.password.clone());
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("signature".to_string(), Value::from(signature));
                 m
             });
             let mut message: indexmap::IndexMap<String, Value> = ({

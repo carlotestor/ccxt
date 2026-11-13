@@ -512,7 +512,7 @@ impl Weex {
         }
         let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
         let mut payload: String = format!("{}{}", timestamp, Value::Str("/v3/ws/private".into()));
-        let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+        let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
         let mut originalHeaders: crate::value::Dict = self.safe_dict(crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), Value::Str("headers".into()), &[]).into_dict();
         let mut userAgent: String = self.safe_string_k(&originalHeaders, "User-Agent", &[Value::Str("ccxt".into())]).as_str().unwrap_or("ccxt").to_string();
         let mut extendedOptions: indexmap::IndexMap<String, Value> = ({
@@ -525,7 +525,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
         m.insert("User-Agent".to_string(), Value::from(userAgent.clone()));
         m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-        m.insert("ACCESS-SIGN".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+        m.insert("ACCESS-SIGN".to_string(), Value::from(signature));
         m.insert("ACCESS-PASSPHRASE".to_string(), self.password.clone());
         m.insert("ACCESS-TIMESTAMP".to_string(), timestamp);
     m

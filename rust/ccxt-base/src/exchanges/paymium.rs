@@ -1059,12 +1059,12 @@ impl Paymium {
                 }
             }  else {
                 if hasQuery {
-                    let mut queryString: Value = self.urlencode(query, &[]);
+                    let mut queryString: String = self.urlencode(query, &[]);
                     auth = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
                     url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
                 }
             }
-            signedHeaders.insert("Api-Signature".into(), self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+            signedHeaders.insert("Api-Signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));

@@ -4341,7 +4341,7 @@ impl Bithumb {
                 let mut request: indexmap::IndexMap<String, Value> = {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("access_key".to_string(), self.apiKey.clone());
-                        m.insert("nonce".to_string(), self.uuid(&[]));
+                        m.insert("nonce".to_string(), Value::from(self.uuid(&[])));
                         m.insert("timestamp".to_string(), self.milliseconds());
                     m
                 };
@@ -4360,7 +4360,7 @@ impl Bithumb {
                     request.insert("query_hash".into(), self.hash(self.encode(auth), Value::Str("sha512".into()), &[]));
                     request.insert("query_hash_alg".into(), Value::Str("SHA512".into()));
                 }
-                let mut token: Value = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+                let mut token: String = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
                 if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into())); }
             }  else {
                 let __ws_arg_49 = self.extend(Value::Map({
@@ -4368,20 +4368,20 @@ impl Bithumb {
         m.insert("endpoint".to_string(), Value::from(endpoint.clone()));
     m
 }), &[query]);
-                let mut encodedBody: Option<String> = self.urlencode(__ws_arg_49, &[]).as_str().map(str::to_owned);
+                let mut encodedBody: String = self.urlencode(__ws_arg_49, &[]);
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                let mut bodyParts: Value = Value::Array(if let Some(__s) = encodedBody.as_deref() { __s.split("%20").map(Value::from).collect() } else { Vec::new() });
+                let mut bodyParts: Value = Value::Array(encodedBody.split("%20").map(Value::from).collect());
                 requestBody = Value::Str(bodyParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("+")).unwrap_or_default().into());
                 let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
                 let mut authPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, Value::Str("\\".into())).into()), requestBody).into()), Value::Str("\\".into())).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)); // eslint-disable-line quotes
-                let mut signature: Option<String> = self.hmac(self.encode(Value::from(authPayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
-                let mut signature64: Option<String> = self.string_to_base64(signature.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                let mut signature: String = self.hmac(self.encode(Value::from(authPayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
+                let mut signature64: String = self.string_to_base64(Value::from(signature), &[]);
                 requestHeaders = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Accept".to_string(), Value::Str("application/json".into()));
                         m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                         m.insert("Api-Key".to_string(), self.apiKey.clone());
-                        m.insert("Api-Sign".to_string(), signature64.map(Value::from).unwrap_or(Value::Null));
+                        m.insert("Api-Sign".to_string(), Value::from(signature64));
                         m.insert("Api-Nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                         m.insert("OPEN-API-PARTNER".to_string(), Value::Str("CCXT".into()));
                     m

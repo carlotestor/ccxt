@@ -1387,24 +1387,24 @@ impl Zaif {
             }
             let mut nonce: Option<String> = self.custom_nonce();
             let __ws_arg_8 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("method".to_string(), path);
-                    m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
-                m
-            }), &[params]);
-            let mut bodyEncoded: Value = self.urlencode(__ws_arg_8, &[]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("method".to_string(), path);
+        m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
+    m
+}), &[params]);
+            let mut bodyEncoded: String = self.urlencode(__ws_arg_8, &[]);
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), self.hmac(self.encode(bodyEncoded.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
+                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(bodyEncoded.clone())), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
             });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodyEncoded);
+        m.insert("body".to_string(), Value::from(bodyEncoded));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
 });

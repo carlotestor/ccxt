@@ -3457,10 +3457,10 @@ impl Ndax {
         if (apiName.as_deref() == Some("public")) {
             if (path.as_str() == Some("Authenticate")) {
                 let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.login.clone(), Value::Str(":".into())).into()), self.password.clone());
-                let mut auth64: Option<String> = self.string_to_base64(Value::from(auth), &[]).as_str().map(str::to_owned);
+                let mut auth64: String = self.string_to_base64(Value::from(auth), &[]);
                 headersSigned = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Basic ".into()), auth64.map(Value::from).unwrap_or(Value::Null)).into()));
+                        m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Basic ".into()), auth64).into()));
                     m
                 });
             }  else if (path.as_str() == Some("Authenticate2FA")) {
@@ -3484,13 +3484,13 @@ impl Ndax {
             if (sessionToken.is_none()) {
                 let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
                 let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone());
-                let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                 if isPost {
                     headersSigned = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Nonce".to_string(), nonce.clone());
                             m.insert("APIKey".to_string(), self.apiKey.clone());
-                            m.insert("Signature".to_string(), signature.clone());
+                            m.insert("Signature".to_string(), Value::from(signature.clone()));
                             m.insert("UserId".to_string(), self.uid.clone());
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m
@@ -3500,7 +3500,7 @@ impl Ndax {
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Nonce".to_string(), nonce);
                             m.insert("APIKey".to_string(), self.apiKey.clone());
-                            m.insert("Signature".to_string(), signature);
+                            m.insert("Signature".to_string(), Value::from(signature));
                             m.insert("UserId".to_string(), self.uid.clone());
                         m
                     });

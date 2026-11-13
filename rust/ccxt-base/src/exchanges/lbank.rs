@@ -4361,9 +4361,9 @@ impl Lbank {
         m.insert("timestamp".to_string(), timestamp.clone());
     m
 }), &[signedQuery.clone()]), &[]);
-            let mut auth: Option<String> = self.rawencode(__ws_arg_34, &[]).as_str().map(str::to_owned);
-            let mut encoded: Value = self.encode(auth.map(Value::from).unwrap_or(Value::Null));
-            let mut uppercaseHash: Value = (self.hash(encoded, Value::Str("md5".into()), &[])).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut auth: String = self.rawencode(__ws_arg_34, &[]);
+            let mut encoded: crate::value::Bytes = self.encode(Value::from(auth));
+            let mut uppercaseHash: Value = (self.hash(&encoded, Value::Str("md5".into()), &[])).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut sign: Value = Value::Str("".into());
             if (signatureMethod.as_deref() == Some("RSA")) {
                 let mut cacheSecretAsPem: bool = self.safe_bool_k(self.options.clone(), "cacheSecretAsPem", &[Value::Bool(true)]).as_bool().unwrap_or(true);
@@ -4371,20 +4371,20 @@ impl Lbank {
                 if cacheSecretAsPem {
                     let mut cachedPem: Option<String> = self.safe_string_k(self.options.clone(), "pem", &[]).as_str().map(str::to_owned);
                     if (cachedPem.is_none()) {
-                        pem = self.convert_secret_to_pem(self.encode(self.secret.clone())).map(Value::from).unwrap_or(Value::Null);
+                        pem = self.convert_secret_to_pem(Value::from(self.encode(self.secret.clone()))).map(Value::from).unwrap_or(Value::Null);
                         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("pem".into(), pem.clone()); }
                     }  else {
                         pem = cachedPem.map(Value::from).unwrap_or(Value::Null);
                     }
                 }  else {
-                    pem = self.convert_secret_to_pem(self.encode(self.secret.clone())).map(Value::from).unwrap_or(Value::Null);
+                    pem = self.convert_secret_to_pem(Value::from(self.encode(self.secret.clone()))).map(Value::from).unwrap_or(Value::Null);
                 }
-                sign = rsa(uppercaseHash.clone(), pem, Value::Str("sha256".into()));
+                sign = Value::from(rsa(uppercaseHash.clone(), pem, Value::Str("sha256".into())));
             }  else if (signatureMethod.as_deref() == Some("HmacSHA256")) {
-                sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                sign = Value::from(self.hmac(self.encode(uppercaseHash), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
             }
             if let Value::Dict(__d) = &mut signedQuery { std::sync::Arc::make_mut(__d).insert("sign".into(), sign); }
-            let mut bodySigned: Option<String> = self.urlencode(self.keysort(signedQuery, &[]), &[]).as_str().map(str::to_owned);
+            let mut bodySigned: String = self.urlencode(self.keysort(signedQuery, &[]), &[]);
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -4397,7 +4397,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodySigned.map(Value::from).unwrap_or(Value::Null));
+        m.insert("body".to_string(), Value::from(bodySigned));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
 });

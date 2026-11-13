@@ -1560,20 +1560,20 @@ impl Bit2c {
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
             }), &[params]);
-            let mut auth: Value = self.urlencode(query.clone(), &[]);
+            let mut auth: String = self.urlencode(query.clone(), &[]);
             if (method.as_str() == Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
                 }
             }  else {
-                requestBody = auth.clone();
+                requestBody = Value::from(auth.clone());
             }
-            let mut signature: Option<String> = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
-                    m.insert("sign".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("sign".to_string(), Value::from(signature));
                 m
             });
         }
