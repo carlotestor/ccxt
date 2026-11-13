@@ -5033,22 +5033,22 @@ impl Backpack {
             if (path.as_str() == Some("api/v1/orders")) && (method.as_str() == Some("POST")) {
                 payload = self.generate_batch_payload(sortedParams.clone(), ts.as_deref().unwrap_or_default(), recvWindow.as_str(), instruction.as_str());
             }  else {
-                let mut queryString: Value = self.urlencode(sortedParams.clone(), &[]);
-                if ((queryString.len() as i64) as f64) > ((0i64) as f64) {
-                    queryString = Value::Str(format!("{}{}", queryString, Value::Str("&".into())).into());
+                let mut queryString: String = self.urlencode(sortedParams.clone(), &[]);
+                if ((queryString.chars().count() as i64)) > 0 {
+                    queryString.push_str("&");
                 }
                 payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instruction=".into()), instruction).into()), Value::Str("&".into())).into()), queryString).into()),
                     Value::Str("timestamp=".into())).into()), ts.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("&window=".into())).into()), recvWindow).into());
             }
-            let mut secretBytes: Value = self.base64_to_binary(self.secret.clone(), &[]);
-            let mut seed: Value = self.array_slice(secretBytes, Value::Int(0), &[Value::Int(32)]);
-            let mut signature: Value = eddsa(self.encode(payload), seed, Value::Str("ed25519".into()));
+            let mut secretBytes: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
+            let mut seed: Value = self.array_slice(Value::from(&secretBytes), Value::Int(0), &[Value::Int(32)]);
+            let mut signature: String = eddsa(self.encode(payload), seed, Value::Str("ed25519".into()));
             headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Timestamp".to_string(), ts.map(Value::from).unwrap_or(Value::Null));
                     m.insert("X-Window".to_string(), Value::from(recvWindow));
                     m.insert("X-API-Key".to_string(), self.apiKey.clone());
-                    m.insert("X-Signature".to_string(), signature);
+                    m.insert("X-Signature".to_string(), Value::from(signature));
                     m.insert("X-Broker-Id".to_string(), Value::Str("1400".into()));
                 m
             });
@@ -5058,9 +5058,9 @@ impl Backpack {
             }
         }
         if (method.as_str() == Some("GET")) {
-            let mut query: Option<String> = self.urlencode_with_array_repeat(sortedParams).as_str().map(str::to_owned);
-            if (((query.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
-                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+            let mut query: String = self.urlencode_with_array_repeat(sortedParams);
+            if (((query.chars().count() as i64)) != 0) {
+                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), query));
             }
         }
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), endpoint);
@@ -5097,8 +5097,8 @@ impl Backpack {
     m
 })]);
             let mut sortedOrder: Value = self.keysort(order, &[]);
-            let mut orderQuery: Option<String> = self.urlencode(sortedOrder, &[]).as_str().map(str::to_owned);
-            payload.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instruction=".into()), instruction).into()), Value::Str("&".into())).into()), orderQuery.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("&".into())));
+            let mut orderQuery: String = self.urlencode(sortedOrder, &[]);
+            payload.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instruction=".into()), instruction).into()), Value::Str("&".into())).into()), orderQuery).into()), Value::Str("&".into())));
             if (i.as_f64() == ((match (&(paramsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64()) {
                 payload.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("timestamp=".into()), ts).into()), Value::Str("&window=".into())).into()), recvWindow));
             }

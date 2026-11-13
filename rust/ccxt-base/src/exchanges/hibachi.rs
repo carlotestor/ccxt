@@ -1362,20 +1362,20 @@ impl Hibachi {
         // Encoding
         let mut nonce16: Value = Value::from(self.int_to_base16(nonce, &[]));
         let mut noncePadded: Value = nonce16.as_str().map(|__s| Value::Str(format!("{:0>16}", __s).into())).unwrap_or(Value::Null);
-        let mut encodedNonce: Value = self.base16_to_binary(noncePadded, &[]);
+        let mut encodedNonce: crate::value::Bytes = self.base16_to_binary(noncePadded, &[]);
         let mut numericId: Value = Value::from(self.int_to_base16(self.safe_integer_k(market.clone(), "numericId", &[]), &[]));
         let mut numericIdPadded: Value = numericId.as_str().map(|__s| Value::Str(format!("{:0>8}", __s).into())).unwrap_or(Value::Null);
-        let mut encodedMarketId: Value = self.base16_to_binary(numericIdPadded, &[]);
+        let mut encodedMarketId: crate::value::Bytes = self.base16_to_binary(numericIdPadded, &[]);
         let mut quantity16: Value = Value::from(self.int_to_base16(self.parse_to_int(quantityInternal.map(Value::from).unwrap_or(Value::Null)), &[]));
         let mut quantityPadded: Value = quantity16.as_str().map(|__s| Value::Str(format!("{:0>16}", __s).into())).unwrap_or(Value::Null);
-        let mut encodedQuantity: Value = self.base16_to_binary(quantityPadded, &[]);
+        let mut encodedQuantity: crate::value::Bytes = self.base16_to_binary(quantityPadded, &[]);
         let mut sideInternal16: Value = Value::from(self.int_to_base16(Value::from(sideInternal), &[]));
         let mut sidePadded: Value = sideInternal16.as_str().map(|__s| Value::Str(format!("{:0>8}", __s).into())).unwrap_or(Value::Null);
-        let mut encodedSide: Value = self.base16_to_binary(sidePadded, &[]);
+        let mut encodedSide: crate::value::Bytes = self.base16_to_binary(sidePadded, &[]);
         let mut feeRateInternal16: Value = Value::from(self.int_to_base16(self.parse_to_int(feeRateInternal.map(Value::from).unwrap_or(Value::Null)), &[]));
         let mut feeRatePadded: Value = feeRateInternal16.as_str().map(|__s| Value::Str(format!("{:0>16}", __s).into())).unwrap_or(Value::Null);
-        let mut encodedFeeRate: Value = self.base16_to_binary(feeRatePadded, &[]);
-        let mut encodedPrice: Value = self.binary_concat(Value::Null, &[]);
+        let mut encodedFeeRate: crate::value::Bytes = self.base16_to_binary(feeRatePadded, &[]);
+        let mut encodedPrice: crate::value::Bytes = self.binary_concat(Value::Null, &[]);
         if (type_var.as_str() == Some("limit")) {
             let mut priceStr: Option<String> = self.price_to_precision(self.safe_string_k(market, "symbol", &[]), price).as_str().map(str::to_owned);
             let mut priceInternal: Option<String> = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&priceStr.map(Value::from).unwrap_or(Value::Null), &Value::from(priceFactor)), &Value::Str(format!("{}{}", Value::Str("1e".into()), self.safe_string_k(&info,
@@ -1385,8 +1385,8 @@ impl Hibachi {
             // @ts-expect-error
             encodedPrice = self.base16_to_binary(pricePadded, &[]);
         }
-        let mut message: Value = self.binary_concat(encodedNonce, &[encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate]);
-        return message;
+        let mut message: crate::value::Bytes = self.binary_concat(&encodedNonce, &[Value::from(&encodedMarketId), Value::from(&encodedQuantity), Value::from(&encodedSide), Value::from(&encodedPrice), Value::from(&encodedFeeRate)]);
+        return Value::from(message);
 
     Value::Null
 }
@@ -1750,8 +1750,8 @@ impl Hibachi {
         let mut bigid: Value = self.convert_to_big_int(id.clone());
         let mut idbase16: Value = Value::from(self.int_to_base16(bigid, &[]));
         let mut idPadded: Value = idbase16.as_str().map(|__s| Value::Str(format!("{:0>16}", __s).into())).unwrap_or(Value::Null);
-        let mut message: Value = self.base16_to_binary(idPadded, &[]);
-        let mut signature: Option<String> = self.sign_message(message, (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
+        let mut message: crate::value::Bytes = self.base16_to_binary(idPadded, &[]);
+        let mut signature: Option<String> = self.sign_message(Value::from(&message), (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("orderId".to_string(), id);
@@ -1889,8 +1889,8 @@ impl Hibachi {
         let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut nonce16: Value = Value::from(self.int_to_base16(Value::from(nonce), &[]));
         let mut noncePadded: Value = nonce16.as_str().map(|__s| Value::Str(format!("{:0>16}", __s).into())).unwrap_or(Value::Null);
-        let mut message: Value = self.base16_to_binary(noncePadded, &[]);
-        let mut signature: Option<String> = self.sign_message(message, (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
+        let mut message: crate::value::Bytes = self.base16_to_binary(noncePadded, &[]);
+        let mut signature: Option<String> = self.sign_message(Value::from(&message), (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
@@ -1931,16 +1931,16 @@ impl Hibachi {
         // Encoding
         let mut usdtAsset16: Value = Value::from(self.int_to_base16(Value::from(USDTAssetId), &[]));
         let mut usdtAssetPadded: Value = usdtAsset16.as_str().map(|__s| Value::Str(format!("{:0>8}", __s).into())).unwrap_or(Value::Null);
-        let mut encodedAssetId: Value = self.base16_to_binary(usdtAssetPadded, &[]);
+        let mut encodedAssetId: crate::value::Bytes = self.base16_to_binary(usdtAssetPadded, &[]);
         let mut quantity16: Value = Value::from(self.int_to_base16(self.parse_to_int(quantityInternal.map(Value::from).unwrap_or(Value::Null)), &[]));
         let mut quantityPadded: Value = quantity16.as_str().map(|__s| Value::Str(format!("{:0>16}", __s).into())).unwrap_or(Value::Null);
-        let mut encodedQuantity: Value = self.base16_to_binary(quantityPadded, &[]);
+        let mut encodedQuantity: crate::value::Bytes = self.base16_to_binary(quantityPadded, &[]);
         let mut maxFees16: Value = Value::from(self.int_to_base16(self.parse_to_int(maxFeesInternal.map(Value::from).unwrap_or(Value::Null)), &[]));
         let mut maxFeesPadded: Value = maxFees16.as_str().map(|__s| Value::Str(format!("{:0>16}", __s).into())).unwrap_or(Value::Null);
-        let mut encodedMaxFees: Value = self.base16_to_binary(maxFeesPadded, &[]);
-        let mut encodedAddress: Value = self.base16_to_binary(address, &[]);
-        let mut message: Value = self.binary_concat(encodedAssetId, &[encodedQuantity, encodedMaxFees, encodedAddress]);
-        return message;
+        let mut encodedMaxFees: crate::value::Bytes = self.base16_to_binary(maxFeesPadded, &[]);
+        let mut encodedAddress: crate::value::Bytes = self.base16_to_binary(address, &[]);
+        let mut message: crate::value::Bytes = self.binary_concat(&encodedAssetId, &[Value::from(&encodedQuantity), Value::from(&encodedMaxFees), Value::from(&encodedAddress)]);
+        return Value::from(message);
 
     Value::Null
 }
@@ -2043,15 +2043,15 @@ impl Hibachi {
     pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Value {
         let mut privateKey: Value = privateKey.into();
         if (Value::Int(privateKey.len() as i64).as_f64() == Some(44.0)) {
-            return self.hmac(message.clone(), self.encode(privateKey.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+            return Value::from(self.hmac(message.clone(), self.encode(privateKey.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]));
         }  else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-            let mut hash: Value = self.hash(message, Value::Str("sha256".into()), &[Value::Str("hex".into())]);
-            let mut signature: Value = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
+            let mut hash: Value = Value::from(self.hash(message, Value::Str("sha256".into()), &[Value::Str("hex".into())]));
+            let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
                 privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
-            let mut r: Value = self.safe_string_k(signature.clone(), "r", &[Value::Str("".into())]);
-            let mut s: Value = self.safe_string_k(signature.clone(), "s", &[Value::Str("".into())]);
-            let mut v: Value = Value::from(self.int_to_base16(signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null), &[]));
+            let mut r: Value = self.safe_string_k(&signature, "r", &[Value::Str("".into())]);
+            let mut s: Value = self.safe_string_k(&signature, "s", &[Value::Str("".into())]);
+            let mut v: Value = Value::from(self.int_to_base16(crate::value::KeyRead::key_read(&&signature, "v"), &[]));
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v.as_str().map(|__s| Value::Str(format!("{:0>2}", __s).into())).unwrap_or(Value::Null)).into());
         }
 
@@ -2593,9 +2593,9 @@ impl Hibachi {
         });
         if (method.as_str() == Some("GET")) {
             let mut request: Value = self.omit(params.clone(), self.extract_params(path), &[]);
-            let mut query: Option<String> = self.urlencode(request, &[]).as_str().map(str::to_owned);
-            if (((query.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+            let mut query: String = self.urlencode(request, &[]);
+            if (((query.chars().count() as i64)) != 0) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
             }
         }
         let mut hasJsonBody: bool = (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE"));

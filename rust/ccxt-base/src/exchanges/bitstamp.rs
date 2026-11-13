@@ -4592,38 +4592,38 @@ impl Bitstamp {
         let mut isPrivatePost: bool = (apiName.as_deref() != Some("public")) && (method.as_str() == Some("POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
-        let mut queryString: Option<String> = self.urlencode(query, &[]).as_str().map(str::to_owned);
-        let mut postBody: Option<String> = self.urlencode(Value::Map({
+        let mut queryString: String = self.urlencode(query, &[]);
+        let mut postBody: String = self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("bar".into()));
     m
-}), &[]).as_str().map(str::to_owned);
-        if (queryString.as_deref() != Some("")) {
+}), &[]);
+        if (queryString != "") {
             postBody = queryString.clone();
         }
         let mut requestBody: Value = Value::Null;
         if isPrivatePost {
-            requestBody = postBody.clone().map(Value::from).unwrap_or(Value::Null);
+            requestBody = Value::from(postBody.clone());
         }
         let mut privateHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (apiName.as_deref() == Some("public")) {
-            if (queryString.as_deref() != Some("")) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), queryString.map(Value::from).unwrap_or(Value::Null)));
+            if (queryString != "") {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
             }
         }  else {
             self.check_required_credentials(&[]);
             let mut xAuth: String = format!("{}{}", Value::Str("BITSTAMP ".into()), self.apiKey.clone());
-            let mut xAuthNonce: Value = self.uuid(&[]);
+            let mut xAuthNonce: String = self.uuid(&[]);
             let mut xAuthTimestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
             let mut xAuthVersion: String = "v2".to_string();
             let mut contentType: String = "".to_string();
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Auth".to_string(), Value::from(xAuth.clone()));
-                    m.insert("X-Auth-Nonce".to_string(), xAuthNonce.clone());
+                    m.insert("X-Auth-Nonce".to_string(), Value::from(xAuthNonce.clone()));
                     m.insert("X-Auth-Timestamp".to_string(), xAuthTimestamp.clone());
                     m.insert("X-Auth-Version".to_string(), Value::from(xAuthVersion.clone()));
                 m
@@ -4632,14 +4632,13 @@ impl Bitstamp {
                 contentType = "application/x-www-form-urlencoded".to_string();
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::from(contentType.clone())); }
             }
-            let mut authBody: Option<String> = Some("".to_string());
-            if isPrivatePost && (postBody.as_deref() != Some("")) {
+            let mut authBody: String = "".to_string();
+            if isPrivatePost && (postBody != "") {
                 authBody = postBody;
             }
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", xAuth, method).into()), Value::from(url.replace("https://", ""))).into()), contentType).into()), xAuthNonce).into()), xAuthTimestamp).into()),
-                xAuthVersion).into()), authBody.map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
-            if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("X-Auth-Signature".into(), signature.map(Value::from).unwrap_or(Value::Null)); }
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", xAuth, method).into()), Value::from(url.replace("https://", ""))).into()), contentType).into()), xAuthNonce).into()), xAuthTimestamp).into()), xAuthVersion).into()), authBody);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("X-Auth-Signature".into(), Value::from(signature)); }
         }
         let mut requestHeaders: Value = (if (apiName.as_deref() == Some("public")) { Value::Null } else { privateHeaders });
         return Value::Map({

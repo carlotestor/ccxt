@@ -1641,7 +1641,7 @@ impl Mercado {
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut isPublic: bool = (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("v4Public")) || (apiName.as_deref() == Some("v4PublicNet"));
-        let mut privateBody: Option<String> = Some("".to_string());
+        let mut privateBody: String = "".to_string();
         let mut privateHeaders: Value = Value::Null;
         if isPublic {
             url.push_str(&(self.implode_params(path.clone(), params.clone())).to_string());
@@ -1659,17 +1659,17 @@ impl Mercado {
         m.insert("tapi_nonce".to_string(), Value::from(nonce));
     m
 }), &[params]);
-            privateBody = self.urlencode(__ws_arg_16, &[]).as_str().map(str::to_owned);
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), Value::Str("?".into())).into()), privateBody.clone().map(Value::from).unwrap_or(Value::Null));
+            privateBody = self.urlencode(__ws_arg_16, &[]);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), Value::Str("?".into())).into()), privateBody);
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("TAPI-ID".to_string(), self.apiKey.clone());
-                    m.insert("TAPI-MAC".to_string(), self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
+                    m.insert("TAPI-MAC".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
             });
         }
-        let mut requestBody: Option<String> = privateBody;
+        let mut requestBody: Option<String> = Some(privateBody);
         if isPublic {
             requestBody = None.clone();
         }

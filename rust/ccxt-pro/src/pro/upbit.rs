@@ -333,7 +333,7 @@ impl Upbit {
         }
         let mut finalMessage: Vec<Value> = vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ticket".to_string(), self.uuid(&[]));
+        m.insert("ticket".to_string(), Value::from(self.uuid(&[])));
     m
 })];
         let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
@@ -730,11 +730,11 @@ impl Upbit {
             let mut auth: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
-                    m.insert("nonce".to_string(), self.uuid(&[]));
+                    m.insert("nonce".to_string(), Value::from(self.uuid(&[])));
                 m
             });
-            let mut token: Value = jwt(auth, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
-            wsOptions.insert("token".into(), token.clone());
+            let mut token: String = jwt(auth, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            wsOptions.insert("token".into(), Value::from(token.clone()));
             wsOptions.insert("options".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("headers".to_string(), Value::Map({
@@ -796,7 +796,7 @@ impl Upbit {
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
         let mut message: Vec<Value> = vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ticket".to_string(), self.uuid(&[]));
+        m.insert("ticket".to_string(), Value::from(self.uuid(&[])));
     m
 })];
         let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();

@@ -5126,18 +5126,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("nonce".to_string(), nonce.clone());
                     m
                 }), &[params]);
-                bodySigned = self.urlencode_nested(__ws_arg_30, &[]);
+                bodySigned = Value::from(self.urlencode_nested(__ws_arg_30, &[]));
             }
-            let mut auth: Value = self.encode(Value::Str(format!("{}{}", nonce, bodySigned).into()));
-            let mut hash: Value = self.hash(auth, Value::Str("sha256".into()), &[Value::Str("binary".into())]);
-            let mut binary: Value = self.encode(Value::from(url.clone()));
-            let mut binhash: Value = self.binary_concat(binary, &[hash]);
-            let mut secret: Value = self.base64_to_binary(self.secret.clone(), &[]);
-            let mut signature: Option<String> = self.hmac(binhash, secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            let mut auth: crate::value::Bytes = self.encode(Value::Str(format!("{}{}", nonce, bodySigned).into()));
+            let mut hash: crate::value::Bytes = self.hash_binary(&auth, Value::Str("sha256".into()));
+            let mut binary: crate::value::Bytes = self.encode(Value::from(url.clone()));
+            let mut binhash: crate::value::Bytes = self.binary_concat(&binary, &[Value::from(&hash)]);
+            let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
+            let mut signature: String = self.hmac(&binhash, &secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("API-Key".to_string(), self.apiKey.clone());
-                    m.insert("API-Sign".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("API-Sign".to_string(), Value::from(signature));
                 m
             });
             if isJsonBody {

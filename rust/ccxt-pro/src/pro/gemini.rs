@@ -1460,8 +1460,8 @@ impl Gemini {
                 m.insert("nonce".to_string(), self.incrementing_nonce());
             m
         });
-        let mut b64: Value = self.string_to_base64(json_stringify(&Value::Map(payload)), &[]);
-        let mut signature: Option<String> = self.hmac(self.encode(b64.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
+        let mut b64: String = self.string_to_base64(json_stringify(&Value::Map(payload)), &[]);
+        let mut signature: String = self.hmac(self.encode(Value::from(b64.clone())), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[Value::Str("hex".into())]);
         let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({
@@ -1495,8 +1495,8 @@ impl Gemini {
         let mut headers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-GEMINI-APIKEY".to_string(), self.apiKey.clone());
-                m.insert("X-GEMINI-PAYLOAD".to_string(), b64);
-                m.insert("X-GEMINI-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                m.insert("X-GEMINI-PAYLOAD".to_string(), Value::from(b64));
+                m.insert("X-GEMINI-SIGNATURE".to_string(), Value::from(signature));
             m
         });
         if let Value::Dict(__bf03d0) = &mut self.options {

@@ -2576,9 +2576,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (value.as_f64() == Some(0.0)) {
             return Value::Str("".into());
         }
-        let mut hex: Value = Value::from(self.int_to_base16(value, &[]));
-        hex = self.pad_hex_to_even(hex.clone());
-        return hex;
+        let mut hex: Option<String> = Some(self.int_to_base16(value, &[]));
+        hex = self.pad_hex_to_even(hex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        return hex.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }

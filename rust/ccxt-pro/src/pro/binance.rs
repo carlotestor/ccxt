@@ -4080,16 +4080,16 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             m
         }), &[params]);
         extendedParams = self.keysort(extendedParams.clone(), &[]);
-        let mut query: Value = self.rawencode(extendedParams.clone(), &[]);
+        let mut query: Value = Value::from(self.rawencode(extendedParams.clone(), &[]));
         let mut signature: Value = Value::Null;
         if self.secret.as_str().unwrap_or("").contains("PRIVATE KEY") {
             if ((self.secret.len() as i64) as f64) > ((120i64) as f64) {
-                signature = rsa(query.clone(), self.secret.clone(), Value::Str("sha256".into()));
+                signature = Value::from(rsa(query.clone(), self.secret.clone(), Value::Str("sha256".into())));
             }  else {
-                signature = eddsa(self.encode(query.clone()), self.secret.clone(), Value::Str("ed25519".into()));
+                signature = Value::from(eddsa(self.encode(query.clone()), self.secret.clone(), Value::Str("ed25519".into())));
             }
         }  else {
-            signature = self.hmac(self.encode(query), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            signature = Value::from(self.hmac(self.encode(query), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
         }
         add_element_to_object(&mut extendedParams, &Value::Str("signature".into()), signature);
         return extendedParams;

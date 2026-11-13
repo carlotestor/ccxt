@@ -649,14 +649,14 @@ impl Backpack {
         let mut recvWindow: String = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("X-Window".into()), &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
         let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instruction=".into()), instruction).into()), Value::Str("&".into())).into()), Value::Str("timestamp=".into())).into()),
             ts.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("&window=".into())).into()), recvWindow);
-        let mut secretBytes: Value = self.base64_to_binary(self.secret.clone(), &[]);
-        let mut seed: Value = self.array_slice(secretBytes, Value::Int(0), &[Value::Int(32)]);
-        let mut signature: Value = eddsa(self.encode(Value::from(payload)), seed, Value::Str("ed25519".into()));
+        let mut secretBytes: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
+        let mut seed: Value = self.array_slice(Value::from(&secretBytes), Value::Int(0), &[Value::Int(32)]);
+        let mut signature: String = eddsa(self.encode(Value::from(payload)), seed, Value::Str("ed25519".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("params".to_string(), topics);
-                m.insert("signature".to_string(), Value::from(vec![self.apiKey.clone(), signature, ts.map(Value::from).unwrap_or(Value::Null), Value::from(recvWindow)]));
+                m.insert("signature".to_string(), Value::from(vec![self.apiKey.clone(), Value::from(signature), ts.map(Value::from).unwrap_or(Value::Null), Value::from(recvWindow)]));
             m
         });
         let mut message: Value = self.deep_extend(Value::Map(request), &[params]);

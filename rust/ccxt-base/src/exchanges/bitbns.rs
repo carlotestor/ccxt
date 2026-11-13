@@ -1928,10 +1928,10 @@ impl Bitbns {
                     m.insert("body".to_string(), requestBody.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            let mut payload: Value = self.string_to_base64(json_stringify(&Value::Map(auth)), &[]);
-            let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
-            requestHeaders.insert("X-BITBNS-PAYLOAD".into(), payload);
-            requestHeaders.insert("X-BITBNS-SIGNATURE".into(), signature.map(Value::from).unwrap_or(Value::Null));
+            let mut payload: String = self.string_to_base64(json_stringify(&Value::Map(auth)), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
+            requestHeaders.insert("X-BITBNS-PAYLOAD".into(), Value::from(payload));
+            requestHeaders.insert("X-BITBNS-SIGNATURE".into(), Value::from(signature));
             requestHeaders.insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into()));
         }
         return Value::Map({

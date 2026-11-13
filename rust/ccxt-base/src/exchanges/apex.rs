@@ -2936,7 +2936,7 @@ impl Apex {
             }
         }  else {
             let mut sortedQuery: Value = self.keysort(params, &[]);
-            signBody = self.rawencode(sortedQuery, &[]).as_str().map(str::to_owned);
+            signBody = Some(self.rawencode(sortedQuery, &[]));
         }
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -2945,8 +2945,8 @@ impl Apex {
             if (signBody.is_some()) {
                 messageString = format!("{}{}", messageString, signBody.as_deref().unwrap_or("null"));
             }
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(messageString)), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
-            headersValue.insert("APEX-SIGNATURE".into(), signature.map(Value::from).unwrap_or(Value::Null));
+            let mut signature: String = self.hmac(self.encode(Value::from(messageString)), self.encode(Value::from(self.string_to_base64(self.secret.clone(), &[]))), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            headersValue.insert("APEX-SIGNATURE".into(), Value::from(signature));
             headersValue.insert("APEX-API-KEY".into(), self.apiKey.clone());
             headersValue.insert("APEX-TIMESTAMP".into(), Value::from(timestamp));
             headersValue.insert("APEX-PASSPHRASE".into(), self.password.clone());

@@ -3912,9 +3912,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut querystring: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
-        if (method.as_str() == Some("GET")) && (querystring.as_deref() != Some("")) {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.clone().map(Value::from).unwrap_or(Value::Null)));
+        let mut querystring: String = self.urlencode(query.clone(), &[]);
+        if (method.as_str() == Some("GET")) && (querystring != "") {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), querystring));
         }
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3943,15 +3943,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // RSA-PSS SHA-256 signature with the private key PEM
             let mut keyParts: Value = Value::Array(if let Some(__s) = self.privateKey.as_str() { __s.split("\\n").map(Value::from).collect() } else { Vec::new() });
             let mut cleanPrivateKey: Value = Value::Str(keyParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into());
-            let mut signature: Value = rsa(payload, cleanPrivateKey, Value::Str("sha256".into()));
+            let mut signature: String = rsa(payload, cleanPrivateKey, Value::Str("sha256".into()));
             headersValue = self.extend(headersValue.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("KALSHI-ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("KALSHI-ACCESS-SIGNATURE".to_string(), signature);
+                    m.insert("KALSHI-ACCESS-SIGNATURE".to_string(), Value::from(signature));
                     m.insert("KALSHI-ACCESS-TIMESTAMP".to_string(), Value::from(timestamp));
                 m
             })]);
-            if (method.as_str() != Some("GET")) && (querystring.as_deref() != Some("")) {
+            if (method.as_str() != Some("GET")) && (querystring != "") {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 bodyValue = json_stringify(&query);
             }

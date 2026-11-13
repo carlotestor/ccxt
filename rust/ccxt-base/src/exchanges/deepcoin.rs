@@ -4537,9 +4537,9 @@ impl Deepcoin {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestPath: Value = path.clone();
         if (method.as_str() == Some("GET")) {
-            let mut query: Option<String> = self.urlencode(params.clone(), &[]).as_str().map(str::to_owned);
-            if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
-                requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, Value::Str("?".into())).into()), query.map(Value::from).unwrap_or(Value::Null)).into());
+            let mut query: String = self.urlencode(params.clone(), &[]);
+            if ((query.chars().count() as i64)) > 0 {
+                requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, Value::Str("?".into())).into()), query).into());
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -4566,8 +4566,8 @@ impl Deepcoin {
                 privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                 payload = Value::Str(format!("{}{}", payload, requestBody).into());
             }
-            let mut signature: Option<String> = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
-            privateHeaders.insert("DC-ACCESS-SIGN".into(), signature.map(Value::from).unwrap_or(Value::Null));
+            let mut signature: String = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            privateHeaders.insert("DC-ACCESS-SIGN".into(), Value::from(signature));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));

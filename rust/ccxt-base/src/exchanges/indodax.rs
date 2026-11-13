@@ -2178,12 +2178,12 @@ impl Indodax {
                     m.insert("recvWindow".to_string(), crate::value::get_value_k(&self.options, "recvWindow"));
                 m
             }), &[params]);
-            privateBody = self.urlencode(__ws_arg_14, &[]);
+            privateBody = Value::from(self.urlencode(__ws_arg_14, &[]));
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), self.hmac(self.encode(privateBody.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
+                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(privateBody.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
             });
         }

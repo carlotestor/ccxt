@@ -3463,7 +3463,7 @@ impl Tokocrypto {
                         m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m
                 });
-                let mut bodyStream: Option<String> = (if (method.as_str() != Some("GET")) { self.urlencode(params.clone(), &[]).as_str().map(str::to_owned) } else { None });
+                let mut bodyStream: Option<String> = (if (method.as_str() != Some("GET")) { Some(self.urlencode(params.clone(), &[])) } else { None });
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
@@ -3478,7 +3478,7 @@ impl Tokocrypto {
         }  else if (apiName.as_str() == Some("private")) || ((apiName.as_str() == Some("sapi")) && (path.as_str() != Some("system/status"))) || (apiName.as_str() == Some("sapiV3")) || ((apiName.as_str() == Some("wapi")) && (path.as_str() != Some("systemStatus"))) || (apiName.as_str() == Some("dapiPrivate")) || (apiName.as_str() == Some("dapiPrivateV2")) ||
             (apiName.as_str() == Some("fapiPrivate")) || (apiName.as_str() == Some("fapiPrivateV2")) {
             self.check_required_credentials(&[]);
-            let mut query: Value = Value::Str("".into());
+            let mut query: String = "".to_string();
             let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
             let __ws_arg_21 = self.nonce();
             let mut extendedParams: Value = self.extend(Value::Map({
@@ -3500,8 +3500,8 @@ impl Tokocrypto {
             }  else {
                 query = self.urlencode(extendedParams, &[]);
             }
-            let mut signature: Option<String> = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
-            query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature.map(Value::from).unwrap_or(Value::Null)).into())).into());
+            let mut signature: String = self.hmac(self.encode(Value::from(query.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            query.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature));
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
@@ -3512,7 +3512,7 @@ impl Tokocrypto {
             if queryInUrl {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), query));
             }  else {
-                bodySigned = query;
+                bodySigned = Value::from(query);
                 headersSigned.insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into()));
             }
             return Value::Map({

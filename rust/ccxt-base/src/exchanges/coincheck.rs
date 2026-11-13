@@ -1602,24 +1602,24 @@ impl Coincheck {
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
-            let mut queryString: Option<String> = Some("".to_string());
+            let mut queryString: String = "".to_string();
             if (method.as_str() == Some("GET")) {
                 if hasQuery {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(self.keysort(query.clone(), &[]), &[])));
                 }
             }  else {
                 if hasQuery {
-                    queryString = self.urlencode(self.keysort(query, &[]), &[]).as_str().map(str::to_owned);
-                    bodySigned = queryString.clone().map(Value::from).unwrap_or(Value::Null);
+                    queryString = self.urlencode(self.keysort(query, &[]), &[]);
+                    bodySigned = Value::from(queryString.clone());
                 }
             }
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString.map(Value::from).unwrap_or(Value::Null));
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
             headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-NONCE".to_string(), nonce);
-                    m.insert("ACCESS-SIGNATURE".to_string(), self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+                    m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
                 m
             });
         }

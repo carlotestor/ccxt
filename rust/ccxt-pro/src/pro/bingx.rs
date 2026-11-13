@@ -424,10 +424,10 @@ impl Bingx {
         }  else {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[]);
         }
-        let mut id: Value = self.uuid(&[]);
+        let mut id: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id.clone());
+                m.insert("id".to_string(), Value::from(id.clone()));
                 m.insert("dataType".to_string(), dataType);
                 m.insert("reqType".to_string(), Value::Str("unsub".into()));
             m
@@ -439,7 +439,7 @@ impl Bingx {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), Value::from(id));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash]));
                 m.insert("messageHashes".to_string(), Value::from(vec![messageHash.clone()]));
                 m.insert("symbols".to_string(), Value::from(symbols));
@@ -496,10 +496,10 @@ impl Bingx {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         }
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[Value::from((market).symbol.clone())]);
-        let mut uuid: Value = self.uuid(&[]);
+        let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), uuid.clone());
+                m.insert("id".to_string(), Value::from(uuid.clone()));
                 m.insert("dataType".to_string(), Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@ticker".into())).into()));
             m
         });
@@ -509,7 +509,7 @@ impl Bingx {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
-                m.insert("id".to_string(), uuid);
+                m.insert("id".to_string(), Value::from(uuid));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsSubType]);
@@ -770,10 +770,10 @@ impl Bingx {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: String = format!("{}{}", Value::Str("trade::".into()), symbolValue);
-        let mut uuid: Value = self.uuid(&[]);
+        let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), uuid.clone());
+                m.insert("id".to_string(), Value::from(uuid.clone()));
                 m.insert("dataType".to_string(), Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@trade".into())).into()));
             m
         });
@@ -783,7 +783,7 @@ impl Bingx {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
-                m.insert("id".to_string(), uuid);
+                m.insert("id".to_string(), Value::from(uuid));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsSubType]);
@@ -1006,10 +1006,10 @@ impl Bingx {
         let mut depth: String = self.safe_string_k(&options, "depth", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string();
         let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@depth".into())).into()), depth);
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::from((market).symbol.clone())]);
-        let mut uuid: Value = self.uuid(&[]);
+        let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), uuid.clone());
+                m.insert("id".to_string(), Value::from(uuid.clone()));
                 m.insert("dataType".to_string(), Value::from(subscriptionHash.clone()));
             m
         });
@@ -1023,7 +1023,7 @@ impl Bingx {
         if ((market).inverse == Some(true)) {
             subscriptionArgs = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), uuid.clone());
+                    m.insert("id".to_string(), Value::from(uuid.clone()));
                     m.insert("unsubscribe".to_string(), Value::Bool(false));
                     m.insert("count".to_string(), limit.clone());
                     m.insert("params".to_string(), Value::from(&paramsSubType));
@@ -1032,7 +1032,7 @@ impl Bingx {
         }  else {
             subscriptionArgs = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), uuid);
+                    m.insert("id".to_string(), Value::from(uuid));
                     m.insert("unsubscribe".to_string(), Value::Bool(false));
                     m.insert("level".to_string(), limit.clone());
                     m.insert("params".to_string(), Value::from(&paramsSubType));
@@ -1440,10 +1440,10 @@ impl Bingx {
         let mut rawTimeframe: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::from((market).symbol.clone()), timeframe]);
         let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe);
-        let mut uuid: Value = self.uuid(&[]);
+        let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), uuid.clone());
+                m.insert("id".to_string(), Value::from(uuid.clone()));
                 m.insert("dataType".to_string(), Value::from(subscriptionHash.clone()));
             m
         });
@@ -1452,7 +1452,7 @@ impl Bingx {
         }
         let mut subscriptionArgs: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), uuid);
+                m.insert("id".to_string(), Value::from(uuid));
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("interval".to_string(), rawTimeframe);
                 m.insert("params".to_string(), Value::from(&paramsSubType));
@@ -1578,7 +1578,7 @@ impl Bingx {
                 messageHash = format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
             }
         }
-        let mut uuid: Value = self.uuid(&[]);
+        let mut uuid: String = self.uuid(&[]);
         let mut baseUrl: Option<String> = None;
         let mut request: Value = Value::Null;
         if (type_var.as_deref() == Some("swap")) {
@@ -1590,7 +1590,7 @@ impl Bingx {
             baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), uuid.clone());
+                    m.insert("id".to_string(), Value::from(uuid.clone()));
                     m.insert("reqType".to_string(), Value::Str("sub".into()));
                     m.insert("dataType".to_string(), Value::Str("spot.executionReport".into()));
                 m
@@ -1604,7 +1604,7 @@ impl Bingx {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
-                m.insert("id".to_string(), uuid);
+                m.insert("id".to_string(), Value::from(uuid));
             m
         });
         let mut orders: Value = self.watch(url.as_str(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Map(subscription)).await;
@@ -1677,7 +1677,7 @@ impl Bingx {
                 messageHash = format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
             }
         }
-        let mut uuid: Value = self.uuid(&[]);
+        let mut uuid: String = self.uuid(&[]);
         let mut baseUrl: Option<String> = None;
         let mut request: Value = Value::Null;
         if (type_var.as_deref() == Some("swap")) {
@@ -1689,7 +1689,7 @@ impl Bingx {
             baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), uuid.clone());
+                    m.insert("id".to_string(), Value::from(uuid.clone()));
                     m.insert("reqType".to_string(), Value::Str("sub".into()));
                     m.insert("dataType".to_string(), Value::Str("spot.executionReport".into()));
                 m
@@ -1703,7 +1703,7 @@ impl Bingx {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
-                m.insert("id".to_string(), uuid);
+                m.insert("id".to_string(), Value::from(uuid));
             m
         });
         let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Map(subscription)).await;
@@ -1761,7 +1761,7 @@ impl Bingx {
         }
         let mut request: Value = Value::Null;
         let mut baseUrl: Option<String> = None;
-        let mut uuid: Value = self.uuid(&[]);
+        let mut uuid: String = self.uuid(&[]);
         if (type_var.as_str() == Some("swap")) {
             if (subType.as_deref() == Some("inverse")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBalance is not supported for inverse swap markets yet".into()))));
@@ -1773,7 +1773,7 @@ impl Bingx {
             baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]).as_str().map(str::to_owned);
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), uuid.clone());
+                    m.insert("id".to_string(), Value::from(uuid.clone()));
                     m.insert("dataType".to_string(), Value::Str("ACCOUNT_UPDATE".into()));
                 m
             });
@@ -1796,7 +1796,7 @@ impl Bingx {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
-                m.insert("id".to_string(), uuid);
+                m.insert("id".to_string(), Value::from(uuid));
             m
         });
         return self.watch(url.as_str(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Map(subscription)).await;
@@ -1910,11 +1910,11 @@ impl Bingx {
         let mut paramsFetchPositionsSnapshot: crate::value::Dict = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let awaitPositionsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsFetchPositionsSnapshot, Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut awaitPositionsSnapshot: bool = awaitPositionsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut uuid: Option<String> = self.uuid(&[]).as_str().map(str::to_owned);
+        let mut uuid: String = self.uuid(&[]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
-                m.insert("id".to_string(), uuid.map(Value::from).unwrap_or(Value::Null));
+                m.insert("id".to_string(), Value::from(uuid));
             m
         });
         if fetchPositionsSnapshot && awaitPositionsSnapshot && (self.positions.clone() == Value::Null) {

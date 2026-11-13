@@ -2024,7 +2024,7 @@ impl Cex {
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("clientOrderId".to_string(), self.uuid(&[]));
+                m.insert("clientOrderId".to_string(), Value::from(self.uuid(&[])));
                 m.insert("currency1".to_string(), Value::from((market).base_id.as_deref()));
                 m.insert("currency2".to_string(), Value::from((market).quote_id.as_deref()));
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
@@ -2527,7 +2527,7 @@ impl Cex {
         if fromMain {
             targetAccount = toAccount;
         }
-        let mut guid: Option<String> = self.safe_string_k(params.clone(), "guid", &[self.uuid(&[])]).as_str().map(str::to_owned);
+        let mut guid: Option<String> = self.safe_string_k(params.clone(), "guid", &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2774,13 +2774,13 @@ impl Cex {
             let mut seconds: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
             let mut bodySigned: Value = json_stringify(&query);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", path, seconds).into()), bodySigned);
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-AGGR-KEY".to_string(), self.apiKey.clone());
                     m.insert("X-AGGR-TIMESTAMP".to_string(), Value::from(seconds));
-                    m.insert("X-AGGR-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("X-AGGR-SIGNATURE".to_string(), Value::from(signature));
                 m
             });
             return Value::Map({

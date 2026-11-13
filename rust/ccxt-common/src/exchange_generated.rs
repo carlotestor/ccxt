@@ -3878,7 +3878,7 @@ pub trait ExchangeBase:
 }
 
     fn string_to_base16(&self, mut str_val: Value) -> Value {
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.binary_to_base16(self.base64_to_binary(self.string_to_base64(str_val, &[]), &[]), &[])).into());
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.binary_to_base16(self.base64_to_binary(Value::from(self.string_to_base64(str_val, &[])), &[]), &[])).into());
 
     Value::Null
 }

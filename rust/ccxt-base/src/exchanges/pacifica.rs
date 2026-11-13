@@ -5477,12 +5477,12 @@ if _try_result.is_err() {
     pub fn sign_message(&self, mut header: Value, mut payload: Value, privateKey: &str) -> Option<String> {
         let mut privateKey: Value = privateKey.into();
         let mut message: Option<String> = self.prepare_message(header, payload);
-        let mut messageBytes: Value = self.encode(message.map(Value::from).unwrap_or(Value::Null));
-        let mut secretBytes: Value = self.base58_to_binary(privateKey, &[]);
-        let mut seed: Value = self.array_slice(secretBytes, Value::Int(0), &[Value::Int(32)]);
-        let mut signatureBase64: Value = eddsa(messageBytes, seed, Value::Str("ed25519".into()));
-        let mut signatureBinary: Value = self.base64_to_binary(signatureBase64, &[]);
-        let mut signatureBase58: Value = self.binary_to_base58(signatureBinary, &[]);
+        let mut messageBytes: crate::value::Bytes = self.encode(message.map(Value::from).unwrap_or(Value::Null));
+        let mut secretBytes: crate::value::Bytes = self.base58_to_binary(privateKey, &[]);
+        let mut seed: Value = self.array_slice(Value::from(&secretBytes), Value::Int(0), &[Value::Int(32)]);
+        let mut signatureBase64: String = eddsa(&messageBytes, seed, Value::Str("ed25519".into()));
+        let mut signatureBinary: crate::value::Bytes = self.base64_to_binary(Value::from(signatureBase64), &[]);
+        let mut signatureBase58: Value = Value::from(self.binary_to_base58(&signatureBinary, &[]));
         return signatureBase58.as_str().map(str::to_owned);
 }
 

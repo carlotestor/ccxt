@@ -3114,14 +3114,14 @@ impl Gemini {
                 m
             }), &[query.clone()]);
             let mut payload: Value = json_stringify(&request);
-            payload = self.string_to_base64(payload.clone(), &[]);
-            let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]).as_str().map(str::to_owned);
+            payload = Value::from(self.string_to_base64(payload.clone(), &[]));
+            let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
             headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("text/plain".into()));
                     m.insert("X-GEMINI-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("X-GEMINI-PAYLOAD".to_string(), payload);
-                    m.insert("X-GEMINI-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("X-GEMINI-SIGNATURE".to_string(), Value::from(signature));
                 m
             });
         }  else {

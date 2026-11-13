@@ -334,10 +334,10 @@ impl Extended {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
-        let mut query: Option<String> = self.urlencode(params, &[]).as_str().map(str::to_owned);
+        let mut query: String = self.urlencode(params, &[]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]), Value::Str("/orderbooks/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
-        if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+        if ((query.chars().count() as i64)) > 0 {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), query));
         }
         let mut orderbook: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1000,10 +1000,10 @@ impl Extended {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), symbolValue);
-        let mut query: Option<String> = self.urlencode(params, &[]).as_str().map(str::to_owned);
+        let mut query: String = self.urlencode(params, &[]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]), Value::Str("/funding/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
-        if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+        if ((query.chars().count() as i64)) > 0 {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), query));
         }
         return self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1101,10 +1101,10 @@ impl Extended {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("markPrice:".into()), symbolValue);
-        let mut query: Option<String> = self.urlencode(params, &[]).as_str().map(str::to_owned);
+        let mut query: String = self.urlencode(params, &[]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]), Value::Str("/prices/mark/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
-        if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+        if ((query.chars().count() as i64)) > 0 {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), query));
         }
         return self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1184,10 +1184,10 @@ impl Extended {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
-        let mut query: Option<String> = self.urlencode(params, &[]).as_str().map(str::to_owned);
+        let mut query: String = self.urlencode(params, &[]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]), Value::Str("/publicTrades/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
-        if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
+        if ((query.chars().count() as i64)) > 0 {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), query));
         }
         let mut trades: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1314,9 +1314,9 @@ impl Extended {
         m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&paramsOmitted]);
-        let mut query: Option<String> = self.urlencode(__ws_arg_2, &[]).as_str().map(str::to_owned);
+        let mut query: String = self.urlencode(__ws_arg_2, &[]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]),
-            Value::Str("/candles/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str("/".into())).into()), candleType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("?".into())).into()), query.map(Value::from).unwrap_or(Value::Null));
+            Value::Str("/candles/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str("/".into())).into()), candleType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("?".into())).into()), query);
         let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("ohlcv".into()));

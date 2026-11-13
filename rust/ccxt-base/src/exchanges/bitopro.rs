@@ -2448,11 +2448,11 @@ impl Bitopro {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
-                let mut payload: Value = self.string_to_base64(signedBody, &[]);
-                let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+                let mut payload: Value = Value::from(self.string_to_base64(signedBody, &[]));
+                let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 requestHeaders.insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone());
                 requestHeaders.insert("X-BITOPRO-PAYLOAD".into(), payload.clone());
-                requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), signature.clone());
+                requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), Value::from(signature));
             }  else if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if queryLength > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
@@ -2464,11 +2464,11 @@ impl Bitopro {
                     m
                 });
                 let mut data: Option<String> = json_stringify(&Value::Map(rawData)).as_str().map(str::to_owned);
-                let mut payload: Value = self.string_to_base64(data.map(Value::from).unwrap_or(Value::Null), &[]);
-                let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+                let mut payload: Value = Value::from(self.string_to_base64(data.map(Value::from).unwrap_or(Value::Null), &[]));
+                let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 requestHeaders.insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone());
                 requestHeaders.insert("X-BITOPRO-PAYLOAD".into(), payload);
-                requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), signature);
+                requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), Value::from(signature));
             }
         }  else if (apiName.as_deref() == Some("public")) && (method.as_str() == Some("GET")) {
             if queryLength > ((0i64) as f64) {
