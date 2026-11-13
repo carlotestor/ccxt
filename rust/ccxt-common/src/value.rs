@@ -737,6 +737,11 @@ impl KeyRead for &Option<crate::types::Market> {
     fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
 }
 
+/// A lent optional currency handed to a `Value` slot: its stored record (one shared-handle copy, as `get_arg` made).
+impl From<Option<&crate::types::Currency>> for Value {
+    fn from(c: Option<&crate::types::Currency>) -> Self { c.map(|c| &c.raw).cloned().unwrap_or_default() }
+}
+
 /// Extra operands of `extend` / `deep_extend`: a `Value` slice, or a dict local lent by reference.
 pub trait MergeOperands {
     fn for_each_map(self, f: impl FnMut(&HashMap<String, Value>));

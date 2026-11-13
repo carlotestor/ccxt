@@ -2037,6 +2037,8 @@ impl FromRaw for Option<i64> { fn from_raw(v: Value) -> Self { v.as_i64() } }
 impl IntoRaw for Option<i64> { fn into_raw(self) -> Value { Value::from(self) } }
 /// A string scalar return (`fetchOrderStatus`); any other shape reads `None`.
 impl FromRaw for Option<String> { fn from_raw(v: Value) -> Self { v.as_str().map(String::from) } }
+/// An optional currency argument: `Null` is `None`, any other value decodes the record once.
+impl FromRaw for Option<Currency> { fn from_raw(v: Value) -> Self { if matches!(v, Value::Null) { None } else { Some(Currency::from_value(v)) } } }
 impl IntoRaw for Option<String> { fn into_raw(self) -> Value { self.map(Value::from).unwrap_or_default() } }
 
 /// One entry of a `cancel_orders_for_symbols` batch (TS `CancellationRequest`); `raw` keeps any other key.
