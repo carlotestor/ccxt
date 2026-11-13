@@ -4916,7 +4916,7 @@ export class BaseExchange {
                                 fees.push (this.extend ({}, tradeFee));
                             }
                         } else {
-                            const tradeFee = this.safeDict (trade, 'fee');
+                            const tradeFee = this.safeValue (trade, 'fee');
                             if (tradeFee !== undefined) {
                                 fees.push (this.extend ({}, tradeFee));
                             }
