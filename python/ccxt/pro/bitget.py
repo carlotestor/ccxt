@@ -655,8 +655,7 @@ class bitget(ccxt.async_support.bitget):
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = self.safe_string(market, 'symbol', '')
-        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
-        self.ohlcvs[symbol] = symbolOhlcvs
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         channel = self.safe_string_2(arg, 'channel', 'topic', '')
         interval = self.safe_string(arg, 'interval')
         isUta = None
@@ -669,11 +668,11 @@ class bitget(ccxt.async_support.bitget):
         timeframe = self.find_timeframe(interval, timeframes)
         if timeframe is None:
             return
-        stored = self.safe_value(symbolOhlcvs, timeframe)
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            symbolOhlcvs[timeframe] = stored
+            self.ohlcvs[symbol][timeframe] = stored
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i], market)
@@ -1430,12 +1429,10 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string(arg, 'instType', '')
-        if self.positions is None:
-            self.positions = {}
         action = self.safe_string(message, 'action')
-        if not (instType in self.positions) or (action == 'snapshot'):
-            self.positions[instType] = ArrayCacheBySymbolBySide()
-        cache = self.positions[instType]
+        if not (instType in self.positionsByType) or (action == 'snapshot'):
+            self.positionsByType[instType] = ArrayCacheBySymbolBySide()
+        cache = self.positionsByType[instType]
         rawPositions = self.safe_list(message, 'data', [])
         newPositions = []
         for i in range(0, len(rawPositions)):
