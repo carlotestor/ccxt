@@ -510,7 +510,7 @@ impl Mudrex {
         if (s.is_none()) {
             return;
         }
-        let mut market: crate::types::Market = self.safe_market(&[s.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: crate::types::Market = self.safe_market(s.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut parsed: Value = Value::from(vec![self.safe_timestamp_k(&data, "t", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
@@ -543,7 +543,7 @@ impl Mudrex {
             if (s.is_none()) {
                 continue;
             }
-            let mut market: crate::types::Market = self.safe_market(&[s.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)]);
+            let mut market: crate::types::Market = self.safe_market(s.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
             let mut last: Option<f64> = self.safe_number_k(&t, "p", &[]).as_f64();

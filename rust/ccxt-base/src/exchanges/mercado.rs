@@ -815,7 +815,7 @@ impl Mercado {
     pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
         let mut timestamp: Option<i64> = self.safe_timestamp2(trade.clone(), Value::Str("date".into()), Value::Str("executed_timestamp".into()), &[]).as_i64();
-        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("tid".into()), Value::Str("operation_id".into()), &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -899,7 +899,7 @@ impl Mercado {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
             response = self.public_get_coin_trades(&[__ws_arg_4]).await;
         }
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1164,7 +1164,7 @@ impl Mercado {
         }
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "coin_pair", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), crate::Value::from(market)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "created_timestamp", &[]).as_i64();
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1490,7 +1490,7 @@ impl Mercado {
             m
         })]).into_dict();
         let mut orders: crate::value::List = self.safe_list_k(&responseData, "orders", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&orders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&orders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1538,7 +1538,7 @@ impl Mercado {
             m
         })]).into_dict();
         let mut orders: crate::value::List = self.safe_list_k(&responseData, "orders", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&orders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&orders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1586,7 +1586,7 @@ impl Mercado {
             m
         })]).into_dict();
         let mut ordersRaw: crate::value::List = self.safe_list_k(&responseData, "orders", &[Value::from(vec![])]).into_list();
-        let mut orders: Value = self.parse_orders(&ordersRaw, &[(market).raw.clone(), since.clone(), limit.clone()]);
+        let mut orders: Value = self.parse_orders(&ordersRaw, Some(&market), &[since.clone(), limit.clone()]);
         let mut trades: Value = self.orders_to_trades(orders);
         return self.filter_by_symbol_since_limit(trades, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null

@@ -1611,7 +1611,7 @@ impl Tokocrypto {
                 m
             })]).into_dict();
             let mut list: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-            return self.parse_trades(&list, &[market.clone(), since.clone(), limit.clone()]);
+            return self.parse_trades(&list, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[since.clone(), limit.clone()]);
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default = 500, maximum = 1000
@@ -1669,7 +1669,7 @@ impl Tokocrypto {
         //     ]
         //
         let mut responseList: Value = self.to_array(response);
-        return self.parse_trades(responseList, &[market, since, limit]);
+        return self.parse_trades(responseList, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2737,7 +2737,7 @@ impl Tokocrypto {
             m
         })]).into_dict();
         let mut orders: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-        return self.parse_orders(&orders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(&orders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2956,7 +2956,7 @@ impl Tokocrypto {
             m
         })]).into_dict();
         let mut trades: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
