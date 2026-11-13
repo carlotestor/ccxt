@@ -403,7 +403,7 @@ export default class woo extends Exchange {
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     getDedicatedNetworkId(currency: Currency, params: Dict): [Str, Dict];
     parseDepositAddress(depositEntry: Dict, currency?: Currency): DepositAddress;
-    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<[Currency, Dict[]]>;
+    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name woo#fetchLedger
@@ -418,7 +418,7 @@ export default class woo extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: Str): Str;
-    getCurrencyFromChaincode(networkizedCode: string, currency?: Currency): CurrencyInterface;
+    getCurrencyCodeFromChaincode(networkizedCode: string): Str;
     /**
      * @method
      * @name woo#fetchDeposits
