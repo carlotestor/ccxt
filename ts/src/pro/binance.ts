@@ -707,13 +707,12 @@ export default class binance extends binanceRest {
         const market = this.safeMarket (marketId, undefined, undefined, 'swap');
         const symbol = this.safeSymbol (marketId, market);
         const liquidation = this.parseWsLiquidation (message, market);
-        let cache = this.myLiquidations;
-        if (cache === undefined) {
+        if (this.myLiquidations === undefined) {
             const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
-            cache = new ArrayCache (limit);
+            this.myLiquidations = new ArrayCache (limit);
         }
+        const cache: ArrayCache = this.myLiquidations;
         cache.append (liquidation);
-        this.myLiquidations = cache;
         client.resolve ([ liquidation ], 'myLiquidations');
         client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
     }

@@ -79,6 +79,15 @@ impl From<&Cache> for Value { fn from(c: &Cache) -> Value { if let Value::Dict(d
 impl From<Option<Cache>> for Value { fn from(c: Option<Cache>) -> Value { c.map_or(Value::Null, |c| c.0) } }
 impl From<&Option<Cache>> for Value { fn from(c: &Option<Cache>) -> Value { c.as_ref().map_or(Value::Null, Value::from) } }
 
+impl crate::value::Rows for &Cache {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { false }
+}
+impl crate::value::Rows for &Option<Cache> {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { self.is_none() }
+}
+
 /// The cache operations on an optional cache slot; an absent cache ignores them, as a `Value::Null` receiver did.
 pub trait CacheSlot {
     fn append(&mut self, item: Value);

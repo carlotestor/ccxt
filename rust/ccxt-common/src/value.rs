@@ -692,6 +692,30 @@ pub type Dict = Arc<HashMap<String, Value>>;
 /// The shared list a list-typed local holds; a non-list value reads like an empty list.
 pub type List = Arc<Vec<Value>>;
 
+/// The rows argument of the base `filter_by_*` helpers: any `Value` by value, or a shared list / ws cache
+/// handle by reference (an Arc bump of the same list or marker, read by `to_array` as before).
+/// `absent` is the `=== undefined` test of the argument (a `Null` value, a missing list or cache).
+pub trait Rows: Clone {
+    fn rows(self) -> Value;
+    fn absent(&self) -> bool;
+}
+impl Rows for Value {
+    fn rows(self) -> Value { self }
+    fn absent(&self) -> bool { self.is_null() }
+}
+impl Rows for &List {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { false }
+}
+impl Rows for &Dict {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { false }
+}
+impl Rows for &Option<List> {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { self.is_none() }
+}
+
 /// A container the `safe_*` readers accept: a `Value` by value, a map or list by reference.
 /// `key_read` takes a literal key, `read` any key (a string key on a list reads nothing, as `get_value` does).
 pub trait KeyRead: Clone {

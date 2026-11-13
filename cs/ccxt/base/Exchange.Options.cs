@@ -261,7 +261,7 @@ public partial class BaseExchange
     public ccxt.pro.ArrayCache positions;
     public IDictionary<string, object> positionsByType = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     public ccxt.pro.ArrayCache liquidations;
-    public object myLiquidations;
+    public ccxt.pro.ArrayCache myLiquidations;
     private IDictionary<string, object> tradesState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     private IDictionary<string, object> orderbooksState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
 
