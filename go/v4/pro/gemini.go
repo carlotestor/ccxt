@@ -325,9 +325,9 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 	}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var stored any = storesForSymbols[symbol]
+		var symbolStore any = storesForSymbols[symbol]
 		var messageHash string = "trades:" + symbol
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.(ccxt.ClientInterface).Resolve(symbolStore, messageHash)
 	}
 }
 
@@ -436,8 +436,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var timeframe *string = this.FindTimeframe(timeframeId)
-	var ohlcvsBySymbol map[string]any = ccxt.SafeMapTyped(this.Ohlcvs, symbol)
-	if ohlcvsBySymbol == nil {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}

@@ -2498,7 +2498,7 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var position map[string]any = ccxt.PositionToMap(this.ParsePosition(data))
 	var symbol *string = ccxt.SafeStringPtr(position["symbol"])
 	var newPositions []any = []any{}
@@ -2516,11 +2516,11 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 				"contracts":           this.ParseNumber("0"),
 				"lastUpdateTimestamp": this.SafeInteger(position, "lastUpdateTimestamp"),
 			})
-			cache.(ccxt.Appender).Append(flattened)
+			cache.Append(flattened)
 			newPositions = append(newPositions, flattened)
 		}
 	}
-	cache.(ccxt.Appender).Append(position)
+	cache.Append(position)
 	newPositions = append(newPositions, position)
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 	client.(ccxt.ClientInterface).Resolve(newPositions, ccxt.Add("positions:", symbol))

@@ -601,7 +601,7 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 		// https://github.com/ccxt/ccxt/issues/29709
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var rawPositions []any = ccxt.SafeListTyped(message, "positions")
 	if rawPositions == nil {
 		// an open_positions frame without the positions key is malformed
@@ -615,7 +615,7 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 		var timestamp *int64 = this.SafeInteger(message, "timestamp")
 		var position any = this.ParseWsPosition(rawPosition, nil, timestamp)
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {
@@ -1112,12 +1112,11 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 	//         "reason": 'edited_by_user'
 	//     }
 	//
-	var orders ccxt.WsArrayCache = this.Orders
-	if orders == nil {
+	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
-		orders = ccxt.NewArrayCacheBySymbolById(limit)
-		this.Orders = orders
+		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
+	var orders ccxt.WsArrayCache = this.Orders
 	var order map[string]any = ccxt.SafeMapTyped(message, "order")
 	if order != nil {
 		var marketId *string = this.SafeString(order, "instrument")
@@ -1141,9 +1140,9 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 				ccxt.AddElementToObject(previousOrder, "trades", []any{})
 			}
-			retRes80216 := ccxt.GetValue(previousOrder, "trades")
-			ccxt.AppendToArray(&retRes80216, trade)
-			ccxt.AddElementToObject(previousOrder, "trades", retRes80216)
+			retRes80116 := ccxt.GetValue(previousOrder, "trades")
+			ccxt.AppendToArray(&retRes80116, trade)
+			ccxt.AddElementToObject(previousOrder, "trades", retRes80116)
 			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 			var totalCost any = "0"
 			var totalAmount any = "0"
