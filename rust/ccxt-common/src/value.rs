@@ -737,6 +737,17 @@ impl KeyRead for &Option<crate::types::Market> {
     fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
 }
 
+/// An optional currency argument reads its own map (Null when absent).
+impl KeyRead for Option<&crate::types::Currency> {
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
+}
+/// A lent optional currency reads its own map (Null when absent).
+impl KeyRead for &Option<&crate::types::Currency> {
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
+}
+
 /// A lent optional currency handed to a `Value` slot: its stored record (one shared-handle copy, as `get_arg` made).
 impl From<Option<&crate::types::Currency>> for Value {
     fn from(c: Option<&crate::types::Currency>) -> Self { c.map(|c| &c.raw).cloned().unwrap_or_default() }
