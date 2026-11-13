@@ -858,10 +858,10 @@ impl Revolutx {
         if (last.is_some()) && (priceChange.is_some()) {
             open = crate::precise::Precise::stringSub(&last.clone().map(Value::from).unwrap_or(Value::Null), &priceChange.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
-        let mut percentage: Value = Value::Null;
+        let mut percentage: Option<f64> = None;
         if (open.is_some()) && (priceChange.is_some()) {
             let mut percentageString: Option<String> = crate::precise::Precise::stringDivPrec(&priceChange.clone().map(Value::from).unwrap_or(Value::Null), &open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)).as_str().map(str::to_owned);
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&percentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&percentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -880,7 +880,7 @@ impl Revolutx {
         m.insert("last".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), priceChange.map(Value::from).unwrap_or(Value::Null));
-        m.insert("percentage".to_string(), percentage);
+        m.insert("percentage".to_string(), Value::from(percentage));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), Value::Null);
@@ -1206,13 +1206,13 @@ impl Revolutx {
         let mut symbol: Option<String> = self.safe_symbol(tradeSymbol.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("/".into())]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "quantity", &[]).as_str().map(str::to_owned);
-        let mut price: Value = self.parse_number(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut amount: Value = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut price: Option<f64> = self.parse_number(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut amount: Option<f64> = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
-        let mut cost: Value = Value::Null;
+        let mut cost: Option<f64> = None;
         if (priceString.is_some()) && (amountString.is_some()) {
-            cost = self.parse_number(crate::precise::Precise::stringMul(&priceString.map(Value::from).unwrap_or(Value::Null), &amountString.map(Value::from).unwrap_or(Value::Null)), &[]);
+            cost = self.parse_number(crate::precise::Precise::stringMul(&priceString.map(Value::from).unwrap_or(Value::Null), &amountString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1223,9 +1223,9 @@ impl Revolutx {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
+        m.insert("price".to_string(), Value::from(price));
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(cost));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("fee".to_string(), Value::Null);
@@ -2126,15 +2126,15 @@ impl Revolutx {
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "oid", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "p", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "q", &[]).as_str().map(str::to_owned);
-        let mut price: Value = self.parse_number(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut amount: Value = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut price: Option<f64> = self.parse_number(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut amount: Option<f64> = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("tdt".into()), Value::Str("pdt".into()), &[]).as_i64();
         let mut isMaker: bool = self.safe_bool_k(trade.clone(), "im", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut takerOrMaker: String = (if isMaker { "maker".to_string() } else { "taker".to_string() });
-        let mut cost: Value = Value::Null;
+        let mut cost: Option<f64> = None;
         if (priceString.is_some()) && (amountString.is_some()) {
-            cost = self.parse_number(crate::precise::Precise::stringMul(&priceString.map(Value::from).unwrap_or(Value::Null), &amountString.map(Value::from).unwrap_or(Value::Null)), &[]);
+            cost = self.parse_number(crate::precise::Precise::stringMul(&priceString.map(Value::from).unwrap_or(Value::Null), &amountString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         }
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         return Value::Map({
@@ -2146,9 +2146,9 @@ impl Revolutx {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
+        m.insert("price".to_string(), Value::from(price));
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(cost));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("fee".to_string(), Value::Null);

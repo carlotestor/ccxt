@@ -6441,8 +6441,8 @@ if _try_result.is_err() {
         let mut spot: bool = false;
         let mut future: bool = false;
         let mut contract: bool = false;
-        let mut pricePrecision: Value = Value::Null;
-        let mut amountPrecision: Value = Value::Null;
+        let mut pricePrecision: Option<f64> = None;
+        let mut amountPrecision: Option<f64> = None;
         let mut linear: Option<bool> = None;
         let mut inverse: Value = Value::Null;
         let mut expiry: Option<i64> = None;
@@ -6503,8 +6503,8 @@ if _try_result.is_err() {
         let mut amountDecimals: Option<String> = self.safe_string_k(market.clone(), "quantityPrecision", &[]).as_str().map(str::to_owned);
         let mut priceStep: Option<String> = self.parse_precision(&[priceDecimals.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut amountStep: Option<String> = self.parse_precision(&[amountDecimals.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        pricePrecision = self.parse_number(priceStep.map(Value::from).unwrap_or(Value::Null), &[]);
-        amountPrecision = self.parse_number(amountStep.map(Value::from).unwrap_or(Value::Null), &[]);
+        pricePrecision = self.parse_number(priceStep.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        amountPrecision = self.parse_number(amountStep.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Option<bool> = None;
         if (status.is_some()) {
@@ -6542,8 +6542,8 @@ if _try_result.is_err() {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
-        m.insert("price".to_string(), pricePrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
+        m.insert("price".to_string(), Value::from(pricePrecision));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -13016,17 +13016,17 @@ if _try_result.is_err() {
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.safe_integer2(item.clone(), Value::Str("cTime".into()), Value::Str("ts".into()), &[]).as_i64();
         let mut balanceString: Option<String> = self.safe_string_k(item.clone(), "balance", &[]).as_str().map(str::to_owned);
-        let mut after: Value = self.parse_number(balanceString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut after: Option<f64> = self.parse_number(balanceString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut feeCostString: Option<String> = self.safe_string2(item.clone(), Value::Str("fees".into()), Value::Str("fee".into()), &[]).as_str().map(str::to_owned);
-        let mut feeCost: Value = Value::Null;
+        let mut feeCost: Option<f64> = None;
         if (feeCostString.is_some()) {
-            feeCost = self.parse_number(crate::precise::Precise::stringAbs(&feeCostString.map(Value::from).unwrap_or(Value::Null)), &[]); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
+            feeCost = self.parse_number(crate::precise::Precise::stringAbs(&feeCostString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64(); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
         }
         let mut amountRaw: String = self.safe_string2(item.clone(), Value::Str("size".into()), Value::Str("amount".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&Value::from(amountRaw.clone())), &[]);
-        let mut before: Value = Value::Null;
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&Value::from(amountRaw.clone())), &[]).as_f64();
+        let mut before: Option<f64> = None;
         if (balanceString.is_some()) && (amountRaw != "") {
-            before = self.parse_number(crate::precise::Precise::stringSub(&balanceString.map(Value::from).unwrap_or(Value::Null), &Value::from(amountRaw.clone())), &[]); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+            before = self.parse_number(crate::precise::Precise::stringSub(&balanceString.map(Value::from).unwrap_or(Value::Null), &Value::from(amountRaw.clone())), &[]).as_f64(); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
         }
         let mut direction: String = "in".to_string();
         if amountRaw.contains("-") {
@@ -13045,14 +13045,14 @@ if _try_result.is_err() {
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_type(businessType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
-        m.insert("before".to_string(), before);
-        m.insert("after".to_string(), after);
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("before".to_string(), Value::from(before));
+        m.insert("after".to_string(), Value::from(after));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), feeCost);
+        m.insert("cost".to_string(), Value::from(feeCost));
     m
 }));
     m
@@ -14036,13 +14036,13 @@ if _try_result.is_err() {
         let mut initialMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut liquidationPriceString: Option<String> = self.safe_string_k(position.clone(), "liquidationPrice", &[]).as_str().map(str::to_owned);
         let mut rawLiquidationPrice: Option<String> = self.omit_zero(liquidationPriceString.map(Value::from).unwrap_or(Value::Null));
-        let mut liquidationPrice: Value = Value::Null;
+        let mut liquidationPrice: Option<f64> = None;
         if (rawLiquidationPrice.is_some()) && crate::precise::Precise::stringGt(&rawLiquidationPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            liquidationPrice = self.parse_number(rawLiquidationPrice.map(Value::from).unwrap_or(Value::Null), &[]);
+            liquidationPrice = self.parse_number(rawLiquidationPrice.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut calcTakerFeeRate: String = self.safe_string_k(&marketResolved, "taker", &[Value::Str("0.0006".into())]).as_str().unwrap_or("0.0006").to_string();
         let mut calcTakerFeeMult: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(calcTakerFeeRate.clone())).as_str().map(str::to_owned);
-        if (liquidationPrice == Value::Null) && (marginMode.as_deref() == Some("isolated")) && crate::precise::Precise::stringGt(&baseAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (liquidationPrice.is_none()) && (marginMode.as_deref() == Some("isolated")) && crate::precise::Precise::stringGt(&baseAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             let mut signedMargin: Option<String> = crate::precise::Precise::stringDiv(&rawCollateral.map(Value::from).unwrap_or(Value::Null), &baseAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut signedMmp: Option<String> = maintenanceMarginPercentage.clone();
             if (side.as_deref() == Some("short")) {
@@ -14058,7 +14058,7 @@ if _try_result.is_err() {
             }
             let mut derivedLiq: Option<String> = crate::precise::Precise::stringDiv(&numerator.map(Value::from).unwrap_or(Value::Null), &mmrMinusOne.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             if (derivedLiq.is_some()) && crate::precise::Precise::stringGt(&derivedLiq.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                liquidationPrice = self.parse_number(derivedLiq.map(Value::from).unwrap_or(Value::Null), &[]);
+                liquidationPrice = self.parse_number(derivedLiq.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }
         }
         let mut feeToClose: Option<String> = crate::precise::Precise::stringMul(&notional.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(calcTakerFeeRate)).as_str().map(str::to_owned);
@@ -14071,7 +14071,7 @@ if _try_result.is_err() {
         m.insert("symbol".to_string(), symbol);
         m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
-        m.insert("liquidationPrice".to_string(), liquidationPrice);
+        m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
         m.insert("entryPrice".to_string(), self.parse_number(entryPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_n(position.clone(), Value::from(vec![Value::Str("pnl".into()), Value::Str("curRealisedPnl".into()), Value::Str("cumRealisedPnl".into())]), &[]));

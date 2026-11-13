@@ -1127,7 +1127,7 @@ impl Extended {
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut isSpot: bool = false;
         let mut type_var: Option<String> = self.safe_string_lower_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut contractSize: Value = Value::Null;
+        let mut contractSize: Option<f64> = None;
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
         // SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
@@ -1140,7 +1140,7 @@ impl Extended {
             settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
             settle = quote.clone();
             symbol.push_str(&format!("{}{}", Value::Str(":".into()), settle.as_deref().unwrap_or("null")));
-            contractSize = self.parse_number(Value::Str("1".into()), &[]);
+            contractSize = self.parse_number(Value::Str("1".into()), &[]).as_f64();
             linear = Some(true);
             inverse = Some(false);
         }
@@ -1166,7 +1166,7 @@ impl Extended {
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number_k(self.fees.clone(), "taker", &[]));
         m.insert("maker".to_string(), self.safe_number_k(self.fees.clone(), "maker", &[]));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -3073,7 +3073,7 @@ impl Extended {
         let mut assetId: Option<String> = self.safe_string_k(transfer.clone(), "asset", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(transfer.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut amount: Value = (if (amountString.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]) });
+        let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64() });
         let mut accountId: Option<String> = self.safe_string_k(transfer.clone(), "accountId", &[]).as_str().map(str::to_owned);
         let mut counterpartyAccountId: Option<String> = self.safe_string_k(transfer.clone(), "counterpartyAccountId", &[]).as_str().map(str::to_owned);
         let mut fromAccount: Option<String> = accountId.clone();
@@ -3096,7 +3096,7 @@ impl Extended {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status);
@@ -3177,7 +3177,7 @@ impl Extended {
         let mut assetId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
         let mut code: Value = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]);
         let mut amountString: Option<String> = self.safe_string_k(transaction.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut amount: Value = (if (amountString.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]) });
+        let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64() });
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
@@ -3204,7 +3204,7 @@ impl Extended {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("type".to_string(), transactionType.clone());
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_k(transaction, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(timestamp));

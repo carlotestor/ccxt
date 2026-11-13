@@ -949,7 +949,7 @@ impl Upbit {
         let mut state: Option<String> = self.safe_string_k(&marketInfo, "state", &[]).as_str().map(str::to_owned);
         let mut bidFee: Option<String> = self.safe_string_k(response.clone(), "bid_fee", &[]).as_str().map(str::to_owned);
         let mut askFee: Option<String> = self.safe_string_k(response.clone(), "ask_fee", &[]).as_str().map(str::to_owned);
-        let mut fee: Value = self.parse_number(crate::precise::Precise::stringMax(&bidFee.map(Value::from).unwrap_or(Value::Null), &askFee.map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut fee: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&bidFee.map(Value::from).unwrap_or(Value::Null), &askFee.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -970,8 +970,8 @@ impl Upbit {
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
-        m.insert("taker".to_string(), fee.clone());
-        m.insert("maker".to_string(), fee);
+        m.insert("taker".to_string(), Value::from(fee));
+        m.insert("maker".to_string(), Value::from(fee));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);

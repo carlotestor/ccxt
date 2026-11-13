@@ -3289,7 +3289,7 @@ impl Hashkey {
             direction = "out".to_string();
         }
         let mut afterString: Option<String> = self.safe_string_k(item.clone(), "total", &[]).as_str().map(str::to_owned);
-        let mut after: Value = self.parse_number(afterString.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut after: Option<f64> = self.parse_number(afterString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut status: String = "ok".to_string();
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3306,7 +3306,7 @@ impl Hashkey {
         m.insert("symbol".to_string(), Value::Null);
         m.insert("amount".to_string(), amount);
         m.insert("before".to_string(), Value::Null);
-        m.insert("after".to_string(), after);
+        m.insert("after".to_string(), Value::from(after));
         m.insert("status".to_string(), Value::from(status));
         m.insert("fee".to_string(), Value::Null);
     m

@@ -1511,8 +1511,8 @@ impl Paradex {
         let mut expiry: Option<i64> = self.safe_integer_k(market.clone(), "expiry_at", &[]).as_i64();
         let mut optionType: Option<String> = self.safe_string_k(market.clone(), "option_type", &[]).as_str().map(str::to_owned);
         let mut strikePrice: Option<String> = self.safe_string_k(market.clone(), "strike_price", &[]).as_str().map(str::to_owned);
-        let mut takerFee: Value = self.parse_number(Value::Str("0.0003".into()), &[]);
-        let mut makerFee: Value = self.parse_number(Value::Str("-0.00005".into()), &[]);
+        let mut takerFee: Option<f64> = self.parse_number(Value::Str("0.0003".into()), &[]).as_f64();
+        let mut makerFee: Option<f64> = self.parse_number(Value::Str("-0.00005".into()), &[]).as_f64();
         if isOption {
             let mut optionTypeSuffix: String = (if (optionType.as_deref() == Some("CALL")) { "C".to_string() } else { "P".to_string() });
             let mut deliveryValue: String = "".to_string();
@@ -1522,7 +1522,7 @@ impl Paradex {
             if (strikePrice.is_some()) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), deliveryValue).into()), strikePrice.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), optionTypeSuffix);
             }
-            makerFee = self.parse_number(Value::Str("0.0003".into()), &[]);
+            makerFee = self.parse_number(Value::Str("0.0003".into()), &[]).as_f64();
         }  else {
             expiry = None.clone();
         }
@@ -1547,8 +1547,8 @@ impl Paradex {
         m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
         m.insert("linear".to_string(), (if (isSpot).as_bool() == Some(true) { Value::Null } else { Value::Bool(true) }));
         m.insert("inverse".to_string(), (if (isSpot).as_bool() == Some(true) { Value::Null } else { Value::Bool(false) }));
-        m.insert("taker".to_string(), takerFee);
-        m.insert("maker".to_string(), makerFee);
+        m.insert("taker".to_string(), Value::from(takerFee));
+        m.insert("maker".to_string(), Value::from(makerFee));
         m.insert("contractSize".to_string(), (if (isSpot).as_bool() == Some(true) { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
         m.insert("expiry".to_string(), Value::from(expiry));
         m.insert("expiryDatetime".to_string(), expireDatetime.map(Value::from).unwrap_or(Value::Null));
@@ -4060,7 +4060,7 @@ impl Paradex {
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         let mut quantity: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "size", &[])).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "created_at", &[]).as_i64();
-        let mut liquidationPrice: Value = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "liquidation_price", &[]))), &[]);
+        let mut liquidationPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "liquidation_price", &[]))), &[]).as_f64();
         // cost_usd is signed by side, the unified notional is a magnitude
         let mut notionalString: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "cost_usd", &[])).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
@@ -4086,7 +4086,7 @@ impl Paradex {
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
-        m.insert("liquidationPrice".to_string(), liquidationPrice);
+        m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("percentage".to_string(), Value::Null);

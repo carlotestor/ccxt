@@ -1409,7 +1409,7 @@ impl Hibachi {
         let mut makerFee: Value = self.safe_number_k(&market, "maker", &[self.safe_number_k(self.options.clone(), "defaultMakerFee", &[Value::Float(0.00015)])]);
         let mut takerFeeValue: Value = (if (takerFee == Value::Null) { Value::Int(0) } else { takerFee });
         let mut makerFeeValue: Value = (if (makerFee == Value::Null) { Value::Int(0) } else { makerFee });
-        let mut feeRate: Value = self.parse_number(crate::precise::Precise::stringMax(&Value::from(self.number_to_string(takerFeeValue)), &Value::from(self.number_to_string(makerFeeValue))), &[]);
+        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&Value::from(self.number_to_string(takerFeeValue)), &Value::from(self.number_to_string(makerFeeValue))), &[]).as_f64();
         let mut sideInternal: String = "".to_string();
         if (side.as_str() == Some("sell")) {
             sideInternal = "ASK".to_string();
@@ -1420,7 +1420,7 @@ impl Hibachi {
         if (price != Value::Null) && (price.as_f64() != Some(0.0)) {
             priceInternal = self.price_to_precision(symbol.clone(), price.clone()).as_str().map(str::to_owned);
         }
-        let mut message: Value = self.order_message(Some(&market), nonce.clone(), feeRate.as_f64().unwrap_or_default(), type_var.as_str(), side.as_str(), amount.clone(), &[price]);
+        let mut message: Value = self.order_message(Some(&market), nonce.clone(), feeRate.unwrap_or_default(), type_var.as_str(), side.as_str(), amount.clone(), &[price]);
         let mut signature: Option<String> = self.sign_message(message, (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1431,7 +1431,7 @@ impl Hibachi {
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol, amount));
                 m.insert("price".to_string(), priceInternal.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
-                m.insert("maxFeesPercent".to_string(), Value::from(self.number_to_string(feeRate)));
+                m.insert("maxFeesPercent".to_string(), Value::from(self.number_to_string(Value::from(feeRate))));
             m
         });
         let mut postOnly: bool = self.is_post_only(Value::Bool((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET")), Value::Null, &[params.clone()]).as_bool() == Some(true);
@@ -1599,8 +1599,8 @@ impl Hibachi {
         let mut makerFee: Value = self.safe_number_k(&market, "maker", &[Value::Int(0)]);
         let mut takerFeeValue: Value = (if (takerFee == Value::Null) { Value::Int(0) } else { takerFee });
         let mut makerFeeValue: Value = (if (makerFee == Value::Null) { Value::Int(0) } else { makerFee });
-        let mut feeRate: Value = self.parse_number(crate::precise::Precise::stringMax(&Value::from(self.number_to_string(takerFeeValue)), &Value::from(self.number_to_string(makerFeeValue))), &[]);
-        let mut message: Value = self.order_message(Some(&market), nonce.clone(), feeRate.as_f64().unwrap_or_default(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone()]);
+        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&Value::from(self.number_to_string(takerFeeValue)), &Value::from(self.number_to_string(makerFeeValue))), &[]).as_f64();
+        let mut message: Value = self.order_message(Some(&market), nonce.clone(), feeRate.unwrap_or_default(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone()]);
         let mut signature: Option<String> = self.sign_message(message, (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1608,7 +1608,7 @@ impl Hibachi {
                 m.insert("nonce".to_string(), nonce);
                 m.insert("updatedQuantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
                 m.insert("updatedPrice".to_string(), self.price_to_precision(symbol, price));
-                m.insert("maxFeesPercent".to_string(), Value::from(self.number_to_string(feeRate)));
+                m.insert("maxFeesPercent".to_string(), Value::from(self.number_to_string(Value::from(feeRate))));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -2674,7 +2674,7 @@ impl Hibachi {
         let mut timestamp: Option<i64> = None;
         let mut type_var: Value = Value::Null;
         let mut direction: Option<String> = None;
-        let mut amount: Value = Value::Null;
+        let mut amount: Option<f64> = None;
         let mut fee: Option<crate::value::Dict> = None;
         let mut referenceId: Option<String> = None;
         let mut referenceAccount: Option<String> = None;
@@ -2690,7 +2690,7 @@ impl Hibachi {
             }  else {
                 direction = Some("in".to_string());
             }
-            amount = self.parse_number(amountStr.map(Value::from).unwrap_or(Value::Null), &[]);
+            amount = self.parse_number(amountStr.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("USDT".into()));
@@ -2701,7 +2701,7 @@ impl Hibachi {
         }  else {
             // response from CapitalHistory
             timestamp = self.safe_integer_product_k(item.clone(), "timestampSec", Value::Int(1000), &[]).as_i64();
-            amount = self.safe_number_k(item.clone(), "quantity", &[]);
+            amount = self.safe_number_k(item.clone(), "quantity", &[]).as_f64();
             direction = (if ((transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("transfer-in"))) { Some("in".to_string()) } else { Some("out".to_string()) });
             type_var = self.parse_transaction_type(transactionType.as_deref()).map(Value::from).unwrap_or(Value::Null);
             status = self.parse_transaction_status((self.safe_string_k(item.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
@@ -2720,7 +2720,7 @@ impl Hibachi {
         m.insert("referenceAccount".to_string(), referenceAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceId".to_string(), referenceId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status);
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));

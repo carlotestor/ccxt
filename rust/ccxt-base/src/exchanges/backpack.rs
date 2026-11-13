@@ -1605,9 +1605,9 @@ impl Backpack {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut maxQuantity: Value = self.safe_number_k(&quantityFilter, "maxQuantity", &[]);
-        let mut minQuantity: Value = self.safe_number_k(&quantityFilter, "minQuantity", &[]);
-        let mut amountPrecision: Value = self.safe_number_k(&quantityFilter, "stepSize", &[]);
+        let mut maxQuantity: Option<f64> = self.safe_number_k(&quantityFilter, "maxQuantity", &[]).as_f64();
+        let mut minQuantity: Option<f64> = self.safe_number_k(&quantityFilter, "minQuantity", &[]).as_f64();
+        let mut amountPrecision: Option<f64> = self.safe_number_k(&quantityFilter, "stepSize", &[]).as_f64();
         let mut type_var: Option<String> = None;
         let mut rawType: Option<String> = self.safe_string_k(market.clone(), "marketType", &[]).as_str().map(str::to_owned);
         let mut rfq: Value = Value::Bool(rawType.as_deref() == Some("RFQ"));
@@ -1651,9 +1651,9 @@ impl Backpack {
                 }
                 let mut sessionsLength: i64 = sessions.len() as i64;
                 if sessionsLength > 0 {
-                    amountPrecision = self.parse_number(stepSize.map(Value::from).unwrap_or(Value::Null), &[]);
-                    minQuantity = self.parse_number(minimum.map(Value::from).unwrap_or(Value::Null), &[]);
-                    maxQuantity = (if unbounded { Value::Null } else { self.parse_number(maximum.map(Value::from).unwrap_or(Value::Null), &[]) });
+                    amountPrecision = self.parse_number(stepSize.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+                    minQuantity = self.parse_number(minimum.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+                    maxQuantity = (if unbounded { None } else { self.parse_number(maximum.map(Value::from).unwrap_or(Value::Null), &[]).as_f64() });
                 }
             }
         }  else if (typeOfMarket.as_deref() == Some("swap")) {
@@ -1701,7 +1701,7 @@ impl Backpack {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
         m.insert("price".to_string(), Value::from(pricePrecision));
     m
 }));
@@ -1715,8 +1715,8 @@ impl Backpack {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minQuantity);
-        m.insert("max".to_string(), maxQuantity);
+        m.insert("min".to_string(), Value::from(minQuantity));
+        m.insert("max".to_string(), Value::from(maxQuantity));
     m
 }));
         m.insert("price".to_string(), Value::Map({
@@ -2011,7 +2011,7 @@ impl Backpack {
             }
         }
         let mut quoteAmount: Option<f64> = self.safe_number_k(quote.clone(), "quoteQuantity", &[]).as_f64();
-        let mut baseAmount: Value = self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut baseAmount: Option<f64> = self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut fromCurrency: Option<String> = self.safe_currency_code(fromCode, None);
         let mut toCurrency: Option<String> = self.safe_currency_code(toCode, None);
         return Value::Map({
@@ -2021,9 +2021,9 @@ impl Backpack {
         m.insert("datetime".to_string(), self.iso8601(self.safe_integer_k(quote.clone(), "publishedAt", &[])));
         m.insert("id".to_string(), Value::Null);
         m.insert("fromCurrency".to_string(), fromCurrency.map(Value::from).unwrap_or(Value::Null));
-        m.insert("fromAmount".to_string(), (if (fromIsBase) { baseAmount.clone() } else { Value::from(quoteAmount) }));
+        m.insert("fromAmount".to_string(), (if (fromIsBase) { Value::from(baseAmount) } else { Value::from(quoteAmount) }));
         m.insert("toCurrency".to_string(), toCurrency.map(Value::from).unwrap_or(Value::Null));
-        m.insert("toAmount".to_string(), (if (fromIsBase) { Value::from(quoteAmount) } else { baseAmount }));
+        m.insert("toAmount".to_string(), (if (fromIsBase) { Value::from(quoteAmount) } else { Value::from(baseAmount) }));
         m.insert("price".to_string(), self.safe_number_k(quote, "price", &[]));
         m.insert("fee".to_string(), Value::Null);
     m

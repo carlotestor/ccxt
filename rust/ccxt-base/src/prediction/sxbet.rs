@@ -1594,17 +1594,17 @@ impl Sxbet {
         // CANCELLED with cancelReason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
         let mut matchOutcome: Option<crate::value::Dict> = self.safe_dict_k(&first, "outcome", &[]).into_opt_dict();
         let mut usdcDecimals: String = "1000000".to_string();
-        let mut filled: Value = Value::Null;
-        let mut remaining: Value = Value::Null;
+        let mut filled: Option<f64> = None;
+        let mut remaining: Option<f64> = None;
         let mut orderStatus: Option<String> = None;
         if (matchOutcome.is_some()) {
             let mut fillAmountRaw: Option<String> = self.safe_string_k(&matchOutcome, "fillAmount", &[]).as_str().map(str::to_owned);
             let mut remainingRaw: Option<String> = self.safe_string_k(&matchOutcome, "remainingAmount", &[]).as_str().map(str::to_owned);
             if (fillAmountRaw.is_some()) {
-                filled = self.parse_number(crate::precise::Precise::stringDivPrec(&fillAmountRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]);
+                filled = self.parse_number(crate::precise::Precise::stringDivPrec(&fillAmountRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]).as_f64();
             }
             if (remainingRaw.is_some()) {
-                remaining = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals), &Value::Int(6)), &[]);
+                remaining = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals), &Value::Int(6)), &[]).as_f64();
             }
             let mut state: Option<String> = self.safe_string_upper_k(&matchOutcome, "state", &[]).as_str().map(str::to_owned);
             if (state.as_deref() == Some("RESTED")) || (state.as_deref() == Some("PARTIAL_FILL_RESTED")) {
@@ -1629,9 +1629,9 @@ impl Sxbet {
         m.insert("timestamp".to_string(), Value::from(now));
         m.insert("datetime".to_string(), self.iso8601(Value::from(now)));
         m.insert("status".to_string(), orderStatus.map(Value::from).unwrap_or(Value::Null));
-        m.insert("filled".to_string(), filled.clone());
-        m.insert("remaining".to_string(), remaining);
-        m.insert("cost".to_string(), filled);
+        m.insert("filled".to_string(), Value::from(filled));
+        m.insert("remaining".to_string(), Value::from(remaining));
+        m.insert("cost".to_string(), Value::from(filled));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), outcomeId.map(Value::from).unwrap_or(Value::Null));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
@@ -1952,13 +1952,13 @@ impl Sxbet {
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut percentageOdds: Option<String> = self.safe_string_k(order.clone(), "percentageOdds", &[]).as_str().map(str::to_owned);
-        let mut price: Value = (if (percentageOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]) } else { Value::Null });
+        let mut price: Option<f64> = (if (percentageOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]).as_f64() } else { None });
         let mut totalBetSize: String = self.safe_string_k(order.clone(), "totalBetSize", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut remainingSize: Value = self.safe_string_k(order.clone(), "remainingSize", &[Value::from(totalBetSize.clone())]);
         let mut filledRaw: Option<String> = crate::precise::Precise::stringSub(&Value::from(totalBetSize.clone()), &remainingSize).as_str().map(str::to_owned);
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(totalBetSize), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]);
-        let mut filled: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&filledRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]);
-        let mut remaining: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingSize, &Value::from(usdcDecimals), &Value::Int(6)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(totalBetSize), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]).as_f64();
+        let mut filled: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&filledRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]).as_f64();
+        let mut remaining: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingSize, &Value::from(usdcDecimals), &Value::Int(6)), &[]).as_f64();
         let mut orderStatus: Option<String> = self.safe_string_upper_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut inactiveReason: Option<String> = self.safe_string_upper_k(order.clone(), "inactiveReason", &[]).as_str().map(str::to_owned);
         let mut status: String = "open".to_string();
@@ -1985,11 +1985,11 @@ impl Sxbet {
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), Value::from(price));
         m.insert("average".to_string(), Value::Null);
-        m.insert("amount".to_string(), amount);
-        m.insert("filled".to_string(), filled);
-        m.insert("remaining".to_string(), remaining);
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("filled".to_string(), Value::from(filled));
+        m.insert("remaining".to_string(), Value::from(remaining));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), Value::Null);
@@ -2316,9 +2316,9 @@ impl Sxbet {
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut fillOdds: Option<String> = self.safe_string_k(fill.clone(), "fillOdds", &[]).as_str().map(str::to_owned);
-        let mut price: Value = (if (fillOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&fillOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]) } else { Value::Null });
+        let mut price: Option<f64> = (if (fillOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&fillOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]).as_f64() } else { None });
         let mut fillAmount: String = self.safe_string_k(fill.clone(), "fillAmount", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(fillAmount), &Value::from(usdcDecimals), &Value::Int(6)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(fillAmount), &Value::from(usdcDecimals), &Value::Int(6)), &[]).as_f64();
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(fill.clone(), "createdAt", &[]));
         // isMaker: true when the account's order was the resting one - absent on older rows
         let mut isMaker: Option<bool> = self.safe_bool_k(fill.clone(), "isMaker", &[]).as_bool();
@@ -2340,9 +2340,9 @@ impl Sxbet {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount.clone());
-        m.insert("cost".to_string(), amount);
+        m.insert("price".to_string(), Value::from(price));
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(amount));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[crate::Value::from(market)]);
@@ -2538,7 +2538,7 @@ impl Sxbet {
         }  else {
             ownOdds = self.safe_string_k(&odds, "outcomeTwo", &[]).as_str().map(str::to_owned);
         }
-        let mut entryPrice: Value = (if (ownOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]) } else { Value::Null });
+        let mut entryPrice: Option<f64> = (if (ownOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownOdds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]).as_f64() } else { None });
         let mut totalStake: String = self.safe_string_k(raw.clone(), "totalStake", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut pnl: Option<String> = self.safe_string_k(raw.clone(), "pnl", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(raw.clone(), "betTime", &[]));
@@ -2552,7 +2552,7 @@ impl Sxbet {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(raw.clone(), "updatedAt", &[]))));
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(totalStake), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]));
-        m.insert("entryPrice".to_string(), entryPrice);
+        m.insert("entryPrice".to_string(), Value::from(entryPrice));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("realizedPnl".to_string(), (if (pnl.is_some()) { self.parse_number(crate::precise::Precise::stringDivPrec(&pnl.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals), &Value::Int(6)), &[]) } else { Value::Null }));
@@ -3033,14 +3033,14 @@ impl Sxbet {
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut ownPercentage: Option<String> = self.safe_string_k(ownOdds.clone(), "percentageOdds", &[]).as_str().map(str::to_owned);
         let mut oppositePercentage: Option<String> = self.safe_string_k(oppositeOdds, "percentageOdds", &[]).as_str().map(str::to_owned);
-        let mut bid: Value = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom.clone())), &[]) } else { Value::Null });
-        let mut ask: Value = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom))), &[]) } else { Value::Null });
+        let mut bid: Option<f64> = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom.clone())), &[]).as_f64() } else { None });
+        let mut ask: Option<f64> = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom))), &[]).as_f64() } else { None });
         let mut updatedAt: Option<i64> = self.safe_integer_k(ownOdds, "updatedAt", &[]).as_i64();
         let mut now: i64 = self.milliseconds();
         let mut timestamp: Option<i64> = (if (updatedAt.is_some()) { updatedAt } else { Some(now) });
-        let mut average: Value = Value::Null;
-        if (bid != Value::Null) && (ask != Value::Null) {
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(bid.clone())), &Value::from(self.number_to_string(ask.clone()))), &Value::Str("2".into())), &[]);
+        let mut average: Option<f64> = None;
+        if (bid.is_some()) && (ask.is_some()) {
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(bid))), &Value::from(self.number_to_string(Value::from(ask)))), &Value::Str("2".into())), &[]).as_f64();
         }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3052,16 +3052,16 @@ impl Sxbet {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), bid.clone());
+        m.insert("bid".to_string(), Value::from(bid));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), ask);
+        m.insert("ask".to_string(), Value::from(ask));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), bid.clone());
-        m.insert("last".to_string(), bid);
+        m.insert("close".to_string(), Value::from(bid));
+        m.insert("last".to_string(), Value::from(bid));
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), average);
+        m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), raw);
@@ -3806,9 +3806,9 @@ impl Sxbet {
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut odds: Option<String> = self.safe_string_k(trade.clone(), "weightedAverageOdds", &[]).as_str().map(str::to_owned);
-        let mut price: Value = (if (odds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&odds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]) } else { Value::Null });
+        let mut price: Option<f64> = (if (odds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&odds.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom)), &[]).as_f64() } else { None });
         let mut stake: String = self.safe_string_k(trade.clone(), "totalStake", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(stake), &Value::from(usdcDecimals), &Value::Int(6)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(stake), &Value::from(usdcDecimals), &Value::Int(6)), &[]).as_f64();
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "betTime", &[]));
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3824,9 +3824,9 @@ impl Sxbet {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount.clone());
-        m.insert("cost".to_string(), amount);
+        m.insert("price".to_string(), Value::from(price));
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(amount));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[]);

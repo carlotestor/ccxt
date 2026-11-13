@@ -6401,7 +6401,7 @@ impl Mexc {
         }
         while crate::precise::Precise::stringLt(&floor, &maxVol.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
             let mut cap: Option<String> = crate::precise::Precise::stringAdd(&floor, &riskIncrVol.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            let mut maxLev: Value = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRate.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+            let mut maxLev: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRate.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap.clone().map(Value::from).unwrap_or(Value::Null), &riskIncrVol.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
@@ -6410,7 +6410,7 @@ impl Mexc {
                     m.insert("minNotional".to_string(), self.parse_number(floor.clone(), &[]));
                     m.insert("maxNotional".to_string(), self.parse_number(cap.clone().map(Value::from).unwrap_or(Value::Null), &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.parse_number(maintenanceMarginRate.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-                    m.insert("maxLeverage".to_string(), maxLev);
+                    m.insert("maxLeverage".to_string(), Value::from(maxLev));
                     m.insert("info".to_string(), info.clone());
                 m
             }));
@@ -7128,7 +7128,7 @@ impl Mexc {
             }
         }
         let mut leverage: Option<f64> = self.safe_number_k(position.clone(), "leverage", &[]).as_f64();
-        let mut liquidationPrice: Value = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[]))), &[]);
+        let mut liquidationPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[]))), &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updateTime", &[]).as_i64();
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7148,7 +7148,7 @@ impl Mexc {
         m.insert("notional".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), liquidationPrice);
+        m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);

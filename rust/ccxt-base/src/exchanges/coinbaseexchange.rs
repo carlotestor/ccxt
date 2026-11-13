@@ -2724,9 +2724,9 @@ impl Coinbaseexchange {
         }  else {
             direction = Some("in".to_string());
         }
-        let mut amount: Value = self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut after: Value = self.parse_number(afterString.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut before: Value = self.parse_number(beforeString.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut amount: Option<f64> = self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut after: Option<f64> = self.parse_number(afterString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut before: Option<f64> = self.parse_number(beforeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
         let mut type_var: Value = self.parse_ledger_entry_type((self.safe_string_k(item.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut code: Option<String> = self.safe_currency_code(Value::Null, currency.clone());
@@ -2757,9 +2757,9 @@ impl Coinbaseexchange {
         m.insert("referenceId".to_string(), referenceId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
-        m.insert("before".to_string(), before);
-        m.insert("after".to_string(), after);
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("before".to_string(), Value::from(before));
+        m.insert("after".to_string(), Value::from(after));
         m.insert("status".to_string(), Value::from(status));
         m.insert("fee".to_string(), Value::Null);
     m

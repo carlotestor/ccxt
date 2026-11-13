@@ -972,9 +972,9 @@ impl Bitfinex {
         let mut timestamp: Option<i64> = self.safe_integer(&trade, Value::from(createdKey), &[]).as_i64();
         let mut price: Option<String> = self.safe_string(&trade, Value::from(priceKey), &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string(&trade, Value::from(amountKey), &[]).as_str().map(str::to_owned);
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         let mut side: Option<String> = None;
-        if (amount != Value::Null) {
+        if (amount.is_some()) {
             side = (if crate::precise::Precise::stringGt(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
         let mut symbol: Option<String> = self.safe_symbol(marketId, Some(&marketResolved), &[]).as_str().map(str::to_owned);
@@ -1007,7 +1007,7 @@ impl Bitfinex {
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m

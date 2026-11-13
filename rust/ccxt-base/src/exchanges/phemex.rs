@@ -2036,14 +2036,14 @@ impl Phemex {
         let mut valueScale: Value = (match &valueScaleString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
         let mut minValueEv: Option<String> = self.safe_string_k(rawCurrency.clone(), "minValueEv", &[]).as_str().map(str::to_owned);
         let mut maxValueEv: Option<String> = self.safe_string_k(rawCurrency.clone(), "maxValueEv", &[]).as_str().map(str::to_owned);
-        let mut minAmount: Value = Value::Null;
-        let mut maxAmount: Value = Value::Null;
+        let mut minAmount: Option<f64> = None;
+        let mut maxAmount: Option<f64> = None;
         let mut precision: Value = Value::Null;
         if (valueScaleString != Value::Null) {
             let mut precisionString: Value = self.parse_precision(&[valueScaleString]);
             precision = self.parse_number(precisionString.clone(), &[]);
-            minAmount = self.parse_number(crate::precise::Precise::stringMul(&minValueEv.map(Value::from).unwrap_or(Value::Null), &precisionString), &[]);
-            maxAmount = self.parse_number(crate::precise::Precise::stringMul(&maxValueEv.map(Value::from).unwrap_or(Value::Null), &precisionString), &[]);
+            minAmount = self.parse_number(crate::precise::Precise::stringMul(&minValueEv.map(Value::from).unwrap_or(Value::Null), &precisionString), &[]).as_f64();
+            maxAmount = self.parse_number(crate::precise::Precise::stringMul(&maxValueEv.map(Value::from).unwrap_or(Value::Null), &precisionString), &[]).as_f64();
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2060,8 +2060,8 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minAmount);
-        m.insert("max".to_string(), maxAmount);
+        m.insert("min".to_string(), Value::from(minAmount));
+        m.insert("max".to_string(), Value::from(maxAmount));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
@@ -3533,7 +3533,7 @@ impl Phemex {
             }));
         }
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut triggerPrice: Value = self.parse_number(Value::from(self.omit_zero(self.from_ep(self.safe_string_k(order.clone(), "stopPxEp", &[]), &[marketResolved.clone()]))), &[]);
+        let mut triggerPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.from_ep(self.safe_string_k(order.clone(), "stopPxEp", &[]), &[marketResolved.clone()]))), &[]).as_f64();
         let mut postOnly: Value = (Value::Bool(timeInForce.as_str() == Some("PO")));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3549,7 +3549,7 @@ impl Phemex {
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
-        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("triggerPrice".to_string(), Value::from(triggerPrice));
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), average);
@@ -5562,7 +5562,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut contracts: Option<String> = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("size".into()), Value::Str("sizeRq".into()), Value::Str("closedSizeRq".into())]), &[]).as_str().map(str::to_owned);
         let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
         let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
-        let mut leverage: Value = self.parse_number(crate::precise::Precise::stringAbs(&(self.safe_string2(position.clone(), Value::Str("leverage".into()), Value::Str("leverageRr".into()), &[]))), &[]);
+        let mut leverage: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&(self.safe_string2(position.clone(), Value::Str("leverage".into()), Value::Str("leverageRr".into()), &[]))), &[]).as_f64();
         let mut entryPriceString: Option<String> = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("avgEntryPrice".into()), Value::Str("avgEntryPriceRp".into()), Value::Str("openPrice".into())]), &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
@@ -5605,7 +5605,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("realizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("curTermRealisedPnlRv".into()), Value::Str("realizedPnlRv".into()), &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(apiUnrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("leverage".to_string(), leverage);
+        m.insert("leverage".to_string(), Value::from(leverage));
         m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
         m.insert("collateral".to_string(), self.parse_number(collateral.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("notional".to_string(), self.parse_number(notionalString.map(Value::from).unwrap_or(Value::Null), &[]));

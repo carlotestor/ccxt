@@ -1285,7 +1285,7 @@ impl Bittrade {
             let mut leverageRatio: String = self.safe_string_k(&market, "leverage-ratio", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             let mut superLeverageRatio: String = self.safe_string_k(&market, "super-margin-leverage-ratio", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             let mut margin: Value = Value::Bool(crate::precise::Precise::stringGt(&Value::from(leverageRatio.clone()), &Value::Str("1".into())).as_bool() == Some(true) || crate::precise::Precise::stringGt(&Value::from(superLeverageRatio.clone()), &Value::Str("1".into())).as_bool() == Some(true));
-            let mut fee: Value = (if (base.as_deref() == Some("OMG")) { self.parse_number(Value::Str("0".into()), &[]) } else { self.parse_number(Value::Str("0.002".into()), &[]) });
+            let mut fee: Option<f64> = (if (base.as_deref() == Some("OMG")) { self.parse_number(Value::Str("0".into()), &[]).as_f64() } else { self.parse_number(Value::Str("0.002".into()), &[]).as_f64() });
             if (baseId.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() missing baseId".into()))));
             }
@@ -1312,8 +1312,8 @@ impl Bittrade {
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
-                    m.insert("taker".to_string(), fee.clone());
-                    m.insert("maker".to_string(), fee);
+                    m.insert("taker".to_string(), Value::from(fee));
+                    m.insert("maker".to_string(), Value::from(fee));
                     m.insert("contractSize".to_string(), Value::Null);
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);
@@ -2075,7 +2075,7 @@ impl Bittrade {
         let mut state: Option<String> = self.safe_string_k(currency.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool(((((visible && (depositEnabled == Some(true))) && (withdrawEnabled == Some(true))) && (state.as_deref() == Some("online"))) && (countryDisabled != true)));
         let mut name: Option<String> = self.safe_string_k(currency.clone(), "display-name", &[]).as_str().map(str::to_owned);
-        let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "withdraw-precision", &[])]), &[]);
+        let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "withdraw-precision", &[])]), &[]).as_f64();
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2086,13 +2086,13 @@ impl Bittrade {
         m.insert("deposit".to_string(), depositEnabled.map_or(Value::Null, Value::Bool));
         m.insert("withdraw".to_string(), withdrawEnabled.map_or(Value::Null, Value::Bool));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("precision".to_string(), precision.clone());
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("networks".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), precision);
+        m.insert("min".to_string(), Value::from(precision));
         m.insert("max".to_string(), Value::Null);
     m
 }));

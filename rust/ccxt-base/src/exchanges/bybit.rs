@@ -3830,18 +3830,18 @@ impl Bybit {
         let mut optionType: Option<String> = self.safe_string(optionParts, Value::Int(3), &[]).as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.convert_expire_date(expiry.clone()).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
-        let mut amountPrecision: Value = Value::Null;
-        let mut pricePrecision: Value = Value::Null;
+        let mut amountPrecision: Option<f64> = None;
+        let mut pricePrecision: Option<f64> = None;
         // hard coded amount and price precisions from fetchOptionMarkets
         if (baseName.as_str() == Some("BTC")) {
-            amountPrecision = self.parse_number(Value::Str("0.01".into()), &[]);
-            pricePrecision = self.parse_number(Value::Str("5".into()), &[]);
+            amountPrecision = self.parse_number(Value::Str("0.01".into()), &[]).as_f64();
+            pricePrecision = self.parse_number(Value::Str("5".into()), &[]).as_f64();
         }  else if (baseName.as_str() == Some("ETH")) {
-            amountPrecision = self.parse_number(Value::Str("0.1".into()), &[]);
-            pricePrecision = self.parse_number(Value::Str("0.1".into()), &[]);
+            amountPrecision = self.parse_number(Value::Str("0.1".into()), &[]).as_f64();
+            pricePrecision = self.parse_number(Value::Str("0.1".into()), &[]).as_f64();
         }  else if (baseName.as_str() == Some("SOL")) {
-            amountPrecision = self.parse_number(Value::Str("1".into()), &[]);
-            pricePrecision = self.parse_number(Value::Str("0.01".into()), &[]);
+            amountPrecision = self.parse_number(Value::Str("1".into()), &[]).as_f64();
+            pricePrecision = self.parse_number(Value::Str("0.01".into()), &[]).as_f64();
         }
         let mut convertedExpireDate: Option<String> = self.convert_expire_date_to_market_id_date(expiry.clone()).as_str().map(str::to_owned);
         return Value::Map({
@@ -3874,8 +3874,8 @@ impl Bybit {
         m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
-        m.insert("price".to_string(), pricePrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
+        m.insert("price".to_string(), Value::from(pricePrecision));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -4382,8 +4382,8 @@ impl Bybit {
         })]).into_dict();
         let mut markets: crate::value::List = self.safe_list_k(&responseResult, "list", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
-        let mut takerFee: Value = self.parse_number(Value::Str("0.001".into()), &[]);
-        let mut makerFee: Value = self.parse_number(Value::Str("0.001".into()), &[]);
+        let mut takerFee: Option<f64> = self.parse_number(Value::Str("0.001".into()), &[]).as_f64();
+        let mut makerFee: Option<f64> = self.parse_number(Value::Str("0.001".into()), &[]).as_f64();
         {
                         let mut i: i64 = 0;
             let mut __for_first_502: bool = true;
@@ -4425,8 +4425,8 @@ impl Bybit {
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
-        m.insert("taker".to_string(), takerFee.clone());
-        m.insert("maker".to_string(), makerFee.clone());
+        m.insert("taker".to_string(), Value::from(takerFee));
+        m.insert("maker".to_string(), Value::from(makerFee));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -4657,7 +4657,7 @@ impl Bybit {
             if (expiry.is_some()) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[]));
             }
-            let mut contractSize: Value = (if inverse { self.safe_number2(&lotSizeFilter, Value::Str("minTradingQty".into()), Value::Str("minOrderQty".into()), &[]) } else { self.parse_number(Value::Str("1".into()), &[]) });
+            let mut contractSize: Option<f64> = (if inverse { self.safe_number2(&lotSizeFilter, Value::Str("minTradingQty".into()), Value::Str("minOrderQty".into()), &[]).as_f64() } else { self.parse_number(Value::Str("1".into()), &[]).as_f64() });
             let mut parsedMarket: Value = self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -4680,7 +4680,7 @@ impl Bybit {
         m.insert("inverse".to_string(), Value::Bool(inverse));
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFee", &[self.parse_number(Value::Str("0.0006".into()), &[])]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFee", &[self.parse_number(Value::Str("0.0001".into()), &[])]));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::from(expiry));
         m.insert("expiryDatetime".to_string(), expiryDatetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("strike".to_string(), Value::Null);
@@ -12820,17 +12820,17 @@ impl Bybit {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k(tier.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Null, Value::Str("contract".into())]);
-            let mut minNotional: Value = self.parse_number(Value::Str("0".into()), &[]);
+            let mut minNotional: Option<f64> = self.parse_number(Value::Str("0".into()), &[]).as_f64();
             if (i.as_f64() != Some(0.0)) {
                 minNotional = self.safe_number(get_value(&info, &(match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                    _ => Value::Null })), Value::Str("riskLimitValue".into()), &[]);
+                    _ => Value::Null })), Value::Str("riskLimitValue".into()), &[]).as_f64();
             }
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_integer_k(tier.clone(), "id", &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
-                    m.insert("minNotional".to_string(), minNotional);
+                    m.insert("minNotional".to_string(), Value::from(minNotional));
                     m.insert("maxNotional".to_string(), self.safe_number_k(tier.clone(), "riskLimitValue", &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "maintenanceMargin", &[]));
                     m.insert("maxLeverage".to_string(), self.safe_number_k(tier.clone(), "maxLeverage", &[]));

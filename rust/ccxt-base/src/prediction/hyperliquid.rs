@@ -1620,20 +1620,20 @@ impl Hyperliquid {
         // value / entry price / pnl for outcome tokens, so they are computed here
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(Value::Null, &[crate::Value::from(market)]).into_dict();
         let mut totalStr: Option<String> = self.safe_string_k(position.clone(), "total", &[]).as_str().map(str::to_owned);
-        let mut total: Value = self.parse_number(totalStr.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut total: Option<f64> = self.parse_number(totalStr.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut entryNtlStr: Option<String> = self.safe_string_k(position.clone(), "entryNtl", &[]).as_str().map(str::to_owned);
-        let mut entryPrice: Value = Value::Null;
+        let mut entryPrice: Option<f64> = None;
         if (entryNtlStr.is_some()) && (totalStr.is_some()) && !(crate::precise::Precise::stringEq(&totalStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-            entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&entryNtlStr.clone().map(Value::from).unwrap_or(Value::Null), &totalStr.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+            entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&entryNtlStr.clone().map(Value::from).unwrap_or(Value::Null), &totalStr.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         }
         let mut markPxStr: Option<String> = self.safe_string_k(position.clone(), "markPx", &[]).as_str().map(str::to_owned);
-        let mut notional: Value = Value::Null; // current position value = size * mark price
-        let mut unrealizedPnl: Value = Value::Null; // value - entry notional
+        let mut notional: Option<f64> = None; // current position value = size * mark price
+        let mut unrealizedPnl: Option<f64> = None; // value - entry notional
         if (markPxStr.is_some()) && (totalStr.is_some()) {
             let mut notionalStr: Option<String> = crate::precise::Precise::stringMul(&totalStr.map(Value::from).unwrap_or(Value::Null), &markPxStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            notional = self.parse_number(notionalStr.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            notional = self.parse_number(notionalStr.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             if (entryNtlStr.is_some()) {
-                unrealizedPnl = self.parse_number(crate::precise::Precise::stringSub(&notionalStr.map(Value::from).unwrap_or(Value::Null), &entryNtlStr.map(Value::from).unwrap_or(Value::Null)), &[]);
+                unrealizedPnl = self.parse_number(crate::precise::Precise::stringSub(&notionalStr.map(Value::from).unwrap_or(Value::Null), &entryNtlStr.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             }
         }
         return self.safe_prediction_position(Value::Map({
@@ -1647,18 +1647,18 @@ impl Hyperliquid {
         m.insert("isolated".to_string(), Value::Bool(false));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("long".into()));
-        m.insert("contracts".to_string(), total);
+        m.insert("contracts".to_string(), Value::from(total));
         m.insert("contractSize".to_string(), Value::Int(1));
-        m.insert("entryPrice".to_string(), entryPrice);
+        m.insert("entryPrice".to_string(), Value::from(entryPrice));
         m.insert("markPrice".to_string(), self.parse_number(markPxStr.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("notional".to_string(), notional);
+        m.insert("notional".to_string(), Value::from(notional));
         m.insert("leverage".to_string(), Value::Null);
         m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "hold", &[]));
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("unrealizedPnl".to_string(), unrealizedPnl);
+        m.insert("unrealizedPnl".to_string(), Value::from(unrealizedPnl));
         m.insert("realizedPnl".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
@@ -2714,9 +2714,9 @@ impl Hyperliquid {
                 m
             }));
         }
-        let mut cost: Value = Value::Null;
+        let mut cost: Option<f64> = None;
         if (price.is_some()) && (amount.is_some()) {
-            cost = self.parse_number(crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+            cost = self.parse_number(crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         }
         let mut crossed: bool = self.safe_bool_k(trade.clone(), "crossed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut takerOrMaker: String = "maker".to_string();
@@ -2739,7 +2739,7 @@ impl Hyperliquid {
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
         m.insert("price".to_string(), self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), Value::from(cost));
         m.insert("fee".to_string(), feeObject.map_or(Value::Null, Value::Dict));
     m
 }), &[resolvedMarket]);

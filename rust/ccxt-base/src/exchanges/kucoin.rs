@@ -3798,11 +3798,11 @@ impl Kucoin {
             if (limitAmountMax.is_none()) {
                 limitAmountMax = self.safe_number_k(&market, "baseMaxSize", &[]).as_f64();
             }
-            let mut limitPriceMax: Value = self.safe_number_k(&market, "maxPrice", &[]);
-            if (limitPriceMax == Value::Null) {
+            let mut limitPriceMax: Option<f64> = self.safe_number_k(&market, "maxPrice", &[]).as_f64();
+            if (limitPriceMax.is_none()) {
                 let mut baseMinSizeString: Option<String> = self.safe_string_k(&market, "baseMinSize", &[]).as_str().map(str::to_owned);
                 let mut quoteMaxSizeString: Option<String> = self.safe_string_k(&market, "quoteMaxSize", &[]).as_str().map(str::to_owned);
-                limitPriceMax = self.parse_number(crate::precise::Precise::stringDiv(&quoteMaxSizeString.map(Value::from).unwrap_or(Value::Null), &baseMinSizeString.map(Value::from).unwrap_or(Value::Null)), &[]);
+                limitPriceMax = self.parse_number(crate::precise::Precise::stringDiv(&quoteMaxSizeString.map(Value::from).unwrap_or(Value::Null), &baseMinSizeString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3854,7 +3854,7 @@ impl Kucoin {
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::from(tickSize));
-        m.insert("max".to_string(), limitPriceMax);
+        m.insert("max".to_string(), Value::from(limitPriceMax));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
@@ -4272,7 +4272,7 @@ impl Kucoin {
         }
         // kucoin has determined 'fiat' currencies with below logic
         let mut rawPrecision: Option<String> = self.safe_string_k(entry.clone(), "precision", &[]).as_str().map(str::to_owned);
-        let mut precision: Value = self.parse_number(self.parse_precision(&[rawPrecision.map(Value::from).unwrap_or(Value::Null)]), &[]);
+        let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[rawPrecision.map(Value::from).unwrap_or(Value::Null)]), &[]).as_f64();
         let mut isFiat: bool = chainsLength == 0.0;
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4280,7 +4280,7 @@ impl Kucoin {
         m.insert("name".to_string(), self.safe_string_k(entry.clone(), "fullName", &[]));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), (if isFiat { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
-        m.insert("precision".to_string(), precision);
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("info".to_string(), entry);
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("deposit".to_string(), Value::Null);

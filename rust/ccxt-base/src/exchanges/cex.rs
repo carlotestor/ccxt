@@ -712,7 +712,7 @@ impl Cex {
         if isFiat {
             type_var = "fiat".to_string();
         }
-        let mut currencyPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
+        let mut currencyPrecision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]).as_f64();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -741,7 +741,7 @@ impl Cex {
         m.insert("withdraw".to_string(), withdraw);
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(rawNetwork.clone(), "withdrawalFee", &[]));
-        m.insert("precision".to_string(), currencyPrecision.clone());
+        m.insert("precision".to_string(), Value::from(currencyPrecision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
@@ -774,7 +774,7 @@ impl Cex {
         m.insert("deposit".to_string(), self.safe_bool_k(rawCurrency.clone(), "walletDeposit", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency.clone(), "walletWithdrawal", &[]));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("precision".to_string(), currencyPrecision);
+        m.insert("precision".to_string(), Value::from(currencyPrecision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({

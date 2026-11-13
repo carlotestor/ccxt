@@ -2105,8 +2105,8 @@ if _try_result.is_err() {
             }
             let mut amountDecimals: Option<String> = self.safe_string2(market.clone(), Value::Str("size_decimals".into()), Value::Str("supported_size_decimals".into()), &[]).as_str().map(str::to_owned);
             let mut priceDecimals: Option<String> = self.safe_string2(market.clone(), Value::Str("price_decimals".into()), Value::Str("supported_price_decimals".into()), &[]).as_str().map(str::to_owned);
-            let mut amountPrecision: Value = (if (amountDecimals.is_none()) { Value::Null } else { self.parse_number(self.parse_precision(&[amountDecimals.clone().map(Value::from).unwrap_or(Value::Null)]), &[]) });
-            let mut pricePrecision: Value = (if (priceDecimals.is_none()) { Value::Null } else { self.parse_number(self.parse_precision(&[priceDecimals.clone().map(Value::from).unwrap_or(Value::Null)]), &[]) });
+            let mut amountPrecision: Option<f64> = (if (amountDecimals.is_none()) { None } else { self.parse_number(self.parse_precision(&[amountDecimals.clone().map(Value::from).unwrap_or(Value::Null)]), &[]).as_f64() });
+            let mut pricePrecision: Option<f64> = (if (priceDecimals.is_none()) { None } else { self.parse_number(self.parse_precision(&[priceDecimals.clone().map(Value::from).unwrap_or(Value::Null)]), &[]).as_f64() });
             let mut quoteMultiplier: Option<f64> = self.safe_number_k(market.clone(), "quote_multiplier", &[]).as_f64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2137,8 +2137,8 @@ if _try_result.is_err() {
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
-        m.insert("price".to_string(), pricePrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
+        m.insert("price".to_string(), Value::from(pricePrecision));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -3497,15 +3497,15 @@ if _try_result.is_err() {
             let mut typeAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "order_type", &[]).as_i64();
             type_var = self.parse_order_type_integer(typeAsInteger).map(Value::from).unwrap_or(Value::Null);
         }
-        let mut triggerPrice: Value = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(order.clone(), "trigger_price", &[]))), &[]);
+        let mut triggerPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(order.clone(), "trigger_price", &[]))), &[]).as_f64();
         let mut stopLossPrice: Value = Value::Null;
         let mut takeProfitPrice: Value = Value::Null;
         if (type_var != Value::Null) {
             if type_var.as_str().unwrap_or("").contains("stop-loss") {
-                stopLossPrice = triggerPrice.clone();
+                stopLossPrice = Value::from(triggerPrice);
             }
             if type_var.as_str().unwrap_or("").contains("take-profit") {
-                takeProfitPrice = triggerPrice.clone();
+                takeProfitPrice = Value::from(triggerPrice);
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
@@ -3534,7 +3534,7 @@ if _try_result.is_err() {
         m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
-        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("triggerPrice".to_string(), Value::from(triggerPrice));
         m.insert("stopLossPrice".to_string(), stopLossPrice);
         m.insert("takeProfitPrice".to_string(), takeProfitPrice);
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "initial_base_amount", &[]));

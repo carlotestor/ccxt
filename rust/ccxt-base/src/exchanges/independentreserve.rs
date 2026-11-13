@@ -1320,9 +1320,9 @@ impl Independentreserve {
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "OrderGuid", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string2(trade.clone(), Value::Str("Price".into()), Value::Str("SecondaryCurrencyTradePrice".into()), &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string2(trade.clone(), Value::Str("VolumeTraded".into()), Value::Str("PrimaryCurrencyAmount".into()), &[]).as_str().map(str::to_owned);
-        let mut price: Value = self.parse_number(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut amount: Value = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut cost: Value = self.parse_number(crate::precise::Precise::stringMul(&priceString.map(Value::from).unwrap_or(Value::Null), &amountString.map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut price: Option<f64> = self.parse_number(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut amount: Option<f64> = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut cost: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&priceString.map(Value::from).unwrap_or(Value::Null), &amountString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         let mut baseId: Option<String> = self.safe_string_k(trade.clone(), "PrimaryCurrencyCode", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(trade.clone(), "SecondaryCurrencyCode", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = None;
@@ -1349,9 +1349,9 @@ impl Independentreserve {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
+        m.insert("price".to_string(), Value::from(price));
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(cost));
         m.insert("fee".to_string(), Value::Null);
     m
 }), market);

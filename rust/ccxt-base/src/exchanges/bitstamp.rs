@@ -2113,7 +2113,7 @@ impl Bitstamp {
         if self.is_fiat(code.as_str()).as_bool() == Some(true) {
             currencyType = "fiat".to_string();
         }
-        let mut tickSize: Value = self.parse_number(self.parse_precision(&[Value::from(self.number_to_string(precision))]), &[]);
+        let mut tickSize: Option<f64> = self.parse_number(self.parse_precision(&[Value::from(self.number_to_string(precision))]), &[]).as_f64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -2125,18 +2125,18 @@ impl Bitstamp {
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::from(withdrawFee));
-        m.insert("precision".to_string(), tickSize.clone());
+        m.insert("precision".to_string(), Value::from(tickSize));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), tickSize.clone());
+        m.insert("min".to_string(), Value::from(tickSize));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), tickSize);
+        m.insert("min".to_string(), Value::from(tickSize));
         m.insert("max".to_string(), Value::Null);
     m
 }));

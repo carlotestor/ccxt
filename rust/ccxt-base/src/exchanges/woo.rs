@@ -1696,7 +1696,7 @@ impl Woo {
         let mut settleId: Option<String> = None;
         let mut settle: Option<String> = None;
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut contractSize: Value = Value::Null;
+        let mut contractSize: Option<f64> = None;
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
         let mut margin: bool = true;
@@ -1706,7 +1706,7 @@ impl Woo {
             settleId = self.safe_string(parts, Value::Int(2), &[]).as_str().map(str::to_owned);
             settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
-            contractSize = self.parse_number(Value::Str("1".into()), &[]);
+            contractSize = self.parse_number(Value::Str("1".into()), &[]).as_f64();
             linear = Some(true);
             inverse = Some(false);
         }
@@ -1731,7 +1731,7 @@ impl Woo {
         m.insert("contract".to_string(), contract);
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);

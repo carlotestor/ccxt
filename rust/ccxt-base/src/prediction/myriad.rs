@@ -2059,9 +2059,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountWei: Option<String> = self.safe_string_k(&inner, "amount", &[]).as_str().map(str::to_owned);
         let mut priceWei: Option<String> = self.safe_string_k(&inner, "price", &[]).as_str().map(str::to_owned);
         let mut filledWei: Option<String> = self.safe_string_k(order.clone(), "filledAmount", &[]).as_str().map(str::to_owned);
-        let mut amount: Value = (if (amountWei.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringDiv(&amountWei.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())), &[]) });
-        let mut price: Value = (if (priceWei.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringDiv(&priceWei.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())), &[]) });
-        let mut filled: Value = (if (filledWei.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringDiv(&filledWei.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())), &[]) });
+        let mut amount: Option<f64> = (if (amountWei.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringDiv(&amountWei.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())), &[]).as_f64() });
+        let mut price: Option<f64> = (if (priceWei.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringDiv(&priceWei.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())), &[]).as_f64() });
+        let mut filled: Option<f64> = (if (filledWei.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringDiv(&filledWei.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())), &[]).as_f64() });
         let mut statusRaw: Option<String> = self.safe_string_lower_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status(statusRaw.as_deref());
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "createdAt", &[]));
@@ -2103,10 +2103,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("timeInForce".to_string(), tif.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), (Value::Bool(tif.as_deref() == Some("PO"))));
         m.insert("side".to_string(), Value::from(side));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), Value::from(price));
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("amount".to_string(), amount);
-        m.insert("filled".to_string(), filled);
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("filled".to_string(), Value::from(filled));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
@@ -3698,8 +3698,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut outcomes: crate::value::List = self.safe_list_k(&response, "outcomes", &[Value::from(vec![])]).into_list();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
-        let mut bid: Value = Value::Null;
-        let mut ask: Value = Value::Null;
+        let mut bid: Option<f64> = None;
+        let mut ask: Option<f64> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1359: bool = true;
@@ -3709,10 +3709,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut price: Option<f64> = self.safe_number_k(&o, "price", &[]).as_f64();
                 if (price.is_some()) {
                     if price > Some(0.001) {
-                        bid = self.parse_number(crate::precise::Precise::stringSub(&Value::from(self.number_to_string(Value::from(price))), &Value::Str("0.001".into())), &[]);
+                        bid = self.parse_number(crate::precise::Precise::stringSub(&Value::from(self.number_to_string(Value::from(price))), &Value::Str("0.001".into())), &[]).as_f64();
                     }
                     if (price.is_some() && Some(0.999) > price) {
-                        ask = self.parse_number(crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(price))), &Value::Str("0.001".into())), &[]);
+                        ask = self.parse_number(crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(price))), &Value::Str("0.001".into())), &[]).as_f64();
                     }
                 }
                 break;
@@ -3720,14 +3720,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         // the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
-        let mut synthSize: Value = self.parse_number(Value::Str("9999".into()), &[]);
+        let mut synthSize: Option<f64> = self.parse_number(Value::Str("9999".into()), &[]).as_f64();
         let mut bids: Vec<Value> = Vec::new();
-        if (bid != Value::Null) {
-            bids.push(Value::from(vec![bid, synthSize.clone()]));
+        if (bid.is_some()) {
+            bids.push(Value::from(vec![Value::from(bid), Value::from(synthSize)]));
         }
         let mut asks: Vec<Value> = Vec::new();
-        if (ask != Value::Null) {
-            asks.push(Value::from(vec![ask, synthSize]));
+        if (ask.is_some()) {
+            asks.push(Value::from(vec![Value::from(ask), Value::from(synthSize)]));
         }
         let mut orderbook: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5375,7 +5375,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             deltaStr = deltaStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         }
         let mut deltaShares: Option<String> = crate::precise::Precise::stringDiv(&deltaStr, &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
-        let mut contracts: Value = Value::Null;
+        let mut contracts: Option<f64> = None;
         let mut posId: Value = Value::Null;
         if (networkId.is_some()) && (marketId.is_some()) && (outcomeId.is_some()) {
             posId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("/".into())).into()), outcomeId.map(Value::from).unwrap_or(Value::Null)).into());
@@ -5389,7 +5389,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 balances.insert(crate::runtime::stringify_param(&posId), updated.clone().map(Value::from).unwrap_or(Value::Null));
             }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("positionBalances".into(), Value::Map(balances)); }
-            contracts = self.parse_number(updated.map(Value::from).unwrap_or(Value::Null), &[]);
+            contracts = self.parse_number(updated.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut parsed: Value = self.safe_prediction_position(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5402,7 +5402,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("timestamp".to_string(), ts.clone());
                 m.insert("datetime".to_string(), self.iso8601(ts));
                 m.insert("side".to_string(), Value::Str("long".into()));
-                m.insert("contracts".to_string(), contracts);
+                m.insert("contracts".to_string(), Value::from(contracts));
                 m.insert("entryPrice".to_string(), Value::Null);
                 m.insert("markPrice".to_string(), Value::Null);
                 m.insert("notional".to_string(), Value::Null);

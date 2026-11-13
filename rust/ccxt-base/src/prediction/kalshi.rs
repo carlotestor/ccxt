@@ -1168,14 +1168,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_dict();
         let mut stepDollars: Option<String> = self.safe_string_k(&firstRange, "step", &[]).as_str().map(str::to_owned);
-        let mut pricePrecision: Value = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(raw.clone(), "tick_size", &[Value::Str("1".into())]), &Value::Str("100".into())), &[]);
+        let mut pricePrecision: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(raw.clone(), "tick_size", &[Value::Str("1".into())]), &Value::Str("100".into())), &[]).as_f64();
         if (stepDollars.is_some()) {
-            pricePrecision = self.parse_number(stepDollars.map(Value::from).unwrap_or(Value::Null), &[]);
+            pricePrecision = self.parse_number(stepDollars.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut precision: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), Value::Int(1));
-                m.insert("price".to_string(), pricePrecision);
+                m.insert("price".to_string(), Value::from(pricePrecision));
             m
         });
         // Build outcomes
@@ -1607,17 +1607,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
-        let mut bidVolume: Value = Value::Null;
+        let mut bidVolume: Option<f64> = None;
         if (bidSizeString.is_some()) && crate::precise::Precise::stringGe(&bidSizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            bidVolume = self.parse_number(bidSizeString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            bidVolume = self.parse_number(bidSizeString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
-        let mut askVolume: Value = Value::Null;
+        let mut askVolume: Option<f64> = None;
         if (askSizeString.is_some()) && crate::precise::Precise::stringGe(&askSizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            askVolume = self.parse_number(askSizeString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            askVolume = self.parse_number(askSizeString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
-        let mut average: Value = Value::Null;
+        let mut average: Option<f64> = None;
         if (bid != Value::Null) && (ask != Value::Null) {
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(bid.clone())), &Value::from(self.number_to_string(ask.clone()))), &Value::Str("2".into())), &[]);
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(bid.clone())), &Value::from(self.number_to_string(ask.clone()))), &Value::Str("2".into())), &[]).as_f64();
         }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1630,9 +1630,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), bid);
-        m.insert("bidVolume".to_string(), bidVolume);
+        m.insert("bidVolume".to_string(), Value::from(bidVolume));
         m.insert("ask".to_string(), ask);
-        m.insert("askVolume".to_string(), askVolume);
+        m.insert("askVolume".to_string(), Value::from(askVolume));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), close.clone());
@@ -1640,7 +1640,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), average);
+        m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), self.safe_number_n(raw.clone(), Value::from(vec![Value::Str("volume_24h_fp".into()), Value::Str("volume_24h".into()), Value::Str("volume".into())]), &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), raw);
@@ -2651,10 +2651,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(ticker.clone().map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
         let mut yesContracts: Option<f64> = self.safe_number_k(position.clone(), "position", &[]).as_f64(); // positive = long YES
         let mut positionSide: Option<String> = None;
-        let mut contractsValue: Value = Value::Null;
+        let mut contractsValue: Option<f64> = None;
         if (yesContracts.is_some()) {
             positionSide = (if (yesContracts >= Some(0.0)) { Some("long".to_string()) } else { Some("short".to_string()) });
-            contractsValue = self.parse_number(crate::precise::Precise::stringAbs(&Value::from(self.number_to_string(Value::from(yesContracts)))), &[]);
+            contractsValue = self.parse_number(crate::precise::Precise::stringAbs(&Value::from(self.number_to_string(Value::from(yesContracts)))), &[]).as_f64();
         }
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2665,7 +2665,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("market".to_string(), self.safe_string2(&outcomeObj, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("contracts".to_string(), contractsValue);
+        m.insert("contracts".to_string(), Value::from(contractsValue));
         m.insert("contractSize".to_string(), Value::Int(1));
         m.insert("side".to_string(), positionSide.map(Value::from).unwrap_or(Value::Null));
         m.insert("notional".to_string(), Value::Null);
@@ -3028,7 +3028,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isNo {
             bookSide = (if (isBuy) { "ask".to_string() } else { "bid".to_string() });
         }
-        let mut yesPrice: Value = (if (isNo && (price != Value::Null)) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(price.clone()))), &[]) } else { price.clone() });
+        let mut yesPrice: Option<f64> = (if (isNo && (price != Value::Null)) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(price.clone()))), &[]).as_f64() } else { price.as_f64() });
         let mut isMarket: bool = type_var.as_str() == Some("market");
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
@@ -3062,8 +3062,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("self_trade_prevention_type".to_string(), stp.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        if (yesPrice != Value::Null) {
-            request.insert("price".into(), Value::from(self.number_to_string(yesPrice)));
+        if (yesPrice.is_some()) {
+            request.insert("price".into(), Value::from(self.number_to_string(Value::from(yesPrice))));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSelfTradePreventionType]);
         let mut response: crate::value::Dict = self.kalshi_private_post_portfolio_events_orders(&[__ws_arg_12]).await.into_dict();

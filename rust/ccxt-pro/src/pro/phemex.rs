@@ -395,15 +395,15 @@ impl Phemex {
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
         let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(ticker.clone(), "turnover", &[]), &[marketValue.clone()]), &[]);
         let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(ticker.clone(), "volume", &[]), &[marketValue.clone()]), &[]);
-        let mut change: Value = Value::Null;
-        let mut percentage: Value = Value::Null;
-        let mut average: Value = Value::Null;
+        let mut change: Option<f64> = None;
+        let mut percentage: Option<f64> = None;
+        let mut average: Option<f64> = None;
         let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[marketValue.clone()]));
-        let mut open: Value = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString != Value::Null) {
-            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]);
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]);
+            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]).as_f64();
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -417,13 +417,13 @@ impl Phemex {
         m.insert("ask".to_string(), Value::Null);
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), open);
+        m.insert("open".to_string(), Value::from(open));
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), change);
-        m.insert("percentage".to_string(), percentage);
-        m.insert("average".to_string(), average);
+        m.insert("change".to_string(), Value::from(change));
+        m.insert("percentage".to_string(), Value::from(percentage));
+        m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("markPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "markPrice", &[]), &[marketValue.clone()]), &[]));
@@ -460,15 +460,15 @@ impl Phemex {
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
         let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(6), &[]), &[marketValue.clone()]), &[]);
         let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(5), &[]), &[marketValue.clone()]), &[]);
-        let mut change: Value = Value::Null;
-        let mut percentage: Value = Value::Null;
-        let mut average: Value = Value::Null;
+        let mut change: Option<f64> = None;
+        let mut percentage: Option<f64> = None;
+        let mut average: Option<f64> = None;
         let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[marketValue.clone()]));
-        let mut open: Value = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString != Value::Null) {
-            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]);
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]);
+            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]).as_f64();
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -482,13 +482,13 @@ impl Phemex {
         m.insert("ask".to_string(), Value::Null);
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), open);
+        m.insert("open".to_string(), Value::from(open));
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), change);
-        m.insert("percentage".to_string(), percentage);
-        m.insert("average".to_string(), average);
+        m.insert("change".to_string(), Value::from(change));
+        m.insert("percentage".to_string(), Value::from(percentage));
+        m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("info".to_string(), ticker);

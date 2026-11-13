@@ -937,13 +937,13 @@ impl Gemini {
             if crate::precise::Precise::stringEq(&sizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 continue;
             }
-            let mut size: Value = self.parse_number(sizeString.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut size: Option<f64> = self.parse_number(sizeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             if (rawSide.as_deref() == Some("bid")) {
                 add_element_to_object(&mut currentBidAsk, &Value::Str("bid".into()), Value::from(price));
-                add_element_to_object(&mut currentBidAsk, &Value::Str("bidVolume".into()), size.clone());
+                add_element_to_object(&mut currentBidAsk, &Value::Str("bidVolume".into()), Value::from(size));
             }  else {
                 add_element_to_object(&mut currentBidAsk, &Value::Str("ask".into()), Value::from(price));
-                add_element_to_object(&mut currentBidAsk, &Value::Str("askVolume".into()), size);
+                add_element_to_object(&mut currentBidAsk, &Value::Str("askVolume".into()), Value::from(size));
             }
         }
         }

@@ -3539,7 +3539,7 @@ impl Toobit {
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "created", &[]).as_i64();
         let mut after: Option<f64> = self.safe_number_k(item.clone(), "total", &[]).as_f64();
         let mut amountRaw: String = self.safe_string_k(item.clone(), "change", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&Value::from(amountRaw.clone())), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&Value::from(amountRaw.clone())), &[]).as_f64();
         let mut direction: String = "in".to_string();
         if (amountRaw.starts_with("-")) {
             direction = "out".to_string();
@@ -3556,7 +3556,7 @@ impl Toobit {
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_type((self.safe_string_k(item, "flowType", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::from(after));
         m.insert("status".to_string(), Value::Null);

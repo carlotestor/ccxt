@@ -926,13 +926,13 @@ impl Bitso {
             })]).into_dict();
             let mut takerString: Option<String> = self.safe_string_k(&flatRate, "taker", &[]).as_str().map(str::to_owned);
             let mut makerString: Option<String> = self.safe_string_k(&flatRate, "maker", &[]).as_str().map(str::to_owned);
-            let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
-            let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
+            let mut taker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
+            let mut maker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
             let mut feeTiers: crate::value::List = self.safe_list_k(&fees, "structure", &[Value::from(vec![])]).into_list();
             let mut fee: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("taker".to_string(), taker.clone());
-                    m.insert("maker".to_string(), maker.clone());
+                    m.insert("taker".to_string(), Value::from(taker));
+                    m.insert("maker".to_string(), Value::from(maker));
                     m.insert("percentage".to_string(), Value::Bool(true));
                     m.insert("tierBased".to_string(), Value::Bool(true));
                 m
@@ -983,8 +983,8 @@ impl Bitso {
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
-        m.insert("taker".to_string(), taker);
-        m.insert("maker".to_string(), maker);
+        m.insert("taker".to_string(), Value::from(taker));
+        m.insert("maker".to_string(), Value::from(maker));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);

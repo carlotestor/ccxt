@@ -2336,7 +2336,7 @@ impl Bingx {
 }));
                 m
             });
-            let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawNetwork.clone(), "withdrawPrecision", &[])]), &[]);
+            let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(rawNetwork.clone(), "withdrawPrecision", &[])]), &[]).as_f64();
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2347,7 +2347,7 @@ impl Bingx {
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(rawNetwork.clone(), "depositEnable", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(rawNetwork, "withdrawEnable", &[]));
-        m.insert("precision".to_string(), precision);
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("limits".to_string(), Value::Map(limits));
     m
 }));
@@ -2498,13 +2498,13 @@ impl Bingx {
             checkIsLinear = false;
         }
         let mut settle: Option<String> = self.safe_currency_code(currency.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut pricePrecision: Value = self.safe_number_k(market.clone(), "tickSize", &[]);
-        if (pricePrecision == Value::Null) {
-            pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]);
+        let mut pricePrecision: Option<f64> = self.safe_number_k(market.clone(), "tickSize", &[]).as_f64();
+        if (pricePrecision.is_none()) {
+            pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]).as_f64();
         }
-        let mut quantityPrecision: Value = self.safe_number_k(market.clone(), "stepSize", &[]);
-        if (quantityPrecision == Value::Null) {
-            quantityPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]);
+        let mut quantityPrecision: Option<f64> = self.safe_number_k(market.clone(), "stepSize", &[]).as_f64();
+        if (quantityPrecision.is_none()) {
+            quantityPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]).as_f64();
         }
         let mut type_var: String = "spot".to_string();
         if (settle.is_some()) {
@@ -2520,9 +2520,9 @@ impl Bingx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut contractSize: Value = Value::Null;
+        let mut contractSize: Option<f64> = None;
         if swap {
-            contractSize = (if checkIsInverse { Value::from(inverseContractSize) } else { self.parse_number(Value::Str("1".into()), &[]) });
+            contractSize = (if checkIsInverse { inverseContractSize } else { self.parse_number(Value::Str("1".into()), &[]).as_f64() });
         }
         let mut isActive: bool = false;
         if (self.safe_string_k(market.clone(), "apiStateOpen", &[]).as_str() == Some("true")) && (self.safe_string_k(market.clone(), "apiStateClose", &[]).as_str() == Some("true")) {
@@ -2565,15 +2565,15 @@ impl Bingx {
         m.insert("taker".to_string(), self.safe_number_k(&fees, "taker", &[]));
         m.insert("maker".to_string(), self.safe_number_k(&fees, "maker", &[]));
         m.insert("feeSide".to_string(), self.safe_string_k(&fees, "feeSide", &[]));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), quantityPrecision);
-        m.insert("price".to_string(), pricePrecision);
+        m.insert("amount".to_string(), Value::from(quantityPrecision));
+        m.insert("price".to_string(), Value::from(pricePrecision));
     m
 }));
         m.insert("limits".to_string(), Value::Map({

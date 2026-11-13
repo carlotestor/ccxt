@@ -3797,9 +3797,9 @@ impl Nado {
         let mut vQuoteBalance: Option<String> = self.safe_string_k(&balance, "v_quote_balance", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         let mut contracts: Value = Value::Null;
-        let mut entryPrice: Value = Value::Null;
+        let mut entryPrice: Option<f64> = None;
         let mut markPrice: Value = Value::Null;
-        let mut notional: Value = Value::Null;
+        let mut notional: Option<f64> = None;
         if (amountString.is_some()) {
             if crate::precise::Precise::stringGt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("long".to_string());
@@ -3809,12 +3809,12 @@ impl Nado {
             let mut absoluteAmount: Option<String> = crate::precise::Precise::stringAbs(&amountString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             contracts = self.parse_x18(absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null));
             if (vQuoteBalance.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-                entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteBalance.map(Value::from).unwrap_or(Value::Null)), &absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+                entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteBalance.map(Value::from).unwrap_or(Value::Null)), &absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             }
             if (markPriceX18.is_some()) {
                 markPrice = self.parse_x18(markPriceX18.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut notionalX36: Option<String> = crate::precise::Precise::stringMul(&absoluteAmount.map(Value::from).unwrap_or(Value::Null), &markPriceX18.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000000000000000000000".into())), &[]);
+                notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000000000000000000000".into())), &[]).as_f64();
             }
         }
         return self.safe_position(Value::Map({
@@ -3829,9 +3829,9 @@ impl Nado {
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), contracts);
         m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
-        m.insert("entryPrice".to_string(), entryPrice);
+        m.insert("entryPrice".to_string(), Value::from(entryPrice));
         m.insert("markPrice".to_string(), markPrice);
-        m.insert("notional".to_string(), notional);
+        m.insert("notional".to_string(), Value::from(notional));
         m.insert("leverage".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);

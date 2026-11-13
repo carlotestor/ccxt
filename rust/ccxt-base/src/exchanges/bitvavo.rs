@@ -2078,18 +2078,18 @@ impl Bitvavo {
             paramsCost = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("cost".into())]), &[]);
         }
         if isMarketOrder {
-            let mut cost: Value = Value::Null;
+            let mut cost: Option<f64> = None;
             if (price != Value::Null) {
                 let mut priceString: Option<String> = self.number_to_string(price.clone());
                 let mut amountString: Option<String> = self.number_to_string(amount.clone());
                 let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]);
+                cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }  else {
-                cost = self.safe_number_k(paramsOmitted, "cost", &[]);
+                cost = self.safe_number_k(paramsOmitted, "cost", &[]).as_f64();
             }
-            if (cost != Value::Null) {
+            if (cost.is_some()) {
                 let mut precision: Option<f64> = self.safe_number_k(&self.currency(Value::from((market).quote.clone())), "precision", &[]).as_f64();
-                request.insert("amountQuote".into(), self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), Value::from(precision), &[self.precisionMode.clone()]));
+                request.insert("amountQuote".into(), self.decimal_to_precision(Value::from(cost), Value::Int(crate::runtime::TRUNCATE), Value::from(precision), &[self.precisionMode.clone()]));
             }  else {
                 request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }

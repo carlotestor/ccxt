@@ -1169,11 +1169,11 @@ impl Alpaca {
         let mut minAmount: Option<f64> = self.safe_number_k(asset.clone(), "min_order_size", &[]).as_f64();
         let mut amount: Option<f64> = self.safe_number_k(asset.clone(), "min_trade_increment", &[]).as_f64();
         let mut price: Option<f64> = self.safe_number_k(asset.clone(), "price_increment", &[]).as_f64();
-        let mut minCost: Value = Value::Null;
+        let mut minCost: Option<f64> = None;
         if (assetClass.as_deref() == Some("crypto")) && (quote.as_deref() == Some("USD")) {
             // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
             // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
-            minCost = self.safe_number_k(self.options.clone(), "minCostUSD", &[self.parse_number(Value::Str("10".into()), &[])]);
+            minCost = self.safe_number_k(self.options.clone(), "minCostUSD", &[self.parse_number(Value::Str("10".into()), &[])]).as_f64();
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1228,7 +1228,7 @@ impl Alpaca {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minCost);
+        m.insert("min".to_string(), Value::from(minCost));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -2947,7 +2947,7 @@ impl Alpaca {
         let mut addressTo: Option<String> = None;
         let mut addressFrom: Option<String> = None;
         let mut type_var: Value = Value::Null;
-        let mut amount: Value = Value::Null;
+        let mut amount: Option<f64> = None;
         let mut code: Value = Value::Null;
         let mut status: Value = Value::Null;
         let mut comment: Value = Value::Null;
@@ -2960,7 +2960,7 @@ impl Alpaca {
             timestamp = self.parse8601(Value::Str(format!("{}{}", date, Value::Str("T00:00:00Z".into())).into()));
             datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
             type_var = (if isIncoming { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
-            amount = self.parse_number(crate::precise::Precise::stringAbs(&netAmount.map(Value::from).unwrap_or(Value::Null)), &[]);
+            amount = self.parse_number(crate::precise::Precise::stringAbs(&netAmount.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
             // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
@@ -2983,7 +2983,7 @@ impl Alpaca {
             addressTo = self.safe_string_k(transaction.clone(), "to_address", &[]).as_str().map(str::to_owned);
             addressFrom = self.safe_string_k(transaction.clone(), "from_address", &[]).as_str().map(str::to_owned);
             type_var = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "direction", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-            amount = self.parse_number(self.safe_string_k(transaction.clone(), "amount", &[]), &[]);
+            amount = self.parse_number(self.safe_string_k(transaction.clone(), "amount", &[]), &[]).as_f64();
             let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
             code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null);
             network = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[]), code.clone()]);
@@ -3013,7 +3013,7 @@ impl Alpaca {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var);
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);
         m.insert("updated".to_string(), Value::Null);

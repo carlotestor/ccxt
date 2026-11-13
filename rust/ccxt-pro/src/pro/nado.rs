@@ -2513,7 +2513,7 @@ impl Nado {
         let mut vQuoteAmount: Option<String> = self.safe_string_k(position.clone(), "v_quote_amount", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         let mut contracts: Value = Value::Null;
-        let mut entryPrice: Value = Value::Null;
+        let mut entryPrice: Option<f64> = None;
         if (amountString.is_some()) {
             if crate::precise::Precise::stringGt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("long".to_string());
@@ -2523,7 +2523,7 @@ impl Nado {
             let mut absoluteAmount: Option<String> = crate::precise::Precise::stringAbs(&amountString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             contracts = self.parent.parse_x18(absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null));
             if (vQuoteAmount.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-                entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteAmount.map(Value::from).unwrap_or(Value::Null)), &absoluteAmount.map(Value::from).unwrap_or(Value::Null)), &[]);
+                entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteAmount.map(Value::from).unwrap_or(Value::Null)), &absoluteAmount.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             }
         }
         return self.safe_position(Value::Map({
@@ -2538,7 +2538,7 @@ impl Nado {
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), contracts);
         m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
-        m.insert("entryPrice".to_string(), entryPrice);
+        m.insert("entryPrice".to_string(), Value::from(entryPrice));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), Value::Null);
         m.insert("leverage".to_string(), Value::Null);

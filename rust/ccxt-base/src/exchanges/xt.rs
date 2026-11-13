@@ -2551,7 +2551,7 @@ impl Xt {
         let mut maxCost: Option<f64> = None;
         let mut minPrice: Option<f64> = None;
         let mut maxPrice: Option<f64> = None;
-        let mut amountPrecision: Value = Value::Null;
+        let mut amountPrecision: Option<f64> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1188: bool = true;
@@ -2561,7 +2561,7 @@ impl Xt {
             if (filter.as_deref() == Some("QUANTITY")) {
                 minAmount = self.safe_number_k(&entry, "min", &[]).as_f64();
                 maxAmount = self.safe_number_k(&entry, "max", &[]).as_f64();
-                amountPrecision = self.safe_number_k(&entry, "tickSize", &[]);
+                amountPrecision = self.safe_number_k(&entry, "tickSize", &[]).as_f64();
             }
             if (filter.as_deref() == Some("QUOTE_QTY")) {
                 minCost = self.safe_number_k(&entry, "min", &[]).as_f64();
@@ -2572,8 +2572,8 @@ impl Xt {
             }
         }
         }
-        if (amountPrecision == Value::Null) {
-            amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]);
+        if (amountPrecision.is_none()) {
+            amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]).as_f64();
         }
         let mut underlyingType: Option<String> = self.safe_string_k(market.clone(), "underlyingType", &[]).as_str().map(str::to_owned);
         let mut linear: Option<bool> = None;
@@ -2656,7 +2656,7 @@ impl Xt {
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]));
-        m.insert("amount".to_string(), amountPrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
         m.insert("base".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "baseCoinPrecision", &[])]), &[]));
         m.insert("quote".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quoteCoinPrecision", &[])]), &[]));
     m

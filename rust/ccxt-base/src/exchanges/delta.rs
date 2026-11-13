@@ -1493,12 +1493,12 @@ impl Delta {
             let mut expiryDatetime: Option<String> = self.safe_string_k(&market, "settlement_time", &[]).as_str().map(str::to_owned);
             let mut expiry: Option<i64> = self.parse8601(expiryDatetime.map(Value::from).unwrap_or(Value::Null));
             let mut contractSize: Option<f64> = self.safe_number_k(&market, "contract_value", &[]).as_f64();
-            let mut amountPrecision: Value = Value::Null;
+            let mut amountPrecision: Option<f64> = None;
             if matches!(&spot, Value::Bool(true)) {
-                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&productSpecs, "underlying_precision", &[])]), &[]); // seems inverse of 'impact_size'
+                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&productSpecs, "underlying_precision", &[])]), &[]).as_f64(); // seems inverse of 'impact_size'
             }  else {
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
-                amountPrecision = self.parse_number(Value::Str("1".into()), &[]);
+                amountPrecision = self.parse_number(Value::Str("1".into()), &[]).as_f64();
             }
             let mut linear: Value = (Value::Bool(settle == quote));
             let mut optionType: Option<String> = None;
@@ -1557,7 +1557,7 @@ impl Delta {
         m.insert("optionType".to_string(), optionType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
         m.insert("price".to_string(), self.safe_number_k(&market, "tick_size", &[]));
     m
 }));

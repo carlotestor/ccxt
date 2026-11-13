@@ -975,7 +975,7 @@ impl Krakenfutures {
             let mut settle: Value = Value::Null;
             let mut settleId: Value = Value::Null;
             let mut cvtp: Option<String> = self.safe_string_k(&market, "contractValueTradePrecision", &[]).as_str().map(str::to_owned);
-            let mut amountPrecision: Value = self.parse_number(self.integer_precision_to_amount(cvtp.map(Value::from).unwrap_or(Value::Null)), &[]);
+            let mut amountPrecision: Option<f64> = self.parse_number(self.integer_precision_to_amount(cvtp.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             let mut pricePrecision: Option<f64> = self.safe_number_k(&market, "tickSize", &[]).as_f64();
             let mut contract: Value = Value::Bool(matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)) || matches!(&index, Value::Bool(true)));
             let mut swapOrFutures: bool = matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true));
@@ -1027,7 +1027,7 @@ impl Krakenfutures {
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
         m.insert("price".to_string(), Value::from(pricePrecision));
     m
 }));

@@ -1009,13 +1009,13 @@ impl Binance {
         let mut resolved: bool = (status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED"));
         let mut endDate: Option<i64> = (match rawTopic.get("endDate") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut feeRateBps: String = (match rawTopic.get("feeRateBps") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("200".into()) }).as_str().unwrap_or("200").to_string();
-        let mut feeRate: Value = self.parse_number(crate::precise::Precise::stringDiv(&Value::from(feeRateBps.clone()), &Value::Str("10000".into())), &[]);
+        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&Value::from(feeRateBps.clone()), &Value::Str("10000".into())), &[]).as_f64();
         let mut decimalPrecision: String = self.safe_string_k(rawMarket.clone(), "decimalPrecision", &[Value::Str("2".into())]).as_str().unwrap_or("2").to_string();
-        let mut pricePrecision: Value = self.parse_number(self.parse_precision(&[Value::from(decimalPrecision)]), &[]);
+        let mut pricePrecision: Option<f64> = self.parse_number(self.parse_precision(&[Value::from(decimalPrecision)]), &[]).as_f64();
         let mut precision: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), Value::Float(0.01));
-                m.insert("price".to_string(), pricePrecision);
+                m.insert("price".to_string(), Value::from(pricePrecision));
             m
         });
         let mut volume: Option<f64> = self.safe_number_k(rawMarket.clone(), "tradeVolume", &[]).as_f64();
@@ -1112,7 +1112,7 @@ impl Binance {
         m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(endDate)));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
-        m.insert("taker".to_string(), feeRate);
+        m.insert("taker".to_string(), Value::from(feeRate));
         m.insert("maker".to_string(), Value::Int(0));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
@@ -1232,12 +1232,12 @@ impl Binance {
             isMirrored = ((label.as_deref() == Some("NO")) || (label.as_deref() == Some("DOWN")));
         }
         let mut lastString: Option<String> = self.safe_string_k(raw.clone(), "lastTradePrice", &[]).as_str().map(str::to_owned);
-        let mut last: Value = Value::Null;
+        let mut last: Option<f64> = None;
         if (lastString.is_some()) {
             if isMirrored {
-                last = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &lastString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+                last = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &lastString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             }  else {
-                last = self.parse_number(lastString.map(Value::from).unwrap_or(Value::Null), &[]);
+                last = self.parse_number(lastString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }
         }
         return self.safe_prediction_ticker(Value::Map({
@@ -1256,8 +1256,8 @@ impl Binance {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone());
-        m.insert("last".to_string(), last);
+        m.insert("close".to_string(), Value::from(last));
+        m.insert("last".to_string(), Value::from(last));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
@@ -1964,7 +1964,7 @@ impl Binance {
             outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "createdTime", &[]).as_i64();
-        let mut totalCost: Value = self.parse_number(self.safe_string_k(position.clone(), "totalCost", &[]), &[]);
+        let mut totalCost: Option<f64> = self.parse_number(self.safe_string_k(position.clone(), "totalCost", &[]), &[]).as_f64();
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_integer_k(position.clone(), "positionId", &[]));
@@ -1982,8 +1982,8 @@ impl Binance {
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), self.parse_number(self.safe_string_k(position.clone(), "value", &[]), &[]));
         m.insert("leverage".to_string(), Value::Null);
-        m.insert("collateral".to_string(), totalCost.clone());
-        m.insert("initialMargin".to_string(), totalCost);
+        m.insert("collateral".to_string(), Value::from(totalCost));
+        m.insert("initialMargin".to_string(), Value::from(totalCost));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);

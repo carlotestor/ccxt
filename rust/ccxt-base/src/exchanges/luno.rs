@@ -975,28 +975,28 @@ impl Luno {
             // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
             let mut unverifiedQuotes: Value = Value::from(vec![Value::Str("MYR".into()), Value::Str("NGN".into()), Value::Str("IDR".into()), Value::Str("KES".into()), Value::Str("UGX".into()), Value::Str("AUD".into()), Value::Str("GBP".into()), Value::Str("EUR".into()), Value::Str("USD".into()), Value::Str("ZARU".into())]);
             let mut stablecoins: Value = Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())]);
-            let mut taker: Value = Value::Null;
-            let mut maker: Value = Value::Null;
+            let mut taker: Option<f64> = None;
+            let mut maker: Option<f64> = None;
             if self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), fiats).as_bool() == Some(true) {
                 if self.in_array(base.clone().map(Value::from).unwrap_or(Value::Null), stablecoins).as_bool() == Some(true) {
-                    taker = self.parse_number(Value::Str("0.002".into()), &[]);
-                    maker = self.parse_number(Value::Str("-0.0001".into()), &[]); // a rebate, not a charge
+                    taker = self.parse_number(Value::Str("0.002".into()), &[]).as_f64();
+                    maker = self.parse_number(Value::Str("-0.0001".into()), &[]).as_f64(); // a rebate, not a charge
                 }  else {
-                    taker = self.parse_number(Value::Str("0.006".into()), &[]);
-                    maker = self.parse_number(Value::Str("0.004".into()), &[]);
+                    taker = self.parse_number(Value::Str("0.006".into()), &[]).as_f64();
+                    maker = self.parse_number(Value::Str("0.004".into()), &[]).as_f64();
                 }
             }  else if !(self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), unverifiedQuotes).as_bool() == Some(true)) {
                 // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                 // are both in Luno's crypto/crypto column
-                taker = self.parse_number(Value::Str("0.001".into()), &[]);
-                maker = self.parse_number(Value::Str("0.0008".into()), &[]);
+                taker = self.parse_number(Value::Str("0.001".into()), &[]).as_f64();
+                maker = self.parse_number(Value::Str("0.0008".into()), &[]).as_f64();
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
-                    m.insert("taker".to_string(), taker);
-                    m.insert("maker".to_string(), maker);
+                    m.insert("taker".to_string(), Value::from(taker));
+                    m.insert("maker".to_string(), Value::from(maker));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);

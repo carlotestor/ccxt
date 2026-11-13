@@ -4134,25 +4134,25 @@ impl Htx {
                     minCost = contractSize.clone();
                 }
             }
-            let mut pricePrecision: Value = Value::Null;
-            let mut amountPrecision: Value = Value::Null;
-            let mut costPrecision: Value = Value::Null;
-            let mut maker: Value = Value::Null;
-            let mut taker: Value = Value::Null;
+            let mut pricePrecision: Option<f64> = None;
+            let mut amountPrecision: Option<f64> = None;
+            let mut costPrecision: Option<f64> = None;
+            let mut maker: Option<f64> = None;
+            let mut taker: Option<f64> = None;
             let mut active: Option<bool> = None;
             if spot {
-                pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "price-precision", &[])]), &[]);
-                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "amount-precision", &[])]), &[]);
-                costPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "value-precision", &[])]), &[]);
-                maker = self.parse_number(Value::Str("0.002".into()), &[]);
-                taker = self.parse_number(Value::Str("0.002".into()), &[]);
+                pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "price-precision", &[])]), &[]).as_f64();
+                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "amount-precision", &[])]), &[]).as_f64();
+                costPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "value-precision", &[])]), &[]).as_f64();
+                maker = self.parse_number(Value::Str("0.002".into()), &[]).as_f64();
+                taker = self.parse_number(Value::Str("0.002".into()), &[]).as_f64();
                 let mut state: Option<String> = self.safe_string_k(&market, "state", &[]).as_str().map(str::to_owned);
                 active = Some(state.as_deref() == Some("online"));
             }  else {
-                pricePrecision = self.safe_number_k(&market, "price_tick", &[]);
-                amountPrecision = self.parse_number(Value::Str("1".into()), &[]); // other markets have step size of 1 contract
-                maker = self.parse_number(Value::Str("0.0002".into()), &[]);
-                taker = self.parse_number(Value::Str("0.0005".into()), &[]);
+                pricePrecision = self.safe_number_k(&market, "price_tick", &[]).as_f64();
+                amountPrecision = self.parse_number(Value::Str("1".into()), &[]).as_f64(); // other markets have step size of 1 contract
+                maker = self.parse_number(Value::Str("0.0002".into()), &[]).as_f64();
+                taker = self.parse_number(Value::Str("0.0005".into()), &[]).as_f64();
                 let mut contractStatus: Option<i64> = self.safe_integer_k(&market, "contract_status", &[]).as_i64();
                 active = Some(contractStatus == Some(1));
             }
@@ -4204,8 +4204,8 @@ impl Htx {
                     m.insert("contract".to_string(), contract);
                     m.insert("linear".to_string(), linear);
                     m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("taker".to_string(), taker);
-                    m.insert("maker".to_string(), maker);
+                    m.insert("taker".to_string(), Value::from(taker));
+                    m.insert("maker".to_string(), Value::from(maker));
                     m.insert("contractSize".to_string(), Value::from(contractSize));
                     m.insert("expiry".to_string(), Value::from(expiry));
                     m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
@@ -4213,9 +4213,9 @@ impl Htx {
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
-        m.insert("price".to_string(), pricePrecision);
-        m.insert("cost".to_string(), costPrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
+        m.insert("price".to_string(), Value::from(pricePrecision));
+        m.insert("cost".to_string(), Value::from(costPrecision));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -9848,7 +9848,7 @@ impl Htx {
         if (amountPrecision.is_none()) {
             amountPrecision = Some("0".to_string());
         }
-        let mut amountValue: Value = self.parse_number(amountPrecision.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut amountValue: Option<f64> = self.parse_number(amountPrecision.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9874,7 +9874,7 @@ impl Htx {
             }
             // fee needs to be deducted from whole amount
             let mut feeString: Value = self.currency_to_precision(code.clone(), Value::from(fee), &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut amountString: Option<String> = self.number_to_string(amountValue.clone());
+            let mut amountString: Option<String> = self.number_to_string(Value::from(amountValue));
             let mut amountSubtractedString: Option<String> = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &feeString).as_str().map(str::to_owned);
             let mut amountSubtractedParsed: Option<String> = amountSubtractedString;
             if (amountSubtractedParsed.is_none()) {
@@ -9889,9 +9889,9 @@ impl Htx {
             if (amountAfterFee.is_none()) {
                 amountAfterFee = Some("0".to_string());
             }
-            amountValue = self.parse_number(amountAfterFee.map(Value::from).unwrap_or(Value::Null), &[]);
+            amountValue = self.parse_number(amountAfterFee.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
-        request.insert("amount".into(), amountValue);
+        request.insert("amount".into(), Value::from(amountValue));
         let __ws_arg_115 = self.extend(Value::Map(request), &[paramsFee]);
         let mut response: crate::value::Dict = self.spot_private_post_v1_dw_withdraw_api_create(&[__ws_arg_115]).await.into_dict();
         return self.parse_transaction(&response, Some(&currency));
@@ -11329,11 +11329,11 @@ impl Htx {
         let mut maintenanceMarginPercentage: Option<String> = None;
         let mut maintenanceMargin: Value = Value::Null;
         let mut marginRatio: Option<String> = None;
-        let mut maintenanceMarginPercentageResult: Value = Value::Null;
+        let mut maintenanceMarginPercentageResult: Option<f64> = None;
         if (maintenanceMarginLinear.is_none()) {
             maintenanceMarginPercentage = crate::precise::Precise::stringDiv(&adjustmentFactor.map(Value::from).unwrap_or(Value::Null), &leverage.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             maintenanceMargin = crate::precise::Precise::stringMul(&maintenanceMarginPercentage.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null));
-            maintenanceMarginPercentageResult = self.parse_number(maintenanceMarginPercentage.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            maintenanceMarginPercentageResult = self.parse_number(maintenanceMarginPercentage.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }  else {
             maintenanceMargin = maintenanceMarginLinear.map(Value::from).unwrap_or(Value::Null);
         }
@@ -11364,7 +11364,7 @@ impl Htx {
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(intialMarginPercentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMargin, &[]));
-        m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentageResult);
+        m.insert("maintenanceMarginPercentage".to_string(), Value::from(maintenanceMarginPercentageResult));
         m.insert("marginRatio".to_string(), self.parse_number(marginRatio.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));

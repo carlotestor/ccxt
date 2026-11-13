@@ -1122,7 +1122,7 @@ impl Deepcoin {
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut maxMarketSize: Option<String> = self.safe_string_k(market.clone(), "maxMktSz", &[]).as_str().map(str::to_owned);
         let mut maxLimitSize: Option<String> = self.safe_string_k(market.clone(), "maxLmtSz", &[]).as_str().map(str::to_owned);
-        let mut maxAmount: Value = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize.map(Value::from).unwrap_or(Value::Null), &maxLimitSize.map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut maxAmount: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize.map(Value::from).unwrap_or(Value::Null), &maxLimitSize.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_bool() == Some(true));
         let mut isInverse: Value = (if swap { (Value::Bool(isLinear != Some(true))) } else { Value::Null });
@@ -1175,7 +1175,7 @@ impl Deepcoin {
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), __ws_arg_6);
-        m.insert("max".to_string(), maxAmount);
+        m.insert("max".to_string(), Value::from(maxAmount));
     m
 }));
         m.insert("price".to_string(), Value::Map({

@@ -1345,7 +1345,7 @@ if _try_result.is_err() {
         let mut type_var: String = "spot".to_string();
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
-        let mut contractSize: Value = Value::Null;
+        let mut contractSize: Option<f64> = None;
         let mut minLeverage: Option<i64> = None;
         let mut maxLeverage: Option<i64> = None;
         let mut crossMargin: Option<bool> = None;
@@ -1363,7 +1363,7 @@ if _try_result.is_err() {
             type_var = "swap".to_string();
             linear = Some(true);
             inverse = Some(false);
-            contractSize = self.parse_number(Value::Str("1".into()), &[]);
+            contractSize = self.parse_number(Value::Str("1".into()), &[]).as_f64();
             minLeverage = Some(1);
             maxLeverage = self.safe_integer_k(market.clone(), "max_leverage", &[]).as_i64();
             crossMargin = Some(!(isolatedOnly));
@@ -1410,7 +1410,7 @@ if _try_result.is_err() {
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), Value::from(taker));
         m.insert("maker".to_string(), Value::from(maker));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2659,12 +2659,12 @@ if _try_result.is_err() {
             })]).as_map().cloned().unwrap_or_default();
             orderParams.insert("timestamp".into(), Value::from(timestamp));
             let mut amount: Option<String> = self.safe_string_k(&order, "amount", &[]).as_str().map(str::to_owned);
-            let mut amountNumber: Value = self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut priceNumber: Value = self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut amountNumber: Option<f64> = self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+            let mut priceNumber: Option<f64> = self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             if (type_var != "limit") {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() supports only type = \"limit\"! Your value type=".into())).into()), type_var)));
             }
-            let mut requestList: Vec<Value> = self.create_order_request(symbol.as_deref(), Some(type_var.as_str()), side.as_deref(), amountNumber, &[priceNumber, Value::Map(orderParams)]).as_array().cloned().unwrap_or_default();
+            let mut requestList: Vec<Value> = self.create_order_request(symbol.as_deref(), Some(type_var.as_str()), side.as_deref(), Value::from(amountNumber), &[Value::from(priceNumber), Value::Map(orderParams)]).as_array().cloned().unwrap_or_default();
             let mut action: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Create".into()));
@@ -5397,15 +5397,15 @@ if _try_result.is_err() {
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
         let mut cost: String = (match config.get("cost") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("1".into()) }).as_str().unwrap_or("1").to_string();
-        let mut costNumber: Value = self.parse_number(Value::from(cost), &[]);
+        let mut costNumber: Option<f64> = self.parse_number(Value::from(cost), &[]).as_f64();
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
-        if costNumber.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64) {
+        if costNumber > Some(1.0) {
             if (self.handle_option(method.clone(), Value::Str("apiKey".into()), &[]) != Value::Null) {
                 let mut costWithKey: Value = self.handle_option(method, Value::Str("maxCostHugeWithApiKey".into()), &[Value::Int(3)]);
                 return costWithKey;
             }
         }
-        return costNumber;
+        return Value::from(costNumber);
 
     Value::Null
 }

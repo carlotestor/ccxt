@@ -1503,7 +1503,7 @@ impl Polymarket {
             let mut tickSize: Value = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             let mut orderMinSize: Value = self.safe_number_k(&market, "orderMinSize", &[Value::Int(1)]);
-            let mut priceMax: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(tickSize.clone()))), &[]);
+            let mut priceMax: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(tickSize.clone()))), &[]).as_f64();
             let mut negRisk: bool = self.safe_bool_k(&market, "negRisk", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut endDate: Option<String> = self.safe_string_k(&market, "endDate", &[self.safe_string_k(&market, "end_date_iso", &[])]).as_str().map(str::to_owned);
             // Gamma API returns these arrays as JSON-encoded strings
@@ -1659,7 +1659,7 @@ impl Polymarket {
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), tickSize);
-        m.insert("max".to_string(), priceMax);
+        m.insert("max".to_string(), Value::from(priceMax));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
@@ -2524,15 +2524,15 @@ impl Polymarket {
         //     { "base_fee": 30 }   // base fee in basis points
         //
         let mut baseFeeBps: Option<String> = self.safe_string_k(response.clone(), "base_fee", &[]).as_str().map(str::to_owned);
-        let mut rate: Value = (if (baseFeeBps.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&baseFeeBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())), &[]) } else { Value::Null });
+        let mut rate: Option<f64> = (if (baseFeeBps.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&baseFeeBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())), &[]).as_f64() } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[outcomeObj.clone()]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
-        m.insert("maker".to_string(), rate.clone());
-        m.insert("taker".to_string(), rate);
+        m.insert("maker".to_string(), Value::from(rate));
+        m.insert("taker".to_string(), Value::from(rate));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -2834,15 +2834,15 @@ impl Polymarket {
         });
         // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
         let mut raw: Option<String> = self.safe_string_k(response, "balance", &[]).as_str().map(str::to_owned);
-        let mut total: Value = Value::Null;
+        let mut total: Option<f64> = None;
         if (raw.is_some()) {
-            total = self.parse_number(crate::precise::Precise::stringDiv(&raw.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), &[]);
+            total = self.parse_number(crate::precise::Precise::stringDiv(&raw.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), &[]).as_f64();
         }
         result.insert("USDC".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("free".to_string(), total.clone());
+        m.insert("free".to_string(), Value::from(total));
         m.insert("used".to_string(), Value::Null);
-        m.insert("total".to_string(), total);
+        m.insert("total".to_string(), Value::from(total));
     m
 }));
         return self.safe_balance(Value::Map(result));

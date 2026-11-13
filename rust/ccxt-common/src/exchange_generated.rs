@@ -2288,8 +2288,8 @@ pub trait ExchangeBase:
     fn safe_number_omit_zero(&self, obj: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Option<String> = self.safe_string(obj, key, &[]).as_str().map(str::to_owned);
-        let mut final_val: Value = self.parse_number(Value::from(self.omit_zero(value.map(Value::from).unwrap_or(Value::Null))), &[]);
-        return (if (final_val == Value::Null) { defaultValue } else { final_val });
+        let mut final_val: Option<f64> = self.parse_number(Value::from(self.omit_zero(value.map(Value::from).unwrap_or(Value::Null))), &[]).as_f64();
+        return (if (final_val.is_none()) { defaultValue } else { Value::from(final_val) });
 
     Value::Null
 }
@@ -3479,9 +3479,9 @@ pub trait ExchangeBase:
         if (datetime.is_none()) {
             datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
-        let mut triggerPrice: Value = self.parse_number(self.safe_string2(orderDict.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]), &[]);
-        let mut takeProfitPrice: Value = self.parse_number(self.safe_string_k(orderDict.clone(), "takeProfitPrice", &[]), &[]);
-        let mut stopLossPrice: Value = self.parse_number(self.safe_string_k(orderDict.clone(), "stopLossPrice", &[]), &[]);
+        let mut triggerPrice: Option<f64> = self.parse_number(self.safe_string2(orderDict.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]), &[]).as_f64();
+        let mut takeProfitPrice: Option<f64> = self.parse_number(self.safe_string_k(orderDict.clone(), "takeProfitPrice", &[]), &[]).as_f64();
+        let mut stopLossPrice: Option<f64> = self.parse_number(self.safe_string_k(orderDict.clone(), "stopLossPrice", &[]), &[]).as_f64();
         return self.extend(orderDict.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(orderDict.clone(), "id", &[]));
@@ -3503,10 +3503,10 @@ pub trait ExchangeBase:
         m.insert("postOnly".to_string(), postOnly);
         m.insert("trades".to_string(), trades);
         m.insert("reduceOnly".to_string(), self.safe_value_k(orderDict.clone(), "reduceOnly", &[]));
-        m.insert("stopPrice".to_string(), triggerPrice.clone());
-        m.insert("triggerPrice".to_string(), triggerPrice);
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("stopPrice".to_string(), Value::from(triggerPrice));
+        m.insert("triggerPrice".to_string(), Value::from(triggerPrice));
+        m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
+        m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), self.safe_value_k(orderDict, "fee", &[]));
     m
@@ -4032,7 +4032,7 @@ pub trait ExchangeBase:
         }
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
-        let mut closeParsed: Value = self.parse_number(Value::from(self.omit_zero(close.map(Value::from).unwrap_or(Value::Null))), &[]);
+        let mut closeParsed: Option<f64> = self.parse_number(Value::from(self.omit_zero(close.map(Value::from).unwrap_or(Value::Null))), &[]).as_f64();
         return self.extend(ticker.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("bid".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(ticker.clone(), "bid", &[]))), &[]));
@@ -4042,8 +4042,8 @@ pub trait ExchangeBase:
         m.insert("high".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(ticker.clone(), "high", &[]))), &[]));
         m.insert("low".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(ticker.clone(), "low", &[]))), &[]));
         m.insert("open".to_string(), self.parse_number(Value::from(self.omit_zero(open.map(Value::from).unwrap_or(Value::Null))), &[]));
-        m.insert("close".to_string(), closeParsed.clone());
-        m.insert("last".to_string(), closeParsed);
+        m.insert("close".to_string(), Value::from(closeParsed));
+        m.insert("last".to_string(), Value::from(closeParsed));
         m.insert("change".to_string(), self.parse_number(change.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("average".to_string(), self.parse_number(average.map(Value::from).unwrap_or(Value::Null), &[]));

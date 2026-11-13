@@ -2784,9 +2784,9 @@ impl Polymarket {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
         let mut roe: Option<String> = self.safe_string_k(position.clone(), "return_on_equity", &[]).as_str().map(str::to_owned);
-        let mut percentage: Value = Value::Null;
+        let mut percentage: Option<f64> = None;
         if (roe.is_some()) {
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&roe.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&roe.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2814,7 +2814,7 @@ impl Polymarket {
         m.insert("collateral".to_string(), self.safe_number_k(position, "initial_margin", &[]));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("percentage".to_string(), percentage);
+        m.insert("percentage".to_string(), Value::from(percentage));
         m.insert("hedged".to_string(), Value::Bool(false));
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);

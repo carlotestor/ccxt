@@ -2915,8 +2915,8 @@ impl Digifinex {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
-                        let mut costRequest: Value = self.parse_number(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)), &[]);
-                        quantity = self.cost_to_precision(symbol.clone(), costRequest);
+                        let mut costRequest: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+                        quantity = self.cost_to_precision(symbol.clone(), Value::from(costRequest));
                     }
                 }  else {
                     quantity = self.cost_to_precision(symbol.clone(), amount.clone());

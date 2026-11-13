@@ -1176,32 +1176,32 @@ impl Kraken {
             let mut makerFees: crate::value::List = self.safe_list_k(market.clone(), "fees_maker", &[Value::from(vec![])]).into_list();
             let mut firstMakerFee: crate::value::List = self.safe_list(&makerFees, Value::Int(0), &[Value::from(vec![])]).into_list();
             let mut firstMakerFeeRate: Option<String> = self.safe_string(&firstMakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
-            let mut maker: Value = Value::Null;
+            let mut maker: Option<f64> = None;
             if (firstMakerFeeRate.is_some()) {
-                maker = self.parse_number(crate::precise::Precise::stringDiv(&firstMakerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
+                maker = self.parse_number(crate::precise::Precise::stringDiv(&firstMakerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
             }
             let mut takerFees: crate::value::List = self.safe_list_k(market.clone(), "fees", &[Value::from(vec![])]).into_list();
             let mut firstTakerFee: crate::value::List = self.safe_list(&takerFees, Value::Int(0), &[Value::from(vec![])]).into_list();
             let mut firstTakerFeeRate: Option<String> = self.safe_string(&firstTakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
-            let mut taker: Value = Value::Null;
+            let mut taker: Option<f64> = None;
             if (firstTakerFeeRate.is_some()) {
-                taker = self.parse_number(crate::precise::Precise::stringDiv(&firstTakerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
+                taker = self.parse_number(crate::precise::Precise::stringDiv(&firstTakerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
             }
             let mut leverageBuy: crate::value::List = self.safe_list_k(market.clone(), "leverage_buy", &[Value::from(vec![])]).into_list();
             let mut leverageBuyLength: i64 = leverageBuy.len() as i64;
-            let mut precisionPrice: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pair_decimals", &[])]), &[]);
-            let mut precisionAmount: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "lot_decimals", &[])]), &[]);
+            let mut precisionPrice: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pair_decimals", &[])]), &[]).as_f64();
+            let mut precisionAmount: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "lot_decimals", &[])]), &[]).as_f64();
             let mut spot: bool = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
             if spot && (matches!((&cachedCurrencies, &base), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut currency: crate::value::Dict = self.safe_dict(cachedCurrencies.clone(), base.clone(), &[]).into_dict();
-                let mut currencyPrecision: Value = self.safe_number_k(&currency, "precision", &[]);
+                let mut currencyPrecision: Option<f64> = self.safe_number_k(&currency, "precision", &[]).as_f64();
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
-                if (currencyPrecision == Value::Null) {
+                if (currencyPrecision.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing currencyPrecision".into()))));
                 }
-                if currencyPrecision.as_f64().unwrap_or(f64::NAN) > precisionAmount.as_f64().unwrap_or(f64::NAN) {
-                    precisionAmount = currencyPrecision;
+                if (currencyPrecision.is_some() && precisionAmount.is_some() && currencyPrecision > precisionAmount) {
+                    precisionAmount = currencyPrecision.clone();
                 }
             }
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
@@ -1232,8 +1232,8 @@ impl Kraken {
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
-                    m.insert("taker".to_string(), taker);
-                    m.insert("maker".to_string(), maker);
+                    m.insert("taker".to_string(), Value::from(taker));
+                    m.insert("maker".to_string(), Value::from(maker));
                     m.insert("contractSize".to_string(), Value::Null);
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1241,8 +1241,8 @@ impl Kraken {
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), precisionAmount);
-        m.insert("price".to_string(), precisionPrice);
+        m.insert("amount".to_string(), Value::from(precisionAmount));
+        m.insert("price".to_string(), Value::from(precisionPrice));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
