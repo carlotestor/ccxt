@@ -2424,7 +2424,8 @@ impl Exchange {
         put("orders", &Value::from(&self.orders));
         put("trades", &Value::from(&self.trades));
         put("myTrades", &Value::from(&self.myTrades));
-        put("positions", &self.positions);
+        put("positions", &Value::from(&self.positions));
+        put("positionsByType", &Value::from(&self.positionsByType));
         put("tickers", &self.tickers);
         put("bidsasks", &self.bidsasks);
         put("ohlcvs", &Value::from(&self.ohlcvs));

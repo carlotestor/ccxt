@@ -407,7 +407,8 @@ pub struct Exchange {
     pub orders:            Option<crate::pro::cache::Cache>,
     pub trades:            crate::pro::cache::CacheMap,
     pub myTrades:          Option<crate::pro::cache::Cache>,
-    pub positions:         Value,
+    pub positions:         Option<crate::pro::cache::Cache>,
+    pub positionsByType:   crate::pro::cache::CacheMap,
     // WS state — mirrors `ts/src/base/Exchange.ts` `newUpdates: boolean = true`.
     // Per-exchange WS code reads `self.newUpdates` to decide whether to call
     // `cache.getLimit(...)` (return only what's new since the last call) or
@@ -772,7 +773,8 @@ impl Exchange {
             orders:        None,
             trades:        crate::pro::cache::CacheMap::new(),
             myTrades:      None,
-            positions:     Value::Null,
+            positions:     None,
+            positionsByType: crate::pro::cache::CacheMap::new(),
             newUpdates:    Value::Bool(true),
             tickers:       Value::Map(HashMap::new()),
             bidsasks:      Value::Map(HashMap::new()),

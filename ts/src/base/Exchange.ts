@@ -352,7 +352,8 @@ export class BaseExchange {
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: ArrayCache | undefined = undefined;
     myTrades: ArrayCache | undefined;
-    positions: any;
+    positions: ArrayCache | undefined = undefined;
+    positionsByType: Dictionary<ArrayCache> = {};
     urls!: {
         logo?: string;
         api: Dict;
@@ -641,6 +642,7 @@ export class BaseExchange {
         this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         // response handling flags and properties
@@ -3189,6 +3191,7 @@ export class BaseExchange {
         this.ohlcvs = this.createSafeDictionary (true);
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
     }
 
     safeBoolN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;

@@ -5182,7 +5182,7 @@ export default class binance extends binanceRest {
         this.setPositionsCache (client, type, symbolsNormalized, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.positions[type];
+        const cache = this.positionsByType[type];
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
@@ -5198,18 +5198,15 @@ export default class binance extends binanceRest {
         if (type === 'spot') {
             return;
         }
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (type in this.positions) {
+        if (type in this.positionsByType) {
             // a fresh client has no snapshot future yet, which means the
             // connection was re-established after a disconnect: positions
             // closed while disconnected never arrive as stream deltas, so
             // the cached positions are stale and must be reloaded
             const messageHash = type + ':fetchPositionsSnapshot';
             if ((fetchPositionsSnapshot === true) && (!(messageHash in client.futures))) {
-                delete this.positions[type];
+                delete this.positionsByType[type];
             } else {
                 return;
             }
@@ -5221,7 +5218,7 @@ export default class binance extends binanceRest {
                 this.spawn (this.loadPositionsSnapshot, client, messageHash, type, isPortfolioMargin);
             }
         } else {
-            this.positions[type] = new ArrayCacheBySymbolBySide ();
+            this.positionsByType[type] = new ArrayCacheBySymbolBySide ();
         }
     }
 
@@ -5240,8 +5237,8 @@ export default class binance extends binanceRest {
         if (currentClient !== client) {
             return;
         }
-        this.positions[type] = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions[type];
+        this.positionsByType[type] = new ArrayCacheBySymbolBySide ();
+        const cache = this.positionsByType[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -5290,13 +5287,10 @@ export default class binance extends binanceRest {
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
-        if (this.positions === undefined) {
-            this.positions = {};
+        if (!(accountType in this.positionsByType)) {
+            this.positionsByType[accountType] = new ArrayCacheBySymbolBySide ();
         }
-        if (!(accountType in this.positions)) {
-            this.positions[accountType] = new ArrayCacheBySymbolBySide ();
-        }
-        const cache = this.positions[accountType];
+        const cache = this.positionsByType[accountType];
         const data = this.safeDict (message, 'a', {});
         const rawPositions: Dict[] = this.safeList (data, 'P', []);
         const newPositions: Position[] = [];
@@ -5819,13 +5813,10 @@ export default class binance extends binanceRest {
         this.balance[accountType] = this.safeBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], accountType + ':balance');
         // --- positions ---
-        if (this.positions === undefined) {
-            this.positions = {};
+        if (!(accountType in this.positionsByType)) {
+            this.positionsByType[accountType] = new ArrayCacheBySymbolBySide ();
         }
-        if (!(accountType in this.positions)) {
-            this.positions[accountType] = new ArrayCacheBySymbolBySide ();
-        }
-        const cache = this.positions[accountType];
+        const cache = this.positionsByType[accountType];
         const P: Dict[] = this.safeList (message, 'P', []);
         const newPositions = [];
         for (let i = 0; i < P.length; i++) {
