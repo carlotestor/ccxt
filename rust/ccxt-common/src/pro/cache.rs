@@ -69,6 +69,8 @@ impl Cache {
     pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> { self.0.get_limit(symbol, limit) }
     pub fn clear(&mut self) { self.0.clear() }
     pub fn hashmap(&self) -> Value { self.0.hashmap() }
+    /// `cache.length`: the rolling buffer's size (`Value::len` unwraps the marker).
+    pub fn size(&self) -> i64 { self.0.len() as i64 }
 }
 
 impl From<Cache> for Value { fn from(c: Cache) -> Value { c.0 } }
@@ -83,6 +85,7 @@ pub trait CacheSlot {
     fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64>;
     fn clear(&mut self);
     fn hashmap(&self) -> Value;
+    fn size(&self) -> i64;
 }
 
 impl CacheSlot for Option<Cache> {
@@ -92,6 +95,8 @@ impl CacheSlot for Option<Cache> {
     }
     fn clear(&mut self) { if let Some(c) = self { c.clear() } }
     fn hashmap(&self) -> Value { self.as_ref().map_or(Value::Null, Cache::hashmap) }
+    /// An absent cache has length 0, as `get_array_length(&Value::Null)` did.
+    fn size(&self) -> i64 { self.as_ref().map_or(0, Cache::size) }
 }
 
 /// A dictionary of caches keyed by symbol (`Exchange::trades`). Entries are only ever
