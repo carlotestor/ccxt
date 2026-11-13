@@ -3769,10 +3769,10 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optionalArg
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["token"] = GetValue(currency, "id")
+		request["token"] = currency["id"]
 	}
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
 	if networkCode != nil {
@@ -3831,8 +3831,9 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optionalArg
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
-	ch <- AsyncResult[[]any]{Value: []any{currency, this.SafeList(data, "rows", []any{})}}
+	ch <- AsyncResult[[]any]{Value: rows}
 	return nil
 }
 
@@ -3868,10 +3869,14 @@ func (this *Woo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	currencyRowsRecv, _ := r.Value, r.Value != nil
-	var currencyRows []any = currencyRowsRecv
-	var currency any = this.SafeValue(currencyRows, 0)
-	var rows []any = SafeListTyped(currencyRows, 1)
+	var rows any = nil
+	if r.Value != nil {
+		rows = r.Value
+	}
+	var currency map[string]any = nil
+	if code != nil {
+		currency = this.Currency(code)
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit, params))}
 	return nil
@@ -3937,24 +3942,18 @@ func (this *Woo) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Woo) GetCurrencyFromChaincode(networkizedCode string, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
-	_ = currency
-	if currency != nil {
-		return currency
-	} else {
-		var parts []string = strings.Split(networkizedCode, "_")
-		var partsLength int = len(parts)
-		var firstPart *string = this.SafeString(parts, 0)
-		var currencyId any
-		if derefPtr := this.SafeString(parts, 1, firstPart); derefPtr != nil {
-			currencyId = *derefPtr
-		}
-		if partsLength > 2 {
-			currencyId = Add(currencyId, "_"+*this.SafeString(parts, 2, ""))
-		}
-		return this.SafeCurrency(currencyId)
+func (this *Woo) GetCurrencyCodeFromChaincode(networkizedCode string) *string {
+	var parts []string = strings.Split(networkizedCode, "_")
+	var partsLength int = len(parts)
+	var firstPart *string = this.SafeString(parts, 0)
+	var currencyId any
+	if derefPtr := this.SafeString(parts, 1, firstPart); derefPtr != nil {
+		currencyId = *derefPtr
 	}
+	if partsLength > 2 {
+		currencyId = Add(currencyId, "_"+*this.SafeString(parts, 2, ""))
+	}
+	return this.SafeCurrencyCode(currencyId)
 }
 
 /**
@@ -3992,11 +3991,11 @@ func (this *Woo) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes309815 []any = TransactionsToList(r.Value)
-	if retRes309815 == nil {
+	var retRes309715 []any = TransactionsToList(r.Value)
+	if retRes309715 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes309815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes309715)}
 	}
 	return nil
 }
@@ -4036,11 +4035,11 @@ func (this *Woo) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes311615 []any = TransactionsToList(r.Value)
-	if retRes311615 == nil {
+	var retRes311515 []any = TransactionsToList(r.Value)
+	if retRes311515 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes311615)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes311515)}
 	}
 	return nil
 }
@@ -4080,10 +4079,14 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	currencyRowsRecv, _ := r.Value, r.Value != nil
-	var currencyRows []any = currencyRowsRecv
-	var currency any = this.SafeValue(currencyRows, 0)
-	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
+	var rows any = nil
+	if r.Value != nil {
+		rows = r.Value
+	}
+	var currency map[string]any = nil
+	if code != nil {
+		currency = this.Currency(code)
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rows, currency, since, limit, this.Omit(params, "tokenSide")))}
 	return nil
@@ -4114,8 +4117,12 @@ func (this *Woo) ParseTransaction(transaction any, optionalArgs ...any) Transact
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var networkizedCode string = *this.SafeString(transaction, "token", "")
-	var currencyDefined map[string]any = MapTyped(this.GetCurrencyFromChaincode(networkizedCode, currency))
-	var code *string = this.SafeString(currencyDefined, "code")
+	var code any = nil
+	if currency != nil {
+		code = DerefScalar(this.SafeString(currency, "code"))
+	} else {
+		code = this.GetCurrencyCodeFromChaincode(networkizedCode)
+	}
 	var movementDirection *string = this.SafeStringLowerN(transaction, []any{"token_side", "tokenSide", "type"})
 	if movementDirection != nil && *movementDirection == "withdraw" {
 		movementDirection = SafeStringPtr("withdrawal")
@@ -4740,11 +4747,11 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes364719 []any = r1.Value
-		if retRes364719 == nil {
+		var retRes365219 []any = r1.Value
+		if retRes365219 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes364719)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes365219)}
 		}
 		return nil
 	}
@@ -5056,11 +5063,11 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes386819 []any = r1.Value
-		if retRes386819 == nil {
+		var retRes387319 []any = r1.Value
+		if retRes387319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes386819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes387319)}
 		}
 		return nil
 	}
@@ -5357,11 +5364,11 @@ func (this *Woo) addMarginBody(ch chan AsyncResult[map[string]any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes414015 map[string]any = r.Value
-	if retRes414015 == nil {
+	var retRes414515 map[string]any = r.Value
+	if retRes414515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes414015}
+		ch <- AsyncResult[map[string]any]{Value: retRes414515}
 	}
 	return nil
 }
@@ -5392,11 +5399,11 @@ func (this *Woo) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes415515 map[string]any = r.Value
-	if retRes415515 == nil {
+	var retRes416015 map[string]any = r.Value
+	if retRes416015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes415515}
+		ch <- AsyncResult[map[string]any]{Value: retRes416015}
 	}
 	return nil
 }
