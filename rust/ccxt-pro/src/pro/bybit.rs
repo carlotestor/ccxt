@@ -1133,8 +1133,8 @@ impl Bybit {
             let mut topicParts: Value = Value::Array(topic.split(".").map(Value::from).collect());
             let mut topicLength: i64 = topicParts.len() as i64;
             let mut marketId: Option<String> = self.safe_string(topicParts, Value::Int((topicLength - 1)), &[]).as_str().map(str::to_owned);
-            let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
-            symbol = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
+            let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
+            symbol = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             // update the info in place
             let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1224,7 +1224,7 @@ impl Bybit {
         m.insert("bidVolume".to_string(), self.safe_number(&bestBid, Value::Int(1), &[]));
         m.insert("info".to_string(), orderbook);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1451,7 +1451,7 @@ impl Bybit {
         if isSpot {
             marketType = "spot".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]));
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ohlcvsByTimeframe: Option<crate::value::Dict> = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]).into_opt_dict();
         if (ohlcvsByTimeframe.is_none()) {
@@ -1734,7 +1734,7 @@ impl Bybit {
         if isSpot {
             marketType = "spot".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]));
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1980,7 +1980,7 @@ impl Bybit {
             marketType = "spot".to_string();
         }
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]));
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
@@ -2044,8 +2044,8 @@ impl Bybit {
             marketType = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         }
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("t".into()), Value::Str("T".into()), &[]).as_i64();
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "S", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
@@ -2075,7 +2075,7 @@ impl Bybit {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -2703,7 +2703,7 @@ impl Bybit {
                 while { if !__for_first_202 { i += 1; } __for_first_202 = false; i < (rawLiquidations.len() as i64) } {
                 let mut rawLiquidation: Value = self.safe_dict(&rawLiquidations, Value::Int(i), &[]);
                 let mut marketId: Option<String> = self.safe_string_k(rawLiquidation.clone(), "s", &[]).as_str().map(str::to_owned);
-                let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("".into()), Value::Str("contract".into())]);
+                let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("".into()), Value::Str("contract".into())]));
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut liquidation: Value = self.parse_ws_liquidation(rawLiquidation.clone(), &[market.clone()]);
                 if (self.liquidations.clone() == Value::Null) {
@@ -2722,7 +2722,7 @@ impl Bybit {
     m
 }) });
             let mut marketId: Option<String> = self.safe_string_k(rawLiquidation.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("".into()), Value::Str("contract".into())]);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("".into()), Value::Str("contract".into())]));
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut liquidation: Value = self.parse_ws_liquidation(rawLiquidation, &[market]);
             if (self.liquidations.clone() == Value::Null) {
@@ -2756,7 +2756,7 @@ impl Bybit {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string2(liquidation.clone(), Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("".into()), Value::Str("contract".into())]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("".into()), Value::Str("contract".into())]);
         let mut timestamp: Option<i64> = self.safe_integer2(liquidation.clone(), Value::Str("updatedTime".into()), Value::Str("T".into()), &[]).as_i64();
         // bybit sends the side of the liquidated position (Buy - a long was liquidated),
         // the unified side is the side of the liquidation order, as on binance and okx
@@ -2770,9 +2770,9 @@ impl Bybit {
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("contracts".to_string(), self.safe_number2(liquidation.clone(), Value::Str("size".into()), Value::Str("v".into()), &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number2(liquidation, Value::Str("price".into()), Value::Str("p".into()), &[]));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseValue".to_string(), Value::Null);

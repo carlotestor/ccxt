@@ -476,7 +476,7 @@ impl Bitstamp {
         }
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(3), &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut storedOrderBook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);
         let mut delta: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
@@ -661,8 +661,8 @@ impl Bitstamp {
         let mut timestamp: Value = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
-        let mut symbol: String = self.safe_string_k(marketResolved.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, market]);
+        let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sideRaw: Option<i64> = self.safe_integer_k(trade.clone(), "type", &[]).as_i64();
         let mut side: String = "sell".to_string();
         if (sideRaw == Some(0)) {
@@ -684,7 +684,7 @@ impl Bitstamp {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -718,7 +718,7 @@ impl Bitstamp {
         }
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(2), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]));
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol);
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
@@ -799,7 +799,7 @@ impl Bitstamp {
         }
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(2), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]));
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1052,15 +1052,15 @@ impl Bitstamp {
         //
         let mut microtimestamp: i64 = self.safe_integer_k(trade.clone(), "microtimestamp", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut timestamp: Value = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
-        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
-        let mut symbol: String = self.safe_string_k(marketResolved.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, market]);
+        let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
         if (feeCost.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "quote"));
                 m
             });
         }
@@ -1080,7 +1080,7 @@ impl Bitstamp {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -1206,8 +1206,8 @@ impl Bitstamp {
         }
         let mut triggerPrice: Option<String> = self.safe_string_k(order.clone(), "stop_price", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "datetime", &[]).as_i64();
-        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
-        let mut symbol: String = self.safe_string_k(marketResolved.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, market]);
+        let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -1233,7 +1233,7 @@ impl Bitstamp {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -1247,7 +1247,7 @@ impl Bitstamp {
         }
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(3), &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }

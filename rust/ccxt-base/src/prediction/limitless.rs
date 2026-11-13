@@ -3750,7 +3750,7 @@ if _try_result.is_err() {
         let mut slug: Value = slug.into();
         let mut label: Value = label.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut mkt: crate::value::Dict = self.safe_market(&[slug, market]).into_dict();
+        let mut mkt: crate::types::Market = self.safe_market(&[slug, market]);
         let mut outcomes: crate::value::List = self.safe_list_k(&mkt, "outcomes", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;

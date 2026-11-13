@@ -814,7 +814,7 @@ impl Blockchaincom {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last_trade_price", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume_24h", &[]).as_str().map(str::to_owned);
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "price_24h", &[]).as_str().map(str::to_owned);
@@ -841,7 +841,7 @@ impl Blockchaincom {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -953,7 +953,7 @@ impl Blockchaincom {
         let mut state: Option<String> = self.parse_order_state(statusId.as_deref());
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Str("-".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut exchangeOrderId: Option<String> = self.safe_string_k(order.clone(), "exOrdId", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = (if (type_var.as_deref() != Some("market")) { self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned) } else { None });
         let mut average: Option<f64> = self.safe_number_k(order.clone(), "avgPx", &[]).as_f64();
@@ -962,28 +962,28 @@ impl Blockchaincom {
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "cumQty", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "leavesQty", &[]).as_str().map(str::to_owned);
         let mut result: Value = self.safe_order(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), exchangeOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), state.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), Value::Null);
-        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("average".to_string(), Value::from(average));
-        m.insert("amount".to_string(), Value::Null);
-        m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
-        m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), Value::Null);
-        m.insert("trades".to_string(), Value::from(vec![]));
-        m.insert("fees".to_string(), Value::from(vec![]));
-        m.insert("info".to_string(), order);
-    m
-}), &[]);
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), exchangeOrderId.map(Value::from).unwrap_or(Value::Null));
+                m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
+                m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
+                m.insert("timestamp".to_string(), Value::from(timestamp));
+                m.insert("lastTradeTimestamp".to_string(), Value::Null);
+                m.insert("status".to_string(), state.map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+                m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
+                m.insert("timeInForce".to_string(), Value::Null);
+                m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
+                m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+                m.insert("average".to_string(), Value::from(average));
+                m.insert("amount".to_string(), Value::Null);
+                m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
+                m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
+                m.insert("cost".to_string(), Value::Null);
+                m.insert("trades".to_string(), Value::from(vec![]));
+                m.insert("fees".to_string(), Value::from(vec![]));
+                m.insert("info".to_string(), order);
+            m
+        }), None);
         return result;
 
     Value::Null
@@ -1105,7 +1105,7 @@ impl Blockchaincom {
         m.insert("id".to_string(), id);
         m.insert("info".to_string(), response);
     m
-}), &[]);
+}), None);
         Value::Null
         }).await?))
     }
@@ -1149,7 +1149,7 @@ impl Blockchaincom {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
-}), &[])]);
+}), None)]);
         Value::Null
         }).await?))
     }
@@ -1354,12 +1354,12 @@ impl Blockchaincom {
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "qty", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
-        let mut symbol: String = self.safe_string_k(marketResolved.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
+        let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut fee: Value = Value::Null;
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (feeCostString.is_some()) {
-            let mut feeCurrency: String = self.safe_string_k(marketResolved.clone(), "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut feeCurrency: String = self.safe_string_k(&marketResolved, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
@@ -1383,7 +1383,7 @@ impl Blockchaincom {
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), trade);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }

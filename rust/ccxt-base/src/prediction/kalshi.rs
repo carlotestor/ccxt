@@ -1486,7 +1486,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(interest.clone(), "updated_time", &[])).as_i64();
         let mut openInterest: Value = self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
+        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]));
         m.insert("openInterestAmount".to_string(), self.safe_number2(interest.clone(), Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);

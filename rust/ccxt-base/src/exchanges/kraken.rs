@@ -1710,7 +1710,7 @@ impl Kraken {
         //         "o":"2571.56000"
         //     }
         //
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
         let mut v: crate::value::List = self.safe_list_k(ticker.clone(), "v", &[Value::from(vec![])]).into_list();
         let mut baseVolume: Option<String> = self.safe_string(&v, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut p: crate::value::List = self.safe_list_k(ticker.clone(), "p", &[Value::from(vec![])]).into_list();
@@ -1745,7 +1745,7 @@ impl Kraken {
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1809,7 +1809,7 @@ impl Kraken {
             let mut __for_first_848: bool = true;
             while { if !__for_first_848 { i += 1; } __for_first_848 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = tickers.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market]));
@@ -2330,7 +2330,7 @@ impl Kraken {
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
     Value::Null
 }
@@ -2726,7 +2726,7 @@ impl Kraken {
         if (matches!((&marketsByAltname, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return (if let (Some(__m), Some(__k)) = (marketsByAltname.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
-            return self.safe_market(&[id]);
+            return crate::types::IntoRaw::into_raw(self.safe_market(&[id]));
         }
 
     Value::Null
@@ -3038,16 +3038,16 @@ impl Kraken {
             let mut rawTrade: Value = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null);
             if matches!(&rawTrade, Value::Str(_)) {
                 trades.push(self.safe_trade(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), rawTrade.clone());
-        m.insert("order".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("id".to_string(), rawTrade.clone());
+                        m.insert("order".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-    m
-}), &[]));
+                    m
+                }), None));
             }  else {
                 trades.push(rawTrade);
             }
@@ -3117,7 +3117,7 @@ impl Kraken {
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::from(trades));
     m
-}), &[marketResolved]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
     Value::Null
 }
@@ -3782,7 +3782,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
-}), &[]);
+}), None);
         Value::Null
         }).await?))
     }
@@ -3820,7 +3820,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
-}), &[])]);
+}), None)]);
         Value::Null
         }).await?))
     }
@@ -3853,7 +3853,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
-}), &[])]);
+}), None)]);
         Value::Null
         }).await?))
     }
@@ -4913,7 +4913,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), Value::Null);

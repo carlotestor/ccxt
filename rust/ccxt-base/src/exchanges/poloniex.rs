@@ -1892,10 +1892,10 @@ impl Poloniex {
         //
         let mut timestamp: Option<i64> = self.safe_integer2(ticker.clone(), Value::Str("ts".into()), Value::Str("cT".into()), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string2(ticker.clone(), Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut baseVolume: Option<String> = self.safe_string2(ticker.clone(), Value::Str("quantity".into()), Value::Str("qty".into()), &[]).as_str().map(str::to_owned);
-        let mut contractSize: Option<f64> = self.safe_number_k(marketResolved.clone(), "contractSize", &[]).as_f64();
-        if matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && (contractSize.is_some()) {
+        let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
+        if (marketResolved).contract && (contractSize.is_some()) {
             // 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(Value::from(contractSize))).as_str().map(str::to_owned);
         }
@@ -1903,7 +1903,7 @@ impl Poloniex {
         let mut percentage: Option<String> = crate::precise::Precise::stringMul(&relativeChange.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string2(ticker.clone(), Value::Str("high".into()), Value::Str("h".into()), &[]));
@@ -1925,7 +1925,7 @@ impl Poloniex {
         m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "iPx", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -2247,8 +2247,8 @@ impl Poloniex {
         let mut orderId: Option<String> = self.safe_string2(trade.clone(), Value::Str("orderId".into()), Value::Str("ordId".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("ts".into()), Value::Str("createTime".into()), Value::Str("cT".into()), Value::Str("cTime".into())]), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
-        let mut symbol: Option<String> = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
+        let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("side".into()), Value::Str("takerSide".into()), &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
         let mut priceString: Option<String> = self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("px".into()), &[]).as_str().map(str::to_owned);
@@ -2281,7 +2281,7 @@ impl Poloniex {
         m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -2580,12 +2580,12 @@ impl Poloniex {
             timestamp = self.parse8601(self.safe_string_k(order.clone(), "date", &[])).as_i64();
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
-        let mut symbol: Option<String> = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
+        let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         let mut resultingTrades: Value = self.safe_value_k(order.clone(), "resultingTrades", &[]);
         if (resultingTrades != Value::Null) {
             if !(matches!(&resultingTrades, Value::Arr(_))) {
-                resultingTrades = self.safe_value(resultingTrades.clone(), self.safe_string_k(marketResolved.clone(), "id", &[marketId.map(Value::from).unwrap_or(Value::Null)]), &[]);
+                resultingTrades = self.safe_value(resultingTrades.clone(), self.safe_string_k(&marketResolved, "id", &[marketId.map(Value::from).unwrap_or(Value::Null)]), &[]);
             }
         }
         let mut price: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("price".into()), Value::Str("rate".into()), Value::Str("px".into())]), &[]).as_str().map(str::to_owned);
@@ -2607,7 +2607,7 @@ impl Poloniex {
         let mut feeCurrencyCode: Value = Value::Null;
         let mut rate: Option<String> = self.safe_string_k(order.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (feeCurrency.is_none()) {
-            feeCurrencyCode = (if (side.as_deref() == Some("buy")) { marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) } else { marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) });
+            feeCurrencyCode = (if (side.as_deref() == Some("buy")) { crate::value::KeyRead::key_read(&&marketResolved, "base") } else { crate::value::KeyRead::key_read(&&marketResolved, "quote") });
         }  else {
             // poloniex accepts a 30% discount to pay fees in TRX
             feeCurrencyCode = self.safe_currency_code(feeCurrency.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2655,7 +2655,7 @@ impl Poloniex {
         m.insert("leverage".to_string(), Value::from(leverage));
         m.insert("hedged".to_string(), hedged);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -4993,7 +4993,7 @@ impl Poloniex {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("longLeverage".to_string(), Value::from(longLeverage));
         m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
@@ -5179,7 +5179,7 @@ impl Poloniex {
         //            }
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]).into_dict();
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "cTime", &[]).as_i64();
         let mut marginMode: Option<String> = self.safe_string_lower_k(position.clone(), "mgnMode", &[]).as_str().map(str::to_owned);
         let mut leverage: Option<String> = self.safe_string_k(position.clone(), "lever", &[]).as_str().map(str::to_owned);
@@ -5277,7 +5277,7 @@ impl Poloniex {
         let mut data: Value = data.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]).into_dict();
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut rawType: Option<String> = self.safe_string_k(data.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut type_var: String = (if (rawType.as_deref() == Some("ADD")) { "add".to_string() } else { "reduce".to_string() });
         return Value::Map({

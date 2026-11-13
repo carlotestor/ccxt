@@ -724,7 +724,7 @@ impl Bit2c {
     pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
         let mut averagePrice: Option<String> = self.safe_string_k(ticker.clone(), "av", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "a", &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "ll", &[]).as_str().map(str::to_owned);
@@ -751,7 +751,7 @@ impl Bit2c {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -917,7 +917,7 @@ impl Bit2c {
             let mut __for_first_333: bool = true;
             while { if !__for_first_333 { i += 1; } __for_first_333 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
+            let mut symbol: Value = self.safe_symbol(marketId.clone(), None, &[]);
             let mut fee: Value = self.safe_dict(&fees, marketId, &[]);
             let mut makerString: Option<String> = self.safe_string_k(fee.clone(), "FeeMaker", &[]).as_str().map(str::to_owned);
             let mut takerString: Option<String> = self.safe_string_k(fee.clone(), "FeeTaker", &[]).as_str().map(str::to_owned);
@@ -1165,7 +1165,7 @@ impl Bit2c {
             orderUnified = order.clone();
         }
         let mut id: Option<String> = self.safe_string_k(orderUnified.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(orderUnified.clone(), "created", Value::Int(1000), &[]).as_i64();
         // status field vary between responses
         // bit2c status type:
@@ -1238,7 +1238,7 @@ impl Bit2c {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1402,8 +1402,8 @@ impl Bit2c {
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]).as_str().map(str::to_owned);
             let mut reference_parts: Vec<Value> = Value::Array(if let Some(__s) = reference.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "pair", &[]).as_str().map(str::to_owned);
-            let mut marketByPair: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]);
-            tradeMarket = self.safe_market(&[reference_parts.get(0).cloned().unwrap_or(Value::Null), marketByPair]);
+            let mut marketByPair: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]));
+            tradeMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[reference_parts.get(0).cloned().unwrap_or(Value::Null), marketByPair]));
             let mut isMaker: bool = self.safe_bool_k(trade.clone(), "isMaker", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             makerOrTaker = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
             orderId = (if isMaker { reference_parts.get(2).cloned().unwrap_or(Value::Null) } else { reference_parts.get(1).cloned().unwrap_or(Value::Null) });
@@ -1427,21 +1427,21 @@ impl Bit2c {
             id = self.safe_string_k(trade.clone(), "tid", &[]);
             price = self.safe_string_k(trade.clone(), "price", &[]);
             amount = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
-            tradeMarket = self.safe_market(&[Value::Null, market]);
+            tradeMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[Value::Null, market]));
             side = self.safe_value_k(trade.clone(), "isBid", &[]);
             if (side != Value::Null) {
                 // safeValue already drops an empty string, so a present isBid is a buy here
                 side = Value::Str("buy".into());
             }
         }
-        let mut marketResolved: Value = self.safe_market(&[Value::Null, tradeMarket]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, tradeMarket]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), orderId);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
@@ -1451,7 +1451,7 @@ impl Bit2c {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }

@@ -29,7 +29,7 @@ fn helperTestHandleMarketTypeAndParams() {
             m.insert("defaultType".to_string(), Value::Str("valueFromParam".into()));
         m
     });
-    let mut market: Value = exchange.safe_market(&[Value::Str("TEST1/TEST2".into())]);
+    let mut market: Value = ccxt::types::IntoRaw::into_raw(exchange.safe_market(&[Value::Str("TEST1/TEST2".into())]));
     add_element_to_object(&mut market, &Value::Str("type".into()), Value::Str("spot".into()));
     //
     // ########### test different variations ###########

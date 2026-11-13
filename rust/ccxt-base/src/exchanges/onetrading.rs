@@ -1270,7 +1270,7 @@ impl Onetrading {
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "time", &[])).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instrument_code", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last_price", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "price_change_percentage", &[]).as_str().map(str::to_owned);
         let mut change: Option<String> = self.safe_string_k(ticker.clone(), "price_change", &[]).as_str().map(str::to_owned);
@@ -1299,7 +1299,7 @@ impl Onetrading {
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1680,7 +1680,7 @@ impl Onetrading {
         let mut amountString: Option<String> = self.safe_string_k(tradeValue.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = self.safe_string_k(tradeValue.clone(), "volume", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(tradeValue.clone(), "instrument_code", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut feeCostString: Option<String> = self.safe_string_k(&feeInfo, "fee_amount", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Option<String> = None;
         let mut fee: Value = Value::Null;
@@ -1713,7 +1713,7 @@ impl Onetrading {
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), tradeValue);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1868,7 +1868,7 @@ impl Onetrading {
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&rawOrder, "time", &[])).as_i64();
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(&rawOrder, "status", &[])).as_str());
         let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "instrument_code", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(&rawOrder, "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(&rawOrder, "amount", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(&rawOrder, "filled_amount", &[]).as_str().map(str::to_owned);
@@ -1900,7 +1900,7 @@ impl Onetrading {
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("trades".to_string(), rawTrades);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -2084,7 +2084,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
-}), &[])]);
+}), None)]);
         Value::Null
         }).await?))
     }
@@ -2127,10 +2127,10 @@ impl Onetrading {
         //     ]
         //
         let mut order: Value = self.safe_order(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
-    m
-}), &[]);
+            let mut m = indexmap::IndexMap::new();
+                m.insert("info".to_string(), response);
+            m
+        }), None);
         return Value::from(vec![order]);
         Value::Null
         }).await?))

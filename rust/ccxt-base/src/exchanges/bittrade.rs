@@ -1402,7 +1402,7 @@ impl Bittrade {
         //         "askSize":  0.4156
         //     }
         //
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "ts", &[]).as_i64();
         let mut bid: Option<String> = None;
         let mut bidVolume: Option<String> = None;
@@ -1455,7 +1455,7 @@ impl Bittrade {
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1627,7 +1627,7 @@ impl Bittrade {
             let mut __for_first_445: bool = true;
             while { if !__for_first_445 { i += 1; } __for_first_445 = false; i < (tickers.len() as i64) } {
             let mut marketId: Option<String> = self.safe_string_k(tickers.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]).as_str().map(str::to_owned);
-            let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]));
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(tickers.get(i as usize).cloned().unwrap_or(Value::Null), &[market]).as_map().cloned().unwrap_or_default();
             ticker.insert("timestamp".into(), Value::from(timestamp));
@@ -1676,7 +1676,7 @@ impl Bittrade {
         //     },
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("ts".into()), Value::Str("created-at".into()), &[]).as_i64();
         let mut order: Option<String> = self.safe_string_k(trade.clone(), "order-id", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "direction", &[]).as_str().map(str::to_owned);
@@ -1727,7 +1727,7 @@ impl Bittrade {
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
-}), &[]);
+}), None);
 
     Value::Null
 }
@@ -2511,7 +2511,7 @@ impl Bittrade {
             status = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "created-at", &[]).as_i64();
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "client-order-id", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
@@ -2523,9 +2523,9 @@ impl Bittrade {
         if (feeCost.is_some()) {
             let mut feeCurrency: Value = Value::Null;
             if (side.as_deref() == Some("sell")) {
-                feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                feeCurrency = crate::value::KeyRead::key_read(&&marketResolved, "quote");
             }  else {
-                feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                feeCurrency = crate::value::KeyRead::key_read(&&marketResolved, "base");
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2542,7 +2542,7 @@ impl Bittrade {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
@@ -2558,7 +2558,7 @@ impl Bittrade {
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -2712,7 +2712,7 @@ impl Bittrade {
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
     m
-}), &[(market).raw.clone()]);
+}), Some(&market));
         Value::Null
         }).await?))
     }
@@ -2840,12 +2840,12 @@ impl Bittrade {
             while { if !__for_first_450 { i += 1; } __for_first_450 = false; i < (success.len() as i64) } {
             let mut order: Option<String> = self.safe_string_opt(success.clone(), Value::Int(i), &[]);
             result.push(self.safe_order(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("id".to_string(), order.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), Value::Str("canceled".into()));
-    m
-}), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("info".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), order.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("status".to_string(), Value::Str("canceled".into()));
+                m
+            }), None));
         }
         }
         {
@@ -2854,13 +2854,13 @@ impl Bittrade {
             while { if !__for_first_451 { i += 1; } __for_first_451 = false; i < (failed.len() as i64) } {
             let mut order: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
-        m.insert("status".to_string(), Value::Str("failed".into()));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client-order-id", &[]));
-    m
-}), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("info".to_string(), order.clone());
+                    m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
+                    m.insert("status".to_string(), Value::Str("failed".into()));
+                    m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client-order-id", &[]));
+                m
+            }), None));
         }
         }
         return Value::from(result);
@@ -2919,7 +2919,7 @@ impl Bittrade {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(data));
     m
-}), &[])]);
+}), None)]);
         Value::Null
         }).await?))
     }

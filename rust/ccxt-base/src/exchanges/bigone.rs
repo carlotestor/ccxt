@@ -1334,7 +1334,7 @@ impl Bigone {
             marketType = "spot".to_string();
         }
         let mut marketId: Option<String> = self.safe_string2(ticker.clone(), Value::Str("asset_pair_name".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into()), Value::from(marketType)]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Str("-".into()), Value::from(marketType)]).as_str().map(str::to_owned);
         let mut close: Option<String> = self.safe_string2(ticker.clone(), Value::Str("close".into()), Value::Str("latestPrice".into()), &[]).as_str().map(str::to_owned);
         let mut bid: crate::value::Dict = self.safe_dict_k(ticker.clone(), "bid", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1369,7 +1369,7 @@ impl Bigone {
         m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "indexPrice", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1726,7 +1726,7 @@ impl Bigone {
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "asset_pair_name", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut takerSide: Option<String> = self.safe_string_k(trade.clone(), "taker_side", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Option<String> = None;
@@ -1758,7 +1758,7 @@ impl Bigone {
                 m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-                m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
                 m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), Value::Str("limit".into()));
                 m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1774,28 +1774,28 @@ impl Bigone {
         if (takerOrMaker.is_some()) {
             if (side.as_deref() == Some("buy")) {
                 if (takerOrMaker.as_deref() == Some("maker")) {
-                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
-                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
+                    makerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
+                    takerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
                 }  else {
-                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
-                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
+                    makerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
+                    takerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
                 }
             }  else {
                 if (takerOrMaker.as_deref() == Some("maker")) {
-                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
-                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
+                    makerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
+                    takerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
                 }  else {
-                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
-                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
+                    makerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
+                    takerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
                 }
             }
         }  else if (side.as_deref() == Some("SELF_TRADING")) {
             if (takerSide.as_deref() == Some("BID")) {
-                makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
-                takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
+                makerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
+                takerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
             }  else if (takerSide.as_deref() == Some("ASK")) {
-                makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
-                takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
+                makerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
+                takerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
             }
         }
         let mut makerFeeCost: Option<String> = self.safe_string_k(trade.clone(), "maker_fee", &[]).as_str().map(str::to_owned);
@@ -1834,7 +1834,7 @@ impl Bigone {
         }  else {
             result.insert("fee".into(), Value::Null);
         }
-        return self.safe_trade(Value::Map(result), &[marketResolved]);
+        return self.safe_trade(Value::Map(result), Some(&marketResolved));
 
     Value::Null
 }
@@ -2109,7 +2109,7 @@ impl Bigone {
         //
         let mut id: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "asset_pair_name", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[])).as_i64();
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("BID")) {
@@ -2161,7 +2161,7 @@ impl Bigone {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -2445,12 +2445,12 @@ impl Bigone {
             while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (cancelled.len() as i64) } {
             let mut orderId: Value = cancelled.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), orderId.clone());
-        m.insert("id".to_string(), orderId.clone());
-        m.insert("status".to_string(), Value::Str("canceled".into()));
-    m
-}), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("info".to_string(), orderId.clone());
+                    m.insert("id".to_string(), orderId.clone());
+                    m.insert("status".to_string(), Value::Str("canceled".into()));
+                m
+            }), None));
         }
         }
         {
@@ -2459,12 +2459,12 @@ impl Bigone {
             while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (failed.len() as i64) } {
             let mut orderId: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), orderId.clone());
-        m.insert("id".to_string(), orderId);
-        m.insert("status".to_string(), Value::Str("failed".into()));
-    m
-}), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("info".to_string(), orderId.clone());
+                    m.insert("id".to_string(), orderId);
+                    m.insert("status".to_string(), Value::Str("failed".into()));
+                m
+            }), None));
         }
         }
         return Value::from(result);

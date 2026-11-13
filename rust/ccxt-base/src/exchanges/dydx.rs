@@ -1186,7 +1186,7 @@ impl Dydx {
         m.insert("fee".to_string(), Value::Null);
         m.insert("info".to_string(), trade);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1405,7 +1405,7 @@ impl Dydx {
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(&entry));
-                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
+                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -1468,7 +1468,7 @@ impl Dydx {
         //
         let mut status: Option<String> = self.parse_order_status((self.safe_string_upper_k(order.clone(), "status", &[])).as_str());
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "ticker", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "totalFilled", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "updatedAt", &[])).as_i64();
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -1502,7 +1502,7 @@ impl Dydx {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1728,7 +1728,7 @@ impl Dydx {
         // }
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]).into_dict();
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut side: Option<String> = self.safe_string_lower_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut quantity: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         if (side.as_deref() != Some("long")) {
@@ -2354,7 +2354,7 @@ impl Dydx {
         m.insert("id".to_string(), orderId);
         m.insert("clientOrderId".to_string(), self.safe_string_k(&requestOrderId, "clientId", &[]));
     m
-}), &[]);
+}), None);
         Value::Null
         }).await?))
     }
@@ -2492,7 +2492,7 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(result));
     m
-}), &[]);
+}), None);
         Value::Null
         }).await?))
     }
@@ -2594,7 +2594,7 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(result));
     m
-}), &[])]);
+}), None)]);
         Value::Null
         }).await?))
     }

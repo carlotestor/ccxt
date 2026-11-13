@@ -1020,7 +1020,7 @@ impl Kraken {
                 m.insert("quoteVolume".to_string(), quoteVolume.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("info".to_string(), ticker);
             m
-        }), &[]);
+        }), None);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), result.clone()); }
         client.resolve(result, messageHash.as_deref());
 }
@@ -1095,7 +1095,7 @@ impl Kraken {
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2364,7 +2364,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[]);
+}), None);
 
     Value::Null
 }
@@ -2584,7 +2584,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
         let mut channel: Option<String> = self.safe_string_k(&result, "channel", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(self.safe_string_k(&result, "symbol", &[]), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(self.safe_string_k(&result, "symbol", &[]), None, &[]).as_str().map(str::to_owned);
         if (channel.as_deref() == Some("trade")) {
             let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
             self.clean_cache(Value::Map({

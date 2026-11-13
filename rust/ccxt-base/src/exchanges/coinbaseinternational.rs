@@ -1882,7 +1882,7 @@ impl Coinbaseinternational {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), self.safe_number_k(contract.clone(), "index_price", &[]));
         m.insert("interestRate".to_string(), Value::Null);
@@ -2071,7 +2071,7 @@ impl Coinbaseinternational {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), ticker.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("bid".to_string(), self.safe_number_k(ticker.clone(), "best_bid_price", &[]));
@@ -2093,7 +2093,7 @@ impl Coinbaseinternational {
         m.insert("markPrice".to_string(), self.safe_number_k(ticker.clone(), "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(ticker, "index_price", &[]));
     m
-}), &[]);
+}), None);
 
     Value::Null
 }
@@ -2815,7 +2815,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut instrumentName: Option<String> = self.safe_string_k(position.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: crate::value::Dict = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), market]).into_dict();
+        let mut marketResolved: crate::types::Market = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), market]);
         let mut side: Option<String> = self.safe_string_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("buy")) {
             side = Some("long".to_string());
@@ -2828,9 +2828,9 @@ impl Coinbaseinternational {
         let mut contracts: Value = self.safe_number_k(position.clone(), "size", &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let mut size: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
-            if !matches!(self.safe_bool_k(&marketResolved, "option", &[Value::Bool(false)]), Value::Bool(true)) {
+            if !(marketResolved).option {
                 notional = size.clone();
-                if matches!(self.safe_bool_k(&marketResolved, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
+                if ((marketResolved).linear == Some(true)) {
                     size = self.safe_string_k(position.clone(), "size_currency", &[]).as_str().map(str::to_owned);
                 }
             }  else {
@@ -3529,13 +3529,13 @@ impl Coinbaseinternational {
         //     }
         //
         let mut instrumentName: Option<String> = self.safe_string_k(order.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "creation_timestamp", &[]).as_i64();
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "last_update_timestamp", &[]).as_i64();
         let mut filled: Value = self.safe_number_k(order.clone(), "filled_amount", &[]);
         let mut amount: Value = self.safe_number_k(order.clone(), "amount", &[]);
-        if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
-            let mut contractSize: Option<String> = self.safe_string_k(marketResolved.clone(), "contractSize", &[]).as_str().map(str::to_owned);
+        if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved).contract {
+            let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
             amount = self.parse_number(self.safe_string_k(order.clone(), "contracts", &[crate::precise::Precise::stringDiv(&self.safe_string(order.clone(), Value::Str("amount".into()), &[]), &contractSize.clone().map(Value::from).unwrap_or(Value::Null))]), &[]);
             filled = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(order.clone(), "filled_amount", &[]), &contractSize.map(Value::from).unwrap_or(Value::Null)), &[]);
         }
@@ -3550,7 +3550,7 @@ impl Coinbaseinternational {
         let mut cost: Value = Value::Null;
         if (filledString.is_some()) && (averageString.is_some()) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&filledString.clone().map(Value::from).unwrap_or(Value::Null), &averageString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
-            if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) && (!matches!(self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)]), Value::Bool(true))) {
+            if self.is_native_deribit_credentials().as_bool() == Some(true) && ((marketResolved).inverse == Some(true)) && !(marketResolved).option {
                 cost = self.parse_number(crate::precise::Precise::stringDiv(&filledString.map(Value::from).unwrap_or(Value::Null), &averageString.map(Value::from).unwrap_or(Value::Null)), &[]);
             }
         }
@@ -3573,7 +3573,7 @@ impl Coinbaseinternational {
             fee = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.safe_number_k(order.clone(), "commission", &[]));
-                    m.insert("currency".to_string(), self.safe_string_k(marketResolved.clone(), "settle", &[self.safe_string(marketResolved.clone(), Value::Str("quote".into()), &[])]));
+                    m.insert("currency".to_string(), self.safe_string_k(&marketResolved, "settle", &[self.safe_string_k(&marketResolved, "quote", &[])]));
                 m
             });
         }
@@ -3586,7 +3586,7 @@ impl Coinbaseinternational {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), nativeLastUpdateTimestamp);
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), self.parse_order_type(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_time_in_force((self.safe_string_k(order.clone(), "time_in_force", &[])).as_str()));
         m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "post_only", &[]));
@@ -3603,7 +3603,7 @@ impl Coinbaseinternational {
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("trades".to_string(), self.safe_list_k(order, "trades", &[]));
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -3777,10 +3777,10 @@ impl Coinbaseinternational {
         //     }
         //
         let mut order: Value = self.safe_order(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
-    m
-}), &[]);
+            let mut m = indexmap::IndexMap::new();
+                m.insert("info".to_string(), response);
+            m
+        }), None);
         return Value::from(vec![order]);
         Value::Null
         }).await?))
@@ -4277,19 +4277,19 @@ impl Coinbaseinternational {
         //     }
         //
         let mut instrumentName: Option<String> = self.safe_string_k(trade.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut price: Option<f64> = self.safe_number_k(trade.clone(), "price", &[]).as_f64();
         let mut amount: Value = self.safe_number_k(trade.clone(), "amount", &[]);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
-        if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
-            amount = self.parse_number(self.safe_string_k(trade.clone(), "contracts", &[crate::precise::Precise::stringDiv(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string(marketResolved.clone(), Value::Str("contractSize".into()), &[]))]), &[]);
+        if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved).contract {
+            amount = self.parse_number(self.safe_string_k(trade.clone(), "contracts", &[crate::precise::Precise::stringDiv(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&marketResolved, "contractSize", &[]))]), &[]);
         }
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut cost: Value = Value::Null;
         if (amountString.is_some()) && (priceString.is_some()) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
-            if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) && (!matches!(self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)]), Value::Bool(true))) {
+            if self.is_native_deribit_credentials().as_bool() == Some(true) && ((marketResolved).inverse == Some(true)) && !(marketResolved).option {
                 cost = self.parse_number(crate::precise::Precise::stringDiv(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)), &[]);
             }
         }
@@ -4318,7 +4318,7 @@ impl Coinbaseinternational {
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "order_type", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade, "direction", &[]));
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4327,7 +4327,7 @@ impl Coinbaseinternational {
         m.insert("cost".to_string(), cost);
         m.insert("fee".to_string(), Value::Map(fee));
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -4402,7 +4402,7 @@ impl Coinbaseinternational {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("longLeverage".to_string(), bothLeverage.clone());
         m.insert("shortLeverage".to_string(), bothLeverage);

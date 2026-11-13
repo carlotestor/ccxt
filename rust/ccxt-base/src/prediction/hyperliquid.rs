@@ -1196,7 +1196,7 @@ impl Hyperliquid {
         let mut parentSymbol: Option<String> = self.safe_string_k(&mkt, "market", &[]).as_str().map(str::to_owned);
         let mut parentMarket: Value = Value::Null;
         if (parentSymbol.is_some()) {
-            parentMarket = self.safe_market(&[parentSymbol.map(Value::from).unwrap_or(Value::Null)]);
+            parentMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[parentSymbol.map(Value::from).unwrap_or(Value::Null)]));
         }
         let mut ctx: Value = (if (parentMarket != Value::Null) { self.safe_dict(self.safe_dict_k(parentMarket, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1802,7 +1802,7 @@ impl Hyperliquid {
         }
         }
         if ((self.markets.clone() != Value::Null) && (matches!((&self.markets, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
-            let mut market: Value = self.safe_market(&[outcomeInput.clone()]);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[outcomeInput.clone()]));
             let mut sideHintOrDefault: Value = Value::Str("YES".into());
             if (sideHint != Value::Null) {
                 sideHintOrDefault = sideHint;
@@ -2442,7 +2442,7 @@ impl Hyperliquid {
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         let mut resolvedMarket: Value = market.clone();
         if (marketSymbol.is_some()) && (marketSymbol.as_deref() != Some("")) {
-            resolvedMarket = self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), market]);
+            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), market]));
         }
         let mut sideRaw: Option<String> = self.safe_string_k(&entry, "side", &[]).as_str().map(str::to_owned);
         let mut side: String = "sell".to_string();
@@ -2703,7 +2703,7 @@ impl Hyperliquid {
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         let mut resolvedMarket: Value = market.clone();
         if (marketSymbol.is_some()) && (marketSymbol.as_deref() != Some("")) {
-            resolvedMarket = self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), market]);
+            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(&[marketSymbol.map(Value::from).unwrap_or(Value::Null), market]));
         }
         let mut rawSide: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: String = "sell".to_string();

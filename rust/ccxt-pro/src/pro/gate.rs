@@ -1150,7 +1150,7 @@ impl Gate {
         }
         let mut marketIdParts: Value = Value::Array(if let Some(__s) = marketIdWithPrefix.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(marketIdParts, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into()), Value::Str("spot".into())]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::Str("spot".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         if (self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]) == Value::Null) {
             { let __be_tmp = self.order_book(&[Value::Map({
@@ -1248,7 +1248,7 @@ impl Gate {
         let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
         let mut deltaEnd: Value = self.safe_integer_k(delta.clone(), "u", &[]);
         let mut marketId: Option<String> = self.safe_string_k(delta.clone(), "s", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into()), Value::from(marketType)]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::from(marketType)]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         let mut storedOrderBook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[self.order_book(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1580,7 +1580,7 @@ impl Gate {
             while { if !__for_first_323 { i += 1; } __for_first_323 = false; i < (results.len() as i64) } {
             let mut rawTicker: Value = results.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(rawTicker.clone(), "s", &[]).as_str().map(str::to_owned);
-            let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("_".into()), Value::from(marketType.clone())]);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("_".into()), Value::from(marketType.clone())]));
             let mut parsedItem: Value = self.parse_ticker(rawTicker, &[market]);
             let mut symbol: Value = parsedItem.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if isTicker {
@@ -1976,7 +1976,7 @@ impl Gate {
             let mut timeframe: Value = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut prefix: Value = Value::Str(format!("{}{}", timeframe, Value::Str("_".into())).into());
             let mut marketId: Value = subscription.as_str().zip(prefix.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| subscription.clone());
-            let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("_".into()), Value::from(marketType.clone())]);
+            let mut symbol: Value = self.safe_symbol(marketId, None, &[Value::Str("_".into()), Value::from(marketType.clone())]);
             let mut parsed: Value = self.parse_ohlcv(ohlcv.clone(), &[]);
             if (marketType == "spot") {
                 // spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
@@ -2918,7 +2918,7 @@ impl Gate {
         //    }
         //
         let mut marketId: Option<String> = self.safe_string_k(liquidation.clone(), "contract", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "time_ms", &[]).as_i64();
         let mut originalSize: Option<String> = self.safe_string_k(liquidation.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut left: Option<String> = self.safe_string_k(liquidation.clone(), "left", &[]).as_str().map(str::to_owned);
@@ -2926,9 +2926,9 @@ impl Gate {
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
         m.insert("contracts".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number_k(liquidation, "fill_price", &[]));
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
@@ -3029,7 +3029,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         }  else {
                             marketType = parsedChannel.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                         }
-                        let mut symbol: Option<String> = self.safe_symbol(payload.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into()), marketType]).as_str().map(str::to_owned);
+                        let mut symbol: Option<String> = self.safe_symbol(payload.get(i as usize).cloned().unwrap_or(Value::Null), None, &[Value::Str("_".into()), marketType]).as_str().map(str::to_owned);
                         let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into());
                         if (messageHashSymbol != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                             __ch.remove_subscription(&messageHashSymbol);

@@ -535,7 +535,7 @@ impl Paymium {
         //     "size":"0.00041087"
         // }
         //
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(ticker.clone(), "at", &[]).as_i64();
         let mut vwap: Option<String> = self.safe_string_k(ticker.clone(), "vwap", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
@@ -564,7 +564,7 @@ impl Paymium {
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -610,10 +610,10 @@ impl Paymium {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "created_at_int", &[]).as_i64();
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "uuid", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, market]);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut baseId: String = self.safe_string_k(marketResolved.clone(), "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseId: String = self.safe_string_k(&marketResolved, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut amountField: String = format!("{}{}", Value::Str("traded_".into()), Value::from(baseId.to_lowercase()));
         let mut amount: Option<String> = self.safe_string(trade.clone(), Value::from(amountField), &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
@@ -623,7 +623,7 @@ impl Paymium {
         m.insert("order".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
@@ -632,7 +632,7 @@ impl Paymium {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -846,7 +846,7 @@ impl Paymium {
         m.insert("info".to_string(), response.clone());
         m.insert("id".to_string(), self.safe_string_k(response, "uuid", &[]));
     m
-}), &[(market).raw.clone()]);
+}), Some(&market));
         Value::Null
         }).await?))
     }
@@ -884,7 +884,7 @@ impl Paymium {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
-}), &[]);
+}), None);
         Value::Null
         }).await?))
     }

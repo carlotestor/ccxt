@@ -581,7 +581,7 @@ impl Cex {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -871,7 +871,7 @@ impl Cex {
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1163,7 +1163,7 @@ impl Cex {
     m
 }));
         }
-        return self.safe_trade(Value::Map(parsedTrade), &[market]);
+        return self.safe_trade(Value::Map(parsedTrade), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1259,7 +1259,7 @@ impl Cex {
             return;
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut market: Value = self.safe_market(&[Value::from(symbol.clone())]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[Value::from(symbol.clone())]));
         remains = self.currency_from_precision(base.map(Value::from).unwrap_or(Value::Null), remains.clone()).map(Value::from).unwrap_or(Value::Null);
         if (self.orders.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1295,7 +1295,7 @@ impl Cex {
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
         add_element_to_object(&mut order, &Value::Str("timestamp".into()), Value::from(timestamp));
         add_element_to_object(&mut order, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
-        order = self.safe_order(order.clone(), &[]);
+        order = self.safe_order(order.clone(), None);
         storedOrders.append(order);
         let mut messageHash: String = format!("{}{}", Value::Str("orders:".into()), symbol);
         client.resolve(storedOrders, messageHash.as_str());
@@ -1368,7 +1368,7 @@ impl Cex {
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut marketResolved: Value = self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null), market]));
         let mut time: Option<i64> = self.safe_integer_k(order.clone(), "time", &[]).as_i64();
         let mut timestamp: Option<i64> = time;
         if isTransaction {
@@ -1416,7 +1416,7 @@ impl Cex {
         if isTransaction {
             parsedOrder.insert("trades".into(), self.parse_ws_trade(order, &[marketResolved.clone()]));
         }
-        return self.safe_order(Value::Map(parsedOrder), &[marketResolved]);
+        return self.safe_order(Value::Map(parsedOrder), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
     Value::Null
 }
@@ -1466,7 +1466,7 @@ impl Cex {
             let mut __for_first_219: bool = true;
             while { if !__for_first_219 { i += 1; } __for_first_219 = false; i < (rawOrders.len() as i64) } {
             let mut rawOrder: Value = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[Value::from(symbol.clone())]);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[Value::from(symbol.clone())]));
             let mut order: Value = self.parse_order(rawOrder, &[market]);
             if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("open".into())); }
             myOrders.append(order);
@@ -1748,7 +1748,7 @@ impl Cex {
             return;
         }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
-        let mut market: Value = self.safe_market(&[symbol.clone()]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[symbol.clone()]));
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

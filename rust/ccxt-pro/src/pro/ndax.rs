@@ -599,7 +599,7 @@ impl Ndax {
             while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (payload.len() as i64) } {
             let mut ohlcv: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
             let mut marketId: Option<String> = self.safe_string_opt(&ohlcv, Value::Int(8), &[]);
-            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
             let mut marketUpdates: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -688,7 +688,7 @@ impl Ndax {
                 while { if !__for_first_523 { j += 1; } __for_first_523 = false; j < (timeframes.len() as i64) } {
                 let mut timeframe: Value = timeframes.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId);
-                let mut market: Value = self.safe_market(&[marketId.clone()]);
+                let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.clone()]));
                 let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut stored: Value = self.safe_list(self.safe_value(self.ohlcvs.clone(), Value::from(symbol), &[]), timeframe, &[Value::from(vec![])]);
                 client.resolve(stored, messageHash.as_str());
@@ -800,7 +800,7 @@ impl Ndax {
         if (marketId.is_none()) {
             return;
         }
-        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut market: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {

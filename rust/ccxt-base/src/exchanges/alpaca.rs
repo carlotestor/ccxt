@@ -1761,7 +1761,7 @@ impl Alpaca {
             let mut __for_first_220: bool = true;
             while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[marketId.clone()]);
+            let mut market: crate::types::Market = self.safe_market(&[marketId.clone()]);
             let mut entry: Value = self.safe_dict(&snapshots, marketId, &[]);
             let mut dailyBar: crate::value::Dict = self.safe_dict_k(entry.clone(), "dailyBar", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1781,29 +1781,29 @@ impl Alpaca {
 })]).into_dict();
             let mut datetime: Option<String> = self.safe_string_k(&latestQuote, "t", &[]).as_str().map(str::to_owned);
             let mut ticker: Value = self.safe_ticker(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), entry);
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
-        m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("high".to_string(), self.safe_string_k(&dailyBar, "h", &[]));
-        m.insert("low".to_string(), self.safe_string_k(&dailyBar, "l", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(&latestQuote, "bp", &[]));
-        m.insert("bidVolume".to_string(), self.safe_string_k(&latestQuote, "bs", &[]));
-        m.insert("ask".to_string(), self.safe_string_k(&latestQuote, "ap", &[]));
-        m.insert("askVolume".to_string(), self.safe_string_k(&latestQuote, "as", &[]));
-        m.insert("vwap".to_string(), self.safe_string_k(&dailyBar, "vw", &[]));
-        m.insert("open".to_string(), self.safe_string_k(&dailyBar, "o", &[]));
-        m.insert("close".to_string(), self.safe_string_k(&dailyBar, "c", &[]));
-        m.insert("last".to_string(), self.safe_string_k(&latestTrade, "p", &[]));
-        m.insert("previousClose".to_string(), self.safe_string_k(&prevDailyBar, "c", &[]));
-        m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(&dailyBar, "v", &[]));
-        m.insert("quoteVolume".to_string(), crate::precise::Precise::stringMul(&self.safe_string_k(&dailyBar, "v", &[]), &self.safe_string_k(&dailyBar, "vw", &[])));
-    m
-}), &[market]);
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("info".to_string(), entry);
+                    m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
+                    m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("high".to_string(), self.safe_string_k(&dailyBar, "h", &[]));
+                    m.insert("low".to_string(), self.safe_string_k(&dailyBar, "l", &[]));
+                    m.insert("bid".to_string(), self.safe_string_k(&latestQuote, "bp", &[]));
+                    m.insert("bidVolume".to_string(), self.safe_string_k(&latestQuote, "bs", &[]));
+                    m.insert("ask".to_string(), self.safe_string_k(&latestQuote, "ap", &[]));
+                    m.insert("askVolume".to_string(), self.safe_string_k(&latestQuote, "as", &[]));
+                    m.insert("vwap".to_string(), self.safe_string_k(&dailyBar, "vw", &[]));
+                    m.insert("open".to_string(), self.safe_string_k(&dailyBar, "o", &[]));
+                    m.insert("close".to_string(), self.safe_string_k(&dailyBar, "c", &[]));
+                    m.insert("last".to_string(), self.safe_string_k(&latestTrade, "p", &[]));
+                    m.insert("previousClose".to_string(), self.safe_string_k(&prevDailyBar, "c", &[]));
+                    m.insert("change".to_string(), Value::Null);
+                    m.insert("percentage".to_string(), Value::Null);
+                    m.insert("average".to_string(), Value::Null);
+                    m.insert("baseVolume".to_string(), self.safe_string_k(&dailyBar, "v", &[]));
+                    m.insert("quoteVolume".to_string(), crate::precise::Precise::stringMul(&self.safe_string_k(&dailyBar, "v", &[]), &self.safe_string_k(&dailyBar, "vw", &[])));
+                m
+            }), Some(&market));
             results.push(ticker);
         }
         }
@@ -2081,7 +2081,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
-}), &[])]);
+}), None)]);
         }
         Value::Null
         }).await?))
@@ -2120,7 +2120,7 @@ impl Alpaca {
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut order: Value = self.trader_private_get_v2_orders_order_id(&[__ws_arg_13]).await;
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]));
         return self.parse_order(order, &[market]);
         Value::Null
         }).await?))
@@ -2375,8 +2375,8 @@ impl Alpaca {
         //    }
         //
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Option<String> = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         let mut alpacaStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status(alpacaStatus.as_deref());
         let mut feeValue: Option<String> = self.safe_string_k(order.clone(), "commission", &[]).as_str().map(str::to_owned);
@@ -2422,7 +2422,7 @@ impl Alpaca {
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), order);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -2560,7 +2560,7 @@ impl Alpaca {
         //     },
         //
         let mut marketId: Option<String> = self.safe_string2(trade.clone(), Value::Str("S".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.safe_string2(trade.clone(), Value::Str("t".into()), Value::Str("transaction_time".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null)).as_i64();
         let mut alpacaSide: Option<String> = self.safe_string_k(trade.clone(), "tks", &[]).as_str().map(str::to_owned);
@@ -2588,7 +2588,7 @@ impl Alpaca {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }

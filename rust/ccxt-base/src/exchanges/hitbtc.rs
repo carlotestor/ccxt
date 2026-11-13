@@ -1988,8 +1988,8 @@ impl Hitbtc {
             let mut __for_first_746: bool = true;
             while { if !__for_first_746 { i += 1; } __for_first_746 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut symbol: Option<String> = self.safe_symbol(marketId.clone(), &[market.clone()]).as_str().map(str::to_owned);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.clone()]));
+            let mut symbol: Option<String> = self.safe_symbol(marketId.clone(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
             let mut entry: crate::value::Dict = self.safe_dict(&response, marketId, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2019,7 +2019,7 @@ impl Hitbtc {
         //     }
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "timestamp", &[])).as_i64();
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
         let mut quoteVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume_quote", &[]).as_str().map(str::to_owned);
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "open", &[]).as_str().map(str::to_owned);
@@ -2047,7 +2047,7 @@ impl Hitbtc {
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -2254,8 +2254,8 @@ impl Hitbtc {
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "timestamp", &[])).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut taker: Option<bool> = self.safe_bool_k(trade.clone(), "taker", &[]).as_bool();
@@ -2266,10 +2266,10 @@ impl Hitbtc {
             takerOrMaker = Some("taker".to_string()); // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if (feeCostString.is_some()) {
-            let mut info: crate::value::Dict = self.safe_dict_k(marketResolved.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut info: crate::value::Dict = self.safe_dict_k(&marketResolved, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut feeCurrency: Option<String> = self.safe_string_k(&info, "fee_currency", &[]).as_str().map(str::to_owned);
             let mut feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrency.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             fee = Value::Map({
@@ -2303,7 +2303,7 @@ impl Hitbtc {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -2606,7 +2606,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut symbol: Value = self.safe_symbol(marketId, &[]);
+            let mut symbol: Value = self.safe_symbol(marketId, None, &[]);
             let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[])).as_i64();
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_order_book(Value::Dict(orderbook), symbol.clone(), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]));
         }
@@ -2670,7 +2670,7 @@ impl Hitbtc {
         let mut taker: Option<f64> = self.safe_number_k(fee.clone(), "take_rate", &[]).as_f64();
         let mut maker: Option<f64> = self.safe_number_k(fee.clone(), "make_rate", &[]).as_f64();
         let mut marketId: Option<String> = self.safe_string_k(fee.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
@@ -3735,8 +3735,8 @@ impl Hitbtc {
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "quantity_cumulative", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
         let mut timeInForce: Option<String> = self.safe_string_k(order.clone(), "time_in_force", &[]).as_str().map(str::to_owned);
         let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[]);
@@ -3768,7 +3768,7 @@ impl Hitbtc {
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -3826,7 +3826,7 @@ impl Hitbtc {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("marginMode".to_string(), self.safe_string_lower_k(marginMode, "margin_mode", &[]));
     m
 });
@@ -4110,7 +4110,7 @@ impl Hitbtc {
             }
             let mut rawFundingRate: Value = self.safe_dict(&response, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut marketInner: Value = crate::types::IntoRaw::into_raw(self.market(marketId.as_deref().unwrap_or_default()));
-            let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketInner.clone()]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketInner.clone()).as_ref(), &[]).as_str().map(str::to_owned);
             let mut fundingRate: indexmap::IndexMap<String, Value> = self.parse_funding_rate(rawFundingRate, &[marketInner]).as_map().cloned().unwrap_or_default();
             fundingRates.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fundingRate));
         }
@@ -4197,14 +4197,14 @@ impl Hitbtc {
             let mut __for_first_753: bool = true;
             while { if !__for_first_753 { i += 1; } __for_first_753 = false; i < (contracts.len() as i64) } {
             let mut marketId: Value = contracts.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketInner: crate::value::Dict = self.safe_market(&[marketId.clone()]).into_dict();
+            let mut marketInner: crate::types::Market = self.safe_market(&[marketId.clone()]);
             let mut fundingRateData: crate::value::List = self.safe_list(&response, marketId, &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_752: bool = true;
                 while { if !__for_first_752 { j += 1; } __for_first_752 = false; j < (fundingRateData.len() as i64) } {
                 let mut entry: crate::value::Dict = fundingRateData.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
-                let mut symbolInner: Option<String> = self.safe_symbol(crate::value::KeyRead::key_read(&&marketInner, "symbol"), &[]).as_str().map(str::to_owned);
+                let mut symbolInner: Option<String> = self.safe_symbol(crate::value::KeyRead::key_read(&&marketInner, "symbol"), None, &[]).as_str().map(str::to_owned);
                 let mut fundingRate: Option<f64> = self.safe_number_k(&entry, "funding_rate", &[]).as_f64();
                 let mut datetime: Option<String> = self.safe_string_k(&entry, "timestamp", &[]).as_str().map(str::to_owned);
                 rates.push(Value::Map({
@@ -4453,8 +4453,8 @@ impl Hitbtc {
         }
         }
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position);
@@ -4512,7 +4512,7 @@ impl Hitbtc {
         let mut value: Option<f64> = self.safe_number_k(interest.clone(), "open_interest", &[]).as_f64();
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
+        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]));
         m.insert("openInterestAmount".to_string(), Value::Null);
         m.insert("openInterestValue".to_string(), Value::from(value));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
@@ -4583,7 +4583,7 @@ impl Hitbtc {
             let mut __for_first_757: bool = true;
             while { if !__for_first_757 { i += 1; } __for_first_757 = false; i < (markets.len() as i64) } {
             let mut marketId: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
+            let mut marketInner: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.clone()]));
             let mut openInterest: crate::value::Dict = self.safe_dict(&response, marketId, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4696,7 +4696,7 @@ impl Hitbtc {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(contract.clone(), "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(contract.clone(), "index_price", &[]));
         m.insert("interestRate".to_string(), self.safe_number_k(contract.clone(), "interest_rate", &[]));
@@ -4968,7 +4968,7 @@ impl Hitbtc {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("marginMode".to_string(), self.safe_string_lower_k(leverage, "type", &[]));
         m.insert("longLeverage".to_string(), Value::from(leverageValue));
         m.insert("shortLeverage".to_string(), Value::from(leverageValue));

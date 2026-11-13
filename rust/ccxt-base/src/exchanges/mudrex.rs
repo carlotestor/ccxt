@@ -804,7 +804,7 @@ impl Mudrex {
             if (sym.is_none()) {
                 continue;
             }
-            let mut m: Value = self.safe_market(&[sym.map(Value::from).unwrap_or(Value::Null)]);
+            let mut m: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[sym.map(Value::from).unwrap_or(Value::Null)]));
             let mut symbol: Value = m.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbols != Value::Null) && !(self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true)) {
                 continue;
@@ -821,8 +821,8 @@ impl Mudrex {
         let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut ms: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[ms.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[ms.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut pct: Option<f64> = self.safe_number_k(ticker.clone(), "change_perc", &[]).as_f64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -847,7 +847,7 @@ impl Mudrex {
         m.insert("quoteVolume".to_string(), self.safe_number_k(ticker.clone(), "volume", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -1392,7 +1392,7 @@ impl Mudrex {
         let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut oms: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[oms.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[oms.map(Value::from).unwrap_or(Value::Null), market]);
         let mut oid: Option<String> = self.safe_string2(order.clone(), Value::Str("order_id".into()), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_upper_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
@@ -1426,7 +1426,7 @@ impl Mudrex {
         }
         let mut ts: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[])).as_i64();
         let mut status: Option<String> = self.parse_order_status((self.safe_string_lower_k(order.clone(), "status", &[])).as_str());
-        let mut sym: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut sym: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -1456,7 +1456,7 @@ impl Mudrex {
         m.insert("lastUpdateTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "updated_at", &[])));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order, "reduce_only", &[]));
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -1731,7 +1731,7 @@ impl Mudrex {
             while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < (rows.len() as i64) } {
             let mut p: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symRaw: Option<String> = self.safe_string_k(p.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut m: Value = self.safe_market(&[symRaw.map(Value::from).unwrap_or(Value::Null)]);
+            let mut m: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[symRaw.map(Value::from).unwrap_or(Value::Null)]));
             let mut pos: Value = self.parse_position(p, &[m]);
             outPos.push(pos);
         }
@@ -1810,9 +1810,9 @@ impl Mudrex {
     pub fn parse_position(&self, position: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut position: Value = position.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, market]);
         let mut ms: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(ms.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(ms.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         // open positions use "order_type", closed positions (history) use "position_type"
         let mut rawSide: Option<String> = self.safe_string_upper2(position.clone(), Value::Str("order_type".into()), Value::Str("position_type".into()), &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
@@ -1827,7 +1827,7 @@ impl Mudrex {
         }
         let mut quantityString: Option<String> = self.safe_string_k(position.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut entryPriceString: Option<String> = self.safe_string_k(position.clone(), "entry_price", &[]).as_str().map(str::to_owned);
-        let mut contractSizeString: String = self.safe_string_k(marketResolved.clone(), "contractSize", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
+        let mut contractSizeString: String = self.safe_string_k(&marketResolved, "contractSize", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
         let mut notional: Value = Value::Null;
         if (quantityString.is_some()) && (entryPriceString.is_some()) {
             notional = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&quantityString.map(Value::from).unwrap_or(Value::Null), &entryPriceString.map(Value::from).unwrap_or(Value::Null)), &Value::from(contractSizeString)), &[]);
@@ -1844,7 +1844,7 @@ impl Mudrex {
         m.insert("hedged".to_string(), Value::Bool(false));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "quantity", &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entry_price", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closed_price", &[]));
@@ -2179,8 +2179,8 @@ impl Mudrex {
         //     }
         //
         let mut ms: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[ms.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[ms.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut ts: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[])).as_i64();
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "order_type", &[]).as_str().map(str::to_owned);
@@ -2227,7 +2227,7 @@ impl Mudrex {
         m.insert("cost".to_string(), self.safe_string_k(trade, "transaction_amount", &[]));
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }

@@ -620,7 +620,7 @@ impl Bingx {
         if isSwap {
             marketType = "swap".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]));
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
@@ -661,16 +661,16 @@ impl Bingx {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "C", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(message.clone(), "s", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut close: Option<String> = self.safe_string_k(message.clone(), "c", &[]).as_str().map(str::to_owned);
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        let mut inverse: bool = (isInverse.as_bool() == Some(true)) || ((isInverse == Value::Null) && (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)));
+        let mut inverse: bool = (isInverse.as_bool() == Some(true)) || ((isInverse == Value::Null) && (crate::value::KeyRead::key_read(&&marketResolved, "inverse").as_bool() == Some(true)));
         let mut baseVolumeKey: String = (if inverse { "m".to_string() } else { "v".to_string() });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(message.clone(), "h", &[]));
@@ -691,7 +691,7 @@ impl Bingx {
         m.insert("quoteVolume".to_string(), self.safe_string_k(message.clone(), "q", &[]));
         m.insert("info".to_string(), message);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -934,7 +934,7 @@ impl Bingx {
         if isSwap {
             marketType = "swap".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]));
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: String = format!("{}{}", Value::Str("trade::".into()), symbol);
         let mut trades: Value = Value::Null;
@@ -1177,7 +1177,7 @@ impl Bingx {
         if isSwap {
             marketType = "swap".to_string();
         }
-        let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]).into_dict();
+        let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
@@ -1196,7 +1196,7 @@ impl Bingx {
         let mut snapshot: Value = Value::Null;
         let mut timestamp: Option<i64> = self.safe_integer2(message, Value::Str("timestamp".into()), Value::Str("ts".into()), &[]).as_i64();
         timestamp = self.safe_integer2(&data, Value::Str("timestamp".into()), Value::Str("ts".into()), &[Value::from(timestamp)]).as_i64();
-        if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
+        if ((market).inverse == Some(true)) {
             snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
         }  else {
             snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
@@ -1322,7 +1322,7 @@ impl Bingx {
         if isSwap {
             marketType = "swap".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]));
         let mut candles: Value = Value::Null;
         if isSwap {
             if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -2013,7 +2013,7 @@ impl Bingx {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Null, Value::Str("swap".into())]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("swap".into())]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("liquidationPrice".to_string(), Value::Null);
@@ -2475,7 +2475,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             type_var = "spot".to_string();
         }
         let mut marketId: Option<String> = self.safe_string_k(&result, "s", &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into()), Value::from(type_var)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into()), Value::from(type_var)]));
         let mut parsed: Value = self.parse_trade(Value::Dict(result), &[market]);
         let mut symbol: String = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut spotHash: String = "spot:mytrades".to_string();
@@ -2630,7 +2630,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isExecution: bool = status.as_deref() == Some("FILLED");
             if (type_var.as_deref() == Some("TRADE")) && (status.as_deref() == Some("PARTIALLY_FILLED")) {
                 let mut marketId: Option<String> = self.safe_string_k(data.clone(), "s", &[]).as_str().map(str::to_owned);
-                let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into()), Value::Str("swap".into())]).into_dict();
+                let mut market: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into()), Value::Str("swap".into())]);
                 // parseTrade gates its `l`/`L` last-fill preference on the same
                 // `market['linear'] === true`, so an unresolved market id must be skipped here:
                 // delivering it would report the order aggregate `q`/`p` as a single fill.

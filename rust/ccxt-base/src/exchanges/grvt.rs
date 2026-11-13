@@ -1819,7 +1819,7 @@ if _try_result.is_err() {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), ticker.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open_price", &[]));
@@ -1840,7 +1840,7 @@ if _try_result.is_err() {
         m.insert("average".to_string(), Value::Null);
         m.insert("previousClose".to_string(), Value::Null);
     m
-}), &[]);
+}), None);
 
     Value::Null
 }
@@ -1907,7 +1907,7 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&result, "event_time", &[])).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(&result, "instrument", &[]).as_str().map(str::to_owned);
-        return self.parse_order_book(Value::Dict(result), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        return self.parse_order_book(Value::Dict(result), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         Value::Null
         }).await?))
     }
@@ -2031,7 +2031,7 @@ if _try_result.is_err() {
         //            }
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "instrument", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(trade.clone(), "event_time", Value::Float(0.000001), &[]).as_i64();
         let mut takerOrMaker: Option<String> = None;
         let mut isTakerBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker_buyer", &[]).as_bool();
@@ -2051,7 +2051,7 @@ if _try_result.is_err() {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeString.map(Value::from).unwrap_or(Value::Null), &[]));
-                    m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "quote"));
                     m.insert("rate".to_string(), self.safe_number_k(trade.clone(), "fee_rate", &[]));
                 m
             });
@@ -2062,7 +2062,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "trade_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
@@ -2071,7 +2071,7 @@ if _try_result.is_err() {
         m.insert("fee".to_string(), fee);
         m.insert("order".to_string(), self.safe_string_k(trade, "order_id", &[]));
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -2270,7 +2270,7 @@ if _try_result.is_err() {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawItem);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("fundingRate".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&rate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]));
         m.insert("timestamp".to_string(), Value::from(ts));
         m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
@@ -3666,7 +3666,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("notional".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "notional", &[])), &[]));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "est_liquidation_price", &[]));
@@ -3810,7 +3810,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("marginMode".to_string(), marginType.map(Value::from).unwrap_or(Value::Null));
         m.insert("longLeverage".to_string(), Value::from(leverageValue));
         m.insert("shortLeverage".to_string(), Value::from(leverageValue));
@@ -3883,7 +3883,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("marginMode".to_string(), self.safe_string_lower_k(marginMode, "margin_type", &[]));
     m
 });
@@ -3987,7 +3987,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("code".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -4395,7 +4395,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), Value::Null);
     m
-}), &[]);
+}), None);
         }
         let mut isMarket: bool = self.safe_bool_k(order.clone(), "is_market", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut orderType: String = "limit".to_string();
@@ -4425,7 +4425,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut primaryOrderIndex: i64 = 0;
         let mut firstLeg: Option<crate::value::Dict> = self.safe_dict(&legs, Value::from(primaryOrderIndex), &[]).into_opt_dict();
         let mut legMarketId: Option<String> = self.safe_string_k(&firstLeg, "instrument", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (firstLeg.is_some()) { self.safe_market(&[legMarketId.map(Value::from).unwrap_or(Value::Null), market.clone()]) } else { market });
+        let mut marketResolved: Value = (if (firstLeg.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(&[legMarketId.map(Value::from).unwrap_or(Value::Null), market.clone()])) } else { market });
         if (firstLeg.is_some()) {
             size = self.safe_string_k(&firstLeg, "size", &[]).as_str().map(str::to_owned);
             let mut isBuyingAsset: bool = self.safe_bool_k(&firstLeg, "is_buying_asset", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -4461,7 +4461,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("reduceOnly".to_string(), isReduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("info".to_string(), order);
     m
-}), &[marketResolved]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
     Value::Null
 }

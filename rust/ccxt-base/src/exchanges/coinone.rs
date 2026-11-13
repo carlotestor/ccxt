@@ -1307,7 +1307,7 @@ impl Coinone {
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "quote_volume", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1339,7 +1339,7 @@ impl Coinone {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
-        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[Value::Null, market]);
         let mut isSellerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "is_seller_maker", &[]).as_bool();
         let mut side: Option<String> = None;
         if (isSellerMaker.is_some()) {
@@ -1356,9 +1356,9 @@ impl Coinone {
             feeRateString = crate::precise::Precise::stringAbs(&feeRateString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut feeCurrencyCode: Value = Value::Null;
             if (side.as_deref() == Some("sell")) {
-                feeCurrencyCode = marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "quote");
             }  else {
-                feeCurrencyCode = marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "base");
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1375,7 +1375,7 @@ impl Coinone {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
@@ -1384,7 +1384,7 @@ impl Coinone {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -1622,7 +1622,7 @@ impl Coinone {
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut marketResolved: Value = (if (symbol.is_some()) { self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), Value::Str("/".into())]) } else { market });
+        let mut marketResolved: Value = (if (symbol.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), Value::Str("/".into())])) } else { market });
         let mut timestamp: Option<i64> = self.safe_timestamp2(order.clone(), Value::Str("timestamp".into()), Value::Str("updatedAt".into()), &[]).as_i64();
         if (timestamp.is_none()) {
             timestamp = self.safe_integer2(order.clone(), Value::Str("ordered_at".into()), Value::Str("updated_at".into()), &[]).as_i64(); // v2.1 sends milliseconds
@@ -1688,7 +1688,7 @@ impl Coinone {
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[marketResolved]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
     Value::Null
 }
@@ -1863,7 +1863,7 @@ impl Coinone {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_private_post_order_cancel(&[__ws_arg_9]).await;
-        return self.safe_order(response, &[]);
+        return self.safe_order(response, None);
         Value::Null
         }).await?))
     }

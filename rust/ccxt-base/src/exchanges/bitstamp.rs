@@ -2371,7 +2371,7 @@ impl Bitstamp {
         // }
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "pair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut vwap: Option<String> = self.safe_string_k(ticker.clone(), "vwap", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
@@ -2400,7 +2400,7 @@ impl Bitstamp {
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -2520,11 +2520,11 @@ impl Bitstamp {
             let mut secondCurrencyId: String = self.safe_string(&currencyIds, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: Value = Value::Str(format!("{}{}", firstCurrencyId, secondCurrencyId).into());
             if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return self.safe_market(&[marketId.clone()]);
+                return crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.clone()]));
             }
             marketId = Value::Str(format!("{}{}", secondCurrencyId, firstCurrencyId).into());
             if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return self.safe_market(&[marketId.clone()]);
+                return crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.clone()]));
             }
         }
         return Value::Null;
@@ -2593,7 +2593,7 @@ impl Bitstamp {
                 let mut currentKey: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if (currentKey.as_deref() != Some("order_id")) && currentKey.as_deref().unwrap_or_default().contains("_") {
                     rawMarketId = currentKey.clone();
-                    marketResolved = self.safe_market(&[rawMarketId.clone().map(Value::from).unwrap_or(Value::Null), marketResolved.clone(), Value::Str("_".into())]);
+                    marketResolved = crate::types::IntoRaw::into_raw(self.safe_market(&[rawMarketId.clone().map(Value::from).unwrap_or(Value::Null), marketResolved.clone(), Value::Str("_".into())]));
                 }
             }
             }
@@ -2689,7 +2689,7 @@ impl Bitstamp {
         m.insert("cost".to_string(), costString);
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
     Value::Null
 }
@@ -2980,7 +2980,7 @@ impl Bitstamp {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("maker".to_string(), self.safe_number_k(&fees, "maker", &[]));
         m.insert("taker".to_string(), self.safe_number_k(&fees, "taker", &[]));
         m.insert("percentage".to_string(), Value::Null);
@@ -3668,7 +3668,7 @@ impl Bitstamp {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -4019,7 +4019,7 @@ impl Bitstamp {
         // there is no timestamp from fetchOrder
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "datetime", &[])).as_i64();
         let mut marketId: Option<String> = self.safe_string_lower_k(order.clone(), "currency_pair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("/".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Str("/".into())]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut transactions: Value = self.safe_list_k(order.clone(), "transactions", &[Value::from(vec![])]);
@@ -4048,7 +4048,7 @@ impl Bitstamp {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -4107,7 +4107,7 @@ impl Bitstamp {
                 let mut currentKey: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if currentKey.as_deref().unwrap_or_default().contains("_") {
                     let mut marketId: Option<String> = (if let Some(__s) = currentKey.as_deref() { Some(__s.replace("_", "")) } else { None });
-                    market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]);
+                    market = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]));
                 }
             }
             }
@@ -4275,7 +4275,7 @@ impl Bitstamp {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fundingRate.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(fundingRate.clone(), "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(fundingRate.clone(), "index_price", &[]));
         m.insert("interestRate".to_string(), Value::Null);

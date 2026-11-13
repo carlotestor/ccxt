@@ -835,7 +835,7 @@ impl Weex {
         m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "i", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1116,7 +1116,7 @@ impl Weex {
         m.insert("cost".to_string(), self.safe_string_k(trade, "v", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1842,7 +1842,7 @@ impl Weex {
         m.insert("bidVolume".to_string(), self.safe_string_k(message.clone(), "B", &[]));
         m.insert("info".to_string(), message);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -2072,7 +2072,7 @@ impl Weex {
         if (positionSide.is_some()) {
             marketType = "swap".to_string();
         }
-        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]).into_dict();
+        let mut marketResolved: crate::types::Market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]);
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "orderSide", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
         let mut commission: Option<String> = self.safe_string_k(trade.clone(), "fillFee", &[]).as_str().map(str::to_owned);
@@ -2109,7 +2109,7 @@ impl Weex {
         m.insert("cost".to_string(), self.safe_string_k(trade, "fillValue", &[]));
         m.insert("fee".to_string(), fee);
     m
-}), &[]);
+}), None);
 
     Value::Null
 }
@@ -2408,7 +2408,7 @@ impl Weex {
         if (positionSide.is_some()) {
             marketType = "swap".to_string();
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]);
+        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]));
         let mut marketValue: Value = marketResolved.clone();
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "orderSide", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
@@ -2468,7 +2468,7 @@ impl Weex {
         m.insert("takeProfitPrice".to_string(), takeProfitPrice);
         m.insert("info".to_string(), order);
     m
-}), &[marketValue]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketValue).as_ref());
 
     Value::Null
 }
@@ -2897,7 +2897,7 @@ impl Weex {
             marketType = "swap".to_string();
         }
         let mut marketId: Option<String> = (match message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]));
         return market;
 
     Value::Null

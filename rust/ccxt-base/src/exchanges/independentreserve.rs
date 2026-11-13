@@ -912,8 +912,8 @@ impl Independentreserve {
         if (baseId.is_some()) && (quoteId.is_some()) {
             defaultMarketId = Some(format!("{}{}", Value::Str(format!("{}{}", baseId.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quoteId.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut marketResolved: Value = self.safe_market(&[defaultMarketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("/".into())]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::types::Market = self.safe_market(&[defaultMarketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("/".into())]);
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "LastPrice", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -938,7 +938,7 @@ impl Independentreserve {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -1098,7 +1098,7 @@ impl Independentreserve {
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1332,7 +1332,7 @@ impl Independentreserve {
         if (baseId.is_some()) && (quoteId.is_some()) {
             marketId = Some(format!("{}{}", Value::Str(format!("{}{}", baseId.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quoteId.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("/".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Str("/".into())]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "OrderType", &[]).as_str().map(str::to_owned);
         if (side.is_some()) {
             if side.as_deref().unwrap_or_default().contains("Bid") {
@@ -1357,7 +1357,7 @@ impl Independentreserve {
         m.insert("cost".to_string(), cost);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[market]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
     Value::Null
 }
@@ -1544,7 +1544,7 @@ impl Independentreserve {
         m.insert("info".to_string(), response.clone());
         m.insert("id".to_string(), self.safe_string_k(response, "OrderGuid", &[]));
     m
-}), &[(market).raw.clone()]);
+}), Some(&market));
         Value::Null
         }).await?))
     }

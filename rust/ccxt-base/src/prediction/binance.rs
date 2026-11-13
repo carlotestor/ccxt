@@ -1495,7 +1495,7 @@ impl Binance {
         if (outcomeObjResolved == Value::Null) {
             let mut marketId: Option<String> = self.safe_string_k(order.clone(), "marketId", &[]).as_str().map(str::to_owned);
             let mut outcome: Option<String> = self.safe_string_upper_k(order.clone(), "outcome", &[]).as_str().map(str::to_owned);
-            let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+            let mut market: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut outcomeName: Value = self.safe_string_k(&market, "market", &[]);
             if (outcomeName == Value::Null) {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
@@ -1958,7 +1958,7 @@ impl Binance {
         if (outcomeObjResolved == Value::Null) {
             let mut marketId: Option<String> = self.safe_string_k(position.clone(), "marketId", &[]).as_str().map(str::to_owned);
             let mut outcome: Option<String> = self.safe_string_upper_k(position.clone(), "outcomeName", &[]).as_str().map(str::to_owned);
-            let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+            let mut market: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut outcomeName: Value = self.safe_string_k(&market, "market", &[]);
             if (outcomeName == Value::Null) {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
@@ -2162,7 +2162,7 @@ impl Binance {
         if (outcomeObjResolved == Value::Null) {
             let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "marketId", &[]).as_str().map(str::to_owned);
             let mut outcome: Option<String> = self.safe_string_upper_k(trade.clone(), "outcome", &[]).as_str().map(str::to_owned);
-            let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+            let mut market: crate::types::Market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut outcomeName: Value = self.safe_string_k(&market, "market", &[]);
             if (outcomeName == Value::Null) {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
