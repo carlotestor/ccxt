@@ -2590,8 +2590,8 @@ impl Hibachi {
             m
         });
         if (method.as_str() == Some("GET")) {
-            let mut request: Value = self.omit(params.clone(), self.extract_params(path), &[]);
-            let mut query: String = self.urlencode(request, &[]);
+            let mut request: crate::value::Dict = self.omit(params.clone(), self.extract_params(path), &[]).into_dict();
+            let mut query: String = self.urlencode(&request, &[]);
             if (((query.chars().count() as i64)) != 0) {
                 url.push_str(&format!("{}{}", "?", query));
             }

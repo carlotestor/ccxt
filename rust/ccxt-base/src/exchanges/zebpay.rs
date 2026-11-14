@@ -2929,12 +2929,12 @@ impl Zebpay {
         let mut suffix: String = "".to_string();
         let mut timestamp: String = format!("{}", self.milliseconds());
         let mut signature: String = "".to_string();
-        let mut query: Value = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]).into_dict();
         let mut access: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         if (access.as_deref() == Some("public")) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                if (Value::Int(Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64).as_f64() != Some(0.0)) {
-                    suffix = format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[]));
+                if (Value::Int(Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64).as_f64() != Some(0.0)) {
+                    suffix = format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[]));
                 }
             }  else {
                 let mut priceType: Option<String> = self.safe_string_k(paramsOmitted.clone(), "priceType", &[]).as_str().map(str::to_owned);

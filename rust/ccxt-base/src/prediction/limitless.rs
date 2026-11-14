@@ -4368,8 +4368,8 @@ if _try_result.is_err() {
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "limitless")]);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut querystring: String = self.urlencode_with_array_repeat(query.clone());
+        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
+        let mut querystring: String = self.urlencode_with_array_repeat(&query);
         if (method.as_str() == Some("GET")) && (querystring != "") {
             url.push_str(&format!("{}{}", "?", querystring));
         }

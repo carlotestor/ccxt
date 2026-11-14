@@ -4780,7 +4780,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
         let mut requestPath: String = path.as_str().unwrap_or_default().to_string();
-        let mut query: Value = self.omit(params.clone(), self.extract_params(Value::from(requestPath.clone())), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(Value::from(requestPath.clone())), &[]).into_dict();
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -4789,8 +4789,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath);
         let mut queryString: String = "".to_string();
         if (method.as_str() == Some("GET")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                queryString = self.urlencode(query, &[]);
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                queryString = self.urlencode(&query, &[]);
                 url.push_str(&format!("{}{}", "?", queryString));
             }
         }  else if (method.as_str() == Some("POST")) {

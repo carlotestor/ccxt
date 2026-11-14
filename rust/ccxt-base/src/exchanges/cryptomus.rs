@@ -1737,7 +1737,7 @@ impl Cryptomus {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut endpoint: String = self.implode_params(path.clone(), params.clone());
-        let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut paramsOmitted: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -1756,7 +1756,7 @@ impl Cryptomus {
                 jsonParams = json_stringify(&paramsOmitted).as_str().map(str::to_owned);
                 privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
             }  else {
-                let mut query: String = self.urlencode(paramsOmitted.clone(), &[]);
+                let mut query: String = self.urlencode(&paramsOmitted, &[]);
                 if (((query.chars().count() as i64)) != 0) {
                     url.push_str(&format!("{}{}", "?", query));
                 }
@@ -1775,7 +1775,7 @@ impl Cryptomus {
     m
 });
         }  else {
-            let mut query: String = self.urlencode(paramsOmitted, &[]);
+            let mut query: String = self.urlencode(&paramsOmitted, &[]);
             if (((query.chars().count() as i64)) != 0) {
                 url.push_str(&format!("{}{}", "?", query));
             }

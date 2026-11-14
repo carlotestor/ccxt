@@ -465,7 +465,7 @@ impl Revolutx {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
@@ -479,12 +479,12 @@ impl Revolutx {
             self.check_required_credentials(&[]);
             let mut timestamp: String = format!("{}", self.milliseconds());
             if (method.as_str() == Some("GET")) {
-                queryString = self.urlencode(query.clone(), &[]);
+                queryString = self.urlencode(&query, &[]);
                 if (queryString != "") {
                     url.push_str(&format!("{}{}", "?", queryString));
                 }
             }  else if (method.as_str() == Some("DELETE")) {
-                queryString = self.urlencode(query.clone(), &[]);
+                queryString = self.urlencode(&query, &[]);
                 if (queryString != "") {
                     url.push_str(&format!("{}{}", "?", queryString));
                 }
@@ -510,7 +510,7 @@ impl Revolutx {
             }
         }  else {
             if (method.as_str() == Some("GET")) {
-                queryString = self.urlencode(query.clone(), &[]);
+                queryString = self.urlencode(&query, &[]);
                 if (queryString != "") {
                     url.push_str(&format!("{}{}", "?", queryString));
                 }
