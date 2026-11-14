@@ -1224,10 +1224,11 @@ impl Exchange {
     /// CRC-32 checksum — used by a few WS order-book reconcilers
     /// (bitget, bitfinex, independentreserve). Stub returns 0; will be
     /// replaced with the real algorithm when those order books need it.
-    pub fn crc32(&self, args: &[Value]) -> Value {
+    /// `crc32(str, signed)`: TypeScript declares `number`, and the runtime always yields an integer.
+    pub fn crc32(&self, args: &[Value]) -> i64 {
         let payload = args.get(0).cloned().unwrap_or(Value::Str(String::new().into()));
         let signed = args.get(1).cloned().unwrap_or(Value::Bool(false));
-        crate::runtime::crc32(payload, signed)
+        crate::runtime::crc32(payload, signed).as_i64().unwrap_or_default()
     }
     /// `decode_proto_msg(message)` — exchange-specific protobuf decoder
     /// (mexc). `message` is the binary frame carried as a byte array; decode
