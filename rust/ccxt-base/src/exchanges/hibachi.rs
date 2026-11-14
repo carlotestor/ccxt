@@ -2908,9 +2908,9 @@ impl Hibachi {
         let mut transaction: Value = transaction.into();
         let mut timestamp: Option<i64> = self.safe_integer_product_k(transaction.clone(), "timestampSec", Value::Int(1000), &[]).as_i64();
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "withdrawalAddress", &[]).as_str().map(str::to_owned);
-        let mut transactionType: Value = self.safe_string_k(transaction.clone(), "transactionType", &[]);
-        if (transactionType.as_str() != Some("deposit")) && (transactionType.as_str() != Some("withdrawal")) {
-            transactionType = self.parse_transaction_type(transactionType.as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "transactionType", &[]).as_str().map(str::to_owned);
+        if (transactionType.as_deref() != Some("deposit")) && (transactionType.as_deref() != Some("withdrawal")) {
+            transactionType = self.parse_transaction_type(transactionType.as_deref());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2926,7 +2926,7 @@ impl Hibachi {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), transactionType);
+        m.insert("type".to_string(), transactionType.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "quantity", &[]));
         m.insert("currency".to_string(), Value::Str("USDT".into()));
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_k(transaction, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));

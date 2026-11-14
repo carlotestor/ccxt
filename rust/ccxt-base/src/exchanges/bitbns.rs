@@ -1036,11 +1036,11 @@ impl Bitbns {
             side = Some("sell".to_string());
         }
         let mut data: Option<String> = self.safe_string_k(order.clone(), "data", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         if (data.as_deref() == Some("Successfully cancelled the order")) {
-            status = Value::Str("cancelled".into());
+            status = Some("cancelled".to_string());
         }  else {
-            status = self.parse_status(status.as_str()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_status(status.as_deref());
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1061,7 +1061,7 @@ impl Bitbns {
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Null);

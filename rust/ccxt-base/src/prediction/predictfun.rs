@@ -3827,14 +3827,14 @@ impl Predictfun {
     m
 })]).into_dict();
         let mut token: Option<String> = self.safe_string_k(params.clone(), "token", &[self.safe_string(&collaterals, chainKey.clone().map(Value::from).unwrap_or(Value::Null), &[])]).as_str().map(str::to_owned);
-        let mut spender: Value = self.safe_string_k(params.clone(), "spender", &[]);
-        if (spender == Value::Null) {
+        let mut spender: Option<String> = self.safe_string_k(params.clone(), "spender", &[]).as_str().map(str::to_owned);
+        if (spender.is_none()) {
             if (outcome == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " approve() requires an \"outcome\" to resolve the exchange to approve, or an explicit \"spender\" parameter")));
             }
-            spender = self.exchange_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null);
+            spender = self.exchange_address(isNegRisk, isYieldBearing);
         }
-        if (rpcUrl.is_none()) || (token.is_none()) || (spender == Value::Null) {
+        if (rpcUrl.is_none()) || (token.is_none()) || (spender.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain ").into()), chainKey.as_deref().unwrap_or("null"))));
         }
         let mut amountHex: String = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".to_string();
@@ -3848,7 +3848,7 @@ impl Predictfun {
             amountHex = format!("{:0>64}", amountBase16);
         }
         // approve(spender, amount) -> selector 0x095ea7b3
-        let mut approveData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x095ea7b3".into()), self.pad_hex_address(spender)).into()), amountHex);
+        let mut approveData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x095ea7b3".into()), self.pad_hex_address(spender.map(Value::from).unwrap_or(Value::Null))).into()), amountHex);
         let mut txHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), owner.map(Value::from).unwrap_or(Value::Null), token.map(Value::from).unwrap_or(Value::Null), Value::Str("0x0".into()), Value::from(approveData), Value::from(gasLimit)).await;
         return self.wait_for_transaction_receipt(rpcUrl.map(Value::from).unwrap_or(Value::Null), txHash, &[]).await;
 

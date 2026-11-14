@@ -1921,15 +1921,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  */
     pub fn clob_order_message(&self, rawOrder: impl Into<crate::Value>) -> Value {
         let mut rawOrder: Value = rawOrder.into();
-        let mut signer: Value = self.safe_string2(rawOrder.clone(), Value::Str("trader".into()), Value::Str("user".into()), &[]);
+        let mut signer: Option<String> = self.safe_string2(rawOrder.clone(), Value::Str("trader".into()), Value::Str("user".into()), &[]).as_str().map(str::to_owned);
         if (self.privateKey.clone() != Value::Null) {
-            signer = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
+            signer = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
         }  else {
-            signer = self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null);
+            signer = self.wallet_address_or_undefined();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("trader".to_string(), signer);
+        m.insert("trader".to_string(), signer.map(Value::from).unwrap_or(Value::Null));
         m.insert("marketId".to_string(), self.safe_string_k(rawOrder.clone(), "marketId", &[]));
         m.insert("outcomeId".to_string(), self.safe_integer_k(rawOrder.clone(), "outcomeId", &[Value::Int(0)]));
         m.insert("side".to_string(), self.safe_integer_k(rawOrder.clone(), "side", &[Value::Int(0)]));
@@ -3069,9 +3069,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("market".to_string(), self.safe_string_k(market.clone(), "market", &[]));
         m.insert("type".to_string(), Value::Str("market".into()));
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), (match quote.get("priceAverage") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
-        m.insert("amount".to_string(), (match quote.get("shares") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
-        m.insert("cost".to_string(), (match quote.get("value") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
+        m.insert("price".to_string(), (match quote.get("priceAverage") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Null, Value::Float), _ => Value::Null }));
+        m.insert("amount".to_string(), (match quote.get("shares") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Null, Value::Float), _ => Value::Null }));
+        m.insert("cost".to_string(), (match quote.get("value") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Null, Value::Float), _ => Value::Null }));
         m.insert("status".to_string(), Value::Str("closed".into()));
         m.insert("fee".to_string(), Value::Null);
     m

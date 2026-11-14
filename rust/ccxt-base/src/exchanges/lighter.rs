@@ -3491,19 +3491,19 @@ if _try_result.is_err() {
         }  else if (isAskAsInteger.is_some()) {
             side = (if (isAskAsInteger == Some(1)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
-        let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
-        if (type_var == Value::Null) {
+        let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.is_none()) {
             let mut typeAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "order_type", &[]).as_i64();
-            type_var = self.parse_order_type_integer(typeAsInteger).map(Value::from).unwrap_or(Value::Null);
+            type_var = self.parse_order_type_integer(typeAsInteger);
         }
         let mut triggerPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(order.clone(), "trigger_price", &[]))), &[]).as_f64();
         let mut stopLossPrice: Option<f64> = None;
         let mut takeProfitPrice: Option<f64> = None;
-        if (type_var != Value::Null) {
-            if type_var.as_str().unwrap_or("").contains("stop-loss") {
+        if (type_var.is_some()) {
+            if type_var.as_deref().unwrap_or_default().contains("stop-loss") {
                 stopLossPrice = triggerPrice;
             }
-            if type_var.as_str().unwrap_or("").contains("take-profit") {
+            if type_var.as_deref().unwrap_or_default().contains("take-profit") {
                 takeProfitPrice = triggerPrice;
             }
         }
@@ -3527,7 +3527,7 @@ if _try_result.is_err() {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(order.clone(), "updated_at", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), self.parse_order_type(type_var.as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), self.parse_order_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_order_time_in_force(tif.as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Bool(tif.as_str() == Some("post-only")));
         m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));

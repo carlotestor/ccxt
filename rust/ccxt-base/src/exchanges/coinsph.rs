@@ -2132,15 +2132,15 @@ impl Coinsph {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut testOrder: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("test".into()), &[]).into_dict();
-        let mut orderType: Value = self.safe_string_k(&paramsOmitted, "type", &[type_var.clone()]);
-        orderType = self.encode_order_type(orderType.as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut orderType: Option<String> = self.safe_string_k(&paramsOmitted, "type", &[type_var.clone()]).as_str().map(str::to_owned);
+        orderType = self.encode_order_type(orderType.as_deref());
         let mut paramsType: Value = self.omit(&paramsOmitted, Value::Str("type".into()), &[]);
         let mut paramsQuote: Value = Value::Null;
         let mut orderSide: Option<String> = self.encode_order_side(side.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("type".to_string(), orderType.clone());
+                m.insert("type".to_string(), Value::from(orderType.as_deref()));
                 m.insert("side".to_string(), Value::from(orderSide.as_deref()));
             m
         });
@@ -2154,17 +2154,17 @@ impl Coinsph {
         })]).into_dict();
         let mut newOrderRespType: String = "FULL".to_string();
         // if limit order
-        if (orderType.as_str() == Some("LIMIT")) || (orderType.as_str() == Some("STOP_LOSS_LIMIT")) || (orderType.as_str() == Some("TAKE_PROFIT_LIMIT")) || (orderType.as_str() == Some("LIMIT_MAKER")) {
+        if (orderType.as_deref() == Some("LIMIT")) || (orderType.as_deref() == Some("STOP_LOSS_LIMIT")) || (orderType.as_deref() == Some("TAKE_PROFIT_LIMIT")) || (orderType.as_deref() == Some("LIMIT_MAKER")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }
             newOrderRespType = self.safe_string_k(&newOrderRespTypes, "limit", &[Value::Str("FULL".into())]).as_str().unwrap_or("FULL").to_string();
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
-            if (orderType.as_str() != Some("LIMIT_MAKER")) {
+            if (orderType.as_deref() != Some("LIMIT_MAKER")) {
                 request.insert("timeInForce".into(), self.safe_string_k(&options, "timeInForce", &[Value::Str("GTC".into())]));
             }
-        }  else if (orderType.as_str() == Some("MARKET")) || (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("TAKE_PROFIT")) {
+        }  else if (orderType.as_deref() == Some("MARKET")) || (orderType.as_deref() == Some("STOP_LOSS")) || (orderType.as_deref() == Some("TAKE_PROFIT")) {
             newOrderRespType = self.safe_string_k(&newOrderRespTypes, "market", &[Value::Str("FULL".into())]).as_str().unwrap_or("FULL").to_string();
             if (orderSide.as_deref() == Some("SELL")) {
                 request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
@@ -2192,7 +2192,7 @@ impl Coinsph {
                 request.insert("quoteOrderQty".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        if (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("STOP_LOSS_LIMIT")) || (orderType.as_str() == Some("TAKE_PROFIT")) || (orderType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
+        if (orderType.as_deref() == Some("STOP_LOSS")) || (orderType.as_deref() == Some("STOP_LOSS_LIMIT")) || (orderType.as_deref() == Some("TAKE_PROFIT")) || (orderType.as_deref() == Some("TAKE_PROFIT_LIMIT")) {
             let mut triggerPrice: Option<String> = self.safe_string2(paramsType.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")));

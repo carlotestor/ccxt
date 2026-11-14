@@ -7267,13 +7267,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut toCode: Option<String> = self.safe_currency_code(toCoin.map(Value::from).unwrap_or(Value::Null), toCurrency);
         let mut fromValueScale: Option<i64> = self.safe_integer_k(&fromCurrency, "valueScale", &[]).as_i64();
         let mut toValueScale: Option<i64> = self.safe_integer_k(&toCurrency, "valueScale", &[]).as_i64();
-        let mut fromAmount: Value = self.from_en(self.safe_string_k(conversion.clone(), "fromAmountEv", &[]), fromValueScale).map(Value::from).unwrap_or(Value::Null);
-        if (fromAmount == Value::Null) && (quoteArgs.is_some()) {
-            fromAmount = self.from_en(self.safe_string_k(&quoteArgs, "origin", &[]), fromValueScale).map(Value::from).unwrap_or(Value::Null);
+        let mut fromAmount: Option<String> = self.from_en(self.safe_string_k(conversion.clone(), "fromAmountEv", &[]), fromValueScale);
+        if (fromAmount.is_none()) && (quoteArgs.is_some()) {
+            fromAmount = self.from_en(self.safe_string_k(&quoteArgs, "origin", &[]), fromValueScale);
         }
-        let mut toAmount: Value = self.from_en(self.safe_string_k(conversion.clone(), "toAmountEv", &[]), toValueScale).map(Value::from).unwrap_or(Value::Null);
-        if (toAmount == Value::Null) && (quoteArgs.is_some()) {
-            toAmount = self.from_en(self.safe_string_k(&quoteArgs, "proceeds", &[]), toValueScale).map(Value::from).unwrap_or(Value::Null);
+        let mut toAmount: Option<String> = self.from_en(self.safe_string_k(conversion.clone(), "toAmountEv", &[]), toValueScale);
+        if (toAmount.is_none()) && (quoteArgs.is_some()) {
+            toAmount = self.from_en(self.safe_string_k(&quoteArgs, "proceeds", &[]), toValueScale);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7282,9 +7282,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("id".to_string(), self.safe_string_k(conversion, "code", &[]));
         m.insert("fromCurrency".to_string(), fromCode.map(Value::from).unwrap_or(Value::Null));
-        m.insert("fromAmount".to_string(), self.parse_number(fromAmount, &[]));
+        m.insert("fromAmount".to_string(), self.parse_number(fromAmount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("toCurrency".to_string(), toCode.map(Value::from).unwrap_or(Value::Null));
-        m.insert("toAmount".to_string(), self.parse_number(toAmount, &[]));
+        m.insert("toAmount".to_string(), self.parse_number(toAmount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("price".to_string(), self.safe_number_k(&quoteArgs, "price", &[]));
         m.insert("fee".to_string(), Value::Null);
     m

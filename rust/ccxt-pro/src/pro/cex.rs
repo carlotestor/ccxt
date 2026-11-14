@@ -1234,7 +1234,7 @@ impl Cex {
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut isTransaction: bool = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("tx");
         let mut orderId: Option<String> = self.safe_string2(&data, Value::Str("id".into()), Value::Str("order".into()), &[]).as_str().map(str::to_owned);
-        let mut remains: Value = self.safe_string_k(&data, "remains", &[]);
+        let mut remains: Option<String> = self.safe_string_k(&data, "remains", &[]).as_str().map(str::to_owned);
         let mut baseId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(&data, "symbol2", &[]).as_str().map(str::to_owned);
         let mut pair: Option<crate::value::Dict> = self.safe_dict_k(&data, "pair", &[]).into_opt_dict();
@@ -1249,7 +1249,7 @@ impl Cex {
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut market: crate::types::Market = self.safe_market(Value::from(symbol.clone()), None, &[]);
-        remains = self.currency_from_precision(base.map(Value::from).unwrap_or(Value::Null), remains).map(Value::from).unwrap_or(Value::Null);
+        remains = self.currency_from_precision(base.map(Value::from).unwrap_or(Value::Null), remains.map(Value::from).unwrap_or(Value::Null));
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(limit));
@@ -1263,7 +1263,7 @@ impl Cex {
         if (order == Value::Null) {
             order = self.parse_ws_order_update(&data, Some(&market));
         }
-        add_element_to_object(&mut order, &Value::Str("remaining".into()), remains);
+        add_element_to_object(&mut order, &Value::Str("remaining".into()), remains.map(Value::from).unwrap_or(Value::Null));
         let mut canceled: bool = self.safe_bool_k(&data, "cancel", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if canceled {
             add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("canceled".into()));
