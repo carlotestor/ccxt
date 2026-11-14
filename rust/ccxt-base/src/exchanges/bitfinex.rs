@@ -4525,7 +4525,7 @@ impl Bitfinex {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut request: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         if (apiName.as_deref() == Some("v1")) {
             request = format!("{}{}", "v1", request);
         }  else {
@@ -4539,8 +4539,8 @@ impl Bitfinex {
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("public")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         if (apiName.as_deref() == Some("private")) {

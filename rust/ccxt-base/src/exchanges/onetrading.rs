@@ -2520,10 +2520,10 @@ impl Onetrading {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         if (apiName.as_deref() == Some("public")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -2537,8 +2537,8 @@ impl Onetrading {
             if (method.as_str() == Some("POST")) {
                 headersSigned.insert("Content-Type".into(), Value::Str("application/json".into()));
             }  else {
-                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+                if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
                 }
             }
             return Value::Map({

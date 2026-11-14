@@ -3252,7 +3252,7 @@ impl Bittrade {
             url.push_str("v2");
         }
         url.push_str(&format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path), &[]).into_dict();
         if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("v2Private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.ymdhms(Value::Int(self.milliseconds()), &[Value::Str("T".into())]).as_str().map(str::to_owned);
@@ -3265,7 +3265,7 @@ impl Bittrade {
                 m
             }).into_dict();
             if (method.as_str() != Some("POST")) {
-                request = self.extend(request, &[query.clone()]).into_dict();
+                request = self.extend(request, &[&query]).into_dict();
             }
             let mut requestSorted: Value = self.keysort(Value::Dict(request), &[]);
             let mut auth: String = self.urlencode(requestSorted, &[]);

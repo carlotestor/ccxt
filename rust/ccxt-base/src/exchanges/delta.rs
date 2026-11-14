@@ -5421,12 +5421,12 @@ impl Delta {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath);
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Value = Value::Null;
         if (apiName.as_deref() == Some("public")) {
-            if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if !(self.is_empty(&query).as_bool() == Some(true)) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -5439,8 +5439,8 @@ impl Delta {
             });
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath);
             if (method.as_str() == Some("GET")) {
-                if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                    let mut queryString: String = format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[]));
+                if !(self.is_empty(&query).as_bool() == Some(true)) {
+                    let mut queryString: String = format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[]));
                     auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath).into()), queryString);
                     url.push_str(&queryString);
                 }

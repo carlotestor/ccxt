@@ -5945,11 +5945,11 @@ impl Weex {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut endpoint: String = self.implode_params(path.clone(), params.clone());
-        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
         let mut isBatch: bool = path.as_str().unwrap_or("").contains("batch");
         if !(isBatch) && ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) {
-            if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if !(self.is_empty(&query).as_bool() == Some(true)) {
+                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut isPrivate: bool = (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("contractPrivate"));
