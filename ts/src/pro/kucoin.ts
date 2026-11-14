@@ -781,7 +781,7 @@ export default class kucoin extends kucoinRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
-    async watchMultiHelper (methodName: string, channelName: string, isFuturesChannel: boolean, symbols: Strings = undefined, params: Dict = {}) {
+    async watchMultiHelper (methodName: string, channelName: string, isFuturesChannel: boolean, symbols: Strings = undefined, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

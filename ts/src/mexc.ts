@@ -3843,7 +3843,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, (orderType as string), orderType);
     }
 
-    async fetchAccountHelper (type: Str, params: Dict) {
+    async fetchAccountHelper (type: Str, params: Dict): Promise<NullableDict> {
         if (type === 'spot') {
             return await this.spotPrivateGetAccount (params);
             //
