@@ -2500,8 +2500,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str("".into());
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
-        let mut hexLength: Value = Value::Int(hex.len() as i64);
-        if (((match (&(hexLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() != Some(0.0)) {
+        let mut hexLength: i64 = hex.len() as i64;
+        if (((hexLength % 2)) != 0) {
             return Value::Str(format!("{}{}", "0", hex).into());
         }
         return hex;

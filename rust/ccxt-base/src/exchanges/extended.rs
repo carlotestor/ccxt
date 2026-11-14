@@ -1747,14 +1747,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_664: bool = true;
-            while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1851,14 +1851,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_665 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2169,14 +2169,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_667 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2560,14 +2560,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_669: bool = true;
-            while { if !__for_first_669 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2715,14 +2715,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_670: bool = true;
-            while { if !__for_first_670 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_670 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2953,14 +2953,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_671: bool = true;
-            while { if !__for_first_671 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_671 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_671 { i += 1; } __for_first_671 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3654,14 +3654,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_673: bool = true;
-            while { if !__for_first_673 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_673 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_673 { i += 1; } __for_first_673 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4815,14 +4815,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_674: bool = true;
-            while { if !__for_first_674 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_674 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));

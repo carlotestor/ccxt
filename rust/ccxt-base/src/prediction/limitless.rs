@@ -1830,11 +1830,11 @@ impl Limitless {
         }
         let mut responses: Value = promise_all(&Value::from(promises)).await;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1313: bool = true;
-            while { if !__for_first_1313 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1313 = false; i.as_f64().unwrap_or(f64::NAN) < ((slugs.len() as i64) as f64) } {
-            let mut slug: Value = slugs.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut detailIndex: Value = (match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            while { if !__for_first_1313 { i += 1; } __for_first_1313 = false; i < (slugs.len() as i64) } {
+            let mut slug: Value = slugs.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut detailIndex: Value = Value::Int((i * 2));
             let mut detail: Option<crate::value::Dict> = self.safe_dict(responses.clone(), detailIndex.clone(), &[]).into_opt_dict();
             let mut book: Option<crate::value::Dict> = self.safe_dict(responses.clone(), self.sum(&[detailIndex, Value::Int(1)]), &[]).into_opt_dict();
             let mut tickerInput: indexmap::IndexMap<String, Value> = ({

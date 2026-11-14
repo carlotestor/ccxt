@@ -1218,10 +1218,10 @@ impl Polymarket {
             }
             let mut remainingPages: Vec<Value> = Vec::new();
             {
-                                let mut p: Value = Value::Int(2);
+                                let mut p: i64 = 2;
                 let mut __for_first_1406: bool = true;
-                while { if !__for_first_1406 { if let Value::Int(n) = &mut p { *n += 1; } } __for_first_1406 = false; p.as_f64().unwrap_or(f64::NAN) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
-                remainingPages.push(p.clone());
+                while { if !__for_first_1406 { p += 1; } __for_first_1406 = false; (p as f64) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
+                remainingPages.push(Value::Int(p));
             }
             }
             let mut restPromises: crate::value::List = std::sync::Arc::new(Vec::new());
