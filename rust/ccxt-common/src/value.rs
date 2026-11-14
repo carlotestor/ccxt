@@ -2703,17 +2703,22 @@ mod list_alias_parity_tests {
 mod into_opt_string_tests {
     use super::*;
 
+    // each case is built twice (one copy read by `as_str`, one moved into `into_opt_string`)
+    fn case(k: u8) -> Value {
+        match k {
+            0 => Value::Null, 1 => Value::Bool(true), 2 => Value::Bool(false), 3 => Value::Int(0), 4 => Value::Int(7), 5 => Value::Float(1.5),
+            6 => Value::Str("".into()), 7 => Value::Str("lit".into()), 8 => Value::Str(Cow::Owned("owned".to_string())),
+            9 => Value::Map(HashMap::new()), _ => Value::List(vec![Value::Str("x".into())]),
+        }
+    }
+
     #[test]
     fn into_opt_string_matches_the_borrowed_string_read() {
-        let cases = vec![
-            Value::Null, Value::Bool(true), Value::Bool(false), Value::Int(0), Value::Int(7), Value::Float(1.5),
-            Value::Str("".into()), Value::Str("lit".into()), Value::Str(Cow::Owned("owned".to_string())),
-            Value::Map(HashMap::new()), Value::List(vec![Value::Str("x".into())]),
-        ];
-        for v in cases {
-            let borrowed = v.as_str().map(str::to_owned);
-            assert_eq!(v.clone().into_opt_string(), borrowed, "{:?}", v);
-            assert_eq!(Value::from(v.clone().into_opt_string()), Value::from(v.as_str()), "{:?}", v);
+        for k in 0..=10u8 {
+            let read = case(k);
+            let borrowed = read.as_str().map(str::to_owned);
+            assert_eq!(case(k).into_opt_string(), borrowed, "{:?}", read);
+            assert_eq!(Value::from(case(k).into_opt_string()), Value::from(read.as_str()), "{:?}", read);
         }
     }
 
