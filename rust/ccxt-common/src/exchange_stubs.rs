@@ -1224,10 +1224,11 @@ impl Exchange {
     /// CRC-32 checksum — used by a few WS order-book reconcilers
     /// (bitget, bitfinex, independentreserve). Stub returns 0; will be
     /// replaced with the real algorithm when those order books need it.
-    pub fn crc32(&self, args: &[Value]) -> Value {
+    /// `crc32(str, signed)`: TypeScript declares `number`, and the runtime always yields an integer.
+    pub fn crc32(&self, args: &[Value]) -> i64 {
         let payload = args.get(0).cloned().unwrap_or(Value::Str(String::new().into()));
         let signed = args.get(1).cloned().unwrap_or(Value::Bool(false));
-        crate::runtime::crc32(payload, signed)
+        crate::runtime::crc32(payload, signed).as_i64().unwrap_or_default()
     }
     /// `decode_proto_msg(message)` — exchange-specific protobuf decoder
     /// (mexc). `message` is the binary frame carried as a byte array; decode
@@ -1298,12 +1299,12 @@ impl Exchange {
     }
 
     /// `randomBytes(length)` — `length` random bytes as a hex string.
-    pub fn random_bytes(&self, length: Value) -> Value {
+    pub fn random_bytes(&self, length: Value) -> String {
         use rand::Rng;
         let n = length.as_i64().unwrap_or(0).max(0) as usize;
         let mut rng = rand::thread_rng();
         let bytes: Vec<u8> = (0..n).map(|_| rng.gen()).collect();
-        Value::Str(hex::encode(bytes).into())
+        hex::encode(bytes)
     }
 
     /// `convertToBigInt(value)` — the Value-bag has no distinct bigint type,
@@ -3046,13 +3047,13 @@ impl Exchange {
         ).into())
     }
 
-    pub fn capitalize(&self, s: Value) -> Value {
+    pub fn capitalize(&self, s: Value) -> String {
         let s = stringify_param(&s);
         let mut c = s.chars();
-        Value::Str(match c.next() {
-            None => String::new().into(),
+        match c.next() {
+            None => String::new(),
             Some(f) => f.to_uppercase().chain(c).collect(),
-        })
+        }
     }
 
     pub fn encode_uri_component(&self, s: Value) -> Value {
