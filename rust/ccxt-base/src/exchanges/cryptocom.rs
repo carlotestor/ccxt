@@ -3415,8 +3415,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]).into_dict();
         let mut addresses: crate::value::List = self.safe_list_k(&data, "deposit_address_list", &[Value::from(vec![])]).into_list();
-        let mut addressesLength: f64 = ((addresses.len() as i64) as f64);
-        if (addressesLength == 0.0) {
+        let mut addressesLength: i64 = addresses.len() as i64;
+        if (addressesLength == 0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchDepositAddressesByNetwork() generating address...")));
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -3426,7 +3426,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: i64 = 0;
             let mut __for_first_593: bool = true;
-            while { if !__for_first_593 { i += 1; } __for_first_593 = false; (i as f64) < addressesLength } {
+            while { if !__for_first_593 { i += 1; } __for_first_593 = false; i < addressesLength } {
             let mut value: Option<crate::value::Dict> = self.safe_dict(&addresses, Value::Int(i), &[]).into_opt_dict();
             let mut addressString: Option<String> = self.safe_string_k(&value, "address", &[]).as_str().map(str::to_owned);
             let mut currencyId: Option<String> = self.safe_string_k(&value, "currency", &[]).as_str().map(str::to_owned);
@@ -4117,7 +4117,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut networkList: Value = self.safe_list_k(fee.clone(), "network_list", &[Value::from(vec![])]);
-        let mut networkListLength: f64 = ((networkList.len() as i64) as f64);
+        let mut networkListLength: i64 = networkList.len() as i64;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4132,7 +4132,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_595: bool = true;
-                while { if !__for_first_595 { i += 1; } __for_first_595 = false; (i as f64) < networkListLength } {
+                while { if !__for_first_595 { i += 1; } __for_first_595 = false; i < networkListLength } {
                 let mut networkInfo: crate::value::Dict = self.safe_dict(networkList.clone(), Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&networkInfo, "network_id", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
@@ -4155,7 +4155,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
                 }
-                if (networkListLength == 1.0) {
+                if (networkListLength == 1) {
                     withdrawFees.insert("fee".into(), self.safe_number_k(&networkInfo, "withdrawal_fee", &[]));
                     withdrawFees.insert("percentage".into(), Value::Bool(false));
                 }

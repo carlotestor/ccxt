@@ -974,13 +974,13 @@ impl Hyperliquid {
         if intPartLength <= 5 {
             digitsLeft = (5 - intPartLength);
         }
-        let mut cappedDecimals: Value = (if (maxDecimals < digitsLeft) { Value::from(maxDecimals) } else { Value::from(digitsLeft) });
+        let mut cappedDecimals: i64 = (if (maxDecimals < digitsLeft) { maxDecimals } else { digitsLeft });
         // appends max (1, cappedDecimals) - 1 zeros
         let mut zeros: String = "".to_string();
         {
                         let mut zi: Value = Value::Int(1);
             let mut __for_first_1235: bool = true;
-            while { if !__for_first_1235 { if let Value::Int(n) = &mut zi { *n += 1; } } __for_first_1235 = false; zi.as_f64().unwrap_or(f64::NAN) < cappedDecimals.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1235 { if let Value::Int(n) = &mut zi { *n += 1; } } __for_first_1235 = false; zi.as_f64().unwrap_or(f64::NAN) < (cappedDecimals as f64) } {
             zeros = format!("{}{}", zeros, "0");
         }
         }
@@ -2818,12 +2818,12 @@ impl Hyperliquid {
                     let mut __for_first_1254: bool = true;
                     while { if !__for_first_1254 { qi += 1; } __for_first_1254 = false; qi < (lowerQueries.len() as i64) } {
                     let mut words: Vec<Value> = Value::Array((lowerQueries.get(qi as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-                    let mut wordsLength: f64 = ((words.len() as i64) as f64);
+                    let mut wordsLength: i64 = words.len() as i64;
                     let mut allWords: bool = true;
                     {
                                                 let mut wi: i64 = 0;
                         let mut __for_first_1253: bool = true;
-                        while { if !__for_first_1253 { wi += 1; } __for_first_1253 = false; (wi as f64) < wordsLength } {
+                        while { if !__for_first_1253 { wi += 1; } __for_first_1253 = false; wi < wordsLength } {
                         let mut word: Value = words.get(wi as usize).cloned().unwrap_or(Value::Null);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
                         if (word.as_str() != Some("")) && (((if let (Some(__h), Some(__n)) = (Some(haystack.as_str()), (word).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) < 0) {

@@ -3426,11 +3426,11 @@ impl Bybit {
                     m
                 })]).into_dict();
                 let mut recordedTopics: crate::value::List = self.safe_list_k(&existing, "topics", &[Value::from(vec![])]).into_list();
-                let mut recordedLength: f64 = ((recordedTopics.len() as i64) as f64);
+                let mut recordedLength: i64 = recordedTopics.len() as i64;
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_208: bool = true;
-                    while { if !__for_first_208 { j += 1; } __for_first_208 = false; (j as f64) < recordedLength } {
+                    while { if !__for_first_208 { j += 1; } __for_first_208 = false; j < recordedLength } {
                     subscribedTopics.insert(crate::runtime::stringify_param(&(recordedTopics.get(j as usize).cloned().unwrap_or(Value::Null))), Value::Bool(true));
                 }
                 }

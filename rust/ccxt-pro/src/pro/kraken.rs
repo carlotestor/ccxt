@@ -1109,11 +1109,11 @@ impl Kraken {
             stored = Some(ArrayCacheByTimestamp::new(limit));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
-        let mut ohlcvsLength: f64 = ((data.len() as i64) as f64);
+        let mut ohlcvsLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_417: bool = true;
-            while { if !__for_first_417 { i += 1; } __for_first_417 = false; (i as f64) < ohlcvsLength } {
+            while { if !__for_first_417 { i += 1; } __for_first_417 = false; i < ohlcvsLength } {
             let mut candle: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut datetime: Option<String> = self.safe_string_k(&candle, "interval_begin", &[]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));

@@ -1384,13 +1384,13 @@ impl Grvt {
         //
         let mut currentBuilders: crate::value::Dict = self.safe_dict(results, Value::Int(0), &[]).into_dict();
         let mut approvedBuilder: crate::value::List = self.safe_list_k(&currentBuilders, "results", &[Value::from(vec![])]).into_list();
-        let mut length: f64 = ((approvedBuilder.len() as i64) as f64);
+        let mut length: i64 = approvedBuilder.len() as i64;
         let mut found: bool = false;
         let mut builderId: Option<String> = self.safe_string_k(self.options.clone(), "builder", &[]).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
             let mut __for_first_721: bool = true;
-            while { if !__for_first_721 { i += 1; } __for_first_721 = false; (i as f64) < length } {
+            while { if !__for_first_721 { i += 1; } __for_first_721 = false; i < length } {
             let mut builderInfo: crate::value::Dict = self.safe_dict(&approvedBuilder, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

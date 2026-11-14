@@ -4329,7 +4329,7 @@ impl Lbank {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+            let mut timestamp: String = format!("{}", self.milliseconds());
             let mut echostr: String = format!("{}{}", self.uuid22(&[]), self.uuid16(&[]));
             let mut signedQuery: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4347,7 +4347,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
         m.insert("echostr".to_string(), Value::from(echostr.clone()));
         m.insert("signature_method".to_string(), finalSig.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("timestamp".to_string(), Value::from(timestamp.as_str()));
     m
 }), &[&signedQuery]), &[]);
             let mut auth: String = self.rawencode(__ws_arg_34, &[]);
@@ -4377,7 +4377,7 @@ impl Lbank {
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
-                    m.insert("timestamp".to_string(), timestamp);
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("signature_method".to_string(), signatureMethod.map(Value::from).unwrap_or(Value::Null));
                     m.insert("echostr".to_string(), Value::from(echostr));
                 m

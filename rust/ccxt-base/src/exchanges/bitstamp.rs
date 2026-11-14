@@ -4603,14 +4603,14 @@ impl Bitstamp {
             self.check_required_credentials(&[]);
             let mut xAuth: String = format!("{}{}", "BITSTAMP ", self.apiKey.clone());
             let mut xAuthNonce: String = self.uuid(&[]);
-            let mut xAuthTimestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+            let mut xAuthTimestamp: String = format!("{}", self.milliseconds());
             let mut xAuthVersion: String = "v2".to_string();
             let mut contentType: String = "".to_string();
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Auth".to_string(), Value::from(xAuth.clone()));
                     m.insert("X-Auth-Nonce".to_string(), Value::from(xAuthNonce.clone()));
-                    m.insert("X-Auth-Timestamp".to_string(), xAuthTimestamp.clone());
+                    m.insert("X-Auth-Timestamp".to_string(), Value::from(xAuthTimestamp.as_str()));
                     m.insert("X-Auth-Version".to_string(), Value::from(xAuthVersion.clone()));
                 m
             });

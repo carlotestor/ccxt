@@ -2144,11 +2144,11 @@ impl Apex {
         if isContract {
             assets = self.safe_list_k(&contractConfig, "assets", &[Value::from(vec![])]);
         }
-        let mut numAssets: f64 = ((assets.len() as i64) as f64);
+        let mut numAssets: i64 = assets.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_227: bool = true;
-            while { if !__for_first_227 { i += 1; } __for_first_227 = false; (i as f64) < numAssets } {
+            while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < numAssets } {
             let mut asset: Value = self.safe_dict(assets.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

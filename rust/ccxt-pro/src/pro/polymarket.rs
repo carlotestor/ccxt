@@ -903,8 +903,8 @@ impl Polymarket {
         }  else {
             if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
         }
-        let mut rowsLength: f64 = ((rows.len() as i64) as f64);
-        if (rowsLength == 0.0) {
+        let mut rowsLength: i64 = rows.len() as i64;
+        if (rowsLength == 0) {
             return;
         }
         let mut first: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
@@ -923,7 +923,7 @@ impl Polymarket {
         {
                         let mut i: i64 = 0;
             let mut __for_first_652: bool = true;
-            while { if !__for_first_652 { i += 1; } __for_first_652 = false; (i as f64) < rowsLength } {
+            while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < rowsLength } {
             let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1268,8 +1268,8 @@ impl Polymarket {
         }  else {
             if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
         }
-        let mut rowsLength: f64 = ((rows.len() as i64) as f64);
-        if (rowsLength == 0.0) {
+        let mut rowsLength: i64 = rows.len() as i64;
+        if (rowsLength == 0) {
             return;
         }
         if (self.orders.is_none()) {
@@ -1284,7 +1284,7 @@ impl Polymarket {
         {
                         let mut i: i64 = 0;
             let mut __for_first_654: bool = true;
-            while { if !__for_first_654 { i += 1; } __for_first_654 = false; (i as f64) < rowsLength } {
+            while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < rowsLength } {
             let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1395,8 +1395,8 @@ impl Polymarket {
         }  else {
             if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
         }
-        let mut rowsLength: f64 = ((rows.len() as i64) as f64);
-        if (rowsLength == 0.0) {
+        let mut rowsLength: i64 = rows.len() as i64;
+        if (rowsLength == 0) {
             return;
         }
         if (self.myTrades.is_none()) {
@@ -1411,7 +1411,7 @@ impl Polymarket {
         {
                         let mut i: i64 = 0;
             let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { i += 1; } __for_first_656 = false; (i as f64) < rowsLength } {
+            while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < rowsLength } {
             let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

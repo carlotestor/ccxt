@@ -13649,12 +13649,12 @@ impl Binance {
         //       ]
         //     }
         let mut results: crate::value::List = self.safe_list_k(&response, "userAssetDribblets", &[Value::from(vec![])]).into_list();
-        let mut rows: Value = self.safe_integer_k(&response, "total", &[Value::Int(0)]);
+        let mut rows: i64 = self.safe_integer_k(&response, "total", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut data: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_291: bool = true;
-            while { if !__for_first_291 { i += 1; } __for_first_291 = false; (i as f64) < rows.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_291 { i += 1; } __for_first_291 = false; i < rows } {
             let mut logs: Value = self.safe_list_k(results.get(i as usize).cloned().unwrap_or(Value::Null), "userAssetDribbletDetails", &[Value::from(vec![])]);
             {
                                 let mut j: i64 = 0;
@@ -17907,17 +17907,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                     query = Value::from(self.rawencode(extendedParams.clone(), &[]));
                     let mut orderidlistLength: i64 = orderidlist.len() as i64;
-                    let mut origclientorderidlistLength: f64 = ((origclientorderidlist.len() as i64) as f64);
+                    let mut origclientorderidlistLength: i64 = origclientorderidlist.len() as i64;
                     if orderidlistLength > 0 {
                         query = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", query, "&").into()), "orderidlist=%5B").into()), join(&orderidlist, &Value::Str("%2C".into()))).into()), "%5D").into());
                     }
-                    if origclientorderidlistLength > ((0i64) as f64) {
+                    if origclientorderidlistLength > 0 {
                         // wrap clientOrderids around ""
                         let mut newClientOrderIds: Vec<Value> = Vec::new();
                         {
                                                         let mut i: i64 = 0;
                             let mut __for_first_311: bool = true;
-                            while { if !__for_first_311 { i += 1; } __for_first_311 = false; (i as f64) < origclientorderidlistLength } {
+                            while { if !__for_first_311 { i += 1; } __for_first_311 = false; i < origclientorderidlistLength } {
                             newClientOrderIds.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("%22".into()), self.safe_string(&origclientorderidlist, Value::Int(i), &[Value::Str("".into())])).into()), "%22").into()));
                         }
                         }

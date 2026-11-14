@@ -2626,14 +2626,14 @@ impl Upbit {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
     m
 })]).into_list();
-        let mut numTrades: Value = Value::Int(trades.len() as i64);
-        if numTrades.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+        let mut numTrades: i64 = trades.len() as i64;
+        if numTrades > 0 {
             // the timestamp in fetchOrder trades is missing
-            let mut lastTrade: Value = self.safe_dict(&trades, (match (&(numTrades), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Map({
+            let mut lastTrade: crate::value::Dict = self.safe_dict(&trades, Value::Int((numTrades - 1)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            lastTradeTimestamp = lastTrade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null);
+})]).into_dict();
+            lastTradeTimestamp = crate::value::KeyRead::key_read(&&lastTrade, "timestamp");
             let mut getFeesFromTrades: bool = false;
             if (feeCost.is_none()) {
                 getFeesFromTrades = true;
@@ -2643,7 +2643,7 @@ impl Upbit {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1144: bool = true;
-                while { if !__for_first_1144 { i += 1; } __for_first_1144 = false; (i as f64) < numTrades.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1144 { i += 1; } __for_first_1144 = false; i < numTrades } {
                 let mut trade: crate::value::Dict = self.safe_dict(&trades, Value::Int(i), &[]).into_dict();
                 cost = crate::precise::Precise::stringAdd(&cost.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&trade, "cost", &[])).as_str().map(str::to_owned);
                 if getFeesFromTrades {

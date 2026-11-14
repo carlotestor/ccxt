@@ -3583,8 +3583,8 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut idsLength: f64 = ((ids.len() as i64) as f64);
-        if idsLength > ((20i64) as f64) {
+        let mut idsLength: i64 = ids.len() as i64;
+        if idsLength > 20 {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cancelOrdersWs() accepts up to 20 ids at a time")));
         }
         if (symbol == Value::Null) {
@@ -3607,7 +3607,7 @@ impl Okx {
         {
                         let mut i: i64 = 0;
             let mut __for_first_555: bool = true;
-            while { if !__for_first_555 { i += 1; } __for_first_555 = false; (i as f64) < idsLength } {
+            while { if !__for_first_555 { i += 1; } __for_first_555 = false; i < idsLength } {
             let __ws_arg_5 = self.safe_string(ids.clone(), Value::Int(i), &[]);
             let mut arg: crate::value::Dict = self.extend(Value::Map(instParams.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

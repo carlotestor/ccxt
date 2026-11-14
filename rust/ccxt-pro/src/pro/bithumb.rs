@@ -432,7 +432,7 @@ impl Bithumb {
         if (symbolsNormalized != Value::Null) {
             symbolsResolved = symbolsNormalized;
         }
-        let mut symbolsLengthDefined: f64 = ((symbolsResolved.len() as i64) as f64);
+        let mut symbolsLengthDefined: i64 = symbolsResolved.len() as i64;
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -446,7 +446,7 @@ impl Bithumb {
         {
                         let mut i: i64 = 0;
             let mut __for_first_126: bool = true;
-            while { if !__for_first_126 { i += 1; } __for_first_126 = false; (i as f64) < symbolsLengthDefined } {
+            while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < symbolsLengthDefined } {
             let mut symbol: Option<String> = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut streamMarketId: Value = Value::Null;

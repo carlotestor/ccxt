@@ -2072,13 +2072,13 @@ impl Deepcoin {
         }
         let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         let mut addressess: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), Value::Dict(paramsOmitted)).await);
-        let mut length: f64 = ((addressess.len() as i64) as f64);
+        let mut length: i64 = addressess.len() as i64;
         let mut index: Value = Value::Int(0);
-        if (network.is_some()) && (length > ((1i64) as f64)) {
+        if (network.is_some()) && (length > 1) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_611: bool = true;
-                while { if !__for_first_611 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
+                while { if !__for_first_611 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < (length as f64) } {
                 let mut entryNetwork: Option<String> = self.safe_string(self.safe_dict(addressess.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

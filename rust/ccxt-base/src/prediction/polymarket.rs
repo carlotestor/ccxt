@@ -1365,8 +1365,8 @@ impl Polymarket {
         // fetchEvents returns the tagged events rather than filtering the top-volume listing down
         // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
         let mut requestedTags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
-        let mut requestedTagsLength: f64 = ((requestedTags.len() as i64) as f64);
-        if requestedTagsLength > ((1i64) as f64) {
+        let mut requestedTagsLength: i64 = requestedTags.len() as i64;
+        if requestedTagsLength > 1 {
             let mut seen: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1375,7 +1375,7 @@ impl Polymarket {
             {
                                 let mut ti: i64 = 0;
                 let mut __for_first_1415: bool = true;
-                while { if !__for_first_1415 { ti += 1; } __for_first_1415 = false; (ti as f64) < requestedTagsLength } {
+                while { if !__for_first_1415 { ti += 1; } __for_first_1415 = false; ti < requestedTagsLength } {
                 let mut singleTagParams: crate::value::Dict = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1398,7 +1398,7 @@ impl Polymarket {
             }
             return Value::from(unioned);
         }
-        if requestedTagsLength > ((0i64) as f64) {
+        if requestedTagsLength > 0 {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
             std::sync::Arc::make_mut(&mut baseRequest).insert("tag_slug".into(), self.tag_to_slug(self.safe_string(&requestedTags, Value::Int(0), &[])));
@@ -1421,16 +1421,16 @@ impl Polymarket {
         let mut firstPageResponse: Value = self.gamma_public_get_events(&[Value::Dict(firstPageRequest)]).await;
         let mut firstPageIsArray: bool = matches!(&firstPageResponse, Value::Arr(_));
         let mut firstPage: Value = (if (firstPageIsArray) { firstPageResponse } else { Value::from(vec![]) });
-        let mut firstPageLength: f64 = ((firstPage.len() as i64) as f64);
+        let mut firstPageLength: i64 = firstPage.len() as i64;
         let mut allRawEvents: Vec<Value> = Vec::new();
         {
                         let mut fi: i64 = 0;
             let mut __for_first_1416: bool = true;
-            while { if !__for_first_1416 { fi += 1; } __for_first_1416 = false; (fi as f64) < firstPageLength } {
+            while { if !__for_first_1416 { fi += 1; } __for_first_1416 = false; fi < firstPageLength } {
             allRawEvents.push(firstPage.as_array().map(Vec::as_slice).unwrap_or_default().get(fi as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        if firstPageLength >= pageSize.as_f64().unwrap_or(f64::NAN) {
+        if (firstPageLength as f64) >= pageSize.as_f64().unwrap_or(f64::NAN) {
             let mut offsets: Vec<Value> = Vec::new();
             {
                                 let mut p: Value = Value::Int(1);
@@ -1459,11 +1459,11 @@ impl Polymarket {
                 let mut __for_first_1420: bool = true;
                 while { if !__for_first_1420 { ri += 1; } __for_first_1420 = false; ri < (restPages.len() as i64) } {
                 let mut page: crate::value::List = self.safe_list(restPages.clone(), Value::Int(ri), &[Value::from(vec![])]).into_list();
-                let mut pageLength: f64 = ((page.len() as i64) as f64);
+                let mut pageLength: i64 = page.len() as i64;
                 {
                                         let mut pi: i64 = 0;
                     let mut __for_first_1419: bool = true;
-                    while { if !__for_first_1419 { pi += 1; } __for_first_1419 = false; (pi as f64) < pageLength } {
+                    while { if !__for_first_1419 { pi += 1; } __for_first_1419 = false; pi < pageLength } {
                     allRawEvents.push(page.get(pi as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
@@ -1717,11 +1717,11 @@ impl Polymarket {
                         m.insert("markets".to_string(), rawMarkets);
                     m
                 })).as_array().cloned().unwrap_or_default();
-                let mut ccxtMarketsLength: f64 = ((ccxtMarkets.len() as i64) as f64);
+                let mut ccxtMarketsLength: i64 = ccxtMarkets.len() as i64;
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_1423: bool = true;
-                    while { if !__for_first_1423 { i += 1; } __for_first_1423 = false; (i as f64) < ccxtMarketsLength } {
+                    while { if !__for_first_1423 { i += 1; } __for_first_1423 = false; i < ccxtMarketsLength } {
                     let mut mkt: Value = ccxtMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
                     if (mkt == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOutcome() could not resolve mkt")));
@@ -1975,11 +1975,11 @@ impl Polymarket {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut lastTradesLength: f64 = ((lastTrades.len() as i64) as f64);
+            let mut lastTradesLength: i64 = lastTrades.len() as i64;
             {
                                 let mut li: i64 = 0;
                 let mut __for_first_1431: bool = true;
-                while { if !__for_first_1431 { li += 1; } __for_first_1431 = false; (li as f64) < lastTradesLength } {
+                while { if !__for_first_1431 { li += 1; } __for_first_1431 = false; li < lastTradesLength } {
                 let mut lastTradeEntry: crate::value::Dict = lastTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(li as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut lastTradeTokenId: Option<String> = self.safe_string_k(&lastTradeEntry, "token_id", &[]).as_str().map(str::to_owned);
                 if (lastTradeTokenId.is_some()) {
@@ -1987,11 +1987,11 @@ impl Polymarket {
                 }
             }
             }
-            let mut booksLength: f64 = ((books.len() as i64) as f64);
+            let mut booksLength: i64 = books.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1432: bool = true;
-                while { if !__for_first_1432 { i += 1; } __for_first_1432 = false; (i as f64) < booksLength } {
+                while { if !__for_first_1432 { i += 1; } __for_first_1432 = false; i < booksLength } {
                 let mut book: crate::value::Dict = books.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut tokenId: Option<String> = self.safe_string_k_opt(&book, "asset_id", &[]);
                 if (tokenId.is_none()) || !(matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesByTokenId.contains_key(__k.as_ref()))) {
@@ -4225,12 +4225,12 @@ impl Polymarket {
         // prefer the human-readable label ("Fed Rates") over the slug — matching is
         // normalized (normalizeTagKey), so the display form is free to be the friendly one
         let mut rawTags: crate::value::List = self.safe_list_k(rawEvent.clone(), "tags", &[Value::from(vec![])]).into_list();
-        let mut rawTagsLength: f64 = ((rawTags.len() as i64) as f64);
+        let mut rawTagsLength: i64 = rawTags.len() as i64;
         let mut parsedTags: Vec<Value> = Vec::new();
         {
                         let mut ti: i64 = 0;
             let mut __for_first_1447: bool = true;
-            while { if !__for_first_1447 { ti += 1; } __for_first_1447 = false; (ti as f64) < rawTagsLength } {
+            while { if !__for_first_1447 { ti += 1; } __for_first_1447 = false; ti < rawTagsLength } {
             let mut tagLabel: Option<String> = self.safe_string2(rawTags.get(ti as usize).cloned().unwrap_or(Value::Null), Value::Str("label".into()), Value::Str("slug".into()), &[]).as_str().map(str::to_owned);
             if (tagLabel.is_some()) {
                 parsedTags.push(tagLabel.map(Value::from).unwrap_or(Value::Null));

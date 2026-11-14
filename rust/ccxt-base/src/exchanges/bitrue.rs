@@ -3642,7 +3642,7 @@ impl Bitrue {
         //   }
         //
         let mut chainDetails: crate::value::List = self.safe_list_k(fee.clone(), "chainDetail", &[Value::from(vec![])]).into_list();
-        let mut chainDetailLength: f64 = ((chainDetails.len() as i64) as f64);
+        let mut chainDetailLength: i64 = chainDetails.len() as i64;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3664,11 +3664,11 @@ impl Bitrue {
 }));
             m
         });
-        if (chainDetailLength != 0.0) {
+        if (chainDetailLength != 0) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_416: bool = true;
-                while { if !__for_first_416 { i += 1; } __for_first_416 = false; (i as f64) < chainDetailLength } {
+                while { if !__for_first_416 { i += 1; } __for_first_416 = false; i < chainDetailLength } {
                 let mut chainDetail: crate::value::Dict = self.safe_dict(&chainDetails, Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&chainDetail, "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
@@ -3691,7 +3691,7 @@ impl Bitrue {
     m
 }));
                 }
-                if (chainDetailLength == 1.0) {
+                if (chainDetailLength == 1) {
                     result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(&chainDetail, "withdrawFee", &[]));
@@ -4099,7 +4099,7 @@ impl Bitrue {
                     }));
                 }
             }  else {
-                let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
+                let mut timestamp: String = format!("{}", self.nonce());
                 let mut signPrefix: String = "".to_string();
                 if (type_var.as_deref() == Some("fapi")) {
                     signPrefix = "/fapi".to_string();
@@ -4116,7 +4116,7 @@ impl Bitrue {
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-CH-APIKEY".to_string(), self.apiKey.clone());
                             m.insert("X-CH-SIGN".to_string(), Value::from(signature));
-                            m.insert("X-CH-TS".to_string(), timestamp.clone());
+                            m.insert("X-CH-TS".to_string(), Value::from(timestamp.as_str()));
                         m
                     }));
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
@@ -4134,7 +4134,7 @@ impl Bitrue {
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                             m.insert("X-CH-APIKEY".to_string(), self.apiKey.clone());
                             m.insert("X-CH-SIGN".to_string(), Value::from(signature));
-                            m.insert("X-CH-TS".to_string(), timestamp);
+                            m.insert("X-CH-TS".to_string(), Value::from(timestamp));
                         m
                     }));
                 }

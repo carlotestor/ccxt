@@ -4229,11 +4229,11 @@ impl Kucoin {
             m
         });
         let mut chains: crate::value::List = self.safe_list2(entry.clone(), Value::Str("chains".into()), Value::Str("items".into()), &[Value::from(vec![])]).into_list();
-        let mut chainsLength: f64 = ((chains.len() as i64) as f64);
+        let mut chainsLength: i64 = chains.len() as i64;
         {
                         let mut j: i64 = 0;
             let mut __for_first_889: bool = true;
-            while { if !__for_first_889 { j += 1; } __for_first_889 = false; (j as f64) < chainsLength } {
+            while { if !__for_first_889 { j += 1; } __for_first_889 = false; j < chainsLength } {
             let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
             let mut chainId: Option<String> = self.safe_string_k(&chain, "chainId", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
@@ -4273,7 +4273,7 @@ impl Kucoin {
         // kucoin has determined 'fiat' currencies with below logic
         let mut rawPrecision: Option<String> = self.safe_string_k(entry.clone(), "precision", &[]).as_str().map(str::to_owned);
         let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[rawPrecision.map(Value::from).unwrap_or(Value::Null)]), &[]).as_f64();
-        let mut isFiat: bool = chainsLength == 0.0;
+        let mut isFiat: bool = chainsLength == 0;
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -15928,12 +15928,12 @@ if _try_result.is_err() {
         let mut isEarn: bool = apiName.as_deref() == Some("earn");
         if isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut timestamp: String = format!("{}", self.nonce());
             let mut headersSigned: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("KC-API-KEY-VERSION".to_string(), Value::Str("2".into()));
                     m.insert("KC-API-KEY".to_string(), self.apiKey.clone());
-                    m.insert("KC-API-TIMESTAMP".to_string(), timestamp.clone());
+                    m.insert("KC-API-TIMESTAMP".to_string(), Value::from(timestamp.as_str()));
                 m
             }), &[headersBase]);
             let mut apiKeyVersion: Option<String> = self.safe_string_k(headersSigned.clone(), "KC-API-KEY-VERSION", &[]).as_str().map(str::to_owned);

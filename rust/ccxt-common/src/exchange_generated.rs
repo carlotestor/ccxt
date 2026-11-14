@@ -2691,12 +2691,12 @@ pub trait ExchangeBase:
     m
 })]).into_dict();
         let mut keys: Vec<Value> = Value::Array(networks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-        let mut length: f64 = ((keys.len() as i64) as f64);
-        if (length != 0.0) {
+        let mut length: i64 = keys.len() as i64;
+        if (length != 0) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_85: bool = true;
-                while { if !__for_first_85 { i += 1; } __for_first_85 = false; (i as f64) < length } {
+                while { if !__for_first_85 { i += 1; } __for_first_85 = false; i < length } {
                 let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut network: crate::value::Dict = self.safe_dict(&networks, key.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3336,18 +3336,18 @@ pub trait ExchangeBase:
             if (reducedFees == Value::Null) {
                 reducedFees = Value::from(vec![]);
             }
-            let mut reducedLength: f64 = ((reducedFees.len() as i64) as f64);
+            let mut reducedLength: i64 = reducedFees.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_95: bool = true;
-                while { if !__for_first_95 { i += 1; } __for_first_95 = false; (i as f64) < reducedLength } {
+                while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < reducedLength } {
                 { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("cost".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("cost".into()), __be_tmp); };
                 if (in_op(&reducedFees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &Value::Str("rate".into()))) {
                     { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("rate".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("rate".into()), __be_tmp); };
                 }
             }
             }
-            if !(parseFee) && (reducedLength == 0.0) {
+            if !(parseFee) && (reducedLength == 0) {
                 // copy fee to avoid modification by reference
                 let mut feeCopy: Value = self.deep_extend(fee, &[]);
                 { let __be_tmp = self.safe_number_k(feeCopy.clone(), "cost", &[]); add_element_to_object(&mut feeCopy, &Value::Str("cost".into()), __be_tmp); };
@@ -3357,7 +3357,7 @@ pub trait ExchangeBase:
                 append_to_array(&mut reducedFees, feeCopy);
             }
             add_element_to_object(&mut orderDict, &Value::Str("fees".into()), reducedFees.clone());
-            if parseFee && (reducedLength == 1.0) {
+            if parseFee && (reducedLength == 1) {
                 add_element_to_object(&mut orderDict, &Value::Str("fee".into()), reducedFees.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             }
         }
@@ -3743,18 +3743,18 @@ pub trait ExchangeBase:
             if (reducedFees == Value::Null) {
                 reducedFees = Value::from(vec![]);
             }
-            let mut reducedLength: f64 = ((reducedFees.len() as i64) as f64);
+            let mut reducedLength: i64 = reducedFees.len() as i64;
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_99: bool = true;
-                while { if !__for_first_99 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_99 = false; i.as_f64().unwrap_or(f64::NAN) < reducedLength } {
+                while { if !__for_first_99 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_99 = false; i.as_f64().unwrap_or(f64::NAN) < (reducedLength as f64) } {
                 { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &i)); add_element_to_object(&mut reducedFees, &i, __be_tmp); };
             }
             }
             fees = reducedFees.clone();
-            if (reducedLength == 1.0) {
+            if (reducedLength == 1) {
                 fee = reducedFees.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            }  else if (reducedLength == 0.0) {
+            }  else if (reducedLength == 0) {
                 fee = Value::Null;
             }
         }
@@ -3787,19 +3787,18 @@ pub trait ExchangeBase:
 
     fn find_nearest_ceiling(&self, mut arr: Value, mut providedValue: Value) -> Value {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-        let mut length: Value = Value::Int(arr.len() as i64);
+        let mut length: i64 = arr.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_100: bool = true;
-            while { if !__for_first_100 { i += 1; } __for_first_100 = false; (i as f64) < length.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < length } {
             let mut current: Value = arr.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if providedValue.as_f64().unwrap_or(f64::NAN) <= current.as_f64().unwrap_or(f64::NAN) {
                 return current;
             }
         }
         }
-        return arr.as_array().and_then(|__arr| match &((match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null);
+        return arr.as_array().and_then(|__arr| match &(Value::Int((length - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -9026,8 +9025,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {object} A deposit withdraw fee structure
          */
         let mut networkKeys: Vec<Value> = object_keys(&fee.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
-        let mut numNetworks: f64 = ((networkKeys.len() as i64) as f64);
-        if (numNetworks == 1.0) {
+        let mut numNetworks: i64 = networkKeys.len() as i64;
+        if (numNetworks == 1) {
             { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(0).cloned().unwrap_or(Value::Null)), "withdraw"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("withdraw".into(), __be_tmp); } }
             { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(0).cloned().unwrap_or(Value::Null)), "deposit"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("deposit".into(), __be_tmp); } }
             return fee;
@@ -9036,7 +9035,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: i64 = 0;
             let mut __for_first_158: bool = true;
-            while { if !__for_first_158 { i += 1; } __for_first_158 = false; (i as f64) < numNetworks } {
+            while { if !__for_first_158 { i += 1; } __for_first_158 = false; i < numNetworks } {
             let mut network: Option<String> = networkKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (network == currencyCode) {
                 { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(i as usize).cloned().unwrap_or(Value::Null)), "withdraw"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("withdraw".into(), __be_tmp); } }

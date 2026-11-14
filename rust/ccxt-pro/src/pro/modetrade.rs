@@ -1497,11 +1497,11 @@ impl Modetrade {
         if dataIsArray {
             // algoexecutionreport
             let mut dataList: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-            let mut dataListLength: f64 = ((dataList.len() as i64) as f64);
+            let mut dataListLength: i64 = dataList.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_495: bool = true;
-                while { if !__for_first_495 { i += 1; } __for_first_495 = false; (i as f64) < dataListLength } {
+                while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < dataListLength } {
                 let mut order: crate::value::Dict = dataList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut tradeIdStr: Option<String> = self.safe_string_k_opt(data.clone(), "tradeId", &[]);
                 let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });

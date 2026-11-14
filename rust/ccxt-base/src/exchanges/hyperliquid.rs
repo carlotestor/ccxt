@@ -1040,11 +1040,11 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut dexesCount: Value = get_array_length(&fetchDexes);
+        let mut dexesCount: i64 = get_array_length(&fetchDexes).as_i64().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(1);
             let mut __for_first_799: bool = true;
-            while { if !__for_first_799 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_799 = false; i.as_f64().unwrap_or(f64::NAN) < dexesCount.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_799 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_799 = false; i.as_f64().unwrap_or(f64::NAN) < (dexesCount as f64) } {
             // builder-deployed perp dexs start at 110000
             let mut dex: crate::value::Dict = self.safe_dict(fetchDexes.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3497,11 +3497,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut defaultSlippage: Option<String> = self.safe_string_k(self.options.clone(), "defaultSlippage", &[]).as_str().map(str::to_owned);
         defaultSlippage = self.safe_string_k(params.clone(), "slippage", &[defaultSlippage.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut hasClientOrderId: bool = false;
-        let mut ordersLength: f64 = ((orders.len() as i64) as f64);
+        let mut ordersLength: i64 = orders.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_811: bool = true;
-            while { if !__for_first_811 { i += 1; } __for_first_811 = false; (i as f64) < ordersLength } {
+            while { if !__for_first_811 { i += 1; } __for_first_811 = false; i < ordersLength } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3517,7 +3517,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_812: bool = true;
-                while { if !__for_first_812 { i += 1; } __for_first_812 = false; (i as f64) < ordersLength } {
+                while { if !__for_first_812 { i += 1; } __for_first_812 = false; i < ordersLength } {
                 let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
                 let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3537,7 +3537,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: i64 = 0;
             let mut __for_first_813: bool = true;
-            while { if !__for_first_813 { i += 1; } __for_first_813 = false; (i as f64) < ordersLength } {
+            while { if !__for_first_813 { i += 1; } __for_first_813 = false; i < ordersLength } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4089,11 +4089,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         self.check_required_credentials(&[]);
         let mut hasClientOrderId: bool = false;
-        let mut ordersLength: f64 = ((orders.len() as i64) as f64);
+        let mut ordersLength: i64 = orders.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_818: bool = true;
-            while { if !__for_first_818 { i += 1; } __for_first_818 = false; (i as f64) < ordersLength } {
+            while { if !__for_first_818 { i += 1; } __for_first_818 = false; i < ordersLength } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4109,7 +4109,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_819: bool = true;
-                while { if !__for_first_819 { i += 1; } __for_first_819 = false; (i as f64) < ordersLength } {
+                while { if !__for_first_819 { i += 1; } __for_first_819 = false; i < ordersLength } {
                 let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
                 let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -4127,7 +4127,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: i64 = 0;
             let mut __for_first_820: bool = true;
-            while { if !__for_first_820 { i += 1; } __for_first_820 = false; (i as f64) < ordersLength } {
+            while { if !__for_first_820 { i += 1; } __for_first_820 = false; i < ordersLength } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut id: Option<String> = self.safe_string_k(&rawOrder, "id", &[]).as_str().map(str::to_owned);
             let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
@@ -5472,8 +5472,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbols == Value::Null) {
             return None;
         }
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             return None;
         }
         // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
@@ -5483,7 +5483,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: i64 = 1;
             let mut __for_first_825: bool = true;
-            while { if !__for_first_825 { i += 1; } __for_first_825 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_825 { i += 1; } __for_first_825 = false; i < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut currentDexName: Option<String> = self.get_dex_from_hip3_symbol(Some(&market));
             if ((currentDexName.as_deref() != dexName.as_str())) {

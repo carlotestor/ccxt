@@ -895,19 +895,19 @@ impl Mudrex {
             }  else {
                 items = self.to_array(data);
             }
-            let mut numItems: f64 = ((items.len() as i64) as f64);
-            if (numItems == 0.0) {
+            let mut numItems: i64 = items.len() as i64;
+            if (numItems == 0) {
                 paging = false;
                 break;
             }
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_970: bool = true;
-                while { if !__for_first_970 { i += 1; } __for_first_970 = false; (i as f64) < numItems } {
+                while { if !__for_first_970 { i += 1; } __for_first_970 = false; i < numItems } {
                 aggregated.push(items.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            if numItems < (pageLimit as f64) {
+            if numItems < pageLimit {
                 paging = false;
             }  else {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684

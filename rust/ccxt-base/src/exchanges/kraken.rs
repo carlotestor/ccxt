@@ -3497,14 +3497,14 @@ impl Kraken {
     m
 })]).into_dict();
         let mut batchSize: i64 = self.safe_integer_k(&options, "batchSize", &[Value::Int(20)]).as_i64().unwrap_or(20);
-        let mut numTradeIds: f64 = ((tradeIds.len() as i64) as f64);
+        let mut numTradeIds: i64 = tradeIds.len() as i64;
         // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
         let mut batches: Vec<Value> = Vec::new();
         let mut batch: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_855: bool = true;
-            while { if !__for_first_855 { i += 1; } __for_first_855 = false; (i as f64) < numTradeIds } {
+            while { if !__for_first_855 { i += 1; } __for_first_855 = false; i < numTradeIds } {
             if let Value::Arr(__a) = &mut batch { std::sync::Arc::make_mut(__a).push(tradeIds.get(i as usize).cloned().unwrap_or(Value::Null)); }
             if ((batch.len() as i64) as f64) >= (batchSize as f64) {
                 batches.push(batch.clone());
@@ -5181,12 +5181,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut message: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
                 let mut errors: Option<crate::value::List> = self.safe_list_k(response.clone(), "error", &[]).into_opt_list();
                 if (errors.is_some()) {
-                    let mut numErrors: f64 = ((errors.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-                    if numErrors > ((0i64) as f64) {
+                    let mut numErrors: i64 = errors.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+                    if numErrors > 0 {
                         {
                                                         let mut i: i64 = 0;
                             let mut __for_first_864: bool = true;
-                            while { if !__for_first_864 { i += 1; } __for_first_864 = false; (i as f64) < numErrors } {
+                            while { if !__for_first_864 { i += 1; } __for_first_864 = false; i < numErrors } {
                             let mut error: Value = errors.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), Value::from(message.clone()));
                             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error, Value::from(message.clone()));

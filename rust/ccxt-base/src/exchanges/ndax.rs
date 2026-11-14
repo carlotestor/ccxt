@@ -3476,13 +3476,13 @@ impl Ndax {
             let mut sessionToken: Option<String> = self.safe_string_k(self.options.clone(), "sessionToken", &[]).as_str().map(str::to_owned);
             let mut isPost: bool = method.as_str() == Some("POST");
             if (sessionToken.is_none()) {
-                let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+                let mut nonce: String = format!("{}", self.nonce());
                 let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone());
                 let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                 if isPost {
                     headersSigned = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("Nonce".to_string(), nonce.clone());
+                            m.insert("Nonce".to_string(), Value::from(nonce.as_str()));
                             m.insert("APIKey".to_string(), self.apiKey.clone());
                             m.insert("Signature".to_string(), Value::from(signature.clone()));
                             m.insert("UserId".to_string(), self.uid.clone());
@@ -3492,7 +3492,7 @@ impl Ndax {
                 }  else {
                     headersSigned = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("Nonce".to_string(), nonce);
+                            m.insert("Nonce".to_string(), Value::from(nonce));
                             m.insert("APIKey".to_string(), self.apiKey.clone());
                             m.insert("Signature".to_string(), Value::from(signature));
                             m.insert("UserId".to_string(), self.uid.clone());

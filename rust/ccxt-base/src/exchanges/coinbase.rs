@@ -5527,8 +5527,8 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             sinceString = Value::from(self.number_to_string(Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))));
         }  else {
-            let mut now: Value = Value::Str(format!("{}", Value::Int(self.seconds())).into());
-            sinceString = crate::precise::Precise::stringSub(&now, &Value::Str(format!("{}", requestedDuration).into()));
+            let mut now: String = format!("{}", self.seconds());
+            sinceString = crate::precise::Precise::stringSub(&Value::from(now), &Value::Str(format!("{}", requestedDuration).into()));
         }
         request.insert("start".into(), sinceString.clone());
         // 300 candles max

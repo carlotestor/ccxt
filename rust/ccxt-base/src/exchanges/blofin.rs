@@ -5232,13 +5232,13 @@ impl Blofin {
             }
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+            let mut timestamp: String = format!("{}", self.milliseconds());
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-PASSPHRASE".to_string(), self.password.clone());
-                    m.insert("ACCESS-TIMESTAMP".to_string(), timestamp.clone());
-                    m.insert("ACCESS-NONCE".to_string(), timestamp.clone());
+                    m.insert("ACCESS-TIMESTAMP".to_string(), Value::from(timestamp.as_str()));
+                    m.insert("ACCESS-NONCE".to_string(), Value::from(timestamp.as_str()));
                 m
             });
             let mut sign_body: Option<String> = Some("".to_string());

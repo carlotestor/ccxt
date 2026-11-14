@@ -2741,11 +2741,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (topic.as_deref() == Some("account")) {
                 let mut accountData: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
                 let mut details: crate::value::List = self.safe_list_k(&accountData, "details", &[Value::from(vec![])]).into_list();
-                let mut detailsLength: f64 = ((details.len() as i64) as f64);
+                let mut detailsLength: i64 = details.len() as i64;
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_391: bool = true;
-                    while { if !__for_first_391 { i += 1; } __for_first_391 = false; (i as f64) < detailsLength } {
+                    while { if !__for_first_391 { i += 1; } __for_first_391 = false; i < detailsLength } {
                     let mut detail: crate::value::Dict = self.safe_dict(&details, Value::Int(i), &[]).into_dict();
                     let mut currencyId: Option<String> = self.safe_string_k(&detail, "currency", &[]).as_str().map(str::to_owned);
                     let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
