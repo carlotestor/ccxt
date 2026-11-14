@@ -2731,4 +2731,26 @@ mod self_write_read_parity_tests {
         boxed_write(&mut boxed, &k, again);
         assert_eq!(Value::Dict(Arc::new(typed)), boxed);
     }
+
+    // ral-xf: `let e = m.get(k..)..; <push on e>; if let Some(__k) = k.as_str() { m.insert(__k.to_string(), e) }` (the
+    // write-back of a typed literal map) against the runtime read + `set_value` write-back, for a present list, a missing
+    // key, a wrong-kind value and Null / Int keys.
+    #[test]
+    fn typed_write_back_matches_runtime_set_value() {
+        use crate::value::set_value as boxed_write_back;
+        let keys = [Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("n".into()), Value::Null, Value::Int(1)];
+        for k in keys {
+            let mut typed = literal();
+            typed.insert("BTC".to_string(), Value::from(vec![Value::Int(1)]));
+            let mut boxed = Value::Dict(Arc::new(literal()));
+            boxed_write(&mut boxed, &Value::Str("BTC".into()), Value::from(vec![Value::Int(1)]));
+            let mut e = typed.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut e { Arc::make_mut(__a).push(Value::Int(2)); }
+            if let Some(__k) = k.as_str() { typed.insert(__k.to_string(), e); }
+            let mut b = boxed_read(&boxed, &k);
+            if let Value::Arr(__a) = &mut b { Arc::make_mut(__a).push(Value::Int(2)); }
+            boxed_write_back(&mut boxed, &k, b);
+            assert_eq!(Value::Dict(Arc::new(typed)), boxed);
+        }
+    }
 }
