@@ -1926,17 +1926,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("period_interval".to_string(), Value::from(periodMin));
             m
         });
-        let mut now: Value = Value::Int(self.seconds());
+        let mut now: i64 = self.seconds();
         let mut tf: i64 = self.parse_timeframe(timeframe.clone());
         if (since != Value::Null) {
             let mut sinceS: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("start_ts".into(), Value::from(sinceS));
             if (limit != Value::Null) {
-                let mut end: Value = self.sum(&[Value::from(sinceS), (match (&(limit), &(Value::from(tf))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-                request.insert("end_ts".into(), (if (end.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN)) { end } else { now.clone() }));
+                let mut end: Option<i64> = (if let (Some(__m0), Some(__m1)) = (sinceS, ((if let Some(__l) = limit.as_i64() { Some(__l * tf) } else { None }))) { Some((__m0 + __m1)) } else { None });
+                request.insert("end_ts".into(), (if ((end.is_some() && end < Some(now))) { Value::from(end) } else { Value::from(now) }));
             }  else {
                 // the candlesticks endpoint requires end_ts - default to now
-                request.insert("end_ts".into(), now.clone());
+                request.insert("end_ts".into(), Value::from(now));
             }
         }  else {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "defaultFetchOHLCVLimit", &[Value::Int(200)]).as_i64().unwrap_or(200);
@@ -1944,9 +1944,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (limit != Value::Null) {
                 candlesCount = limit.as_i64();
             }
-            request.insert("end_ts".into(), now.clone());
-            request.insert("start_ts".into(), (match (&(now), &((Value::from((if let Some(__l) = candlesCount { Some(__l * tf) } else { None }))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("end_ts".into(), Value::from(now));
+            request.insert("start_ts".into(), Value::from((if let Some(__r) = ((if let Some(__l) = candlesCount { Some(__l * tf) } else { None })) { Some(now - __r) } else { None })));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&[__ws_arg_5]).await.into_dict();

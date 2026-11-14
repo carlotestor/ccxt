@@ -2585,18 +2585,16 @@ impl Deribit {
         let mut defaultLimit: i64 = 1000;
         let mut windowLimit: i64 = limit.as_i64().unwrap_or(defaultLimit);
         let mut limitResolved: Option<i64> = (if ((since == Value::Null) && (limit == Value::Null)) { Some(defaultLimit) } else { limit.as_i64() });
-        let mut sinceResolved: Value = (if (since == Value::Null) { Value::Null } else { crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)) });
+        let mut sinceResolved: Option<i64> = (if (since == Value::Null) { None } else { (if let Some(__m0) = ((if let Some(__l) = since.as_i64() { Some(__l - 1) } else { None })) { Some(i64::max(__m0, 0)) } else { None }) });
         if (since == Value::Null) {
             request.insert("start_timestamp".into(), Value::Int((now - ((((((windowLimit - 1)) * duration)) * 1000)))));
             request.insert("end_timestamp".into(), Value::from(now));
         }  else {
-            request.insert("start_timestamp".into(), sinceResolved.clone());
+            request.insert("start_timestamp".into(), Value::from(sinceResolved));
             if (limit == Value::Null) {
                 request.insert("end_timestamp".into(), Value::from(now));
             }  else {
-                request.insert("end_timestamp".into(), self.sum(&[sinceResolved.clone(), (match (&((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                request.insert("end_timestamp".into(), Value::from((if let (Some(__m0), Some(__m1)) = (sinceResolved, ((if let Some(__l) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some(__l * 1000) } else { None }))) { Some((__m0 + __m1)) } else { None })));
             }
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
@@ -2630,7 +2628,7 @@ impl Deribit {
             m
         })]).into_dict();
         let mut ohlcvs: Value = self.convert_trading_view_to_ohlcv(&result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
-        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, sinceResolved, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, Value::from(sinceResolved), Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -4888,7 +4886,7 @@ impl Deribit {
         let mut sinceResolved: i64 = since.as_i64().unwrap_or(defaultSince);
         let mut time: Option<i64> = Some(now);
         if (since != Value::Null) {
-            time = self.parse_to_int((match (&(since), &(Value::from(month))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+            time = self.parse_to_int(Value::from((if let Some(__l) = since.as_i64() { Some(__l + month) } else { None })));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4912,8 +4910,7 @@ impl Deribit {
             if (limit == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() requires a limit argument")));
             }
-            let mut maxUntil: Option<i64> = self.parse_to_int(self.sum(&[Value::from(sinceResolved), (match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            let mut maxUntil: Option<i64> = self.parse_to_int(Value::from((if let Some(__m1) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some((sinceResolved + __m1)) } else { None })));
             request.insert("end_timestamp".into(), (if ((endTimestamp.is_some() && maxUntil.is_some() && endTimestamp < maxUntil)) { Value::from(endTimestamp) } else { Value::from(maxUntil) }));
         }
         let __ws_arg_41 = self.extend(Value::Map(request), &[paramsOmitted]);

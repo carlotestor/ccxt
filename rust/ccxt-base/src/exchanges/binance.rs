@@ -9207,9 +9207,9 @@ impl Binance {
             if ((market).inverse == Some(true)) {
                 if since.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                     let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-                    let mut endTime: Value = Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = limitValue { Some(__l * duration) } else { None })) { Some(__l * 1000) } else { None })) { Some(__l - 1) } else { None }))) { Some((__m0 + __m1)) } else { None }));
-                    let mut now: Value = Value::Int(self.milliseconds());
-                    request.insert("endTime".into(), crate::runtime::Math::min(&now, &endTime));
+                    let mut endTime: Option<i64> = (if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = limitValue { Some(__l * duration) } else { None })) { Some(__l * 1000) } else { None })) { Some(__l - 1) } else { None }))) { Some((__m0 + __m1)) } else { None });
+                    let mut now: i64 = self.milliseconds();
+                    request.insert("endTime".into(), Value::from((if let Some(__m1) = endTime { Some(i64::min(now, __m1)) } else { None })));
                 }
             }
         }
@@ -13324,13 +13324,13 @@ impl Binance {
             // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
             // The time between startTime and endTime cannot be longer than 7 days.
             // The parameter fromId cannot be sent with startTime or endTime.
-            let mut currentTimestamp: Value = Value::Int(self.milliseconds());
+            let mut currentTimestamp: i64 = self.milliseconds();
             let mut oneWeek: Value = Value::Int(604800000); // 7 * 24 * 60 * 60 * 1000
-            if ((match (&(currentTimestamp), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) >= oneWeek.as_f64().unwrap_or(f64::NAN) {
+            if (Value::from((if let Some(__r) = since.as_i64() { Some(currentTimestamp - __r) } else { None }))).as_f64().unwrap_or(f64::NAN) >= oneWeek.as_f64().unwrap_or(f64::NAN) {
                 if (endTime == Value::Null) && matches!((self.safe_bool_k(&market, "linear", &[Value::Bool(false)])), Value::Bool(true)) {
                     endTime = self.sum(&[Value::from(startTime), oneWeek.clone()]);
                     let mut endTimeValue: Value = (if (endTime == Value::Null) { Value::Int(0) } else { endTime.clone() });
-                    endTime = crate::runtime::Math::min(&endTimeValue, &currentTimestamp);
+                    endTime = crate::runtime::Math::min(&endTimeValue, &Value::from(currentTimestamp));
                 }
             }
         }
@@ -13796,7 +13796,7 @@ impl Binance {
 })]).into_dict();
         let mut fiatOnly: bool = self.safe_bool_k(&paramsPaginate, "fiat", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("fiatOnly".into()), &[]).into_dict();
-        let mut until: Value = self.safe_integer_k(&paramsOmitted, "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64();
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
         if fiatOnly || ((code != Value::Null) && (matches!(&code, Value::Str(__k) if legalMoney.contains_key(__k.as_ref())))) {
             if (code != Value::Null) {
@@ -13806,8 +13806,8 @@ impl Binance {
             if (since != Value::Null) {
                 request.insert("beginTime".into(), since.clone());
             }
-            if (until != Value::Null) {
-                request.insert("endTime".into(), until.clone());
+            if (until.is_some()) {
+                request.insert("endTime".into(), Value::from(until));
             }
             let __ws_arg_140 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
             let mut raw: crate::value::Dict = self.sapi_get_fiat_orders(&[__ws_arg_140]).await.into_dict();
@@ -13820,11 +13820,11 @@ impl Binance {
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                let mut endTime: Value = self.sum(&[since.clone(), Value::Int(7776000000)]);
-                if (until != Value::Null) {
-                    endTime = crate::runtime::Math::min(&endTime, &until);
+                let mut endTime: Option<i64> = (if let Some(__m0) = since.as_i64() { Some((__m0 + 7776000000)) } else { None });
+                if (until.is_some()) {
+                    endTime = (if let (Some(__m0), Some(__m1)) = (endTime, until) { Some(i64::min(__m0, __m1)) } else { None });
                 }
-                request.insert("endTime".into(), endTime);
+                request.insert("endTime".into(), Value::from(endTime));
             }
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());

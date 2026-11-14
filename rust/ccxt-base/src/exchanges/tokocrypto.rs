@@ -3076,7 +3076,7 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         if (code != Value::Null) {
             currency = Some(self.currency(code));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3084,11 +3084,11 @@ impl Tokocrypto {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            let mut endTime: Value = self.sum(&[since.clone(), Value::Int(7776000000)]);
-            if (until != Value::Null) {
-                endTime = crate::runtime::Math::min(&endTime, &until);
+            let mut endTime: Option<i64> = (if let Some(__m0) = since.as_i64() { Some((__m0 + 7776000000)) } else { None });
+            if (until.is_some()) {
+                endTime = (if let (Some(__m0), Some(__m1)) = (endTime, until) { Some(i64::min(__m0, __m1)) } else { None });
             }
-            request.insert("endTime".into(), endTime);
+            request.insert("endTime".into(), Value::from(endTime));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());

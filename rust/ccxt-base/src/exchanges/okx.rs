@@ -5347,9 +5347,8 @@ impl Okx {
                 // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 defaultType = Some("HistoryCandles".to_string());
             }
-            let mut startTime: Value = (if (since.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64)) { ((match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { Value::Int(0) });
-            request.insert("before".into(), startTime);
+            let mut startTime: Option<i64> = (if (since.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64)) { (if let Some(__l) = since.as_i64() { Some(__l - 1) } else { None }) } else { Some(0) });
+            request.insert("before".into(), Value::from(startTime));
             request.insert("after".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__r) = limitResolved { Some(durationInMilliseconds * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })));
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPrice, "until", &[]).as_i64();

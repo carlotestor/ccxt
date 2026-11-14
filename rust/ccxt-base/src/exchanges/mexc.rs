@@ -3175,8 +3175,7 @@ impl Mexc {
             }
             if omitUntil && (until.is_some()) {
                 if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
-                    request.insert("startTime".into(), (match (&(Value::from(until)), &(((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                        Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                    request.insert("startTime".into(), Value::from((if let (Some(__l), Some(__r)) = (until, ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None }))) { Some(__l - __r) } else { None })));
                 }  else {
                     let mut spotWindow: i64 = (500 * duration); // maxLimit is 500 for spot
                     request.insert("startTime".into(), Value::from((if let Some(__l) = until { Some(__l - spotWindow) } else { None })));
@@ -3213,9 +3212,7 @@ impl Mexc {
                 request.insert("end".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
                 if (since == Value::Null) {
                     if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
-                        request.insert("start".into(), Value::from(self.parse_to_int((match ((((match (&(Value::from(until)), &(((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                            (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                            _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+                        request.insert("start".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = ((if let (Some(__l), Some(__r)) = (until, ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None }))) { Some(__l - __r) } else { None })) { Some((__l as f64) / 1000.0) } else { None })))));
                     }  else {
                         let mut swapWindow: i64 = (2000 * duration); // maxLimit is 2000 for swap
                         request.insert("start".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = until { Some(__l - swapWindow) } else { None })) { Some((__l as f64) / 1000.0) } else { None })))));
@@ -4313,16 +4310,15 @@ impl Mexc {
         }  else {
             if (since != Value::Null) {
                 request.insert("start_time".into(), since.clone());
-                let mut maxTimeTillEnd: Value = self.safe_integer_k(self.options.clone(), "maxTimeTillEnd", &[]);
-                if (maxTimeTillEnd == Value::Null) {
+                let mut maxTimeTillEnd: Option<i64> = self.safe_integer_k(self.options.clone(), "maxTimeTillEnd", &[]).as_i64();
+                if (maxTimeTillEnd.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOrders() requires a numeric options[\"maxTimeTillEnd\"]")));
                 }
                 let mut end: Option<i64> = self.safe_integer_k(&paramsOmitted, "end_time", &[Value::from(until)]).as_i64();
                 if (end.is_none()) {
-                    request.insert("end_time".into(), self.sum(&[since.clone(), maxTimeTillEnd.clone()]));
+                    request.insert("end_time".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), maxTimeTillEnd) { Some((__m0 + __m1)) } else { None })));
                 }  else {
-                    if (maxTimeTillEnd != Value::Null) && (((match (&(Value::from(end)), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                        _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > maxTimeTillEnd.as_f64().unwrap_or(f64::NAN)) {
+                    if (maxTimeTillEnd.is_some()) && (matches!((((if let (Some(__l), Some(__r)) = (end, since.as_i64()) { Some(__l - __r) } else { None })), maxTimeTillEnd), (Some(__l), Some(__r)) if (__l as f64) > (__r as f64))) {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " end is invalid, i.e. exceeds allowed 90 days.")));
                     }  else {
                         request.insert("end_time".into(), Value::from(until));

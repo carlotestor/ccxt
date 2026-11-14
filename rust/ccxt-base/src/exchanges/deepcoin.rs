@@ -1360,8 +1360,7 @@ impl Deepcoin {
                 // we calculate until (after) for correct pagination
                 let mut duration: i64 = self.parse_timeframe(timeframe.clone());
                 let mut numberOfCandles: i64 = limit.as_i64().unwrap_or(maxLimit);
-                let mut endTime: Option<i64> = self.parse_to_int((match (&(since), &(Value::Int((((duration * numberOfCandles)) * 1000)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                let mut endTime: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = since.as_i64() { Some(__l + ((((duration * numberOfCandles)) * 1000))) } else { None })));
                 if (until.is_some()) {
                     endTime = (if let (Some(__m0), Some(__m1)) = (endTime, until) { Some(i64::min(__m0, __m1)) } else { None });
                 }

@@ -5735,7 +5735,7 @@ impl Bybit {
                 if (limit == Value::Null) {
                     request.insert("endTime".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__r) = fundingInterval { Some(200 * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })));
                 }  else {
-                    request.insert("endTime".into(), self.sum(&[since.clone(), (match (&(limit), &(Value::from(fundingInterval))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                    request.insert("endTime".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let (Some(__l), Some(__r)) = (limit.as_i64(), fundingInterval) { Some(__l * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })));
                 }
             }
         }

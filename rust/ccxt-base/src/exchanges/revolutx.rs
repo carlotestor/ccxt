@@ -2032,8 +2032,7 @@ impl Revolutx {
         }  else if (since != Value::Null) {
             let mut now: i64 = self.milliseconds();
             let mut thirtyDaysAgo: i64 = (now - thirtyDays);
-            request.insert("end_date".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(thirtyDaysAgo))) { (match (&(since), &(Value::from(thirtyDays))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::from(now) }));
+            request.insert("end_date".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(thirtyDaysAgo))) { Value::from((if let Some(__l) = since.as_i64() { Some(__l + thirtyDays) } else { None })) } else { Value::from(now) }));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -2208,8 +2207,7 @@ impl Revolutx {
         }  else if (since != Value::Null) {
             let mut now: i64 = self.milliseconds();
             let mut thirtyDaysAgo: i64 = (now - thirtyDays);
-            request.insert("end_date".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(thirtyDaysAgo))) { (match (&(since), &(Value::from(thirtyDays))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::from(now) }));
+            request.insert("end_date".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(thirtyDaysAgo))) { Value::from((if let Some(__l) = since.as_i64() { Some(__l + thirtyDays) } else { None })) } else { Value::from(now) }));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit);

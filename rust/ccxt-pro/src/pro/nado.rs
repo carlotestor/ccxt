@@ -2020,11 +2020,11 @@ impl Nado {
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut id: i64 = self.request_id();
         let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
-        let mut expiration: Value = Value::from((if let Some(__m1) = recvWindow { Some(((self.milliseconds()) + __m1)) } else { None }));
+        let mut expiration: Option<i64> = (if let Some(__m1) = recvWindow { Some(((self.milliseconds()) + __m1)) } else { None });
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
-                m.insert("expiration".to_string(), Value::from(self.number_to_string(expiration)));
+                m.insert("expiration".to_string(), Value::from(self.number_to_string(Value::from(expiration))));
             m
         });
         let mut contracts: crate::value::Dict = self.parent.query_contracts(&[]).await.into_dict();

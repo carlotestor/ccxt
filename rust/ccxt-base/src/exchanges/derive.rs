@@ -2478,9 +2478,8 @@ impl Derive {
         }
         if (limit != Value::Null) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            let mut pageSize: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > ((500i64) as f64)) { Value::Int(1000) } else { (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) }); // default 100, max 1000
-            request.insert("page_size".into(), pageSize);
+            let mut pageSize: Option<i64> = (if (limit.as_f64().unwrap_or(f64::NAN) > ((500i64) as f64)) { Some(1000) } else { (if let Some(__l) = limit.as_i64() { Some(__l * 2) } else { None }) }); // default 100, max 1000
+            request.insert("page_size".into(), Value::from(pageSize));
         }
         if (since != Value::Null) {
             request.insert("from_timestamp".into(), since.clone());

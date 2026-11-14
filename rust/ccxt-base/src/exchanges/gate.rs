@@ -6029,9 +6029,9 @@ if _try_result.is_err() {
         let mut maxLimit: i64 = (if (market).contract { 1999 } else { 1000 });
         let mut limitValue: Option<i64> = (if (limit == Value::Null) { Some(maxLimit) } else { (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None }) });
         let mut untilMs: Option<i64> = self.safe_integer_k(&paramsRequest, "until", &[]).as_i64();
-        let mut until: Value = Value::Null;
+        let mut until: Option<i64> = None;
         if (untilMs.is_some()) {
-            until = Value::from(self.parse_to_int(Value::from((if let Some(__l) = untilMs { Some((__l as f64) / 1000.0) } else { None }))));
+            until = self.parse_to_int(Value::from((if let Some(__l) = untilMs { Some((__l as f64) / 1000.0) } else { None })));
         }
         let mut paramsOmitted: Value = self.omit(&paramsRequest, Value::Str("until".into()), &[]);
         if (since != Value::Null) {
@@ -6039,17 +6039,17 @@ if _try_result.is_err() {
             let mut fromTimestamp: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             std::sync::Arc::make_mut(&mut request).insert("from".into(), Value::from(fromTimestamp));
             let mut distance: Option<i64> = (if let Some(__l) = ((if let Some(__l) = limitValue { Some(__l - 1) } else { None })) { Some(__l * duration) } else { None });
-            let mut toTimestamp: Value = Value::from((if let (Some(__m0), Some(__m1)) = (fromTimestamp, distance) { Some((__m0 + __m1)) } else { None }));
-            let mut currentTimestamp: Value = Value::Int(self.seconds());
-            let mut to: Value = crate::runtime::Math::min(&toTimestamp, &currentTimestamp);
-            if (until != Value::Null) {
-                std::sync::Arc::make_mut(&mut request).insert("to".into(), crate::runtime::Math::min(&to, &until));
+            let mut toTimestamp: Option<i64> = (if let (Some(__m0), Some(__m1)) = (fromTimestamp, distance) { Some((__m0 + __m1)) } else { None });
+            let mut currentTimestamp: i64 = self.seconds();
+            let mut to: Option<i64> = (if let Some(__m0) = toTimestamp { Some(i64::min(__m0, currentTimestamp)) } else { None });
+            if (until.is_some()) {
+                std::sync::Arc::make_mut(&mut request).insert("to".into(), Value::from((if let (Some(__m0), Some(__m1)) = (to, until) { Some(i64::min(__m0, __m1)) } else { None })));
             }  else {
-                std::sync::Arc::make_mut(&mut request).insert("to".into(), to);
+                std::sync::Arc::make_mut(&mut request).insert("to".into(), Value::from(to));
             }
         }  else {
-            if (until != Value::Null) {
-                std::sync::Arc::make_mut(&mut request).insert("to".into(), until);
+            if (until.is_some()) {
+                std::sync::Arc::make_mut(&mut request).insert("to".into(), Value::from(until));
             }
             std::sync::Arc::make_mut(&mut request).insert("limit".into(), Value::from(limitValue));
         }
