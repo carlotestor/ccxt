@@ -1485,17 +1485,17 @@ impl Coinsph {
             m
         });
         if (symbols != Value::Null) {
-            let mut ids: Vec<Value> = vec![];
+            let mut ids: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_577: bool = true;
                 while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (symbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut id: Option<String> = (market).id.as_deref().map(str::to_owned);
-                ids.push(id.map(Value::from).unwrap_or(Value::Null));
+                std::sync::Arc::make_mut(&mut ids).push(id.map(Value::from).unwrap_or(Value::Null));
             }
             }
-            request.insert("symbols".into(), Value::Array(ids));
+            request.insert("symbols".into(), Value::Arr(ids));
         }
         let mut defaultMethod: String = "publicGetOpenapiQuoteV1Ticker24hr".to_string();
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchTickers", &[Value::Map({

@@ -3570,7 +3570,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut requestType: Vec<Value> = vec![];
+        let mut requestType: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut requestParams: Value = Value::from(&paramsMarketType);
         if (marketType.as_deref() == Some("spot")) {
             let isMarginparamsIsMarginVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("cancelAllOrders".into()), Value::Str("isMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -3578,16 +3578,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut paramsIsMargin: crate::value::Dict = isMarginparamsIsMarginVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             requestParams = Value::Dict(paramsIsMargin);
             if isMargin {
-                requestType.push(Value::Str("margin".into()));
+                std::sync::Arc::make_mut(&mut requestType).push(Value::Str("margin".into()));
             }  else {
-                requestType.push(Value::Str("spot".into()));
+                std::sync::Arc::make_mut(&mut requestType).push(Value::Str("spot".into()));
             }
         }  else if (marketType.as_deref() == Some("swap")) {
-            requestType.push(Value::Str("futures".into()));
+            std::sync::Arc::make_mut(&mut requestType).push(Value::Str("futures".into()));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cancelAllOrders() does not support ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " type")));
         }
-        request.insert("type".into(), Value::Array(requestType));
+        request.insert("type".into(), Value::Arr(requestType));
         let __ws_arg_18 = self.extend(Value::Map(request), &[requestParams]);
         let mut response: crate::value::List = self.v4_private_post_order_cancel_all(&[__ws_arg_18]).await.into_list();
         return self.parse_orders(&response, market.as_ref(), &[]);

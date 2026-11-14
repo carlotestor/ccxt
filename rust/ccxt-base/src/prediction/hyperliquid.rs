@@ -2080,7 +2080,7 @@ impl Hyperliquid {
         let mut nonce: i64 = self.incrementing_nonce();
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "client_id"], &[]).into_dict();
-        let mut cancelReq: Vec<Value> = vec![];
+        let mut cancelReq: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut cancelAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("cancel".into()));
@@ -2094,7 +2094,7 @@ impl Hyperliquid {
                                 let mut i: i64 = 0;
                 let mut __for_first_1247: bool = true;
                 while { if !__for_first_1247 { i += 1; } __for_first_1247 = false; i < (cloids.len() as i64) } {
-                cancelReq.push(Value::Map({
+                std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), Value::from(assetId));
                         m.insert("cloid".to_string(), cloids.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
@@ -2108,7 +2108,7 @@ impl Hyperliquid {
                                 let mut i: i64 = 0;
                 let mut __for_first_1248: bool = true;
                 while { if !__for_first_1248 { i += 1; } __for_first_1248 = false; i < (ids.len() as i64) } {
-                cancelReq.push(Value::Map({
+                std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("a".to_string(), Value::from(assetId));
                         m.insert("o".to_string(), self.parse_to_numeric(ids.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)));
@@ -2117,7 +2117,7 @@ impl Hyperliquid {
             }
             }
         }
-        cancelAction.insert("cancels".into(), Value::Array(cancelReq));
+        cancelAction.insert("cancels".into(), Value::Arr(cancelReq));
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(&paramsOmitted, Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
         let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref());

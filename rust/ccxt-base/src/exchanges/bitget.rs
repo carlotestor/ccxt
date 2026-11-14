@@ -5918,14 +5918,14 @@ if _try_result.is_err() {
             })]).await);
         }
         let mut results: Value = promise_all(&Value::from(promises)).await;
-        let mut spotInstruments: Value = Value::Map({
+        let mut spotInstruments: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if fetchMargins {
             let mut instrumentsResponse: crate::value::Dict = self.safe_dict(results.clone(), Value::from(spotInstrumentsIndex), &[]).into_dict();
             let mut instruments: crate::value::List = self.safe_list_k(&instrumentsResponse, "data", &[Value::from(vec![])]).into_list();
-            spotInstruments = self.index_by(Value::Arr(instruments), Value::Str("symbol".into()));
+            spotInstruments = self.index_by(Value::Arr(instruments), Value::Str("symbol".into())).into_dict();
         }
         let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), Value::from(vec![])); }
@@ -6052,7 +6052,7 @@ if _try_result.is_err() {
             let mut parsedMarket: Value = self.parse_market(&market);
             if (parsedMarket != Value::Null) && matches!(parsedMarket.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null), Value::Bool(true)) {
                 let mut marketId: Option<String> = crate::value::KeyRead::key_read(&&parsedMarket, "id").as_str().map(str::to_owned);
-                let mut instrument: Option<crate::value::Dict> = self.safe_dict(spotInstruments.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+                let mut instrument: Option<crate::value::Dict> = self.safe_dict(&spotInstruments, marketId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
                 if (instrument.is_some()) {
                     // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
                     let mut assetType: Option<String> = self.safe_string_lower_k(&instrument, "symbolType", &[]).as_str().map(str::to_owned);
@@ -11093,7 +11093,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " cancelOrder() does not support trigger or trailing orders for tokenized stock markets")));
         }
         if isContractTriggerEndpoint {
-            let mut orderIdList: Vec<Value> = vec![];
+            let mut orderIdList: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut orderId: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -11104,8 +11104,8 @@ if _try_result.is_err() {
             }  else {
                 orderId.insert("orderId".into(), id.clone());
             }
-            orderIdList.push(Value::Map(orderId));
-            request.insert("orderIdList".into(), Value::Array(orderIdList));
+            std::sync::Arc::make_mut(&mut orderIdList).push(Value::Map(orderId));
+            request.insert("orderIdList".into(), Value::Arr(orderIdList));
         }  else {
             if (clientOrderId.is_some()) {
                 paramsMarginMode = self.omit(&paramsMarginMode, Value::Str("clientOrderId".into()), &[]).into_dict();
@@ -11773,10 +11773,10 @@ if _try_result.is_err() {
         }
         let mut market: Option<crate::types::Market> = None;
         let mut type_var: Option<String> = None;
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         let mut marginMode: Option<String> = None;
         let mut paramsMarginMode: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[params]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -11784,7 +11784,7 @@ if _try_result.is_err() {
         { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(&paramsMarginMode, Some("fetchOpenOrders"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id")); }
+            std::sync::Arc::make_mut(&mut request).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchOpenOrders".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
             let mut marketType: Option<String> = Some(defaultType);
             let mut marketTypeValue: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
@@ -11821,19 +11821,19 @@ if _try_result.is_err() {
         let mut planTypeValue: Option<String> = self.safe_string_k(&paramsMarginMode, "planType", &[]).as_str().map(str::to_owned);
         let mut planTypeDefined: bool = planTypeValue.is_some();
         let mut isTrigger: bool = (trigger == Some(true)) || planTypeDefined;
-        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), request.clone(), &paramsMarginMode, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Dict(request), &paramsMarginMode, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut request).insert("startTime".into(), since.clone());
         }
         let mut sinceDefault: Option<i64> = None;
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut request).insert("limit".into(), limit.clone());
         }
         if (uta != Some(true)) && ((type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) || (marginMode.is_some())) {
             let mut clientOrderId: Option<String> = self.safe_string2(Value::from(&paramsMarginMode), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
             paramsMarginMode = self.omit(&paramsMarginMode, Value::Str("clientOrderId".into()), &[]).into_dict();
             if (clientOrderId.is_some()) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut request).insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
         }
         let mut productType: Option<String> = None;
@@ -11847,47 +11847,47 @@ if _try_result.is_err() {
                     productType = Some("SPOT".to_string());
                 }
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut request).insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
             if (trigger == Some(true)) {
-                let __ws_arg_79 = self.extend(request.clone(), &[&paramsMarginMode]);
+                let __ws_arg_79 = self.extend(&request, &[&paramsMarginMode]);
                 response = self.private_uta_get_v3_trade_unfilled_strategy_orders(&[__ws_arg_79]).await.into_opt_dict();
             }  else {
-                let __ws_arg_80 = self.extend(request.clone(), &[&paramsMarginMode]);
+                let __ws_arg_80 = self.extend(&request, &[&paramsMarginMode]);
                 response = self.private_uta_get_v3_trade_unfilled_orders(&[__ws_arg_80]).await.into_opt_dict();
             }
         }  else if (type_var.as_deref() == Some("spot")) {
             if (marginMode.is_some()) {
                 if (since == Value::Null) {
                     sinceDefault = Some(((self.milliseconds()) - 7776000000));
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), Value::from(sinceDefault)); }
+                    std::sync::Arc::make_mut(&mut request).insert("startTime".into(), Value::from(sinceDefault));
                 }
                 if (marginMode.as_deref() == Some("isolated")) {
-                    let __ws_arg_81 = self.extend(request.clone(), &[&paramsMarginMode]);
+                    let __ws_arg_81 = self.extend(&request, &[&paramsMarginMode]);
                     response = self.private_margin_get_v2_margin_isolated_open_orders(&[__ws_arg_81]).await.into_opt_dict();
                 }  else if (marginMode.as_deref() == Some("cross")) {
-                    let __ws_arg_82 = self.extend(request.clone(), &[&paramsMarginMode]);
+                    let __ws_arg_82 = self.extend(&request, &[&paramsMarginMode]);
                     response = self.private_margin_get_v2_margin_crossed_open_orders(&[__ws_arg_82]).await.into_opt_dict();
                 }
             }  else {
                 if (trigger == Some(true)) {
-                    let __ws_arg_83 = self.extend(request.clone(), &[&paramsMarginMode]);
+                    let __ws_arg_83 = self.extend(&request, &[&paramsMarginMode]);
                     response = self.private_spot_get_v2_spot_trade_current_plan_order(&[__ws_arg_83]).await.into_opt_dict();
                 }  else {
-                    let __ws_arg_84 = self.extend(request.clone(), &[&paramsMarginMode]);
+                    let __ws_arg_84 = self.extend(&request, &[&paramsMarginMode]);
                     response = self.private_spot_get_v2_spot_trade_unfilled_orders(&[__ws_arg_84]).await.into_opt_dict();
                 }
             }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut request).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             if trailing {
                 let mut planType: String = self.safe_string_k(&paramsMarginMode, "planType", &[Value::Str("track_plan".into())]).as_str().unwrap_or("track_plan").to_string();
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::from(planType)); }
-                let __ws_arg_85 = self.extend(request.clone(), &[&paramsMarginMode]);
+                std::sync::Arc::make_mut(&mut request).insert("planType".into(), Value::from(planType));
+                let __ws_arg_85 = self.extend(&request, &[&paramsMarginMode]);
                 response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_85]).await.into_opt_dict();
             }  else if isTrigger {
                 let mut planType: String = self.safe_string_k(&paramsMarginMode, "planType", &[Value::Str("normal_plan".into())]).as_str().unwrap_or("normal_plan").to_string();
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::from(planType)); }
-                let __ws_arg_86 = self.extend(request.clone(), &[&paramsMarginMode]);
+                std::sync::Arc::make_mut(&mut request).insert("planType".into(), Value::from(planType));
+                let __ws_arg_86 = self.extend(&request, &[&paramsMarginMode]);
                 response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_86]).await.into_opt_dict();
             }  else {
                 let __ws_arg_87 = self.extend(request, &[&paramsMarginMode]);
@@ -12308,13 +12308,13 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id")); }
+            std::sync::Arc::make_mut(&mut request).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut marketType: Option<String> = None;
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchCanceledAndClosedOrders".into()), market.as_ref(), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -12337,19 +12337,19 @@ if _try_result.is_err() {
         let mut trailing: bool = self.safe_bool_k(&paramsUTA, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsUTA), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         paramsUTA = self.omit(&paramsUTA, &["stop", "trigger", "trailing"], &[]).into_dict();
-        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), request.clone(), &paramsUTA, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Dict(request), &paramsUTA, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut request).insert("startTime".into(), since.clone());
         }
         let mut sinceDefault: Option<i64> = None;
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut request).insert("limit".into(), limit.clone());
         }
         if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) || (marginMode.is_some()) {
             let mut clientOrderId: Option<String> = self.safe_string2(Value::from(&paramsUTA), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
             paramsUTA = self.omit(&paramsUTA, Value::Str("clientOrderId".into()), &[]).into_dict();
             if (clientOrderId.is_some()) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut request).insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
         }
         let mut now: i64 = self.milliseconds();
@@ -12357,13 +12357,13 @@ if _try_result.is_err() {
             if (marginMode.is_some()) {
                 if (since == Value::Null) {
                     sinceDefault = Some((now - 7776000000));
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), Value::from(sinceDefault)); }
+                    std::sync::Arc::make_mut(&mut request).insert("startTime".into(), Value::from(sinceDefault));
                 }
                 if (marginMode.as_deref() == Some("isolated")) {
-                    let __ws_arg_88 = self.extend(request.clone(), &[&paramsUTA]);
+                    let __ws_arg_88 = self.extend(&request, &[&paramsUTA]);
                     response = self.private_margin_get_v2_margin_isolated_history_orders(&[__ws_arg_88]).await;
                 }  else if (marginMode.as_deref() == Some("cross")) {
-                    let __ws_arg_89 = self.extend(request.clone(), &[&paramsUTA]);
+                    let __ws_arg_89 = self.extend(&request, &[&paramsUTA]);
                     response = self.private_margin_get_v2_margin_crossed_history_orders(&[__ws_arg_89]).await;
                 }
             }  else if (trigger == Some(true)) {
@@ -12374,32 +12374,32 @@ if _try_result.is_err() {
                 paramsUTA = self.omit(&paramsUTA, &["until"], &[]).into_dict();
                 if (since == Value::Null) {
                     sinceDefault = Some((now - 7776000000));
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), Value::from(sinceDefault)); }
+                    std::sync::Arc::make_mut(&mut request).insert("startTime".into(), Value::from(sinceDefault));
                 }
                 if (endTime.is_none()) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), Value::from(now)); }
+                    std::sync::Arc::make_mut(&mut request).insert("endTime".into(), Value::from(now));
                 }
-                let __ws_arg_90 = self.extend(request.clone(), &[&paramsUTA]);
+                let __ws_arg_90 = self.extend(&request, &[&paramsUTA]);
                 response = self.private_spot_get_v2_spot_trade_history_plan_order(&[__ws_arg_90]).await;
             }  else {
-                let __ws_arg_91 = self.extend(request.clone(), &[&paramsUTA]);
+                let __ws_arg_91 = self.extend(&request, &[&paramsUTA]);
                 response = self.private_spot_get_v2_spot_trade_history_orders(&[__ws_arg_91]).await;
             }
         }  else {
             let mut productType: Option<String> = None;
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(market.as_ref(), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut request).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let mut planTypeValue: Option<String> = self.safe_string_k(&paramsUTA, "planType", &[]).as_str().map(str::to_owned);
             let mut planTypeDefined: bool = planTypeValue.is_some();
             if trailing {
                 let mut planType: String = self.safe_string_k(&paramsUTA, "planType", &[Value::Str("track_plan".into())]).as_str().unwrap_or("track_plan").to_string();
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::from(planType)); }
-                let __ws_arg_92 = self.extend(request.clone(), &[&paramsUTA]);
+                std::sync::Arc::make_mut(&mut request).insert("planType".into(), Value::from(planType));
+                let __ws_arg_92 = self.extend(&request, &[&paramsUTA]);
                 response = self.private_mix_get_v2_mix_order_orders_plan_history(&[__ws_arg_92]).await;
             }  else if (trigger == Some(true)) || planTypeDefined {
                 let mut planType: String = self.safe_string_k(&paramsUTA, "planType", &[Value::Str("normal_plan".into())]).as_str().unwrap_or("normal_plan").to_string();
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::from(planType)); }
-                let __ws_arg_93 = self.extend(request.clone(), &[&paramsUTA]);
+                std::sync::Arc::make_mut(&mut request).insert("planType".into(), Value::from(planType));
+                let __ws_arg_93 = self.extend(&request, &[&paramsUTA]);
                 response = self.private_mix_get_v2_mix_order_orders_plan_history(&[__ws_arg_93]).await;
             }  else {
                 let __ws_arg_94 = self.extend(request, &[&paramsUTA]);
@@ -12838,44 +12838,44 @@ if _try_result.is_err() {
             return self.fetch_paginated_call_cursor(Value::Str("fetchLedger".into()), &[code.clone(), since.clone(), limit.clone(), paramsOmitted.clone(), cursorReceived.map(Value::from).unwrap_or(Value::Null), Value::Str("idLessThan".into())]).await;
         }
         let mut currency: Option<crate::types::Currency> = None;
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (code != Value::Null) {
             currency = Some(self.currency(code));
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id")); }
+            std::sync::Arc::make_mut(&mut request).insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), request.clone(), paramsOmitted.clone(), &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Dict(request), paramsOmitted.clone(), &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut request).insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut request).insert("limit".into(), limit.clone());
         }
         let mut response: Option<crate::value::Dict> = None;
         if (uta == Some(true)) {
             if (marketType.as_deref() == Some("funding")) {
-                let __ws_arg_97 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+                let __ws_arg_97 = self.extend(&request, &[paramsOmitted.clone()]);
                 response = self.private_uta_get_v3_account_funding_financial_records(&[__ws_arg_97]).await.into_opt_dict();
             }  else {
                 let mut marginMode: Option<String> = None;
                 { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLedger".into()), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
                 if (marketType.as_deref() == Some("spot")) {
                     if (marginMode.is_some()) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("MARGIN".into())); }
+                        std::sync::Arc::make_mut(&mut request).insert("category".into(), Value::Str("MARGIN".into()));
                     }  else {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("SPOT".into())); }
+                        std::sync::Arc::make_mut(&mut request).insert("category".into(), Value::Str("SPOT".into()));
                     }
                 }  else {
                     let mut utaProductType: Option<String> = None;
                     { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(market.as_ref(), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); utaProductType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), utaProductType.map(Value::from).unwrap_or(Value::Null)); }
+                    std::sync::Arc::make_mut(&mut request).insert("category".into(), utaProductType.map(Value::from).unwrap_or(Value::Null));
                 }
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(&market, "id", &[])); }
+                    std::sync::Arc::make_mut(&mut request).insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
                 }
-                let __ws_arg_98 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+                let __ws_arg_98 = self.extend(&request, &[paramsOmitted.clone()]);
                 response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_98]).await.into_opt_dict();
             }
             let mut utaData: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
@@ -12886,15 +12886,15 @@ if _try_result.is_err() {
             return self.parse_ledger(&list, currency.as_ref(), &[since.clone(), limit.clone()]);
         }
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_99 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+            let __ws_arg_99 = self.extend(&request, &[paramsOmitted.clone()]);
             response = self.private_spot_get_v2_spot_account_bills(&[__ws_arg_99]).await.into_opt_dict();
         }  else {
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(&market, "id", &[])); }
+                std::sync::Arc::make_mut(&mut request).insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
             let mut productType: Option<String> = None;
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(market.as_ref(), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut request).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_100 = self.extend(request, &[paramsOmitted]);
             response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_100]).await.into_opt_dict();
         }

@@ -3703,23 +3703,23 @@ impl Bingx {
         //         ]
         //     }
         //
-        let mut result: Value = Value::Map({
+        let mut result: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if ((market).inverse == Some(true)) {
             let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
             result = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }  else {
             result = self.safe_dict_k(&response, "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_dict();
         }
-        return self.parse_open_interest(result, Some(&market));
+        return self.parse_open_interest(&result, Some(&market));
         Value::Null
         }).await?))
     }

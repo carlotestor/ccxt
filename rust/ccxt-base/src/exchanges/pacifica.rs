@@ -2859,13 +2859,13 @@ if _try_result.is_err() {
             while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = self.safe_string(ids.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut request: Value = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), symbol.as_str(), &[params.clone()]);
-            let mut action: Value = Value::Map({
+            let mut action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Cancel".into()));
                     m.insert("data".to_string(), request);
                 m
             });
-            actions.push(action.clone());
+            actions.push(Value::Map(action));
         }
         }
         let mut clientOrderIds: crate::value::List = self.safe_list_k(params.clone(), "clientOrderIds", &[Value::from(vec![])]).into_list();
@@ -2882,13 +2882,13 @@ if _try_result.is_err() {
             });
             let __ws_arg_14 = self.extend(Value::Map(cloidParams), &[&paramsOmitted]);
             let mut request: Value = self.cancel_order_request(cloid, symbol.as_str(), &[__ws_arg_14]);
-            let mut action: Value = Value::Map({
+            let mut action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Cancel".into()));
                     m.insert("data".to_string(), request);
                 m
             });
-            actions.push(action);
+            actions.push(Value::Map(action));
         }
         }
         return self.batch_orders_request(Value::from(actions));

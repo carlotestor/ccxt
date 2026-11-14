@@ -3875,7 +3875,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let mut cancelReq: Vec<Value> = vec![];
+        let mut cancelReq: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut cancelAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("".into()));
@@ -3892,7 +3892,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_815: bool = true;
                 while { if !__for_first_815 { i += 1; } __for_first_815 = false; (i as f64) < Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                cancelReq.push(Value::Map({
+                std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), baseId.clone());
                         m.insert("cloid".to_string(), self.safe_string(clientOrderId.clone(), Value::Int(i), &[]));
@@ -3907,7 +3907,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_816: bool = true;
                 while { if !__for_first_816 { i += 1; } __for_first_816 = false; i < (ids.len() as i64) } {
                 let mut o: Value = self.parse_to_numeric(self.safe_string(ids.clone(), Value::Int(i), &[]));
-                cancelReq.push(Value::Map({
+                std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("a".to_string(), baseId.clone());
                         m.insert("o".to_string(), o);
@@ -3916,7 +3916,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        cancelAction.insert("cancels".into(), Value::Array(cancelReq));
+        cancelAction.insert("cancels".into(), Value::Arr(cancelReq));
         if fast {
             // "f" must be omitted when false, actions hashed with "f": false are rejected
             cancelAction.insert("f".into(), Value::Bool(true));
@@ -3971,7 +3971,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let mut cancelReq: Vec<Value> = vec![];
+        let mut cancelReq: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut cancelAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("".into()));
@@ -4005,11 +4005,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             cancelObj.insert(assetKey, self.parse_to_numeric(Value::from((market).base_id.as_deref())));
             cancelObj.insert(idKey, (if cancelByCloid { clientOrderId.map(Value::from).unwrap_or(Value::Null) } else { self.parse_to_numeric(id.map(Value::from).unwrap_or(Value::Null)) }));
-            cancelReq.push(Value::Map(cancelObj));
+            std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map(cancelObj));
         }
         }
         cancelAction.insert("type".into(), (if cancelByCloid { Value::Str("cancelByCloid".into()) } else { Value::Str("cancel".into()) }));
-        cancelAction.insert("cancels".into(), Value::Array(cancelReq));
+        cancelAction.insert("cancels".into(), Value::Arr(cancelReq));
         let mut fast: bool = self.safe_bool_k(params.clone(), "fast", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if fast {
             // "f" must be omitted when false, actions hashed with "f": false are rejected

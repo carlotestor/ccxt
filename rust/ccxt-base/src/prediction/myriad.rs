@@ -4316,7 +4316,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut ev: crate::value::Dict = self.parse_event(rawQuestion).into_dict();
             let mut evMarkets: crate::value::List = self.safe_list_k(&ev, "markets", &[Value::from(vec![])]).into_list();
             let mut evMarketsLength: i64 = evMarkets.len() as i64;
-            let mut filteredMarkets: Value = Value::from(vec![]);
+            let mut filteredMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1371: bool = true;
@@ -4333,7 +4333,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     seenMarketHandles.insert(marketHandle.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                     if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.as_deref().unwrap_or("null").to_string(), m.clone()); }
                 }
-                if let Value::Arr(__a) = &mut filteredMarkets { std::sync::Arc::make_mut(__a).push(m.clone()); }
+                std::sync::Arc::make_mut(&mut filteredMarkets).push(m);
             }
             }
             // skip question events that contribute no new markets after de-duplicating by market handle
@@ -4341,7 +4341,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (evMarketsLength > 0) && (filteredMarketsLength == 0) {
                 continue;
             }
-            std::sync::Arc::make_mut(&mut ev).insert("markets".into(), filteredMarkets);
+            std::sync::Arc::make_mut(&mut ev).insert("markets".into(), Value::Arr(filteredMarkets));
             result.push(Value::Dict(ev));
         }
         }

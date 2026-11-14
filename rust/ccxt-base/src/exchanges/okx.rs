@@ -11704,11 +11704,8 @@ impl Okx {
             market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut marketType: Option<String> = None;
-        let mut paramsSubType: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOpenInterests".into()), market.as_ref(), &[params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsSubType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOpenInterests".into()), market.as_ref(), &[params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut instType: String = "SWAP".to_string();
         if (marketType.as_deref() == Some("future")) {
             instType = "FUTURES".to_string();
@@ -11720,18 +11717,18 @@ impl Okx {
                 m.insert("instType".to_string(), Value::from(instType.clone()));
             m
         });
-        let mut uly: Option<String> = self.safe_string_k(paramsSubType.clone(), "uly", &[]).as_str().map(str::to_owned);
+        let mut uly: Option<String> = self.safe_string_k(&paramsSubType, "uly", &[]).as_str().map(str::to_owned);
         if (uly.is_some()) {
             request.insert("uly".into(), uly.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut instFamily: Option<String> = self.safe_string_k(paramsSubType.clone(), "instFamily", &[]).as_str().map(str::to_owned);
+        let mut instFamily: Option<String> = self.safe_string_k(&paramsSubType, "instFamily", &[]).as_str().map(str::to_owned);
         if (instFamily.is_some()) {
             request.insert("instFamily".into(), instFamily.clone().map(Value::from).unwrap_or(Value::Null));
         }
         if (instType == "OPTION") && (uly.is_none()) && (instFamily.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")));
         }
-        let __ws_arg_81 = self.extend(Value::Map(request), &[paramsSubType]);
+        let __ws_arg_81 = self.extend(Value::Map(request), &[&paramsSubType]);
         let mut response: crate::value::Dict = self.public_get_public_open_interest(&[__ws_arg_81]).await.into_dict();
         //
         //     {

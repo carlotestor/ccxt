@@ -4178,15 +4178,15 @@ impl Aster {
             request.insert("origClientOrderIdList".into(), clientOrderIdList.map_or(Value::Null, Value::Arr));
         }  else {
             // the api takes LONG[] order ids
-            let mut orderIdList: Vec<Value> = vec![];
+            let mut orderIdList: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_232: bool = true;
                 while { if !__for_first_232 { i += 1; } __for_first_232 = false; i < (ids.len() as i64) } {
-                orderIdList.push(self.parse_to_numeric(ids.get(i as usize).cloned().unwrap_or(Value::Null)));
+                std::sync::Arc::make_mut(&mut orderIdList).push(self.parse_to_numeric(ids.get(i as usize).cloned().unwrap_or(Value::Null)));
             }
             }
-            request.insert("orderIdList".into(), Value::Array(orderIdList));
+            request.insert("orderIdList".into(), Value::Arr(orderIdList));
         }
         let mut response: Option<crate::value::List> = None;
         if (market).swap {

@@ -3100,7 +3100,7 @@ impl Modetrade {
                     m.insert("child_orders".to_string(), Value::from(vec![]));
                 m
             });
-            let mut childOrders: Value = Value::from(vec![]);
+            let mut childOrders: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut closeSide: String = "BUY".to_string();
             if (orderSide.as_deref() == Some("BUY")) {
                 closeSide = "SELL".to_string();
@@ -3116,7 +3116,7 @@ impl Modetrade {
                         m.insert("reduce_only".to_string(), Value::Bool(true));
                     m
                 });
-                if let Value::Arr(__a) = &mut childOrders { std::sync::Arc::make_mut(__a).push(Value::Map(stopLossOrder)); }
+                std::sync::Arc::make_mut(&mut childOrders).push(Value::Map(stopLossOrder));
             }
             if hasTakeProfit {
                 let mut takeProfitPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("price".into()), &[takeProfit]);
@@ -3129,9 +3129,9 @@ impl Modetrade {
                         m.insert("reduce_only".to_string(), Value::Bool(true));
                     m
                 });
-                if let Value::Arr(__a) = &mut childOrders { std::sync::Arc::make_mut(__a).push(Value::Map(takeProfitOrder)); }
+                std::sync::Arc::make_mut(&mut childOrders).push(Value::Map(takeProfitOrder));
             }
-            outterOrder.insert("child_orders".into(), childOrders);
+            outterOrder.insert("child_orders".into(), Value::Arr(childOrders));
             request.insert("child_orders".into(), Value::from(vec![Value::Map(outterOrder)]));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"], &[]).into_dict();
@@ -5085,7 +5085,7 @@ impl Modetrade {
                     let mut brokerId: String = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXTMODE".into())]).as_str().unwrap_or("CCXTMODE").to_string();
                     if (path.as_str() == Some("batch-order")) {
                         let mut ordersList: crate::value::List = self.safe_list_k(paramsSorted.clone(), "orders", &[Value::from(vec![])]).into_list();
-                        let mut taggedOrders: Value = Value::from(vec![]);
+                        let mut taggedOrders: crate::value::List = std::sync::Arc::new(Vec::new());
                         {
                                                         let mut i: i64 = 0;
                             let mut __for_first_968: bool = true;
@@ -5094,14 +5094,14 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                            if let Value::Arr(__a) = &mut taggedOrders { std::sync::Arc::make_mut(__a).push(self.extend(__ws_arg_36, &[Value::Map({
+                            std::sync::Arc::make_mut(&mut taggedOrders).push(self.extend(__ws_arg_36, &[Value::Map({
                                 let mut m = indexmap::IndexMap::new();
                                     m.insert("order_tag".to_string(), Value::from(brokerId.clone()));
                                 m
-                            })])); }
+                            })]));
                         }
                         }
-                        add_element_to_object(&mut paramsSorted, &Value::Str("orders".into()), taggedOrders);
+                        add_element_to_object(&mut paramsSorted, &Value::Str("orders".into()), Value::Arr(taggedOrders));
                     }  else {
                         add_element_to_object(&mut paramsSorted, &Value::Str("order_tag".into()), Value::from(brokerId));
                     }
