@@ -1457,7 +1457,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'fee': fee,
         }, outcomeObjResolved)
 
-    async def fetch_wallet(self, methodName: str, params: dict = {}) -> object:
+    async def fetch_wallet(self, methodName: str, params: dict = {}) -> dict:
         """
         fetch wallet for user and save the one match the walletAddress user provided
 

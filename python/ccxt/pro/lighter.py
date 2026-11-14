@@ -86,7 +86,7 @@ class lighter(ccxt.async_support.lighter):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
-    async def subscribe_public_multiple(self, messageHashes: list[str], params: dict = {}):
+    async def subscribe_public_multiple(self, messageHashes: list[str], params: dict = {}) -> Ticker:
         url = self.urls['api']['ws']
         request = {
             'type': 'subscribe',

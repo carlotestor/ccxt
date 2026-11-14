@@ -3650,7 +3650,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, orderType, orderType)
 
-    async def fetch_account_helper(self, type: Str, params: dict):
+    async def fetch_account_helper(self, type: Str, params: dict) -> dict:
         if type == 'spot':
             return await self.spotPrivateGetAccount(params)
             #

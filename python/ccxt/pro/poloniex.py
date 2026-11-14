@@ -206,7 +206,7 @@ class poloniex(ccxt.async_support.poloniex):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
-    async def trade_request(self, name: str, params: dict = {}):
+    async def trade_request(self, name: str, params: dict = {}) -> list[Order]:
         """
  @ignore
         Connects to a websocket channel

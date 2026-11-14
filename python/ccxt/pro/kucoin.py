@@ -711,7 +711,7 @@ class kucoin(ccxt.async_support.kucoin):
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 
-    async def watch_multi_helper(self, methodName: str, channelName: str, isFuturesChannel: bool, symbols: Strings = None, params: dict = {}):
+    async def watch_multi_helper(self, methodName: str, channelName: str, isFuturesChannel: bool, symbols: Strings = None, params: dict = {}) -> Ticker:
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False, True, False)

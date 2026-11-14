@@ -96,7 +96,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_public_multiple(self, methodName: str, channelName: str, symbols: list[str], params: dict = {}):
+    async def watch_public_multiple(self, methodName: str, channelName: str, symbols: list[str], params: dict = {}) -> list[Ticker]:
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
