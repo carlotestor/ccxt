@@ -1877,7 +1877,7 @@ impl Deribit {
                 while { if !__for_first_620 { k += 1; } __for_first_620 = false; k < (instrumentsResult.len() as i64) } {
                 let mut market: crate::value::Dict = instrumentsResult.get(k as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut kind: Option<String> = self.safe_string_k(&market, "kind", &[]).as_str().map(str::to_owned);
-                let mut isSpot: Value = (Value::Bool(kind.as_deref() == Some("spot")));
+                let mut isSpot: bool = kind.as_deref() == Some("spot");
                 let mut id: Option<String> = self.safe_string_k(&market, "instrument_name", &[]).as_str().map(str::to_owned);
                 let mut baseId: Option<String> = self.safe_string_k(&market, "base_currency", &[]).as_str().map(str::to_owned);
                 let mut quoteId: Option<String> = self.safe_string_k(&market, "counter_currency", &[]).as_str().map(str::to_owned);
@@ -1911,12 +1911,12 @@ impl Deribit {
                     type_var = "future".to_string();
                 }  else if option {
                     type_var = "option".to_string();
-                }  else if matches!(&isSpot, Value::Bool(true)) {
+                }  else if isSpot {
                     type_var = "spot".to_string();
                 }
                 let mut inverse: Option<bool> = None;
                 let mut linear: Option<bool> = None;
-                if matches!(&isSpot, Value::Bool(true)) {
+                if isSpot {
                     symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
                 }  else if !isComboMarket {
                     symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")));
@@ -1952,13 +1952,13 @@ impl Deribit {
                         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("type".to_string(), Value::from(type_var));
-                        m.insert("spot".to_string(), isSpot.clone());
+                        m.insert("spot".to_string(), Value::Bool(isSpot));
                         m.insert("margin".to_string(), Value::Bool(false));
                         m.insert("swap".to_string(), Value::Bool(swap));
                         m.insert("future".to_string(), future);
                         m.insert("option".to_string(), Value::Bool(option));
                         m.insert("active".to_string(), self.safe_bool_k(&market, "is_active", &[]));
-                        m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
+                        m.insert("contract".to_string(), Value::Bool(!isSpot));
                         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
                         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                         m.insert("taker".to_string(), self.safe_number_k(&market, "taker_commission", &[]));

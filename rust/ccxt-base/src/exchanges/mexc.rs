@@ -2688,8 +2688,8 @@ impl Mexc {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("0"))));
                     m.insert("contract".to_string(), Value::Bool(true));
-                    m.insert("linear".to_string(), Value::Bool(isLinear.clone()));
-                    m.insert("inverse".to_string(), Value::Bool(!(isLinear)));
+                    m.insert("linear".to_string(), Value::Bool(isLinear));
+                    m.insert("inverse".to_string(), Value::Bool(!isLinear));
                     m.insert("taker".to_string(), self.safe_number_k(&market, "takerFeeRate", &[]));
                     m.insert("maker".to_string(), self.safe_number_k(&market, "makerFeeRate", &[]));
                     m.insert("contractSize".to_string(), self.safe_number_k(&market, "contractSize", &[]));

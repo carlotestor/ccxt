@@ -1747,13 +1747,13 @@ impl Weex {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) }));
-        m.insert("spot".to_string(), Value::Bool(isSpot.clone()));
+        m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(!(isSpot)));
+        m.insert("swap".to_string(), Value::Bool(!isSpot));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("contract".to_string(), Value::Bool(!(isSpot)));
+        m.insert("contract".to_string(), Value::Bool(!isSpot));
         m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), isInverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));

@@ -4849,7 +4849,7 @@ impl Bybit {
             let mut strike: String = self.safe_string(&splitId, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut optionLetter: String = self.safe_string(&splitId, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut isActive: bool = status.as_deref() == Some("Trading");
-            let mut isInverse: Value = Value::Bool(base == settle);
+            let mut isInverse: bool = base == settle;
             let mut loadExpiredOptions: Option<bool> = self.handle_option(Value::Str("fetchMarkets".into()), Value::Str("loadExpiredOptions".into()), &[]).as_bool();
             if isActive || (loadAllOptions == Some(true)) || (loadExpiredOptions == Some(true)) {
                 result.push(self.safe_market_structure(&[Value::Map({
@@ -4872,8 +4872,8 @@ impl Bybit {
         m.insert("option".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(isActive));
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), Value::Bool(!(matches!(&isInverse, Value::Bool(true)))));
-        m.insert("inverse".to_string(), isInverse);
+        m.insert("linear".to_string(), Value::Bool(!isInverse));
+        m.insert("inverse".to_string(), Value::Bool(isInverse));
         m.insert("taker".to_string(), self.safe_number_k(&market, "takerFee", &[self.parse_number(Value::Str("0.0006".into()), &[])]));
         m.insert("maker".to_string(), self.safe_number_k(&market, "makerFee", &[self.parse_number(Value::Str("0.0001".into()), &[])]));
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));

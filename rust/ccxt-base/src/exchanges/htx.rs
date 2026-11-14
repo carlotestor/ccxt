@@ -4040,8 +4040,8 @@ impl Htx {
             let mut lowercaseId: Option<String> = None;
             let mut contract: Value = (Value::Bool(market.contains_key("contract_code")));
             let mut spot: bool = !(matches!(&contract, Value::Bool(true)));
-            let mut swap: Value = Value::Bool(false);
-            let mut future: Value = Value::Bool(false);
+            let mut swap: bool = false;
+            let mut future: bool = false;
             let mut linear: Option<bool> = None;
             let mut inverse: Option<bool> = None;
             // check if parsed market is contract
@@ -4054,11 +4054,11 @@ impl Htx {
                 lowercaseId = contractId.as_deref().map(str::to_lowercase);
                 let mut delivery_date: Option<String> = self.safe_string_k(&market, "delivery_date", &[]).as_str().map(str::to_owned);
                 let mut business_type: Option<String> = self.safe_string_k(&market, "business_type", &[]).as_str().map(str::to_owned);
-                future = Value::Bool(delivery_date.is_some());
-                swap = Value::Bool(!(future.as_bool() == Some(true)));
+                future = (delivery_date.is_some());
+                swap = !(future);
                 linear = Some(business_type.is_some());
                 inverse = Some(!(linear == Some(true)));
-                if swap.as_bool() == Some(true) {
+                if swap {
                     marketType = Some("swap".to_string());
                     let mut parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     baseId = self.safe_string_lower_k(&market, "symbol", &[]).as_str().map(str::to_owned);
@@ -4068,7 +4068,7 @@ impl Htx {
                     }  else {
                         settleId = quoteId.clone();
                     }
-                }  else if future.as_bool() == Some(true) {
+                }  else if future {
                     marketType = Some("future".to_string());
                     baseId = self.safe_string_lower_k(&market, "symbol", &[]).as_str().map(str::to_owned);
                     if (inverse == Some(true)) {
@@ -4114,7 +4114,7 @@ impl Htx {
                 }  else if (linear == Some(true)) {
                     symbol.push_str(&format!("{}{}", ":", quote.as_deref().unwrap_or("null")));
                 }
-                if future.as_bool() == Some(true) {
+                if future {
                     expiry = self.safe_integer_k(&market, "delivery_time", &[]).as_i64();
                     symbol.push_str(&format!("{}{}", Value::Str("-".into()), self.yymmdd(Value::from(expiry), &[])));
                 }
@@ -4193,8 +4193,8 @@ impl Htx {
                     m.insert("type".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("spot".to_string(), Value::Bool(spot.clone()));
                     m.insert("margin".to_string(), Value::Bool((spot && hasLeverage)));
-                    m.insert("swap".to_string(), swap);
-                    m.insert("future".to_string(), future);
+                    m.insert("swap".to_string(), Value::Bool(swap));
+                    m.insert("future".to_string(), Value::Bool(future));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contract".to_string(), contract);

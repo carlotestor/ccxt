@@ -3949,8 +3949,8 @@ if _try_result.is_err() {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), Value::Bool(isLinear.clone()));
-        m.insert("inverse".to_string(), Value::Bool(!(isLinear)));
+        m.insert("linear".to_string(), Value::Bool(isLinear));
+        m.insert("inverse".to_string(), Value::Bool(!isLinear));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0005".into()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0002".into()), &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));

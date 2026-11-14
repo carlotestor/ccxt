@@ -1477,12 +1477,12 @@ impl Paradex {
         //     }
         //
         let mut assetKind: Option<String> = self.safe_string_k(market.clone(), "asset_kind", &[]).as_str().map(str::to_owned);
-        let mut isSpot: Value = (Value::Bool(assetKind.as_deref() == Some("SPOT")));
+        let mut isSpot: bool = assetKind.as_deref() == Some("SPOT");
         let mut isOptionPerpetual: bool = assetKind.as_deref() == Some("PERP_OPTION");
         let mut isOptionDelivery: bool = assetKind.as_deref() == Some("OPTION");
         let mut isOption: bool = (isOptionPerpetual || isOptionDelivery);
         let mut type_var: String = "swap".to_string();
-        if matches!(&isSpot, Value::Bool(true)) {
+        if isSpot {
             type_var = "spot".to_string();
         }  else if isOption {
             type_var = "option".to_string();
@@ -1492,7 +1492,7 @@ impl Paradex {
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote_currency", &[]).as_str().map(str::to_owned);
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_currency", &[]).as_str().map(str::to_owned);
         let mut settleId: Option<String> = self.safe_string_k(market.clone(), "settlement_currency", &[]).as_str().map(str::to_owned);
-        if matches!(&isSpot, Value::Bool(true)) {
+        if isSpot {
             // spot is quoted in "USD" but paid and received in the settlement token (USDC),
             // a spot market has no settle, so the token it trades against is the quote
             quoteId = settleId.clone();
@@ -1505,7 +1505,7 @@ impl Paradex {
         }
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        if !(matches!(&isSpot, Value::Bool(true))) && (settle.is_some()) {
+        if !isSpot && (settle.is_some()) {
             symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), settle.as_deref().unwrap_or("null"));
         }
         let mut expiry: Option<i64> = self.safe_integer_k(market.clone(), "expiry_at", &[]).as_i64();
@@ -1538,18 +1538,18 @@ impl Paradex {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("spot".to_string(), isSpot.clone());
+        m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), Value::Null);
         m.insert("swap".to_string(), Value::Bool(isSwap));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(isOption));
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "enableTrading", &[]));
-        m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
-        m.insert("linear".to_string(), (if (isSpot).as_bool() == Some(true) { Value::Null } else { Value::Bool(true) }));
-        m.insert("inverse".to_string(), (if (isSpot).as_bool() == Some(true) { Value::Null } else { Value::Bool(false) }));
+        m.insert("contract".to_string(), Value::Bool(!isSpot));
+        m.insert("linear".to_string(), (if isSpot { Value::Null } else { Value::Bool(true) }));
+        m.insert("inverse".to_string(), (if isSpot { Value::Null } else { Value::Bool(false) }));
         m.insert("taker".to_string(), Value::from(takerFee));
         m.insert("maker".to_string(), Value::from(makerFee));
-        m.insert("contractSize".to_string(), (if (isSpot).as_bool() == Some(true) { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
+        m.insert("contractSize".to_string(), (if isSpot { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
         m.insert("expiry".to_string(), Value::from(expiry));
         m.insert("expiryDatetime".to_string(), expireDatetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("strike".to_string(), self.parse_number(strikePrice.map(Value::from).unwrap_or(Value::Null), &[]));

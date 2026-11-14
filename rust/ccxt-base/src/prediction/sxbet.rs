@@ -1431,11 +1431,11 @@ impl Sxbet {
         }
         let mut marketHash: String = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut outcomeId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
-        let mut isOutcomeOne: Value = (Value::Bool(outcomeId.as_deref() == Some(marketHash.as_str())));
+        let mut isOutcomeOne: bool = outcomeId.as_deref() == Some(marketHash.as_str());
         let mut isBuy: bool = side.as_str() == Some("buy");
         // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability -
         // matches the normalize-to-one-book convention used by other prediction venues
-        let mut isMakerBettingOutcomeOne: Value = (if (isBuy) { isOutcomeOne.clone() } else { Value::Bool(!(matches!(&isOutcomeOne, Value::Bool(true)))) });
+        let mut isMakerBettingOutcomeOne: Value = (if (isBuy) { Value::Bool(isOutcomeOne) } else { Value::Bool(!isOutcomeOne) });
         let mut priceStr: Option<String> = self.number_to_string(price);
         let mut probability: Option<String> = (if (isBuy) { priceStr.clone() } else { crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr).as_str().map(str::to_owned) });
         let mut obv3: Value = self.load_sx_obv3_metadata().await;

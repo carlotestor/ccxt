@@ -1729,7 +1729,7 @@ impl Poloniex {
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: bool = status.as_deref() == Some("OPEN");
-        let mut linear: bool = self.safe_string_k(market.clone(), "ctType", &[]).as_str() == Some("LINEAR");
+        let mut linear: bool = (self.safe_string_k(market.clone(), "ctType", &[]).as_str() == Some("LINEAR"));
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         if linear {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
@@ -1764,8 +1764,8 @@ impl Poloniex {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), Value::Bool(linear.clone()));
-        m.insert("inverse".to_string(), Value::Bool(!(linear)));
+        m.insert("linear".to_string(), Value::Bool(linear));
+        m.insert("inverse".to_string(), Value::Bool(!linear));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "ctVal", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
