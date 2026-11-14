@@ -7493,15 +7493,6 @@ export class RustTranspilerBuilder {
                     return `${prefix} &[${out}]`;
                 }],
 
-            // Auto-clone simple identifier values in `m.insert(...)` calls
-            // (inside `Value::Map { ... }` builders). The same local is
-            // often inserted under multiple keys; the first insert moves it.
-            //   m.insert("X", marketId); → m.insert("X", marketId.clone());
-            [/(\bm\.insert\([^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
-                (whole: string, prefix: string, ident: string, suffix: string) => {
-                    if (ident === 'self') return whole;
-                    return `${prefix}${ident}.clone()${suffix}`;
-                }],
 
 
 
