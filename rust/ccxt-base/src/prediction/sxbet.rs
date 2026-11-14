@@ -855,8 +855,8 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1498: bool = true;
             while { if !__for_first_1498 { i += 1; } __for_first_1498 = false; i < orderLength } {
-            let mut fixtureId: Value = order.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut event: crate::value::Dict = self.parse_event(fixtureId.as_str().unwrap_or_default(), (if let (Some(__m), Some(__k)) = (grouped.as_map(), fixtureId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })).into_dict();
+            let mut fixtureId: Option<&str> = order.get(i as usize).and_then(Value::as_str);
+            let mut event: crate::value::Dict = self.parse_event(fixtureId.as_deref().unwrap_or_default(), (if let (Some(__m), Some(__k)) = (grouped.as_map(), fixtureId) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })).into_dict();
             let mut evMarkets: crate::value::List = self.safe_list_k(&event, "markets", &[Value::from(vec![])]).into_list();
             let mut evMarketsLength: i64 = evMarkets.len() as i64;
             {
@@ -1242,9 +1242,9 @@ impl Sxbet {
         if !deployed {
             self.sxbet_private_post_user_deploy_proxy(&[]).await;
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1503: bool = true;
-                while { if !__for_first_1503 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1503 = false; i.as_f64().unwrap_or(f64::NAN) < ((30i64) as f64) } {
+                while { if !__for_first_1503 { i += 1; } __for_first_1503 = false; (i as f64) < ((30i64) as f64) } {
                 self.sleep(Value::Int(2000)).await;
                 let mut state: Value = self.fetch_sxbet_proxy().await;
                 if matches!(self.safe_bool_k(state, "deployed", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -1676,7 +1676,7 @@ impl Sxbet {
             while { if !__for_first_1504 { i += 1; } __for_first_1504 = false; i < cancelledLength } {
             result.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(cancelled.get(i as usize).cloned().unwrap_or(Value::Null), "orderId", &[]));
+        m.insert("id".to_string(), self.safe_string(crate::value::KeyRead::read(&&cancelled, &Value::Int(i)), Value::Str("orderId".into()), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
         m.insert("info".to_string(), response.clone());
     m
@@ -1883,9 +1883,9 @@ impl Sxbet {
     m
 })]), Value::Str("hasMore".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         {
-                        let mut guard: Value = Value::Int(0);
+                        let mut guard: i64 = 0;
             let mut __for_first_1509: bool = true;
-            while { if !__for_first_1509 { if let Value::Int(n) = &mut guard { *n += 1; } } __for_first_1509 = false; guard.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64) } {
+            while { if !__for_first_1509 { guard += 1; } __for_first_1509 = false; (guard as f64) < ((50i64) as f64) } {
             if !hasMore {
                 break;
             }
@@ -4069,13 +4069,13 @@ impl Sxbet {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut accessLevel: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         if (accessLevel.as_deref() == Some("private")) && (self.apiKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), path).into()), " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")));
         }
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
-        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "sxbet")]);
+        let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "sxbet")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({

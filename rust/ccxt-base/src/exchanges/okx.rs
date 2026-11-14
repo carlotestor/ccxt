@@ -4264,7 +4264,7 @@ impl Okx {
         let mut maxLeverage: Option<String> = self.safe_string_k(market.clone(), "lever", &[Value::Str("1".into())]).as_str().map(str::to_owned);
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut maxSpotCost: Option<f64> = self.safe_number_k(market.clone(), "maxMktSz", &[]).as_f64();
-        let mut leverageAboveOne: Value = crate::precise::Precise::stringGt(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into()));
+        let mut leverageAboveOne: Value = crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into()));
         let mut quoteEqualSettle: bool = settleId.as_deref() == Some(quoteId.as_str());
         let mut baseEqualSettle: bool = settleId.as_deref() == Some(baseId.as_str());
         let mut status: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
@@ -9644,9 +9644,9 @@ impl Okx {
         }  else {
             if (pos.is_some()) {
                 if (side.as_deref() == Some("net")) {
-                    if crate::precise::Precise::stringGt(&pos.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringGt(&pos, &Value::Str("0".into())).as_bool() == Some(true) {
                         side = Some("long".to_string());
-                    }  else if crate::precise::Precise::stringLt(&pos.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                    }  else if crate::precise::Precise::stringLt(&pos, &Value::Str("0".into())).as_bool() == Some(true) {
                         side = Some("short".to_string());
                     }  else {
                         side = None.clone();
@@ -9699,7 +9699,7 @@ impl Okx {
         let mut maintenanceMarginPercentage: Option<f64> = (if (maintenanceMarginPercentageString.is_some()) { self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&maintenanceMarginPercentageString, &rounder), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64() } else { None });
         // okx always reports liqPx for open positions; no local estimate (it depends on the account fee tier)
         let mut liquidationPriceString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "liqPx", &[]));
-        let mut liquidationPrice: Option<f64> = (if ((liquidationPriceString.is_some()) && crate::precise::Precise::stringGt(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) { self.parse_number(liquidationPriceString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64() } else { None });
+        let mut liquidationPrice: Option<f64> = (if ((liquidationPriceString.is_some()) && crate::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into())).as_bool() == Some(true)) { self.parse_number(liquidationPriceString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64() } else { None });
         let mut percentageString: Option<String> = self.safe_string_k(position.clone(), "uplRatio", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&percentageString, &Value::Str("100".into())), &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "cTime", &[]).as_i64();
@@ -10508,7 +10508,7 @@ impl Okx {
             let mut balanceChange: Option<String> = self.safe_string_k(&entry, "balChg", &[]).as_str().map(str::to_owned);
             let mut positionBalanceChange: Option<String> = self.safe_string_k(&entry, "posBalChg", &[]).as_str().map(str::to_owned);
             let mut amount: Option<String> = None;
-            if (balanceChange.is_some()) && (!(crate::precise::Precise::stringEq(&balanceChange.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true))) {
+            if (balanceChange.is_some()) && (!(crate::precise::Precise::stringEq(&balanceChange, &Value::Str("0".into())).as_bool() == Some(true))) {
                 amount = balanceChange;
             }  else {
                 amount = positionBalanceChange;
@@ -11142,7 +11142,7 @@ impl Okx {
         // ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
         let mut type_var: Option<String> = None;
         if (typeRaw.as_deref() == Some("6")) {
-            type_var = (if crate::precise::Precise::stringGt(&amountRaw.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("add".to_string()) } else { Some("reduce".to_string()) });
+            type_var = (if crate::precise::Precise::stringGt(&amountRaw, &Value::Str("0".into())).as_bool() == Some(true) { Some("add".to_string()) } else { Some("reduce".to_string()) });
         }  else {
             type_var = typeRaw;
         }
@@ -11704,11 +11704,8 @@ impl Okx {
             market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut marketType: Option<String> = None;
-        let mut paramsSubType: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOpenInterests".into()), market.as_ref(), &[params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsSubType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOpenInterests".into()), market.as_ref(), &[params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut instType: String = "SWAP".to_string();
         if (marketType.as_deref() == Some("future")) {
             instType = "FUTURES".to_string();
@@ -11720,18 +11717,18 @@ impl Okx {
                 m.insert("instType".to_string(), Value::from(instType.clone()));
             m
         });
-        let mut uly: Option<String> = self.safe_string_k(paramsSubType.clone(), "uly", &[]).as_str().map(str::to_owned);
+        let mut uly: Option<String> = self.safe_string_k(&paramsSubType, "uly", &[]).as_str().map(str::to_owned);
         if (uly.is_some()) {
             request.insert("uly".into(), uly.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut instFamily: Option<String> = self.safe_string_k(paramsSubType.clone(), "instFamily", &[]).as_str().map(str::to_owned);
+        let mut instFamily: Option<String> = self.safe_string_k(&paramsSubType, "instFamily", &[]).as_str().map(str::to_owned);
         if (instFamily.is_some()) {
             request.insert("instFamily".into(), instFamily.clone().map(Value::from).unwrap_or(Value::Null));
         }
         if (instType == "OPTION") && (uly.is_none()) && (instFamily.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")));
         }
-        let __ws_arg_81 = self.extend(Value::Map(request), &[paramsSubType]);
+        let __ws_arg_81 = self.extend(Value::Map(request), &[&paramsSubType]);
         let mut response: crate::value::Dict = self.public_get_public_open_interest(&[__ws_arg_81]).await.into_dict();
         //
         //     {

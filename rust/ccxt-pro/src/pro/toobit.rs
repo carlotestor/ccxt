@@ -225,7 +225,7 @@ impl Toobit {
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_incoming_pong" => { self.handle_incoming_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1051,7 +1051,7 @@ impl Toobit {
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("channel".into()), &[Value::Str("depth".into())]).as_array().cloned().unwrap_or_default();
-        let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -1059,7 +1059,7 @@ impl Toobit {
             let mut __for_first_670: bool = true;
             while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderBook::", symbol.as_deref().unwrap_or("null")).into()), "::").into()), channel).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderBook::", symbol.as_deref().unwrap_or("null")).into()), "::").into()), channel.as_deref().unwrap_or("null")).into()));
         }
         }
         let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsNormalized)]).into_list();
@@ -1067,7 +1067,7 @@ impl Toobit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
-                m.insert("topic".to_string(), channel);
+                m.insert("topic".to_string(), channel.map(Value::from).unwrap_or(Value::Null));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
@@ -1128,8 +1128,8 @@ impl Toobit {
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
             let mut bids: crate::value::List = self.safe_list_k(&entry, "b", &[Value::from(vec![])]).into_list();
             let mut asks: crate::value::List = self.safe_list_k(&entry, "a", &[Value::from(vec![])]).into_list();
-            self.handle_deltas(orderBook.book_field("asks"), Value::Arr(asks));
-            self.handle_deltas(orderBook.book_field("bids"), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderBook.book_field("asks")), Value::Arr(asks));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderBook.book_field("bids")), Value::Arr(bids));
             orderBook.set_book_meta("timestamp", Value::from(timestamp));
             CacheStore::put(&mut self.orderbooks, &symbol, orderBook.clone());
             client.resolve(Value::from(&orderBook), messageHash.as_str());
@@ -1137,7 +1137,7 @@ impl Toobit {
         }
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[]).into_list();
         bookside.store_array(Value::Arr(bidAsk));
 }

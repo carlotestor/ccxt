@@ -2080,10 +2080,10 @@ impl Ndax {
         let mut debit: Option<String> = self.safe_string_k(item.clone(), "DR", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = None;
         let mut direction: Option<String> = None;
-        if crate::precise::Precise::stringLt(&credit.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&credit, &Value::Str("0".into())).as_bool() == Some(true) {
             amount = credit;
             direction = Some("in".to_string());
-        }  else if crate::precise::Precise::stringLt(&debit.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        }  else if crate::precise::Precise::stringLt(&debit, &Value::Str("0".into())).as_bool() == Some(true) {
             amount = debit;
             direction = Some("out".to_string());
         }
@@ -3440,10 +3440,10 @@ impl Ndax {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

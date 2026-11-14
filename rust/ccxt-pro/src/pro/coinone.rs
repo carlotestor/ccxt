@@ -205,7 +205,7 @@ impl Coinone {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -386,8 +386,8 @@ impl Coinone {
         orderbook.set_book_meta("symbol", symbol.clone());
         let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
         let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
-        self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
-        self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
@@ -395,7 +395,7 @@ impl Coinone {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("qty".into())]).into_list();
         bookside.store_array(Value::Arr(bidAsk));
 }

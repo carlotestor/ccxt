@@ -1187,8 +1187,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut oi: i64 = 0;
             let mut __for_first_1266: bool = true;
             while { if !__for_first_1266 { oi += 1; } __for_first_1266 = false; oi < (outcomeLabels.len() as i64) } {
-            let mut label: Option<String> = outcomeLabels.get(oi as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null), label.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut label: Option<&str> = outcomeLabels.get(oi as usize).and_then(Value::as_str);
+            let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null), Value::from(label.as_deref())).as_str().map(str::to_owned);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Option<i64> = None;
             if resolved && (result.is_some()) && (result.as_deref() != Some("")) {
@@ -1208,7 +1208,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("outcomeId".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
                     m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
-                    m.insert("label".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("label".to_string(), Value::from(label.as_deref()));
                     m.insert("active".to_string(), active.clone());
                     m.insert("winner".to_string(), winner);
                     m.insert("settleFraction".to_string(), Value::from(settleFraction));
@@ -1219,7 +1219,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("eventTicker".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("seriesTicker".to_string(), seriesTicker.clone());
         m.insert("subtitle".to_string(), Value::from(subtitle.as_deref()));
-        m.insert("outcomeLabel".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("outcomeLabel".to_string(), Value::from(label.as_deref()));
         m.insert("volume".to_string(), Value::from(volume));
         m.insert("liquidity".to_string(), Value::from(liquidity));
         m.insert("openInterest".to_string(), Value::from(openInt));
@@ -3515,7 +3515,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut si: i64 = 0;
                 let mut __for_first_1290: bool = true;
                 while { if !__for_first_1290 { si += 1; } __for_first_1290 = false; si < seriesListLength } {
-                let mut st: Option<String> = self.safe_string_k_opt(seriesList.get(si as usize).cloned().unwrap_or(Value::Null), "ticker", &[]);
+                let mut st: Option<String> = self.safe_string_opt(crate::value::KeyRead::read(&&seriesList, &Value::Int(si)), Value::Str("ticker".into()), &[]);
                 if (st.is_some()) {
                     std::sync::Arc::make_mut(&mut collected).push(st.map(Value::from).unwrap_or(Value::Null));
                 }
@@ -3536,7 +3536,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut si: i64 = 0;
                 let mut __for_first_1292: bool = true;
                 while { if !__for_first_1292 { si += 1; } __for_first_1292 = false; si < seriesListLength } {
-                let mut st: Option<String> = self.safe_string_k_opt(seriesList.get(si as usize).cloned().unwrap_or(Value::Null), "ticker", &[]);
+                let mut st: Option<String> = self.safe_string_opt(crate::value::KeyRead::read(&&seriesList, &Value::Int(si)), Value::Str("ticker".into()), &[]);
                 if (st.is_some()) {
                     std::sync::Arc::make_mut(&mut collected).push(st.map(Value::from).unwrap_or(Value::Null));
                 }
@@ -3616,9 +3616,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut cursor: Option<String> = None;
             {
-                                let mut page: Value = Value::Int(0);
+                                let mut page: i64 = 0;
                 let mut __for_first_1296: bool = true;
-                while { if !__for_first_1296 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1296 = false; page.as_f64().unwrap_or(f64::NAN) < maxPages.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1296 { page += 1; } __for_first_1296 = false; (page as f64) < maxPages.as_f64().unwrap_or(f64::NAN) } {
                 let mut reqLimit: Option<i64> = pageLimit;
                 if hasLimit && (limitValue.is_some()) {
                     let mut collectedSoFar: i64 = rawEvents.len() as i64;
@@ -3896,10 +3896,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
-        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(&baseUrls, "kalshi", &[Value::Str("".into())])]);
+        let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&baseUrls, "kalshi", &[Value::Str("".into())])]);
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), implodedPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);

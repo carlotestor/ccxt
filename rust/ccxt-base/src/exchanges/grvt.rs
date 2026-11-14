@@ -3645,7 +3645,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "instrument", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(position.clone(), "event_time", Value::Float(0.000001), &[]).as_i64();
         let mut sizeRaw: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
-        let mut isLong: Value = (crate::precise::Precise::stringGe(&sizeRaw.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())));
+        let mut isLong: Value = (crate::precise::Precise::stringGe(&sizeRaw, &Value::Str("0".into())));
         let mut side: String = "short".to_string();
         if isLong.as_bool() == Some(true) {
             side = "long".to_string();
@@ -4781,8 +4781,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut requestBody: Option<String> = None;
         let mut requestPath: String = path.as_str().unwrap_or_default().to_string();
         let mut query: Value = self.omit(params.clone(), self.extract_params(Value::from(requestPath.clone())), &[]);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

@@ -2351,13 +2351,13 @@ impl Btse {
         if (until.is_none()) {
             return self.parse_trades(&data, Some(&market), &[since.clone(), limit.clone()]);
         }
-        let mut trades: Value = self.parse_trades(&data, Some(&market), &[since, limit]);
+        let mut trades: crate::value::List = self.parse_trades(&data, Some(&market), &[since, limit]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_487: bool = true;
             while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = crate::value::KeyRead::read(&&trades, &Value::Int(i));
             let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
             if (timestamp.is_none()) || ((timestamp.is_some() && until.is_some() && timestamp <= until)) {
                 result.push(trade);
@@ -5093,10 +5093,10 @@ impl Btse {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

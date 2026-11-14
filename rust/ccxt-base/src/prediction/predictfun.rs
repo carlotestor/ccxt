@@ -1094,10 +1094,10 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1463: bool = true;
             while { if !__for_first_1463 { i += 1; } __for_first_1463 = false; i < orphanSlugsLength } {
-            let mut orphanSlug: Value = orphanSlugs.get(i as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!(&orphanSlug, Value::Str(__k) if seenSlugs.contains_key(__k.as_ref()))) {
-                seenSlugs.insert(crate::runtime::stringify_param(&orphanSlug), Value::Bool(true));
-                let mut markets: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), orphanSlug.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut orphanSlug: Option<&str> = orphanSlugs.get(i as usize).and_then(Value::as_str);
+            if !(matches!(orphanSlug.as_deref(), Some(__k) if seenSlugs.contains_key(__k))) {
+                seenSlugs.insert(orphanSlug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
+                let mut markets: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), orphanSlug) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 let mut first: crate::value::Dict = self.safe_dict(markets.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1115,8 +1115,8 @@ impl Predictfun {
                 }
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("id".to_string(), orphanSlug.clone());
-                        m.insert("slug".to_string(), orphanSlug);
+                        m.insert("id".to_string(), Value::from(orphanSlug.as_deref()));
+                        m.insert("slug".to_string(), Value::from(orphanSlug.as_deref()));
                         m.insert("title".to_string(), self.safe_string_k(&first, "title", &[]));
                         m.insert("description".to_string(), self.safe_string_k(&first, "description", &[]));
                         m.insert("imageUrl".to_string(), self.safe_string_k(&first, "imageUrl", &[]));
@@ -2449,12 +2449,12 @@ impl Predictfun {
         if (message.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() got an auth reply without the \"message\" field to sign")));
         }
-        let mut signature: Value = self.sign_hash(self.hash_message(message.as_deref().unwrap_or_default()).as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Option<String> = self.sign_hash(self.hash_message(message.as_deref().unwrap_or_default()).as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("message".to_string(), message.map(Value::from).unwrap_or(Value::Null));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut response: crate::value::Dict = self.predictfun_post_v1_auth(&[Value::Map(request)]).await.into_dict();
@@ -3002,11 +3002,11 @@ impl Predictfun {
         // what the shares cost, which is also the collateral committed to the position
         let mut collateral: Option<String> = crate::precise::Precise::stringMul(&entryPrice, &contracts).as_str().map(str::to_owned);
         let mut markPrice: Option<String> = None;
-        if (notional.is_some()) && (contracts.is_some()) && crate::precise::Precise::stringGt(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (notional.is_some()) && (contracts.is_some()) && crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
             markPrice = crate::precise::Precise::stringDiv(&notional, &contracts).as_str().map(str::to_owned);
         }
         let mut percentage: Option<String> = None;
-        if (pnl.is_some()) && (collateral.is_some()) && crate::precise::Precise::stringGt(&collateral.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (pnl.is_some()) && (collateral.is_some()) && crate::precise::Precise::stringGt(&collateral, &Value::Str("0".into())).as_bool() == Some(true) {
             percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&pnl, &collateral), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         // a settled outcome reports WON or LOST, an open one leaves the field null - and the
@@ -3778,7 +3778,7 @@ impl Predictfun {
             isYieldBearing = self.safe_bool_k(&marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool() == Some(true);
         }
         if (side.as_deref() == Some("sell")) {
-            let mut ctfToken: Value = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)]);
+            let mut ctfToken: Option<String> = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut operators: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut explicitOperator: Option<String> = self.safe_string_k(params.clone(), "spender", &[]).as_str().map(str::to_owned);
             if (explicitOperator.is_some()) {
@@ -3793,7 +3793,7 @@ impl Predictfun {
                     std::sync::Arc::make_mut(&mut operators).push(self.adapter_address(isYieldBearing).map(Value::from).unwrap_or(Value::Null));
                 }
             }
-            if (rpcUrl.is_none()) || (ctfToken == Value::Null) {
+            if (rpcUrl.is_none()) || (ctfToken.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain ").into()), chainKey.as_deref().unwrap_or("null"))));
             }
             let mut approved: bool = self.safe_bool_k(params.clone(), "approved", &[Value::Bool(true)]).as_bool().unwrap_or(true);
@@ -3815,7 +3815,7 @@ impl Predictfun {
                 let mut approvalData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0xa22cb465".into()), self.pad_hex_address(operatorAddress.map(Value::from).unwrap_or(Value::Null))).into()), approvedHex);
                 // each receipt is awaited before the next transaction goes out, so the nonce the
                 // second one looks up already counts the first
-                let mut approvalHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), Value::from(owner.as_deref()), ctfToken.clone(), Value::Str("0x0".into()), Value::from(approvalData), Value::from(gasLimit.clone())).await;
+                let mut approvalHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), Value::from(owner.as_deref()), Value::from(ctfToken.as_deref()), Value::Str("0x0".into()), Value::from(approvalData), Value::from(gasLimit.clone())).await;
                 let mut receipt: Value = self.wait_for_transaction_receipt(Value::from(rpcUrl.as_deref()), approvalHash, &[]).await;
                 receipts.push(receipt);
             }
@@ -4870,7 +4870,7 @@ impl Predictfun {
         }  else if (eventType.as_deref() == Some("orderTransactionSuccess")) {
             // a settled fill closes the order only once nothing is left of it
             status = Some("open".to_string());
-            if (amount.is_some()) && (filled.is_some()) && !(crate::precise::Precise::stringLt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+            if (amount.is_some()) && (filled.is_some()) && !(crate::precise::Precise::stringLt(&filled, &amount).as_bool() == Some(true)) {
                 status = Some("closed".to_string());
             }
         }
@@ -5111,9 +5111,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (apiKey == Value::Null) && !sandboxMode {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " sign() requires the \"apiKey\" credential for all endpoints")));
         }
-        let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
-        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "predictfun")]);
+        let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "predictfun")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         if (method.as_str() == Some("GET")) {

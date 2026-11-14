@@ -897,19 +897,19 @@ impl Derive {
                                 let mut i: i64 = 0;
                 let mut __for_first_298: bool = true;
                 while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (topics.len() as i64) } {
-                let mut topic: Value = topics.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut parsedTopic: crate::value::List = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
+                let mut topic: Option<&str> = topics.get(i as usize).and_then(Value::as_str);
+                let mut parsedTopic: crate::value::List = Value::Array(if let Some(__s) = topic.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
                 let mut suffix: Option<String> = self.safe_string(&parsedTopic, Value::Int(1), &[]).as_str().map(str::to_owned);
-                if (Value::Int(topic.as_str().and_then(|__s| __s.find("orderbook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                    self.handle_order_book_un_subscription(client.clone(), topic.clone());
-                }  else if (Value::Int(topic.as_str().and_then(|__s| __s.find("ticker_slim")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                    self.handle_ticker_un_subscription(client.clone(), topic.clone());
-                }  else if (Value::Int(topic.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                    self.handle_trades_un_subscription(client.clone(), topic.clone());
+                if (((if let (Some(__h), Some(__n)) = (topic.as_deref(), Some("orderbook")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
+                    self.handle_order_book_un_subscription(client.clone(), Value::from(topic.as_deref()));
+                }  else if (((if let (Some(__h), Some(__n)) = (topic.as_deref(), Some("ticker_slim")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
+                    self.handle_ticker_un_subscription(client.clone(), Value::from(topic.as_deref()));
+                }  else if (((if let (Some(__h), Some(__n)) = (topic.as_deref(), Some("trades")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
+                    self.handle_trades_un_subscription(client.clone(), Value::from(topic.as_deref()));
                 }  else if (suffix.as_deref() == Some("orders")) {
-                    self.handle_orders_un_subscription(client.clone(), topic.clone());
+                    self.handle_orders_un_subscription(client.clone(), Value::from(topic.as_deref()));
                 }  else if (suffix.as_deref() == Some("trades")) {
-                    self.handle_my_trades_un_subscription(client.clone(), topic);
+                    self.handle_my_trades_un_subscription(client.clone(), Value::from(topic.as_deref()));
                 }
             }
             }
@@ -1022,7 +1022,7 @@ impl Derive {
         if (authenticated == Value::Null) {
             let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
             let mut now: Option<String> = self.number_to_string(self.nonce());
-            let mut signature: Value = self.parent.sign_message(now.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+            let mut signature: Option<String> = self.parent.sign_message(now.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default());
             let mut configuredWalletAddress: Option<String> = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]).as_str().map(str::to_owned);
             // v3: the owner wallet is the user's own EOA
             let mut deriveWalletAddress: Value = (if ((configuredWalletAddress.is_none()) || (configuredWalletAddress.as_deref() == Some(""))) { self.walletAddress.clone() } else { configuredWalletAddress.clone().map(Value::from).unwrap_or(Value::Null) });
@@ -1034,7 +1034,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
         m.insert("wallet".to_string(), deriveWalletAddress);
         m.insert("timestamp".to_string(), now.map(Value::from).unwrap_or(Value::Null));
-        m.insert("signature".to_string(), signature);
+        m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
 }));
                 m
@@ -1615,7 +1615,7 @@ impl Derive {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut newSize: String = self.safe_string_k(entry.clone(), "new_balance", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let mut isShort: Value = crate::precise::Precise::stringLt(&Value::from(newSize.clone()), &Value::Str("0".into()));
+        let mut isShort: Value = crate::precise::Precise::stringLt(&newSize, &Value::Str("0".into()));
         let mut side: String = (if isShort.as_bool() == Some(true) { "short".to_string() } else { "long".to_string() });
         let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&newSize).as_str().map(str::to_owned);
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&subaccountIdKey);

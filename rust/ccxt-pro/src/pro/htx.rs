@@ -231,8 +231,8 @@ impl Htx {
             "get_v5_linear_channel_and_message_hash" => self.get_v5_linear_channel_and_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "handle_authenticate" => { self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
@@ -929,7 +929,7 @@ impl Htx {
             m
         })]).into_dict();
         let mut limitResolved: Option<i64> = self.parse_to_int((if (limit == Value::Null) { self.safe_integer_k(&options, "depth", &[Value::Int(150)]) } else { limit.clone() }));
-        if !self.in_array(Value::from(limitResolved), &allowedLimits) {
+        if !self.in_array(&limitResolved, &allowedLimits) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")));
         }
         let mut messageHash: String = "".to_string();
@@ -1154,13 +1154,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_float(delta, Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
@@ -1270,8 +1270,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (spotConditon) || (nonSpotCondition) {
             let mut asks: crate::value::List = self.safe_list_k(&tick, "asks", &[Value::from(vec![])]).into_list();
             let mut bids: crate::value::List = self.safe_list_k(&tick, "bids", &[Value::from(vec![])]).into_list();
-            self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
-            self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             orderbook.set_book_meta("nonce", (if (spotConditon) { Value::from(seqNum) } else { Value::from(version) }));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
@@ -2259,18 +2259,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut paramsPositions: Value = (if (market != Value::Null) { params } else { paramsSubType });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchPositions".into()), &[paramsPositions, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsRequest: Value = Value::Dict(paramsMarginMode);
         let mut linear: bool = subType.as_str() == Some("linear");
         let mut swap: bool = type_var.as_str() == Some("swap");
         let mut future: bool = type_var.as_str() == Some("future");
         let mut isV5Linear: bool = linear && (swap || future);
-        messageHash = format!("{}{}", Value::Str(format!("{}{}", marginMode, ":positions").into()), messageHash);
+        messageHash = format!("{}{}", Value::Str(format!("{}{}", marginMode.as_deref().unwrap_or("null"), ":positions").into()), messageHash);
         let mut channel: Option<String> = Some("positions.*".to_string());
         // one positions cache per margin mode: linear, inverse and futures symbols never collide
         let mut cacheKey: String = "isolated".to_string();
-        if (marginMode.as_str() == Some("cross")) {
+        if (marginMode.as_deref() == Some("cross")) {
             channel = Some("positions_cross.*".to_string());
             cacheKey = "cross".to_string();
         }
@@ -2289,7 +2289,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("isV5".to_string(), Value::Bool(isV5Linear));
-                m.insert("margin".to_string(), marginMode);
+                m.insert("margin".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut newPositions: Value = self.subscribe_private(channel.as_deref(), Some(messageHash.as_str()), type_var.as_str(), subType.as_str(), &[paramsRequest, Value::Map(subscriptionParams)]).await;
@@ -2395,12 +2395,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_387: bool = true;
                 while { if !__for_first_387 { i += 1; } __for_first_387 = false; i < (prefixes.len() as i64) } {
-                let mut messageHashes: Value = self.find_message_hashes(client.clone(), prefixes.get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut messageHashes: crate::value::List = self.find_message_hashes(client.clone(), prefixes.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_386: bool = true;
                     while { if !__for_first_386 { j += 1; } __for_first_386 = false; j < (messageHashes.len() as i64) } {
-                    client.resolve(Value::from(vec![]), &messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
+                    client.resolve(Value::from(vec![]), &crate::value::KeyRead::read(&&messageHashes, &Value::Int(j)));
                 }
                 }
             }

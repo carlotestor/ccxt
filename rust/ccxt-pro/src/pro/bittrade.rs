@@ -210,7 +210,7 @@ impl Bittrade {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -844,7 +844,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_float(delta, Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
@@ -883,8 +883,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (nonce.is_some()) && ((prevSeqNum.is_some() && nonce.is_some() && prevSeqNum <= nonce)) && ((seqNum.is_some() && nonce.is_some() && seqNum > nonce)) {
             let mut asks: crate::value::List = self.safe_list_k(&tick, "asks", &[Value::from(vec![])]).into_list();
             let mut bids: crate::value::List = self.safe_list_k(&tick, "bids", &[Value::from(vec![])]).into_list();
-            self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), Value::Arr(asks));
-            self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(crate::value::get_value_k(&orderbook, "asks")), Value::Arr(asks));
+            self.handle_deltas(crate::pro::order_book::Side::of(crate::value::get_value_k(&orderbook, "bids")), Value::Arr(bids));
             add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::from(seqNum));
             let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::from(timestamp));

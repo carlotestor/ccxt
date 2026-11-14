@@ -4741,10 +4741,10 @@ impl Woofipro {
             m
         });
         let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(withdrawRequest.clone()));
-        let mut signature: Value = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Option<String> = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("userAddress".to_string(), address);
                 m.insert("verifyingContract".to_string(), verifyingContractAddress.map(Value::from).unwrap_or(Value::Null));
                 m.insert("message".to_string(), Value::Map(withdrawRequest));
@@ -5191,7 +5191,7 @@ impl Woofipro {
         let mut marketResolved: crate::types::Market = self.safe_market(contract.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut size: Option<String> = self.safe_string_k(position.clone(), "position_qty", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
-        if crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringGt(&size, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("long".to_string());
         }  else {
             side = Some("short".to_string());
@@ -5392,10 +5392,10 @@ impl Woofipro {
 }));
         let __section_empty = Vec::new();
         let section = section.as_array().unwrap_or(&__section_empty);
-        let mut version: Option<String> = section.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut version: Option<&str> = section.get(0).and_then(Value::as_str);
+        let mut access: Option<&str> = section.get(1).and_then(Value::as_str);
         let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(access.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

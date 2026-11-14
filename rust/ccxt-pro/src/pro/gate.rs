@@ -1774,12 +1774,12 @@ impl Gate {
         }  else {
             result = std::sync::Arc::new(vec![rawResult]);
         }
-        let mut parsedTrades: Value = self.parse_trades(&result, None, &[]);
+        let mut parsedTrades: crate::value::List = self.parse_trades(&result, None, &[]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_325: bool = true;
             while { if !__for_first_325 { i += 1; } __for_first_325 = false; i < (parsedTrades.len() as i64) } {
-            let mut trade: Value = parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = crate::value::KeyRead::read(&&parsedTrades, &Value::Int(i));
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
             let mut cachedTrades: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (cachedTrades.is_none()) {
@@ -2108,7 +2108,7 @@ impl Gate {
             cachedTrades = Some(ArrayCacheBySymbolById::new(limit));
             self.myTrades = cachedTrades.clone();
         }
-        let mut parsed: Value = self.parse_trades(Value::Arr(result), None, &[]);
+        let mut parsed: crate::value::List = self.parse_trades(Value::Arr(result), None, &[]).into_list();
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2117,7 +2117,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_328: bool = true;
             while { if !__for_first_328 { i += 1; } __for_first_328 = false; i < (parsed.len() as i64) } {
-            let mut trade: Value = parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = crate::value::KeyRead::read(&&parsed, &Value::Int(i));
             cachedTrades.append(trade.clone());
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -2163,15 +2163,15 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchBalance".into()), None, &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isInverse: bool = subType.as_deref() == Some("inverse");
-        let mut url: Option<String> = self.get_url_by_market_type(type_var.clone(), &[Value::Bool(isInverse)]).as_str().map(str::to_owned);
-        let mut requiresUid: Value = (Value::Bool(type_var.as_str() != Some("spot")));
-        let mut channelType: Value = self.get_supported_mapping(type_var.clone(), &[Value::Map({
+        let mut url: Option<String> = self.get_url_by_market_type(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(isInverse)]).as_str().map(str::to_owned);
+        let mut requiresUid: bool = type_var.as_deref() != Some("spot");
+        let mut channelType: Value = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("spot".into()));
                 m.insert("margin".to_string(), Value::Str("spot".into()));
@@ -2182,8 +2182,8 @@ impl Gate {
         })]);
         // todo: add correct margin support
         let mut channel: String = format!("{}{}", channelType, ".balances");
-        let mut messageHash: String = format!("{}{}", type_var, ".balance");
-        return self.subscribe_private(url.as_deref(), messageHash.as_str(), Value::Null, Some(channel.as_str()), Value::Dict(paramsSubType), &[requiresUid]).await;
+        let mut messageHash: String = format!("{}{}", type_var.as_deref().unwrap_or("null"), ".balance");
+        return self.subscribe_private(url.as_deref(), messageHash.as_str(), Value::Null, Some(channel.as_str()), Value::Dict(paramsSubType), &[Value::Bool(requiresUid)]).await;
         Value::Null
         }).await?))
     }
@@ -2678,7 +2678,7 @@ impl Gate {
                 let mut status: Option<String> = self.safe_string_k(parsed.clone(), "status", &[]).as_str().map(str::to_owned);
                 if (status.is_none()) {
                     let mut left: Option<String> = self.safe_string_k(&info, "left", &[]).as_str().map(str::to_owned);
-                    add_element_to_object(&mut parsed, &Value::Str("status".into()), (if crate::precise::Precise::stringEquals(&left.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("closed".into()) } else { Value::Str("canceled".into()) }));
+                    add_element_to_object(&mut parsed, &Value::Str("status".into()), (if crate::precise::Precise::stringEquals(&left, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("closed".into()) } else { Value::Str("canceled".into()) }));
                 }
             }
             stored.append(parsed.clone());

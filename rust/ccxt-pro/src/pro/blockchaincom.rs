@@ -210,8 +210,8 @@ impl Blockchaincom {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1128,8 +1128,8 @@ impl Blockchaincom {
         }  else if (event == "updated") {
             let mut asks: crate::value::List = __pro_message.get("asks").cloned().unwrap_or_default().into_list();
             let mut bids: crate::value::List = __pro_message.get("bids").cloned().unwrap_or_default().into_list();
-            self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
-            self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -1138,12 +1138,12 @@ impl Blockchaincom {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut bookArray: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]).into_list();
         bookside.store_array(Value::Arr(bookArray));
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {

@@ -927,7 +927,7 @@ impl Bitbns {
                         let mut i: i64 = 0;
             let mut __for_first_338: bool = true;
             while { if !__for_first_338 { i += 1; } __for_first_338 = false; i < (keys.len() as i64) } {
-            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = key.as_deref() { __s.split("availableorder").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut numParts: i64 = parts.len() as i64;
             if numParts > 1 {
@@ -935,7 +935,7 @@ impl Bitbns {
                 let mut currencyId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-                account.insert("free".into(), self.safe_string(&data, key.map(Value::from).unwrap_or(Value::Null), &[]));
+                account.insert("free".into(), self.safe_string(&data, Value::from(key.as_deref()), &[]));
                 account.insert("used".into(), self.safe_string(&data, Value::Str(format!("{}{}", "inorder", usedCurrencyId).into()), &[]));
                 if (currencyId.as_deref() == Some("Money")) {
                     currencyId = Some("INR".to_string());
@@ -1889,19 +1889,19 @@ impl Bitbns {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not have a testnet/sandbox URL for ").into()), apiName).into()), " endpoints")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not have a testnet/sandbox URL for ").into()), apiName.as_deref().unwrap_or("null")).into()), " endpoints")));
         }
-        if (apiName.as_str() != Some("www")) {
+        if (apiName.as_deref() != Some("www")) {
             self.check_required_credentials(&[]);
         }
         let mut requestHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (apiName.as_str() != Some("www")) {
+        if (apiName.as_deref() != Some("www")) {
             requestHeaders.insert("X-BITBNS-APIKEY".into(), self.apiKey.clone());
         }
         let mut baseUrl: Option<String> = self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);

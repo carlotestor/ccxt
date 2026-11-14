@@ -1429,12 +1429,12 @@ impl Dydx {
         let mut paramsUser: crate::value::Dict = userAuxparamsUserVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut user: Option<String> = userparamsAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsAddress: Value = userparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAddress: crate::value::Dict = userparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (user.is_some()) && (user.as_deref() != Some("")) {
-            return Value::from(vec![user.map(Value::from).unwrap_or(Value::Null), paramsAddress.clone()]);
+            return Value::from(vec![user.map(Value::from).unwrap_or(Value::Null), Value::from(&paramsAddress)]);
         }
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
-            return Value::from(vec![self.walletAddress.clone(), paramsAddress]);
+            return Value::from(vec![self.walletAddress.clone(), Value::Dict(paramsAddress)]);
         }
         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires a user parameter inside 'params' or the walletAddress set")));
 
@@ -2038,9 +2038,9 @@ impl Dydx {
         let mut r: Option<String> = crate::precise::Precise::stringMul(&n, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut c: Option<i64> = self.parse_to_int(m);
         {
-                        let mut i: Value = Value::Int(1);
+                        let mut i: i64 = 1;
             let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_659 = false; matches!(c, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_659 { i += 1; } __for_first_659 = false; matches!(c, Some(__b) if (i as f64) < (__b as f64)) } {
             r = crate::precise::Precise::stringMul(&r, &n).as_str().map(str::to_owned);
         }
         }

@@ -240,8 +240,8 @@ impl Bitget {
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_check_sum_error" => { crate::exchange_stubs::enqueue_spawn("handle_check_sum_error", args.to_vec()); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -442,13 +442,13 @@ impl Bitget {
         let mut instTypeDefault: Value = productTypeAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsProductType: Value = productTypeAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let instTypeOptionparamsInstTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsProductType, methodName, Value::Str("instType".into()), &[instTypeDefault]).as_array().cloned().unwrap_or_default();
-        let mut instTypeOption: Value = instTypeOptionparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInstType: Value = instTypeOptionparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut instType: Value = instTypeOption.clone();
-        if uta && (instTypeOption != Value::Null) {
-            instType = (if let Some(__s) = instTypeOption.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut instTypeOption: Option<String> = instTypeOptionparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut paramsInstType: crate::value::Dict = instTypeOptionparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut instType: Option<String> = instTypeOption.clone();
+        if uta && (instTypeOption.is_some()) {
+            instType = instTypeOption.as_deref().map(str::to_lowercase);
         }
-        return Value::from(vec![instType, paramsInstType]);
+        return Value::from(vec![instType.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsInstType)]);
 
     Value::Null
 }
@@ -1309,10 +1309,10 @@ impl Bitget {
         let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
         let mut paramsStock: crate::value::Dict = self.omit(params, Value::Str("stock".into()), &[]).into_dict();
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsStock, Value::Str("unWatchOrderBook".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && (market).spot;
-        let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
+        let mut isStockOrUta: bool = isStockSpot || uta;
         let mut paramsRequest: Value = Value::from(&paramsUta);
         if isStockOrUta {
             paramsRequest = self.extend(paramsUta, &[Value::Map({
@@ -1575,8 +1575,8 @@ impl Bitget {
             }
             let mut asks: crate::value::List = self.safe_list2(rawOrderBook.clone(), Value::Str("asks".into()), Value::Str("a".into()), &[Value::from(vec![])]).into_list();
             let mut bids: crate::value::List = self.safe_list2(rawOrderBook.clone(), Value::Str("bids".into()), Value::Str("b".into()), &[Value::from(vec![])]).into_list();
-            self.handle_deltas(storedOrderBook.book_field("asks"), Value::Arr(asks));
-            self.handle_deltas(storedOrderBook.book_field("bids"), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), Value::Arr(asks));
+            self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), Value::Arr(bids));
             storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
             storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
@@ -1653,7 +1653,7 @@ impl Bitget {
     Value::Null
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Int(0), Value::Int(1)]);
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums as we do not need to do any complex number transformations
@@ -1661,7 +1661,7 @@ impl Bitget {
         bookside.store_array(bidAsk);
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
@@ -1888,7 +1888,7 @@ impl Bitget {
             stored = Some(ArrayCache::new(limit));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut length: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -1896,7 +1896,7 @@ impl Bitget {
             while { if !__for_first_117 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_117 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(length), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                 &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut rawTrade: crate::value::Dict = get_value(&data, &index).into_dict();
+            let mut rawTrade: crate::value::Dict = crate::value::KeyRead::read(&&data, &index).into_dict();
             let mut parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, Some(&market)).into_dict();
             stored.append(Value::Dict(parsed));
         }

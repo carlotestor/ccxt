@@ -241,7 +241,7 @@ impl Hitbtc {
             "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error" => self.handle_error(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_notification" => self.handle_notification(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -764,8 +764,8 @@ impl Hitbtc {
             }  else {
                 let mut asks: crate::value::List = self.safe_list_k(&item, "a", &[Value::from(vec![])]).into_list();
                 let mut bids: crate::value::List = self.safe_list_k(&item, "b", &[Value::from(vec![])]).into_list();
-                self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
-                self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
+                self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+                self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             }
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
@@ -777,7 +777,7 @@ impl Hitbtc {
         }
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_number(delta.clone(), Value::Int(0), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_number(delta, Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
@@ -1281,11 +1281,11 @@ impl Hitbtc {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict2(message.clone(), Value::Str("snapshot".into()), Value::Str("update".into()), &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("snapshot".into()), Value::Str("update".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketIds: Vec<Value> = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_367: bool = true;
@@ -1299,7 +1299,7 @@ impl Hitbtc {
                 stored = Some(ArrayCache::new(tradesLimit));
                 CacheStore::put(&mut self.trades, &symbol, stored.clone());
             }
-            let mut trades: Vec<Value> = self.parse_ws_trades((if let (Some(__m), Some(__k)) = (data.as_map(), marketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Some(&market), &[]).as_array().cloned().unwrap_or_default();
+            let mut trades: Vec<Value> = self.parse_ws_trades(crate::value::KeyRead::read(&&data, &Value::from(marketId)), Some(&market), &[]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_366: bool = true;
@@ -1808,11 +1808,11 @@ impl Hitbtc {
         }
         let mut rawStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut report_type: Option<String> = self.safe_string_k(order.clone(), "report_type", &[]).as_str().map(str::to_owned);
-        let mut parsedStatus: Value = Value::Null;
+        let mut parsedStatus: Option<String> = None;
         if (report_type.as_deref() == Some("canceled")) {
-            parsedStatus = self.parent.parse_order_status(report_type.as_deref()).map(Value::from).unwrap_or(Value::Null);
+            parsedStatus = self.parent.parse_order_status(report_type.as_deref());
         }  else {
-            parsedStatus = self.parent.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
+            parsedStatus = self.parent.parse_order_status(rawStatus.as_deref());
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1833,7 +1833,7 @@ impl Hitbtc {
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
-        m.insert("status".to_string(), parsedStatus);
+        m.insert("status".to_string(), parsedStatus.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("trades".to_string(), trades);
         m.insert("fee".to_string(), Value::Null);
@@ -2138,7 +2138,7 @@ impl Hitbtc {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parent.parse_balance_list(&params);
+        let mut balance: crate::value::Dict = self.parent.parse_balance_list(&params).into_dict();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2146,7 +2146,7 @@ impl Hitbtc {
             });
         }
         let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
-        let mut keys: Vec<Value> = object_keys(&balance).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(balance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_372: bool = true;
@@ -2155,7 +2155,7 @@ impl Hitbtc {
             if self.in_array(key.clone(), &reserved) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (balance.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&balance, &key)); }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }

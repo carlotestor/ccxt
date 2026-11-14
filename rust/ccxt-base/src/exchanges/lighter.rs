@@ -1023,15 +1023,15 @@ impl Lighter {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let apiKeyIndexOptionparamsApiKeyIndexVariable: Vec<Value> = self.handle_option_and_params2(params, methodName1, optionName1, optionName2, &[defaultValue]).as_array().cloned().unwrap_or_default();
         let mut apiKeyIndexOption: Value = apiKeyIndexOptionparamsApiKeyIndexVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsApiKeyIndex: Value = apiKeyIndexOptionparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexOptionparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut apiKeyIndex: Option<i64> = self.safe_integer(Value::from(vec![apiKeyIndexOption]), Value::Int(0), &[]).as_i64();
         if (apiKeyIndex.is_some()) && (apiKeyIndex >= Some(4)) && ((apiKeyIndex.is_some() && apiKeyIndex <= Some(254))) {
-            return Value::from(vec![Value::from(self.parse_to_int(Value::from(apiKeyIndex))), paramsApiKeyIndex.clone()]);
+            return Value::from(vec![Value::from(self.parse_to_int(Value::from(apiKeyIndex))), Value::from(&paramsApiKeyIndex)]);
         }
         // apiKeyIndex = this.randNumber (2);
         let mut defaultApiKeyIndex: i64 = 254;
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKeyIndex".into(), Value::from(defaultApiKeyIndex)); }; // default to a value to avoid overriding other keys
-        return Value::from(vec![Value::from(defaultApiKeyIndex), paramsApiKeyIndex]);
+        return Value::from(vec![Value::from(defaultApiKeyIndex), Value::Dict(paramsApiKeyIndex)]);
 
     Value::Null
 }
@@ -1044,7 +1044,7 @@ impl Lighter {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let accountIndexOptionparamsAccountIndexVariable: Vec<Value> = self.handle_option_and_params2(params, methodName1.clone(), optionName1.clone(), optionName2.clone(), &[defaultValue]).as_array().cloned().unwrap_or_default();
         let mut accountIndexOption: Value = accountIndexOptionparamsAccountIndexVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAccountIndex: Value = accountIndexOptionparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAccountIndex: crate::value::Dict = accountIndexOptionparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut accountIndex: Value = accountIndexOption;
         if (accountIndex == Value::Null) {
             let mut walletAddress: Value = self.walletAddress.clone();
@@ -1097,7 +1097,7 @@ impl Lighter {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountIndex".into(), accountIndex.clone()); }
             }
         }
-        return Value::from(vec![Value::from(self.parse_to_int(accountIndex)), paramsAccountIndex]);
+        return Value::from(vec![Value::from(self.parse_to_int(accountIndex)), Value::Dict(paramsAccountIndex)]);
 
     Value::Null
 }
@@ -1201,9 +1201,9 @@ impl Lighter {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " pow() requires m < 100.")));
         }
         {
-                        let mut i: Value = Value::Int(1);
+                        let mut i: i64 = 1;
             let mut __for_first_929: bool = true;
-            while { if !__for_first_929 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_929 = false; matches!(c, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_929 { i += 1; } __for_first_929 = false; matches!(c, Some(__b) if (i as f64) < (__b as f64)) } {
             r = crate::precise::Precise::stringMul(&r, &n).as_str().map(str::to_owned);
         }
         }
@@ -1237,13 +1237,13 @@ impl Lighter {
     pub fn sign_l1_and_prepare_tx_info(&self, mut txInfo: Value, mut message: Value, privateKey: &str) -> Option<String> {
         let mut privateKey: Value = privateKey.into();
         let mut hashMessage: Option<String> = self.hash_message(message.as_str().unwrap_or_default());
-        let mut signature: Value = self.sign_hash(hashMessage.as_deref().unwrap_or_default(), privateKey.as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Option<String> = self.sign_hash(hashMessage.as_deref().unwrap_or_default(), privateKey.as_str().unwrap_or_default());
         let __ws_arg_4 = self.parse_json_value(txInfo);
         let mut decTxInfo: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }), &[__ws_arg_4]);
-        add_element_to_object(&mut decTxInfo, &Value::Str("L1Sig".into()), signature);
+        add_element_to_object(&mut decTxInfo, &Value::Str("L1Sig".into()), signature.map(Value::from).unwrap_or(Value::Null));
         return json_stringify(&decTxInfo).as_str().map(str::to_owned);
 }
 
@@ -4899,7 +4899,7 @@ if _try_result.is_err() {
         if (direction.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")));
         }
-        if !self.in_array(Value::from(direction), Value::from(vec![Value::Int(0), Value::Int(1)])) {
+        if !self.in_array(&direction, Value::from(vec![Value::Int(0), Value::Int(1)])) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")));
         }
         if (symbol == Value::Null) {
@@ -4970,7 +4970,7 @@ if _try_result.is_err() {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut url: Value = Value::Null;
         if (apiName.as_deref() == Some("root")) {
             let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]).as_str().map(str::to_owned);
@@ -4979,7 +4979,7 @@ if _try_result.is_err() {
             }
             url = self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            let mut baseApiUrl2: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut baseApiUrl2: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
             if (baseApiUrl2.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }

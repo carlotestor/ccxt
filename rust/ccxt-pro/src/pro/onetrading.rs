@@ -436,7 +436,7 @@ impl Onetrading {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parse_balance(message);
+        let mut balance: crate::value::Dict = self.parse_balance(message).into_dict();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -444,7 +444,7 @@ impl Onetrading {
             });
         }
         let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
-        let mut keys: Vec<Value> = object_keys(&balance).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(balance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_557: bool = true;
@@ -453,7 +453,7 @@ impl Onetrading {
             if self.in_array(key.clone(), &reserved) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (balance.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&balance, &key)); }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
@@ -1433,7 +1433,7 @@ impl Onetrading {
             symbol = self.safe_string_k(&previousOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut filled: Option<String> = self.safe_string_k(&update, "filled_amount", &[]).as_str().map(str::to_owned);
             let mut status: Value = self.parse_ws_order_status(updateType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-            if (updateType.as_deref() == Some("ORDER_CLOSED")) && crate::precise::Precise::stringEq(&filled.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if (updateType.as_deref() == Some("ORDER_CLOSED")) && crate::precise::Precise::stringEq(&filled, &Value::Str("0".into())).as_bool() == Some(true) {
                 status = Value::Str("canceled".into());
             }
             let mut orderObject: Value = Value::Map({
@@ -1602,9 +1602,9 @@ impl Onetrading {
             })]).as_map().cloned().unwrap_or_default();
             let mut marketIdtimeframes: Vec<Value> = Value::Array(marketSubscription.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
-                                let mut ii: Value = Value::Int(0);
+                                let mut ii: i64 = 0;
                 let mut __for_first_563: bool = true;
-                while { if !__for_first_563 { if let Value::Int(n) = &mut ii { *n += 1; } } __for_first_563 = false; ii.as_f64().unwrap_or(f64::NAN) < ((marketIdtimeframes.len() as i64) as f64) } {
+                while { if !__for_first_563 { ii += 1; } __for_first_563 = false; ii < (marketIdtimeframes.len() as i64) } {
                 let mut marketTimeframeId: indexmap::IndexMap<String, Value> = self.safe_dict(&timeframes, timeframe.clone(), &[]).as_map().cloned().unwrap_or_default();
                 let mut property: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();

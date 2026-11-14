@@ -466,8 +466,8 @@ impl Revolutx {
         let mut requestHeaders: Value = Value::Null;
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

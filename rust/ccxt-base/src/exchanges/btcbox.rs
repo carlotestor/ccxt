@@ -476,13 +476,13 @@ impl Btcbox {
                         let mut i: i64 = 0;
             let mut __for_first_470: bool = true;
             while { if !__for_first_470 { i += 1; } __for_first_470 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut symbolParts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut baseCurr: String = self.safe_string(&symbolParts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quote: String = self.safe_string(&symbolParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteId: String = quote.to_lowercase();
             let mut id: String = baseCurr.to_lowercase();
-            let mut res: indexmap::IndexMap<String, Value> = self.safe_dict(response1.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut res: indexmap::IndexMap<String, Value> = self.safe_dict(response1.clone(), Value::from(marketId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -1060,7 +1060,7 @@ impl Btcbox {
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         // fetchOrders do not return status, use heuristic
         if (status.is_none()) {
-            if crate::precise::Precise::stringEquals(&remaining.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".into())).as_bool() == Some(true) {
                 status = Some("closed".to_string());
             }
         }

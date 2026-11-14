@@ -1633,7 +1633,7 @@ impl Derive {
 }));
         let mut allInstruments: crate::value::List = std::sync::Arc::new(Vec::new());
         let maxPagesparamsMaxPagesVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("getMarketsPaginated".into()), Value::Str("maxMarketPages".into()), &[Value::Int(25)]).as_array().cloned().unwrap_or_default();
-        let mut maxPages: Value = maxPagesparamsMaxPagesVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxPages: Option<i64> = maxPagesparamsMaxPagesVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxPages: crate::value::Dict = maxPagesparamsMaxPagesVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let pageSizeparamsOmittedVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsMaxPages, Value::Str("getMarketsPaginated".into()), Value::Str("maxMarketsPerPage".into()), &[Value::Int(1000)]).as_array().cloned().unwrap_or_default();
         let mut pageSize: Option<i64> = pageSizeparamsOmittedVariable.get(0).and_then(Value::as_i64);
@@ -1641,7 +1641,7 @@ impl Derive {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < maxPages.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_630 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_630 = false; matches!(maxPages, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
             let mut page: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut requestExtension: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3138,7 +3138,7 @@ impl Derive {
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
         let mut orderSideIsBuy: bool = orderSide == "buy"; // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
+        let mut nonce: Option<String> = self.nonce_string();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         let mut signatureExpiry: Value = self.safe_integer_k(&paramsDeriveSubaccountId, "signature_expiry_sec", &[(match (&(Value::Int(self.seconds())), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
             Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
@@ -3166,14 +3166,14 @@ impl Derive {
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("createOrder", &paramsMaxFee).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut signature: Option<String> = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(nonce.clone()), Value::from(TRADE_MODULE_ADDRESS), Value::from(&tradeModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
-            (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut signature: Option<String> = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(TRADE_MODULE_ADDRESS), Value::from(&tradeModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null),
+            self.walletAddress.clone()]), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
                 m.insert("direction".to_string(), Value::from(orderSide));
                 m.insert("order_type".to_string(), Value::from(orderType));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
                 m.insert("limit_price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
                 m.insert("max_fee".to_string(), maxFeeString.map(Value::from).unwrap_or(Value::Null));
@@ -3330,7 +3330,7 @@ impl Derive {
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
         let mut orderSideIsBuy: bool = orderSide == "buy"; // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
+        let mut nonce: Option<String> = self.nonce_string();
         let mut signatureExpiry: Value = self.safe_number_k(&paramsDeriveSubaccountId, "signature_expiry_sec", &[(match (&(Value::Int(self.seconds())), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
             Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: crate::value::Bytes = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
@@ -3349,15 +3349,15 @@ impl Derive {
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("editOrder", &paramsDeriveSubaccountId).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut signature: Option<String> = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(nonce.clone()), Value::from(TRADE_MODULE_ADDRESS), Value::from(&tradeModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
-            (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut signature: Option<String> = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(TRADE_MODULE_ADDRESS), Value::from(&tradeModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null),
+            self.walletAddress.clone()]), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
                 m.insert("order_id_to_cancel".to_string(), id);
                 m.insert("direction".to_string(), Value::from(orderSide));
                 m.insert("order_type".to_string(), Value::from(orderType));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
                 m.insert("limit_price".to_string(), priceString);
                 m.insert("max_fee".to_string(), Value::from(maxFeeString));
@@ -4518,7 +4518,7 @@ impl Derive {
         let mut marketResolved: crate::types::Market = self.safe_market(contract.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut size: Option<String> = self.safe_string_k(position.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
-        if crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringGt(&size, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("long".to_string());
         }  else {
             side = Some("short".to_string());
@@ -5053,7 +5053,7 @@ impl Derive {
         if (usdcAccount.is_some()) {
             let mut totalUsdc: Option<String> = self.safe_string_k(&usdcAccount, "total", &[]).as_str().map(str::to_owned);
             let mut used: Option<String> = usedUsd;
-            if crate::precise::Precise::stringGt(&used.clone().map(Value::from).unwrap_or(Value::Null), &totalUsdc.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&used, &totalUsdc).as_bool() == Some(true) {
                 used = totalUsdc.clone();
             }
             if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null)); }
@@ -5120,7 +5120,7 @@ impl Derive {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " transfer() creating a subaccount charges a fee, set params.max_fee_usd to cover it")));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["max_fee_usd", "new_subaccount_manager"], &[]).into_dict();
-        let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
+        let mut nonce: Option<String> = self.nonce_string();
         let mut signatureExpiry: Value = self.safe_integer_k(&paramsOmitted, "signature_expiry_sec", &[(match (&(Value::Int(self.seconds())), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
             (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: crate::value::Bytes = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
@@ -5130,8 +5130,8 @@ impl Derive {
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("transfer", &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut signature: Option<String> = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(fromId), self.convert_to_big_int(nonce.clone()), Value::from(TRANSFER_MODULE_ADDRESS), Value::from(&transferModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
-            (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut signature: Option<String> = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(fromId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(TRANSFER_MODULE_ADDRESS), Value::from(&transferModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null),
+            self.walletAddress.clone()]), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), Value::from(fromId));
@@ -5141,7 +5141,7 @@ impl Derive {
                 m.insert("sub_id".to_string(), Value::Int(0));
                 m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("max_fee_usd".to_string(), Value::from(maxFeeUsd));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signature_expiry_sec".to_string(), signatureExpiry);
@@ -5948,8 +5948,8 @@ impl Derive {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -5962,13 +5962,13 @@ impl Derive {
             });
             if (apiName.as_deref() == Some("private")) {
                 let mut now: Option<String> = self.number_to_string(self.nonce());
-                let mut signature: Value = self.sign_message(now.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+                let mut signature: Option<String> = self.sign_message(now.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default());
                 let mut configuredWalletAddress: Option<String> = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]).as_str().map(str::to_owned);
                 // v3: the owner wallet is the user's own EOA
                 let mut deriveWalletAddress: Value = (if ((configuredWalletAddress.is_none()) || (configuredWalletAddress.as_deref() == Some(""))) { self.walletAddress.clone() } else { configuredWalletAddress.clone().map(Value::from).unwrap_or(Value::Null) });
                 postHeaders.insert("X-DeriveWallet".into(), deriveWalletAddress);
                 postHeaders.insert("X-DeriveTimestamp".into(), now.map(Value::from).unwrap_or(Value::Null));
-                postHeaders.insert("X-DeriveSignature".into(), signature);
+                postHeaders.insert("X-DeriveSignature".into(), signature.map(Value::from).unwrap_or(Value::Null));
             }
             let mut postBody: Option<String> = json_stringify(&params).as_str().map(str::to_owned);
             return Value::Map({

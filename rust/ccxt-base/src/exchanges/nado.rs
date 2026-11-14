@@ -1394,9 +1394,9 @@ impl Nado {
         let mut sender: Option<String> = self.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut productIds: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_980: bool = true;
-            while { if !__for_first_980 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_980 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            while { if !__for_first_980 { i += 1; } __for_first_980 = false; i < (ids.len() as i64) } {
             productIds.push(Value::from(productId));
         }
         }
@@ -2327,7 +2327,7 @@ impl Nado {
                 m
             })]).into_dict();
             let mut amount: Option<String> = self.safe_string_k(&balance, "amount", &[]).as_str().map(str::to_owned);
-            if (amount.is_none()) || crate::precise::Precise::stringEquals(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if (amount.is_none()) || crate::precise::Precise::stringEquals(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
                 continue;
             }
             let mut productId: Option<String> = self.safe_string_k(&position, "product_id", &[]).as_str().map(str::to_owned);
@@ -3338,7 +3338,7 @@ impl Nado {
         let mut rawOrderAmount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "trade_type", &[]).as_str().map(str::to_owned);
         if (side.is_none()) && (rawOrderAmount.is_some()) {
-            if crate::precise::Precise::stringLt(&rawOrderAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&rawOrderAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("sell".to_string());
             }  else {
                 side = Some("buy".to_string());
@@ -3799,14 +3799,14 @@ impl Nado {
         let mut markPrice: Value = Value::Null;
         let mut notional: Option<f64> = None;
         if (amountString.is_some()) {
-            if crate::precise::Precise::stringGt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("long".to_string());
-            }  else if crate::precise::Precise::stringLt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            }  else if crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("short".to_string());
             }
             let mut absoluteAmount: Option<String> = crate::precise::Precise::stringAbs(&amountString).as_str().map(str::to_owned);
             contracts = self.parse_x18(absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null));
-            if (vQuoteBalance.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if (vQuoteBalance.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount, &Value::Str("0".into())).as_bool() == Some(true)) {
                 entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteBalance), &absoluteAmount), &[]).as_f64();
             }
             if (markPriceX18.is_some()) {
@@ -3930,7 +3930,7 @@ impl Nado {
         //
         let mut id: Option<String> = None;
         let mut timestamp: Option<i64> = None;
-        let mut timeInForce: Value = Value::Null;
+        let mut timeInForce: Option<String> = None;
         let mut postOnly: Option<bool> = None;
         let mut side: Option<String> = None;
         let mut price: Value = Value::Null;
@@ -3997,7 +3997,7 @@ impl Nado {
             }
             timestamp = self.safe_timestamp_k(order.clone(), "placed_at", &[]).as_i64();
             let mut orderType: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
-            timeInForce = self.parse_order_time_in_force(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null);
+            timeInForce = self.parse_order_time_in_force(orderType.as_deref());
             postOnly = Some(orderType.as_deref() == Some("post_only"));
             price = self.parse_x18(self.safe_string_k(order.clone(), "price_x18", &[]));
             status = self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())]).as_str().map(str::to_owned);
@@ -4055,7 +4055,7 @@ impl Nado {
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Str("limit".into()));
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
@@ -4421,8 +4421,8 @@ impl Nado {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestBody: Option<String> = None;
-        let mut endpoint: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), endpoint.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut endpoint: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(endpoint.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

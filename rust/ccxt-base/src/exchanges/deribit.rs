@@ -3166,7 +3166,7 @@ impl Deribit {
         }
         let mut lastTradeTimestamp: Option<i64> = None;
         if (filledString.is_some()) {
-            let mut isFilledPositive: Value = crate::precise::Precise::stringGt(&filledString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into()));
+            let mut isFilledPositive: Value = crate::precise::Precise::stringGt(&filledString, &Value::Str("0".into()));
             if isFilledPositive.as_bool() == Some(true) {
                 lastTradeTimestamp = lastUpdate.take();
             }
@@ -5725,7 +5725,7 @@ impl Deribit {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", "api/").into()), self.version.clone()).into()), "/").into()), apiName.as_deref().unwrap_or("null")).into()), "/").into()), path);
         if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {

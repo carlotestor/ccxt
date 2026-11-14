@@ -2448,13 +2448,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut priceString: Option<String> = self.number_to_string(price);
             if (uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
                 if (side.as_str() == Some("buy")) {
-                    if crate::precise::Precise::stringLt(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("STOP_LIMIT".into()));
                     }
                 }  else {
-                    if crate::precise::Precise::stringLt(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("STOP_LIMIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
@@ -2462,13 +2462,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }  else {
                 if (side.as_str() == Some("buy")) {
-                    if crate::precise::Precise::stringLt(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("STOP_LOSS".into()));
                     }
                 }  else {
-                    if crate::precise::Precise::stringLt(&priceString.map(Value::from).unwrap_or(Value::Null), &triggerPrice.map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("STOP_LOSS".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
@@ -2721,16 +2721,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isStopLossTrigger: bool = stopLossPrice.is_some();
         let mut isTakeProfitTrigger: bool = takeProfitPrice.is_some();
         if isTrigger {
-            let mut priceString: Value = Value::from(self.number_to_string(price.clone()));
+            let mut priceString: Option<String> = self.number_to_string(price.clone());
             if (uppercaseType.as_deref() == Some("LIMIT")) || (uppercaseType.as_deref() == Some("STOP_LIMIT")) || (uppercaseType.as_deref() == Some("TAKE_PROFIT_LIMIT")) {
                 if (side.as_str() == Some("buy")) {
-                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("STOP_LIMIT".into()));
                     }
                 }  else {
-                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("STOP_LIMIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
@@ -2738,13 +2738,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }  else {
                 if (side.as_str() == Some("buy")) {
-                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("STOP_LOSS".into()));
                     }
                 }  else {
-                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice.map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("STOP_LOSS".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
@@ -4012,13 +4012,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut type_var: Option<String> = None;
         let mut rawStatus: Option<String> = self.safe_string_k(transaction.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("client_wid"))) {
             type_var = Some("withdrawal".to_string());
-            status = self.parse_withdrawal_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_withdrawal_status(rawStatus.as_deref());
         }  else {
             type_var = Some("deposit".to_string());
-            status = self.parse_deposit_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_deposit_status(rawStatus.as_deref());
         }
         let mut addressString: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let addresstagVariable: Vec<Value> = self.parse_address(addressString.as_deref()).as_array().cloned().unwrap_or_default();
@@ -4054,7 +4054,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_integer_k(transaction.clone(), "update_time", &[]));
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), self.safe_string_k(transaction, "client_wid", &[]));
@@ -4327,7 +4327,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "transaction_qty", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
-        if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
             amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }  else {
@@ -4986,7 +4986,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("hedged".to_string(), Value::Null);
-        m.insert("side".to_string(), (if crate::precise::Precise::stringGt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
+        m.insert("side".to_string(), (if crate::precise::Precise::stringGt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&amount), &[]));
         m.insert("contractSize".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "contractSize"));
         m.insert("entryPrice".to_string(), Value::Null);
@@ -5312,9 +5312,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Value = Value::Null;
-        let mut type_var: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut type_var: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(type_var.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

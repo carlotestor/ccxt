@@ -221,8 +221,8 @@ impl Whitebit {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
@@ -538,20 +538,20 @@ impl Whitebit {
         }  else {
             let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
             let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
-            self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
-            self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_float(delta, Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
@@ -789,12 +789,12 @@ impl Whitebit {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut data: crate::value::List = self.safe_list(&params, Value::Int(1), &[Value::from(vec![])]).into_list();
-        let mut parsedTrades: Value = self.parse_trades(&data, Some(&market), &[]);
+        let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_708: bool = true;
             while { if !__for_first_708 { j += 1; } __for_first_708 = false; j < (parsedTrades.len() as i64) } {
-            stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
+            stored.append(crate::value::KeyRead::read(&&parsedTrades, &Value::Int(j)));
         }
         }
         let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));

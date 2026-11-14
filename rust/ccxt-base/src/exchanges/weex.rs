@@ -2421,7 +2421,7 @@ impl Weex {
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         let historicalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsPaginate, Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut historical: Value = historicalparamsHistoricalVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut historical: bool = historicalparamsHistoricalVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsHistorical: crate::value::Dict = historicalparamsHistoricalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut timeframeOption: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2446,7 +2446,7 @@ impl Weex {
         // the recent-klines endpoints ignore startTime and endTime and only ever return the
         // latest candles, so a request bounded by since or until has to go through the history
         // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
-        let mut useHistory: bool = historical.as_bool() == Some(true) || (since != Value::Null) || (until.is_some());
+        let mut useHistory: bool = historical || (since != Value::Null) || (until.is_some());
         if useHistory {
             if (priceType.is_some()) {
                 request.insert("priceType".into(), priceType.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5944,7 +5944,7 @@ impl Weex {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut endpoint: String = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut isBatch: bool = path.as_str().unwrap_or("").contains("batch");
@@ -5993,7 +5993,7 @@ impl Weex {
                 m
             });
         }
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

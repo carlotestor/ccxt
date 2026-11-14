@@ -1100,19 +1100,19 @@ impl Blofin {
         }
         self.authenticate(&[]).await;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchBalance() is not supported for spot markets yet")));
         }
-        let mut messageHash: String = format!("{}{}", marketType, ":balance");
+        let mut messageHash: String = format!("{}{}", marketType.as_deref().unwrap_or("null"), ":balance");
         let mut sub: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("account".into()));
             m
         });
         let mut request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(sub)])).into_dict();
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[Value::Map({
+        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();

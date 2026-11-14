@@ -2577,9 +2577,9 @@ impl Hibachi {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -2674,19 +2674,19 @@ impl Hibachi {
         let mut item: Value = item.into();
         let mut transactionType: Option<String> = self.safe_string_k(item.clone(), "transactionType", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = None;
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut direction: Option<String> = None;
         let mut amount: Option<f64> = None;
         let mut fee: Option<crate::value::Dict> = None;
         let mut referenceId: Option<String> = None;
         let mut referenceAccount: Option<String> = None;
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if (transactionType.is_none()) {
             // response from TradeAccountTradingHistory
             timestamp = self.safe_integer_product_k(item.clone(), "timestamp", Value::Int(1000), &[]).as_i64();
-            type_var = Value::Str("trade".into());
+            type_var = Some("trade".to_string());
             let mut amountStr: Option<String> = self.safe_string_k(item.clone(), "realizedPnl", &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringLt(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&amountStr, &Value::Str("0".into())).as_bool() == Some(true) {
                 direction = Some("out".to_string());
                 amountStr = crate::precise::Precise::stringNeg(&amountStr).as_str().map(str::to_owned);
             }  else {
@@ -2699,14 +2699,14 @@ impl Hibachi {
                     m.insert("cost".to_string(), self.safe_number_k(item.clone(), "fee", &[]));
                 m
             }));
-            status = Value::Str("ok".into());
+            status = Some("ok".to_string());
         }  else {
             // response from CapitalHistory
             timestamp = self.safe_integer_product_k(item.clone(), "timestampSec", Value::Int(1000), &[]).as_i64();
             amount = self.safe_number_k(item.clone(), "quantity", &[]).as_f64();
             direction = (if ((transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("transfer-in"))) { Some("in".to_string()) } else { Some("out".to_string()) });
-            type_var = self.parse_transaction_type(transactionType.as_deref()).map(Value::from).unwrap_or(Value::Null);
-            status = self.parse_transaction_status((self.safe_string_k(item.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+            type_var = self.parse_transaction_type(transactionType.as_deref());
+            status = self.parse_transaction_status((self.safe_string_k(item.clone(), "status", &[])).as_str());
             if (transactionType.as_deref() == Some("transfer-in")) {
                 referenceAccount = self.safe_string_k(item.clone(), "srcAccountId", &[]).as_str().map(str::to_owned);
             }  else if (transactionType.as_deref() == Some("transfer-out")) {
@@ -2721,7 +2721,7 @@ impl Hibachi {
         m.insert("account".to_string(), Value::from(self.number_to_string(self.accountId.clone())));
         m.insert("referenceAccount".to_string(), referenceAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceId".to_string(), referenceId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
@@ -2729,7 +2729,7 @@ impl Hibachi {
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), item);
     m
 }), currency);

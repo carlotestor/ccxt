@@ -1019,14 +1019,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         // resolve the owner the same way fetchBalance does — derive from the configured privateKey
         // when no explicit walletAddress/param is set, so a privateKey-only config works for both
-        let mut address: Value = self.safe_string2(params.clone(), Value::Str("address".into()), Value::Str("user".into()), &[self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null)]);
-        if (address == Value::Null) {
+        let mut address: Option<String> = self.safe_string2(params.clone(), Value::Str("address".into()), Value::Str("user".into()), &[self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (address.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchPositions() requires a walletAddress or an address parameter")));
         }
         let mut rest: crate::value::Dict = self.omit(params, &["address", "user"], &[]).into_dict();
         let __ws_arg_7 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("address".to_string(), address);
+                m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
             m
         }), &[&rest]);
         let mut response: crate::value::Dict = self.myriad_public_get_users_address_portfolio(&[__ws_arg_7]).await.into_dict();
@@ -1505,15 +1505,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut marketPrice: i64 = (if (sideInt == 0) { 1 } else { 0 });
         let mut priceValue: Value = (if (price != Value::Null) { price } else { Value::from(marketPrice) });
-        let mut priceWei: Value = self.to_orderbook_wei(priceValue.as_f64()).map(Value::from).unwrap_or(Value::Null);
+        let mut priceWei: Option<String> = self.to_orderbook_wei(priceValue.as_f64());
         if crate::precise::Precise::stringLt(&priceWei, &Value::Str("1".into())).as_bool() == Some(true) {
-            priceWei = Value::Str("1".into());
+            priceWei = Some("1".to_string());
         }
         // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
         if crate::precise::Precise::stringGt(&priceWei, &Value::Str("1000000000000000000".into())).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() price must be a fraction between 0 and 1")));
         }
-        let mut amountWei: Value = self.to_orderbook_wei(amount.as_f64()).map(Value::from).unwrap_or(Value::Null);
+        let mut amountWei: Option<String> = self.to_orderbook_wei(amount.as_f64());
         // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
         if crate::precise::Precise::stringLt(&amountWei, &Value::Str("1".into())).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() amount is too small (rounds to zero shares)")));
@@ -1527,8 +1527,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("marketId".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("outcomeId".to_string(), self.parse_to_numeric(Value::from(outcomeId)));
                 m.insert("side".to_string(), self.parse_to_numeric(Value::from(sideInt)));
-                m.insert("amount".to_string(), amountWei);
-                m.insert("price".to_string(), priceWei);
+                m.insert("amount".to_string(), amountWei.map(Value::from).unwrap_or(Value::Null));
+                m.insert("price".to_string(), priceWei.map(Value::from).unwrap_or(Value::Null));
                 m.insert("minFillAmount".to_string(), Value::from(minFillAmount));
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiration".to_string(), Value::from(expiration));
@@ -2153,7 +2153,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountStr: Option<String> = self.safe_string_k(trade.clone(), "shares", &[]).as_str().map(str::to_owned);
         let mut costStr: Option<String> = self.safe_string_k(trade.clone(), "value", &[]).as_str().map(str::to_owned);
         let mut priceStr: Option<String> = None;
-        if (amountStr.is_some()) && (costStr.is_some()) && !(crate::precise::Precise::stringEq(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (amountStr.is_some()) && (costStr.is_some()) && !(crate::precise::Precise::stringEq(&amountStr, &Value::Str("0".into())).as_bool() == Some(true)) {
             priceStr = crate::precise::Precise::stringDiv(&costStr, &amountStr).as_str().map(str::to_owned);
         }
         return self.safe_prediction_order(Value::Map({
@@ -3035,9 +3035,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut decimalsCount: Option<i64> = self.parse_to_int(decimals);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1356: bool = true;
-            while { if !__for_first_1356 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1356 = false; matches!(decimalsCount, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_1356 { i += 1; } __for_first_1356 = false; matches!(decimalsCount, Some(__b) if (i as f64) < (__b as f64)) } {
             scale = format!("{}{}", scale, "0");
         }
         }
@@ -4193,7 +4193,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountStr: Option<String> = self.safe_string_k(trade.clone(), "shares", &[]).as_str().map(str::to_owned);
         let mut costStr: Option<String> = self.safe_string_k(trade.clone(), "value", &[]).as_str().map(str::to_owned);
         let mut priceStr: Option<String> = None;
-        if (amountStr.is_some()) && (costStr.is_some()) && !(crate::precise::Precise::stringEq(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (amountStr.is_some()) && (costStr.is_some()) && !(crate::precise::Precise::stringEq(&amountStr, &Value::Str("0".into())).as_bool() == Some(true)) {
             priceStr = crate::precise::Precise::stringDiv(&costStr, &amountStr).as_str().map(str::to_owned);
         }
         return self.safe_prediction_trade(Value::Map({
@@ -5477,9 +5477,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
-        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "myriad")]);
+        let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "myriad")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (method.as_str() == Some("GET")) {

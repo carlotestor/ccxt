@@ -939,12 +939,12 @@ impl Bithumb {
         if (generation == Some(2)) {
             request.insert("isDetails".into(), Value::Bool(true));
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-            let mut response: Value = self.public_get_v1_market_all(&[__ws_arg_0]).await;
+            let mut response: crate::value::List = self.public_get_v1_market_all(&[__ws_arg_0]).await.into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_389: bool = true;
                 while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (response.len() as i64) } {
-                let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = crate::value::KeyRead::read(&&response, &Value::Int(i));
                 let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "market", &[]).as_str().map(str::to_owned);
                 let mut baseId: Option<String> = None;
                 let mut quoteId: Option<String> = None;
@@ -1495,10 +1495,10 @@ impl Bithumb {
         let mut high: Option<String> = self.safe_string2(ticker.clone(), Value::Str("max_price".into()), Value::Str("high_price".into()), &[]).as_str().map(str::to_owned);
         let mut low: Option<String> = self.safe_string2(ticker.clone(), Value::Str("min_price".into()), Value::Str("low_price".into()), &[]).as_str().map(str::to_owned);
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
-        if (close.is_some()) && (high.is_some()) && crate::precise::Precise::stringGt(&close.clone().map(Value::from).unwrap_or(Value::Null), &high.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+        if (close.is_some()) && (high.is_some()) && crate::precise::Precise::stringGt(&close, &high).as_bool() == Some(true) {
             high = close.clone();
         }
-        if (close.is_some()) && (low.is_some()) && crate::precise::Precise::stringLt(&close.clone().map(Value::from).unwrap_or(Value::Null), &low.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+        if (close.is_some()) && (low.is_some()) && crate::precise::Precise::stringLt(&close, &low).as_bool() == Some(true) {
             low = close.clone();
         }
         return self.safe_ticker(Value::Map({
@@ -2424,9 +2424,9 @@ impl Bithumb {
         let mut timeInForce: Option<String> = (if (timeInForceRaw.is_none()) { Some("GTC".to_string()) } else { timeInForceRaw.clone() });
         let mut paramsTimeInForce: crate::value::Dict = (if (timeInForceRaw.is_none()) { params.clone() } else { self.omit(params, Value::Str("timeInForce".into()), &[]) }).into_dict();
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[Value::from(&paramsTimeInForce)]).as_array().cloned().unwrap_or_default();
-        let mut postOnly: Value = postOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isPostOnly: bool = postOnly.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO"));
+        let mut isPostOnly: bool = postOnly || (timeInForce.as_deref() == Some("PO"));
         let mut paramsOrder: Value = Value::from(&paramsPostOnly);
         if isPostOnly {
             paramsOrder = self.omit(&paramsPostOnly, Value::Str("postOnly".into()), &[]);
@@ -3013,7 +3013,7 @@ impl Bithumb {
         let mut type_var: Option<String> = self.safe_string2(order.clone(), Value::Str("order_type".into()), Value::Str("ord_type".into()), &[]).as_str().map(str::to_owned);
         let mut progressCount: Option<String> = self.safe_string_k(order.clone(), "progress_count", &[]).as_str().map(str::to_owned);
         if (type_var.is_none()) && (price.is_some()) && (progressCount.is_none()) {
-            if crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true) {
                 type_var = Some("market".to_string());
             }  else {
                 type_var = Some("limit".to_string());
@@ -4290,14 +4290,14 @@ impl Bithumb {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut requestHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut requestBody: Value = Value::Null;
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

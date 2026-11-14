@@ -978,9 +978,9 @@ impl Hyperliquid {
         // appends max (1, cappedDecimals) - 1 zeros
         let mut zeros: String = "".to_string();
         {
-                        let mut zi: Value = Value::Int(1);
+                        let mut zi: i64 = 1;
             let mut __for_first_1235: bool = true;
-            while { if !__for_first_1235 { if let Value::Int(n) = &mut zi { *n += 1; } } __for_first_1235 = false; zi.as_f64().unwrap_or(f64::NAN) < cappedDecimals.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1235 { zi += 1; } __for_first_1235 = false; (zi as f64) < cappedDecimals.as_f64().unwrap_or(f64::NAN) } {
             zeros = format!("{}{}", zeros, "0");
         }
         }
@@ -1578,7 +1578,7 @@ impl Hyperliquid {
                 continue;
             }
             let mut totalStr: Option<String> = self.safe_string_k(&balance, "total", &[]).as_str().map(str::to_owned);
-            if (totalStr.is_none()) || crate::precise::Precise::stringEq(&totalStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if (totalStr.is_none()) || crate::precise::Precise::stringEq(&totalStr, &Value::Str("0".into())).as_bool() == Some(true) {
                 continue;
             }
             // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
@@ -1623,7 +1623,7 @@ impl Hyperliquid {
         let mut total: Option<f64> = self.parse_number(totalStr.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut entryNtlStr: Option<String> = self.safe_string_k(position.clone(), "entryNtl", &[]).as_str().map(str::to_owned);
         let mut entryPrice: Option<f64> = None;
-        if (entryNtlStr.is_some()) && (totalStr.is_some()) && !(crate::precise::Precise::stringEq(&totalStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (entryNtlStr.is_some()) && (totalStr.is_some()) && !(crate::precise::Precise::stringEq(&totalStr, &Value::Str("0".into())).as_bool() == Some(true)) {
             entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&entryNtlStr, &totalStr), &[]).as_f64();
         }
         let mut markPxStr: Option<String> = self.safe_string_k(position.clone(), "markPx", &[]).as_str().map(str::to_owned);
@@ -3235,12 +3235,12 @@ if _try_result.is_err() {
         let mut paramsUser: crate::value::Dict = userAuxparamsUserVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut user: Option<String> = userparamsAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsAddress: Value = userparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAddress: crate::value::Dict = userparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (user.is_some()) && (user.as_deref() != Some("")) {
-            return Value::from(vec![user.map(Value::from).unwrap_or(Value::Null), paramsAddress.clone()]);
+            return Value::from(vec![user.map(Value::from).unwrap_or(Value::Null), Value::from(&paramsAddress)]);
         }
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
-            return Value::from(vec![self.walletAddress.clone(), paramsAddress]);
+            return Value::from(vec![self.walletAddress.clone(), Value::Dict(paramsAddress)]);
         }
         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires a user parameter or walletAddress to be set")));
 
@@ -3269,7 +3269,7 @@ if _try_result.is_err() {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut baseUrl: Value = Value::Null;
         if sandboxMode {
@@ -3283,7 +3283,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            baseUrl = self.safe_string(&apiUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(&apiUrls, "public", &[Value::Str("".into())])]);
+            baseUrl = self.safe_string(&apiUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&apiUrls, "public", &[Value::Str("".into())])]);
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), path);
         let mut headersValue: Option<crate::value::Dict> = None;

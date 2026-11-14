@@ -2188,24 +2188,24 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut type_var: Option<String> = None;
         let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params, Value::from(type_var.as_deref())]).as_array().cloned().unwrap_or_default();
-        let mut typeMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut typeMarketType: Option<String> = typeMarketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (type_var.is_none()) || (typeMarketType == Value::Null) {
+        if (type_var.is_none()) || (typeMarketType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchBalance() requires a market type")));
         }
-        self.authenticate(&[typeMarketType.clone(), Value::Dict(paramsMarketType)]).await;
-        let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone()]).as_str().map(str::to_owned);
+        self.authenticate(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarketType)]).await;
+        let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), typeMarketType.clone());
+        self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
-            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", typeMarketType, ":fetchBalanceSnapshot").into()))).await;
+            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", typeMarketType.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
-        let mut messageHash: String = format!("{}{}", typeMarketType, ":balance");
+        let mut messageHash: String = format!("{}{}", typeMarketType.as_deref().unwrap_or("null"), ":balance");
         let mut message: Option<String> = None;
-        return self.watch(url.as_deref(), messageHash.as_str(), Value::from(message.as_deref()), &typeMarketType, Value::Null).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), Value::from(message.as_deref()), typeMarketType.as_deref(), Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -2539,8 +2539,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut hedged: bool = true;
         if (positionSide.as_deref() == Some("both")) {
             hedged = false;
-            if !(crate::precise::Precise::stringEq(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-                if crate::precise::Precise::stringLt(&contracts.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if !(crate::precise::Precise::stringEq(&contracts, &Value::Str("0".into())).as_bool() == Some(true)) {
+                if crate::precise::Precise::stringLt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
                     positionSide = Some("short".to_string());
                 }  else {
                     positionSide = Some("long".to_string());
@@ -2918,7 +2918,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut lastUpdateTimestamp: Option<i64> = T;
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCost: Option<String> = self.safe_string_k(order.clone(), "n", &[]).as_str().map(str::to_owned);
-        if (feeCost.is_some()) && crate::precise::Precise::stringGt(&feeCost.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (feeCost.is_some()) && crate::precise::Precise::stringGt(&feeCost, &Value::Str("0".into())).as_bool() == Some(true) {
             let mut feeCurrencyId: Option<String> = self.safe_string_k(order.clone(), "N", &[]).as_str().map(str::to_owned);
             let mut feeCurrency: Option<String> = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
             fee = Some(crate::value::Dict::new({

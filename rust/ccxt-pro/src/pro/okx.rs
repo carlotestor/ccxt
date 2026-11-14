@@ -259,8 +259,8 @@ impl Okx {
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_cancel_all_orders" => { self.handle_cancel_all_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_cancel_orders" => { self.handle_cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_liquidation" => { self.handle_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -2272,7 +2272,7 @@ impl Okx {
         }).await?))
     }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         //
         //     [
         //         "31685", // price
@@ -2286,7 +2286,7 @@ impl Okx {
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
@@ -2323,8 +2323,8 @@ impl Okx {
         //
         let mut asks: crate::value::List = message.get("asks").cloned().unwrap_or_default().into_list();
         let mut bids: crate::value::List = message.get("bids").cloned().unwrap_or_default().into_list();
-        self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
-        self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
         let mut marketId: Option<String> = (match message.get("instId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut seqId: Option<i64> = (match message.get("seqId") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
@@ -2725,11 +2725,11 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_548: bool = true;
             while { if !__for_first_548 { i += 1; } __for_first_548 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if self.in_array(key.clone(), &reserved) {
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            if self.in_array(Value::from(key.as_deref()), &reserved) {
                 continue;
             }
-            { let __be_tmp = self.safe_value(&balance, key.clone(), &[]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), __be_tmp); } }
+            { let __be_tmp = self.safe_value(&balance, Value::from(key.as_deref()), &[]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(key.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }

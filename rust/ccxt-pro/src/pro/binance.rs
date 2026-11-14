@@ -300,8 +300,8 @@ impl Binance {
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance_ws" => { self.handle_balance_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bids_asks" => { self.handle_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_edit_order_ws" => { self.handle_edit_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_event_stream_terminated" => { self.handle_event_stream_terminated(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_fetch_ohlcv" => { self.handle_fetch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1745,13 +1745,13 @@ impl Binance {
     Value::Null
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_float(delta, Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         {
                         let mut i: i64 = 0;
             let mut __for_first_59: bool = true;
@@ -1766,8 +1766,8 @@ impl Binance {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut u: Option<i64> = (match message.get("u") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        self.handle_deltas(orderbook.book_field("asks"), (match message.get("a") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
-        self.handle_deltas(orderbook.book_field("bids"), (match message.get("b") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), (match message.get("a") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), (match message.get("b") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
         orderbook.set_book_meta("nonce", Value::from(u));
         let mut timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
@@ -2607,7 +2607,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             return self.create_ohlcv_object(stockSymbol, stockTimeframe, Value::Arr(stockFiltered));
         }
         let klineTypeparamsChannelVariable: Vec<Value> = self.handle_param_string2(&paramsStock, Value::Str("channel".into()), Value::Str("name".into()), &[Value::Str("kline".into())]).as_array().cloned().unwrap_or_default();
-        let mut klineType: Value = klineTypeparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut klineType: Option<String> = klineTypeparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: crate::value::Dict = klineTypeparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut symbols: crate::value::List = self.get_list_from_object_values(symbolsAndTimeframes.clone(), Value::Int(0)).into_list();
         let mut marketSymbols: crate::value::List = self.market_symbols(&[Value::Arr(symbols), Value::Null, Value::Bool(false), Value::Bool(false), Value::Bool(true)]).into_list();
@@ -2642,7 +2642,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if (marketId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOHLCVForSymbols() marketId is required")));
             }
-            if (klineType.as_str() == Some("indexPriceKline")) {
+            if (klineType.as_deref() == Some("indexPriceKline")) {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = (if let Some(__s) = marketId.as_deref() { Some(__s.replace("_perp", "")) } else { None });
             }
@@ -2652,12 +2652,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if shouldUseUTC8 {
                 utcSuffix = suffix;
             }
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId.as_deref().unwrap_or("null"), "@").into()), klineType).into()), "_").into()), interval.as_deref().unwrap_or("null")).into()), utcSuffix).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId.as_deref().unwrap_or("null"), "@").into()), klineType.as_deref().unwrap_or("null")).into()), "_").into()), interval.as_deref().unwrap_or("null")).into()), utcSuffix).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), Value::from((market).symbol.as_str())).into()), "::").into()), timeframeString).into()));
             subscribeHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), Value::from((market).symbol.as_str())).into()), "::").into()), timeframeString).into()));
         }
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(wsUrlType, Value::Str("multipleOHLCV".into()), &[]).map(Value::from).unwrap_or(Value::Null));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(wsUrlType, Value::Str("multipleOHLCV".into()),
+            &[]).map(Value::from).unwrap_or(Value::Null));
         let mut requestId: i64 = self.request_id(Value::from(url.clone()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2717,7 +2718,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let klineTypeparamsChannelVariable: Vec<Value> = self.handle_param_string2(params, Value::Str("channel".into()), Value::Str("name".into()), &[Value::Str("kline".into())]).as_array().cloned().unwrap_or_default();
-        let mut klineType: Value = klineTypeparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut klineType: Option<String> = klineTypeparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: crate::value::Dict = klineTypeparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut symbols: crate::value::List = self.get_list_from_object_values(symbolsAndTimeframes.clone(), Value::Int(0)).into_list();
         let mut marketSymbols: crate::value::List = self.market_symbols(&[Value::from(&symbols), Value::Null, Value::Bool(false), Value::Bool(false), Value::Bool(true)]).into_list();
@@ -2752,7 +2753,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if (marketId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " unWatchOHLCVForSymbols() marketId is required")));
             }
-            if (klineType.as_str() == Some("indexPriceKline")) {
+            if (klineType.as_deref() == Some("indexPriceKline")) {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = (if let Some(__s) = marketId.as_deref() { Some(__s.replace("_perp", "")) } else { None });
             }
@@ -2762,12 +2763,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if shouldUseUTC8 {
                 utcSuffix = suffix;
             }
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId.as_deref().unwrap_or("null"), "@").into()), klineType).into()), "_").into()), interval.as_deref().unwrap_or("null")).into()), utcSuffix).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId.as_deref().unwrap_or("null"), "@").into()), klineType.as_deref().unwrap_or("null")).into()), "_").into()), interval.as_deref().unwrap_or("null")).into()), utcSuffix).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), Value::from((market).symbol.as_str())).into()), "::").into()), timeframeString).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe::ohlcv::".into()), Value::from((market).symbol.as_str())).into()), "::").into()), timeframeString).into()));
         }
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(wsUrlType, Value::Str("multipleOHLCV".into()), &[]).map(Value::from).unwrap_or(Value::Null));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(wsUrlType, Value::Str("multipleOHLCV".into()),
+            &[]).map(Value::from).unwrap_or(Value::Null));
         let mut requestId: i64 = self.request_id(Value::from(url.clone()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5256,7 +5258,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(methodName, market, &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut type_var: Option<String> = marketType;
         if (type_var.as_deref() != Some("option")) && (type_var.as_deref() != Some("stock")) {
             if self.parent.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
@@ -5265,7 +5267,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 type_var = Some("inverse".to_string());
             }
         }
-        return Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), paramsSubType]);
+        return Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsSubType)]);
 
     Value::Null
 }
@@ -5276,12 +5278,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }));
         let mut type_var: Option<String> = None;
-        let mut paramsMarketType: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(method.clone(), market, &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut subType: Value = self.handle_sub_type_and_params(method, market, &[paramsMarketType]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(method.clone(), market, &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut subType: Value = self.handle_sub_type_and_params(method, market, &[Value::from(&paramsMarketType)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         if self.parent.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
             type_var = Some("linear".to_string());
         }  else if self.parent.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
@@ -6544,7 +6543,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut lastUpdateTimestamp: Option<i64> = T;
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCost: Option<String> = self.safe_string_k(order.clone(), "n", &[]).as_str().map(str::to_owned);
-        if (feeCost.is_some()) && crate::precise::Precise::stringGt(&feeCost.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (feeCost.is_some()) && crate::precise::Precise::stringGt(&feeCost, &Value::Str("0".into())).as_bool() == Some(true) {
             let mut feeCurrencyId: Option<String> = self.safe_string_k(order.clone(), "N", &[]).as_str().map(str::to_owned);
             let mut feeCurrency: Option<String> = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
             fee = Some(crate::value::Dict::new({
@@ -6877,7 +6876,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut fills: crate::value::List = self.safe_list_k(&order, "fi", &[Value::from(vec![])]).into_list();
             let mut rawQty: String = self.safe_string_k(&order, "q", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             let mut side: String = "BUY".to_string();
-            if crate::precise::Precise::stringLt(&Value::from(rawQty.clone()), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&rawQty, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = "SELL".to_string();
             }
             let mut absQty: Option<String> = crate::precise::Precise::stringAbs(&rawQty).as_str().map(str::to_owned);
@@ -7198,8 +7197,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut hedged: bool = true;
         if (positionSide.as_deref() == Some("both")) {
             hedged = false;
-            if !(crate::precise::Precise::stringEq(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-                if crate::precise::Precise::stringLt(&contracts.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if !(crate::precise::Precise::stringEq(&contracts, &Value::Str("0".into())).as_bool() == Some(true)) {
+                if crate::precise::Precise::stringLt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
                     positionSide = Some("short".to_string());
                 }  else {
                     positionSide = Some("long".to_string());
@@ -7253,9 +7252,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&contracts).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if (contracts.is_some()) {
-            if crate::precise::Precise::stringLt(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("short".to_string());
-            }  else if crate::precise::Precise::stringGt(&contracts.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            }  else if crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("long".to_string());
             }
         }

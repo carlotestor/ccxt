@@ -4596,7 +4596,7 @@ if _try_result.is_err() {
         let mut currencyResolved: crate::types::Currency = self.safe_currency(Value::Str("USDC".into()), currency);
         let mut direction: Option<String> = None;
         let mut amount: Option<String> = change.clone();
-        if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
             amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }  else {
@@ -5071,7 +5071,7 @@ if _try_result.is_err() {
                 m.insert("account".to_string(), originAddress.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut subaccountSignature: Value = self.sign_message(Value::Map(subaccountSignatureHeader), Value::Map(subSigPayload), subAccountPrivateKey.as_deref().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+        let mut subaccountSignature: Option<String> = self.sign_message(Value::Map(subaccountSignatureHeader), Value::Map(subSigPayload), subAccountPrivateKey.as_deref().unwrap_or_default());
         let mut mainSignatureHeader: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -5081,14 +5081,14 @@ if _try_result.is_err() {
         });
         let mut mainSigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("signature".to_string(), subaccountSignature.clone());
+                m.insert("signature".to_string(), Value::from(subaccountSignature.as_deref()));
             m
         });
-        let mut main_signature: Value = self.sign_message(Value::Map(mainSignatureHeader), Value::Map(mainSigPayload), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+        let mut main_signature: Option<String> = self.sign_message(Value::Map(mainSignatureHeader), Value::Map(mainSigPayload), (self.privateKey.clone()).as_str().unwrap_or_default());
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_account".into(), originAddress.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("subaccount".into(), subAccountAddress.map(Value::from).unwrap_or(Value::Null)); }
-        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("sub_signature".into(), subaccountSignature); }
-        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_signature".into(), main_signature); }
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("sub_signature".into(), subaccountSignature.map(Value::from).unwrap_or(Value::Null)); }
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_signature".into(), main_signature.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("expiry_window".into(), Value::from(expiryWindow)); }
         let mut request: Value = finalHeaders;
@@ -5287,13 +5287,13 @@ if _try_result.is_err() {
         let mut params: Value = params.into();
         let addressparamsAccountVariable: Vec<Value> = self.handle_param_string2(params, Value::Str("account".into()), Value::Str("address".into()), &[Value::Null]).as_array().cloned().unwrap_or_default();
         let mut address: Option<String> = addressparamsAccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsAccount: Value = addressparamsAccountVariable.get(1).cloned().unwrap_or(Value::Null); // this is for get endpoints that accept account or address
+        let mut paramsAccount: crate::value::Dict = addressparamsAccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // this is for get endpoints that accept account or address
         if (address.is_some()) {
-            return Value::from(vec![address.map(Value::from).unwrap_or(Value::Null), paramsAccount.clone()]);
+            return Value::from(vec![address.map(Value::from).unwrap_or(Value::Null), Value::from(&paramsAccount)]);
         }
         let mut address1: Value = self.walletAddress.clone();
         if (address1 != Value::Null) {
-            return Value::from(vec![address1, paramsAccount]);
+            return Value::from(vec![address1, Value::Dict(paramsAccount)]);
         }
         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")));
 
@@ -5356,8 +5356,8 @@ if _try_result.is_err() {
         if isTestnet {
             urlKey = "test".to_string();
         }
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut baseApiUrl: Option<String> = self.safe_string((if let (Some(__m), Some(__k)) = (self.urls.as_map(), Some(urlKey.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), apiName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut baseApiUrl: Option<String> = self.safe_string((if let (Some(__m), Some(__k)) = (self.urls.as_map(), Some(urlKey.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -5508,7 +5508,7 @@ if _try_result.is_err() {
                 m.insert("type".to_string(), operationType.clone());
             m
         });
-        let mut signature: Value = self.sign_message(Value::Map(signatureHeader.clone()), Value::Map(sigPayload.clone()), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Option<String> = self.sign_message(Value::Map(signatureHeader.clone()), Value::Map(sigPayload.clone()), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut finalHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5524,7 +5524,7 @@ if _try_result.is_err() {
         if (agentAddress.is_some()) {
             finalHeaders.insert("agent_wallet".into(), agentAddress.map(Value::from).unwrap_or(Value::Null));
         }
-        finalHeaders.insert("signature".into(), signature);
+        finalHeaders.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
         finalHeaders.insert("timestamp".into(), self.safe_integer(Value::Map(signatureHeader.clone()), Value::Str("timestamp".into()), &[]));
         finalHeaders.insert("expiry_window".into(), self.safe_integer_k(Value::Map(signatureHeader), "expiry_window", &[]));
         let mut request: crate::value::Dict = self.extend(Value::Map(finalHeaders), &[Value::Map(sigPayload.clone())]).into_dict();

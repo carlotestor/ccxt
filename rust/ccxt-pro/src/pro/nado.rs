@@ -258,7 +258,7 @@ impl Nado {
             "handle_all_bids_asks" => { self.handle_all_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_authentication" => { self.handle_authentication(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_execute_response" => { self.handle_execute_response(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -2446,7 +2446,7 @@ impl Nado {
             status = Some("open".to_string());
         }  else if (reason.as_deref() == Some("filled")) {
             status = Some("open".to_string());
-            if (amountString.is_some()) && crate::precise::Precise::stringEq(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if (amountString.is_some()) && crate::precise::Precise::stringEq(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
                 status = Some("closed".to_string());
             }
         }  else if (reason.as_deref() == Some("cancelled")) {
@@ -2517,14 +2517,14 @@ impl Nado {
         let mut contracts: Value = Value::Null;
         let mut entryPrice: Option<f64> = None;
         if (amountString.is_some()) {
-            if crate::precise::Precise::stringGt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("long".to_string());
-            }  else if crate::precise::Precise::stringLt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            }  else if crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("short".to_string());
             }
             let mut absoluteAmount: Option<String> = crate::precise::Precise::stringAbs(&amountString).as_str().map(str::to_owned);
             contracts = self.parent.parse_x18(absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null));
-            if (vQuoteAmount.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if (vQuoteAmount.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount, &Value::Str("0".into())).as_bool() == Some(true)) {
                 entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteAmount), &absoluteAmount), &[]).as_f64();
             }
         }
@@ -2676,8 +2676,7 @@ impl Nado {
             let mut bid: Option<String> = self.safe_string_k(&bbo, "bid", &[]).as_str().map(str::to_owned);
             let mut ask: Option<String> = self.safe_string_k(&bbo, "ask", &[]).as_str().map(str::to_owned);
             let mut maxPrice: String = "170141183460469231731687303715884105727".to_string();
-            if crate::precise::Precise::stringGt(&bid.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&ask.clone().map(Value::from).unwrap_or(Value::Null),
-                &Value::Str("0".into())).as_bool() == Some(true) && !(crate::precise::Precise::stringEquals(&bid.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(maxPrice.clone())).as_bool() == Some(true)) && !(crate::precise::Precise::stringEquals(&ask.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(maxPrice)).as_bool() == Some(true)) {
+            if crate::precise::Precise::stringGt(&bid, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&ask, &Value::Str("0".into())).as_bool() == Some(true) && !(crate::precise::Precise::stringEquals(&bid, &maxPrice).as_bool() == Some(true)) && !(crate::precise::Precise::stringEquals(&ask, &maxPrice).as_bool() == Some(true)) {
                 let mut ticker: indexmap::IndexMap<String, Value> = self.safe_ticker(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
@@ -2699,25 +2698,25 @@ impl Nado {
 }
 
     pub fn handle_all_bids_asks(&mut self, mut client: Value, mut message: Value) {
-        let mut tickers: Value = self.parse_ws_all_bids_asks(message);
-        let mut symbols: Vec<Value> = object_keys(&tickers).as_array().cloned().unwrap_or_default();
+        let mut tickers: crate::value::Dict = self.parse_ws_all_bids_asks(message).into_dict();
+        let mut symbols: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_513: bool = true;
             while { if !__for_first_513 { i += 1; } __for_first_513 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<&str> = symbols.get(i as usize).and_then(Value::as_str);
-            let mut ticker: Value = (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut ticker: Value = crate::value::KeyRead::read(&&tickers, &Value::from(symbol));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
             client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", "bidask:", symbol.as_deref().unwrap_or("null")).into())));
             client.resolve(ticker, &(Value::Str(format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null")).into())));
         }
         }
-        client.resolve(tickers.clone(), "bidask");
-        client.resolve(tickers, "ticker");
+        client.resolve(Value::from(&tickers), "bidask");
+        client.resolve(Value::Dict(tickers), "ticker");
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut bidAsk: Value = Value::from(vec![self.parent.parse_x18(self.safe_string(delta.clone(), Value::Int(0), &[])), self.parent.parse_x18(self.safe_string(delta, Value::Int(1), &[]))]);
         bookside.store_array(bidAsk);
 }
@@ -2773,8 +2772,8 @@ impl Nado {
         }
         let mut asks: crate::value::List = __pro_message.get("asks").cloned().unwrap_or_default().into_list();
         let mut bids: crate::value::List = __pro_message.get("bids").cloned().unwrap_or_default().into_list();
-        self.handle_deltas(orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null), Value::Arr(asks));
-        self.handle_deltas(orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null), Value::Arr(bids));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null)), Value::Arr(asks));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null)), Value::Arr(bids));
         let mut timestamp: Value = self.parse_ws_timestamp(message, Value::Str("max_timestamp".into()));
         add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.map(Value::from).unwrap_or(Value::Null));
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());

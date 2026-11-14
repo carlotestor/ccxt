@@ -242,7 +242,7 @@ impl Weex {
             "get_market_from_client_and_message" => self.get_market_from_client_and_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1650,8 +1650,8 @@ impl Weex {
         }  else {
             let mut asks: crate::value::List = __pro_message.get("a").cloned().unwrap_or_default().into_list();
             let mut bids: crate::value::List = __pro_message.get("b").cloned().unwrap_or_default().into_list();
-            self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
-            self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
             orderbook.set_book_meta("nonce", Value::from(nonce));
@@ -1659,7 +1659,7 @@ impl Weex {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[]).into_list();
         bookside.store_array(Value::Arr(bidAsk));
 }
@@ -2483,12 +2483,12 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (type_var == Value::Null) {
+        if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchBalance() requires a market type")));
         }
-        let mut isContract: bool = (type_var.as_str() != Some("spot"));
+        let mut isContract: bool = type_var.as_deref() != Some("spot");
         let mut urlType: String = "spot".to_string();
         if isContract {
             urlType = "contract".to_string();
@@ -2496,14 +2496,14 @@ impl Weex {
         let mut url: String = format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[Value::Str("".into())]), Value::Str("/private".into()));
         self.authenticate(Value::from(url.clone()));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
-        self.set_balance_cache(client.as_value(), type_var.clone());
+        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
-            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, ":fetchBalanceSnapshot").into()))).await;
+            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
-        return self.subscribe_private(Value::Str(format!("{}{}", type_var, ":balance").into()), type_var.as_str().unwrap_or_default(), Some("account"), &[Value::Bool(isContract), Value::Dict(paramsMarketType)]).await;
+        return self.subscribe_private(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":balance").into()), type_var.as_deref().unwrap_or_default(), Some("account"), &[Value::Bool(isContract), Value::Dict(paramsMarketType)]).await;
         Value::Null
         }).await?))
     }

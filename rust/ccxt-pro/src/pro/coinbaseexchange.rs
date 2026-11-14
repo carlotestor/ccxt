@@ -220,8 +220,8 @@ impl Coinbaseexchange {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => self.authenticate(),
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trade" => self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -1175,7 +1175,7 @@ impl Coinbaseexchange {
                             totalAmount = self.safe_string_k(&tradeEntry, "amount", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                         }
                         }
-                        if !(crate::precise::Precise::stringEq(&Value::from(totalAmount.clone()), &Value::Str("0".into())).as_bool() == Some(true)) {
+                        if !(crate::precise::Precise::stringEq(&totalAmount, &Value::Str("0".into())).as_bool() == Some(true)) {
                             add_element_to_object(&mut previousOrder, &Value::Str("average".into()), self.parse_number(crate::precise::Precise::stringDiv(&totalCost, &totalAmount), &[]));
                         }
                         add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), self.parse_number(Value::from(totalCost), &[]));
@@ -1383,13 +1383,13 @@ impl Coinbaseexchange {
     Value::Null
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_number(delta.clone(), Value::Int(0), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_number(delta, Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {

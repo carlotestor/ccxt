@@ -2605,7 +2605,7 @@ impl Bitrue {
             timestamp = self.safe_integer_k(order.clone(), "transactTime", &[]).as_i64();
         }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime"))) {
             if (status.as_deref() == Some("open")) {
-                if crate::precise::Precise::stringGt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                if crate::precise::Precise::stringGt(&filled, &Value::Str("0".into())).as_bool() == Some(true) {
                     lastTradeTimestamp = self.safe_integer_k(order.clone(), "updateTime", &[]).as_i64();
                 }  else {
                     timestamp = self.safe_integer_k(order.clone(), "updateTime", &[]).as_i64();
@@ -2769,9 +2769,9 @@ impl Bitrue {
             }
             request.insert("contractName".into(), Value::from((market).id.as_deref()));
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-            let mut createMarketBuyOrderRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            let mut isMarketBuyWithPrice: bool = isMarket && (side.as_str() == Some("buy")) && createMarketBuyOrderRequiresPrice.as_bool() == Some(true);
+            let mut isMarketBuyWithPrice: bool = isMarket && (side.as_str() == Some("buy")) && createMarketBuyOrderRequiresPrice;
             let mut paramsNoCost: crate::value::Dict = Value::from(&paramsRequiresPrice).into_dict();
             if isMarketBuyWithPrice {
                 paramsNoCost = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]).into_dict();
@@ -2818,7 +2818,7 @@ impl Bitrue {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             let mut validOrderTypes: crate::value::List = self.safe_list_k(crate::value::KeyRead::key_read(&&market, "info"), "orderTypes", &[Value::from(vec![])]).into_list();
-            if !self.in_array(Value::from(uppercaseType), Value::Arr(validOrderTypes)) {
+            if !self.in_array(&uppercaseType, Value::Arr(validOrderTypes)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), type_var).into()), " is not a valid order type in market ").into()), symbol)));
             }
             let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
@@ -4057,10 +4057,10 @@ impl Bitrue {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Option<crate::value::Dict> = None;
-        let mut type_var: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut version: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut type_var: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut version: Option<&str> = api.get(1).and_then(Value::as_str);
         let mut access: Option<String> = api.get(2).and_then(Value::as_str).map(str::to_owned);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(type_var.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -4202,7 +4202,7 @@ impl Bitrue {
         if (error.is_some()) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if (error.as_deref() == Some("200")) || crate::precise::Precise::stringEquals(&error.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if (error.as_deref() == Some("200")) || crate::precise::Precise::stringEquals(&error, &Value::Str("0".into())).as_bool() == Some(true) {
                 return Value::Null;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}

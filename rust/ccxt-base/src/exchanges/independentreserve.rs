@@ -1779,8 +1779,8 @@ impl Independentreserve {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -1795,17 +1795,17 @@ impl Independentreserve {
             let mut rawNonce: i64 = self.incrementing_nonce();
             let mut nonce: Option<i64> = self.parse_to_int(Value::from(rawNonce));
             let mut auth: Vec<Value> = vec![Value::from(url.clone()), Value::Str(format!("{}{}", "apiKey=", self.apiKey.clone()).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::Str(format!("{}", Value::from(nonce)).into())).into())];
-            let mut paramsDict: Value = self.extend(Value::Map({
+            let mut paramsDict: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[params]);
-            let mut keys: Vec<Value> = Value::Array(paramsDict.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            }), &[params]).into_dict();
+            let mut keys: Vec<Value> = Value::Array(paramsDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_836: bool = true;
                 while { if !__for_first_836 { i += 1; } __for_first_836 = false; i < (keys.len() as i64) } {
                 let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut value: String = self.safe_string(paramsDict.clone(), key.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut value: String = self.safe_string(&paramsDict, key.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 auth.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, "=").into()), value).into()));
             }
             }
@@ -1823,7 +1823,7 @@ impl Independentreserve {
                 let mut __for_first_837: bool = true;
                 while { if !__for_first_837 { i += 1; } __for_first_837 = false; i < (keys.len() as i64) } {
                 let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                query.insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (paramsDict.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+                query.insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&paramsDict, &key));
             }
             }
             let mut signedBody: Option<String> = json_stringify(&Value::Map(query)).as_str().map(str::to_owned);

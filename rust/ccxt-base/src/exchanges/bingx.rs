@@ -7684,7 +7684,7 @@ impl Bingx {
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")));
         }
-        if !self.in_array(Value::from(type_var), Value::from(vec![Value::Int(1), Value::Int(2)])) {
+        if !self.in_array(&type_var, Value::from(vec![Value::Int(1), Value::Int(2)])) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")));
         }
         if (self.markets.clone() == Value::Null) {
@@ -9135,15 +9135,15 @@ impl Bingx {
             self.check_required_credentials(&[]);
             let mut isJsonContentType: bool = ((type_var.as_str() == Some("subAccount")) || (type_var.as_str() == Some("account/transfer"))) && (method.as_str() == Some("POST"));
             let mut parsedParams: Value = Value::Null;
-            let mut encodeRequest: Value = Value::Null;
+            let mut encodeRequest: Option<String> = None;
             if isJsonContentType {
-                encodeRequest = self.custom_encode(paramsSorted.clone()).map(Value::from).unwrap_or(Value::Null);
+                encodeRequest = self.custom_encode(paramsSorted.clone());
             }  else {
                 parsedParams = self.parse_params(paramsSorted.clone());
-                encodeRequest = Value::from(self.rawencode(parsedParams.clone(), &[Value::Bool(true)]));
+                encodeRequest = Some(self.rawencode(parsedParams.clone(), &[Value::Bool(true)]));
             }
-            let mut encodeRequestSafe: Value = (if (encodeRequest == Value::Null) { Value::Str("".into()) } else { encodeRequest });
-            let mut signature: String = self.hmac(self.encode(encodeRequestSafe), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut encodeRequestSafe: Option<String> = (if (encodeRequest.is_none()) { Some("".to_string()) } else { encodeRequest });
+            let mut signature: String = self.hmac(self.encode(encodeRequestSafe.map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-BX-APIKEY".to_string(), self.apiKey.clone());

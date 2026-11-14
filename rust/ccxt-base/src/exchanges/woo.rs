@@ -2201,9 +2201,9 @@ impl Woo {
         let mut tokenNetworkResponse: Value = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut tokenRows: crate::value::List = self.safe_list_k(tokenResponse, "rows", &[Value::from(vec![])]).into_list();
         let mut tokenNetworkRows: crate::value::List = self.safe_list_k(tokenNetworkResponse, "rows", &[Value::from(vec![])]).into_list();
-        let mut networksById: Value = self.group_by(Value::Arr(tokenNetworkRows), Value::Str("token".into()), &[]);
-        let mut tokensById: Value = self.group_by(Value::Arr(tokenRows), Value::Str("balance_token".into()), &[]);
-        let mut currencyIds: Vec<Value> = Value::Array(tokensById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut networksById: crate::value::Dict = self.group_by(Value::Arr(tokenNetworkRows), Value::Str("token".into()), &[]).into_dict();
+        let mut tokensById: crate::value::Dict = self.group_by(Value::Arr(tokenRows), Value::Str("balance_token".into()), &[]).into_dict();
+        let mut currencyIds: Vec<Value> = Value::Array(tokensById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1168: bool = true;
@@ -2212,8 +2212,8 @@ impl Woo {
             let mut customCurrency: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("_coin_id".to_string(), Value::from(id.as_deref()));
-                    m.insert("_tokens_by_id".to_string(), (if let (Some(__m), Some(__k)) = (tokensById.as_map(), id.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
-                    m.insert("_networks_by_id".to_string(), (if let (Some(__m), Some(__k)) = (networksById.as_map(), id.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+                    m.insert("_tokens_by_id".to_string(), crate::value::KeyRead::read(&&tokensById, &Value::from(id)));
+                    m.insert("_networks_by_id".to_string(), crate::value::KeyRead::read(&&networksById, &Value::from(id)));
                 m
             });
             let mut parsed: crate::value::Dict = self.parse_currency(Value::Map(customCurrency)).into_dict();
@@ -4214,7 +4214,7 @@ impl Woo {
         let currency = currency.as_map().unwrap_or(&__currency_empty);
         let networkCodeRawparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCodeRaw: Option<String> = networkCodeRawparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsNetworkCode: Value = networkCodeRawparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeRawparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut networks: crate::value::Dict = currency.get("networks").cloned().unwrap_or_default().into_dict();
         let mut currencyCode: String = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut networkCode: Option<String> = self.network_id_to_code(&[networkCodeRaw.map(Value::from).unwrap_or(Value::Null), Value::from(currencyCode)]);
@@ -4224,7 +4224,7 @@ impl Woo {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), "  can not determine a network code, please provide unified \"network\" param, one from the following: ").into()), json_stringify(&supportedNetworks))));
         }
         let mut currentyNetworkId: Option<String> = self.safe_string_k(networkEntry, "currencyNetworkId", &[]).as_str().map(str::to_owned);
-        return Value::from(vec![currentyNetworkId.map(Value::from).unwrap_or(Value::Null), paramsNetworkCode]);
+        return Value::from(vec![currentyNetworkId.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsNetworkCode)]);
 
     Value::Null
 }
@@ -5045,10 +5045,10 @@ impl Woo {
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Option<String> = None;
-        let mut version: Option<String> = section.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut version: Option<&str> = section.get(0).and_then(Value::as_str);
+        let mut access: Option<&str> = section.get(1).and_then(Value::as_str);
         let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(access.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -6075,7 +6075,7 @@ impl Woo {
         let mut marketResolved: crate::types::Market = self.safe_market(contract.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut size: Option<String> = self.safe_string_k(position.clone(), "holding", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
-        if crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringGt(&size, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("long".to_string());
         }  else {
             side = Some("short".to_string());

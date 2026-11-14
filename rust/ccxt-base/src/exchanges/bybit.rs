@@ -3929,11 +3929,11 @@ impl Bybit {
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(method, market, &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_deref() == Some("option")) || (type_var.as_deref() == Some("spot")) {
-            return Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null), paramsSubType.clone()]);
+            return Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null), Value::from(&paramsSubType)]);
         }
-        return Value::from(vec![subType.map(Value::from).unwrap_or(Value::Null), paramsSubType]);
+        return Value::from(vec![subType.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsSubType)]);
 
     Value::Null
 }
@@ -5987,7 +5987,7 @@ impl Bybit {
             let mut feeRateString: Option<String> = self.safe_string_k(trade.clone(), "feeRate", &[]).as_str().map(str::to_owned);
             let mut feeCurrencyCode: Value = Value::Null;
             if (marketResolved).spot {
-                if crate::precise::Precise::stringGt(&feeCostString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                if crate::precise::Precise::stringGt(&feeCostString, &Value::Str("0".into())).as_bool() == Some(true) {
                     if (side.as_deref() == Some("buy")) {
                         feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "base");
                     }  else {
@@ -9666,7 +9666,7 @@ impl Bybit {
         let mut amountString: Option<String> = self.safe_string2(item.clone(), Value::Str("amount".into()), Value::Str("change".into()), &[]).as_str().map(str::to_owned);
         let mut afterString: Option<String> = self.safe_string2(item.clone(), Value::Str("wallet_balance".into()), Value::Str("cashBalance".into()), &[]).as_str().map(str::to_owned);
         let mut direction: String = "in".to_string();
-        if crate::precise::Precise::stringLt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = "out".to_string();
         }
         let mut before: Value = Value::Null;
@@ -10267,7 +10267,7 @@ impl Bybit {
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    if (maintenanceMarginString.is_none()) && (bustPrice.is_some()) && !(crate::precise::Precise::stringEq(&bustPrice.clone().map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                    if (maintenanceMarginString.is_none()) && (bustPrice.is_some()) && !(crate::precise::Precise::stringEq(&bustPrice, &liquidationPrice).as_bool() == Some(true)) {
                         let mut maintenanceMarginPriceDifference: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&liquidationPrice, &bustPrice)).as_str().map(str::to_owned);
                         maintenanceMarginString = crate::precise::Precise::stringMul(&maintenanceMarginPriceDifference, &size).as_str().map(str::to_owned);
                     }
@@ -10283,7 +10283,7 @@ impl Bybit {
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    if (maintenanceMarginString.is_none()) && (bustPrice.is_some()) && !(crate::precise::Precise::stringEq(&bustPrice.clone().map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                    if (maintenanceMarginString.is_none()) && (bustPrice.is_some()) && !(crate::precise::Precise::stringEq(&bustPrice, &liquidationPrice).as_bool() == Some(true)) {
                         let mut difference: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&bustPrice, &liquidationPrice)).as_str().map(str::to_owned);
                         let mut multiply: Option<String> = crate::precise::Precise::stringMul(&bustPrice, &liquidationPrice).as_str().map(str::to_owned);
                         maintenanceMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size, &difference), &multiply).as_str().map(str::to_owned);
@@ -14168,10 +14168,10 @@ impl Bybit {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

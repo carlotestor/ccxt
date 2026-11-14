@@ -330,9 +330,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // - 0 is added just to trick transpile to treat the .length as a string for php
         if missingSpace.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1617: bool = true;
-                while { if !__for_first_1617 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1617 = false; i.as_f64().unwrap_or(f64::NAN) < missingSpace.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1617 { i += 1; } __for_first_1617 = false; (i as f64) < missingSpace.as_f64().unwrap_or(f64::NAN) } {
                 res.push_str(" ");
             }
             }

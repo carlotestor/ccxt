@@ -263,8 +263,8 @@ impl Bitvavo {
             "fetch_withdrawals_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_withdrawals_ws", args.to_vec()); crate::Value::Null },
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deposits" => { self.handle_deposits(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_fetch_balance" => { self.handle_fetch_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1380,13 +1380,13 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_float(delta, Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
@@ -1417,8 +1417,8 @@ impl Bitvavo {
         let mut nonce: Option<i64> = self.safe_integer_k(message, "nonce", &[]).as_i64();
         let mut currentNonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
         if (nonce.is_some()) && (currentNonce.is_some()) && ((nonce.is_some() && currentNonce.is_some() && nonce > currentNonce)) {
-            self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
-            self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
+            self.handle_deltas(crate::pro::order_book::Side::of(crate::value::get_value_k(&orderbook, "asks")), (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
+            self.handle_deltas(crate::pro::order_book::Side::of(crate::value::get_value_k(&orderbook, "bids")), (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
             add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::from(nonce));
         }
         return orderbook;

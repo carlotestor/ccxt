@@ -90,27 +90,27 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
     if (marginMode.as_deref() == Some("isolated")) {
         let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
         let mut side: Option<String> = exchange.safe_string(&entry, Value::Str("side".into()), &[]).as_str().map(str::to_owned);
-        let mut entryPriceString: Value = exchange.safe_string(&entry, Value::Str("entryPrice".into()), &[]);
-        let mut liquidationPriceString: Value = exchange.safe_string(&entry, Value::Str("liquidationPrice".into()), &[]);
-        let mut contractsString: Value = exchange.safe_string(&entry, Value::Str("contracts".into()), &[]);
-        let mut contractSizeString: Value = exchange.safe_string(&entry, Value::Str("contractSize".into()), &[]);
-        let mut maintenanceMarginString: Value = exchange.safe_string(&entry, Value::Str("maintenanceMargin".into()), &[]);
+        let mut entryPriceString: Option<String> = exchange.safe_string(&entry, Value::Str("entryPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut liquidationPriceString: Option<String> = exchange.safe_string(&entry, Value::Str("liquidationPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut contractsString: Option<String> = exchange.safe_string(&entry, Value::Str("contracts".into()), &[]).as_str().map(str::to_owned);
+        let mut contractSizeString: Option<String> = exchange.safe_string(&entry, Value::Str("contractSize".into()), &[]).as_str().map(str::to_owned);
+        let mut maintenanceMarginString: Option<String> = exchange.safe_string(&entry, Value::Str("maintenanceMargin".into()), &[]).as_str().map(str::to_owned);
         let mut collateralString: Value = exchange.safe_string(&entry, Value::Str("collateral".into()), &[]);
         let mut initialMarginString: Value = exchange.safe_string(&entry, Value::Str("initialMargin".into()), &[]);
         let mut unrealizedPnlString: Option<String> = exchange.safe_string(&entry, Value::Str("unrealizedPnl".into()), &[]).as_str().map(str::to_owned);
-        if (entryPriceString != Value::Null) && (liquidationPriceString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into()))) && is_true(&ccxt::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into()))) {
+        if (entryPriceString.is_some()) && (liquidationPriceString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into()))) && is_true(&ccxt::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into()))) {
             if (side.as_deref() == Some("long")) {
-                crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), entryPriceString.clone()]);
+                crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::from(entryPriceString.as_deref()).clone()]);
             }  else if (side.as_deref() == Some("short")) {
-                crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), entryPriceString.clone()]);
+                crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::from(entryPriceString.as_deref()).clone()]);
             }
         }
         let mut marginString: Value = exchange.safe_string(&entry, Value::Str("positionMargin".into()), &[]);
         if (marginString != Value::Null) && (collateralString != Value::Null) && (unrealizedPnlString.is_some()) {
             // collateral is margin + unrealizedPnl
             let mut expectedCollateral: Option<String> = ccxt::precise::Precise::stringAdd(&marginString, &unrealizedPnlString).as_str().map(str::to_owned);
-            let mut collateralDiff: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&collateralString, &expectedCollateral));
-            let mut collateralTolerance: Value = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringAbs(&marginString), &Value::Str("0.05".into()));
+            let mut collateralDiff: Option<String> = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&collateralString, &expectedCollateral)).as_str().map(str::to_owned);
+            let mut collateralTolerance: Option<String> = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringAbs(&marginString), &Value::Str("0.05".into())).as_str().map(str::to_owned);
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&collateralDiff, &collateralTolerance))));
         }
         let mut entryMarginString: Value = marginString;
@@ -124,11 +124,11 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
             entryMarginString = initialMarginString;
         }
         let mut hasEntryMargin: bool = (entryMarginString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&entryMarginString, &Value::Str("0".into())));
-        let mut hasEntryPrice: bool = (entryPriceString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())));
-        let mut hasLiqPrice: bool = (liquidationPriceString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into())));
-        let mut hasContracts: bool = (contractsString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&contractsString, &Value::Str("0".into())));
-        let mut hasContractSize: bool = (contractSizeString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into())));
-        let mut hasMm: bool = (maintenanceMarginString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into())));
+        let mut hasEntryPrice: bool = (entryPriceString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())));
+        let mut hasLiqPrice: bool = (liquidationPriceString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into())));
+        let mut hasContracts: bool = (contractsString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&contractsString, &Value::Str("0".into())));
+        let mut hasContractSize: bool = (contractSizeString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into())));
+        let mut hasMm: bool = (maintenanceMarginString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into())));
         if hasEntryMargin && hasEntryPrice && hasLiqPrice && hasContracts && hasContractSize && hasMm {
             let mut symbolForMarket: Value = (if (symbol != Value::Null) { symbol.clone() } else { exchange.safe_string(&entry, Value::Str("symbol".into()), &[]) });
             let mut market: Value = Value::Null;
@@ -147,8 +147,8 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
             let mut lossFromEntry: Option<String> = ccxt::precise::Precise::stringMul(&priceDiff.map(Value::from).unwrap_or(Value::Null), &ccxt::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
             let mut calculatedMm: Value = ccxt::precise::Precise::stringSub(&entryMarginString, &lossFromEntry);
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&calculatedMm, &Value::Str("0".into())))));
-            let mut mmDiff: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&calculatedMm, &maintenanceMarginString));
-            let mut maxTolerance: Value = ccxt::precise::Precise::stringMul(&entryMarginString, &Value::Str("0.05".into()));
+            let mut mmDiff: Option<String> = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&calculatedMm, &maintenanceMarginString)).as_str().map(str::to_owned);
+            let mut maxTolerance: Option<String> = ccxt::precise::Precise::stringMul(&entryMarginString, &Value::Str("0.05".into())).as_str().map(str::to_owned);
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&mmDiff, &maxTolerance))));
         }
     }

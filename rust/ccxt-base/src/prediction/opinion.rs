@@ -1593,9 +1593,9 @@ impl Opinion {
         if (decimals != Value::Null) {
             let mut decimalsCount: Option<i64> = self.parse_to_int(decimals);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1397: bool = true;
-                while { if !__for_first_1397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1397 = false; matches!(decimalsCount, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+                while { if !__for_first_1397 { i += 1; } __for_first_1397 = false; matches!(decimalsCount, Some(__b) if (i as f64) < (__b as f64)) } {
                 decimalsStr = format!("{}{}", decimalsStr, "0");
             }
             }
@@ -3323,10 +3323,10 @@ if _try_result.is_err() {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
-        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "opinion")]);
+        let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "opinion")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({

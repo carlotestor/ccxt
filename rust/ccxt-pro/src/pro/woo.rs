@@ -240,8 +240,8 @@ impl Woo {
             "handle_auth" => { self.handle_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -516,11 +516,11 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("method".into()), &[Value::Str("orderbook".into())]).as_array().cloned().unwrap_or_default();
-        let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", marketId, "@").into()), method);
+        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", marketId, "@").into()), method.as_deref().unwrap_or("null"));
         let mut urlUid: String = "".to_string();
         if (self.uid.clone() != Value::Null) && (self.uid.as_str() != Some("")) {
             urlUid = format!("{}{}", "/", self.uid.clone());
@@ -538,13 +538,13 @@ impl Woo {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
-                m.insert("name".to_string(), method.clone());
+                m.insert("name".to_string(), method.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                 m.insert("limit".to_string(), limit);
                 m.insert("params".to_string(), Value::from(&paramsMethod));
             m
         });
-        if (method.as_str() == Some("orderbookupdate")) {
+        if (method.as_deref() == Some("orderbookupdate")) {
             subscription.insert("method".into(), Value::Str("handle_order_book_subscription".into()).clone());
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsMethod]);
@@ -738,8 +738,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
-        self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
@@ -748,13 +748,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     Value::Null
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_float2(delta.clone(), Value::Str("price".into()), Value::Int(0), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_float2(delta, Value::Str("quantity".into()), Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
@@ -1807,7 +1807,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut priceString: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut price: Option<f64> = self.safe_number_k(order.clone(), "price", &[]).as_f64();
         let mut avgPrice: Option<f64> = self.safe_number_k(order.clone(), "avgPrice", &[]).as_f64();
-        if crate::precise::Precise::stringEq(&priceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) && (avgPrice.is_some()) {
+        if crate::precise::Precise::stringEq(&priceString, &Value::Str("0".into())).as_bool() == Some(true) && (avgPrice.is_some()) {
             price = avgPrice;
         }
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "quantity", &[]).as_str().map(str::to_owned);

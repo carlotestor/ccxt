@@ -3358,7 +3358,7 @@ impl Bitvavo {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
@@ -3394,7 +3394,7 @@ impl Bitvavo {
                 if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".to_string(), Value::Str("application/json".into())); }
             }
         }
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

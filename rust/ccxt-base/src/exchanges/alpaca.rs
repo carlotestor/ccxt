@@ -1482,7 +1482,7 @@ impl Alpaca {
         let mut query: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let paginationCallsqueryPaginationVariable: Vec<Value> = self.handle_option_integer_and_params(query.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]).as_array().cloned().unwrap_or_default();
-        let mut paginationCalls: Value = paginationCallsqueryPaginationVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginationCalls: Option<i64> = paginationCallsqueryPaginationVariable.get(0).and_then(Value::as_i64);
         let mut queryPagination: crate::value::Dict = paginationCallsqueryPaginationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         query = Value::Dict(queryPagination);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1546,9 +1546,9 @@ impl Alpaca {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 let mut pageToken: Option<String> = self.safe_string_k(response.clone(), "next_page_token", &[]).as_str().map(str::to_owned);
                 {
-                                        let mut i: Value = Value::Int(1);
+                                        let mut i: i64 = 1;
                     let mut __for_first_219: bool = true;
-                    while { if !__for_first_219 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_219 { i += 1; } __for_first_219 = false; matches!(paginationCalls, Some(__b) if (i as f64) < (__b as f64)) } {
                     let mut ohlcvsLength: i64 = ohlcvs.len() as i64;
                     if (pageToken.is_none()) || ((limit != Value::Null) && ((limit.as_i64().is_some() && Some(ohlcvsLength) >= limit.as_i64()))) {
                         break;
@@ -2765,7 +2765,7 @@ impl Alpaca {
                 let mut entry: crate::value::Dict = ledger.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut activityType: Option<String> = self.safe_string_k(&entry, "activity_type", &[]).as_str().map(str::to_owned);
                 let mut amount: Option<String> = self.safe_string_k(&entry, "net_amount", &[]).as_str().map(str::to_owned);
-                let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&amount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
+                let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true)));
                 let mut entryDirection: String = "OUTGOING".to_string();
                 if isIncoming {
                     entryDirection = "INCOMING".to_string();
@@ -2947,20 +2947,20 @@ impl Alpaca {
         let mut address: Option<String> = None;
         let mut addressTo: Option<String> = None;
         let mut addressFrom: Option<String> = None;
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut amount: Option<f64> = None;
         let mut code: Option<String> = None;
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         let mut comment: Option<String> = None;
         let mut internal: Option<bool> = None;
         let mut fee: Option<crate::value::Dict> = None;
         if (activityType.is_some()) {
             let mut netAmount: Option<String> = self.safe_string_k(transaction.clone(), "net_amount", &[]).as_str().map(str::to_owned);
-            let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&netAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
+            let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".into())).as_bool() == Some(true)));
             let mut date: String = self.safe_string_k(transaction.clone(), "date", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             timestamp = self.parse8601(Value::Str(format!("{}{}", date, "T00:00:00Z").into()));
             datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
-            type_var = (if isIncoming { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
+            type_var = (if isIncoming { Some("deposit".to_string()) } else { Some("withdrawal".to_string()) });
             amount = self.parse_number(crate::precise::Precise::stringAbs(&netAmount), &[]).as_f64();
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
@@ -2973,7 +2973,7 @@ impl Alpaca {
             }  else {
                 code = self.safe_currency_code(Value::Null, currency);
             }
-            status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
             comment = activityType.clone();
             internal = Some(activityType.as_deref() != Some("TRANS"));
         }  else {
@@ -2983,12 +2983,12 @@ impl Alpaca {
             address = self.safe_string_k(transaction.clone(), "to_address", &[]).as_str().map(str::to_owned);
             addressTo = self.safe_string_k(transaction.clone(), "to_address", &[]).as_str().map(str::to_owned);
             addressFrom = self.safe_string_k(transaction.clone(), "from_address", &[]).as_str().map(str::to_owned);
-            type_var = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "direction", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+            type_var = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "direction", &[])).as_str());
             amount = self.parse_number(self.safe_string_k(transaction.clone(), "amount", &[]), &[]).as_f64();
             let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
             code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
             network = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[]), Value::from(code.as_deref())]);
-            status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
             let mut fees: Option<String> = self.safe_string_k(transaction.clone(), "fees", &[]).as_str().map(str::to_owned);
             let mut networkFee: Option<String> = self.safe_string_k(transaction.clone(), "network_fee", &[]).as_str().map(str::to_owned);
             let mut totalFee: Option<String> = crate::precise::Precise::stringAdd(&fees, &networkFee).as_str().map(str::to_owned);
@@ -3013,10 +3013,10 @@ impl Alpaca {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), comment.map(Value::from).unwrap_or(Value::Null));
         m.insert("internal".to_string(), internal.map(Value::from).unwrap_or(Value::Null));

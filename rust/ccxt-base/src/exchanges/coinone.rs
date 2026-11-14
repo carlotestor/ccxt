@@ -1639,7 +1639,7 @@ impl Coinone {
         // https://github.com/ccxt/ccxt/pull/7067
         if (status.as_deref() == Some("live")) {
             if (remainingString.is_some()) && (amountString.is_some()) {
-                let mut isLessThan: Value = crate::precise::Precise::stringLt(&remainingString.clone().map(Value::from).unwrap_or(Value::Null), &amountString.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut isLessThan: Value = crate::precise::Precise::stringLt(&remainingString, &amountString);
                 if isLessThan.as_bool() == Some(true) {
                     status = Some("canceled".to_string());
                 }
@@ -1915,12 +1915,12 @@ impl Coinone {
                         let mut i: i64 = 0;
             let mut __for_first_572: bool = true;
             while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Option<String> = self.safe_string(&walletAddress, key.clone(), &[]).as_str().map(str::to_owned);
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut value: Option<String> = self.safe_string(&walletAddress, Value::from(key.as_deref()), &[]).as_str().map(str::to_owned);
             if (value.is_none()) || (value.is_none()) || (value.as_deref() == Some("")) || (value.as_deref() == Some("-1")) {
                 continue;
             }
-            let mut parts: crate::value::List = Value::Array(if let Some(__s) = key.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut parts: crate::value::List = Value::Array(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut currencyId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut secondPart: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);

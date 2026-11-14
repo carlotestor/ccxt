@@ -242,8 +242,8 @@ impl Cryptocom {
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_cancel_all_orders" => { self.handle_cancel_all_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -588,14 +588,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_float(delta.clone(), Value::Int(1), &[]).as_f64();
         let mut count: Option<i64> = self.safe_integer(delta, Value::Int(2), &[]).as_i64();
         bookside.store_array(Value::from(vec![Value::from(price), Value::from(amount), Value::from(count)]));
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         {
                         let mut i: i64 = 0;
             let mut __for_first_268: bool = true;
@@ -702,8 +702,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
         }
-        self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(books.clone(), "asks", &[Value::from(vec![])]));
-        self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(books, "bids", &[Value::from(vec![])]));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), self.safe_list_k(books.clone(), "asks", &[Value::from(vec![])]));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), self.safe_list_k(books, "bids", &[Value::from(vec![])]));
         orderbook.set_book_meta("nonce", Value::from(nonce));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);

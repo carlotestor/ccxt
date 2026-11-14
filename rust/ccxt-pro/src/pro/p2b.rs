@@ -460,7 +460,7 @@ impl P2b {
         let mut watchTickerOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchTicker", &[]).into_dict();
         let mut name: String = self.safe_string_k(&watchTickerOptions, "name", &[Value::Str("state".into())]).as_str().unwrap_or("state").to_string(); // or price
         let nameOptionparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTickers".into()), Value::Str("name".into()), &[Value::from(name)]).as_array().cloned().unwrap_or_default();
-        let mut nameOption: Value = nameOptionparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut nameOption: Option<String> = nameOptionparamsNameVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsName: crate::value::Dict = nameOptionparamsNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
@@ -469,14 +469,14 @@ impl P2b {
             let mut __for_first_568: bool = true;
             while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, "::").into()), Value::from((market).symbol.as_str())).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), "::").into()), Value::from((market).symbol.as_str())).into()));
             args.push(Value::from((market).id.as_deref()));
         }
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str(format!("{}{}", nameOption, ".subscribe").into()));
+                m.insert("method".to_string(), Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), ".subscribe").into()));
                 m.insert("params".to_string(), Value::from(args));
                 m.insert("id".to_string(), Value::Int(self.milliseconds()));
             m
@@ -846,7 +846,7 @@ impl P2b {
                 let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[]).into_list();
                 let mut price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
                 let mut amount: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
-                let mut bookSide: Value = orderbook.book_field("bids");
+                let mut bookSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
                 bookSide.store(price, amount);
             }
             }
@@ -859,7 +859,7 @@ impl P2b {
                 let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[]).into_list();
                 let mut price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
                 let mut amount: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();
-                let mut bookside: Value = orderbook.book_field("asks");
+                let mut bookside: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
                 bookside.store(price, amount);
             }
             }

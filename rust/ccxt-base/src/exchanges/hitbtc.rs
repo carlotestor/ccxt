@@ -1428,11 +1428,11 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_743: bool = true;
             while { if !__for_first_743 { i += 1; } __for_first_743 = false; i < (ids.len() as i64) } {
-            let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             if (id.as_deref().unwrap_or_default().ends_with("_BQX")) {
                 continue;
             }
-            let mut market: Option<crate::value::Dict> = self.safe_dict(&response, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut market: Option<crate::value::Dict> = self.safe_dict(&response, Value::from(id.as_deref()), &[]).into_opt_dict();
             let mut marketType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
             let mut expiry: Option<i64> = self.safe_integer_k(&market, "expiry", &[]).as_i64();
             let mut contract: Value = (Value::Bool(marketType.as_deref() == Some("futures")));
@@ -1479,7 +1479,7 @@ impl Hitbtc {
             let mut step: Option<f64> = self.parse_number(stepString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(id.as_deref()));
                     m.insert("symbol".to_string(), Value::from(symbol));
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
@@ -4250,11 +4250,11 @@ impl Hitbtc {
             m
         });
         let marketTypeRawparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchPositions".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut marketTypeRaw: Value = marketTypeRawparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketTypeRaw: Option<String> = marketTypeRawparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeRawparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut marketType: Value = marketTypeRaw.clone();
-        if (marketTypeRaw.as_str() == Some("spot")) {
-            marketType = Value::Str("swap".into());
+        let mut marketType: Option<String> = marketTypeRaw.clone();
+        if (marketTypeRaw.as_deref() == Some("spot")) {
+            marketType = Some("swap".to_string());
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchPositions".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -4265,10 +4265,10 @@ impl Hitbtc {
             let __ws_arg_59 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_margin_account(&[__ws_arg_59]).await.into_opt_list();
         }  else {
-            if (marketType.as_str() == Some("swap")) {
+            if (marketType.as_deref() == Some("swap")) {
                 let __ws_arg_60 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_futures_account(&[__ws_arg_60]).await.into_opt_list();
-            }  else if (marketType.as_str() == Some("margin")) {
+            }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_61 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_account(&[__ws_arg_61]).await.into_opt_list();
             }  else {
@@ -5234,10 +5234,10 @@ impl Hitbtc {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut implodedPath: String = self.implode_params(path, params.clone());
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

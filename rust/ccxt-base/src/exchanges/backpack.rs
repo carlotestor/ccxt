@@ -1401,7 +1401,7 @@ impl Backpack {
     m
 })]);
             let mut rawType: String = self.safe_string_k(rawMarket.clone(), "marketType", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            if !self.in_array(Value::from(rawType), marketTypes.clone()) {
+            if !self.in_array(&rawType, marketTypes.clone()) {
                 continue;
             }
             let mut baseId: Option<String> = self.safe_string_k(rawMarket.clone(), "baseSymbol", &[]).as_str().map(str::to_owned);
@@ -1634,17 +1634,17 @@ impl Backpack {
                     let mut __for_first_248: bool = true;
                     while { if !__for_first_248 { i += 1; } __for_first_248 = false; i < (sessions.len() as i64) } {
                     let mut sessionStep: Option<String> = self.safe_string_k(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "stepSize", &[]).as_str().map(str::to_owned);
-                    if (sessionStep.is_some()) && ((stepSize.is_none()) || crate::precise::Precise::stringLt(&sessionStep.clone().map(Value::from).unwrap_or(Value::Null), &stepSize.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                    if (sessionStep.is_some()) && ((stepSize.is_none()) || crate::precise::Precise::stringLt(&sessionStep, &stepSize.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
                         stepSize = sessionStep;
                     }
                     let mut sessionMin: Option<String> = self.safe_string_k(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "minQuantity", &[]).as_str().map(str::to_owned);
                     let mut sessionMax: Option<String> = self.safe_string_k(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "maxQuantity", &[]).as_str().map(str::to_owned);
-                    if (sessionMin.is_some()) && ((minimum.is_none()) || crate::precise::Precise::stringLt(&sessionMin.clone().map(Value::from).unwrap_or(Value::Null), &minimum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                    if (sessionMin.is_some()) && ((minimum.is_none()) || crate::precise::Precise::stringLt(&sessionMin, &minimum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
                         minimum = sessionMin;
                     }
                     if (sessionMax.is_none()) {
                         unbounded = true;
-                    }  else if (maximum.is_none()) || crate::precise::Precise::stringGt(&sessionMax.clone().map(Value::from).unwrap_or(Value::Null), &maximum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    }  else if (maximum.is_none()) || crate::precise::Precise::stringGt(&sessionMax, &maximum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
                         maximum = sessionMax;
                     }
                 }
@@ -1758,11 +1758,11 @@ impl Backpack {
         let mut defaultStock: bool = self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let stockqueryVariable: Vec<Value> = self.handle_option_bool_and_params(params, methodName.clone(), Value::Str("stock".into()), &[Value::Bool(defaultStock)]).as_array().cloned().unwrap_or_default();
         let mut stock: Option<bool> = stockqueryVariable.get(0).and_then(Value::as_bool);
-        let mut query: Value = stockqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = stockqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (market != Value::Null) && (stock == Some(true)) && !matches!(self.safe_bool_k(market, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires a stock market")));
         }
-        return Value::from(vec![stock.map_or(Value::Null, Value::Bool), query]);
+        return Value::from(vec![stock.map_or(Value::Null, Value::Bool), Value::Dict(query)]);
 
     Value::Null
 }
@@ -1941,7 +1941,7 @@ impl Backpack {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut amountString: Option<String> = self.number_to_string(amount.clone());
-        if (amountString.is_none()) || !(crate::precise::Precise::stringGt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (amountString.is_none()) || !(crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchConvertQuote() requires a positive amount")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1962,7 +1962,7 @@ impl Backpack {
             if (priceParam.is_none()) {
                 priceParam = initialPrice;
             }
-            if !(crate::precise::Precise::stringGt(&priceParam.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if !(crate::precise::Precise::stringGt(&priceParam, &Value::Str("0".into())).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " fetchConvertQuote() price must be positive")));
             }
             let mut rawQuantity: Option<String> = crate::precise::Precise::stringDivPrec(&amountString, &priceParam, &Value::Int(18)).as_str().map(str::to_owned);
@@ -1971,7 +1971,7 @@ impl Backpack {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " fetchConvertQuote() could not determine a stock quantity")));
             }
             amountString = preciseQuantity;
-            if !(crate::precise::Precise::stringGt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if !(crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " fetchConvertQuote() amount is too small for one stock increment")));
             }
         }
@@ -1990,9 +1990,9 @@ impl Backpack {
     m
 })]).into_dict();
             let mut stepSize: Option<String> = self.safe_string_k(&quantityFilter, "stepSize", &[]).as_str().map(str::to_owned);
-            if (quoteQuantity.is_some()) && (stepSize.is_some()) && crate::precise::Precise::stringGt(&quoteQuantity.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(amount.clone()))).as_bool() == Some(true) {
+            if (quoteQuantity.is_some()) && (stepSize.is_some()) && crate::precise::Precise::stringGt(&quoteQuantity, &Value::from(self.number_to_string(amount.clone()))).as_bool() == Some(true) {
                 let mut reducedQuantity: Option<String> = crate::precise::Precise::stringSub(&amountString, &stepSize).as_str().map(str::to_owned);
-                if (reducedQuantity.is_none()) || !(crate::precise::Precise::stringGt(&reducedQuantity.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+                if (reducedQuantity.is_none()) || !(crate::precise::Precise::stringGt(&reducedQuantity, &Value::Str("0".into())).as_bool() == Some(true)) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " fetchConvertQuote() amount is too small for one stock increment")));
                 }
                 amountString = reducedQuantity;
@@ -2006,7 +2006,7 @@ impl Backpack {
                 }
             }
             let mut finalQuoteQuantity: Option<String> = self.safe_string_k(quote.clone(), "quoteQuantity", &[]).as_str().map(str::to_owned);
-            if (finalQuoteQuantity.is_some()) && crate::precise::Precise::stringGt(&finalQuoteQuantity.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(amount))).as_bool() == Some(true) {
+            if (finalQuoteQuantity.is_some()) && crate::precise::Precise::stringGt(&finalQuoteQuantity, &Value::from(self.number_to_string(amount))).as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " fetchConvertQuote() rounded stock quantity exceeds the requested quote-currency amount")));
             }
         }
@@ -2124,22 +2124,22 @@ impl Backpack {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createConvertTrade() buying stock requires a positive price bound")));
             }
             let mut quoteCost: Option<String> = crate::precise::Precise::stringMul(&quantity, &Value::from(self.number_to_string(Value::from(price)))).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&quoteCost.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(amount.clone()))).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&quoteCost, &Value::from(self.number_to_string(amount.clone()))).as_bool() == Some(true) {
                 let mut precision: crate::value::Dict = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
                 let mut stepSize: Option<String> = self.number_to_string(self.safe_number_k(&precision, "amount", &[]));
-                if !(crate::precise::Precise::stringGt(&stepSize.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+                if !(crate::precise::Precise::stringGt(&stepSize, &Value::Str("0".into())).as_bool() == Some(true)) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createConvertTrade() cannot safely round stock quantity to the quote-currency budget")));
                 }
                 let mut reducedQuantity: Option<String> = crate::precise::Precise::stringSub(&quantity, &stepSize).as_str().map(str::to_owned);
-                if (reducedQuantity.is_none()) || !(crate::precise::Precise::stringGt(&reducedQuantity.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+                if (reducedQuantity.is_none()) || !(crate::precise::Precise::stringGt(&reducedQuantity, &Value::Str("0".into())).as_bool() == Some(true)) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createConvertTrade() stock quantity is too small for one increment")));
                 }
                 quantity = reducedQuantity;
                 quoteCost = crate::precise::Precise::stringMul(&quantity, &Value::from(self.number_to_string(Value::from(price)))).as_str().map(str::to_owned);
-                if !(crate::precise::Precise::stringGt(&quantity.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) || crate::precise::Precise::stringGt(&quoteCost.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(amount))).as_bool() == Some(true) {
+                if !(crate::precise::Precise::stringGt(&quantity, &Value::Str("0".into())).as_bool() == Some(true)) || crate::precise::Precise::stringGt(&quoteCost, &Value::from(self.number_to_string(amount))).as_bool() == Some(true) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createConvertTrade() stock quantity exceeds the quote-currency amount")));
                 }
             }
@@ -3269,7 +3269,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut response: Value = self.private_get_api_v1_capital(&[Value::Dict(query)]).await;
+        let mut response: crate::value::Dict = self.private_get_api_v1_capital(&[Value::Dict(query)]).await.into_dict();
         if stock {
             let mut securities: Value = self.safe_list_k(self.options.clone(), "securities", &[]);
             if (securities == Value::Null) {
@@ -3280,20 +3280,20 @@ impl Backpack {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut assetIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut assetIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_255: bool = true;
                 while { if !__for_first_255 { i += 1; } __for_first_255 = false; i < (assetIds.len() as i64) } {
                 let mut assetId: Option<&str> = assetIds.get(i as usize).and_then(Value::as_str);
                 if (matches!(assetId.as_deref(), Some(__k) if securityIds.contains_key(__k))) {
-                    balances.insert(assetId.as_deref().unwrap_or("null").to_string(), (if let (Some(__m), Some(__k)) = (response.as_map(), assetId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+                    balances.insert(assetId.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&response, &Value::from(assetId)));
                 }
             }
             }
             return self.parse_balance(Value::Map(balances));
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -3861,13 +3861,13 @@ impl Backpack {
         })]).into_dict();
         if (self.safe_number_k(&precision, "amount", &[]) != Value::Null) {
             let mut preciseQuantity: Option<String> = self.amount_to_precision(symbol.clone(), amount.clone());
-            if !(crate::precise::Precise::stringEq(&quantity.clone().map(Value::from).unwrap_or(Value::Null), &preciseQuantity.map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+            if !(crate::precise::Precise::stringEq(&quantity, &preciseQuantity).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() RFQ quantity must match the share increment without rounding")));
             }
         }
         let mut limitPrice: Option<String> = self.number_to_string(price);
         if (type_var.as_str() == Some("limit")) {
-            if (limitPrice.is_none()) || !(crate::precise::Precise::stringGt(&limitPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if (limitPrice.is_none()) || !(crate::precise::Precise::stringGt(&limitPrice, &Value::Str("0".into())).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() limit RFQs require a positive price")));
             }
         }
@@ -3891,17 +3891,17 @@ impl Backpack {
             let mut stepSize: Option<String> = self.safe_string_k(&quantityFilter, "stepSize", &[]).as_str().map(str::to_owned);
             let mut minimum: Option<String> = self.safe_string_k(&quantityFilter, "minQuantity", &[]).as_str().map(str::to_owned);
             let mut maximum: Option<String> = self.safe_string_k(&quantityFilter, "maxQuantity", &[]).as_str().map(str::to_owned);
-            if (minimum.is_none()) || (stepSize.is_none()) || !(crate::precise::Precise::stringGt(&stepSize.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if (minimum.is_none()) || (stepSize.is_none()) || !(crate::precise::Precise::stringGt(&stepSize, &Value::Str("0".into())).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() stock indicative quote is missing valid session quantity constraints")));
             }
-            if ((minimum.is_some()) && crate::precise::Precise::stringLt(&quantity.clone().map(Value::from).unwrap_or(Value::Null), &minimum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) || ((maximum.is_some()) && crate::precise::Precise::stringGt(&quantity.clone().map(Value::from).unwrap_or(Value::Null),
-                &maximum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) || ((stepSize.is_some()) && !(crate::precise::Precise::stringEq(&crate::precise::Precise::stringMod(&quantity, &stepSize), &Value::Str("0".into())).as_bool() == Some(true))) {
+            if ((minimum.is_some()) && crate::precise::Precise::stringLt(&quantity, &minimum).as_bool() == Some(true)) || ((maximum.is_some()) && crate::precise::Precise::stringGt(&quantity, &maximum).as_bool() == Some(true)) || ((stepSize.is_some()) && !(crate::precise::Precise::stringEq(&crate::precise::Precise::stringMod(&quantity, &stepSize),
+                &Value::Str("0".into())).as_bool() == Some(true))) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() quantity does not match the current stock session constraints")));
             }
         }  else if (limitPrice.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() crypto market RFQs require an explicit price bound")));
         }
-        if (limitPrice.is_some()) && !(crate::precise::Precise::stringGt(&limitPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (limitPrice.is_some()) && !(crate::precise::Precise::stringGt(&limitPrice, &Value::Str("0".into())).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() RFQ price must be positive")));
         }
         if (self.safe_integer_k(params.clone(), "orderExpiryTime", &[]) != Value::Null) && (executionMode != "Immediate") {
@@ -4843,7 +4843,7 @@ impl Backpack {
         let mut netCost: Option<String> = self.safe_string_k(position.clone(), "netCost", &[]).as_str().map(str::to_owned);
         let mut hedged: Value = Value::Bool(false);
         let mut side: Option<String> = Some("long".to_string());
-        if crate::precise::Precise::stringLt(&netCost.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&netCost, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("short".to_string());
         }
         if (netCost.is_none()) {
@@ -4990,9 +4990,9 @@ impl Backpack {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut endpoint: String = format!("{}{}", "/", path);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

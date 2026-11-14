@@ -1124,7 +1124,7 @@ impl Deepcoin {
         let mut maxLimitSize: Option<String> = self.safe_string_k(market.clone(), "maxLmtSz", &[]).as_str().map(str::to_owned);
         let mut maxAmount: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize, &maxLimitSize), &[]).as_f64();
         let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
-        let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_bool() == Some(true));
+        let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into())).as_bool() == Some(true));
         let mut isInverse: Value = (if swap { (Value::Bool(isLinear != Some(true))) } else { Value::Null });
         let __ws_arg_1 = self.safe_number_k(market.clone(), "ctVal", &[]);
         let __ws_arg_2 = self.safe_number_k(market.clone(), "lotSz", &[]);
@@ -2238,7 +2238,7 @@ impl Deepcoin {
         let mut change: Option<String> = self.safe_string_k(item.clone(), "balChg", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = crate::precise::Precise::stringAbs(&change).as_str().map(str::to_owned);
         let mut direction: String = "in".to_string();
-        if crate::precise::Precise::stringLt(&change.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&change, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = "out".to_string();
         }
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "ccy", &[]).as_str().map(str::to_owned);
@@ -4521,7 +4521,7 @@ impl Deepcoin {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut requestPath: String = path.as_str().unwrap_or_default().to_string();
         if (method.as_str() == Some("GET")) {
             let mut query: String = self.urlencode(params.clone(), &[]);
@@ -4529,7 +4529,7 @@ impl Deepcoin {
                 requestPath = format!("{}{}", Value::Str(format!("{}{}", path, "?").into()), query);
             }
         }
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

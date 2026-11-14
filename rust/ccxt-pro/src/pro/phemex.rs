@@ -637,14 +637,14 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut usePerpetualApi: bool = self.safe_string_k(&paramsMarketType, "settle", &[]).as_str() == Some("USDT");
         let mut messageHash: String = "perpetual:balance".to_string();
         if !usePerpetualApi {
-            messageHash = format!("{}{}", type_var, ":balance");
+            messageHash = format!("{}{}", type_var.as_deref().unwrap_or("null"), ":balance");
         }
-        return self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsMarketType)]).await;
+        return self.subscribe_private(type_var.as_deref(), messageHash.as_str(), &[Value::Dict(paramsMarketType)]).await;
         Value::Null
         }).await?))
     }
@@ -772,12 +772,12 @@ impl Phemex {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut trades: crate::value::List = self.safe_list2(message, Value::Str("trades".into()), Value::Str("trades_p".into()), &[Value::from(vec![])]).into_list();
-        let mut parsed: Value = self.parse_trades(&trades, Some(&market), &[]);
+        let mut parsed: crate::value::List = self.parse_trades(&trades, Some(&market), &[]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_623: bool = true;
             while { if !__for_first_623 { i += 1; } __for_first_623 = false; i < (parsed.len() as i64) } {
-            stored.append(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            stored.append(crate::value::KeyRead::read(&&parsed, &Value::Int(i)));
         }
         }
         client.resolve(Value::from(&stored), messageHash.as_str());
@@ -1457,17 +1457,17 @@ impl Phemex {
         }
         let __ws_arg_1 = self.extend(params, &[Value::Map(settleRequest)]);
         let type_varparamsTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[__ws_arg_1]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsType: crate::value::Dict = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (symbol == Value::Null) {
             let mut settle: Option<String> = self.safe_string_k(&paramsType, "settle", &[]).as_str().map(str::to_owned);
             if (settle.as_deref() == Some("USDT")) {
                 messageHash = "trades:perpetual".to_string();
             }  else {
-                messageHash = format!("{}{}", "trades:", type_var);
+                messageHash = format!("{}{}", "trades:", type_var.as_deref().unwrap_or("null"));
             }
         }
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsType)]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_private(type_var.as_deref(), messageHash.as_str(), &[Value::Dict(paramsType)]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1669,17 +1669,17 @@ impl Phemex {
         }
         let __ws_arg_2 = self.extend(params, &[Value::Map(settleRequest)]);
         let type_varparamsTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[__ws_arg_2]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsType: crate::value::Dict = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isUSDTSettled: bool = self.safe_string_k(&paramsType, "settle", &[]).as_str() == Some("USDT");
         if (symbol == Value::Null) {
             if isUSDTSettled {
                 messageHash = "orders:perpetual".to_string();
             }  else {
-                messageHash = format!("{}{}", "orders:", type_var);
+                messageHash = format!("{}{}", "orders:", type_var.as_deref().unwrap_or("null"));
             }
         }
-        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsType)]).await.into();
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private(type_var.as_deref(), messageHash.as_str(), &[Value::Dict(paramsType)]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());

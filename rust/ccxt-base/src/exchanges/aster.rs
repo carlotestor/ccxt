@@ -4680,7 +4680,7 @@ impl Aster {
         //
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "income", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
-        if crate::precise::Precise::stringLe(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLe(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
             amount = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &amount).as_str().map(str::to_owned);
         }  else {
@@ -4817,7 +4817,7 @@ impl Aster {
             let mut __for_first_233: bool = true;
             while { if !__for_first_233 { i += 1; } __for_first_233 = false; i < (leverageBracket.len() as i64) } {
             let mut bracket: crate::value::List = leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            if crate::precise::Precise::stringLt(&notionalStringAbs.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
                 break;
             }
             maintenanceMarginPercentageString = self.safe_string(&bracket, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -4833,12 +4833,12 @@ impl Aster {
         let mut collateralString: Option<String> = None;
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "marginType", &[]).as_str().map(str::to_owned);
         if (marginMode.is_none()) && (isolatedMarginString.is_some()) {
-            marginMode = (if crate::precise::Precise::stringEq(&isolatedMarginString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
+            marginMode = (if crate::precise::Precise::stringEq(&isolatedMarginString, &Value::Str("0".into())).as_bool() == Some(true) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
         }
         let mut side: Option<String> = None;
-        if crate::precise::Precise::stringGt(&notionalString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringGt(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("long".to_string());
-        }  else if crate::precise::Precise::stringLt(&notionalString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        }  else if crate::precise::Precise::stringLt(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("short".to_string());
         }
         let mut entryPriceString: Option<String> = self.safe_string_k(position.clone(), "entryPrice", &[]).as_str().map(str::to_owned);
@@ -5030,7 +5030,7 @@ impl Aster {
             while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut entryPriceString: Option<String> = self.safe_string_k(&rawPosition, "entryPrice", &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&entryPriceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())).as_bool() == Some(true) {
                 result.push(self.parse_position_risk(Value::Dict(rawPosition), None));
             }
         }
@@ -5193,7 +5193,7 @@ impl Aster {
             let mut __for_first_237: bool = true;
             while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (leverageBracket.len() as i64) } {
             let mut bracket: crate::value::List = leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            if crate::precise::Precise::stringLt(&notionalStringAbs.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
                 break;
             }
             maintenanceMarginPercentageString = self.safe_string(&bracket, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -5210,7 +5210,7 @@ impl Aster {
         let mut isolated: bool = false;
         if (isolatedRaw.is_none()) {
             let mut isolatedMarginRaw: Option<String> = self.safe_string_k(position.clone(), "isolatedMargin", &[]).as_str().map(str::to_owned);
-            isolated = !(crate::precise::Precise::stringEq(&isolatedMarginRaw.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true));
+            isolated = !(crate::precise::Precise::stringEq(&isolatedMarginRaw, &Value::Str("0".into())).as_bool() == Some(true));
         }  else {
             isolated = isolatedRaw == Some(true);
         }
@@ -5234,10 +5234,10 @@ impl Aster {
         let mut liquidationPrice: Option<f64> = None;
         let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
         let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
-        if crate::precise::Precise::stringEquals(&notionalString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringEquals(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) {
             entryPrice = None.clone();
         }  else {
-            side = (if crate::precise::Precise::stringLt(&notionalString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("short".to_string()) } else { Some("long".to_string()) });
+            side = (if crate::precise::Precise::stringLt(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) { Some("short".to_string()) } else { Some("long".to_string()) });
             marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
             percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".into())), &[]).as_f64();
             if usdm {
@@ -5738,8 +5738,8 @@ impl Aster {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -5793,7 +5793,7 @@ impl Aster {
                     m.insert("signer".to_string(), signerAddress.map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[params]);
-            let mut paramString: Value = Value::Null;
+            let mut paramString: Option<String> = None;
             let mut paramsToEncode: Value = Value::Null;
             let mut isApproveBuilder: bool = path.as_str().unwrap_or("").contains("/approveBuilder");
             if isApproveBuilder {
@@ -5834,19 +5834,19 @@ impl Aster {
                     m
                 });
                 remove(&mut finalParams, &Value::Str("signer".into())); // signer is not needed for approveBuilder endpoint
-                paramString = self.encode_values_with_json(finalParams.clone()).map(Value::from).unwrap_or(Value::Null);
+                paramString = self.encode_values_with_json(finalParams.clone());
                 paramsToEncode = self.capitalize_keys(finalParams.clone());
             }  else {
-                paramString = self.encode_values_with_json(finalParams).map(Value::from).unwrap_or(Value::Null);
+                paramString = self.encode_values_with_json(finalParams);
                 paramsToEncode = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("msg".to_string(), paramString.clone());
+                        m.insert("msg".to_string(), paramString.clone().map(Value::from).unwrap_or(Value::Null));
                     m
                 });
             }
             let mut encodedMessage: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), paramsToEncode);
-            let mut signature: Value = self.sign_message(encodedMessage, (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
-            let mut queryString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", paramString, "&").into()), "signature=").into()), signature);
+            let mut signature: Option<String> = self.sign_message(encodedMessage, (self.privateKey.clone()).as_str().unwrap_or_default());
+            let mut queryString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", paramString.as_deref().unwrap_or("null"), "&").into()), "signature=").into()), signature.as_deref().unwrap_or("null"));
             if (method.as_str() == Some("GET")) {
                 url.push_str(&format!("{}{}", "?", queryString));
             }  else {

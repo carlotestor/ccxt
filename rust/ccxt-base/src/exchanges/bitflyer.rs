@@ -1695,11 +1695,11 @@ impl Bitflyer {
         let mut txId: Option<String> = self.safe_string_k(transaction.clone(), "tx_hash", &[]).as_str().map(str::to_owned);
         let mut rawStatus: Option<String> = self.safe_string_k(transaction.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("fee"))) {
             type_var = Some("withdrawal".to_string());
-            status = self.parse_withdrawal_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_withdrawal_status(rawStatus.as_deref());
             let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
             let mut additionalFee: Option<String> = self.safe_string_k(transaction.clone(), "additional_fee", &[]).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
@@ -1710,7 +1710,7 @@ impl Bitflyer {
             }));
         }  else {
             type_var = Some("deposit".to_string());
-            status = self.parse_deposit_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_deposit_status(rawStatus.as_deref());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1729,7 +1729,7 @@ impl Bitflyer {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);

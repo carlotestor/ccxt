@@ -5356,7 +5356,7 @@ impl Poloniex {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut isArray: bool = matches!(&params, Value::Arr(_));
         if (method.as_str() == Some("GET")) && (matches!(&params, Value::Dict(__d) if __d.contains_key("symbol"))) {
             { let __be_tmp = self.encode_uri_component(crate::value::get_value_k(&params, "symbol")); add_element_to_object(&mut params, &Value::Str("symbol".into()), __be_tmp); }; // handle symbols like 索拉拉/USDT'
@@ -5364,7 +5364,7 @@ impl Poloniex {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut implodedPath: Value = Value::from(self.implode_params(path, params));
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);
-        if self.in_array(&apiName, Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])) {
+        if self.in_array(Value::from(apiName.as_deref()), Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])) {
             url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("swap".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);
         }
         // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact

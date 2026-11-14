@@ -1984,7 +1984,7 @@ impl Kraken {
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
-        if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
             amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }  else {
@@ -2982,7 +2982,7 @@ impl Kraken {
             price = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
         }
         // when type = trailing stop returns price = '+50.0000%'
-        if (price.is_some()) && ((price.as_deref().unwrap_or_default().ends_with("%")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.00000".into())).as_bool() == Some(true) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (price.is_some()) && ((price.as_deref().unwrap_or_default().ends_with("%")) || crate::precise::Precise::stringEquals(&price, &Value::Str("0.00000".into())).as_bool() == Some(true) || crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true)) {
             price = None.clone(); // this is not the price we want
         }
         if (price.is_none()) {
@@ -3053,13 +3053,13 @@ impl Kraken {
             if (rawType.as_deref().unwrap_or_default().starts_with("take-profit")) {
                 takeProfitPrice = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
                 price = self.safe_string_k(&description, "price2", &[]).as_str().map(str::to_owned);
-                if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+                if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true)) {
                     price = None.clone(); // kraken pads an absent price with zeros, so the omit-zero rule applies
                 }
             }  else if (rawType.as_deref().unwrap_or_default().starts_with("stop-loss")) {
                 stopLossPrice = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
                 price = self.safe_string_k(&description, "price2", &[]).as_str().map(str::to_owned);
-                if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+                if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true)) {
                     price = None.clone(); // kraken pads an absent price with zeros, so the omit-zero rule applies
                 }
             }  else if (rawType.as_deref() == Some("take profit")) {
@@ -3068,12 +3068,12 @@ impl Kraken {
                 stopLossPrice = triggerPrice.clone();
             }
         }
-        let mut typeParsed: Value = self.parse_order_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut typeParsed: Option<String> = self.parse_order_type(rawType.as_deref());
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
-        if self.in_array(typeParsed.clone(), Value::from(vec![Value::Str("stop loss".into()), Value::Str("take profit".into())])) {
-            typeParsed = (if (price.is_none()) { Value::Str("market".into()) } else { Value::Str("limit".into()) });
+        if self.in_array(&typeParsed, Value::from(vec![Value::Str("stop loss".into()), Value::Str("take profit".into())])) {
+            typeParsed = (if (price.is_none()) { Some("market".to_string()) } else { Some("limit".to_string()) });
         }
         let mut amendId: Option<String> = self.safe_string_k(orderOmitted.clone(), "amend_id", &[]).as_str().map(str::to_owned);
         if (amendId.is_some()) {
@@ -3090,7 +3090,7 @@ impl Kraken {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(orderOmitted.clone(), "closetm", &[]));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), typeParsed);
+        m.insert("type".to_string(), typeParsed.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), isPostOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -4649,13 +4649,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
         if (depositMethod.is_none()) {
-            let mut depositMethods: Value = self.fetch_deposit_methods(codeResolved.as_str(), &[]).await;
+            let mut depositMethods: crate::value::List = self.fetch_deposit_methods(codeResolved.as_str(), &[]).await.into_list();
             if (network != Value::Null) {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_863: bool = true;
                     while { if !__for_first_863 { i += 1; } __for_first_863 = false; i < (depositMethods.len() as i64) } {
-                    let mut entry: Option<String> = self.safe_string_k(depositMethods.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "method", &[]).as_str().map(str::to_owned);
+                    let mut entry: Option<String> = self.safe_string(crate::value::KeyRead::read(&&depositMethods, &Value::Int(i)), Value::Str("method".into()), &[]).as_str().map(str::to_owned);
                     if (entry.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchDepositAddress() missing entry")));
                     }
@@ -4668,7 +4668,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             // if depositMethod was not specified, fallback to the first available deposit method
             if (depositMethod.is_none()) {
-                let mut firstDepositMethod: crate::value::Dict = self.safe_dict(depositMethods, Value::Int(0), &[Value::Map({
+                let mut firstDepositMethod: crate::value::Dict = self.safe_dict(&depositMethods, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -5077,14 +5077,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), apiName).into()), "/").into()), path);
-        if (apiName.as_str() == Some("public")) {
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), apiName.as_deref().unwrap_or("null")).into()), "/").into()), path);
+        if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode_nested(params.clone(), &[])));
             }
-        }  else if (apiName.as_str() == Some("private")) {
+        }  else if (apiName.as_deref() == Some("private")) {
             let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
             let mut isTriggerPercent: bool = false;
             if (price.is_some()) {
@@ -5130,7 +5130,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 headersSigned.insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into()));
             }
-            let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+            let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
             if (baseApiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
@@ -5146,7 +5146,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             url = format!("{}{}", "/", path);
         }
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName, &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

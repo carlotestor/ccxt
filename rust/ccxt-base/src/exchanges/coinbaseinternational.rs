@@ -2694,7 +2694,7 @@ impl Coinbaseinternational {
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let mut cashflow: Option<String> = self.safe_string2(transfer.clone(), Value::Str("cashflow".into()), Value::Str("change".into()), &[]).as_str().map(str::to_owned);
             amount = self.parse_number(crate::precise::Precise::stringAbs(&cashflow), &[]).as_f64();
-            if !(crate::precise::Precise::stringLt(&cashflow.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if !(crate::precise::Precise::stringLt(&cashflow, &Value::Str("0".into())).as_bool() == Some(true)) {
                 fromAccount = self.safe_string_k(&info, "other_user", &[]).as_str().map(str::to_owned);
                 toAccount = self.safe_string_k(transfer.clone(), "username", &[]).as_str().map(str::to_owned);
             }
@@ -4623,7 +4623,7 @@ impl Coinbaseinternational {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut access: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut access: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut rpcMethod: String = format!("{}{}", Value::Str(format!("{}{}", access.as_deref().unwrap_or("null"), "/").into()), path);
         let mut requestParams: Value = self.handle_route_and_params("sign", &[params]);
         let mut isNativeDeribit: bool = self.is_native_deribit_credentials().as_bool() == Some(true);

@@ -2948,7 +2948,7 @@ impl Mexc {
         let mut symbol: Value = Value::Null;
         let mut fee: Option<crate::value::Dict> = None;
         let mut type_var: Option<String> = None;
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
         let mut priceString: Option<String> = None;
         let mut amountString: Option<String> = None;
@@ -2973,7 +2973,7 @@ impl Mexc {
             symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
             priceString = self.safe_string_k(trade.clone(), "p", &[]).as_str().map(str::to_owned);
             amountString = self.safe_string_k(trade.clone(), "v", &[]).as_str().map(str::to_owned);
-            side = self.parse_order_side((self.safe_string_k(trade.clone(), "T", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+            side = self.parse_order_side((self.safe_string_k(trade.clone(), "T", &[])).as_str());
             takerOrMaker = Some("taker".to_string());
         }  else {
             //
@@ -3036,7 +3036,7 @@ impl Mexc {
             if (matches!(&trade, Value::Dict(__d) if __d.contains_key("positionMode"))) {
                 timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
                 amountString = self.safe_string_k(trade.clone(), "vol", &[]).as_str().map(str::to_owned);
-                side = self.parse_contract_order_side((self.safe_string_k(trade.clone(), "side", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+                side = self.parse_contract_order_side((self.safe_string_k(trade.clone(), "side", &[])).as_str());
                 fee = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "fee", &[]));
@@ -3056,10 +3056,10 @@ impl Mexc {
                     takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
                 }
                 if (isBuyer.is_some()) {
-                    side = (if (isBuyer == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+                    side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
                 }
                 if (buyerMaker.is_some()) {
-                    side = (if (buyerMaker == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+                    side = (if (buyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
                     takerOrMaker = Some("taker".to_string());
                 }
                 let mut feeAsset: Option<String> = self.safe_string_k(trade.clone(), "commissionAsset", &[]).as_str().map(str::to_owned);
@@ -3074,7 +3074,7 @@ impl Mexc {
             }
         }
         if (id.is_none()) && matches!(self.safe_bool_k(self.options.clone(), "useCcxtTradeId", &[Value::Bool(true)]), Value::Bool(true)) {
-            id = self.create_ccxt_trade_id(&[Value::from(timestamp), side.clone(), amountString.clone().map(Value::from).unwrap_or(Value::Null), priceString.clone().map(Value::from).unwrap_or(Value::Null), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            id = self.create_ccxt_trade_id(&[Value::from(timestamp), side.clone().map(Value::from).unwrap_or(Value::Null), amountString.clone().map(Value::from).unwrap_or(Value::Null), priceString.clone().map(Value::from).unwrap_or(Value::Null), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3084,7 +3084,7 @@ impl Mexc {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::from(type_var.as_deref()));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5454,11 +5454,11 @@ impl Mexc {
         }  else {
             wallet = self.safe_list_k(response.clone(), "balances", &[Value::from(vec![])]);
         }
-        let mut result: Value = Value::Map({
+        let mut result: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
-        });
+        }).into_dict();
         if isMarginType {
             {
                                 let mut i: i64 = 0;
@@ -5476,14 +5476,14 @@ impl Mexc {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
+                    result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base)).into_dict();
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
+                    result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote)).into_dict();
                 }
             }
             }
-            return self.safe_balance(result.clone());
+            return self.safe_balance(Value::from(&result));
         }  else if isSwapType {
             {
                                 let mut i: i64 = 0;
@@ -5496,11 +5496,11 @@ impl Mexc {
                 std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&entry, "availableBalance", &[]));
                 std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&entry, "frozenBalance", &[]));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
             }
             }
-            return self.safe_balance(result.clone());
+            return self.safe_balance(Value::from(&result));
         }  else {
             {
                                 let mut i: i64 = 0;
@@ -5513,11 +5513,11 @@ impl Mexc {
                 std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&entry, "free", &[]));
                 std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&entry, "locked", &[]));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
             }
             }
-            return self.safe_balance(result);
+            return self.safe_balance(Value::Dict(result));
         }
 
     Value::Null
@@ -6399,7 +6399,7 @@ impl Mexc {
     m
 })]);
         }
-        while crate::precise::Precise::stringLt(&floor, &maxVol.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+        while crate::precise::Precise::stringLt(&floor, &maxVol).as_bool() == Some(true) {
             let mut cap: Option<String> = crate::precise::Precise::stringAdd(&floor, &riskIncrVol).as_str().map(str::to_owned);
             let mut maxLev: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRate), &[]).as_f64();
             tiers.push(Value::Map({
@@ -8178,19 +8178,19 @@ impl Mexc {
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Value = Value::Null;
         let mut section: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut access: Option<&str> = api.get(1).and_then(Value::as_str);
         let mut pathValue: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut paramsValue: Value = self.omit(params, self.extract_params(path), &[]);
         let mut url: String = "".to_string();
         if (section.as_str() == Some("spot")) || (section.as_str() == Some("broker")) {
             if (section.as_str() == Some("broker")) {
-                let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), Value::from(access.as_deref()), &[]);
                 if (apiUrl.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
                 }
                 url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), "/").into()), pathValue);
             }  else {
-                let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), Value::from(access.as_deref()), &[]);
                 if (apiUrl.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
                 }
@@ -8240,7 +8240,7 @@ impl Mexc {
                 if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".to_string(), Value::Str("application/json".into())); }
             }
         }  else if (section.as_str() == Some("contract")) || (section.as_str() == Some("spot2")) {
-            let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), Value::from(access.as_deref()), &[]);
             if (apiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }

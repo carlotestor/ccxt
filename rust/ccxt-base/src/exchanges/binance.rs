@@ -7952,11 +7952,11 @@ impl Binance {
         let mut type_var: Value = type_var.into();
         let mut marginMode: Value = marginMode.into();
         let isPortfolioMargin: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let mut result: Value = Value::Map({
+        let mut result: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
-        });
+        }).into_dict();
         let mut timestamp: Option<i64> = None;
         let mut isolated: bool = marginMode.as_str() == Some("isolated");
         let mut cross: bool = (type_var.as_str() == Some("margin")) || (marginMode.as_str() == Some("cross"));
@@ -7990,7 +7990,7 @@ impl Binance {
                     accountPapi.insert("total".into(), crate::precise::Precise::stringAdd(&totalUsed, &totalWalletBalance));
                 }
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountPapi)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountPapi));
                 }
             }
             }
@@ -8013,7 +8013,7 @@ impl Binance {
                     accountSpot.insert("debt".into(), crate::precise::Precise::stringAdd(&debt, &interest));
                 }
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountSpot)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountSpot));
                 }
             }
             }
@@ -8035,10 +8035,10 @@ impl Binance {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
+                    result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base)).into_dict();
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
+                    result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote)).into_dict();
                 }
             }
             }
@@ -8056,7 +8056,7 @@ impl Binance {
                 accountSavings.insert("total".into(), usedAndTotal.clone().map(Value::from).unwrap_or(Value::Null));
                 accountSavings.insert("used".into(), usedAndTotal.map(Value::from).unwrap_or(Value::Null));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountSavings)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountSavings));
                 }
             }
             }
@@ -8075,7 +8075,7 @@ impl Binance {
                 let mut locked: Option<String> = self.safe_string_k(&entry, "locked", &[]).as_str().map(str::to_owned);
                 accountFunding.insert("used".into(), crate::precise::Precise::stringAdd(&frozen, &crate::precise::Precise::stringAdd(&locked, &withdrawing)));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountFunding)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountFunding));
                 }
             }
             }
@@ -8101,14 +8101,14 @@ impl Binance {
                 accountFutures.insert("used".into(), self.safe_string_k(&balance, "initialMargin", &[]));
                 accountFutures.insert("total".into(), self.safe_string2(&balance, Value::Str("marginBalance".into()), Value::Str("balance".into()), &[]));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountFutures)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountFutures));
                 }
             }
             }
         }
-        add_element_to_object(&mut result, &Value::Str("timestamp".into()), Value::from(timestamp));
-        add_element_to_object(&mut result, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
-        return self.safe_balance(result);
+        std::sync::Arc::make_mut(&mut result).insert("timestamp".into(), Value::from(timestamp));
+        std::sync::Arc::make_mut(&mut result).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        return self.safe_balance(Value::Dict(result));
 
     Value::Null
 }
@@ -9898,7 +9898,7 @@ impl Binance {
         }
         request.insert("type".into(), Value::from(uppercaseType.clone()));
         let mut validOrderTypes: crate::value::List = self.safe_list_k(crate::value::KeyRead::key_read(&&market, "info"), "orderTypes", &[Value::from(vec![])]).into_list();
-        if !self.in_array(Value::from(uppercaseType.clone()), Value::Arr(validOrderTypes)) {
+        if !self.in_array(&uppercaseType, Value::Arr(validOrderTypes)) {
             if (initialUppercaseType != uppercaseType) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " triggerPrice parameter is not allowed for ").into()), Value::from((market).symbol.as_str())).into()), " ").into()), type_var).into()), " orders")));
             }  else {
@@ -10918,7 +10918,7 @@ impl Binance {
         if (matches!(&order, Value::Dict(__d) if __d.contains_key("transactTime"))) || (matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime"))) || (matches!(&order, Value::Dict(__d) if __d.contains_key("updatedAt"))) {
             let mut timestampValue: Option<i64> = self.safe_integer_n(order.clone(), Value::from(vec![Value::Str("updateTime".into()), Value::Str("transactTime".into()), Value::Str("updatedAt".into())]), &[]).as_i64();
             if (status.as_deref() == Some("open")) {
-                if crate::precise::Precise::stringGt(&Value::from(filled.clone()), &Value::Str("0".into())).as_bool() == Some(true) {
+                if crate::precise::Precise::stringGt(&filled, &Value::Str("0".into())).as_bool() == Some(true) {
                     lastTradeTimestamp = timestampValue;
                 }
             }  else if (status.as_deref() == Some("closed")) {
@@ -11453,7 +11453,7 @@ impl Binance {
             m
         });
         let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsAlgo, Value::Str("createOrder".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPortfolioMarginVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPortfolioMargin: crate::value::Dict = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let marginModeparamsPapiVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsPortfolioMargin)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsPapiVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -11480,7 +11480,7 @@ impl Binance {
         let mut isTakeProfit: bool = takeProfitPrice.is_some();
         let mut isTriggerOrder: bool = triggerPrice.is_some();
         let mut isConditional: bool = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
-        let mut isPortfolioMarginConditional: bool = isPortfolioMargin.as_bool() == Some(true) && isConditional;
+        let mut isPortfolioMarginConditional: bool = isPortfolioMargin && isConditional;
         let mut isPriceMatch: bool = priceMatch.is_some();
         let mut priceRequiredForTrailing: bool = true;
         let mut uppercaseType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
@@ -11575,7 +11575,7 @@ impl Binance {
             request.insert(clientOrderIdRequest, clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut postOnly: Option<bool> = None;
-        if !(isPortfolioMargin.as_bool() == Some(true)) {
+        if !isPortfolioMargin {
             postOnly = Some(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
             if (market).spot || (marketType.as_deref() == Some("margin")) {
                 // only supported for spot/margin api (all margin markets are spot markets)
@@ -11597,7 +11597,7 @@ impl Binance {
             }
         }
         // handle newOrderRespType response type
-        if ((marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin"))) && !(isPortfolioMargin.as_bool() == Some(true)) && (!stock) {
+        if ((marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin"))) && !isPortfolioMargin && (!stock) {
             request.insert("newOrderRespType".into(), self.safe_string(self.options.as_map().and_then(|__m| __m.get("newOrderRespType")).cloned().unwrap_or(Value::Null), type_var.clone(), &[Value::Str("FULL".into())])); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }  else if !stock {
             // swap, futures and options
@@ -11771,7 +11771,7 @@ impl Binance {
         if timeInForceIsRequired && (self.safe_string_k(&paramsPapi, "timeInForce", &[]) == Value::Null) && (self.safe_string(Value::Map(request.clone()), Value::Str("timeInForce".into()), &[]) == Value::Null) {
             request.insert("timeInForce".into(), self.handle_option(Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[])); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if !(isPortfolioMargin.as_bool() == Some(true)) && (market).contract && (postOnly == Some(true)) {
+        if !isPortfolioMargin && (market).contract && (postOnly == Some(true)) {
             request.insert("timeInForce".into(), Value::Str("GTX".into()));
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
@@ -15787,7 +15787,7 @@ impl Binance {
             let mut __for_first_302: bool = true;
             while { if !__for_first_302 { i += 1; } __for_first_302 = false; i < (leverageBracket.len() as i64) } {
             let mut bracket: crate::value::List = leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            if crate::precise::Precise::stringLt(&notionalStringAbs.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
                 break;
             }
             maintenanceMarginPercentageString = self.safe_string(&bracket, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -15803,7 +15803,7 @@ impl Binance {
         let mut isolated: Value = self.safe_bool_k(position.clone(), "isolated", &[]);
         if (isolated == Value::Null) {
             let mut isolatedMarginRaw: Option<String> = self.safe_string_k(position.clone(), "isolatedMargin", &[]).as_str().map(str::to_owned);
-            isolated = Value::Bool(!(crate::precise::Precise::stringEq(&isolatedMarginRaw.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
+            isolated = Value::Bool(!(crate::precise::Precise::stringEq(&isolatedMarginRaw, &Value::Str("0".into())).as_bool() == Some(true)));
         }
         let mut marginMode: Option<String> = None;
         let mut collateralString: Option<String> = None;
@@ -15825,10 +15825,10 @@ impl Binance {
         let mut liquidationPrice: Option<f64> = None;
         let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
         let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
-        if crate::precise::Precise::stringEquals(&notionalString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringEquals(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) {
             entryPrice = None.clone();
         }  else {
-            side = (if crate::precise::Precise::stringLt(&notionalString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("short".to_string()) } else { Some("long".to_string()) });
+            side = (if crate::precise::Precise::stringLt(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) { Some("short".to_string()) } else { Some("long".to_string()) });
             marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
             percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".into())), &[]).as_f64();
             if usdm {
@@ -16024,7 +16024,7 @@ impl Binance {
             let mut __for_first_303: bool = true;
             while { if !__for_first_303 { i += 1; } __for_first_303 = false; i < (leverageBracket.len() as i64) } {
             let mut bracket: crate::value::List = leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            if crate::precise::Precise::stringLt(&notionalStringAbs.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
                 break;
             }
             maintenanceMarginPercentageString = self.safe_string(&bracket, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -16040,12 +16040,12 @@ impl Binance {
         let mut collateralString: Value = Value::Null;
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "marginType", &[]).as_str().map(str::to_owned);
         if (marginMode.is_none()) && (isolatedMarginString.is_some()) {
-            marginMode = (if crate::precise::Precise::stringEq(&isolatedMarginString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
+            marginMode = (if crate::precise::Precise::stringEq(&isolatedMarginString, &Value::Str("0".into())).as_bool() == Some(true) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
         }
         let mut side: Option<String> = None;
-        if crate::precise::Precise::stringGt(&notionalString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringGt(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("long".to_string());
-        }  else if crate::precise::Precise::stringLt(&notionalString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        }  else if crate::precise::Precise::stringLt(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("short".to_string());
         }
         let mut entryPriceString: Option<String> = self.safe_string_k(position.clone(), "entryPrice", &[]).as_str().map(str::to_owned);
@@ -16832,7 +16832,7 @@ impl Binance {
             while { if !__for_first_308 { i += 1; } __for_first_308 = false; i < (positions.len() as i64) } {
             let mut rawPosition: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut entryPriceString: Option<String> = self.safe_string_k(&rawPosition, "entryPrice", &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&entryPriceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())).as_bool() == Some(true) {
                 result.push(self.parse_position_risk(Value::Dict(rawPosition), None));
             }
         }
@@ -17692,7 +17692,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut amount: Option<String> = self.safe_string2(item.clone(), Value::Str("amount".into()), Value::Str("income".into()), &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
-        if crate::precise::Precise::stringLe(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLe(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
             amount = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &amount).as_str().map(str::to_owned);
         }  else {
@@ -18081,7 +18081,7 @@ if _try_result.is_err() {
         if (error.is_some()) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if (error.as_deref() == Some("200")) || crate::precise::Precise::stringEquals(&error.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if (error.as_deref() == Some("200")) || crate::precise::Precise::stringEquals(&error, &Value::Str("0".into())).as_bool() == Some(true) {
                 return Value::Null;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}

@@ -2540,7 +2540,7 @@ impl Foxbit {
         let mut change: Option<String> = self.safe_string_k(&rolling_24h, "price_change", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.safe_string_k(&rolling_24h, "price_change_percent", &[]).as_str().map(str::to_owned);
         // never-traded markets report all-zero placeholders instead of omitting the values
-        if crate::precise::Precise::stringEq(&lastPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringEq(&lastPrice, &Value::Str("0".into())).as_bool() == Some(true) {
             lastPrice = None.clone();
             change = None.clone();
             percentage = None.clone();
@@ -2888,7 +2888,7 @@ impl Foxbit {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut version: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut version: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut urlPath: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut fullPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/rest/", version.as_deref().unwrap_or("null")).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         if (version.as_deref() == Some("status")) {

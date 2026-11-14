@@ -226,7 +226,7 @@ impl Bingx {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "get_order_book_limit_by_market_type" => self.get_order_book_limit_by_market_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1086,7 +1086,7 @@ impl Bingx {
         }).await?))
     }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Option<f64> = self.safe_float2(delta.clone(), Value::Int(0), Value::Str("p".into()), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_float2(delta, Value::Int(1), Value::Str("a".into()), &[]).as_f64();
         bookside.store(price, amount);
@@ -1732,12 +1732,12 @@ impl Bingx {
         }
         self.authenticate(&[]).await;
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchBalance".into()), None, &[Value::from(&paramsMarketType), Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isSpot: bool = type_var.as_str() == Some("spot");
+        let mut isSpot: bool = type_var.as_deref() == Some("spot");
         let mut spotSubHash: String = "spot:balance".to_string();
         let mut swapSubHash: String = "swap:private".to_string();
         let mut spotMessageHash: String = "spot:balance".to_string();
@@ -1753,7 +1753,7 @@ impl Bingx {
         let mut request: Option<crate::value::Dict> = None;
         let mut baseUrl: Option<String> = None;
         let mut uuid: String = self.uuid(&[]);
-        if (type_var.as_str() == Some("swap")) {
+        if (type_var.as_deref() == Some("swap")) {
             if (subType.as_deref() == Some("inverse")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchBalance is not supported for inverse swap markets yet")));
             }
@@ -1761,7 +1761,7 @@ impl Bingx {
             // so we must not send a subscription message (an empty one is rejected with 80014)
             baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }  else {
-            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]).as_str().map(str::to_owned);
+            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             request = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(uuid.clone()));
@@ -1770,19 +1770,19 @@ impl Bingx {
             }));
         }
         let mut userStreamKey: Option<String> = self.safe_string_k(self.options.clone(), "listenKey", &[]).as_str().map(str::to_owned);
-        if (type_var == Value::Null) || (baseUrl.is_none()) || (userStreamKey.is_none()) {
+        if (type_var.is_none()) || (baseUrl.is_none()) || (userStreamKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " watchBalance() requires a websocket URL and a listen key")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
-        self.set_balance_cache(client.as_value(), type_var.clone(), subType.map(Value::from).unwrap_or(Value::Null), Value::from(subscriptionHash.clone()), Value::from(&paramsSubType));
+        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), Value::from(subscriptionHash.clone()), Value::from(&paramsSubType));
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsSubType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsFetchBalanceSnapshot: crate::value::Dict = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let awaitBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsFetchBalanceSnapshot, Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut awaitBalanceSnapshot: bool = awaitBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
-            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, ":fetchBalanceSnapshot").into()))).await;
+            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1989,8 +1989,8 @@ impl Bingx {
         let mut hedged: bool = true;
         if (positionSide.as_deref() == Some("both")) {
             hedged = false;
-            if !(crate::precise::Precise::stringEq(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-                if crate::precise::Precise::stringLt(&contracts.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if !(crate::precise::Precise::stringEq(&contracts, &Value::Str("0".into())).as_bool() == Some(true)) {
+                if crate::precise::Precise::stringLt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
                     positionSide = Some("short".to_string());
                 }  else {
                     positionSide = Some("long".to_string());

@@ -2611,9 +2611,9 @@ impl Delta {
         let mut sizeString: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if (sizeString.is_some()) {
-            if crate::precise::Precise::stringGt(&sizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&sizeString, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("long".to_string());
-            }  else if crate::precise::Precise::stringLt(&sizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            }  else if crate::precise::Precise::stringLt(&sizeString, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("short".to_string());
             }
         }
@@ -5414,9 +5414,9 @@ impl Delta {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut requestPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

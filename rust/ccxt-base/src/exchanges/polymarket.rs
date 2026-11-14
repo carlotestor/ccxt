@@ -168,7 +168,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "sign_message" => crate::Value::from(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "sign_perps_op" => self.sign_perps_op(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -2775,7 +2775,7 @@ impl Polymarket {
         let mut size: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if (size.is_some()) {
-            let mut isLong: Value = crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into()));
+            let mut isLong: Value = crate::precise::Precise::stringGt(&size, &Value::Str("0".into()));
             side = (if isLong.as_bool() == Some(true) { Some("long".to_string()) } else { Some("short".to_string()) });
         }
         let mut isCross: Option<bool> = self.safe_bool_k(position.clone(), "cross", &[]).as_bool();
@@ -3447,7 +3447,7 @@ impl Polymarket {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
-        let mut signature: Value = self.sign_message(encoded, self.privateKey.clone());
+        let mut signature: Option<String> = self.sign_message(encoded, self.privateKey.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Map({
@@ -3464,7 +3464,7 @@ impl Polymarket {
     m
 }));
                 m.insert("salt".to_string(), Value::from(salt));
-                m.insert("sig".to_string(), signature);
+                m.insert("sig".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("ts".to_string(), Value::from(ts));
             m
         });
@@ -3823,12 +3823,10 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: impl Into<crate::Value>) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: impl Into<crate::Value>) -> Option<String> {
         let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
-        return self.sign_hash(self.hash_message(message).map(Value::from).unwrap_or(Value::Null), privateKey);
-
-    Value::Null
+        return self.sign_hash(self.hash_message(message).map(Value::from).unwrap_or(Value::Null), privateKey).as_str().map(str::to_owned);
 }
 
 /*
@@ -3849,8 +3847,8 @@ impl Polymarket {
         // key over a timestamped nonce - unpredictable without the wallet
         // secret and unique per provisioning, the paradex stark-key idiom
         let mut nonceMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("polymarket-perps-proxy:".into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), ":").into()), Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(9)))).into()));
-        let mut seedSignature: Value = self.sign_message(Value::from(nonceMessage), self.privateKey.clone());
-        let mut proxyPrivateKey: String = self.hash(self.encode(seedSignature), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
+        let mut seedSignature: Option<String> = self.sign_message(Value::from(nonceMessage), self.privateKey.clone());
+        let mut proxyPrivateKey: String = self.hash(self.encode(seedSignature.map(Value::from).unwrap_or(Value::Null)), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
         let mut proxyAddress: Option<String> = self.eth_get_address_from_private_key(Value::from(proxyPrivateKey.clone()), &[]).as_str().map(str::to_owned);
         let mut owner: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
         let mut ts: i64 = self.milliseconds();
@@ -3899,7 +3897,7 @@ impl Polymarket {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
-        let mut signature: Value = self.sign_message(encoded, self.privateKey.clone());
+        let mut signature: Option<String> = self.sign_message(encoded, self.privateKey.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Map({
@@ -3915,7 +3913,7 @@ impl Polymarket {
     m
 }));
                 m.insert("salt".to_string(), Value::from(salt));
-                m.insert("sig".to_string(), signature);
+                m.insert("sig".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("ts".to_string(), Value::from(ts));
             m
         });
@@ -4028,11 +4026,11 @@ impl Polymarket {
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
         let mut proxyPrivateKey: Option<String> = self.safe_string_k(credentials, "privateKey", &[]).as_str().map(str::to_owned);
-        let mut signature: Value = self.sign_message(encoded, proxyPrivateKey.map(Value::from).unwrap_or(Value::Null));
+        let mut signature: Option<String> = self.sign_message(encoded, proxyPrivateKey.map(Value::from).unwrap_or(Value::Null));
         let mut envelope: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), bodyOp);
-                m.insert("sig".to_string(), signature);
+                m.insert("sig".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("salt".to_string(), Value::from(salt));
                 m.insert("ts".to_string(), Value::from(ts));
             m
@@ -4159,8 +4157,8 @@ impl Polymarket {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiType: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiType.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut apiType: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut baseUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiType.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), implodedPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);

@@ -560,9 +560,9 @@ impl Paradex {
         self.wait_for_pending_unsubscribe(url.as_str().unwrap_or_default(), channels.clone()).await;
         let mut channelsLength: i64 = channels.len() as i64;
         {
-                        let mut attempt: Value = Value::Int(0);
+                        let mut attempt: i64 = 0;
             let mut __for_first_582: bool = true;
-            while { if !__for_first_582 { if let Value::Int(n) = &mut attempt { *n += 1; } } __for_first_582 = false; attempt.as_f64().unwrap_or(f64::NAN) < (channelsLength as f64) } {
+            while { if !__for_first_582 { attempt += 1; } __for_first_582 = false; attempt < channelsLength } {
             let mut pending: Vec<Value> = self.unsubscribed_channels(url.clone(), channels.clone()).as_array().cloned().unwrap_or_default();
             let mut pendingLength: i64 = pending.len() as i64;
             if pendingLength < 2 {
@@ -2596,16 +2596,16 @@ if _try_result.is_err() {
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
         let mut side: Option<String> = self.safe_string_k(&position, "side", &[]).as_str().map(str::to_owned);
-        let mut cached: Value = self.filter_by_symbol_since_limit(&cache, symbol.as_deref(), None, None, &[Value::Bool(true)]);
+        let mut cached: crate::value::List = self.filter_by_symbol_since_limit(&cache, symbol.as_deref(), None, None, &[Value::Bool(true)]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_609: bool = true;
             while { if !__for_first_609 { i += 1; } __for_first_609 = false; i < (cached.len() as i64) } {
-            let mut previous: crate::value::Dict = cached.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut previous: crate::value::Dict = crate::value::KeyRead::read(&&cached, &Value::Int(i)).into_dict();
             let mut previousSide: Option<String> = self.safe_string_k(&previous, "side", &[]).as_str().map(str::to_owned);
             let mut previousContracts: Option<String> = self.safe_string_k(&previous, "contracts", &[]).as_str().map(str::to_owned);
             let mut isOpposite: bool = (side.is_some()) && (previousSide.is_some()) && (previousSide != side);
-            if isOpposite && (previousContracts.is_some()) && !(crate::precise::Precise::stringEq(&previousContracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if isOpposite && (previousContracts.is_some()) && !(crate::precise::Precise::stringEq(&previousContracts, &Value::Str("0".into())).as_bool() == Some(true)) {
                 let __ws_arg_10 = self.parse_number(Value::Str("0".into()), &[]);
                 let __ws_arg_11 = self.safe_integer_k(&position, "lastUpdateTimestamp", &[]);
                 let mut flattened: Value = self.extend(previous, &[Value::Map({
@@ -2701,7 +2701,7 @@ if _try_result.is_err() {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parse_ws_balance(&data);
+        let mut balance: crate::value::Dict = self.parse_ws_balance(&data).into_dict();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2709,7 +2709,7 @@ if _try_result.is_err() {
             });
         }
         let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
-        let mut keys: Vec<Value> = object_keys(&balance).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(balance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_610: bool = true;
@@ -2718,7 +2718,7 @@ if _try_result.is_err() {
             if self.in_array(key.clone(), &reserved) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (balance.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&balance, &key)); }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
@@ -3104,9 +3104,9 @@ if _try_result.is_err() {
         let mut start: Option<i64> = self.parse_to_int(offset);
         let mut position: Value = Value::from((if let Some(__l) = start { Some(__l * 2) } else { None }));
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_612: bool = true;
-            while { if !__for_first_612 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_612 = false; matches!(count, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_612 { i += 1; } __for_first_612 = false; matches!(count, Some(__b) if (i as f64) < (__b as f64)) } {
             // plain variables as slice bounds, php gets end - start unparenthesized
             let mut middle: Value = (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut next: Value = (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -3227,9 +3227,9 @@ if _try_result.is_err() {
         let mut total: Option<i64> = self.parse_to_int(count);
         let mut position: Option<i64> = self.parse_to_int(offset);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_614: bool = true;
-            while { if !__for_first_614 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_614 = false; matches!(total, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_614 { i += 1; } __for_first_614 = false; matches!(total, Some(__b) if (i as f64) < (__b as f64)) } {
             if (position.is_some() && end.is_some() && position >= end) {
                 return Value::from(result);
             }
@@ -3422,9 +3422,9 @@ if _try_result.is_err() {
             return Value::Null;
         }
         // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
-        let mut settlementTwapEstimate: Value = Value::Null;
+        let mut settlementTwapEstimate: Option<String> = None;
         if blockSize >= Some(248) {
-            settlementTwapEstimate = self.sbe_read_decimal(frameHex.clone(), Value::Int(248)).map(Value::from).unwrap_or(Value::Null);
+            settlementTwapEstimate = self.sbe_read_decimal(frameHex.clone(), Value::Int(248));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3439,7 +3439,7 @@ if _try_result.is_err() {
         m.insert("open_interest".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(56)).map(Value::from).unwrap_or(Value::Null));
         m.insert("funding_rate".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(64)).map(Value::from).unwrap_or(Value::Null));
         m.insert("price_change_rate_24h".to_string(), self.sbe_read_decimal(frameHex, Value::Int(96)).map(Value::from).unwrap_or(Value::Null));
-        m.insert("settlement_twap_estimate".to_string(), settlementTwapEstimate);
+        m.insert("settlement_twap_estimate".to_string(), settlementTwapEstimate.map(Value::from).unwrap_or(Value::Null));
     m
 });
 

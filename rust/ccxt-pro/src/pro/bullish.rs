@@ -1128,18 +1128,14 @@ impl Bullish {
         let mut messageType: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (messageType.as_deref() == Some("snapshot")) {
             let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-            let mut parsed: Value = self.parent.parse_balance_list(&data);
-            let mut parsedKeys: Vec<Value> = object_keys(&parsed).as_array().cloned().unwrap_or_default();
+            let mut parsed: crate::value::Dict = self.parent.parse_balance_list(&data).into_dict();
+            let mut parsedKeys: Vec<Value> = Value::Array(parsed.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_180: bool = true;
                 while { if !__for_first_180 { i += 1; } __for_first_180 = false; i < (parsedKeys.len() as i64) } {
                 let mut parsedKey: Value = parsedKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                if let Value::Dict(__bf03d0) = &mut self.balance {
-                    let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(tradingAccountId.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null);
-                    if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&parsedKey), (if let (Some(__m), Some(__k)) = (parsed.as_map(), parsedKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
-                    }
-                }
+                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(tradingAccountId.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&parsedKey), crate::value::KeyRead::read(&&parsed, &parsedKey)); } }
             }
             }
             { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), tradingAccountId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(tradingAccountId.as_deref().unwrap_or("null").to_string(), __be_tmp); } }

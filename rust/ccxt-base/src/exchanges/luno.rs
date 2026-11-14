@@ -1110,7 +1110,7 @@ impl Luno {
     pub fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let mut response: Value = response.into();
         let mut wallets: crate::value::List = self.safe_list_k(response.clone(), "balance", &[Value::from(vec![])]).into_list();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
                 m.insert("timestamp".to_string(), Value::Null);
@@ -1129,24 +1129,24 @@ impl Luno {
             let mut balance: Option<String> = self.safe_string_k(&wallet, "balance", &[]).as_str().map(str::to_owned);
             let mut reservedUnconfirmed: Option<String> = crate::precise::Precise::stringAdd(&reserved, &unconfirmed).as_str().map(str::to_owned);
             let mut balanceUnconfirmed: Option<String> = crate::precise::Precise::stringAdd(&balance, &unconfirmed).as_str().map(str::to_owned);
-            if (code != Value::Null) && (matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let __ws_arg_0 = self.safe_string((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("used".into()), &[]);
-                let __ws_arg_1 = self.safe_string((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("total".into()), &[]);
-                { let __be_tmp = self.extend((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[Value::Map({
+            if (code != Value::Null) && (matches!(&code, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+                let __ws_arg_0 = self.safe_string(result.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]);
+                let __ws_arg_1 = self.safe_string(result.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]);
+                { let __be_tmp = self.extend(result.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("used".to_string(), crate::precise::Precise::stringAdd(&__ws_arg_0, &reservedUnconfirmed));
         m.insert("total".to_string(), crate::precise::Precise::stringAdd(&__ws_arg_1, &balanceUnconfirmed));
     m
-})]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+})]); result.insert(crate::runtime::stringify_param(&code), __be_tmp); }
             }  else if (code != Value::Null) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("used".into(), reservedUnconfirmed.map(Value::from).unwrap_or(Value::Null));
                 account.insert("total".into(), balanceUnconfirmed.map(Value::from).unwrap_or(Value::Null));
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }
@@ -1541,8 +1541,8 @@ impl Luno {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
         let mut rawTickers: crate::value::List = self.safe_list_k(&response, "tickers", &[Value::from(vec![])]).into_list();
-        let mut tickers: Value = self.index_by(Value::Arr(rawTickers), Value::Str("pair".into()));
-        let mut ids: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut tickers: crate::value::Dict = self.index_by(Value::Arr(rawTickers), Value::Str("pair".into())).into_dict();
+        let mut ids: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1554,7 +1554,7 @@ impl Luno {
             let mut id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(id.as_deref()), None, &[]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            let mut ticker: crate::value::Dict = (if let (Some(__m), Some(__k)) = (tickers.as_map(), id.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).into_dict();
+            let mut ticker: crate::value::Dict = crate::value::KeyRead::read(&&tickers, &Value::from(id)).into_dict();
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&ticker, Some(&market)));
         }
         }
@@ -1659,12 +1659,12 @@ impl Luno {
         let mut feeCurrency: Option<String> = None;
         let mut feeCost: Option<String> = None;
         if (feeBaseString.is_some()) {
-            if !(crate::precise::Precise::stringEquals(&feeBaseString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
+            if !(crate::precise::Precise::stringEquals(&feeBaseString, &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(&market, "base", &[]).as_str().map(str::to_owned);
                 feeCost = feeBaseString;
             }
         }  else if (feeCounterString.is_some()) {
-            if !(crate::precise::Precise::stringEquals(&feeCounterString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
+            if !(crate::precise::Precise::stringEquals(&feeCounterString, &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(&market, "quote", &[]).as_str().map(str::to_owned);
                 feeCost = feeCounterString;
             }
@@ -2211,20 +2211,20 @@ impl Luno {
         let mut resultReferenceId: Option<String> = self.safe_string_k(&result, "referenceId", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
         let mut status: Option<String> = None;
-        if !(crate::precise::Precise::stringEquals(&balance_delta.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
+        if !(crate::precise::Precise::stringEquals(&balance_delta, &Value::Str("0.0".into())).as_bool() == Some(true)) {
             before = crate::precise::Precise::stringSub(&after, &balance_delta).as_str().map(str::to_owned);
             status = Some("ok".to_string());
             amount = crate::precise::Precise::stringAbs(&balance_delta).as_str().map(str::to_owned);
-        }  else if crate::precise::Precise::stringLt(&available_delta.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true) {
+        }  else if crate::precise::Precise::stringLt(&available_delta, &Value::Str("0.0".into())).as_bool() == Some(true) {
             status = Some("pending".to_string());
             amount = crate::precise::Precise::stringAbs(&available_delta).as_str().map(str::to_owned);
-        }  else if crate::precise::Precise::stringGt(&available_delta.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true) {
+        }  else if crate::precise::Precise::stringGt(&available_delta, &Value::Str("0.0".into())).as_bool() == Some(true) {
             status = Some("canceled".to_string());
             amount = crate::precise::Precise::stringAbs(&available_delta).as_str().map(str::to_owned);
         }
-        if crate::precise::Precise::stringGt(&balance_delta.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) || crate::precise::Precise::stringGt(&available_delta.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringGt(&balance_delta, &Value::Str("0".into())).as_bool() == Some(true) || crate::precise::Precise::stringGt(&available_delta, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("in".to_string());
-        }  else if crate::precise::Precise::stringLt(&balance_delta.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) || crate::precise::Precise::stringLt(&available_delta.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        }  else if crate::precise::Precise::stringLt(&balance_delta, &Value::Str("0".into())).as_bool() == Some(true) || crate::precise::Precise::stringLt(&available_delta, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
         }
         return self.safe_ledger_entry(Value::Map({
@@ -2426,8 +2426,8 @@ impl Luno {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

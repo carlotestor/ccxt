@@ -205,7 +205,7 @@ impl Dydx {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -402,12 +402,12 @@ impl Dydx {
             stored = Some(ArrayCache::new(limit));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut parsedTrades: Value = self.parse_trades(&rawTrades, Some(&market), &[]);
+        let mut parsedTrades: crate::value::List = self.parse_trades(&rawTrades, Some(&market), &[]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_305: bool = true;
             while { if !__for_first_305 { i += 1; } __for_first_305 = false; i < (parsedTrades.len() as i64) } {
-            stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            stored.append(crate::value::KeyRead::read(&&parsedTrades, &Value::Int(i)));
         }
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trade", ":").into()), symbol);
@@ -567,15 +567,15 @@ impl Dydx {
         orderbook.set_book_meta("symbol", symbol.clone());
         let mut asks: crate::value::List = self.safe_list_k(&content, "asks", &[Value::from(vec![])]).into_list();
         let mut bids: crate::value::List = self.safe_list_k(&content, "bids", &[Value::from(vec![])]).into_list();
-        self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
-        self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
         orderbook.set_book_meta("nonce", (match message.get("message_id") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         if (matches!(&delta, Value::Arr(_))) {
             let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
             let mut amount: Option<f64> = self.safe_float(delta.clone(), Value::Int(1), &[]).as_f64();

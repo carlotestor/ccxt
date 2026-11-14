@@ -2671,13 +2671,13 @@ impl Toobit {
         }
         let isPostOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[Value::from(&paramsCost)]).as_array().cloned().unwrap_or_default();
         let mut isPostOnly: bool = isPostOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = isPostOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = isPostOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if isPostOnly {
             request.insert("type".into(), Value::Str("LIMIT_MAKER".into()));
         }  else {
             request.insert("type".into(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         }
-        return Value::from(vec![Value::Map(request), paramsPostOnly]);
+        return Value::from(vec![Value::Map(request), Value::Dict(paramsPostOnly)]);
 
     Value::Null
 }
@@ -4284,8 +4284,8 @@ impl Toobit {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

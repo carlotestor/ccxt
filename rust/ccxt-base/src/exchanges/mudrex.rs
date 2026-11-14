@@ -474,14 +474,14 @@ impl Mudrex {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut base: Option<String> = self.safe_string(&apiUrls, apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut base: Option<String> = self.safe_string(&apiUrls, Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (base.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unknown API namespace: ").into()), apiName)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unknown API namespace: ").into()), apiName.as_deref().unwrap_or("null"))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
@@ -494,7 +494,7 @@ impl Mudrex {
             requestHeaders.insert("Partner-Id".into(), brokerId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut methodUpper: Value = (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (apiName.as_str() == Some("private")) {
+        if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             requestHeaders.insert("X-Authentication".into(), self.secret.clone());
             if (methodUpper.as_str() == Some("POST")) || (methodUpper.as_str() == Some("PATCH")) || (methodUpper.as_str() == Some("DELETE")) {
@@ -804,11 +804,11 @@ impl Mudrex {
                 continue;
             }
             let mut m: crate::types::Market = self.safe_market(sym.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&m, "symbol");
-            if (symbols != Value::Null) && !self.in_array(symbol.clone(), symbols.clone()) {
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&m, "symbol").as_str().map(str::to_owned);
+            if (symbols != Value::Null) && !self.in_array(&symbol, symbols.clone()) {
                 continue;
             }
-            resultTickers.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(&t, Some(&m)));
+            resultTickers.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&t, Some(&m)));
         }
         }
         return self.filter_by_array_tickers(Value::Map(resultTickers), Value::Str("symbol".into()), &[symbols]);
@@ -1965,10 +1965,10 @@ impl Mudrex {
         let mut positionId: Option<String> = self.safe_string_k(params.clone(), "position_id", &[]).as_str().map(str::to_owned);
         if (positionId.is_none()) {
             let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut matches: Value = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), symbol.clone(), &[]);
+            let mut matches: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), symbol.clone(), &[]).into_list();
             let mut numMatches: i64 = matches.len() as i64;
             if numMatches > 0 {
-                let mut found: crate::value::Dict = matches.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+                let mut found: crate::value::Dict = crate::value::KeyRead::read(&&matches, &Value::Int(0)).into_dict();
                 positionId = self.safe_string_k(&found, "id", &[]).as_str().map(str::to_owned);
             }
         }

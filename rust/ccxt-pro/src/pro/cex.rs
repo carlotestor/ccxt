@@ -237,8 +237,8 @@ impl Cex {
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_connected" => self.handle_connected(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_init_ohlcv" => { self.handle_init_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -598,7 +598,7 @@ impl Cex {
     pub fn handle_trades_inner(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut symbol: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
@@ -615,7 +615,7 @@ impl Cex {
             let mut __for_first_217: bool = true;
             while { if !__for_first_217 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_217 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut index: Value = (match (&(Value::Int((dataLength - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut rawTrade: crate::value::Dict = get_value(&data, &index).into_dict();
+            let mut rawTrade: crate::value::Dict = crate::value::KeyRead::read(&&data, &index).into_dict();
             let mut parsed: crate::value::Dict = self.parse_ws_old_trade(Value::Dict(rawTrade), Some(&market)).into_dict();
             stored.append(Value::Dict(parsed));
         }
@@ -1330,12 +1330,12 @@ impl Cex {
         //
         let mut isTransaction: bool = self.safe_string_k(order.clone(), "d", &[]) != Value::Null;
         let mut remainsPrecision: Option<String> = self.safe_string_k(order.clone(), "remains", &[]).as_str().map(str::to_owned);
-        let mut remaining: Value = Value::Null;
+        let mut remaining: Option<String> = None;
         if (remainsPrecision.is_some()) {
             if (market.is_none()) {
                 return Value::Null;
             }
-            remaining = self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), remainsPrecision.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+            remaining = self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), remainsPrecision.map(Value::from).unwrap_or(Value::Null));
         }
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
         if !isTransaction {
@@ -1391,7 +1391,7 @@ impl Cex {
                 m.insert("cost".to_string(), Value::Null);
                 m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
                 m.insert("filled".to_string(), Value::Null);
-                m.insert("remaining".to_string(), remaining);
+                m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
                 m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number2(order.clone(), Value::Str("fee".into()), Value::Str("fee_amount".into()), &[]));
@@ -1633,20 +1633,20 @@ impl Cex {
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
         let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
         let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
-        self.handle_deltas(storedOrderBook.book_field("asks"), Value::Arr(asks));
-        self.handle_deltas(storedOrderBook.book_field("bids"), Value::Arr(bids));
+        self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), Value::Arr(asks));
+        self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), Value::Arr(bids));
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
         storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         storedOrderBook.set_book_meta("nonce", Value::from(incrementalId));
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Int(0), Value::Int(1)]).into_list();
         bookside.store_array(Value::Arr(bidAsk));
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {

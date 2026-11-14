@@ -1756,13 +1756,13 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1424: bool = true;
             while { if !__for_first_1424 { i += 1; } __for_first_1424 = false; i < (outcomeSymbols.len() as i64) } {
-            let mut outcomeSymbol: Value = outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut outcomeSymbol: Option<&str> = outcomeSymbols.get(i as usize).and_then(Value::as_str);
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
             // matches mb_strpos's false return
-            if (!outcomeSymbol.as_str().unwrap_or("").contains(":")) && (self.outcome_search_query(outcomeSymbol.clone()) == Value::Null) {
-                if let Value::Arr(__a) = &mut tokenIds { std::sync::Arc::make_mut(__a).push(outcomeSymbol); }
+            if (!outcomeSymbol.as_deref().unwrap_or_default().contains(":")) && (self.outcome_search_query(Value::from(outcomeSymbol.as_deref())) == Value::Null) {
+                if let Value::Arr(__a) = &mut tokenIds { std::sync::Arc::make_mut(__a).push(Value::from(outcomeSymbol.as_deref())); }
             }
         }
         }
@@ -4343,10 +4343,10 @@ impl Polymarket {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
-        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "gamma")]);
+        let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "gamma")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"

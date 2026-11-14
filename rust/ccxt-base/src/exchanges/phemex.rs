@@ -2949,7 +2949,7 @@ impl Phemex {
         let mut id: Option<String> = None;
         let mut side: Option<String> = None;
         let mut costString: Value = Value::Null;
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCostString: Value = Value::Null;
         let mut feeRateString: Value = Value::Null;
@@ -2989,9 +2989,9 @@ impl Phemex {
                 }
                 let mut ordType: Option<String> = self.safe_string_k(trade.clone(), "ordType", &[]).as_str().map(str::to_owned);
                 if (ordType.as_deref() == Some("1")) {
-                    type_var = Value::Str("market".into());
+                    type_var = Some("market".to_string());
                 }  else if (ordType.as_deref() == Some("2")) {
-                    type_var = Value::Str("limit".into());
+                    type_var = Some("limit".to_string());
                 }
                 priceString = self.safe_string_k(trade.clone(), "execPriceRp", &[]);
                 amountString = self.safe_string_k(trade.clone(), "execQtyRq", &[]);
@@ -3010,7 +3010,7 @@ impl Phemex {
                 }
             }  else {
                 side = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
-                type_var = self.parse_order_type((self.safe_string_k(trade.clone(), "ordType", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+                type_var = self.parse_order_type((self.safe_string_k(trade.clone(), "ordType", &[])).as_str());
                 let mut execStatus: Option<String> = self.safe_string_k(trade.clone(), "execStatus", &[]).as_str().map(str::to_owned);
                 if (execStatus.as_deref() == Some("MakerFill")) {
                     takerOrMaker = Some("maker".to_string());
@@ -3054,7 +3054,7 @@ impl Phemex {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString);
@@ -6277,7 +6277,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut url: String = requestPath.clone();
@@ -6317,7 +6317,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", requestPath, queryString).into()), expiryString).into()), payload.as_deref().unwrap_or("null"));
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("x-phemex-request-signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]))); }
         }
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

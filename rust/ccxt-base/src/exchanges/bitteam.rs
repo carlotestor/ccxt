@@ -2876,8 +2876,8 @@ impl Bitteam {
                         let mut i: i64 = 0;
             let mut __for_first_442: bool = true;
             while { if !__for_first_442 { i += 1; } __for_first_442 = false; i < (rawCurrencyIds.len() as i64) } {
-            let mut rawCurrencyId: Option<String> = rawCurrencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut currencyBalance: crate::value::Dict = self.safe_dict(&result, rawCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+            let mut rawCurrencyId: Option<&str> = rawCurrencyIds.get(i as usize).and_then(Value::as_str);
+            let mut currencyBalance: crate::value::Dict = self.safe_dict(&result, Value::from(rawCurrencyId.as_deref()), &[]).into_dict();
             let mut free: Option<String> = self.safe_string_k(&currencyBalance, "free", &[]).as_str().map(str::to_owned);
             let mut used: Option<String> = self.safe_string_k(&currencyBalance, "used", &[]).as_str().map(str::to_owned);
             let mut total: Option<String> = self.safe_string_k(&currencyBalance, "total", &[]).as_str().map(str::to_owned);
@@ -3168,10 +3168,10 @@ impl Bitteam {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut request: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params));
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

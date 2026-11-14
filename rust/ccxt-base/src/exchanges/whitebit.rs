@@ -1602,8 +1602,8 @@ impl Whitebit {
         m.insert("id".to_string(), Value::from(networkId.clone()));
         m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool(self.in_array(Value::from(networkId.clone()), Value::from(&depositsNetworks))));
-        m.insert("withdraw".to_string(), Value::Bool(self.in_array(Value::from(networkId), Value::from(&withdrawsNetworks))));
+        m.insert("deposit".to_string(), Value::Bool(self.in_array(&networkId, Value::from(&depositsNetworks))));
+        m.insert("withdraw".to_string(), Value::Bool(self.in_array(&networkId, Value::from(&withdrawsNetworks))));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
@@ -2141,10 +2141,10 @@ impl Whitebit {
         }
         // Fetch both currencies and fees data for comprehensive funding limits
         let mut responses: Value = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_currencies(Value::Null).await), self.v4_public_get_fee(&[params]).await])).await;
-        let mut currenciesData: Value = self.safe_dict(responses.clone(), Value::Int(0), &[Value::Map({
+        let mut currenciesData: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut feesData: crate::value::Dict = self.safe_dict(responses, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2209,13 +2209,13 @@ impl Whitebit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currencyKeys: Vec<Value> = Value::Array(currenciesData.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencyKeys: Vec<Value> = Value::Array(currenciesData.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1155: bool = true;
             while { if !__for_first_1155 { i += 1; } __for_first_1155 = false; i < (currencyKeys.len() as i64) } {
             let mut code: Value = currencyKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: Value = (if let (Some(__m), Some(__k)) = (currenciesData.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut currency: Value = crate::value::KeyRead::read(&&currenciesData, &code);
             if (currency == Value::Null) {
                 continue;
             }
@@ -6024,15 +6024,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut version: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut accessibility: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut version: Option<&str> = api.get(0).and_then(Value::as_str);
+        let mut accessibility: Option<&str> = api.get(1).and_then(Value::as_str);
         let mut publicHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if let Value::Dict(__d) = &mut publicHeaders { std::sync::Arc::make_mut(__d).insert("User-Agent".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ccxt/", self.id.clone()).into()), "-").into()), self.version.clone()).into())); }
         let mut pathWithParams: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone()));
-        let mut apiUrl: Option<String> = self.safe_string(self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), version.clone(), &[]), accessibility.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(version.as_deref()), &[]), Value::from(accessibility.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -6052,7 +6052,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
             let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
             let mut secret: crate::value::Bytes = self.encode(self.secret.clone());
-            let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", "api").into()), "/").into()), version).into()), pathWithParams);
+            let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", "api").into()), "/").into()), version.as_deref().unwrap_or("null")).into()), pathWithParams);
             let nonceWindowrequestParamsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut nonceWindow: Value = nonceWindowrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut requestParams: crate::value::Dict = nonceWindowrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

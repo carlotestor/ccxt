@@ -221,8 +221,8 @@ impl Deribit {
             "handle_authentication_message" => self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -973,7 +973,7 @@ impl Deribit {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             cachedTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
-        let mut parsed: Value = self.parse_trades(&trades, None, &[]);
+        let mut parsed: crate::value::List = self.parse_trades(&trades, None, &[]).into_list();
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -982,7 +982,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_291: bool = true;
             while { if !__for_first_291 { i += 1; } __for_first_291 = false; i < (parsed.len() as i64) } {
-            let mut trade: Value = parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = crate::value::KeyRead::read(&&parsed, &Value::Int(i));
             cachedTrades.append(trade.clone());
             let mut symbol: Option<String> = self.safe_string_k(trade, "symbol", &[]).as_str().map(str::to_owned);
             marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -1043,9 +1043,9 @@ impl Deribit {
     m
 }));
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]).as_array().cloned().unwrap_or_default();
-        let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut interval: Option<String> = intervalparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (interval.as_str() == Some("raw")) {
+        if (interval.as_deref() == Some("raw")) {
             self.authenticate(&[]).await;
         }
         // for more info on useDepthEndpoint, see comment in .options
@@ -1058,15 +1058,15 @@ impl Deribit {
         let groupparamsGroupVariable: Vec<Value> = self.handle_option_string_and_params(&paramsDepth, Value::Str("watchOrderBookForSymbols".into()), Value::Str("group".into()), &[Value::Str("none".into())]).as_array().cloned().unwrap_or_default();
         let mut group: Option<String> = groupparamsGroupVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsGroup: crate::value::Dict = groupparamsGroupVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut descriptor: Value = interval.clone();
+        let mut descriptor: Option<String> = interval.clone();
         if useDepthEndpoint {
-            descriptor = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", group.as_deref().unwrap_or("null"), ".").into()), depth.as_deref().unwrap_or("null")).into()), ".").into()), interval).into());
+            descriptor = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", group.as_deref().unwrap_or("null"), ".").into()), depth.as_deref().unwrap_or("null")).into()), ".").into()), interval.as_deref().unwrap_or("null")));
         }
         let mut paramsResolved: Value = Value::Dict(paramsUseDepthEndpoint);
         if useDepthEndpoint {
             paramsResolved = Value::Dict(paramsGroup);
         }
-        let mut orderbook: Value = self.watch_multiple_wrapper("book", descriptor.as_str(), &[symbols, paramsResolved]).await;
+        let mut orderbook: Value = self.watch_multiple_wrapper("book", descriptor.as_deref(), &[symbols, paramsResolved]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1145,8 +1145,8 @@ impl Deribit {
         let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
         let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
-        self.handle_deltas(storedOrderBook.book_field("asks"), Value::Arr(asks));
-        self.handle_deltas(storedOrderBook.book_field("bids"), Value::Arr(bids));
+        self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), Value::Arr(asks));
+        self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), Value::Arr(bids));
         storedOrderBook.set_book_meta("nonce", Value::from(timestamp));
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
         storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
@@ -1184,7 +1184,7 @@ impl Deribit {
     Value::Null
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut price: Value = self.safe_value(delta.clone(), Value::Int(1), &[]);
         let mut amount: Value = self.safe_value(delta.clone(), Value::Int(2), &[]);
         let mut action: Option<String> = self.safe_string(delta, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -1195,7 +1195,7 @@ impl Deribit {
         }
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {

@@ -685,14 +685,14 @@ impl Coinbase {
             symbolsResolved = Value::Arr(self.symbols.clone());
         }
         let mut name: String = "ticker_batch".to_string();
-        let mut ticker: Value = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbolsResolved, params]).await;
+        let mut ticker: crate::value::Dict = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbolsResolved, params]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut symbol: String = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            tickers.insert(symbol, ticker);
+            let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            tickers.insert(symbol, Value::Dict(ticker));
             return Value::Map(tickers);
         }
         return self.tickers.clone();

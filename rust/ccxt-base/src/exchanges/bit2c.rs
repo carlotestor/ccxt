@@ -694,7 +694,7 @@ impl Bit2c {
             while { if !__for_first_331 { i += 1; } __for_first_331 = false; i < (rawBids.len() as i64) } {
             let mut bidRow: crate::value::List = rawBids.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let mut bidAmount: Option<String> = self.safe_string(&bidRow, Value::Int(1), &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&bidAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&bidAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                 bids.push(Value::Arr(bidRow));
             }
         }
@@ -705,7 +705,7 @@ impl Bit2c {
             while { if !__for_first_332 { i += 1; } __for_first_332 = false; i < (rawAsks.len() as i64) } {
             let mut askRow: crate::value::List = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let mut askAmount: Option<String> = self.safe_string(&askRow, Value::Int(1), &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&askAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&askAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                 asks.push(Value::Arr(askRow));
             }
         }
@@ -1381,7 +1381,7 @@ impl Bit2c {
         //
         let mut timestamp: Option<i64> = None;
         let mut id: Value = Value::Null;
-        let mut price: Value = Value::Null;
+        let mut price: Option<String> = None;
         let mut amount: Option<String> = None;
         let mut orderId: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
@@ -1394,7 +1394,7 @@ impl Bit2c {
             timestamp = self.safe_timestamp_k(trade.clone(), "ticks", &[]).as_i64();
             let mut rawPrice: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
             if (rawPrice.is_some()) {
-                price = self.remove_comma_from_value(rawPrice.as_deref().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+                price = self.remove_comma_from_value(rawPrice.as_deref().unwrap_or_default());
             }
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]).as_str().map(str::to_owned);
             let mut reference_parts: Vec<Value> = Value::Array(if let Some(__s) = reference.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
@@ -1422,7 +1422,7 @@ impl Bit2c {
         }  else {
             timestamp = self.safe_timestamp_k(trade.clone(), "date", &[]).as_i64();
             id = self.safe_string_k(trade.clone(), "tid", &[]);
-            price = self.safe_string_k(trade.clone(), "price", &[]);
+            price = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
             amount = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
             tradeMarket = Some(self.safe_market(Value::Null, market, &[]));
             side = self.safe_value_k(trade.clone(), "isBid", &[]);
@@ -1443,7 +1443,7 @@ impl Bit2c {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), makerOrTaker.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));

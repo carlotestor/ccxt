@@ -257,8 +257,8 @@ impl Bybit {
             "get_url_by_market_type" => { crate::exchange_stubs::enqueue_spawn("get_url_by_market_type", args.to_vec()); crate::Value::Null },
             "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_liquidation" => { self.handle_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1734,8 +1734,8 @@ impl Bybit {
         }  else {
             let mut asks: crate::value::List = self.safe_list_k(&data, "a", &[Value::from(vec![])]).into_list();
             let mut bids: crate::value::List = self.safe_list_k(&data, "b", &[Value::from(vec![])]).into_list();
-            self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
-            self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
@@ -1754,12 +1754,12 @@ impl Bybit {
         }
 }
 
-    pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
+    pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {
         let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Int(0), Value::Int(1)]).into_list();
         bookside.store_array(Value::Arr(bidAsk));
 }
 
-    pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
@@ -2328,7 +2328,7 @@ impl Bybit {
                 if executionFast {
                     execType = "Trade".to_string();
                 }
-                if (execTypes != Value::Null) && !self.in_array(Value::from(execType), execTypes.clone()) {
+                if (execTypes != Value::Null) && !self.in_array(&execType, execTypes.clone()) {
                     continue;
                 }
                 parsed = self.parse_trade(Value::Dict(rawTrade), None);
@@ -3266,7 +3266,7 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_204: bool = true;
                 while { if !__for_first_204 { i += 1; } __for_first_204 = false; i < (data.len() as i64) } {
-                let mut B: crate::value::List = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "B", &[Value::from(vec![])]).into_list();
+                let mut B: crate::value::List = self.safe_list(crate::value::KeyRead::read(&&data, &Value::Int(i)), Value::Str("B".into()), &[Value::from(vec![])]).into_list();
                 rawBalances = self.array_concat(rawBalances, &B);
             }
             }
@@ -3275,9 +3275,9 @@ impl Bybit {
         if (topic.as_deref() == Some("wallet")) {
             let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_205: bool = true;
-                while { if !__for_first_205 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_205 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+                while { if !__for_first_205 { i += 1; } __for_first_205 = false; i < (data.len() as i64) } {
                 let mut result: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m

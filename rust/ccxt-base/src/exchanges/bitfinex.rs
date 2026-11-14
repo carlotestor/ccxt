@@ -2213,7 +2213,7 @@ impl Bitfinex {
             let mut signedAmount: Option<String> = self.safe_string(&order, Value::Int(2), &[]).as_str().map(str::to_owned);
             let mut amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount).as_str().map(str::to_owned);
             let mut side: Value = Value::Str("asks".into());
-            if crate::precise::Precise::stringGt(&signedAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&signedAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Value::Str("bids".into());
             }
             crate::runtime::append_to_object_array(&mut result, &side, Value::from(vec![Value::from(price), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[])]));
@@ -2735,7 +2735,7 @@ impl Bitfinex {
         let mut signedAmount: Option<String> = self.safe_string(&orderList, Value::Int(7), &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount).as_str().map(str::to_owned);
         let mut side: String = "buy".to_string();
-        if crate::precise::Precise::stringLt(&signedAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".into())).as_bool() == Some(true) {
             side = "sell".to_string();
         }
         let mut orderType: Option<String> = self.safe_string(&orderList, Value::Int(8), &[]).as_str().map(str::to_owned);
@@ -2762,11 +2762,11 @@ impl Bitfinex {
                 price = self.safe_string(&orderList, Value::Int(19), &[]).as_str().map(str::to_owned);
             }
         }
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         let mut statusString: Option<String> = self.safe_string(&orderList, Value::Int(13), &[]).as_str().map(str::to_owned);
         if (statusString.is_some()) {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = statusString.as_deref() { __s.split(" @ ").map(Value::from).collect() } else { Vec::new() }).into_list();
-            status = self.parse_order_status((self.safe_string(&parts, Value::Int(0), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_order_status((self.safe_string(&parts, Value::Int(0), &[])).as_str());
         }
         let mut average: Option<String> = self.safe_string(&orderList, Value::Int(17), &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string(&orderList, Value::Int(2), &[]).as_str().map(str::to_owned);
@@ -2790,7 +2790,7 @@ impl Bitfinex {
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -3951,7 +3951,7 @@ impl Bitfinex {
         let mut code: Option<String> = None;
         let mut amount: Value = Value::Null;
         let mut id: Value = Value::Null;
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         let mut tag: Option<String> = None;
         let mut type_var: Option<String> = None;
         let mut feeCost: Option<String> = None;
@@ -3972,10 +3972,10 @@ impl Bitfinex {
             amount = self.safe_number(&data, Value::Int(5), &[]);
             let mut withdrawId: Option<i64> = self.safe_integer(&data, Value::Int(0), &[]).as_i64();
             id = Value::from(withdrawId);
-            status = Value::Str("ok".into());
+            status = Some("ok".to_string());
             if (withdrawId == Some(0)) {
                 id = Value::Null;
-                status = Value::Str("failed".into());
+                status = Some("failed".to_string());
             }
             tag = self.safe_string(&data, Value::Int(3), &[]).as_str().map(str::to_owned);
             type_var = Some("withdrawal".to_string());
@@ -3989,11 +3989,11 @@ impl Bitfinex {
             network = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]);
             timestamp = self.safe_integer(transaction.clone(), Value::Int(5), &[]).as_i64();
             updated = self.safe_integer(transaction.clone(), Value::Int(6), &[]).as_i64();
-            status = self.parse_transaction_status((self.safe_string(transaction.clone(), Value::Int(9), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_transaction_status((self.safe_string(transaction.clone(), Value::Int(9), &[])).as_str());
             let mut signedAmount: Option<String> = self.safe_string(transaction.clone(), Value::Int(12), &[]).as_str().map(str::to_owned);
             amount = crate::precise::Precise::stringAbs(&signedAmount);
             if (signedAmount.is_some()) {
-                if crate::precise::Precise::stringLt(&signedAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                if crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                     type_var = Some("withdrawal".to_string());
                 }  else {
                     type_var = Some("deposit".to_string());
@@ -4016,7 +4016,7 @@ impl Bitfinex {
         m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount, &[]));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("address".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4487,7 +4487,7 @@ impl Bitfinex {
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("side".to_string(), (if crate::precise::Precise::stringGt(&amount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
+        m.insert("side".to_string(), (if crate::precise::Precise::stringGt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -4523,7 +4523,7 @@ impl Bitfinex {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut request: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (apiName.as_deref() == Some("v1")) {
@@ -4531,7 +4531,7 @@ impl Bitfinex {
         }  else {
             request = format!("{}{}", self.version.clone(), request);
         }
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -4906,7 +4906,7 @@ impl Bitfinex {
         }
         }
         let mut reversedArray: Vec<Value> = Vec::new();
-        let mut rawRates: Value = self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut rawRates: crate::value::List = self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]).into_list();
         let mut ratesLength: Value = Value::Int(rawRates.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -4914,7 +4914,7 @@ impl Bitfinex {
             while { if !__for_first_361 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_361 = false; i.as_f64().unwrap_or(f64::NAN) < ratesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(ratesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                 &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut valueAtIndex: Value = get_value(&rawRates, &index);
+            let mut valueAtIndex: Value = crate::value::KeyRead::read(&&rawRates, &index);
             reversedArray.push(valueAtIndex);
         }
         }

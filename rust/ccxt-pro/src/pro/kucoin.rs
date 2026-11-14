@@ -2143,15 +2143,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // depth: '1', '5', '50' or 'increment'
             let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUta, Value::Str("watchOrderBook".into()), Value::Str("utaDepth".into()), &[Value::Str("increment".into())]).as_array().cloned().unwrap_or_default();
-            let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut depth: Option<String> = depthparamsDepthVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsDepth: crate::value::Dict = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "uta:orderbook:", symbolResolved).into()), ":depth:").into()), depth);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "uta:orderbook:", symbolResolved).into()), ":depth:").into()), depth.as_deref().unwrap_or("null"));
             let mut channel: String = "obu".to_string();
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            if (depth.as_str() == Some("increment")) {
+            if (depth.as_deref() == Some("increment")) {
                 subscription = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("method".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
@@ -2162,7 +2162,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut paramsExtended: crate::value::Dict = self.extend(paramsDepth, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("depth".to_string(), depth);
+                    m.insert("depth".to_string(), depth.map(Value::from).unwrap_or(Value::Null));
                 m
             })]).into_dict();
             let mut orderbook: Value = self.subscribe_public_uta(messageHash.as_str(), channel.as_str(), symbolResolved.as_str(), &[Value::Dict(paramsExtended), Value::Map(subscription)]).await;
@@ -2210,14 +2210,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // depth: '1', '5', '50' or 'increment'
             let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUta, Value::Str("watchOrderBook".into()), Value::Str("utaDepth".into()), &[Value::Str("increment".into())]).as_array().cloned().unwrap_or_default();
-            let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut depth: Option<String> = depthparamsDepthVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsDepth: crate::value::Dict = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut paramsExtended: crate::value::Dict = self.extend(paramsDepth, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("depth".to_string(), depth.clone());
+                    m.insert("depth".to_string(), depth.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             })]).into_dict();
-            let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "uta:orderbook:", symbolResolved).into()), ":depth:").into()), depth);
+            let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "uta:orderbook:", symbolResolved).into()), ":depth:").into()), depth.as_deref().unwrap_or("null"));
             let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
             let mut channel: String = "obu".to_string();
             let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -3212,7 +3212,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut costString: Option<String> = crate::precise::Precise::stringAdd(&previousCost, &matchCost).as_str().map(str::to_owned);
             std::sync::Arc::make_mut(&mut parsed).insert("cost".into(), self.parse_number(costString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
             let mut filledString: Option<String> = self.number_to_string(crate::value::KeyRead::key_read(&&parsed, "filled"));
-            if (filledString.is_some()) && crate::precise::Precise::stringGt(&filledString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if (filledString.is_some()) && crate::precise::Precise::stringGt(&filledString, &Value::Str("0".into())).as_bool() == Some(true) {
                 std::sync::Arc::make_mut(&mut parsed).insert("average".into(), self.parse_number(crate::precise::Precise::stringDiv(&costString, &filledString), &[]));
             }
         }
@@ -4291,7 +4291,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountString: Option<String> = self.safe_string_k(position.clone(), "q", &[]).as_str().map(str::to_owned);
         let mut size: Option<String> = crate::precise::Precise::stringAbs(&amountString).as_str().map(str::to_owned);
         let mut side: String = "short".to_string();
-        if crate::precise::Precise::stringGt(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
             side = "long".to_string();
         }
         return self.safe_position(Value::Map({

@@ -1664,7 +1664,7 @@ impl Poloniex {
                         totalAmount = crate::precise::Precise::stringAdd(&totalAmount, &amount).as_str().map(str::to_owned);
                     }
                     }
-                    if crate::precise::Precise::stringGt(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringGt(&totalAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                         add_element_to_object(&mut previousOrder, &Value::Str("average".into()), self.parse_number(crate::precise::Precise::stringDiv(&totalCost, &totalAmount), &[]));
                     }
                     add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), self.parse_number(totalCost.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -1756,7 +1756,7 @@ impl Poloniex {
         let mut filledAmount: Option<String> = self.safe_string_k(order.clone(), "filledAmount", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(order.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut trades: Value = Value::Null;
-        if !(crate::precise::Precise::stringEq(&filledAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if !(crate::precise::Precise::stringEq(&filledAmount, &Value::Str("0".into())).as_bool() == Some(true)) {
             trades = Value::from(vec![]);
             let mut trade: crate::value::Dict = self.parse_ws_order_trade(order.clone(), None).into_dict();
             if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(Value::Dict(trade)); };
@@ -1969,7 +1969,7 @@ impl Poloniex {
                         let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(j), &[]).into_list();
                         let mut price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
                         let mut amount: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
-                        let mut bidsSide: Value = orderbook.book_field("bids");
+                        let mut bidsSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
                         bidsSide.store(price, amount);
                     }
                     }
@@ -1982,7 +1982,7 @@ impl Poloniex {
                         let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(j), &[]).into_list();
                         let mut price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
                         let mut amount: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();
-                        let mut asksSide: Value = orderbook.book_field("asks");
+                        let mut asksSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
                         asksSide.store(price, amount);
                     }
                     }
