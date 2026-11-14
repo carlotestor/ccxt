@@ -10044,10 +10044,10 @@ impl Bybit {
         let mut positions: Value = self.add_pagination_cursor_to_result(&response);
         let mut results: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_518: bool = true;
-            while { if !__for_first_518 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_518 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
-            let mut rawPosition: Value = get_value(&positions, &i);
+            while { if !__for_first_518 { i += 1; } __for_first_518 = false; i < (positions.len() as i64) } {
+            let mut rawPosition: Value = get_value(&positions, &Value::Int(i));
             if (in_op(&rawPosition, &Value::Str("data".into()))) && (in_op(&rawPosition, &Value::Str("is_valid".into()))) {
                 // futures only
                 rawPosition = self.safe_dict_k(rawPosition, "data", &[]);

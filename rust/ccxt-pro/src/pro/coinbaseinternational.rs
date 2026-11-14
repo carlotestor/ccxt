@@ -1105,10 +1105,10 @@ impl Coinbaseinternational {
         let mut positions: Value = self.parse_positions(&rawPositions, &[]);
         let mut positionsLength: i64 = positions.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_249: bool = true;
-            while { if !__for_first_249 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_249 = false; i.as_f64().unwrap_or(f64::NAN) < (positionsLength as f64) } {
-            let mut position: Value = get_value(&positions, &i);
+            while { if !__for_first_249 { i += 1; } __for_first_249 = false; i < positionsLength } {
+            let mut position: Value = get_value(&positions, &Value::Int(i));
             if (position.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null) == Value::Null) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 add_element_to_object(&mut position, &Value::Str("side".into()), Value::Str("long".into()));
