@@ -512,7 +512,7 @@ const CONTAINER_OP_CLIENT_STATE = /^&get_value\(&(client), &Value::Str\("(subscr
 // A side marker is the only `Value` whose length differs from `Value::len`.
 const CONTAINER_OP_SIDE_WORD = /asks|bids|[Ss]ide|[Bb]ook|entries|__sideKind/;
 // Sources that yield a plain JSON tree or a plain container.
-const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit)\(|^get_arg\(|^split\(|^Value::(?:Map|List|Array|Str|from)\(/;
+const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_str\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit)\(|^get_arg\(|^split\(|^Value::(?:Map|List|Array|Str|from)\(/;
 // Reads that cannot change the stored container shape.
 const CONTAINER_OP_READS = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64',
     'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
@@ -3511,11 +3511,23 @@ function rustVecPushInline (content: string): string {
             if (isPlainField (freeRead[1])) return true;
             return /^[A-Za-z_][A-Za-z0-9_]*$/.test (freeRead[1]) && localFree (freeRead[1], region, seen);
         }
+        // a typed literal map's element read: `m.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)`
+        const typedRead = /^([A-Za-z_][A-Za-z0-9_]*)\.get\([A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec (t);
+        if (typedRead !== null) return literalMapLocal (typedRead[1], region);
         const clone = /^([A-Za-z_][A-Za-z0-9_]*)\.clone\(\)$/.exec (t);
         if (clone !== null) return localFree (clone[1], region, seen);
         const root = chainRoot (t);
         if (root !== null) return localFree (root, region, seen);
         return false;
+    };
+
+    // A typed literal map local (`let mut m: indexmap::IndexMap<String, Value> = ({`), never reassigned: the
+    // `IndexMap` counterpart of a `Value::Map({` local.
+    const literalMapLocal = (name: string, region: [number, number]): boolean => {
+        const body = masked.slice (region[0], region[1]);
+        const decls = body.match (new RegExp ('let (?:mut )?' + name + '\\s*:', 'g')) ?? [];
+        if (decls.length !== 1 || !new RegExp ('let mut ' + name + ': indexmap::IndexMap<String, Value> = \\(\\{').test (body)) return false;
+        return !new RegExp ('(?<![\\w.])' + name + '\\s*=(?!=)').test (body);
     };
 
     // Every declaration and every later write of `name` in this body is a marker-free source.
@@ -3661,6 +3673,12 @@ function rustVecPushInlineSelfTest (): string[] {
     ok (selfRef.includes (helperName + '(&mut rows,'), 'value reading the receiver keeps the helper: ' + selfRef);
     const param = run (push ('other', 'candle'));
     ok (param.includes (helperName + '(&mut other, candle);'), 'parameter receiver keeps the helper: ' + param);
+
+    // 6b. element read of a typed literal map (`IndexMap<String, Value>`) goes native; a reassigned map keeps the helper
+    const typedMap = run (`        let mut byKey: indexmap::IndexMap<String, Value> = ({\n            let mut m = indexmap::IndexMap::new();\n            m\n        });\n        let mut rows: Value = byKey.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);\n` + push ('rows', 'candle'));
+    ok (typedMap.includes (native ('rows', 'candle')), 'typed literal map element read goes native: ' + typedMap);
+    const typedMapRe = run (`        let mut byKey: indexmap::IndexMap<String, Value> = ({\n            let mut m = indexmap::IndexMap::new();\n            m\n        });\n        byKey = self.rows();\n        let mut rows: Value = byKey.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);\n` + push ('rows', 'candle'));
+    ok (typedMapRe.includes (helperName + '(&mut rows, candle);'), 'reassigned typed map keeps the helper: ' + typedMapRe);
 
     // 7. idempotent, and the helper definition itself is untouched
     ok (rustVecPushInline (alias) === alias, 'idempotent');
@@ -6624,11 +6642,21 @@ export class RustTranspilerBuilder {
     // mutated via `add_element_to_object`/`set_value`, append a
     // `set_value(&mut ARR, &IDX, local)` write-back after the last such
     // contiguous mutation so `ARR` reflects it.
+    // The nearest `fn` above line `at` declares `name` as a typed literal map (`IndexMap<String, Value>`).
+    rustTypedLiteralMapBefore(lines: string[], at: number, name: string): boolean {
+        const decl = new RegExp(`^\\s*let mut ${name}: indexmap::IndexMap<String, Value> = \\(\\{$`);
+        for (let k = at - 1; k >= 0; k--) {
+            if (decl.test(lines[k])) return true;
+            if (/^\s*(?:pub )?(?:async )?fn /.test(lines[k])) return false;
+        }
+        return false;
+    }
+
     writeBackIndexedMutations(content: string): string {
         const lines = content.split('\n');
         const out: string[] = [];
         // the bind is the helper call or the printer's native dict read of the same container/key
-        const bindRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = (?:get_value\(&([a-zA-Z_]\w*), &([a-zA-Z_]\w*)\)|\(if let \(Some\(__m\), Some\(__k\)\) = \(([a-zA-Z_]\w*)\.as_map\(\), ([a-zA-Z_]\w*)\.as_str\(\)\) \{ __m\.get\(__k\)\.cloned\(\)\.unwrap_or\(Value::Null\) \} else \{ Value::Null \}\)|([a-zA-Z_]\w*)\.as_map\(\)\.and_then\(\|__m\| ([a-zA-Z_]\w*)\.as_str\(\)\.and_then\(\|__k\| __m\.get\(__k\)\)\)\.cloned\(\)\.unwrap_or\(Value::Null\));\s*$/;
+        const bindRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = (?:get_value\(&([a-zA-Z_]\w*), &([a-zA-Z_]\w*)\)|\(if let \(Some\(__m\), Some\(__k\)\) = \(([a-zA-Z_]\w*)\.as_map\(\), ([a-zA-Z_]\w*)\.as_str\(\)\) \{ __m\.get\(__k\)\.cloned\(\)\.unwrap_or\(Value::Null\) \} else \{ Value::Null \}\)|([a-zA-Z_]\w*)\.as_map\(\)\.and_then\(\|__m\| ([a-zA-Z_]\w*)\.as_str\(\)\.and_then\(\|__k\| __m\.get\(__k\)\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)|([a-zA-Z_]\w*)\.get\(([a-zA-Z_]\w*)\.as_str\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\));\s*$/;
         let i = 0;
         while (i < lines.length) {
             const m = lines[i].match(bindRe);
@@ -6640,10 +6668,12 @@ export class RustTranspilerBuilder {
             // safety gate: a plain field *read* isn't followed by a mutation of
             // the local, so it gets no (wrong) write-back — the earlier
             // single-letter-index restriction was therefore unnecessary.
-            if (m && (m[3] ?? m[5] ?? m[7]) !== 'self') {
+            // (a typed literal map `IndexMap<String, Value>` reads `C.get(K.as_str()..)` and takes `set_value`'s plain-map insert)
+            const typedMap = m !== null && m[9] !== undefined && this.rustTypedLiteralMapBefore(lines, i, m[9]);
+            if (m && (m[3] ?? m[5] ?? m[7] ?? (typedMap ? m[9] : 'self')) !== 'self') {
                 const [, indent, local] = m;
-                const arr = m[3] ?? m[5] ?? m[7];
-                const idx = m[4] ?? m[6] ?? m[8];
+                const arr = m[3] ?? m[5] ?? m[7] ?? m[9];
+                const idx = m[4] ?? m[6] ?? m[8] ?? m[10];
                 out.push(lines[i]);
                 let j = i + 1;
                 const mutRe = new RegExp(`^\\s*(add_element_to_object|crate::set_value|set_value|append_to_array)\\(&mut ${local}[,)]`);
@@ -6654,7 +6684,7 @@ export class RustTranspilerBuilder {
                     j++;
                 }
                 if (mutated) {
-                    out.push(`${indent}crate::set_value(&mut ${arr}, &${idx}, ${local}.clone());`);
+                    out.push(m[9] !== undefined ? `${indent}if let Some(__k) = ${idx}.as_str() { ${arr}.insert(__k.to_string(), ${local}.clone()); }` : `${indent}crate::set_value(&mut ${arr}, &${idx}, ${local}.clone());`);
                     i = j;
                     continue;
                 }
