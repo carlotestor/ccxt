@@ -1093,8 +1093,8 @@ impl Kraken {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             promises.push(self.load_time_difference(&[]).await);
         }
-        let mut responses: Value = promise_all(&Value::from(promises)).await;
-        let mut assetsResponse: crate::value::Dict = self.safe_dict(responses, Value::Int(0), &[]).into_dict();
+        let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+        let mut assetsResponse: crate::value::Dict = self.safe_dict(&responses, Value::Int(0), &[]).into_dict();
         //
         //     {
         //         "error": [],

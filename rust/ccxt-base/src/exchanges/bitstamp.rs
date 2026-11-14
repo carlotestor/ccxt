@@ -4575,11 +4575,11 @@ impl Bitstamp {
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/");
         url.push_str(&format!("{}{}", self.version.clone(), "/"));
         url.push_str(&(self.implode_params(path.clone(), params.clone())).to_string());
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut isPrivatePost: bool = (apiName.as_deref() != Some("public")) && (method.as_str() == Some("POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
-        let mut queryString: String = self.urlencode(query, &[]);
+        let mut queryString: String = self.urlencode(&query, &[]);
         let mut postBody: String = self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("bar".into()));

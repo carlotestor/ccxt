@@ -5917,13 +5917,13 @@ if _try_result.is_err() {
                 m
             })]).await);
         }
-        let mut results: Value = promise_all(&Value::from(promises)).await;
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
         let mut spotInstruments: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }).into_dict();
         if fetchMargins {
-            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(results.clone(), Value::from(spotInstrumentsIndex), &[]).into_dict();
+            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(&results, Value::from(spotInstrumentsIndex), &[]).into_dict();
             let mut instruments: crate::value::List = self.safe_list_k(&instrumentsResponse, "data", &[Value::from(vec![])]).into_list();
             spotInstruments = self.index_by(Value::Arr(instruments), Value::Str("symbol".into())).into_dict();
         }
@@ -5937,7 +5937,7 @@ if _try_result.is_err() {
             if (i == spotInstrumentsIndex) {
                 continue;
             }
-            let mut res: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
+            let mut res: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
             let mut data: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
             let mut firstData: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6282,13 +6282,13 @@ if _try_result.is_err() {
             promises.push(self.public_uta_get_v3_market_instruments(&[Value::Dict(req)]).await);
         }
         }
-        let mut results: Value = promise_all(&Value::from(promises)).await;
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
         let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_370: bool = true;
             while { if !__for_first_370 { i += 1; } __for_first_370 = false; i < (results.len() as i64) } {
-            let mut res: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
+            let mut res: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
             let mut data: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
             markets = self.array_concat(Value::Arr(markets), &data).into_list();
         }
@@ -17458,10 +17458,10 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), payload);
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         if !signed && (method.as_str() == Some("GET")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", url, "?").into()), self.urlencode(query, &[]));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url = format!("{}{}", Value::Str(format!("{}{}", url, "?").into()), self.urlencode(&query, &[]));
             }
         }
         let mut requestBody: Option<String> = None;

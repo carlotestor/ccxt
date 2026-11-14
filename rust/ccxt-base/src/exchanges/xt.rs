@@ -8114,8 +8114,8 @@ impl Xt {
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload.as_deref().unwrap_or("null"));
         let __ws_arg_113 = self.omit(params, self.extract_params(path.clone()), &[]);
-        let mut query: Value = self.extend(__ws_arg_113, &[]);
-        let mut urlencoded: String = self.urlencode(self.keysort(query.clone(), &[]), &[]);
+        let mut query: crate::value::Dict = self.extend(__ws_arg_113, &[]).into_dict();
+        let mut urlencoded: String = self.urlencode(self.keysort(Value::from(&query), &[]), &[]);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -8124,14 +8124,14 @@ impl Xt {
         let mut signedBody: Option<String> = None;
         if signed {
             self.check_required_credentials(&[]);
-            let mut recvWindow: Option<String> = self.safe_string_k(query.clone(), "recvWindow", &[self.safe_string(self.options.clone(), Value::Str("recvWindow".into()), &[Value::Str("5000".into())])]).as_str().map(str::to_owned);
+            let mut recvWindow: Option<String> = self.safe_string_k(&query, "recvWindow", &[self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("5000".into())])]).as_str().map(str::to_owned);
             let mut timestamp: Option<String> = self.number_to_string(self.nonce());
             if (payload.as_deref() == Some("/v4/order")) || (payload.as_deref() == Some("/future/trade/v1/order/create")) || (payload.as_deref() == Some("/future/trade/v1/entrust/create-plan")) || (payload.as_deref() == Some("/future/trade/v1/entrust/create-profit")) || (payload.as_deref() == Some("/future/trade/v1/order/create-batch")) {
                 let mut id: String = "CCXT".to_string();
                 if payload.as_deref().unwrap_or_default().contains("future") {
-                    add_element_to_object(&mut query, &Value::Str("clientMedia".into()), Value::from(id.clone()));
+                    std::sync::Arc::make_mut(&mut query).insert("clientMedia".into(), Value::from(id.clone()));
                 }  else {
-                    add_element_to_object(&mut query, &Value::Str("media".into()), Value::from(id));
+                    std::sync::Arc::make_mut(&mut query).insert("media".into(), Value::from(id));
                 }
             }
             let mut isUndefinedBody: bool = (method.as_str() == Some("GET")) || (path.as_str() == Some("order/{orderId}")) || (path.as_str() == Some("ws-token"));
@@ -8147,7 +8147,7 @@ impl Xt {
                 if isUndefinedBody {
                     if (urlencoded != "") {
                         url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload.as_deref().unwrap_or("null")).into()), "?").into()), urlencoded);
-                        payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload.as_deref().unwrap_or("null")).into()), "#").into()), self.rawencode(self.keysort(query, &[]), &[]));
+                        payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload.as_deref().unwrap_or("null")).into()), "#").into()), self.rawencode(self.keysort(Value::Dict(query), &[]), &[]));
                     }  else {
                         payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload.as_deref().unwrap_or("null"));
                     }

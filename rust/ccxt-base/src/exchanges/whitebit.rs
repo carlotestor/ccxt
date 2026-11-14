@@ -2140,12 +2140,12 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // Fetch both currencies and fees data for comprehensive funding limits
-        let mut responses: Value = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_currencies(Value::Null).await), self.v4_public_get_fee(&[params]).await])).await;
-        let mut currenciesData: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(0), &[Value::Map({
+        let mut responses: crate::value::List = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_currencies(Value::Null).await), self.v4_public_get_fee(&[params]).await])).await.into_list();
+        let mut currenciesData: crate::value::Dict = self.safe_dict(&responses, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut feesData: crate::value::Dict = self.safe_dict(responses, Value::Int(1), &[Value::Map({
+        let mut feesData: crate::value::Dict = self.safe_dict(&responses, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -6023,7 +6023,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         let mut version: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut accessibility: Option<&str> = api.get(1).and_then(Value::as_str);
         let mut publicHeaders: Value = Value::Map({
@@ -6038,8 +6038,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), pathWithParams);
         if (accessibility.as_deref() == Some("public")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut privateBody: Option<String> = None;

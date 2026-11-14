@@ -3169,14 +3169,14 @@ impl Bitteam {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut request: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut request: Option<crate::value::Dict> = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_opt_dict();
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params));
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
-        let mut query: String = self.urlencode(request.clone(), &[]);
+        let mut query: String = self.urlencode(&request, &[]);
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("private")) {

@@ -3525,10 +3525,10 @@ impl Kucoin {
             // load migration status for account
             promises.push(self.load_migration_status(&[]).await);
         }
-        let mut responses: Value = promise_all(&Value::from(promises)).await;
+        let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
         let mut symbolsData: crate::value::List = std::sync::Arc::new(Vec::new());
         if fetchSpotMarkets {
-            symbolsData = self.safe_list(responses.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::from(vec![])]).into_list();
+            symbolsData = self.safe_list(crate::value::KeyRead::read(&&responses, &Value::Int(0)), Value::Str("data".into()), &[Value::from(vec![])]).into_list();
         }
         let mut crossIndex: Value = Value::Int(0);
         let mut isolatedIndex: Value = Value::Int(0);
@@ -3550,7 +3550,7 @@ impl Kucoin {
         if fetchContractMarkets {
             contractIndex = nextIndex;
         }
-        let mut crossData: Value = (if (requestMarginables) { self.safe_dict(responses.as_array().and_then(|__arr| match &crossIndex { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::Map({
+        let mut crossData: Value = (if (requestMarginables) { self.safe_dict_k(crate::value::KeyRead::read(&&responses, &crossIndex), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
@@ -3559,13 +3559,13 @@ impl Kucoin {
 }) });
         let mut crossItems: crate::value::List = self.safe_list_k(crossData, "items", &[Value::from(vec![])]).into_list();
         let mut crossById: crate::value::Dict = self.index_by(Value::Arr(crossItems), Value::Str("symbol".into())).into_dict();
-        let mut isolatedData: Value = (if (requestMarginables) { responses.as_array().and_then(|__arr| match &isolatedIndex { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null) } else { Value::Map({
+        let mut isolatedData: Value = (if (requestMarginables) { crate::value::KeyRead::read(&&responses, &isolatedIndex) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         let mut isolatedItems: crate::value::List = self.safe_list_k(isolatedData, "data", &[Value::from(vec![])]).into_list();
         let mut isolatedById: crate::value::Dict = self.index_by(Value::Arr(isolatedItems), Value::Str("symbol".into())).into_dict();
-        let mut tickersResponse: Value = (if fetchTickersFees.as_bool() == Some(true) { self.safe_dict(responses.clone(), Value::from(tickersIndex), &[Value::Map({
+        let mut tickersResponse: Value = (if fetchTickersFees.as_bool() == Some(true) { self.safe_dict(&responses, Value::from(tickersIndex), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
@@ -3681,7 +3681,7 @@ impl Kucoin {
         }
         }
         if fetchContractMarkets {
-            result = self.array_concat(Value::Arr(result), self.safe_list(responses, Value::from(contractIndex), &[Value::from(vec![])])).into_list();
+            result = self.array_concat(Value::Arr(result), self.safe_list(&responses, Value::from(contractIndex), &[Value::from(vec![])])).into_list();
         }
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;

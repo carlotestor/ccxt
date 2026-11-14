@@ -3708,9 +3708,9 @@ impl Bybit {
                 return Value::from(vec![self.options.as_map().and_then(|__m| __m.get("enableUnifiedMargin")).cloned().unwrap_or(Value::Null), self.options.as_map().and_then(|__m| __m.get("enableUnifiedAccount")).cloned().unwrap_or(Value::Null)]);
             }
             let mut rawPromises: crate::value::List = std::sync::Arc::new(vec![self.private_get_v5_user_query_api(&[params.clone()]).await, self.private_get_v5_account_info(&[params]).await]);
-            let mut promises: Value = promise_all(&Value::Arr(rawPromises)).await;
-            let mut response: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[]).into_dict();
-            let mut accountInfo: crate::value::Dict = self.safe_dict(promises, Value::Int(1), &[]).into_dict();
+            let mut promises: crate::value::List = promise_all(&Value::Arr(rawPromises)).await.into_list();
+            let mut response: crate::value::Dict = self.safe_dict(&promises, Value::Int(0), &[]).into_dict();
+            let mut accountInfo: crate::value::Dict = self.safe_dict(&promises, Value::Int(1), &[]).into_dict();
             //
             //     {
             //         "retCode": 0,
@@ -4499,12 +4499,12 @@ impl Bybit {
         m.insert("status".to_string(), Value::Str("PreLaunch".into()));
     m
 })])]).await]);
-            let mut promises: Value = promise_all(&Value::Arr(linearPromises)).await;
-            response = self.safe_dict(promises.clone(), Value::Int(0), &[Value::Map({
+            let mut promises: crate::value::List = promise_all(&Value::Arr(linearPromises)).await.into_list();
+            response = self.safe_dict(&promises, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_opt_dict();
-            preLaunchMarkets = self.safe_dict(promises, Value::Int(1), &[Value::Map({
+            preLaunchMarkets = self.safe_dict(&promises, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -14217,11 +14217,11 @@ impl Bybit {
                 if isV3UnifiedMargin || isV3Contract {
                     add_element_to_object(&mut requestHeaders, &Value::Str("X-BAPI-SIGN-TYPE".into()), Value::Str("2".into()));
                 }
-                let mut query: Value = self.extend(Value::Map({
+                let mut query: crate::value::Dict = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                }), &[params.clone()]);
-                let mut queryEncoded: String = self.rawencode(query.clone(), &[]);
+                }), &[params.clone()]).into_dict();
+                let mut queryEncoded: String = self.rawencode(&query, &[]);
                 let mut auth_base: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("".into())]));
                 let mut authFull: Value = Value::Null;
                 if (method.as_str() == Some("POST")) {
@@ -14257,11 +14257,11 @@ impl Bybit {
                 }
                 if (method.as_str() == Some("POST")) {
                     let mut isSpot: bool = url.contains("spot");
-                    let mut extendedQuery: Option<crate::value::Dict> = self.extend(query, &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("sign".to_string(), signature.clone());
-    m
-})]).into_opt_dict();
+                    let mut extendedQuery: crate::value::Dict = self.extend(query, &[Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("sign".to_string(), signature.clone());
+                        m
+                    })]).into_dict();
                     if isSpot {
                         requestBody = Value::from(self.urlencode(&extendedQuery, &[]));
                         requestHeaders = Value::Map({

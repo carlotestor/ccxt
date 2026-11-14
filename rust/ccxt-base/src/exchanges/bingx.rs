@@ -2638,10 +2638,10 @@ impl Bingx {
             requests.push(self.fetch_inverse_swap_markets(params.clone()).await);
             requests.push(self.fetch_spot_markets(params).await); // sandbox is swap only
         }
-        let mut promises: Value = promise_all(&Value::from(requests)).await;
-        let mut linearSwapMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-        let mut inverseSwapMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
-        let mut spotMarkets: crate::value::List = self.safe_list(promises, Value::Int(2), &[Value::from(vec![])]).into_list();
+        let mut promises: crate::value::List = promise_all(&Value::from(requests)).await.into_list();
+        let mut linearSwapMarkets: crate::value::List = self.safe_list(&promises, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut inverseSwapMarkets: crate::value::List = self.safe_list(&promises, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut spotMarkets: crate::value::List = self.safe_list(&promises, Value::Int(2), &[Value::from(vec![])]).into_list();
         let mut swapMarkets: crate::value::List = self.array_concat(&linearSwapMarkets, &inverseSwapMarkets).into_list();
         return self.array_concat(&spotMarkets, &swapMarkets);
         Value::Null

@@ -1239,11 +1239,11 @@ impl Lighter {
         let mut hashMessage: Option<String> = self.hash_message(message.as_str().unwrap_or_default());
         let mut signature: Option<String> = self.sign_hash(hashMessage.as_deref().unwrap_or_default(), privateKey.as_str().unwrap_or_default());
         let __ws_arg_4 = self.parse_json_value(txInfo);
-        let mut decTxInfo: Value = self.extend(Value::Map({
+        let mut decTxInfo: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        }), &[__ws_arg_4]);
-        add_element_to_object(&mut decTxInfo, &Value::Str("L1Sig".into()), signature.map(Value::from).unwrap_or(Value::Null));
+        }), &[__ws_arg_4]).into_dict();
+        std::sync::Arc::make_mut(&mut decTxInfo).insert("L1Sig".into(), signature.map(Value::from).unwrap_or(Value::Null));
         return json_stringify(&decTxInfo).as_str().map(str::to_owned);
 }
 

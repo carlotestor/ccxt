@@ -3103,12 +3103,12 @@ impl Gemini {
             let mut nonceValue: i64 = self.incrementing_nonce();
             let mut nonce: Option<String> = self.number_to_string(Value::from(nonceValue));
             let mut finalUrl: String = url.clone();
-            let mut request: Option<crate::value::Dict> = self.extend(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("request".to_string(), Value::from(finalUrl));
-        m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
-    m
-}), &[query.clone()]).into_opt_dict();
+            let mut request: crate::value::Dict = self.extend(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("request".to_string(), Value::from(finalUrl));
+                    m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
+                m
+            }), &[query.clone()]).into_dict();
             let mut payload: Value = json_stringify(&request);
             payload = Value::from(self.string_to_base64(payload, &[]));
             let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);

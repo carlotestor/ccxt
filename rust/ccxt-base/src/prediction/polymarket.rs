@@ -1452,12 +1452,12 @@ impl Polymarket {
                 restPromises.push(self.gamma_public_get_events(&[Value::Dict(pageRequest)]).await);
             }
             }
-            let mut restPages: Value = promise_all(&Value::from(restPromises)).await;
+            let mut restPages: crate::value::List = promise_all(&Value::from(restPromises)).await.into_list();
             {
                                 let mut ri: i64 = 0;
                 let mut __for_first_1420: bool = true;
                 while { if !__for_first_1420 { ri += 1; } __for_first_1420 = false; ri < (restPages.len() as i64) } {
-                let mut page: crate::value::List = self.safe_list(restPages.clone(), Value::Int(ri), &[Value::from(vec![])]).into_list();
+                let mut page: crate::value::List = self.safe_list(&restPages, Value::Int(ri), &[Value::from(vec![])]).into_list();
                 let mut pageLength: i64 = page.len() as i64;
                 {
                                         let mut pi: i64 = 0;

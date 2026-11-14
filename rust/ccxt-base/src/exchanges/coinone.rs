@@ -1961,7 +1961,7 @@ impl Coinone {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut request: Value = Value::from(self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path), &[]).into_dict();
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
@@ -1991,8 +1991,8 @@ impl Coinone {
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if isPublic {
             url.push_str(&request.to_string());
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);

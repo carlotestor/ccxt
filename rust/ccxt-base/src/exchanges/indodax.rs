@@ -2158,11 +2158,11 @@ impl Indodax {
         let mut privateHeaders: Option<crate::value::Dict> = None;
         let mut isPublic: bool = apiName.as_deref() == Some("public");
         if isPublic {
-            let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+            let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
             let mut requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
             url = Some(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath));
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath).into()), "?").into()), self.urlencode_with_array_repeat(query)));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath).into()), "?").into()), self.urlencode_with_array_repeat(&query)));
             }
         }  else {
             self.check_required_credentials(&[]);

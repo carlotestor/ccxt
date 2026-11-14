@@ -985,13 +985,13 @@ impl Hyperliquid {
             }
         }
         }
-        let mut promises: Value = promise_all(&Value::from(rawPromises)).await;
+        let mut promises: crate::value::List = promise_all(&Value::from(rawPromises)).await.into_list();
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_798: bool = true;
             while { if !__for_first_798 { i += 1; } __for_first_798 = false; i < (promises.len() as i64) } {
-            result = self.array_concat(Value::Arr(result), self.safe_list(promises.clone(), Value::Int(i), &[Value::from(vec![])])).into_list();
+            result = self.array_concat(Value::Arr(result), self.safe_list(&promises, Value::Int(i), &[Value::from(vec![])])).into_list();
         }
         }
         return Value::Arr(result);
@@ -1114,7 +1114,7 @@ impl Hyperliquid {
             rawPromises.push(self.public_post_info(&[__ws_arg_3]).await);
         }
         }
-        let mut promises: Value = promise_all(&Value::from(rawPromises)).await;
+        let mut promises: crate::value::List = promise_all(&Value::from(rawPromises)).await.into_list();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hip3TokensByName".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1126,7 +1126,7 @@ impl Hyperliquid {
             while { if !__for_first_803 { i += 1; } __for_first_803 = false; i < (promises.len() as i64) } {
             let mut dexName: Value = fetchDexesList.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut offset: Option<i64> = self.safe_integer(perpDexesOffset.clone(), dexName.clone(), &[]).as_i64();
-            let mut response: crate::value::List = self.safe_list(promises.clone(), Value::Int(i), &[]).into_list();
+            let mut response: crate::value::List = self.safe_list(&promises, Value::Int(i), &[]).into_list();
             let mut meta: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

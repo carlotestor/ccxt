@@ -690,8 +690,8 @@ impl Independentreserve {
         let mut quoteCurrenciesPromise: Value = self.public_get_get_valid_secondary_currency_codes(&[params.clone()]).await;
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         let mut limitsPromise: Value = self.public_get_get_order_minimum_volumes(&[params]).await;
-        let mut responses: Value = promise_all(&Value::from(vec![baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise])).await;
-        let mut limits: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(2), &[]).into_dict();
+        let mut responses: crate::value::List = promise_all(&Value::from(vec![baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise])).await.into_list();
+        let mut limits: crate::value::Dict = self.safe_dict(&responses, Value::Int(2), &[]).into_dict();
         //
         //     {
         //         "Xbt": 0.0001,
@@ -701,8 +701,8 @@ impl Independentreserve {
         //     }
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut baseCurrencyIds: crate::value::List = self.to_array(self.safe_list(responses.clone(), Value::Int(0), &[])).into_list();
-        let mut quoteCurrencyIds: crate::value::List = self.to_array(self.safe_list(responses, Value::Int(1), &[])).into_list();
+        let mut baseCurrencyIds: crate::value::List = self.to_array(self.safe_list(&responses, Value::Int(0), &[])).into_list();
+        let mut quoteCurrencyIds: crate::value::List = self.to_array(self.safe_list(&responses, Value::Int(1), &[])).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_832: bool = true;

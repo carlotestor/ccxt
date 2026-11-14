@@ -3911,7 +3911,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Option<String> = None;
-        let mut request: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut request: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -3948,7 +3948,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
                 });
-                let mut rateLimitToken: Option<String> = self.safe_string_k(request.clone(), "rateLimitToken", &[]).as_str().map(str::to_owned);
+                let mut rateLimitToken: Option<String> = self.safe_string_k(&request, "rateLimitToken", &[]).as_str().map(str::to_owned);
                 if (rateLimitToken.is_some()) {
                     if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("BX-RATE-LIMIT-TOKEN".into(), rateLimitToken.map(Value::from).unwrap_or(Value::Null)); }
                 }
@@ -3965,7 +3965,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             requestHeaders = headers;
         }
         if (method.as_str() == Some("GET")) {
-            let mut query: String = self.urlencode(request, &[]);
+            let mut query: String = self.urlencode(&request, &[]);
             if ((query.chars().count() as i64)) > 0 {
                 url.push_str(&format!("{}{}", "?", query));
             }

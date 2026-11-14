@@ -802,9 +802,9 @@ impl Zebpay {
             }
         }
         }
-        let mut promises: Value = promise_all(&Value::from(promisesUnresolved)).await;
-        let mut spotMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-        let mut futureMarkets: crate::value::List = self.safe_list(promises, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut promises: crate::value::List = promise_all(&Value::from(promisesUnresolved)).await.into_list();
+        let mut spotMarkets: crate::value::List = self.safe_list(&promises, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut futureMarkets: crate::value::List = self.safe_list(&promises, Value::Int(1), &[Value::from(vec![])]).into_list();
         return self.array_concat(&spotMarkets, &futureMarkets);
         Value::Null
         }).await?))
@@ -2929,12 +2929,12 @@ impl Zebpay {
         let mut suffix: String = "".to_string();
         let mut timestamp: String = format!("{}", self.milliseconds());
         let mut signature: String = "".to_string();
-        let mut query: Value = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]).into_dict();
         let mut access: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         if (access.as_deref() == Some("public")) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                if (Value::Int(Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64).as_f64() != Some(0.0)) {
-                    suffix = format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[]));
+                if (Value::Int(Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64).as_f64() != Some(0.0)) {
+                    suffix = format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[]));
                 }
             }  else {
                 let mut priceType: Option<String> = self.safe_string_k(paramsOmitted.clone(), "priceType", &[]).as_str().map(str::to_owned);
@@ -2957,11 +2957,11 @@ impl Zebpay {
         }  else {
             self.check_required_credentials(&[]);
             let mut isSpot: bool = marketType == "spot";
-            let mut paramsSigned: Option<crate::value::Dict> = self.extend(paramsOmitted, &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), Value::from(timestamp));
-    m
-})]).into_opt_dict();
+            let mut paramsSigned: crate::value::Dict = self.extend(paramsOmitted, &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
+                m
+            })]).into_dict();
             if (method.as_str() == Some("GET")) || ((method.as_str() == Some("DELETE")) && isSpot) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 let mut queryString: String = self.urlencode(&paramsSigned, &[]);

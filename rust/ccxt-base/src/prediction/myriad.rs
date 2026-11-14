@@ -4262,9 +4262,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawQuestions: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // some markets are only discoverable through the questions search endpoint
-            let mut responses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(queries.clone(), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(queries.clone(), &[Value::from(&rest)]).await])).await;
-            rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-            rawQuestions = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).into_list();
+            let mut responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(queries.clone(), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(queries.clone(), &[Value::from(&rest)]).await])).await.into_list();
+            rawMarkets = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
+            rawQuestions = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         }  else if (eventId.is_some()) {
             if eventId.as_deref().unwrap_or_default().contains(":") {
                 let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await;
@@ -4278,9 +4278,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut requestedTagsLength: i64 = requestedTags.len() as i64;
             if (requestedTagsLength == 0) {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                let mut listResponses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_list(&[Value::from(&rest)]).await, self.fetch_raw_questions_list(&[Value::from(&rest)]).await])).await;
-                rawMarkets = self.safe_list(listResponses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-                rawQuestions = self.safe_list(listResponses, Value::Int(1), &[Value::from(vec![])]).into_list();
+                let mut listResponses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_list(&[Value::from(&rest)]).await, self.fetch_raw_questions_list(&[Value::from(&rest)]).await])).await.into_list();
+                rawMarkets = self.safe_list(&listResponses, Value::Int(0), &[Value::from(vec![])]).into_list();
+                rawQuestions = self.safe_list(&listResponses, Value::Int(1), &[Value::from(vec![])]).into_list();
             }  else {
                 let mut tagQueries: Vec<Value> = Vec::new();
                 {
@@ -4294,9 +4294,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                let mut responses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(Value::from(tagQueries.clone()), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(Value::from(tagQueries), &[Value::from(&rest)]).await])).await;
-                rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-                rawQuestions = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).into_list();
+                let mut responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(Value::from(tagQueries.clone()), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(Value::from(tagQueries), &[Value::from(&rest)]).await])).await.into_list();
+                rawMarkets = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
+                rawQuestions = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
             }
         }
         if (self.markets.clone() == Value::Null) {

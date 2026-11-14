@@ -695,18 +695,18 @@ impl Limitless {
                 promises.push(self.limitless_public_get_markets_active(&[__ws_arg_2]).await);
             }
             }
-            let mut responses: Value = promise_all(&Value::from(promises)).await;
+            let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
             let mut length: i64 = responses.len() as i64;
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1302: bool = true;
                 while { if !__for_first_1302 { j += 1; } __for_first_1302 = false; j < length } {
-                let mut response: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(j), &[]).into_dict();
+                let mut response: crate::value::Dict = self.safe_dict(&responses, Value::Int(j), &[]).into_dict();
                 let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
                 allRaw = self.array_concat(Value::Arr(allRaw), &data).into_list();
             }
             }
-            let mut lastPageResponse: crate::value::Dict = self.safe_dict(responses, Value::Int((length - 1)), &[]).into_dict();
+            let mut lastPageResponse: crate::value::Dict = self.safe_dict(&responses, Value::Int((length - 1)), &[]).into_dict();
             let mut lastPageData: crate::value::List = self.safe_list_k(&lastPageResponse, "data", &[Value::from(vec![])]).into_list();
             let mut lastPageLength: i64 = lastPageData.len() as i64;
             let mut allRawLength: i64 = allRaw.len() as i64;
@@ -1828,15 +1828,15 @@ impl Limitless {
             })]).await);
         }
         }
-        let mut responses: Value = promise_all(&Value::from(promises)).await;
+        let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1313: bool = true;
             while { if !__for_first_1313 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1313 = false; i.as_f64().unwrap_or(f64::NAN) < ((slugs.len() as i64) as f64) } {
             let mut slug: Value = slugs.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut detailIndex: Value = (match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut detail: Option<crate::value::Dict> = self.safe_dict(responses.clone(), detailIndex.clone(), &[]).into_opt_dict();
-            let mut book: Option<crate::value::Dict> = self.safe_dict(responses.clone(), self.sum(&[detailIndex, Value::Int(1)]), &[]).into_opt_dict();
+            let mut detail: Option<crate::value::Dict> = self.safe_dict(&responses, detailIndex.clone(), &[]).into_opt_dict();
+            let mut book: Option<crate::value::Dict> = self.safe_dict(&responses, self.sum(&[detailIndex, Value::Int(1)]), &[]).into_opt_dict();
             let mut tickerInput: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("market".to_string(), detail.map_or(Value::Null, Value::Dict));
@@ -4368,8 +4368,8 @@ if _try_result.is_err() {
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "limitless")]);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut querystring: String = self.urlencode_with_array_repeat(query.clone());
+        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
+        let mut querystring: String = self.urlencode_with_array_repeat(&query);
         if (method.as_str() == Some("GET")) && (querystring != "") {
             url.push_str(&format!("{}{}", "?", querystring));
         }

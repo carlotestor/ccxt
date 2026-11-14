@@ -1454,10 +1454,10 @@ impl Bitrue {
             }
         }
         }
-        let mut promises: Value = promise_all(&Value::from(promisesRaw)).await;
-        let mut spotMarkets: Value = self.safe_list(self.safe_dict(promises.clone(), Value::Int(0), &[]), Value::Str("symbols".into()), &[Value::from(vec![])]);
-        let mut futureMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
-        let mut deliveryMarkets: crate::value::List = self.safe_list(promises, Value::Int(2), &[Value::from(vec![])]).into_list();
+        let mut promises: crate::value::List = promise_all(&Value::from(promisesRaw)).await.into_list();
+        let mut spotMarkets: Value = self.safe_list(self.safe_dict(&promises, Value::Int(0), &[]), Value::Str("symbols".into()), &[Value::from(vec![])]);
+        let mut futureMarkets: crate::value::List = self.safe_list(&promises, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut deliveryMarkets: crate::value::List = self.safe_list(&promises, Value::Int(2), &[Value::from(vec![])]).into_list();
         let mut markets: Value = spotMarkets;
         markets = self.array_concat(markets, &futureMarkets);
         markets = self.array_concat(markets, &deliveryMarkets);
@@ -4069,7 +4069,7 @@ impl Bitrue {
         if !(((type_var.as_deref() == Some("api")) && (version.as_deref() == Some("kline"))) || ((type_var.as_deref() == Some("open")) && path.as_str().unwrap_or("").contains("listenKey"))) {
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), endpointPath);
         }
-        let mut paramsOmitted: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
         if (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut recvWindow: i64 = self.safe_integer_k(self.options.clone(), "recvWindow", &[Value::Int(5000)]).as_i64().unwrap_or(5000);
@@ -4079,7 +4079,7 @@ impl Bitrue {
                         m.insert("timestamp".to_string(), self.nonce());
                         m.insert("recvWindow".to_string(), Value::from(recvWindow));
                     m
-                }), &[paramsOmitted.clone()]);
+                }), &[&paramsOmitted]);
                 let mut query: Value = Value::from(self.urlencode(__ws_arg_42, &[]));
                 let mut signature: String = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                 query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", "signature=").into()), signature).into())).into());
@@ -4109,8 +4109,8 @@ impl Bitrue {
                 }
                 let mut signMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", signPrefix, "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), path).into()))).into());
                 if (method.as_str() == Some("GET")) {
-                    if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                        signMessage = Value::Str(format!("{}{}", signMessage, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])).into())).into());
+                    if ((Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                        signMessage = Value::Str(format!("{}{}", signMessage, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])).into())).into());
                     }
                     let mut signature: String = self.hmac(self.encode(signMessage.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Some(crate::value::Dict::new({
@@ -4120,13 +4120,13 @@ impl Bitrue {
                             m.insert("X-CH-TS".to_string(), Value::from(timestamp.as_str()));
                         m
                     }));
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
                 }  else {
-                    let mut query: Option<crate::value::Dict> = self.extend(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("recvWindow".to_string(), Value::from(recvWindow));
-    m
-}), &[paramsOmitted.clone()]).into_opt_dict();
+                    let mut query: crate::value::Dict = self.extend(Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("recvWindow".to_string(), Value::from(recvWindow));
+                        m
+                    }), &[&paramsOmitted]).into_dict();
                     requestBody = json_stringify(&query);
                     signMessage = Value::Str(format!("{}{}", signMessage, requestBody).into());
                     let mut signature: String = self.hmac(self.encode(signMessage), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
@@ -4141,8 +4141,8 @@ impl Bitrue {
                 }
             }
         }  else {
-            if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted, &[])));
+            if ((Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
             }
         }
         let mut bodyResult: Value = requestBody;

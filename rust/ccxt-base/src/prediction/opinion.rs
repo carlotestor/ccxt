@@ -1232,7 +1232,7 @@ impl Opinion {
             promises.push(self.opinion_public_get_token_orderbook(&[__ws_arg_14]).await);
         }
         }
-        let mut responses: Value = promise_all(&Value::from(promises)).await;
+        let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1243,8 +1243,8 @@ impl Opinion {
             while { if !__for_first_1394 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1394 = false; i.as_f64().unwrap_or(f64::NAN) < (outcomesLength as f64) } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut priceIndex: Value = (match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut priceResponse: Option<crate::value::Dict> = self.safe_dict(responses.clone(), priceIndex.clone(), &[]).into_opt_dict();
-            let mut bookResponse: Option<crate::value::Dict> = self.safe_dict(responses.clone(), self.sum(&[priceIndex, Value::Int(1)]), &[]).into_opt_dict();
+            let mut priceResponse: Option<crate::value::Dict> = self.safe_dict(&responses, priceIndex.clone(), &[]).into_opt_dict();
+            let mut bookResponse: Option<crate::value::Dict> = self.safe_dict(&responses, self.sum(&[priceIndex, Value::Int(1)]), &[]).into_opt_dict();
             let mut response: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), priceResponse.map_or(Value::Null, Value::Dict));
