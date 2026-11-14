@@ -3275,9 +3275,9 @@ impl Bybit {
         if (topic.as_deref() == Some("wallet")) {
             let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_205: bool = true;
-                while { if !__for_first_205 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_205 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+                while { if !__for_first_205 { i += 1; } __for_first_205 = false; i < (data.len() as i64) } {
                 let mut result: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m

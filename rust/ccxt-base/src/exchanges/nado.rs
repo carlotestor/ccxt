@@ -1394,9 +1394,9 @@ impl Nado {
         let mut sender: Option<String> = self.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut productIds: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_980: bool = true;
-            while { if !__for_first_980 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_980 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            while { if !__for_first_980 { i += 1; } __for_first_980 = false; i < (ids.len() as i64) } {
             productIds.push(Value::from(productId));
         }
         }

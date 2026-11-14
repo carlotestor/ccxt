@@ -1602,9 +1602,9 @@ impl Onetrading {
             })]).as_map().cloned().unwrap_or_default();
             let mut marketIdtimeframes: Vec<Value> = Value::Array(marketSubscription.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
-                                let mut ii: Value = Value::Int(0);
+                                let mut ii: i64 = 0;
                 let mut __for_first_563: bool = true;
-                while { if !__for_first_563 { if let Value::Int(n) = &mut ii { *n += 1; } } __for_first_563 = false; ii.as_f64().unwrap_or(f64::NAN) < ((marketIdtimeframes.len() as i64) as f64) } {
+                while { if !__for_first_563 { ii += 1; } __for_first_563 = false; ii < (marketIdtimeframes.len() as i64) } {
                 let mut marketTimeframeId: indexmap::IndexMap<String, Value> = self.safe_dict(&timeframes, timeframe.clone(), &[]).as_map().cloned().unwrap_or_default();
                 let mut property: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
