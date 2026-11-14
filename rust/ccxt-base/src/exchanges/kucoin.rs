@@ -9807,11 +9807,11 @@ impl Kucoin {
             trades = self.safe_list_k(data, "items", &[Value::from(vec![])]);
         }
         // v1 may put a bare list or dict under data; normalize once for parseTrades
-        let mut tradesList: Value = Value::from(vec![]);
+        let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (trades != Value::Null) {
-            tradesList = self.to_array(trades);
+            tradesList = self.to_array(trades).into_list();
         }
-        return self.parse_trades(tradesList, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&tradesList, market.as_ref(), &[since, limit]);
 
     Value::Null
 }
@@ -14858,7 +14858,7 @@ if _try_result.is_err() {
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         if uta {
             let mut accountMode: Value = Value::Str("unified".into());
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(&paramsRequest, Value::Str("cancelOrders".into()), Value::Str("accountMode".into()), &[accountMode.clone()]).as_array().cloned().unwrap_or_default(); accountMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -14875,7 +14875,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            orders = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
         }  else {
             let mut requestKey: String = "orderIdsList".to_string();
             if useClientorderId {
@@ -14904,9 +14904,9 @@ if _try_result.is_err() {
             //       ]
             //   }
             //
-            orders = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_orders(orders, market.as_ref(), &[]);
+        return self.parse_orders(&orders, market.as_ref(), &[]);
         Value::Null
         }).await?))
     }

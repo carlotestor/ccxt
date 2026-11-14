@@ -3136,7 +3136,7 @@ impl Bitrue {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Option<crate::value::Dict> = None;
-        let mut data: Value = Value::from(vec![]);
+        let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         if (market).swap {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3150,11 +3150,11 @@ impl Bitrue {
                 let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
                 response = self.dapi_v2_private_post_all_open_orders(&[__ws_arg_29]).await.into_opt_dict();
             }
-            data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            data = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelAllOrders only support future markets")));
         }
-        return self.parse_orders(data, Some(&market), &[]);
+        return self.parse_orders(&data, Some(&market), &[]);
         Value::Null
         }).await?))
     }

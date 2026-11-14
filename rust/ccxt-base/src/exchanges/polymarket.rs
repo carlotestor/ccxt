@@ -2380,7 +2380,7 @@ impl Polymarket {
         if (timeout != Value::Null) && (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
             deadline = self.sum(&[Value::Int(self.milliseconds()), timeout]);
         }
-        let mut signable: Value = Value::from(vec![Value::Str("autoCancel".into()), Value::from(vec![deadline.clone()])]);
+        let mut signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("autoCancel".into()), Value::from(vec![deadline.clone()])]);
         let mut bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("autoCancel".into()));
@@ -2391,7 +2391,7 @@ impl Polymarket {
 }));
             m
         });
-        let mut signed: crate::value::Dict = self.sign_perps_op(signable, Value::Map(bodyOp), &[]).await.into_dict();
+        let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
         let mut response: Value = self.trade_patch_trade_auto_cancel(&[Value::Dict(signed)]).await;
         return response;
 
@@ -2436,7 +2436,7 @@ impl Polymarket {
         let mut orderId: Option<i64> = self.parse_to_int(id);
         let mut priceString: Option<String> = self.price_to_precision(Value::from((market).symbol.clone()), price);
         let mut quantity: Option<String> = self.amount_to_precision(Value::from((market).symbol.clone()), amount);
-        let mut signable: Value = Value::from(vec![Value::Str("modifyOrders".into()), Value::from(vec![Value::from(vec![Value::from(orderId), priceString.clone().map(Value::from).unwrap_or(Value::Null), quantity.clone().map(Value::from).unwrap_or(Value::Null)])])]);
+        let mut signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("modifyOrders".into()), Value::from(vec![Value::from(vec![Value::from(orderId), priceString.clone().map(Value::from).unwrap_or(Value::Null), quantity.clone().map(Value::from).unwrap_or(Value::Null)])])]);
         let mut bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("modifyOrders".into()));
@@ -2449,7 +2449,7 @@ impl Polymarket {
 })]));
             m
         });
-        let mut signed: crate::value::Dict = self.sign_perps_op(signable, Value::Map(bodyOp), &[params]).await.into_dict();
+        let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[params]).await.into_dict();
         let mut response: crate::value::List = self.trade_patch_trade_orders(&[Value::Dict(signed)]).await.into_list();
         //
         //     [
@@ -3621,7 +3621,7 @@ impl Polymarket {
         let mut isCross: bool = marginMode.as_deref() != Some("isolated");
         let mut instrumentId: Option<i64> = self.parse_to_int(Value::from((market).id.as_deref()));
         let mut leverageInt: Option<i64> = self.parse_to_int(leverage);
-        let mut signable: Value = Value::from(vec![Value::Str("updateLeverage".into()), Value::from(vec![Value::from(instrumentId), Value::from(leverageInt), Value::Bool(isCross)])]);
+        let mut signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("updateLeverage".into()), Value::from(vec![Value::from(instrumentId), Value::from(leverageInt), Value::Bool(isCross)])]);
         let mut bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".into()));
@@ -3634,7 +3634,7 @@ impl Polymarket {
 }));
             m
         });
-        let mut signed: crate::value::Dict = self.sign_perps_op(signable, Value::Map(bodyOp), &[]).await.into_dict();
+        let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
         let mut response: Value = self.trade_patch_trade_leverage(&[Value::Dict(signed)]).await;
         return response;
         Value::Null
@@ -3715,7 +3715,7 @@ impl Polymarket {
         if (type_var.as_str() == Some("reduce")) {
             amountString = Some(format!("{}{}", "-", amountString.as_deref().unwrap_or("null")));
         }
-        let mut signable: Value = Value::from(vec![Value::Str("updateMargin".into()), Value::from(vec![Value::from(instrumentId), amountString.clone().map(Value::from).unwrap_or(Value::Null)])]);
+        let mut signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("updateMargin".into()), Value::from(vec![Value::from(instrumentId), amountString.clone().map(Value::from).unwrap_or(Value::Null)])]);
         let mut bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateMargin".into()));
@@ -3727,7 +3727,7 @@ impl Polymarket {
 }));
             m
         });
-        let mut signed: crate::value::Dict = self.sign_perps_op(signable, Value::Map(bodyOp), &[]).await.into_dict();
+        let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
         let mut response: Value = self.trade_patch_trade_margin(&[Value::Dict(signed)]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

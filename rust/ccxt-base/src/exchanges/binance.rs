@@ -9748,11 +9748,11 @@ impl Binance {
         //         },
         //     ]
         //
-        let mut responseList: Value = Value::from(vec![]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (response != Value::Null) {
-            responseList = self.to_array(response);
+            responseList = self.to_array(response).into_list();
         }
-        return self.parse_trades(responseList, Some(&market), &[since, limit]);
+        return self.parse_trades(&responseList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -20827,11 +20827,11 @@ if _try_result.is_err() {
         //         }
         //     ]
         //
-        let mut responseList: Value = Value::from(vec![]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (response != Value::Null) {
-            responseList = self.to_array(response);
+            responseList = self.to_array(response).into_list();
         }
-        return self.parse_adl_ranks(responseList, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.parse_adl_ranks(&responseList, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

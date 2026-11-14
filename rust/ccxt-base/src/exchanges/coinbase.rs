@@ -3822,14 +3822,14 @@ if _try_result.is_err() {
             response = self.v3_private_get_brokerage_accounts(&[__ws_arg_27]).await;
             // an explicit params.cursor means the caller pages manually
             if (self.safe_string_k(&paramsMarketType, "cursor", &[]) == Value::Null) {
-                let mut accounts: Value = self.safe_list_k(response.clone(), "accounts", &[Value::from(vec![])]);
+                let mut accounts: crate::value::List = self.safe_list_k(response.clone(), "accounts", &[Value::from(vec![])]).into_list();
                 let mut page: Value = response.clone();
                 let mut cursor: Option<String> = self.safe_string_k(page.clone(), "cursor", &[]).as_str().map(str::to_owned);
                 while matches!(self.safe_bool_k(page.clone(), "has_next", &[Value::Bool(false)]), Value::Bool(true)) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
                     request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
                     page = self.v3_private_get_brokerage_accounts(&[__ws_arg_28]).await;
-                    accounts = self.array_concat(accounts, self.safe_list_k(page.clone(), "accounts", &[Value::from(vec![])]));
+                    accounts = self.array_concat(Value::Arr(accounts), self.safe_list_k(page.clone(), "accounts", &[Value::from(vec![])])).into_list();
                     let mut nextCursor: Option<String> = self.safe_string_k(page.clone(), "cursor", &[]).as_str().map(str::to_owned);
                     if (nextCursor == cursor) {
                         break;
@@ -3840,7 +3840,7 @@ if _try_result.is_err() {
                 let __ws_arg_30 = self.safe_string_k(page, "cursor", &[]);
                 response = self.extend(response, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("accounts".to_string(), accounts);
+                        m.insert("accounts".to_string(), Value::Arr(accounts));
                         m.insert("has_next".to_string(), __ws_arg_29);
                         m.insert("cursor".to_string(), __ws_arg_30);
                     m

@@ -2903,11 +2903,11 @@ impl Okx {
                     m.insert("instType".to_string(), Value::Str("ANY".into()));
                 m
             });
-            let mut args: Value = Value::from(vec![self.extend(Value::Map(arg), &[params.clone()])]);
+            let mut args: crate::value::List = std::sync::Arc::new(vec![self.extend(Value::Map(arg), &[params.clone()])]);
             let mut nonSymbolRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("subscribe".into()));
-                    m.insert("args".to_string(), args);
+                    m.insert("args".to_string(), Value::Arr(args));
                 m
             });
             let mut url: Option<String> = self.get_url(Value::from(channel.clone()), &[Value::Str("private".into())]);

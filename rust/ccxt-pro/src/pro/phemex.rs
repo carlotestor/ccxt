@@ -1253,8 +1253,8 @@ impl Phemex {
             m
         });
         // phemex drops only the given interval when it is sent along with the symbol
-        let mut marketParams: Value = Value::from(vec![Value::from((market).id.as_deref()), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[])]);
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe).into()), ":").into()), symbolValue).into()), marketParams, Value::Map(subscription), &[params]).await;
+        let mut marketParams: crate::value::List = std::sync::Arc::new(vec![Value::from((market).id.as_deref()), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[])]);
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe).into()), ":").into()), symbolValue).into()), &marketParams, Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }

@@ -4555,18 +4555,18 @@ impl Mexc {
             if (limit == Value::Null) {
                 request.insert("page_size".into(), Value::Int(100)); // max
             }
-            let mut data: Value = Value::from(vec![]);
+            let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
             if (trigger == Some(true)) {
                 request.insert("states".into(), Value::Int(1)); // untriggered
                 let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&swapParams]);
                 let mut triggerResponse: crate::value::Dict = self.contract_private_get_planorder_list_orders(&[__ws_arg_28]).await.into_dict();
-                data = self.safe_list_k(&triggerResponse, "data", &[Value::from(vec![])]);
+                data = self.safe_list_k(&triggerResponse, "data", &[Value::from(vec![])]).into_list();
             }  else {
                 let __ws_arg_29 = self.extend(Value::Map(request), &[&swapParams]);
                 let mut swapResponse: crate::value::Dict = self.contract_private_get_order_list_open_orders(&[__ws_arg_29]).await.into_dict();
-                data = self.safe_list_k(&swapResponse, "data", &[Value::from(vec![])]);
+                data = self.safe_list_k(&swapResponse, "data", &[Value::from(vec![])]).into_list();
             }
-            return self.parse_orders(data, market.as_ref(), &[since, limit, Value::Dict(swapParams)]);
+            return self.parse_orders(&data, market.as_ref(), &[since, limit, Value::Dict(swapParams)]);
         }
         Value::Null
         }).await?))

@@ -1826,7 +1826,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn sign_clob_order(&self, message: impl Into<crate::Value>, networkId: &str) -> Option<String> {
         let mut message: Value = message.into();
         let mut networkId: Value = networkId.into();
-        let mut orderStruct: Value = Value::from(vec![Value::Map({
+        let mut orderStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("trader".into()));
         m.insert("type".to_string(), Value::Str("address".into()));
@@ -1874,7 +1874,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         return self.sign_orderbook_typed_data(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Order".to_string(), orderStruct);
+        m.insert("Order".to_string(), Value::Arr(orderStruct));
     m
 }), message, networkId.as_str().unwrap_or_default());
 }
@@ -1889,7 +1889,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn sign_cancel_all(&self, message: impl Into<crate::Value>, networkId: &str) -> Option<String> {
         let mut message: Value = message.into();
         let mut networkId: Value = networkId.into();
-        let mut cancelStruct: Value = Value::from(vec![Value::Map({
+        let mut cancelStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("trader".into()));
         m.insert("type".to_string(), Value::Str("address".into()));
@@ -1907,7 +1907,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         return self.sign_orderbook_typed_data(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("CancelAll".to_string(), cancelStruct);
+        m.insert("CancelAll".to_string(), Value::Arr(cancelStruct));
     m
 }), message, networkId.as_str().unwrap_or_default());
 }

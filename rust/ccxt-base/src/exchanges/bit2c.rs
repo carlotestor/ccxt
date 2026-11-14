@@ -836,7 +836,7 @@ impl Bit2c {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // max 100000
         }
-        let mut responseList: Value = Value::from(vec![]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (method.as_deref() == Some("publicGetExchangesPairTrades")) || (method.as_deref() == Some("public_get_exchanges_pair_trades")) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             let mut response: Value = self.public_get_exchanges_pair_trades(&[__ws_arg_2]).await;
@@ -850,16 +850,16 @@ impl Bit2c {
             if matches!(&response, Value::Str(_)) {
                 panic!("{}", crate::exchange_errors::exchange_error(response));
             }
-            responseList = self.to_array(response);
+            responseList = self.to_array(response).into_list();
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
             let mut response: Value = self.public_get_exchanges_pair_lasttrades(&[__ws_arg_3]).await;
             if matches!(&response, Value::Str(_)) {
                 panic!("{}", crate::exchange_errors::exchange_error(response));
             }
-            responseList = self.to_array(response);
+            responseList = self.to_array(response).into_list();
         }
-        return self.parse_trades(responseList, Some(&market), &[since, limit]);
+        return self.parse_trades(&responseList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

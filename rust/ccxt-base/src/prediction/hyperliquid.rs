@@ -822,7 +822,7 @@ impl Hyperliquid {
                 m.insert("price".to_string(), Value::Float(0.0001));
             m
         });
-        let mut outcomes: Value = Value::from(vec![Value::Map({
+        let mut outcomes: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.outcome_coin(yesEncoding.clone()).map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), self.outcome_coin(yesEncoding.clone()).map(Value::from).unwrap_or(Value::Null));
@@ -931,7 +931,7 @@ impl Hyperliquid {
 }));
     m
 }));
-        m.insert("outcomes".to_string(), outcomes);
+        m.insert("outcomes".to_string(), Value::Arr(outcomes));
         m.insert("info".to_string(), self.extend(outcomeInfo, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcomeId".to_string(), outcomeId);

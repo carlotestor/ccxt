@@ -1971,7 +1971,7 @@ impl Zebpay {
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (market).spot {
             request.insert("currentPage".into(), Value::Int(1));
             if (limit != Value::Null) {
@@ -1983,7 +1983,7 @@ impl Zebpay {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            orders = self.safe_list_k(&responseData, "items", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&responseData, "items", &[Value::from(vec![])]).into_list();
         }  else {
             if (since != Value::Null) {
                 request.insert("since".into(), since);
@@ -1997,9 +1997,9 @@ impl Zebpay {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            orders = self.safe_list_k(&responseData, "data", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&responseData, "data", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_orders(orders, Some(&market), &[Value::Null, limit]);
+        return self.parse_orders(&orders, Some(&market), &[Value::Null, limit]);
         Value::Null
         }).await?))
     }
