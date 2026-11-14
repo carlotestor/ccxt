@@ -1808,7 +1808,7 @@ impl Zebpay {
 }));
         let mut upperCaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
-        let mut quoteOrderQty: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[Value::Null]);
+        let mut quoteOrderQty: Option<String> = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[Value::Null]).as_str().map(str::to_owned);
         let mut timeInForce: String = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().unwrap_or("GTC").to_string();
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stopLossPrice", "cost", "timeInForce", "clientOrderId"], &[]).into_dict();
@@ -1816,10 +1816,10 @@ impl Zebpay {
         request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         request.insert("timeInForce".into(), Value::from(timeInForce));
         if (upperCaseType == "MARKET") {
-            if (quoteOrderQty == Value::Null) {
+            if (quoteOrderQty.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " spot market orders require cost in params")));
             }
-            request.insert("quoteOrderAmount".into(), Value::from(self.cost_to_precision(symbol.clone(), quoteOrderQty)));
+            request.insert("quoteOrderAmount".into(), Value::from(self.cost_to_precision(symbol.clone(), quoteOrderQty.map(Value::from).unwrap_or(Value::Null))));
         }  else {
             if (triggerPrice.is_some()) {
                 request.insert("stopLossPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));

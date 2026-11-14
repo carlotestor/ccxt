@@ -2968,33 +2968,33 @@ impl Hyperliquid {
 
     pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Option<String> {
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
+        let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("amount".into()), &[Value::Float(0.0001)]);
+})]), Value::Str("amount".into()), &[Value::Float(0.0001)]).as_f64();
         // Convert precision to decimal places
         let mut decimals: i64 = 4;
-        if (prec == Value::Null) {
+        if (prec.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " amountToPrecision() missing prec")));
         }
-        if prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
+        if prec > Some(0.0) {
+            decimals = self.precision_from_string(Value::from(self.number_to_string(Value::from(prec))));
         }
         return self.decimal_to_precision(amount, Value::Int(1), Value::from(decimals), &[Value::Int(2), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Option<String> {
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
+        let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("price".into()), &[Value::Float(0.0001)]);
+})]), Value::Str("price".into()), &[Value::Float(0.0001)]).as_f64();
         let mut decimals: i64 = 4;
-        if (prec == Value::Null) {
+        if (prec.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " priceToPrecision() missing prec")));
         }
-        if prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
+        if prec > Some(0.0) {
+            decimals = self.precision_from_string(Value::from(self.number_to_string(Value::from(prec))));
         }
         return self.decimal_to_precision(price, Value::Int(1), Value::from(decimals), &[Value::Int(2), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }

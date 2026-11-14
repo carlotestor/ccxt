@@ -1499,10 +1499,10 @@ impl Polymarket {
             let mut marketResolved: Value = Value::Bool((closed || (self.safe_string_lower_k(&market, "umaResolutionStatus", &[]).as_str() == Some("resolved"))));
             let mut resolvedOutcome: Option<String> = None;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
-            let mut tickSize: Value = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]);
+            let mut tickSize: Option<f64> = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]).as_f64();
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             let mut orderMinSize: Value = self.safe_number_k(&market, "orderMinSize", &[Value::Int(1)]);
-            let mut priceMax: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(tickSize.clone()))), &[]).as_f64();
+            let mut priceMax: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(tickSize)))), &[]).as_f64();
             let mut negRisk: bool = self.safe_bool_k(&market, "negRisk", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut endDate: Option<String> = self.safe_string_k(&market, "endDate", &[self.safe_string_k(&market, "end_date_iso", &[])]).as_str().map(str::to_owned);
             // Gamma API returns these arrays as JSON-encoded strings
@@ -1585,8 +1585,8 @@ impl Polymarket {
                         m.insert("settleFraction".to_string(), Value::from(settleFraction));
                         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), tickSize.clone());
-        m.insert("price".to_string(), tickSize.clone());
+        m.insert("amount".to_string(), Value::from(tickSize));
+        m.insert("price".to_string(), Value::from(tickSize));
     m
 }));
                         m.insert("negRisk".to_string(), Value::Bool(negRisk));
@@ -1637,8 +1637,8 @@ impl Polymarket {
                     m.insert("feeSide".to_string(), Value::Str("get".into()));
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), tickSize.clone());
-        m.insert("price".to_string(), tickSize.clone());
+        m.insert("amount".to_string(), Value::from(tickSize));
+        m.insert("price".to_string(), Value::from(tickSize));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -1657,7 +1657,7 @@ impl Polymarket {
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), tickSize);
+        m.insert("min".to_string(), Value::from(tickSize));
         m.insert("max".to_string(), Value::from(priceMax));
     m
 }));

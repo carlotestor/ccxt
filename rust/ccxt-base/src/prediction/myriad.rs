@@ -3173,7 +3173,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut takerFee: Value = self.safe_number_k(&buyFees, "fee", &[Value::Float(0.01)]);
+        let mut takerFee: Option<f64> = self.safe_number_k(&buyFees, "fee", &[Value::Float(0.01)]).as_f64();
         let mut makerFee: Value = self.safe_number_k(&sellFees, "fee", &[Value::Int(0)]);
         let mut outcomes: Vec<Value> = Vec::new();
         {
@@ -3277,7 +3277,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("expiryDatetime".to_string(), endDate.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
-        m.insert("taker".to_string(), takerFee);
+        m.insert("taker".to_string(), Value::from(takerFee));
         m.insert("maker".to_string(), makerFee);
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
