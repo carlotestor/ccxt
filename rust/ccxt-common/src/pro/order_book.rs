@@ -181,6 +181,58 @@ impl From<Value> for Option<Book> {
 }
 impl From<&Option<Book>> for Value { fn from(b: &Option<Book>) -> Value { b.as_ref().map_or(Value::Null, Value::from) } }
 
+/// ral-ug: an order-book side read off a book (`book['bids'|'asks']`), the shared side marker. Writes land on the
+/// book's side store and reads see it, exactly as the boxed marker did; a level read hands out the stored level as is.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Side(Value);
+
+impl Side {
+    pub fn of(v: Value) -> Side { Side(v) }
+    /// `side.store(price, size)`.
+    pub fn store(&mut self, price: impl Into<Value>, size: impl Into<Value>) { self.0.store(price, size) }
+    /// `side.storeArray(delta)`.
+    pub fn store_array(&mut self, delta: Value) { self.0.store_array(delta) }
+    /// `side.length`: the level count (`Int(0)` for no side).
+    pub fn length(&self) -> Value { crate::runtime::get_array_length(&self.0) }
+    /// `side[i]`: the stored level (`Null` out of range or for no side).
+    pub fn level(&self, i: &Value) -> Value { crate::value::get_value(&self.0, i) }
+}
+
+impl From<Side> for Value { fn from(s: Side) -> Value { s.0 } }
+
+#[cfg(test)]
+mod side_tests {
+    use super::*;
+
+    fn level(p: f64, a: f64) -> Value { Value::Arr(std::sync::Arc::new(vec![Value::Float(p), Value::Float(a)])) }
+
+    // ral-ug: the side handle reads and writes exactly as the boxed marker: in range, out of range, a Null side and a
+    // wrong-kind side; a store through the handle is seen by the book.
+    #[test]
+    fn side_handle_matches_the_boxed_marker() {
+        let mut snap = crate::value::HashMap::new();
+        snap.insert("bids".to_string(), Value::Arr(std::sync::Arc::new(vec![level(10.0, 1.0), level(9.0, 2.0)])));
+        snap.insert("asks".to_string(), Value::Arr(std::sync::Arc::new(vec![level(11.0, 1.0)])));
+        let book = new_book(BOOK_PLAIN, Value::Map(snap), Value::Null);
+        let boxed: Value = book.book_field("bids");
+        let mut side = Side::of(book.book_field("bids"));
+        for v in [Side::of(boxed.clone()), Side::of(Value::Null), Side::of(Value::Int(3)), Side::of(Value::Str("x".into()))] {
+            let raw = Value::from(v.clone());
+            assert_eq!(v.length(), crate::runtime::get_array_length(&raw));
+            for i in [Value::Int(0), Value::Int(1), Value::Int(2), Value::Int(-1), Value::Str("0".into()), Value::Null] {
+                assert_eq!(v.level(&i), crate::value::get_value(&raw, &i), "level {:?}", i);
+            }
+        }
+        side.store(Value::Float(9.5), Value::Float(4.0));
+        side.store_array(level(9.0, 0.0));
+        assert_eq!(crate::runtime::get_array_length(&book.book_field("bids")), Value::Int(2));
+        assert_eq!(crate::value::get_value(&book.book_field("bids"), &Value::Int(1)), level(9.5, 4.0));
+        let mut none = Side::of(Value::Null);
+        none.store(Value::Int(1), Value::Int(1));
+        assert_eq!(Value::from(none), Value::Null);
+    }
+}
+
 /// The book operations on an optional book slot; an absent book ignores them and reads `Null`, as a
 /// `Value::Null` receiver did.
 pub trait BookSlot {
