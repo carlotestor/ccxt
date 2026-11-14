@@ -1681,6 +1681,54 @@ string_enum!(
 );
 
 #[cfg(test)]
+mod record_elem_tests {
+    use super::{Position, Order};
+    use crate::Value;
+    use crate::value::{HashMap, KeyRead};
+
+    // ral-tg: the record element handle `rows.get(i)` (`Option<&T>`) must read and hand on exactly what the boxed
+    // element `rows.get(i).map(Value::from).unwrap_or_default()` did: in range, out of range, a Null row (a record
+    // decoded from Null) and a wrong-kind row (decoded from an Int / a list).
+    fn rows() -> Vec<Position> {
+        let mut m = HashMap::new();
+        m.insert("contracts".to_string(), Value::Float(2.5));
+        m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+        vec![Position::from_value(Value::Map(m)), Position::from_value(Value::Null), Position::from_value(Value::Int(7)),
+            Position::from_value(Value::Array(vec![Value::Int(1)]))]
+    }
+
+    #[test]
+    fn record_elem_reads_match_the_boxed_element() {
+        let rows = rows();
+        let keys = [Value::Str("contracts".into()), Value::Str("symbol".into()), Value::Str("missing".into()), Value::Int(0), Value::Null];
+        for i in [0usize, 1, 2, 3, 4, 99] {
+            let boxed: Value = rows.get(i).map(Value::from).unwrap_or_default();
+            let handle: Option<&Position> = rows.get(i);
+            for k in ["contracts", "symbol", "missing", "0"] {
+                assert_eq!(KeyRead::key_read(&&handle, k), KeyRead::key_read(&boxed, k), "key_read row {} key {}", i, k);
+            }
+            for k in &keys {
+                assert_eq!(KeyRead::read(&&handle, k), KeyRead::read(&boxed, k), "read row {} key {:?}", i, k);
+            }
+            assert_eq!(Value::from(handle), boxed, "hand-off row {}", i);
+        }
+    }
+
+    #[test]
+    fn record_elem_hand_off_shares_the_row() {
+        let rows = rows();
+        let a = Value::from(rows.get(0));
+        let b: Value = rows.get(0).map(Value::from).unwrap_or_default();
+        match (&a, &b, &rows[0].raw) {
+            (Value::Dict(x), Value::Dict(y), Value::Dict(z)) => { assert!(std::sync::Arc::ptr_eq(x, z) && std::sync::Arc::ptr_eq(y, z)); }
+            _ => panic!("row 0 is a map"),
+        }
+        let orders: Vec<Order> = vec![];
+        assert_eq!(Value::from(orders.get(0)), Value::Null);
+    }
+}
+
+#[cfg(test)]
 mod from_value_tests {
     use super::{Market, Order, OrderBook, MarginModification, Conversion, IsolatedBorrowRate, BorrowRate, PositionModeInfo, LastPrice, LeverageTier, DepositWithdrawFee, MarginLoan, Ticker, Trade, Position, Transaction, LedgerEntry, FundingRate, TradingFee, OpenInterest, Liquidation, Greeks};
     use crate::Value;
@@ -2027,6 +2075,23 @@ raw_struct!(FundingRate, FundingRateHistory, FundingHistory, Leverage, MarginMod
 raw_struct!(PredictionEvent, PredictionSettlement);
 raw_struct!(Account, BorrowRate, IsolatedBorrowRate, MarginLoan, Conversion, ADL, LongShortRatio, BorrowInterest,
     PositionModeInfo, OrderBookL3);
+
+/// ral-tg: a record element handle (`Option<&T>`, a row borrowed out of a typed `Vec<T>` result, `None` when out of range).
+/// Its key reads read the row's own map and its hand-off is the row's shared handle, exactly as the boxed element
+/// (`rows.get(i).map(Value::from).unwrap_or_default()`) read and moved: no re-encode, no copy.
+macro_rules! record_elem {
+    ($($t:ident),*) => { $(
+        impl crate::value::KeyRead for &Option<&$t> {
+            fn key_read(&self, key: &str) -> Value { self.map_or(Value::Null, |r| crate::value::get_value_k(&r.raw, key)) }
+            fn read(&self, key: &Value) -> Value { self.map_or(Value::Null, |r| crate::value::get_value(&r.raw, key)) }
+        }
+        impl From<Option<&$t>> for Value { fn from(r: Option<&$t>) -> Value { r.map(Value::from).unwrap_or_default() } }
+    )* };
+}
+record_elem!(Ticker, Trade, Order, Position, Transaction, DepositAddress, Transfer, LedgerEntry, TradingFee, DepositWithdrawFee,
+    FundingRate, FundingRateHistory, FundingHistory, Leverage, MarginMode, MarginModification, OpenInterest, Liquidation,
+    LeverageTier, Greeks, OptionContract, LastPrice, PredictionEvent, PredictionSettlement, Account, BorrowRate,
+    IsolatedBorrowRate, MarginLoan, Conversion, ADL, LongShortRatio, BorrowInterest);
 
 /// A keyed read on a typed `Tickers` result: the ticker's decoded row, as the boxed map read answered it.
 impl crate::value::KeyRead for &Tickers {
