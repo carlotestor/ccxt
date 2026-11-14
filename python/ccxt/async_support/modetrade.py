@@ -2758,7 +2758,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         return self.safe_number(self.safe_dict(response, 'data', {}), 'withdraw_nonce')
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: str, privateKey: str) -> str:

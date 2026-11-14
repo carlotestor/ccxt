@@ -2463,7 +2463,7 @@ class polymarket(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: object, privateKey: object):

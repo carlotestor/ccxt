@@ -1176,7 +1176,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'positions', [])
         return self.parse_positions(rows, symbols)
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         return self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: object, privateKey: object) -> dict:
