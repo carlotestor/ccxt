@@ -2763,7 +2763,7 @@ class polymarket extends Exchange {
         return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 

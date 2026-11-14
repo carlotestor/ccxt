@@ -3076,7 +3076,7 @@ class modetrade extends Exchange {
         return $this->safe_number($this->safe_dict($response, 'data', array()), 'withdraw_nonce');
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 

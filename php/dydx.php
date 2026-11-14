@@ -1209,7 +1209,7 @@ class dydx extends Exchange {
         return $this->parse_positions($rows, $symbols);
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         return $this->hash($message, 'keccak', 'hex');
     }
 
