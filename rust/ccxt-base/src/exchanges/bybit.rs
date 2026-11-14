@@ -14216,11 +14216,11 @@ impl Bybit {
                 if isV3UnifiedMargin || isV3Contract {
                     add_element_to_object(&mut requestHeaders, &Value::Str("X-BAPI-SIGN-TYPE".into()), Value::Str("2".into()));
                 }
-                let mut query: Value = self.extend(Value::Map({
+                let mut query: crate::value::Dict = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                }), &[params.clone()]);
-                let mut queryEncoded: String = self.rawencode(query.clone(), &[]);
+                }), &[params.clone()]).into_dict();
+                let mut queryEncoded: String = self.rawencode(&query, &[]);
                 let mut auth_base: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("".into())]));
                 let mut authFull: Value = Value::Null;
                 if (method.as_str() == Some("POST")) {
@@ -14256,11 +14256,11 @@ impl Bybit {
                 }
                 if (method.as_str() == Some("POST")) {
                     let mut isSpot: bool = url.contains("spot");
-                    let mut extendedQuery: Option<crate::value::Dict> = self.extend(query, &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("sign".to_string(), signature.clone());
-    m
-})]).into_opt_dict();
+                    let mut extendedQuery: crate::value::Dict = self.extend(query, &[Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("sign".to_string(), signature.clone());
+                        m
+                    })]).into_dict();
                     if isSpot {
                         requestBody = Value::from(self.urlencode(&extendedQuery, &[]));
                         requestHeaders = Value::Map({

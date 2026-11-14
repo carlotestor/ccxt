@@ -2786,11 +2786,11 @@ impl Hollaex {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         let mut requestPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path, params));
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                requestPath.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                requestPath.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
@@ -2815,7 +2815,7 @@ impl Hollaex {
             }));
             if (method.as_str() == Some("POST")) {
                 if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-type".to_string(), Value::Str("application/json".into())); }
-                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                     requestBody = json_stringify(&query).as_str().map(str::to_owned);
                     auth.push_str(requestBody.as_deref().unwrap_or("null"));
                 }

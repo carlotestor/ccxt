@@ -14488,12 +14488,12 @@ impl Binance {
             let mut toId: Option<String> = self.safe_string(&accountsByType, toAccount.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (type_var.is_none()) {
                 if (fromId.is_none()) {
-                    let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fromAccount parameter must be one of ").into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+                    let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fromAccount parameter must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
                 }
                 if (toId.is_none()) {
-                    let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " toAccount parameter must be one of ").into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+                    let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " toAccount parameter must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
                 }
                 type_var = Some(format!("{}{}", Value::Str(format!("{}{}", fromId.as_deref().unwrap_or("null"), "_").into()), toId.as_deref().unwrap_or("null")));
             }
@@ -15205,7 +15205,7 @@ impl Binance {
             if (markets == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " markets not loaded")));
             }
-            let mut symbols: Value = Value::Array(markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut symbols: crate::value::List = Value::Array(markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
             let mut linearFees: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -15218,7 +15218,7 @@ impl Binance {
                                 let mut i: i64 = 0;
                 let mut __for_first_298: bool = true;
                 while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: crate::value::Dict = get_value(&markets, &symbol).into_dict();
                 if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                     linearFees.insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -15251,7 +15251,7 @@ impl Binance {
             if (markets == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " markets not loaded")));
             }
-            let mut symbols: Value = Value::Array(markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut symbols: crate::value::List = Value::Array(markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
             let mut inverseFees: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -15264,7 +15264,7 @@ impl Binance {
                                 let mut i: i64 = 0;
                 let mut __for_first_299: bool = true;
                 while { if !__for_first_299 { i += 1; } __for_first_299 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: crate::value::Dict = get_value(&markets, &symbol).into_dict();
                 if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                     inverseFees.insert(crate::runtime::stringify_param(&symbol), Value::Map({

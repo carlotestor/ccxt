@@ -3902,7 +3902,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&baseUrls, "kalshi", &[Value::Str("".into())])]);
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), implodedPath);
-        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut querystring: String = self.urlencode(&query, &[]);
         if (method.as_str() == Some("GET")) && (querystring != "") {
             url.push_str(&format!("{}{}", "?", querystring));

@@ -5101,7 +5101,7 @@ impl Btse {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
@@ -5109,8 +5109,8 @@ impl Btse {
         let mut isBodyDelete: bool = (method.as_str() == Some("DELETE")) && (path.as_str().unwrap_or("").starts_with("futures/api/v3/"));
         let mut queryString: String = "".to_string();
         if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && !isBodyDelete {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                queryString = self.urlencode(query.clone(), &[]);
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                queryString = self.urlencode(&query, &[]);
                 url.push_str(&format!("{}{}", "?", queryString));
             }
         }

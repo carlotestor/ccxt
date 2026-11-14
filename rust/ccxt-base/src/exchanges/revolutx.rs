@@ -465,7 +465,7 @@ impl Revolutx {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
-        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
