@@ -2693,3 +2693,42 @@ mod list_alias_parity_tests {
         assert_eq!(Value::Arr(src(0).into_list()), src(0));
     }
 }
+
+#[cfg(test)]
+mod self_write_read_parity_tests {
+    // ral-wf: the native read of a literal map at a proven-string key (`m.get(k).cloned()`) against the runtime read.
+    use super::*;
+    use crate::value::get_value as boxed_read;
+    use crate::runtime::add_element_to_object as boxed_write;
+
+    fn literal() -> HashMap<String, Value> {
+        let mut m = HashMap::new();
+        m.insert("info".to_string(), Value::Null);
+        m.insert("BTC".to_string(), Value::Str("x".into()));
+        m.insert("n".to_string(), Value::Int(3));
+        m
+    }
+
+    #[test]
+    fn native_get_matches_runtime_read_for_present_missing_and_wrong_kind() {
+        for key in ["BTC", "n", "info", "ETH", ""] {
+            let k = Value::Str(key.into());
+            let typed = literal();
+            let boxed = Value::Dict(Arc::new(literal()));
+            let native = typed.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            assert_eq!(native, boxed_read(&boxed, &k));
+        }
+    }
+
+    #[test]
+    fn native_insert_after_read_matches_runtime_write() {
+        let k = Value::Str("BTC".into());
+        let mut typed = literal();
+        let mut boxed = Value::Dict(Arc::new(literal()));
+        let read = typed.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+        typed.insert("BTC".to_string(), read);
+        let again = boxed_read(&boxed, &k);
+        boxed_write(&mut boxed, &k, again);
+        assert_eq!(Value::Dict(Arc::new(typed)), boxed);
+    }
+}
