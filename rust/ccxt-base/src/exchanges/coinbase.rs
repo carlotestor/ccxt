@@ -1992,7 +1992,7 @@ impl Coinbase {
             amountAndCurrencyObject = self.safe_dict_k(transaction.clone(), "amount", &[]).into_opt_dict();
         }
         let mut amountString: Option<String> = self.safe_string_k(&amountAndCurrencyObject, "amount", &[]).as_str().map(str::to_owned);
-        let mut amountStringAbs: Option<String> = crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut amountStringAbs: Option<String> = crate::precise::Precise::stringAbs(&amountString).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         if (status.is_none()) {
             let mut committed: bool = self.safe_bool_k(transaction.clone(), "committed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2148,23 +2148,23 @@ impl Coinbase {
         if sizeInQuote {
             // calculate base size
             v3Cost = v3Amount.clone();
-            v3Amount = crate::precise::Precise::stringDiv(&v3Amount.map(Value::from).unwrap_or(Value::Null), &v3Price.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            v3Amount = crate::precise::Precise::stringDiv(&v3Amount, &v3Price).as_str().map(str::to_owned);
         }
         let mut v3FeeCost: Option<String> = self.safe_string_k(trade.clone(), "commission", &[]).as_str().map(str::to_owned);
-        let mut amountString: Value = self.safe_string_k(&amountObject, "amount", &[v3Amount.map(Value::from).unwrap_or(Value::Null)]);
+        let mut amountString: Option<String> = self.safe_string_k(&amountObject, "amount", &[v3Amount.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut costString: Value = self.safe_string_k(&subtotalObject, "amount", &[v3Cost.map(Value::from).unwrap_or(Value::Null)]);
         let mut priceString: Option<String> = None;
         let mut cost: Value = Value::Null;
-        if (costString != Value::Null) && (amountString != Value::Null) {
+        if (costString != Value::Null) && (amountString.is_some()) {
             priceString = crate::precise::Precise::stringDiv(&costString, &amountString).as_str().map(str::to_owned);
         }  else {
             priceString = v3Price;
         }
-        if (priceString.is_some()) && (amountString != Value::Null) {
+        if (priceString.is_some()) && (amountString.is_some()) {
             cost = crate::precise::Precise::stringMul(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &amountString);
             let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
             if (contractSize.is_some()) {
-                cost = crate::precise::Precise::stringMul(&cost, &contractSize.map(Value::from).unwrap_or(Value::Null));
+                cost = crate::precise::Precise::stringMul(&cost, &contractSize);
             }
         }  else {
             cost = costString;
@@ -2199,7 +2199,7 @@ impl Coinbase {
         m.insert("side".to_string(), (if (side.as_deref() == Some("unknown_order_side")) { Value::Null } else { side.clone().map(Value::from).unwrap_or(Value::Null) }));
         m.insert("takerOrMaker".to_string(), (if (takerOrMaker.as_deref() == Some("unknown_liquidity_indicator")) { Value::Null } else { takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null) }));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amountString);
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2641,10 +2641,10 @@ if _try_result.is_err() {
         let mut marketType: Option<String> = self.safe_string_lower_k(market.clone(), "product_type", &[]).as_str().map(str::to_owned);
         let mut tradingDisabled: bool = self.safe_bool_k(market.clone(), "trading_disabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut stablePairs: crate::value::List = self.safe_list_k(self.options.clone(), "stablePairs", &[Value::from(vec![])]).into_list();
-        let mut defaultTakerFee: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]);
-        let mut defaultMakerFee: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]);
-        let mut takerFee: Value = (if self.in_array(&id, Value::from(&stablePairs)) { Value::Float(0.00001) } else { (match feeTier.get("taker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => defaultTakerFee }, _ => defaultTakerFee }) });
-        let mut makerFee: Value = (if self.in_array(&id, Value::Arr(stablePairs)) { Value::Int(0) } else { (match feeTier.get("maker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => defaultMakerFee }, _ => defaultMakerFee }) });
+        let mut defaultTakerFee: Option<f64> = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]).as_f64();
+        let mut defaultMakerFee: Option<f64> = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]).as_f64();
+        let mut takerFee: Value = (if self.in_array(&id, Value::from(&stablePairs)) { Value::Float(0.00001) } else { (match feeTier.get("taker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::from(defaultTakerFee), Value::Float), _ => Value::from(defaultTakerFee) }) });
+        let mut makerFee: Value = (if self.in_array(&id, Value::Arr(stablePairs)) { Value::Int(0) } else { (match feeTier.get("maker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::from(defaultMakerFee), Value::Float), _ => Value::from(defaultMakerFee) }) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2871,8 +2871,8 @@ if _try_result.is_err() {
             type_var = Some("future".to_string());
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), quote.as_deref().unwrap_or("null")).into()), "-").into()), self.yymmdd(Value::from(expireTimestamp), &[]));
         }
-        let mut takerFeeRate: Option<f64> = (match feeTier.get("taker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
-        let mut makerFeeRate: Option<f64> = (match feeTier.get("maker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
+        let mut takerFeeRate: Option<f64> = (match feeTier.get("taker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Null, Value::Float), _ => Value::Null }).as_f64();
+        let mut makerFeeRate: Option<f64> = (match feeTier.get("maker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Null, Value::Float), _ => Value::Null }).as_f64();
         let mut taker: Option<f64> = (if ((takerFeeRate.is_some()) && (takerFeeRate.is_some()) && (takerFeeRate != Some(0.0))) { takerFeeRate } else { Some(0.06_f64) });
         let mut maker: Option<f64> = (if ((makerFeeRate.is_some()) && (makerFeeRate.is_some()) && (makerFeeRate != Some(0.0))) { makerFeeRate } else { Some(0.04_f64) });
         return self.safe_market_structure(&[Value::Map({
@@ -4219,7 +4219,7 @@ if _try_result.is_err() {
         let mut direction: Option<String> = None;
         if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
-            amount = crate::precise::Precise::stringNeg(&amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringNeg(&amount).as_str().map(str::to_owned);
         }  else {
             direction = Some("in".to_string());
         }
@@ -4618,7 +4618,7 @@ if _try_result.is_err() {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
-                        let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                         total = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
@@ -5537,7 +5537,7 @@ if _try_result.is_err() {
             sinceString = Value::from(self.number_to_string(Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))));
         }  else {
             let mut now: String = format!("{}", self.seconds());
-            sinceString = crate::precise::Precise::stringSub(&Value::from(now), &Value::Str(format!("{}", requestedDuration).into()));
+            sinceString = crate::precise::Precise::stringSub(&now, &Value::Str(format!("{}", requestedDuration).into()));
         }
         request.insert("start".into(), sinceString.clone());
         // 300 candles max

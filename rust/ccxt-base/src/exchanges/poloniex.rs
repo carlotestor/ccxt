@@ -1895,10 +1895,10 @@ impl Poloniex {
         let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
         if (marketResolved).contract && (contractSize.is_some()) {
             // 'quantity' counts contracts, and a ticker reports base volume
-            baseVolume = crate::precise::Precise::stringMul(&baseVolume.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(Value::from(contractSize)))).as_str().map(str::to_owned);
+            baseVolume = crate::precise::Precise::stringMul(&baseVolume, &Value::from(self.number_to_string(Value::from(contractSize)))).as_str().map(str::to_owned);
         }
         let mut relativeChange: Option<String> = self.safe_string2(ticker.clone(), Value::Str("dailyChange".into()), Value::Str("dc".into()), &[]).as_str().map(str::to_owned);
-        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&relativeChange.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&relativeChange, &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -3190,7 +3190,7 @@ impl Poloniex {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
-                        let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                         quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
@@ -4821,7 +4821,7 @@ impl Poloniex {
         let mut amountString: Option<String> = self.safe_string_k(transactionValue.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut feeCostString: Option<String> = self.safe_string_k(transactionValue.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (type_var == "withdrawal") {
-            amountString = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &feeCostString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountString = crate::precise::Precise::stringSub(&amountString, &feeCostString).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5175,13 +5175,13 @@ impl Poloniex {
         let mut marginMode: Option<String> = self.safe_string_lower_k(position.clone(), "mgnMode", &[]).as_str().map(str::to_owned);
         let mut leverage: Option<String> = self.safe_string_k(position.clone(), "lever", &[]).as_str().map(str::to_owned);
         let mut initialMargin: Option<String> = self.safe_string_k(position.clone(), "im", &[]).as_str().map(str::to_owned);
-        let mut notional: Option<String> = crate::precise::Precise::stringMul(&leverage.map(Value::from).unwrap_or(Value::Null), &initialMargin.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut notional: Option<String> = crate::precise::Precise::stringMul(&leverage, &initialMargin).as_str().map(str::to_owned);
         let mut positionMargin: Option<String> = None;
         let mut collateral: Option<String> = None;
         if (marginMode.as_deref() == Some("isolated")) {
             positionMargin = self.omit_zero(self.safe_string_k(position.clone(), "mgn", &[]));
             let mut upl: Option<String> = self.safe_string_k(position.clone(), "upl", &[]).as_str().map(str::to_owned);
-            collateral = (if ((positionMargin.is_some()) && (upl.is_some())) { crate::precise::Precise::stringAdd(&positionMargin.clone().map(Value::from).unwrap_or(Value::Null), &upl.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) } else { None });
+            collateral = (if ((positionMargin.is_some()) && (upl.is_some())) { crate::precise::Precise::stringAdd(&positionMargin.clone().map(Value::from).unwrap_or(Value::Null), &upl).as_str().map(str::to_owned) } else { None });
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();

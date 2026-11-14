@@ -1499,10 +1499,10 @@ impl Polymarket {
             let mut marketResolved: Value = Value::Bool((closed || (self.safe_string_lower_k(&market, "umaResolutionStatus", &[]).as_str() == Some("resolved"))));
             let mut resolvedOutcome: Option<String> = None;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
-            let mut tickSize: Value = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]);
+            let mut tickSize: Option<f64> = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]).as_f64();
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             let mut orderMinSize: Value = self.safe_number_k(&market, "orderMinSize", &[Value::Int(1)]);
-            let mut priceMax: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(tickSize.clone()))), &[]).as_f64();
+            let mut priceMax: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(tickSize)))), &[]).as_f64();
             let mut negRisk: bool = self.safe_bool_k(&market, "negRisk", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut endDate: Option<String> = self.safe_string_k(&market, "endDate", &[self.safe_string_k(&market, "end_date_iso", &[])]).as_str().map(str::to_owned);
             // Gamma API returns these arrays as JSON-encoded strings
@@ -1585,8 +1585,8 @@ impl Polymarket {
                         m.insert("settleFraction".to_string(), Value::from(settleFraction));
                         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), tickSize.clone());
-        m.insert("price".to_string(), tickSize.clone());
+        m.insert("amount".to_string(), Value::from(tickSize));
+        m.insert("price".to_string(), Value::from(tickSize));
     m
 }));
                         m.insert("negRisk".to_string(), Value::Bool(negRisk));
@@ -1637,8 +1637,8 @@ impl Polymarket {
                     m.insert("feeSide".to_string(), Value::Str("get".into()));
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), tickSize.clone());
-        m.insert("price".to_string(), tickSize.clone());
+        m.insert("amount".to_string(), Value::from(tickSize));
+        m.insert("price".to_string(), Value::from(tickSize));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -1657,7 +1657,7 @@ impl Polymarket {
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), tickSize);
+        m.insert("min".to_string(), Value::from(tickSize));
         m.insert("max".to_string(), Value::from(priceMax));
     m
 }));
@@ -2519,7 +2519,7 @@ impl Polymarket {
         //     { "base_fee": 30 }   // base fee in basis points
         //
         let mut baseFeeBps: Option<String> = self.safe_string_k(response.clone(), "base_fee", &[]).as_str().map(str::to_owned);
-        let mut rate: Option<f64> = (if (baseFeeBps.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&baseFeeBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())), &[]).as_f64() } else { None });
+        let mut rate: Option<f64> = (if (baseFeeBps.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&baseFeeBps, &Value::Str("10000".into())), &[]).as_f64() } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
@@ -2748,7 +2748,7 @@ impl Polymarket {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("USDC".into()));
-                    m.insert("rate".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&feeRateBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())), &[]));
+                    m.insert("rate".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&feeRateBps, &Value::Str("10000".into())), &[]));
                 m
             }));
         }
@@ -2831,7 +2831,7 @@ impl Polymarket {
         let mut raw: Option<String> = self.safe_string_k(response, "balance", &[]).as_str().map(str::to_owned);
         let mut total: Option<f64> = None;
         if (raw.is_some()) {
-            total = self.parse_number(crate::precise::Precise::stringDiv(&raw.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), &[]).as_f64();
+            total = self.parse_number(crate::precise::Precise::stringDiv(&raw, &Value::Str("1000000".into())), &[]).as_f64();
         }
         result.insert("USDC".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3596,7 +3596,7 @@ impl Polymarket {
         let mut sizeDecimals: Option<i64> = self.safe_integer_k(&cfg, "size", &[]).as_i64();
         let mut amountDecimals: Option<i64> = self.safe_integer_k(&cfg, "amount", &[]).as_i64();
         let mut priceStr: Option<String> = self.number_to_string(price);
-        let mut rawPrice: Value = self.decimal_to_precision(priceStr.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::ROUND), Value::from(priceDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut rawPrice: Option<String> = self.decimal_to_precision(priceStr.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::ROUND), Value::from(priceDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         let mut makerRaw: Value = Value::Null;
         let mut takerRaw: Value = Value::Null;
         if (cost != Value::Null) && (side.as_str() == Some("BUY")) {
@@ -4770,7 +4770,7 @@ if _try_result.is_err() {
     pub fn handle_order_book_snapshot(&self, mut client: Value, mut event: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &event { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut tokenId: Option<String> = (match __pro_message.get("asset_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut tokenId: Option<String> = (match __pro_message.get("asset_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut outcome: Value = self.token_id_to_symbol(tokenId.as_deref()).map(Value::from).unwrap_or(Value::Null);
         if (outcome == Value::Null) {
             return;
@@ -4868,14 +4868,14 @@ if _try_result.is_err() {
     pub fn handle_trade(&mut self, mut client: Value, mut event: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &event { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut tokenId: Option<String> = (match __pro_message.get("asset_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut tokenId: Option<String> = (match __pro_message.get("asset_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut outcome: Value = self.token_id_to_symbol(tokenId.as_deref()).map(Value::from).unwrap_or(Value::Null);
         if (outcome == Value::Null) {
             return;
         }
         let mut timestamp: Value = self.parse_poly_timestamp((self.safe_string_k(event.clone(), "timestamp", &[])).as_str());
-        let mut price: Option<f64> = (match __pro_message.get("price").cloned() { Some(Value::Float(__f)) => Value::Float(__f), Some(Value::Int(__n)) => Value::Float(__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<f64>() { Ok(__f) => Value::Float(__f), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
-        let mut amount: Option<f64> = (match __pro_message.get("size").cloned() { Some(Value::Float(__f)) => Value::Float(__f), Some(Value::Int(__n)) => Value::Float(__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<f64>() { Ok(__f) => Value::Float(__f), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
+        let mut price: Option<f64> = (match __pro_message.get("price") { Some(Value::Float(__f)) => Some(*__f), Some(Value::Int(__n)) => Some(*__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => __s.parse::<f64>().ok(), _ => None });
+        let mut amount: Option<f64> = (match __pro_message.get("size") { Some(Value::Float(__f)) => Some(*__f), Some(Value::Int(__n)) => Some(*__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => __s.parse::<f64>().ok(), _ => None });
         let mut market: Value = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), None);
         let mut trade: Value = self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5059,7 +5059,7 @@ if _try_result.is_err() {
         let mut mid: Value = Value::Null;
         if (bestBid != Value::Null) && (bestAsk != Value::Null) {
             let mut sum: Option<String> = crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(bestBid.clone())), &Value::from(self.number_to_string(bestAsk.clone()))).as_str().map(str::to_owned);
-            mid = self.parse_number(crate::precise::Precise::stringDiv(&sum.map(Value::from).unwrap_or(Value::Null), &Value::Str("2".into())), &[]);
+            mid = self.parse_number(crate::precise::Precise::stringDiv(&sum, &Value::Str("2".into())), &[]);
         }  else if (bestBid != Value::Null) {
             mid = bestBid.clone();
         }  else {

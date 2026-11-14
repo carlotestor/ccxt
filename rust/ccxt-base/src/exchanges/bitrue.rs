@@ -1621,7 +1621,7 @@ impl Bitrue {
         m.insert("contract".to_string(), Value::Bool(isContract));
         m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), isInverse.map(Value::from).unwrap_or(Value::Null));
-        m.insert("contractSize".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&multiplier.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("contractSize".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&multiplier), &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2785,7 +2785,7 @@ impl Bitrue {
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price);
-                    let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     let mut requestAmount: Option<String> = quoteAmount;
                     if (cost.is_some()) {
                         requestAmount = cost;
@@ -2818,7 +2818,7 @@ impl Bitrue {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             let mut validOrderTypes: crate::value::List = self.safe_list_k(crate::value::KeyRead::key_read(&&market, "info"), "orderTypes", &[Value::from(vec![])]).into_list();
-            if !self.in_array(Value::from(uppercaseType), Value::Arr(validOrderTypes)) {
+            if !self.in_array(&uppercaseType, Value::Arr(validOrderTypes)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), type_var).into()), " is not a valid order type in market ").into()), symbol)));
             }
             let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);

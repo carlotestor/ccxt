@@ -902,7 +902,7 @@ impl Zebpay {
                 if (minWithdrawFeeString.is_none()) {
                     minWithdrawFeeString = withdrawFeeString.clone();
                 }  else {
-                    minWithdrawFeeString = crate::precise::Precise::stringMin(&withdrawFeeString.clone().map(Value::from).unwrap_or(Value::Null), &minWithdrawFeeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    minWithdrawFeeString = crate::precise::Precise::stringMin(&withdrawFeeString, &minWithdrawFeeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
             }
             let mut minNetworkWithdrawString: Option<String> = self.safe_string_k(&chain, "withdrawalMinSize", &[]).as_str().map(str::to_owned);
@@ -910,7 +910,7 @@ impl Zebpay {
                 if (minWithdrawString.is_none()) {
                     minWithdrawString = minNetworkWithdrawString.clone();
                 }  else {
-                    minWithdrawString = crate::precise::Precise::stringMin(&minNetworkWithdrawString.clone().map(Value::from).unwrap_or(Value::Null), &minWithdrawString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    minWithdrawString = crate::precise::Precise::stringMin(&minNetworkWithdrawString, &minWithdrawString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
             }
             let mut minNetworkDepositString: Option<String> = self.safe_string_k(&chain, "depositMinSize", &[]).as_str().map(str::to_owned);
@@ -918,7 +918,7 @@ impl Zebpay {
                 if (minDepositString.is_none()) {
                     minDepositString = minNetworkDepositString.clone();
                 }  else {
-                    minDepositString = crate::precise::Precise::stringMin(&minNetworkDepositString.clone().map(Value::from).unwrap_or(Value::Null), &minDepositString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    minDepositString = crate::precise::Precise::stringMin(&minNetworkDepositString, &minDepositString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
             }
             if (networkCode.is_some()) {
@@ -1808,7 +1808,7 @@ impl Zebpay {
 }));
         let mut upperCaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
-        let mut quoteOrderQty: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[Value::Null]);
+        let mut quoteOrderQty: Option<String> = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[Value::Null]).as_str().map(str::to_owned);
         let mut timeInForce: String = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().unwrap_or("GTC").to_string();
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stopLossPrice", "cost", "timeInForce", "clientOrderId"], &[]).into_dict();
@@ -1816,10 +1816,10 @@ impl Zebpay {
         request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         request.insert("timeInForce".into(), Value::from(timeInForce));
         if (upperCaseType == "MARKET") {
-            if (quoteOrderQty == Value::Null) {
+            if (quoteOrderQty.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " spot market orders require cost in params")));
             }
-            request.insert("quoteOrderAmount".into(), Value::from(self.cost_to_precision(symbol.clone(), quoteOrderQty)));
+            request.insert("quoteOrderAmount".into(), Value::from(self.cost_to_precision(symbol.clone(), quoteOrderQty.map(Value::from).unwrap_or(Value::Null))));
         }  else {
             if (triggerPrice.is_some()) {
                 request.insert("stopLossPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));

@@ -3376,14 +3376,14 @@ impl Xt {
             percentage = self.safe_string2(ticker.clone(), Value::Str("cr".into()), Value::Str("r".into()), &[]).as_str().map(str::to_owned);
         }
         if (percentage.is_some()) {
-            percentage = crate::precise::Precise::stringMul(&percentage.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         let mut baseVolume: Option<String> = self.safe_string2(ticker.clone(), Value::Str("a".into()), Value::Str("q".into()), &[]).as_str().map(str::to_owned);
         let mut quoteVolume: Option<String> = self.safe_string_k(ticker.clone(), "v", &[]).as_str().map(str::to_owned);
         let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
         if (marketResolved).contract && (contractSize.is_some()) {
             // 'a' counts contracts, 'v' is in the settle currency
-            let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &contractSize.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &contractSize).as_str().map(str::to_owned);
             if ((marketResolved).inverse == Some(true)) {
                 baseVolume = quoteVolume.clone();
                 quoteVolume = contractVolume.clone();
@@ -3806,7 +3806,7 @@ impl Xt {
             if (quantity.is_none()) {
                 amount = crate::precise::Precise::stringMul(&self.safe_string_k(trade.clone(), "a", &[]), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize")))).as_str().map(str::to_owned);
             }  else {
-                amount = crate::precise::Precise::stringMul(&quantity.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize")))).as_str().map(str::to_owned);
+                amount = crate::precise::Precise::stringMul(&quantity, &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize")))).as_str().map(str::to_owned);
             }
         }
         return self.safe_trade(Value::Map({
@@ -3977,7 +3977,7 @@ impl Xt {
             let mut total: Option<String> = self.safe_string2(&balance, Value::Str("totalAmount".into()), Value::Str("walletBalance".into()), &[]).as_str().map(str::to_owned);
             if (used.is_none()) {
                 let mut crossedAndIsolatedMargin: Option<String> = crate::precise::Precise::stringAdd(&self.safe_string_k(&balance, "crossedMargin", &[]), &self.safe_string_k(&balance, "isolatedMargin", &[])).as_str().map(str::to_owned);
-                used = crate::precise::Precise::stringAdd(&self.safe_string_k(&balance, "openOrderMarginFrozen", &[]), &crossedAndIsolatedMargin.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                used = crate::precise::Precise::stringAdd(&self.safe_string_k(&balance, "openOrderMarginFrozen", &[]), &crossedAndIsolatedMargin).as_str().map(str::to_owned);
             }
             account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));
             account.insert("used".into(), used.map(Value::from).unwrap_or(Value::Null));
@@ -4133,7 +4133,7 @@ impl Xt {
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
                         let mut costCalculated: Option<String> = None;
                         if (price != Value::Null) {
-                            costCalculated = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                            costCalculated = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                         }  else {
                             costCalculated = cost.clone();
                         }
@@ -4263,7 +4263,7 @@ impl Xt {
             request.insert("positionType".into(), (if (marginMode.as_deref() == Some("isolated")) { Value::Str("ISOLATED".into()) } else { Value::Str("CROSSED".into()) }));
             if (trailingPercent.is_some()) {
                 request.insert("callback".into(), Value::Str("PROPORTION".into()));
-                request.insert("callbackVal".into(), self.parse_to_numeric(crate::precise::Precise::stringDiv(&trailingPercent.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()))));
+                request.insert("callbackVal".into(), self.parse_to_numeric(crate::precise::Precise::stringDiv(&trailingPercent, &Value::Str("100".into()))));
             }  else {
                 request.insert("callback".into(), Value::Str("FIXED".into()));
                 request.insert("callbackVal".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));

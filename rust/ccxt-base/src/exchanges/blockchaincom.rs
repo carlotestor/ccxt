@@ -617,17 +617,17 @@ impl Blockchaincom {
             let mut minPriceIncrementString: Option<String> = self.safe_string_k(&market, "min_price_increment", &[]).as_str().map(str::to_owned);
             let mut minPriceIncrementScaleString: Option<String> = self.safe_string_k(&market, "min_price_increment_scale", &[]).as_str().map(str::to_owned);
             let mut minPriceScalePrecisionString: Option<String> = self.parse_precision(&[minPriceIncrementScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut pricePrecisionString: Option<String> = crate::precise::Precise::stringMul(&minPriceIncrementString.map(Value::from).unwrap_or(Value::Null), &minPriceScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut pricePrecisionString: Option<String> = crate::precise::Precise::stringMul(&minPriceIncrementString, &minPriceScalePrecisionString).as_str().map(str::to_owned);
             // amount precision
             let mut lotSizeString: Option<String> = self.safe_string_k(&market, "lot_size", &[]).as_str().map(str::to_owned);
             let mut lotSizeScaleString: Option<String> = self.safe_string_k(&market, "lot_size_scale", &[]).as_str().map(str::to_owned);
             let mut lotSizeScalePrecisionString: Option<String> = self.parse_precision(&[lotSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut amountPrecisionString: Option<String> = crate::precise::Precise::stringMul(&lotSizeString.map(Value::from).unwrap_or(Value::Null), &lotSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut amountPrecisionString: Option<String> = crate::precise::Precise::stringMul(&lotSizeString, &lotSizeScalePrecisionString).as_str().map(str::to_owned);
             // minimum order size
             let mut minOrderSizeString: Option<String> = self.safe_string_k(&market, "min_order_size", &[]).as_str().map(str::to_owned);
             let mut minOrderSizeScaleString: Option<String> = self.safe_string_k(&market, "min_order_size_scale", &[]).as_str().map(str::to_owned);
             let mut minOrderSizeScalePrecisionString: Option<String> = self.parse_precision(&[minOrderSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut minOrderSizePreciseString: Option<String> = crate::precise::Precise::stringMul(&minOrderSizeString.map(Value::from).unwrap_or(Value::Null), &minOrderSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut minOrderSizePreciseString: Option<String> = crate::precise::Precise::stringMul(&minOrderSizeString, &minOrderSizeScalePrecisionString).as_str().map(str::to_owned);
             let mut minOrderSize: Option<f64> = self.parse_number(minOrderSizePreciseString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             // maximum order size
             let mut maxOrderSize: Option<f64> = None;
@@ -635,7 +635,7 @@ impl Blockchaincom {
             if (maxOrderSizeRaw.as_deref() != Some("0")) {
                 let mut maxOrderSizeScaleString: Option<String> = self.safe_string_k(&market, "max_order_size_scale", &[]).as_str().map(str::to_owned);
                 let mut maxOrderSizeScalePrecisionString: Option<String> = self.parse_precision(&[maxOrderSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-                let mut maxOrderSizeValueString: Option<String> = crate::precise::Precise::stringMul(&maxOrderSizeRaw.map(Value::from).unwrap_or(Value::Null), &maxOrderSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut maxOrderSizeValueString: Option<String> = crate::precise::Precise::stringMul(&maxOrderSizeRaw, &maxOrderSizeScalePrecisionString).as_str().map(str::to_owned);
                 maxOrderSize = self.parse_number(maxOrderSizeValueString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }
             result.push(Value::Map({

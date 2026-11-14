@@ -2458,7 +2458,7 @@ impl Bithumb {
                     if (price == Value::Null) && (costParam.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
                     }
-                    cost = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(price))).as_str().map(str::to_owned);
+                    cost = crate::precise::Precise::stringMul(&amountString, &Value::from(self.number_to_string(price))).as_str().map(str::to_owned);
                 }
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
             }  else {
@@ -2652,7 +2652,7 @@ impl Bithumb {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut durationString: Option<String> = self.number_to_string(duration);
-        let mut durationSeconds: Option<String> = crate::precise::Precise::stringDiv(&durationString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
+        let mut durationSeconds: Option<String> = crate::precise::Precise::stringDiv(&durationString, &Value::Str("1000".into())).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), self.get_gen2_market_id(market.clone()));

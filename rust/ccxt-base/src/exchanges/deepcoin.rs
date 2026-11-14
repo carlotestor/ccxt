@@ -1119,10 +1119,10 @@ impl Deepcoin {
     m
 })]).into_dict();
         let mut maxLeverage: Option<String> = self.safe_string_k(market.clone(), "lever", &[Value::Str("1".into())]).as_str().map(str::to_owned);
-        maxLeverage = crate::precise::Precise::stringMax(&maxLeverage.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_str().map(str::to_owned);
+        maxLeverage = crate::precise::Precise::stringMax(&maxLeverage, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut maxMarketSize: Option<String> = self.safe_string_k(market.clone(), "maxMktSz", &[]).as_str().map(str::to_owned);
         let mut maxLimitSize: Option<String> = self.safe_string_k(market.clone(), "maxLmtSz", &[]).as_str().map(str::to_owned);
-        let mut maxAmount: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize.map(Value::from).unwrap_or(Value::Null), &maxLimitSize.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+        let mut maxAmount: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize, &maxLimitSize), &[]).as_f64();
         let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_bool() == Some(true));
         let mut isInverse: Value = (if swap { (Value::Bool(isLinear != Some(true))) } else { Value::Null });
@@ -2236,7 +2236,7 @@ impl Deepcoin {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "ts", &[]).as_i64();
         let mut change: Option<String> = self.safe_string_k(item.clone(), "balChg", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<String> = crate::precise::Precise::stringAbs(&change.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut amount: Option<String> = crate::precise::Precise::stringAbs(&change).as_str().map(str::to_owned);
         let mut direction: String = "in".to_string();
         if crate::precise::Precise::stringLt(&change.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = "out".to_string();

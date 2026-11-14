@@ -1616,7 +1616,7 @@ impl Derive {
         let mut newSize: String = self.safe_string_k(entry.clone(), "new_balance", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut isShort: Value = crate::precise::Precise::stringLt(&Value::from(newSize.clone()), &Value::Str("0".into()));
         let mut side: String = (if isShort.as_bool() == Some(true) { "short".to_string() } else { "long".to_string() });
-        let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&Value::from(newSize)).as_str().map(str::to_owned);
+        let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&newSize).as_str().map(str::to_owned);
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&subaccountIdKey);
         let mut symbolPositions: crate::value::Dict = self.safe_dict(cache.hashmap(), Value::from(symbol.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1817,7 +1817,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("id"))) {
-            let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+            let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
             let mut subscriptionKeys: Vec<Value> = __ch.subscription_keys();
             let mut matched: bool = false;

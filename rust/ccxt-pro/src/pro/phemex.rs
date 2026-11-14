@@ -404,9 +404,9 @@ impl Phemex {
         let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[marketValue.clone()]));
         let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString != Value::Null) {
-            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]).as_f64();
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
+            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]).as_f64();
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -469,9 +469,9 @@ impl Phemex {
         let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[marketValue.clone()]));
         let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString != Value::Null) {
-            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]).as_f64();
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
+            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]).as_f64();
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -712,7 +712,7 @@ impl Phemex {
                 if (usedEv.is_none()) {
                     let mut lockedTradingBalanceEv: Option<String> = self.safe_string_k(&balance, "lockedTradingBalanceEv", &[]).as_str().map(str::to_owned);
                     let mut lockedWithdrawEv: Option<String> = self.safe_string2(&balance, Value::Str("lockedWithdrawEv".into()), Value::Str("lockedWithdrawRv".into()), &[]).as_str().map(str::to_owned);
-                    usedEv = crate::precise::Precise::stringAdd(&lockedTradingBalanceEv.map(Value::from).unwrap_or(Value::Null), &lockedWithdrawEv.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    usedEv = crate::precise::Precise::stringAdd(&lockedTradingBalanceEv, &lockedWithdrawEv).as_str().map(str::to_owned);
                 }
                 used = self.from_en(usedEv.map(Value::from).unwrap_or(Value::Null), Value::from(scale));
             }
@@ -1366,12 +1366,10 @@ impl Phemex {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut depth: Option<i64> = (match __pro_message.get("depth").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        let mut depth: Option<i64> = (match __pro_message.get("depth") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let mut name: String = "orderbook".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), symbol.as_deref().unwrap_or("null"));
-        let mut nonce: Option<i64> = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        let mut nonce: Option<i64> = (match __pro_message.get("sequence") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let mut timestamp: Option<i64> = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
         if (type_var.as_deref() == Some("snapshot")) {
             let mut book: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({

@@ -1276,7 +1276,7 @@ impl Lighter {
                 feeRateRaw = self.safe_string_k(trade.clone(), "taker_fee", &[]).as_str().map(str::to_owned);
             }
             let mut feeRate: Option<String> = (if (feeRateRaw.is_some()) { crate::precise::Precise::stringDiv(&feeRateRaw.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())).as_str().map(str::to_owned) } else { Some("0".to_string()) });
-            let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&costString.clone().map(Value::from).unwrap_or(Value::Null), &feeRate.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&costString, &feeRate).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeAmount.map(Value::from).unwrap_or(Value::Null));
@@ -1423,12 +1423,12 @@ impl Lighter {
         let accountIndexparamsAccountIndexVariable: Vec<Value> = self.parent.handle_account_index(params, "watchMyTrades", "accountIndex", "account_index", &[]).await.as_array().cloned().unwrap_or_default();
         let mut accountIndex: Option<i64> = accountIndexparamsAccountIndexVariable.get(0).and_then(Value::as_i64);
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut messageHash: Value = self.get_message_hash(Value::Str("myTrades".into()), &[]).map(Value::from).unwrap_or(Value::Null);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("myTrades".into()), &[]);
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
-            messageHash = self.get_message_hash(Value::Str("myTrades".into()), &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
+            messageHash = self.get_message_hash(Value::Str("myTrades".into()), &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)]);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1436,7 +1436,7 @@ impl Lighter {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(messageHash.as_str().unwrap_or_default(), &[__ws_arg_11]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_11]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1524,8 +1524,8 @@ impl Lighter {
         let mut contracts: Option<String> = self.safe_string_k(liquidation.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut contractSize: Option<String> = self.safe_string_k(&market, "contractSize", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(liquidation.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut baseValue: Option<String> = crate::precise::Precise::stringMul(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &contractSize.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut quoteValue: Option<String> = crate::precise::Precise::stringMul(&baseValue.clone().map(Value::from).unwrap_or(Value::Null), &price.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut baseValue: Option<String> = crate::precise::Precise::stringMul(&contracts, &contractSize).as_str().map(str::to_owned);
+        let mut quoteValue: Option<String> = crate::precise::Precise::stringMul(&baseValue, &price).as_str().map(str::to_owned);
         if (market.is_none()) {
             return Value::Null;
         }
@@ -2097,7 +2097,7 @@ impl Lighter {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
-        let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         client.resolve(message, &(Value::Str(format!("{}{}", "jsonapi/sendtx:", id.as_deref().unwrap_or("null")).into())));
 }
 
@@ -2223,7 +2223,7 @@ impl Lighter {
             }
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+            let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let mut handled: bool = false;
             if (id.is_some()) {
                 let mut subscriptionKeys: Vec<Value> = __ch.subscription_keys();

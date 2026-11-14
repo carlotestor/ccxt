@@ -2689,9 +2689,9 @@ impl Deribit {
         // Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut cost: Option<String> = crate::precise::Precise::stringMul(&amount.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut cost: Option<String> = crate::precise::Precise::stringMul(&amount, &priceString).as_str().map(str::to_owned);
         if ((marketResolved).inverse == Some(true)) {
-            cost = crate::precise::Precise::stringDiv(&amount.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            cost = crate::precise::Precise::stringDiv(&amount, &priceString).as_str().map(str::to_owned);
         }
         let mut liquidity: Option<String> = self.safe_string_k(trade.clone(), "liquidity", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Option<String> = None;
@@ -3158,10 +3158,10 @@ impl Deribit {
         // For options and Linear contracts amount is in corresponding cryptocurrency, e.g., BTC or ETH
         let mut filledString: Option<String> = self.safe_string_k(order.clone(), "filled_amount", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut cost: Option<String> = crate::precise::Precise::stringMul(&filledString.clone().map(Value::from).unwrap_or(Value::Null), &averageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut cost: Option<String> = crate::precise::Precise::stringMul(&filledString, &averageString).as_str().map(str::to_owned);
         if ((marketResolved).inverse == Some(true)) {
             if (averageString.as_deref() != Some("0")) {
-                cost = crate::precise::Precise::stringDiv(&amount.clone().map(Value::from).unwrap_or(Value::Null), &averageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                cost = crate::precise::Precise::stringDiv(&amount, &averageString).as_str().map(str::to_owned);
             }
         }
         let mut lastTradeTimestamp: Option<i64> = None;
@@ -3176,7 +3176,7 @@ impl Deribit {
         let mut feeCostString: Option<String> = self.safe_string_k(order.clone(), "commission", &[]).as_str().map(str::to_owned);
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCostString.is_some()) {
-            feeCostString = crate::precise::Precise::stringAbs(&feeCostString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeCostString = crate::precise::Precise::stringAbs(&feeCostString).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
@@ -4204,7 +4204,7 @@ impl Deribit {
         let mut unrealizedPnl: Option<String> = self.safe_string_k(position.clone(), "floating_profit_loss", &[]).as_str().map(str::to_owned);
         let mut initialMarginString: Option<String> = self.safe_string_k(position.clone(), "initial_margin", &[]).as_str().map(str::to_owned);
         let mut notionalString: Option<String> = self.safe_string_k(position.clone(), "size_currency", &[]).as_str().map(str::to_owned);
-        let mut notionalStringAbs: Option<String> = crate::precise::Precise::stringAbs(&notionalString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut notionalStringAbs: Option<String> = crate::precise::Precise::stringAbs(&notionalString).as_str().map(str::to_owned);
         let mut maintenanceMarginString: Option<String> = self.safe_string_k(position.clone(), "maintenance_margin", &[]).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4215,9 +4215,9 @@ impl Deribit {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&initialMarginString.map(Value::from).unwrap_or(Value::Null), &notionalStringAbs.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("100".into())), &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&initialMarginString, &notionalStringAbs), &Value::Str("100".into())), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &notionalStringAbs.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("100".into())), &[]));
+        m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalStringAbs), &Value::Str("100".into())), &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "average_price", &[]));
         m.insert("notional".to_string(), self.parse_number(notionalStringAbs.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "leverage", &[]));

@@ -550,7 +550,7 @@ impl Backpack {
             let mut subscriptionHashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
             let mut subscriptionsLength: i64 = subscriptionHashes.len() as i64;
             if !unwatch || (subscriptionsLength == 0) {
-                if !self.in_array(Value::from(topic.clone()), topics.clone()) {
+                if !self.in_array(&topic, topics.clone()) {
                     if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(Value::from(topic)); };
                 }
             }

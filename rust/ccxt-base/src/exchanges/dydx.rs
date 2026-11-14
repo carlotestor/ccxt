@@ -1733,7 +1733,7 @@ impl Dydx {
         let mut side: Option<String> = self.safe_string_lower_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut quantity: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         if (side.as_deref() != Some("long")) {
-            quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(position.clone(), "createdAt", &[]));
         return self.safe_position(Value::Map({
@@ -2043,7 +2043,7 @@ impl Dydx {
                         let mut i: Value = Value::Int(1);
             let mut __for_first_659: bool = true;
             while { if !__for_first_659 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_659 = false; matches!(c, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
-            r = crate::precise::Precise::stringMul(&r.map(Value::from).unwrap_or(Value::Null), &n).as_str().map(str::to_owned);
+            r = crate::precise::Precise::stringMul(&r, &n).as_str().map(str::to_owned);
         }
         }
         return r.map(Value::from).unwrap_or(Value::Null);
@@ -2092,10 +2092,10 @@ impl Dydx {
         })]).as_map().cloned().unwrap_or_default();
         let mut atomicResolution: Value = marketInfo.get("atomicResolution").cloned().unwrap_or(Value::Null);
         let mut quantumScale: Option<String> = self.pow("10", crate::precise::Precise::stringNeg(&atomicResolution)).as_str().map(str::to_owned);
-        let mut quantums: Option<String> = crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &quantumScale.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut quantums: Option<String> = crate::precise::Precise::stringMul(&amountStr, &quantumScale).as_str().map(str::to_owned);
         let mut quantumConversionExponent: Value = marketInfo.get("quantumConversionExponent").cloned().unwrap_or(Value::Null);
-        let mut priceScale: Value = self.pow("10", crate::precise::Precise::stringSub(&crate::precise::Precise::stringSub(&atomicResolution, &quantumConversionExponent), &Value::Str("-6".into())));
-        let mut subticks: Option<String> = crate::precise::Precise::stringMul(&priceStr.map(Value::from).unwrap_or(Value::Null), &priceScale).as_str().map(str::to_owned);
+        let mut priceScale: Option<String> = self.pow("10", crate::precise::Precise::stringSub(&crate::precise::Precise::stringSub(&atomicResolution, &quantumConversionExponent), &Value::Str("-6".into()))).as_str().map(str::to_owned);
+        let mut subticks: Option<String> = crate::precise::Precise::stringMul(&priceStr, &priceScale).as_str().map(str::to_owned);
         let mut clientMetadata: i64 = 0;
         let mut conditionalType: i64 = 0;
         let mut conditionalOrderTriggerSubticks: Option<String> = Some("0".to_string());
@@ -2140,7 +2140,7 @@ impl Dydx {
                 conditionalType = 2;
                 conditionalOrderTriggerSubticks = self.price_to_precision(symbol, takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
             }
-            conditionalOrderTriggerSubticks = crate::precise::Precise::stringMul(&conditionalOrderTriggerSubticks.map(Value::from).unwrap_or(Value::Null), &priceScale).as_str().map(str::to_owned);
+            conditionalOrderTriggerSubticks = crate::precise::Precise::stringMul(&conditionalOrderTriggerSubticks, &priceScale).as_str().map(str::to_owned);
         }
         let mut latestBlockHeight: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "latestBlockHeight", &[]).as_i64();
         let mut goodTillBlock: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]).as_i64();
@@ -2798,7 +2798,7 @@ impl Dydx {
             gasPrice = self.safe_string_k(&feeDenom, "CHAINTOKEN_GAS_PRICE", &[]).as_str().map(str::to_owned);
             denom = self.safe_string_k(&feeDenom, "CHAINTOKEN_DENOM", &[]).as_str().map(str::to_owned);
         }
-        let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed.map(Value::from).unwrap_or(Value::Null), &defaultFeeMultiplier.map(Value::from).unwrap_or(Value::Null)))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
+        let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed, &defaultFeeMultiplier))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
         let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(gasLimit.clone())), &gasPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (feeAmount.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " estimateTxFee() missing feeAmount")));

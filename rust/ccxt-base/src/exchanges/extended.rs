@@ -1514,7 +1514,7 @@ impl Extended {
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         let mut last: Option<f64> = self.safe_number_k(ticker.clone(), "lastPrice", &[]).as_f64();
         let mut percentageRaw: Option<String> = self.safe_string_k(ticker.clone(), "dailyPriceChangePercentage", &[]).as_str().map(str::to_owned);
-        let mut percentage: Option<String> = (if (percentageRaw.is_some()) { crate::precise::Precise::stringMul(&percentageRaw.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned) } else { None });
+        let mut percentage: Option<String> = (if (percentageRaw.is_some()) { crate::precise::Precise::stringMul(&percentageRaw, &Value::Str("100".into())).as_str().map(str::to_owned) } else { None });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -2612,7 +2612,7 @@ impl Extended {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::from(code.as_deref()));
-                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&feeCost.map(Value::from).unwrap_or(Value::Null)), &[]));
+                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&feeCost), &[]));
                 m
             }));
         }
@@ -2628,7 +2628,7 @@ impl Extended {
         m.insert("referenceAccount".to_string(), self.safe_string_k(item.clone(), "counterpartyAccountId", &[]));
         m.insert("type".to_string(), self.parse_transaction_type((self.safe_string_k(item.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), (if (amountString.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]) }));
+        m.insert("amount".to_string(), (if (amountString.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString), &[]) }));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_k(item, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
@@ -3073,7 +3073,7 @@ impl Extended {
         let mut assetId: Option<String> = self.safe_string_k(transfer.clone(), "asset", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(transfer.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64() });
+        let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString), &[]).as_f64() });
         let mut accountId: Option<String> = self.safe_string_k(transfer.clone(), "accountId", &[]).as_str().map(str::to_owned);
         let mut counterpartyAccountId: Option<String> = self.safe_string_k(transfer.clone(), "counterpartyAccountId", &[]).as_str().map(str::to_owned);
         let mut fromAccount: Option<String> = accountId.clone();
@@ -3177,14 +3177,14 @@ impl Extended {
         let mut assetId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(transaction.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64() });
+        let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString), &[]).as_f64() });
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::from(code.as_deref()));
-                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&feeCost.map(Value::from).unwrap_or(Value::Null)), &[]));
+                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&feeCost), &[]));
                 m
             }));
         }
@@ -3751,12 +3751,12 @@ impl Extended {
         let mut resolution: Value = resolution.into();
         let roundUp: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut resolutionString: Option<String> = self.number_to_string(resolution);
-        let mut precise: Option<String> = crate::precise::Precise::stringMul(&amount, &resolutionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut result: Value = self.decimal_to_precision(precise.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::NO_PADDING)]);
-        if roundUp && crate::precise::Precise::stringGt(&precise.map(Value::from).unwrap_or(Value::Null), &result).as_bool() == Some(true) {
+        let mut precise: Option<String> = crate::precise::Precise::stringMul(&amount, &resolutionString).as_str().map(str::to_owned);
+        let mut result: Option<String> = self.decimal_to_precision(precise.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::NO_PADDING)]).as_str().map(str::to_owned);
+        if roundUp && crate::precise::Precise::stringGt(&precise.map(Value::from).unwrap_or(Value::Null), &result.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
             return crate::precise::Precise::stringAdd(&result, &Value::Str("1".into()));
         }
-        return result;
+        return result.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -3811,7 +3811,7 @@ impl Extended {
         }  else {
             baseAmount = crate::precise::Precise::stringNeg(&baseAmount);
         }
-        let mut feeAmount: Option<String> = self.get_extended_stark_amount(crate::precise::Precise::stringMul(&totalFee.map(Value::from).unwrap_or(Value::Null), &quoteAmount.map(Value::from).unwrap_or(Value::Null)), collateralResolution, &[Value::Bool(true)]).as_str().map(str::to_owned);
+        let mut feeAmount: Option<String> = self.get_extended_stark_amount(crate::precise::Precise::stringMul(&totalFee, &quoteAmount), collateralResolution, &[Value::Bool(true)]).as_str().map(str::to_owned);
         let mut settlement: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("starkKey".to_string(), starkKey.map(Value::from).unwrap_or(Value::Null));
@@ -3960,7 +3960,7 @@ impl Extended {
         if (market).spot && (uppercaseType != "LIMIT") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() supports limit orders for spot markets only")));
         }
-        if !self.in_array(Value::from(uppercaseType.clone()), Value::from(vec![Value::Str("LIMIT".into()), Value::Str("MARKET".into()), Value::Str("CONDITIONAL".into()), Value::Str("TPSL".into())])) {
+        if !self.in_array(&uppercaseType, Value::from(vec![Value::Str("LIMIT".into()), Value::Str("MARKET".into()), Value::Str("CONDITIONAL".into()), Value::Str("TPSL".into())])) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() supports limit, market, conditional and tpsl orders only")));
         }
         if (price == Value::Null) {
@@ -3992,7 +3992,7 @@ impl Extended {
         }
         let mut totalFee: Value = Value::from(fee.clone());
         if (builderFeeRate.is_some()) {
-            totalFee = crate::precise::Precise::stringAdd(&Value::from(fee.clone()), &builderFeeRate.clone().map(Value::from).unwrap_or(Value::Null));
+            totalFee = crate::precise::Precise::stringAdd(&fee, &builderFeeRate.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut now: i64 = self.milliseconds();
         let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(paramsBuilder.clone(), "expiryEpochMillis", &[Value::Int((now + 3600000))]).as_i64();

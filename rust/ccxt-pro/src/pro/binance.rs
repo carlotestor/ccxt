@@ -1271,7 +1271,7 @@ impl Binance {
         if (orderType.as_deref() != Some("LIQUIDATION")) {
             return;
         }
-        let mut marketId: Option<String> = (match __pro_message.get("s").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("swap".into())]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
         let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(message, Some(&market)).into_dict();
@@ -1799,7 +1799,7 @@ impl Binance {
         //         ]
         //     }
         //
-        let mut marketId: Option<String> = (match __pro_message.get("s").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         // the client url is the authoritative source for the market type — an
         // ambiguous id like BTCUSDT maps to both the spot and the linear swap
         // market, and picking the first match drops the message under the wrong
@@ -1823,18 +1823,15 @@ impl Binance {
             crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), message.clone());
         }  else {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                let mut U: Option<i64> = (match __pro_message.get("U").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-                    Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+                let mut U: Option<i64> = (match __pro_message.get("U") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
                 if (U.is_none()) {
                     return true;
                 }
-                let mut u: Option<i64> = (match __pro_message.get("u").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-                    Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+                let mut u: Option<i64> = (match __pro_message.get("u") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
                 if (u.is_none()) {
                     return true;
                 }
-                let mut pu: Option<i64> = (match __pro_message.get("pu").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-                    Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+                let mut pu: Option<i64> = (match __pro_message.get("pu") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
                 if (pu.is_none()) {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
@@ -1935,7 +1932,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //         "id": 1574649734450
         //     }
         //
-        let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
         let mut subscription: Value = self.safe_dict(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2395,14 +2392,14 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("t".into()), Value::Str("a".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "T", &[]).as_i64();
         let mut price: Option<String> = self.safe_string2(trade.clone(), Value::Str("L".into()), Value::Str("p".into()), &[]).as_str().map(str::to_owned);
-        let mut amount: Value = self.safe_string_k(trade.clone(), "q", &[]);
+        let mut amount: Option<String> = self.safe_string_k(trade.clone(), "q", &[]).as_str().map(str::to_owned);
         if isTradeExecution {
-            amount = self.safe_string_k(trade.clone(), "l", &[amount.clone()]);
+            amount = self.safe_string_k(trade.clone(), "l", &[amount.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         }
         let mut cost: Option<String> = self.safe_string_k(trade.clone(), "Y", &[]).as_str().map(str::to_owned);
         if (cost.is_none()) {
-            if (price.is_some()) && (amount != Value::Null) {
-                cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount).as_str().map(str::to_owned);
+            if (price.is_some()) && (amount.is_some()) {
+                cost = crate::precise::Precise::stringMul(&price, &amount).as_str().map(str::to_owned);
             }
         }
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
@@ -2449,7 +2446,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -2463,7 +2460,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        let mut marketId: Option<String> = (match __pro_message.get("s").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         let mut isSpot: bool = self.is_spot_url(client.clone()).as_bool() == Some(true);
@@ -3838,9 +3835,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             baseVolume = quoteVolume.clone();
             let mut weightedAverage: Option<String> = self.safe_string_k(message.clone(), "w", &[]).as_str().map(str::to_owned);
             if (weightedAverage.is_none()) {
-                quoteVolume = crate::precise::Precise::stringMul(&contracts.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
+                quoteVolume = crate::precise::Precise::stringMul(&contracts, &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
             }  else {
-                quoteVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &weightedAverage.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                quoteVolume = crate::precise::Precise::stringMul(&baseVolume, &weightedAverage).as_str().map(str::to_owned);
             }
         }
         return self.safe_ticker(Value::Map({
@@ -4162,7 +4159,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //   }
         //
-        let mut messageHash: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut messageHash: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut subscriptions: Value = __ch.subscriptions.clone();
         let mut subscriptionsKeys: Value = object_keys(&subscriptions);
         let mut accountType: Option<String> = self.get_account_type_from_subscriptions(subscriptionsKeys);
@@ -5179,16 +5176,16 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         let mut balanceMessage: crate::value::Dict = self.safe_dict_k(message.clone(), "a", &[message.clone()]).into_dict();
         if (event.as_deref() == Some("balanceUpdate")) {
-            let mut currencyId: Option<String> = (match __pro_message.get("a").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+            let mut currencyId: Option<String> = (match __pro_message.get("a") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             let mut account: Value = self.account();
-            let mut delta: Option<String> = (match __pro_message.get("d").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+            let mut delta: Option<String> = (match __pro_message.get("d") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             if (code != Value::Null) && (in_op(&(if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &code)) {
                 let mut previousValue: Value = self.safe_value(get_value(&(if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &code), Value::Str("free".into()), &[]);
                 if !matches!(&previousValue, Value::Str(_)) {
                     previousValue = Value::from(self.number_to_string(previousValue));
                 }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringAdd(&previousValue, &delta.clone().map(Value::from).unwrap_or(Value::Null))); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringAdd(&previousValue, &delta)); }
             }  else {
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), delta.map(Value::from).unwrap_or(Value::Null)); }
             }
@@ -6488,7 +6485,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut stockFilled: Option<String> = self.safe_string_k(order.clone(), "fq", &[]).as_str().map(str::to_owned);
             let mut stockRemaining: Option<String> = None;
             if (stockAmount.is_some()) && (stockFilled.is_some()) {
-                stockRemaining = crate::precise::Precise::stringSub(&stockAmount.clone().map(Value::from).unwrap_or(Value::Null), &stockFilled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                stockRemaining = crate::precise::Precise::stringSub(&stockAmount, &stockFilled).as_str().map(str::to_owned);
             }
             let mut stockTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "T", &[]).as_i64();
             let mut stockLastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "U", &[Value::from(stockTimestamp)]).as_i64();
@@ -6811,7 +6808,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     pub fn handle_stock_quote(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut stockSymbol: Option<String> = (match __pro_message.get("s").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut stockSymbol: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut symbol: Value = self.get_stock_unified_symbol(stockSymbol.map(Value::from).unwrap_or(Value::Null), &[Value::Str("USDC".into())]);
         if (symbol == Value::Null) {
             return;
@@ -6883,7 +6880,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if crate::precise::Precise::stringLt(&Value::from(rawQty.clone()), &Value::Str("0".into())).as_bool() == Some(true) {
                 side = "SELL".to_string();
             }
-            let mut absQty: Option<String> = crate::precise::Precise::stringAbs(&Value::from(rawQty)).as_str().map(str::to_owned);
+            let mut absQty: Option<String> = crate::precise::Precise::stringAbs(&rawQty).as_str().map(str::to_owned);
             let mut executionType: String = "NEW".to_string();
             if ((fills.len() as i64) as f64) > ((0i64) as f64) {
                 executionType = "TRADE".to_string();
@@ -7253,7 +7250,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut contracts: Option<String> = self.safe_string_k(position.clone(), "c", &[]).as_str().map(str::to_owned);
-        let mut contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&contracts.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&contracts).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if (contracts.is_some()) {
             if crate::precise::Precise::stringLt(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -7877,7 +7874,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        "id": 1
         //    }
         //
-        let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut rejected: bool = false;
         let mut error: crate::value::Dict = __pro_message.get("error").cloned().unwrap_or_default().into_dict();
         let mut code: Option<i64> = self.safe_integer_k(&error, "code", &[]).as_i64();

@@ -3498,13 +3498,13 @@ impl Delta {
 })]).into_dict();
         let mut referenceId: Option<String> = self.safe_string_k(&metaData, "transaction_id", &[]).as_str().map(str::to_owned);
         let mut referenceAccount: Option<String> = None;
-        let mut type_var: Value = self.safe_string_k(item.clone(), "transaction_type", &[]);
-        if (type_var.as_str() == Some("deposit")) || (type_var.as_str() == Some("commission_rebate")) || (type_var.as_str() == Some("referral_bonus")) || (type_var.as_str() == Some("pnl")) || (type_var.as_str() == Some("withdrawal_cancellation")) || (type_var.as_str() == Some("promo_credit")) {
+        let mut type_var: Option<String> = self.safe_string_k(item.clone(), "transaction_type", &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("deposit")) || (type_var.as_deref() == Some("commission_rebate")) || (type_var.as_deref() == Some("referral_bonus")) || (type_var.as_deref() == Some("pnl")) || (type_var.as_deref() == Some("withdrawal_cancellation")) || (type_var.as_deref() == Some("promo_credit")) {
             direction = Some("in".to_string());
-        }  else if (type_var.as_str() == Some("withdrawal")) || (type_var.as_str() == Some("commission")) || (type_var.as_str() == Some("conversion")) || (type_var.as_str() == Some("perpetual_futures_funding")) {
+        }  else if (type_var.as_deref() == Some("withdrawal")) || (type_var.as_deref() == Some("commission")) || (type_var.as_deref() == Some("conversion")) || (type_var.as_deref() == Some("perpetual_futures_funding")) {
             direction = Some("out".to_string());
         }
-        type_var = self.parse_ledger_entry_type(type_var.as_str()).map(Value::from).unwrap_or(Value::Null);
+        type_var = self.parse_ledger_entry_type(type_var.as_deref());
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "asset_id", &[]).as_str().map(str::to_owned);
         let mut currenciesByNumericId: crate::value::Dict = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]).into_dict();
         let mut currencyValue: Value = self.safe_value(&currenciesByNumericId, currencyId.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(currency)]);
@@ -3512,7 +3512,7 @@ impl Delta {
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
         let mut after: Option<String> = self.safe_string_k(item.clone(), "balance", &[]).as_str().map(str::to_owned);
-        let mut before: Option<String> = crate::precise::Precise::stringMax(&Value::Str("0".into()), &crate::precise::Precise::stringSub(&after.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+        let mut before: Option<String> = crate::precise::Precise::stringMax(&Value::Str("0".into()), &crate::precise::Precise::stringSub(&after, &amount)).as_str().map(str::to_owned);
         let mut status: String = "ok".to_string();
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3522,7 +3522,7 @@ impl Delta {
         m.insert("account".to_string(), Value::from(account.as_deref()));
         m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceAccount".to_string(), Value::from(referenceAccount.as_deref()));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("before".to_string(), self.parse_number(before.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -3846,7 +3846,7 @@ impl Delta {
         let mut timestamp: Option<i64> = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Float(0.001), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(contract.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut fundingRateString: Option<String> = self.safe_string_k(contract.clone(), "funding_rate", &[]).as_str().map(str::to_owned);
-        let mut fundingRate: Option<String> = crate::precise::Precise::stringDiv(&fundingRateString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        let mut fundingRate: Option<String> = crate::precise::Precise::stringDiv(&fundingRateString, &Value::Str("100".into())).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
@@ -3938,7 +3938,7 @@ impl Delta {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut amountString: Option<String> = self.number_to_string(amount);
-        let mut deltaMargin: Option<String> = (if (type_var.as_str() == Some("reduce")) { crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("-1".into())).as_str().map(str::to_owned) } else { amountString.clone() });
+        let mut deltaMargin: Option<String> = (if (type_var.as_str() == Some("reduce")) { crate::precise::Precise::stringMul(&amountString, &Value::Str("-1".into())).as_str().map(str::to_owned) } else { amountString.clone() });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), crate::value::KeyRead::key_read(&&market, "numericId"));

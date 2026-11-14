@@ -1390,9 +1390,9 @@ impl Whitebit {
             type_var = Some("spot".to_string());
         }
         let mut takerFeeRate: Option<String> = self.safe_string_k(market.clone(), "takerFee", &[]).as_str().map(str::to_owned);
-        let mut taker: Option<String> = crate::precise::Precise::stringDiv(&takerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        let mut taker: Option<String> = crate::precise::Precise::stringDiv(&takerFeeRate, &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut makerFeeRate: Option<String> = self.safe_string_k(market.clone(), "makerFee", &[]).as_str().map(str::to_owned);
-        let mut maker: Option<String> = crate::precise::Precise::stringDiv(&makerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        let mut maker: Option<String> = crate::precise::Precise::stringDiv(&makerFeeRate, &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut isSpot: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1602,8 +1602,8 @@ impl Whitebit {
         m.insert("id".to_string(), Value::from(networkId.clone()));
         m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool(self.in_array(Value::from(networkId.clone()), Value::from(&depositsNetworks))));
-        m.insert("withdraw".to_string(), Value::Bool(self.in_array(Value::from(networkId), Value::from(&withdrawsNetworks))));
+        m.insert("deposit".to_string(), Value::Bool(self.in_array(&networkId, Value::from(&depositsNetworks))));
+        m.insert("withdraw".to_string(), Value::Bool(self.in_array(&networkId, Value::from(&withdrawsNetworks))));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
@@ -1967,8 +1967,8 @@ impl Whitebit {
 })]).into_dict();
             let mut makerFee: Option<String> = self.safe_string_k(&fee, "maker_fee", &[]).as_str().map(str::to_owned);
             let mut takerFee: Option<String> = self.safe_string_k(&fee, "taker_fee", &[]).as_str().map(str::to_owned);
-            makerFee = crate::precise::Precise::stringDiv(&makerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-            takerFee = crate::precise::Precise::stringDiv(&takerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            makerFee = crate::precise::Precise::stringDiv(&makerFee, &Value::Str("100".into())).as_str().map(str::to_owned);
+            takerFee = crate::precise::Precise::stringDiv(&takerFee, &Value::Str("100".into())).as_str().map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(fee));

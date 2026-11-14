@@ -1377,7 +1377,7 @@ impl Coinspot {
         let mut priceString: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
         let mut audTotal: Option<String> = self.safe_string_k(trade.clone(), "audtotal", &[]).as_str().map(str::to_owned);
-        let mut costString: Value = self.safe_string_k(trade.clone(), "total", &[audTotal.map(Value::from).unwrap_or(Value::Null)]);
+        let mut costString: Option<String> = self.safe_string_k(trade.clone(), "total", &[audTotal.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "market", &[]).as_str().map(str::to_owned);
@@ -1387,13 +1387,13 @@ impl Coinspot {
             priceString = self.safe_string_k(trade.clone(), "rate", &[]).as_str().map(str::to_owned);
             timestamp = solddate.take();
         }  else {
-            priceString = crate::precise::Precise::stringDiv(&costString, &amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            priceString = crate::precise::Precise::stringDiv(&costString, &amountString).as_str().map(str::to_owned);
             let mut createdString: Option<String> = self.safe_string_k(trade.clone(), "created", &[]).as_str().map(str::to_owned);
             timestamp = self.parse8601(createdString.map(Value::from).unwrap_or(Value::Null));
             let mut audfeeExGst: Option<String> = self.safe_string_k(trade.clone(), "audfeeExGst", &[]).as_str().map(str::to_owned);
             let mut audGst: Option<String> = self.safe_string_k(trade.clone(), "audGst", &[]).as_str().map(str::to_owned);
             // The transaction fee which consumers pay is inclusive of GST by default
-            let mut feeCost: Option<String> = crate::precise::Precise::stringAdd(&audfeeExGst.map(Value::from).unwrap_or(Value::Null), &audGst.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut feeCost: Option<String> = crate::precise::Precise::stringAdd(&audfeeExGst, &audGst).as_str().map(str::to_owned);
             let mut feeCurrencyId: String = "AUD".to_string();
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -1415,7 +1415,7 @@ impl Coinspot {
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.parse_number(priceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("cost".to_string(), self.parse_number(costString, &[]));
+        m.insert("cost".to_string(), self.parse_number(costString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), market);

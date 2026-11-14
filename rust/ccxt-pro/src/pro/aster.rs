@@ -1444,7 +1444,7 @@ impl Aster {
         let mut cost: Option<String> = self.safe_string_k(trade.clone(), "Y", &[]).as_str().map(str::to_owned);
         if (cost.is_none()) {
             if (price.is_some()) && (amount.is_some()) {
-                cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                cost = crate::precise::Precise::stringMul(&price, &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);

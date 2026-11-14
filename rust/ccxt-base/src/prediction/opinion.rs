@@ -1602,7 +1602,7 @@ impl Opinion {
         }
         let mut amountStr: Option<String> = self.number_to_string(amount);
         if isMarket && (side.as_str() == Some("BUY")) {
-            let mut marketMakerAmountWei: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(decimalsStr.clone())), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
+            let mut marketMakerAmountWei: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr, &decimalsStr), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("makerAmount".to_string(), marketMakerAmountWei.map(Value::from).unwrap_or(Value::Null));
@@ -1615,25 +1615,25 @@ impl Opinion {
         let mut priceInt: String = self.safe_string(&priceParts, Value::Int(0), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut priceFrac: String = self.safe_string(&priceParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut priceDenom: String = "1000000".to_string();
-        let mut priceNum: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&Value::from(priceInt), &Value::from(priceDenom.clone())), &Value::from(format!("{:0<6}", priceFrac))).as_str().map(str::to_owned);
+        let mut priceNum: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&priceInt, &priceDenom), &Value::from(format!("{:0<6}", priceFrac))).as_str().map(str::to_owned);
         if (priceNum.as_deref() == Some("0")) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() invalid price ").into()), priceStr.as_deref().unwrap_or("null"))));
         }
         let mut makerRaw: Option<String> = amountStr.clone();
         if (side.as_str() == Some("BUY")) {
-            makerRaw = crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            makerRaw = crate::precise::Precise::stringMul(&amountStr, &priceStr).as_str().map(str::to_owned);
         }
-        let mut makerAmountWei: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(decimalsStr)), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut makerAmountWei: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw, &decimalsStr), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         let mut makerAmount: Option<String> = None;
         let mut takerAmount: Option<String> = None;
         if (side.as_str() == Some("BUY")) {
-            let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceNum.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(0));
-            makerAmount = crate::precise::Precise::stringMul(&k, &priceNum.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            takerAmount = crate::precise::Precise::stringMul(&k, &Value::from(priceDenom.clone())).as_str().map(str::to_owned);
+            let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceNum, &Value::Int(0));
+            makerAmount = crate::precise::Precise::stringMul(&k, &priceNum).as_str().map(str::to_owned);
+            takerAmount = crate::precise::Precise::stringMul(&k, &priceDenom).as_str().map(str::to_owned);
         }  else {
-            let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &Value::from(priceDenom.clone()), &Value::Int(0));
-            makerAmount = crate::precise::Precise::stringMul(&k, &Value::from(priceDenom)).as_str().map(str::to_owned);
-            takerAmount = crate::precise::Precise::stringMul(&k, &priceNum.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceDenom, &Value::Int(0));
+            makerAmount = crate::precise::Precise::stringMul(&k, &priceDenom).as_str().map(str::to_owned);
+            takerAmount = crate::precise::Precise::stringMul(&k, &priceNum).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2864,8 +2864,8 @@ if _try_result.is_err() {
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&sym);
         let mut sideStr: Option<String> = (match message.get("side") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut bookSide: Value = (if (sideStr.as_deref() == Some("bids")) { orderbook.book_field("bids") } else { orderbook.book_field("asks") });
-        let mut price: Option<f64> = (match message.get("price") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
-        let mut size: Option<f64> = (match message.get("size") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
+        let mut price: Option<f64> = (match message.get("price") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Null, Value::Float), _ => Value::Null }).as_f64();
+        let mut size: Option<f64> = (match message.get("size") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Null, Value::Float), _ => Value::Null }).as_f64();
         bookSide.store_array(Value::from(vec![Value::from(price), Value::from(size)]));
         orderbook.set_book_meta("timestamp", Value::Null);
         orderbook.set_book_meta("datetime", Value::Null);
@@ -2917,13 +2917,13 @@ if _try_result.is_err() {
         //         "msgType": "market.last.price"
         //     }
         //
-        let mut tokenId: Option<String> = (match __pro_message.get("tokenId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut tokenId: Option<String> = (match __pro_message.get("tokenId") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut outcomeObj: Value = self.safe_dict(self.exchange.outcomes_by_id.clone(), tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut sym: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcome", &[]).as_str().map(str::to_owned);
         if (sym.is_none()) {
             return;
         }
-        let mut last: Option<f64> = (match __pro_message.get("price").cloned() { Some(Value::Float(__f)) => Value::Float(__f), Some(Value::Int(__n)) => Value::Float(__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<f64>() { Ok(__f) => Value::Float(__f), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
+        let mut last: Option<f64> = (match __pro_message.get("price") { Some(Value::Float(__f)) => Some(*__f), Some(Value::Int(__n)) => Some(*__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => __s.parse::<f64>().ok(), _ => None });
         let mut ticker: Value = self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), Value::from(sym.as_deref()));
@@ -2999,7 +2999,7 @@ if _try_result.is_err() {
         //         "msgType": "market.last.trade"
         //     }
         //
-        let mut tokenId: Option<String> = (match __pro_message.get("tokenId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut tokenId: Option<String> = (match __pro_message.get("tokenId") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut outcomeObj: Value = self.safe_dict(self.exchange.outcomes_by_id.clone(), tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut sym: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "outcome", &[]);
         if (sym.is_none()) {
@@ -3132,22 +3132,18 @@ if _try_result.is_err() {
         //         "msgType": "trade.order.update"
         //     }
         //
-        let mut marketId: Option<i64> = (match __pro_message.get("marketId").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut outcomeSide: Option<i64> = (match __pro_message.get("outcomeSide").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        let mut marketId: Option<i64> = (match __pro_message.get("marketId") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
+        let mut outcomeSide: Option<i64> = (match __pro_message.get("outcomeSide") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let mut outcomeObj: Value = self.opinion_outcome_by_market_id_side(marketId, outcomeSide);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(message.clone(), "createdAt", &[]).as_i64();
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
-        let mut sideInt: Option<i64> = (match __pro_message.get("side").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        let mut sideInt: Option<i64> = (match __pro_message.get("side") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let mut side: String = "sell".to_string();
         if (sideInt == Some(1)) {
             side = "buy".to_string();
         }
-        let mut tradingMethod: Option<i64> = (match __pro_message.get("tradingMethod").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        let mut tradingMethod: Option<i64> = (match __pro_message.get("tradingMethod") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let mut type_var: String = "limit".to_string();
         if (tradingMethod == Some(1)) {
             type_var = "market".to_string();
@@ -3250,10 +3246,8 @@ if _try_result.is_err() {
         //         "msgType": "trade.record.new"
         //     }
         //
-        let mut marketId: Option<i64> = (match __pro_message.get("marketId").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut outcomeSide: Option<i64> = (match __pro_message.get("outcomeSide").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        let mut marketId: Option<i64> = (match __pro_message.get("marketId") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
+        let mut outcomeSide: Option<i64> = (match __pro_message.get("outcomeSide") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let mut outcomeObj: Value = self.opinion_outcome_by_market_id_side(marketId, outcomeSide);
         let mut sym: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcome", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(message.clone(), "createdAt", &[]).as_i64();

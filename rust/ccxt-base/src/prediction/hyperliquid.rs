@@ -1624,16 +1624,16 @@ impl Hyperliquid {
         let mut entryNtlStr: Option<String> = self.safe_string_k(position.clone(), "entryNtl", &[]).as_str().map(str::to_owned);
         let mut entryPrice: Option<f64> = None;
         if (entryNtlStr.is_some()) && (totalStr.is_some()) && !(crate::precise::Precise::stringEq(&totalStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-            entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&entryNtlStr.clone().map(Value::from).unwrap_or(Value::Null), &totalStr.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&entryNtlStr, &totalStr), &[]).as_f64();
         }
         let mut markPxStr: Option<String> = self.safe_string_k(position.clone(), "markPx", &[]).as_str().map(str::to_owned);
         let mut notional: Option<f64> = None; // current position value = size * mark price
         let mut unrealizedPnl: Option<f64> = None; // value - entry notional
         if (markPxStr.is_some()) && (totalStr.is_some()) {
-            let mut notionalStr: Option<String> = crate::precise::Precise::stringMul(&totalStr.map(Value::from).unwrap_or(Value::Null), &markPxStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut notionalStr: Option<String> = crate::precise::Precise::stringMul(&totalStr, &markPxStr).as_str().map(str::to_owned);
             notional = self.parse_number(notionalStr.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             if (entryNtlStr.is_some()) {
-                unrealizedPnl = self.parse_number(crate::precise::Precise::stringSub(&notionalStr.map(Value::from).unwrap_or(Value::Null), &entryNtlStr.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+                unrealizedPnl = self.parse_number(crate::precise::Precise::stringSub(&notionalStr, &entryNtlStr), &[]).as_f64();
             }
         }
         return self.safe_prediction_position(Value::Map({
@@ -1864,7 +1864,7 @@ impl Hyperliquid {
         let mut reduceOnly: bool = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut defaultSlippage: String = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".into())]).as_str().unwrap_or("0.05").to_string();
-        let mut slippage: Value = self.safe_string_k(params.clone(), "slippage", &[Value::from(defaultSlippage)]);
+        let mut slippage: Option<String> = self.safe_string_k(params.clone(), "slippage", &[Value::from(defaultSlippage)]).as_str().map(str::to_owned);
         let mut defaultTif: String = "Gtc".to_string();
         if isMarket {
             defaultTif = "Ioc".to_string();
@@ -1879,15 +1879,15 @@ impl Hyperliquid {
             }
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a limit price for outcome markets in between 0 and 1.")));
         }
-        let mut px: Value = Value::Null;
+        let mut px: Option<String> = None;
         if isMarket {
             let mut priceStr: Option<String> = self.number_to_string(price.clone());
-            px = (if isBuy { crate::precise::Precise::stringMul(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage)) } else { crate::precise::Precise::stringMul(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage)) });
-            px = Value::from(self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), px));
+            px = (if isBuy { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage)).as_str().map(str::to_owned) } else { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage)).as_str().map(str::to_owned) });
+            px = self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), px.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            px = Value::from(self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price.clone()));
+            px = self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price.clone());
         }
-        if (px == Value::Null) {
+        if (px.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() could not determine price")));
         }
         let mut sz: Option<String> = self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amount.clone());
@@ -1904,7 +1904,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
                 m.insert("a".to_string(), Value::from(assetId));
                 m.insert("b".to_string(), Value::Bool(isBuy));
-                m.insert("p".to_string(), px);
+                m.insert("p".to_string(), px.map(Value::from).unwrap_or(Value::Null));
                 m.insert("s".to_string(), sz.map(Value::from).unwrap_or(Value::Null));
                 m.insert("r".to_string(), Value::Bool(reduceOnly));
                 m.insert("t".to_string(), Value::Map(orderType));
@@ -2445,7 +2445,7 @@ impl Hyperliquid {
         let mut remaining: Option<String> = self.safe_string_k(&entry, "sz", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = None;
         if (remaining.is_some()) && (totalAmount.is_some()) {
-            filled = crate::precise::Precise::stringSub(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &remaining.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            filled = crate::precise::Precise::stringSub(&totalAmount, &remaining).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
         let mut tifRaw: Option<String> = self.safe_string_k(&entry, "tif", &[]).as_str().map(str::to_owned);
@@ -2715,7 +2715,7 @@ impl Hyperliquid {
         }
         let mut cost: Option<f64> = None;
         if (price.is_some()) && (amount.is_some()) {
-            cost = self.parse_number(crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            cost = self.parse_number(crate::precise::Precise::stringMul(&price, &amount), &[]).as_f64();
         }
         let mut crossed: bool = self.safe_bool_k(trade.clone(), "crossed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut takerOrMaker: String = "maker".to_string();
@@ -2968,33 +2968,33 @@ impl Hyperliquid {
 
     pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Option<String> {
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
+        let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("amount".into()), &[Value::Float(0.0001)]);
+})]), Value::Str("amount".into()), &[Value::Float(0.0001)]).as_f64();
         // Convert precision to decimal places
         let mut decimals: i64 = 4;
-        if (prec == Value::Null) {
+        if (prec.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " amountToPrecision() missing prec")));
         }
-        if prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
+        if prec > Some(0.0) {
+            decimals = self.precision_from_string(Value::from(self.number_to_string(Value::from(prec))));
         }
         return self.decimal_to_precision(amount, Value::Int(1), Value::from(decimals), &[Value::Int(2), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Option<String> {
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
+        let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("price".into()), &[Value::Float(0.0001)]);
+})]), Value::Str("price".into()), &[Value::Float(0.0001)]).as_f64();
         let mut decimals: i64 = 4;
-        if (prec == Value::Null) {
+        if (prec.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " priceToPrecision() missing prec")));
         }
-        if prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
+        if prec > Some(0.0) {
+            decimals = self.precision_from_string(Value::from(self.number_to_string(Value::from(prec))));
         }
         return self.decimal_to_precision(price, Value::Int(1), Value::from(decimals), &[Value::Int(2), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }

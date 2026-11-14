@@ -2693,7 +2693,7 @@ impl Coinbaseinternational {
         let mut toAccount: Option<String> = self.safe_string_k(&info, "other_user", &[]).as_str().map(str::to_owned);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let mut cashflow: Option<String> = self.safe_string2(transfer.clone(), Value::Str("cashflow".into()), Value::Str("change".into()), &[]).as_str().map(str::to_owned);
-            amount = self.parse_number(crate::precise::Precise::stringAbs(&cashflow.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            amount = self.parse_number(crate::precise::Precise::stringAbs(&cashflow), &[]).as_f64();
             if !(crate::precise::Precise::stringLt(&cashflow.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
                 fromAccount = self.safe_string_k(&info, "other_user", &[]).as_str().map(str::to_owned);
                 toAccount = self.safe_string_k(transfer.clone(), "username", &[]).as_str().map(str::to_owned);
@@ -2831,7 +2831,7 @@ impl Coinbaseinternational {
         let mut notional: Option<String> = None;
         if (marketResolved).option {
             // For options, "size" is the base currency (e.g. BTC) instead of quote currency
-            notional = crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(position.clone(), "mark_price", &[])).as_str().map(str::to_owned);
+            notional = crate::precise::Precise::stringMul(&size, &self.safe_string_k(position.clone(), "mark_price", &[])).as_str().map(str::to_owned);
         }  else if ((marketResolved).linear == Some(true)) {
             amount = self.safe_string_k(position.clone(), "size_currency", &[]).as_str().map(str::to_owned); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
             notional = size.take();
@@ -2839,7 +2839,7 @@ impl Coinbaseinternational {
             // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
             notional = self.safe_string_k(position.clone(), "size_currency", &[]).as_str().map(str::to_owned);
         }
-        let mut contractsString: Option<String> = crate::precise::Precise::stringDiv(&amount.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&marketResolved, "contractSize", &[])).as_str().map(str::to_owned);
+        let mut contractsString: Option<String> = crate::precise::Precise::stringDiv(&amount, &self.safe_string_k(&marketResolved, "contractSize", &[])).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -2851,7 +2851,7 @@ impl Coinbaseinternational {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "floating_profit_loss", &[]));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&contractsString.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&contractsString), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -3238,7 +3238,7 @@ impl Coinbaseinternational {
         let mut amount: Value = amount.into();
         let mut exchangeAmount: Option<String> = self.number_to_string(amount);
         if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(&market, "contract", &[Value::Bool(false)])), Value::Bool(true)) {
-            exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
+            exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount, &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
         }
         return Value::from(self.amount_to_precision(crate::value::KeyRead::key_read(&market, "symbol"), exchangeAmount.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
 }
@@ -3535,8 +3535,8 @@ impl Coinbaseinternational {
         let mut amount: Option<f64> = self.safe_number_k(order.clone(), "amount", &[]).as_f64();
         if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved).contract {
             let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
-            amount = self.parse_number(self.safe_string_k(order.clone(), "contracts", &[crate::precise::Precise::stringDiv(&self.safe_string(order.clone(), Value::Str("amount".into()), &[]), &contractSize.clone().map(Value::from).unwrap_or(Value::Null))]), &[]).as_f64();
-            filled = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(order.clone(), "filled_amount", &[]), &contractSize.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            amount = self.parse_number(self.safe_string_k(order.clone(), "contracts", &[crate::precise::Precise::stringDiv(&self.safe_string(order.clone(), Value::Str("amount".into()), &[]), &contractSize)]), &[]).as_f64();
+            filled = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(order.clone(), "filled_amount", &[]), &contractSize), &[]).as_f64();
         }
         let mut remaining: Option<f64> = None;
         if (filled.is_some()) && (amount.is_some()) {
@@ -3548,9 +3548,9 @@ impl Coinbaseinternational {
         let mut averageString: Option<String> = self.safe_string_k(order.clone(), "average_price", &[]).as_str().map(str::to_owned);
         let mut cost: Option<f64> = None;
         if (filledString.is_some()) && (averageString.is_some()) {
-            cost = self.parse_number(crate::precise::Precise::stringMul(&filledString.clone().map(Value::from).unwrap_or(Value::Null), &averageString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            cost = self.parse_number(crate::precise::Precise::stringMul(&filledString, &averageString), &[]).as_f64();
             if self.is_native_deribit_credentials().as_bool() == Some(true) && ((marketResolved).inverse == Some(true)) && !(marketResolved).option {
-                cost = self.parse_number(crate::precise::Precise::stringDiv(&filledString.map(Value::from).unwrap_or(Value::Null), &averageString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+                cost = self.parse_number(crate::precise::Precise::stringDiv(&filledString, &averageString), &[]).as_f64();
             }
         }
         let mut lastTradeTimestamp: Option<i64> = lastUpdateTimestamp;
@@ -4279,14 +4279,14 @@ impl Coinbaseinternational {
         let mut amount: Option<f64> = self.safe_number_k(trade.clone(), "amount", &[]).as_f64();
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved).contract {
-            amount = self.parse_number(self.safe_string_k(trade.clone(), "contracts", &[crate::precise::Precise::stringDiv(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&marketResolved, "contractSize", &[]))]), &[]).as_f64();
+            amount = self.parse_number(self.safe_string_k(trade.clone(), "contracts", &[crate::precise::Precise::stringDiv(&amountString, &self.safe_string_k(&marketResolved, "contractSize", &[]))]), &[]).as_f64();
         }
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut cost: Option<f64> = None;
         if (amountString.is_some()) && (priceString.is_some()) {
-            cost = self.parse_number(crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            cost = self.parse_number(crate::precise::Precise::stringMul(&amountString, &priceString), &[]).as_f64();
             if self.is_native_deribit_credentials().as_bool() == Some(true) && ((marketResolved).inverse == Some(true)) && !(marketResolved).option {
-                cost = self.parse_number(crate::precise::Precise::stringDiv(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+                cost = self.parse_number(crate::precise::Precise::stringDiv(&amountString, &priceString), &[]).as_f64();
             }
         }
         let mut feeCurrencyId: Option<String> = self.safe_string_k(trade.clone(), "fee_currency", &[]).as_str().map(str::to_owned);

@@ -2262,8 +2262,8 @@ impl Gemini {
         //
         let mut makerBps: Option<String> = self.safe_string_k(response.clone(), "api_maker_fee_bps", &[]).as_str().map(str::to_owned);
         let mut takerBps: Option<String> = self.safe_string_k(response.clone(), "api_taker_fee_bps", &[]).as_str().map(str::to_owned);
-        let mut makerString: Option<String> = crate::precise::Precise::stringDiv(&makerBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
-        let mut takerString: Option<String> = crate::precise::Precise::stringDiv(&takerBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
+        let mut makerString: Option<String> = crate::precise::Precise::stringDiv(&makerBps, &Value::Str("10000".into())).as_str().map(str::to_owned);
+        let mut takerString: Option<String> = crate::precise::Precise::stringDiv(&takerBps, &Value::Str("10000".into())).as_str().map(str::to_owned);
         let mut maker: Option<f64> = self.parse_number(makerString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut taker: Option<f64> = self.parse_number(takerString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut result: indexmap::IndexMap<String, Value> = ({

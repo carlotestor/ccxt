@@ -5018,7 +5018,7 @@ impl Bybit {
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "lastPrice", &[]).as_str().map(str::to_owned);
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "prevPrice24h", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "price24hPcnt", &[]).as_str().map(str::to_owned);
-        percentage = crate::precise::Precise::stringMul(&percentage.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut quoteVolume: Option<String> = self.safe_string_k(ticker.clone(), "turnover24h", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume24h", &[]).as_str().map(str::to_owned);
         let mut bid: Option<String> = self.safe_string_k(ticker.clone(), "bid1Price", &[]).as_str().map(str::to_owned);
@@ -6344,7 +6344,7 @@ impl Bybit {
                         let mut loan: Option<String> = self.safe_string_k(&coinEntry, "borrowAmount", &[]).as_str().map(str::to_owned);
                         let mut interest: Option<String> = self.safe_string_k(&coinEntry, "accruedInterest", &[]).as_str().map(str::to_owned);
                         if (loan.is_some()) && (interest.is_some()) {
-                            std::sync::Arc::make_mut(&mut account).insert("debt".into(), crate::precise::Precise::stringAdd(&loan.map(Value::from).unwrap_or(Value::Null), &interest.map(Value::from).unwrap_or(Value::Null)));
+                            std::sync::Arc::make_mut(&mut account).insert("debt".into(), crate::precise::Precise::stringAdd(&loan, &interest));
                         }
                         std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&coinEntry, "walletBalance", &[]));
                         let mut free: Option<String> = self.safe_string2(&coinEntry, Value::Str("availableToWithdraw".into()), Value::Str("free".into()), &[]).as_str().map(str::to_owned);
@@ -6354,8 +6354,8 @@ impl Bybit {
                             let mut locked: String = self.safe_string_k(&coinEntry, "locked", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                             let mut totalPositionIm: String = self.safe_string_k(&coinEntry, "totalPositionIM", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                             let mut totalOrderIm: String = self.safe_string_k(&coinEntry, "totalOrderIM", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-                            let mut totalUsed: Option<String> = crate::precise::Precise::stringAdd(&Value::from(locked), &Value::from(totalPositionIm)).as_str().map(str::to_owned);
-                            totalUsed = crate::precise::Precise::stringAdd(&totalUsed.map(Value::from).unwrap_or(Value::Null), &Value::from(totalOrderIm)).as_str().map(str::to_owned);
+                            let mut totalUsed: Option<String> = crate::precise::Precise::stringAdd(&locked, &totalPositionIm).as_str().map(str::to_owned);
+                            totalUsed = crate::precise::Precise::stringAdd(&totalUsed, &totalOrderIm).as_str().map(str::to_owned);
                             std::sync::Arc::make_mut(&mut account).insert("used".into(), totalUsed.map(Value::from).unwrap_or(Value::Null));
                         }
                         // account['used'] = this.safeString (coinEntry, 'locked');
@@ -6371,7 +6371,7 @@ impl Bybit {
                     let mut loan: Option<String> = self.safe_string_k(&entry, "loan", &[]).as_str().map(str::to_owned);
                     let mut interest: Option<String> = self.safe_string_k(&entry, "interest", &[]).as_str().map(str::to_owned);
                     if (loan.is_some()) && (interest.is_some()) {
-                        std::sync::Arc::make_mut(&mut account).insert("debt".into(), crate::precise::Precise::stringAdd(&loan.map(Value::from).unwrap_or(Value::Null), &interest.map(Value::from).unwrap_or(Value::Null)));
+                        std::sync::Arc::make_mut(&mut account).insert("debt".into(), crate::precise::Precise::stringAdd(&loan, &interest));
                     }
                     std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string2(&entry, Value::Str("total".into()), Value::Str("walletBalance".into()), &[]));
                     std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_n(&entry, Value::from(vec![Value::Str("free".into()), Value::Str("availableBalanceWithoutConvert".into()), Value::Str("availableBalance".into()), Value::Str("transferBalance".into())]), &[]));
@@ -9677,11 +9677,11 @@ impl Bybit {
             if (direction == "out") {
                 difference = amountString.clone();
             }  else {
-                difference = crate::precise::Precise::stringNeg(&amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                difference = crate::precise::Precise::stringNeg(&amountString).as_str().map(str::to_owned);
             }
-            before = self.parse_to_numeric(crate::precise::Precise::stringAdd(&afterString.clone().map(Value::from).unwrap_or(Value::Null), &difference.map(Value::from).unwrap_or(Value::Null)));
+            before = self.parse_to_numeric(crate::precise::Precise::stringAdd(&afterString, &difference.map(Value::from).unwrap_or(Value::Null)));
             after = self.parse_to_numeric(afterString.map(Value::from).unwrap_or(Value::Null));
-            amount = self.parse_to_numeric(crate::precise::Precise::stringAbs(&amountString.map(Value::from).unwrap_or(Value::Null)));
+            amount = self.parse_to_numeric(crate::precise::Precise::stringAbs(&amountString));
         }
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "exec_time", &[]));
         if (timestamp.is_none()) {
@@ -10223,7 +10223,7 @@ impl Bybit {
         let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
         let mut markPrice: Option<String> = self.safe_string_k(position.clone(), "markPrice", &[]).as_str().map(str::to_owned);
         if ((marketResolved).inverse == Some(true)) {
-            notional = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &contractSize.map(Value::from).unwrap_or(Value::Null)), &markPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            notional = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size, &contractSize), &markPrice).as_str().map(str::to_owned);
         }  else {
             notional = self.safe_string2(position.clone(), Value::Str("positionValue".into()), Value::Str("cumExitValue".into()), &[]).as_str().map(str::to_owned);
         }
@@ -10241,7 +10241,7 @@ impl Bybit {
         if (positionMarginString.is_some()) {
             collateralString = positionMarginString.clone().map(Value::from).unwrap_or(Value::Null);
             if (unrealisedPnl.is_some()) {
-                collateralString = crate::precise::Precise::stringAdd(&positionMarginString.clone().map(Value::from).unwrap_or(Value::Null), &unrealisedPnl.clone().map(Value::from).unwrap_or(Value::Null));
+                collateralString = crate::precise::Precise::stringAdd(&positionMarginString, &unrealisedPnl);
             }
         }
         let mut entryPrice: Option<String> = self.omit_zero(self.safe_string_n(position.clone(), Value::from(vec![Value::Str("entryPrice".into()), Value::Str("avgPrice".into()), Value::Str("avgEntryPrice".into())]), &[]));
@@ -10256,8 +10256,8 @@ impl Bybit {
                 if useMarkPrice {
                     price = markPrice.clone();
                 }
-                let mut difference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&price.map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                collateralString = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&difference, &size.clone().map(Value::from).unwrap_or(Value::Null)), &maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null)), &unrealisedPnl.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut difference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&price, &liquidationPrice));
+                collateralString = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&difference, &size), &maintenanceMarginString), &unrealisedPnl);
                 positionMarginString = None.clone(); // derived from collateral by safePosition
             }  else {
                 let mut bustPrice: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "bustPrice", &[]));
@@ -10268,14 +10268,14 @@ impl Bybit {
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
                     if (maintenanceMarginString.is_none()) && (bustPrice.is_some()) && !(crate::precise::Precise::stringEq(&bustPrice.clone().map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
-                        let mut maintenanceMarginPriceDifference: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null), &bustPrice.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
-                        maintenanceMarginString = crate::precise::Precise::stringMul(&maintenanceMarginPriceDifference.map(Value::from).unwrap_or(Value::Null), &size.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        let mut maintenanceMarginPriceDifference: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&liquidationPrice, &bustPrice)).as_str().map(str::to_owned);
+                        maintenanceMarginString = crate::precise::Precise::stringMul(&maintenanceMarginPriceDifference, &size).as_str().map(str::to_owned);
                     }
                     // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if (entryPrice.is_some()) && (initialMarginString.is_none()) {
-                        initialMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &entryPrice.clone().map(Value::from).unwrap_or(Value::Null)), &leverage.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        initialMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size, &entryPrice), &leverage).as_str().map(str::to_owned);
                         if (closingFee.is_some()) {
-                            initialMarginString = crate::precise::Precise::stringAdd(&initialMarginString.map(Value::from).unwrap_or(Value::Null), &closingFee.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                            initialMarginString = crate::precise::Precise::stringAdd(&initialMarginString, &closingFee).as_str().map(str::to_owned);
                         }
                     }
                 }  else {
@@ -10284,22 +10284,22 @@ impl Bybit {
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
                     if (maintenanceMarginString.is_none()) && (bustPrice.is_some()) && !(crate::precise::Precise::stringEq(&bustPrice.clone().map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
-                        let mut difference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&bustPrice.clone().map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                        let mut multiply: Option<String> = crate::precise::Precise::stringMul(&bustPrice.map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        maintenanceMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &difference), &multiply.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        let mut difference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&bustPrice, &liquidationPrice));
+                        let mut multiply: Option<String> = crate::precise::Precise::stringMul(&bustPrice, &liquidationPrice).as_str().map(str::to_owned);
+                        maintenanceMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size, &difference), &multiply).as_str().map(str::to_owned);
                     }
                     // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if (entryPrice.is_some()) && (initialMarginString.is_none()) {
-                        initialMarginString = crate::precise::Precise::stringDiv(&size.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&entryPrice.clone().map(Value::from).unwrap_or(Value::Null), &leverage.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+                        initialMarginString = crate::precise::Precise::stringDiv(&size, &crate::precise::Precise::stringMul(&entryPrice, &leverage)).as_str().map(str::to_owned);
                         if (closingFee.is_some()) {
-                            initialMarginString = crate::precise::Precise::stringAdd(&initialMarginString.map(Value::from).unwrap_or(Value::Null), &closingFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                            initialMarginString = crate::precise::Precise::stringAdd(&initialMarginString, &closingFee).as_str().map(str::to_owned);
                         }
                     }
                 }
             }
         }
-        let mut maintenanceMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut marginRatio: Option<String> = crate::precise::Precise::stringDivPrec(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &collateralString, &Value::Int(4)).as_str().map(str::to_owned);
+        let mut maintenanceMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString, &notional.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut marginRatio: Option<String> = crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &collateralString, &Value::Int(4)).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -10309,7 +10309,7 @@ impl Bybit {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&initialMarginString.map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&initialMarginString, &notional.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("entryPrice".to_string(), self.parse_number(entryPrice.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -12630,8 +12630,8 @@ impl Bybit {
         let mut contractsString: Option<String> = self.safe_string_k(liquidation.clone(), "execQty", &[]).as_str().map(str::to_owned);
         let mut contractSizeString: Option<String> = self.safe_string_k(&market, "contractSize", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(liquidation.clone(), "execPrice", &[]).as_str().map(str::to_owned);
-        let mut baseValueString: Option<String> = crate::precise::Precise::stringMul(&contractsString.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut quoteValueString: Option<String> = crate::precise::Precise::stringMul(&baseValueString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut baseValueString: Option<String> = crate::precise::Precise::stringMul(&contractsString, &contractSizeString).as_str().map(str::to_owned);
+        let mut quoteValueString: Option<String> = crate::precise::Precise::stringMul(&baseValueString, &priceString).as_str().map(str::to_owned);
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation);
@@ -13913,7 +13913,7 @@ impl Bybit {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("timeframe".to_string(), Value::Null);
-        m.insert("longShortRatio".to_string(), self.parse_to_numeric(crate::precise::Precise::stringDiv(&longString.map(Value::from).unwrap_or(Value::Null), &shortString.map(Value::from).unwrap_or(Value::Null))));
+        m.insert("longShortRatio".to_string(), self.parse_to_numeric(crate::precise::Precise::stringDiv(&longString, &shortString)));
     m
 });
 

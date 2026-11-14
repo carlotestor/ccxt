@@ -804,11 +804,11 @@ impl Mudrex {
                 continue;
             }
             let mut m: crate::types::Market = self.safe_market(sym.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&m, "symbol");
-            if (symbols != Value::Null) && !self.in_array(symbol.clone(), symbols.clone()) {
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&m, "symbol").as_str().map(str::to_owned);
+            if (symbols != Value::Null) && !self.in_array(&symbol, symbols.clone()) {
                 continue;
             }
-            resultTickers.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(&t, Some(&m)));
+            resultTickers.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&t, Some(&m)));
         }
         }
         return self.filter_by_array_tickers(Value::Map(resultTickers), Value::Str("symbol".into()), &[symbols]);
@@ -1826,7 +1826,7 @@ impl Mudrex {
         let mut contractSizeString: String = self.safe_string_k(&marketResolved, "contractSize", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
         let mut notional: Option<f64> = None;
         if (quantityString.is_some()) && (entryPriceString.is_some()) {
-            notional = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&quantityString.map(Value::from).unwrap_or(Value::Null), &entryPriceString.map(Value::from).unwrap_or(Value::Null)), &Value::from(contractSizeString)), &[]).as_f64();
+            notional = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&quantityString, &entryPriceString), &contractSizeString), &[]).as_f64();
         }
         let mut initialMargin: Option<String> = self.safe_string_k(position.clone(), "initial_margin", &[]).as_str().map(str::to_owned);
         return Value::Map({
@@ -2195,7 +2195,7 @@ impl Mudrex {
         // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
         let mut rebateString: Option<String> = self.safe_string_k(trade.clone(), "rebate_amount", &[]).as_str().map(str::to_owned);
         if (feeCostString.is_some()) && (rebateString.is_some()) {
-            feeCostString = crate::precise::Precise::stringSub(&feeCostString.map(Value::from).unwrap_or(Value::Null), &rebateString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeCostString = crate::precise::Precise::stringSub(&feeCostString, &rebateString).as_str().map(str::to_owned);
         }
         if (feeCostString.is_some()) {
             fee = Some(crate::value::Dict::new({

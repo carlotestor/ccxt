@@ -1956,7 +1956,7 @@ impl Derive {
         let mut isOption: bool = self.safe_bool_k(&market, "option", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
         if (market.is_some()) && !isOption {
-            value = crate::precise::Precise::stringMul(&amount.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(interest.clone(), "M", &[])).as_str().map(str::to_owned);
+            value = crate::precise::Precise::stringMul(&amount, &self.safe_string_k(interest.clone(), "M", &[])).as_str().map(str::to_owned);
         }
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2148,7 +2148,7 @@ impl Derive {
         let mut change: Option<String> = self.safe_string_k(&stats, "p", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = None;
         if (change.is_some()) {
-            percentage = crate::precise::Precise::stringMul(&change.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            percentage = crate::precise::Precise::stringMul(&change, &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2395,7 +2395,7 @@ impl Derive {
         let mut change: Option<String> = self.safe_string_k(&stats, "p", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = None;
         if (change.is_some()) {
-            percentage = crate::precise::Precise::stringMul(&change.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            percentage = crate::precise::Precise::stringMul(&change, &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4529,8 +4529,8 @@ impl Derive {
         let mut unrealisedPnl: Option<String> = self.safe_string_k(position.clone(), "unrealized_pnl", &[]).as_str().map(str::to_owned);
         let mut initialMarginString: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "initial_margin", &[])).as_str().map(str::to_owned);
         let mut maintenanceMarginString: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "maintenance_margin", &[])).as_str().map(str::to_owned);
-        size = crate::precise::Precise::stringAbs(&size.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut notional: Option<String> = crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &markPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        size = crate::precise::Precise::stringAbs(&size).as_str().map(str::to_owned);
+        let mut notional: Option<String> = crate::precise::Precise::stringMul(&size, &markPrice).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -4540,9 +4540,9 @@ impl Derive {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&initialMarginString.map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)), &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&initialMarginString, &notional, &Value::Int(8)), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)), &[]));
+        m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &notional, &Value::Int(8)), &[]));
         m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("average_price".into()), Value::Str("average_price_excl_fees".into()), &[]));
         m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
@@ -5027,7 +5027,7 @@ impl Derive {
             let mut __for_first_635: bool = true;
             while { if !__for_first_635 { i += 1; } __for_first_635 = false; i < (subaccounts.len() as i64) } {
             let mut subaccount: crate::value::Dict = self.safe_dict(&subaccounts, Value::Int(i), &[]).into_dict();
-            usedUsd = crate::precise::Precise::stringSub(&usedUsd.map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringAdd(&self.safe_string_k(&subaccount, "positions_initial_margin", &[Value::Str("0".into())]), &self.safe_string_k(&subaccount, "open_orders_margin", &[Value::Str("0".into())]))).as_str().map(str::to_owned);
+            usedUsd = crate::precise::Precise::stringSub(&usedUsd, &crate::precise::Precise::stringAdd(&self.safe_string_k(&subaccount, "positions_initial_margin", &[Value::Str("0".into())]), &self.safe_string_k(&subaccount, "open_orders_margin", &[Value::Str("0".into())]))).as_str().map(str::to_owned);
             let mut collaterals: crate::value::List = self.safe_list_k(&subaccount, "collaterals", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
@@ -5057,7 +5057,7 @@ impl Derive {
                 used = totalUsdc.clone();
             }
             if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null)); }
-            if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringSub(&totalUsdc.map(Value::from).unwrap_or(Value::Null), &used.map(Value::from).unwrap_or(Value::Null))); }
+            if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringSub(&totalUsdc, &used)); }
             result.insert("USDC".into(), usdcAccount.map_or(Value::Null, Value::Dict));
         }
         return self.safe_balance(Value::Map(result));
@@ -5561,7 +5561,7 @@ impl Derive {
         let mut maxFeeUsd: Option<String> = self.safe_string2(Value::from(&paramsDeriveSubaccountId), Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), &[Value::from(defaultMaxFee)]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsDeriveSubaccountId, &["max_fee_usd", "maxFeeUsd", "force_batch", "forceBatch"], &[]).into_dict();
         // excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
-        let mut amountString: Value = self.decimal_to_precision(Value::from(self.number_to_string(amount)), Value::Int(crate::runtime::TRUNCATE), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut amountString: Option<String> = self.decimal_to_precision(Value::from(self.number_to_string(amount)), Value::Int(crate::runtime::TRUNCATE), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
         let mut one: Value = Value::Str("1".into());
         let mut scale: Value = pad_end(&one, &Value::from((if let Some(__l) = decimals { Some(__l + 1) } else { None })), &Value::Str("0".into()));
@@ -5582,7 +5582,7 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
                 m.insert("asset_name".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount_in_underlying".to_string(), amountString.clone());
+                m.insert("amount_in_underlying".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("max_fee_usd".to_string(), maxFeeUsd.map(Value::from).unwrap_or(Value::Null));
                 m.insert("force_batch".to_string(), Value::Bool(forceBatch));
                 m.insert("recipient".to_string(), address.clone());
@@ -5609,7 +5609,7 @@ impl Derive {
         if fillResponseFromRequest {
             // the response carries only the operation ids, the known request values fill the rest
             transaction.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "code"));
-            transaction.insert("amount".into(), self.parse_number(amountString, &[]));
+            transaction.insert("amount".into(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
             transaction.insert("addressTo".into(), address);
         }
         return Value::Map(transaction);

@@ -115,7 +115,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     //
     // base & quote volumes
     //
-    let mut baseVolume: Value = Value::from(exchange.omit_zero(exchange.safe_string(&entry, Value::Str("baseVolume".into()), &[])));
+    let mut baseVolume: Option<String> = exchange.omit_zero(exchange.safe_string(&entry, Value::Str("baseVolume".into()), &[]));
     let mut quoteVolume: Value = Value::from(exchange.omit_zero(exchange.safe_string(&entry, Value::Str("quoteVolume".into()), &[])));
     let mut high: Value = Value::from(exchange.omit_zero(exchange.safe_string(&entry, Value::Str("high".into()), &[])));
     let mut low: Value = Value::from(exchange.omit_zero(exchange.safe_string(&entry, Value::Str("low".into()), &[])));
@@ -128,14 +128,14 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
         // see https://github.com/ccxt/ccxt/pull/29563
         let mut isInverse: bool = exchange.safe_bool(&market, Value::Str("inverse".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        if (baseVolume != Value::Null) && (quoteVolume != Value::Null) && (high != Value::Null) && (low != Value::Null) && (!isInverse) {
+        if (baseVolume.is_some()) && (quoteVolume != Value::Null) && (high != Value::Null) && (low != Value::Null) && (!isInverse) {
             let mut baseLow: Value = ccxt::precise::Precise::stringMul(&baseVolume, &low);
             let mut baseHigh: Value = ccxt::precise::Precise::stringMul(&baseVolume, &high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
             let mut mPrecision: Value = exchange.safe_dict(&market, Value::Str("precision".into()), &[]);
-            let mut amountPrecision: Value = exchange.safe_string(&mPrecision, Value::Str("amount".into()), &[]);
-            let mut tolerance: Value = Value::Str("1.0001".into());
-            if (amountPrecision != Value::Null) {
+            let mut amountPrecision: Option<String> = exchange.safe_string(&mPrecision, Value::Str("amount".into()), &[]).as_str().map(str::to_owned);
+            let mut tolerance: String = "1.0001".to_string();
+            if (amountPrecision.is_some()) {
                 baseLow = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringSub(&baseVolume, &amountPrecision), &low);
                 baseHigh = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringAdd(&baseVolume, &amountPrecision), &high);
             }  else {
@@ -156,7 +156,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
             // each side - big enough to forgive rounding, far too small to
             // hide a real bug like mismatched units or a wrong-field parse
             let mut quoteVolumeDecimals: i64 = exchange.precision_from_string(quoteVolume.clone());
-            let mut quoteQuantum: Value = exchange.parse_precision(&[Value::from(exchange.number_to_string(Value::from(quoteVolumeDecimals)))]);
+            let mut quoteQuantum: Option<String> = exchange.parse_precision(&[Value::from(exchange.number_to_string(Value::from(quoteVolumeDecimals)))]).as_str().map(str::to_owned);
             baseLow = ccxt::precise::Precise::stringSub(&baseLow, &quoteQuantum);
             baseHigh = ccxt::precise::Precise::stringAdd(&baseHigh, &quoteQuantum);
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&quoteVolume, &baseLow))));
@@ -168,39 +168,39 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     //
     // the Manual defines both against open: change is `last - open`, and
     // percentage is `(change/open) * 100`
-    let mut changeString: Value = exchange.safe_string(&entry, Value::Str("change".into()), &[]);
+    let mut changeString: Option<String> = exchange.safe_string(&entry, Value::Str("change".into()), &[]).as_str().map(str::to_owned);
     let mut percentageString: Option<String> = exchange.safe_string(&entry, Value::Str("percentage".into()), &[]).as_str().map(str::to_owned);
-    if (changeString != Value::Null) && (open != Value::Null) && (close != Value::Null) && !(in_op(&skippedProperties, &Value::Str("compareChange".into()))) {
+    if (changeString.is_some()) && (open != Value::Null) && (close != Value::Null) && !(in_op(&skippedProperties, &Value::Str("compareChange".into()))) {
         // the window is the larger of two roundings: float residue on a change
         // safeTicker derived, which needs a part per million of the price, and an
         // exchange's own rounding, which its reported decimals reveal
         let mut pricePart: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&close), &Value::Str("1000000".into()));
-        let mut changeDecimals: Value = Value::Int(exchange.precision_from_string(changeString.clone()));
+        let mut changeDecimals: Value = Value::Int(exchange.precision_from_string(Value::from(changeString.as_deref())));
         // exponent notation ("1e4") makes `precisionFromString` return a negative
         // count, which `parsePrecision` would turn into a step of 10000 - a string
         // like that reveals no rounding at all, so fall back to the price part
         // instead of letting it widen the window
         let mut changeWindow: Value = pricePart.clone();
         if changeDecimals.as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            let mut changeQuantum: Value = exchange.parse_precision(&[Value::from(exchange.number_to_string(changeDecimals))]);
+            let mut changeQuantum: Option<String> = exchange.parse_precision(&[Value::from(exchange.number_to_string(changeDecimals))]).as_str().map(str::to_owned);
             // a change of "0" prints no decimals, so its apparent step is a whole unit
             // and accepts anything on a micro-priced asset. a per cent of the price
             // caps it, and covers whole units on a price in the tens of thousands
-            let mut quantumCap: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&close), &Value::Str("100".into()));
-            changeQuantum = ccxt::precise::Precise::stringMin(&changeQuantum, &quantumCap);
+            let mut quantumCap: Option<String> = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&close), &Value::Str("100".into())).as_str().map(str::to_owned);
+            changeQuantum = ccxt::precise::Precise::stringMin(&changeQuantum, &quantumCap).as_str().map(str::to_owned);
             changeWindow = ccxt::precise::Precise::stringMax(&pricePart, &changeQuantum);
         }
         let mut difference: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&changeString, &ccxt::precise::Precise::stringSub(&close, &open)));
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&difference, &changeWindow))));
     }
-    if (changeString != Value::Null) && (percentageString.is_some()) && (open != Value::Null) && !(in_op(&skippedProperties, &Value::Str("comparePercentage".into()))) {
-        let mut derived: Value = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringDiv(&changeString, &open), &Value::Str("100".into()));
+    if (changeString.is_some()) && (percentageString.is_some()) && (open != Value::Null) && !(in_op(&skippedProperties, &Value::Str("comparePercentage".into()))) {
+        let mut derived: Option<String> = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringDiv(&changeString, &open), &Value::Str("100".into())).as_str().map(str::to_owned);
         // exchanges round the percentage, so allow one part in fifty of the derived
         // value plus a floor for moves near zero. a ratio where a percentage
         // belongs is out by a hundred and clears that by three orders of magnitude
-        let mut relative: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&derived), &Value::Str("50".into()));
+        let mut relative: Option<String> = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&derived), &Value::Str("50".into())).as_str().map(str::to_owned);
         let mut allowed: Value = ccxt::precise::Precise::stringMax(&relative, &Value::Str("0.01".into()));
-        let mut gap: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&percentageString.map(Value::from).unwrap_or(Value::Null), &derived));
+        let mut gap: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&percentageString, &derived));
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&gap, &allowed))));
     }
     // open and close should be between High & Low
@@ -225,11 +225,11 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         // assert!(ccxt::runtime::is_true(&(vwap >= low && vwap <= high)))
         // todo: calc compare
         assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&valuesShouldBePositive) || is_true(&ccxt::precise::Precise::stringGe(&vwap.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())))))));
-        if (baseVolume != Value::Null) {
+        if (baseVolume.is_some()) {
             assert!(ccxt::runtime::is_true(&((quoteVolume != Value::Null))));
         }
         if (quoteVolume != Value::Null) {
-            assert!(ccxt::runtime::is_true(&((baseVolume != Value::Null))));
+            assert!(ccxt::runtime::is_true(&((baseVolume.is_some()))));
         }
     }
     let mut askString: Option<String> = exchange.safe_string(&entry, Value::Str("ask".into()), &[]).as_str().map(str::to_owned);
@@ -239,9 +239,9 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("ask".into()).clone(), exchange.safe_string(&entry, Value::Str("bid".into()), &[]).clone()]);
     }
     // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
-    let mut allowedPercentageVariation: Value = Value::Str("0.01".into());
+    let mut allowedPercentageVariation: String = "0.01".to_string();
     if isFetchTickerCalled && (lastString != Value::Null) && (bidString.is_some()) && (askString.is_some()) && !(in_op(&skippedProperties, &Value::Str("lastBetweenBidAsk".into()))) {
-        let mut medianPrice: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAdd(&bidString.map(Value::from).unwrap_or(Value::Null), &askString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into()));
+        let mut medianPrice: Option<String> = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAdd(&bidString, &askString), &Value::Str("2".into())).as_str().map(str::to_owned);
         let mut medianLow: Value = ccxt::precise::Precise::stringMul(&medianPrice, &ccxt::precise::Precise::stringSub(&Value::Str("1".into()), &allowedPercentageVariation));
         let mut medianHigh: Value = ccxt::precise::Precise::stringMul(&medianPrice, &ccxt::precise::Precise::stringAdd(&Value::Str("1".into()), &allowedPercentageVariation));
         let mut lastPriceIsBetween: Value = Value::Bool(is_true(&ccxt::precise::Precise::stringGe(&lastString, &medianLow)) && is_true(&ccxt::precise::Precise::stringLe(&lastString, &medianHigh)));
@@ -260,7 +260,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         //
         // percentage
         //
-        let mut maxIncrease: Value = Value::Str("1000".into()); // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
+        let mut maxIncrease: String = "1000".to_string(); // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if (percentage != Value::Null) {
             // - should be above -100 and (for non-options) below MAX
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&percentage, &Value::Str("-100".into())))));
@@ -271,7 +271,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         //
         // change
         //
-        let mut approxValue: Value = exchange.safe_string_n(&entry, Value::from(vec![Value::Str("open".into()), Value::Str("close".into()), Value::Str("average".into()), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("vwap".into()), Value::Str("previousClose".into())]), &[]);
+        let mut approxValue: Option<String> = exchange.safe_string_n(&entry, Value::from(vec![Value::Str("open".into()), Value::Str("close".into()), Value::Str("average".into()), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("vwap".into()), Value::Str("previousClose".into())]), &[]).as_str().map(str::to_owned);
         if (change != Value::Null) {
             // - should be above -price and (for non-options) below +price*maxIncrease
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&change, &ccxt::precise::Precise::stringNeg(&approxValue)))));

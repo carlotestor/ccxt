@@ -2392,7 +2392,7 @@ impl Tokocrypto {
             }
         }
         let mut validOrderTypes: Value = self.safe_value_k(crate::value::KeyRead::key_read(&&market, "info"), "orderTypes", &[]);
-        if !self.in_array(Value::from(uppercaseType.clone()), validOrderTypes) {
+        if !self.in_array(&uppercaseType, validOrderTypes) {
             if (initialUppercaseType != uppercaseType) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " triggerPrice parameter is not allowed for ").into()), symbol).into()), " ").into()), typeResolved).into()), " orders")));
             }  else {
@@ -2471,7 +2471,7 @@ impl Tokocrypto {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
-                        quoteAmount = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
+                        quoteAmount = crate::precise::Precise::stringMul(&amountString, &priceString);
                     }
                 }  else {
                     quoteAmount = amount.clone();

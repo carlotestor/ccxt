@@ -2905,7 +2905,7 @@ impl Gate {
         let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "time_ms", &[]).as_i64();
         let mut originalSize: Option<String> = self.safe_string_k(liquidation.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut left: Option<String> = self.safe_string_k(liquidation.clone(), "left", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&originalSize.map(Value::from).unwrap_or(Value::Null), &left.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+        let mut amount: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&originalSize, &left)).as_str().map(str::to_owned);
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
@@ -3052,7 +3052,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("options.order_book_update".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
             m
         });
-        let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (id.is_none()) {
             return;
         }
@@ -3256,7 +3256,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
-        let mut requestId: Option<String> = (match __pro_message.get("request_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = (match __pro_message.get("request_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (requestId.as_deref() == Some("authenticated")) {
             self.handle_authentication_message(client.clone(), message.clone());
             return;
