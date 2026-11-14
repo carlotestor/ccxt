@@ -2153,7 +2153,7 @@ impl Indodax {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Option<String> = apiUrl.clone();
-        let mut privateBody: Value = Value::Null;
+        let mut privateBody: Option<String> = None;
         let mut privateHeaders: Option<crate::value::Dict> = None;
         let mut isPublic: bool = apiName.as_deref() == Some("public");
         if isPublic {
@@ -2166,24 +2166,24 @@ impl Indodax {
         }  else {
             self.check_required_credentials(&[]);
             let __ws_arg_14 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("method".to_string(), path);
-                    m.insert("timestamp".to_string(), self.nonce());
-                    m.insert("recvWindow".to_string(), crate::value::get_value_k(&self.options, "recvWindow"));
-                m
-            }), &[params]);
-            privateBody = Value::from(self.urlencode(__ws_arg_14, &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("method".to_string(), path);
+        m.insert("timestamp".to_string(), self.nonce());
+        m.insert("recvWindow".to_string(), crate::value::get_value_k(&self.options, "recvWindow"));
+    m
+}), &[params]);
+            privateBody = Some(self.urlencode(__ws_arg_14, &[]));
             privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(privateBody.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
+                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(privateBody.as_deref())), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
             }));
         }
-        let mut requestBody: Value = privateBody;
+        let mut requestBody: Option<String> = privateBody;
         if isPublic {
-            requestBody = Value::Null;
+            requestBody = None.clone();
         }
         let mut requestHeaders: Value = privateHeaders.map_or(Value::Null, Value::Dict);
         if isPublic {
@@ -2193,7 +2193,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.map(Value::from).unwrap_or(Value::Null));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders);
     m
 });

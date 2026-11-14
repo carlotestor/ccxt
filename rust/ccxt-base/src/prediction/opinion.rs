@@ -594,14 +594,14 @@ impl Opinion {
         let mut outcomeLabels: crate::value::List = std::sync::Arc::new(vec![self.safe_string_k(raw.clone(), "yesLabel", &[Value::Str("YES".into())]), self.safe_string_k(raw.clone(), "noLabel", &[Value::Str("NO".into())])]);
         let mut outcomeTokenIds: crate::value::List = std::sync::Arc::new(vec![self.safe_string_k(raw.clone(), "yesTokenId", &[]), self.safe_string_k(raw.clone(), "noTokenId", &[])]);
         let mut outcomes: Vec<Value> = Vec::new();
-        let mut resolvedOutcome: Value = Value::Null;
+        let mut resolvedOutcome: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1387: bool = true;
             while { if !__for_first_1387 { i += 1; } __for_first_1387 = false; i < (outcomeLabels.len() as i64) } {
             let mut label: Option<String> = self.safe_string(&outcomeLabels, Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut tokenId: Option<String> = self.safe_string(&outcomeTokenIds, Value::Int(i), &[]).as_str().map(str::to_owned);
-            let mut outcomeHandle: Value = self.slug_to_outcome_symbol(effectiveEventSlug.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null), label.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(effectiveEventSlug.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null), label.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut winner: Option<bool> = None;
             let mut settleFraction: Option<i64> = None;
             if hasResult {
@@ -615,7 +615,7 @@ impl Opinion {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("outcomeId".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("outcome".to_string(), outcomeHandle);
+                    m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("market".to_string(), marketSymbol.clone());
                     m.insert("label".to_string(), label.map(Value::from).unwrap_or(Value::Null));
                     m.insert("active".to_string(), Value::Bool(active));
@@ -626,7 +626,7 @@ impl Opinion {
             }));
         }
         }
-        let mut marketResolvedOutcome: Value = resolvedOutcome;
+        let mut marketResolvedOutcome: Option<String> = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
         let mut expiryTimestamp: Option<i64> = None;
@@ -655,7 +655,7 @@ impl Opinion {
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("resolved".to_string(), Value::Bool(resolved));
-        m.insert("resolvedOutcome".to_string(), marketResolvedOutcome);
+        m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);

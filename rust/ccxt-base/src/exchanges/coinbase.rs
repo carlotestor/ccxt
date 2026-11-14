@@ -7271,7 +7271,7 @@ if _try_result.is_err() {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut version: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut signed: bool = api.get(1).cloned().unwrap_or(Value::Null).as_str() == Some("private");
@@ -7308,7 +7308,7 @@ if _try_result.is_err() {
                 if (method.as_str() != Some("GET")) {
                     if queryLength > ((0i64) as f64) {
                         payload = json_stringify(&query).as_str().map(str::to_owned);
-                        requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
+                        requestBody = payload.clone();
                     }
                 }  else {
                     if !isV3 {
@@ -7373,18 +7373,18 @@ if _try_result.is_err() {
                 }));
                 if (method.as_str() != Some("GET")) {
                     if queryLength > ((0i64) as f64) {
-                        requestBody = json_stringify(&query);
+                        requestBody = json_stringify(&query).as_str().map(str::to_owned);
                     }
                 }
             }
         }
-        let mut bodyResolved: Value = requestBody;
+        let mut bodyResolved: Option<String> = requestBody;
         let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

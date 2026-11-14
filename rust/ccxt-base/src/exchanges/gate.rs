@@ -3928,7 +3928,7 @@ if _try_result.is_err() {
         let mut swap: bool = marketType == "swap";
         let mut minAmount: Option<f64> = self.parse_number(orderSizeMin.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if swap && enableDecimal && (orderSizeMin.is_some()) && (minAmount.is_some()) && crate::precise::Precise::stringGt(&orderSizeMin.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            amountPrecision = minAmount.clone();
+            amountPrecision = minAmount;
         }
         let mut active: bool = status.as_deref() == Some("trading");
         return Value::Map({

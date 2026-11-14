@@ -3243,7 +3243,7 @@ impl Bittrade {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestHeaders: Option<crate::value::Dict> = None;
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut url: String = "/".to_string();
         if (apiName.as_deref() == Some("market")) {
             url.push_str("market");
@@ -3281,7 +3281,7 @@ impl Bittrade {
 }), &[])));
             url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
             if (method.as_str() == Some("POST")) {
-                requestBody = json_stringify(&query);
+                requestBody = json_stringify(&query).as_str().map(str::to_owned);
                 requestHeaders = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -3309,12 +3309,12 @@ impl Bittrade {
     m
 })), url);
         let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
-        let mut bodyResult: Value = requestBody;
+        let mut bodyResult: Option<String> = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult);
     m
 });

@@ -1767,45 +1767,45 @@ impl Bigone {
                 m.insert("info".to_string(), trade.clone());
             m
         });
-        let mut makerCurrencyCode: Value = Value::Null;
+        let mut makerCurrencyCode: Option<String> = None;
         let mut takerCurrencyCode: Value = Value::Null;
         if (takerOrMaker.is_some()) {
             if (side.as_deref() == Some("buy")) {
                 if (takerOrMaker.as_deref() == Some("maker")) {
-                    makerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
+                    makerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]).as_str().map(str::to_owned);
                     takerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
                 }  else {
-                    makerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
+                    makerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]).as_str().map(str::to_owned);
                     takerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
                 }
             }  else {
                 if (takerOrMaker.as_deref() == Some("maker")) {
-                    makerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
+                    makerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]).as_str().map(str::to_owned);
                     takerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
                 }  else {
-                    makerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
+                    makerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]).as_str().map(str::to_owned);
                     takerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
                 }
             }
         }  else if (side.as_deref() == Some("SELF_TRADING")) {
             if (takerSide.as_deref() == Some("BID")) {
-                makerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
+                makerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]).as_str().map(str::to_owned);
                 takerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
             }  else if (takerSide.as_deref() == Some("ASK")) {
-                makerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
+                makerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]).as_str().map(str::to_owned);
                 takerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
             }
         }
         let mut makerFeeCost: Option<String> = self.safe_string_k(trade.clone(), "maker_fee", &[]).as_str().map(str::to_owned);
         let mut takerFeeCost: Option<String> = self.safe_string_k(trade, "taker_fee", &[]).as_str().map(str::to_owned);
         if (makerFeeCost.is_some()) {
-            let mut makerCode: Value = makerCurrencyCode;
+            let mut makerCode: Option<String> = makerCurrencyCode;
             if (takerFeeCost.is_some()) {
                 let mut takerCode: Value = takerCurrencyCode.clone();
                 result.insert("fees".into(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), makerFeeCost.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), makerCode.clone());
+        m.insert("currency".to_string(), makerCode.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1817,7 +1817,7 @@ impl Bigone {
                 result.insert("fee".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), makerFeeCost.map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), makerCode);
+        m.insert("currency".to_string(), makerCode.map(Value::from).unwrap_or(Value::Null));
     m
 }));
             }
@@ -2754,7 +2754,7 @@ impl Bigone {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut bodySigned: Value = Value::Null;
+        let mut bodySigned: Option<String> = None;
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -2788,16 +2788,16 @@ impl Bigone {
                 }
             }  else if (method.as_str() == Some("POST")) {
                 headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));
-                bodySigned = json_stringify(&query);
+                bodySigned = json_stringify(&query).as_str().map(str::to_owned);
             }
         }
         headersValue.insert("User-Agent".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt/".into()), self.id.clone()).into()), Value::Str("-".into())).into()), self.version.clone()).into()));
-        let mut bodyResolved: Value = bodySigned;
+        let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersValue));
     m
 });

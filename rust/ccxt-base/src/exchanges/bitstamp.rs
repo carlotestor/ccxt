@@ -2589,7 +2589,7 @@ impl Bitstamp {
                 while { if !__for_first_431 { i += 1; } __for_first_431 = false; i < (keys.len() as i64) } {
                 let mut currentKey: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if (currentKey.as_deref() != Some("order_id")) && currentKey.as_deref().unwrap_or_default().contains("_") {
-                    rawMarketId = currentKey.clone();
+                    rawMarketId = currentKey;
                     marketResolved = crate::types::IntoRaw::into_raw(self.safe_market(rawMarketId.clone().map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved.clone()).as_ref(), &[Value::Str("_".into())]));
                 }
             }
@@ -4585,9 +4585,9 @@ impl Bitstamp {
         if (queryString != "") {
             postBody = queryString.clone();
         }
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         if isPrivatePost {
-            requestBody = Value::from(postBody.clone());
+            requestBody = Some(postBody.clone());
         }
         let mut privateHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4629,7 +4629,7 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders);
     m
 });

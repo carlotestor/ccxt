@@ -1614,30 +1614,30 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut swap: bool = type_var.as_deref() == Some("swap");
         let mut future: bool = type_var.as_deref() == Some("future");
         let mut isV5Linear: Value = (Value::Bool((linear && (swap || future))));
-        let mut messageHash: Value = Value::Null;
-        let mut channel: Value = Value::Null;
+        let mut messageHash: Option<String> = None;
+        let mut channel: Option<String> = None;
         if (type_var.as_deref() == Some("spot")) {
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("#".into())).into()), self.safe_string_k(&market, "lowercaseId", &[Value::Str("*".into())])).into());
+            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("#".into())).into()), self.safe_string_k(&market, "lowercaseId", &[Value::Str("*".into())])));
             channel = messageHash.clone();
         }  else if matches!(&isV5Linear, Value::Bool(true)) {
             let mut channelAndMessageHashAndParams: crate::value::List = self.get_v5_linear_channel_and_message_hash(Value::Str("orders".into()), &[crate::Value::from(market.as_ref()), paramsRequest.clone()]).into_list();
-            channel = self.safe_string(&channelAndMessageHashAndParams, Value::Int(0), &[]);
-            messageHash = self.safe_string(&channelAndMessageHashAndParams, Value::Int(1), &[]);
+            channel = self.safe_string(&channelAndMessageHashAndParams, Value::Int(0), &[]).as_str().map(str::to_owned);
+            messageHash = self.safe_string(&channelAndMessageHashAndParams, Value::Int(1), &[]).as_str().map(str::to_owned);
             paramsRequest = self.safe_dict(&channelAndMessageHashAndParams, Value::Int(2), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
         }  else {
             let mut channelAndMessageHash: crate::value::List = self.get_order_channel_and_message_hash(type_var.clone().map(Value::from).unwrap_or(Value::Null), subType.clone().map(Value::from).unwrap_or(Value::Null), market.as_ref(), &[paramsRequest.clone()]).into_list();
-            channel = self.safe_string(&channelAndMessageHash, Value::Int(0), &[]);
-            messageHash = self.safe_string(&channelAndMessageHash, Value::Int(1), &[]);
+            channel = self.safe_string(&channelAndMessageHash, Value::Int(0), &[]).as_str().map(str::to_owned);
+            messageHash = self.safe_string(&channelAndMessageHash, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("isV5".to_string(), isV5Linear);
             m
         });
-        let mut orders: Value = self.subscribe_private(channel.as_str(), messageHash.as_str(), type_var.as_deref(), subType.as_deref(), &[paramsRequest, Value::Map(subscriptionParams)]).await;
+        let mut orders: Value = self.subscribe_private(channel.as_deref(), messageHash.as_deref(), type_var.as_deref(), subType.as_deref(), &[paramsRequest, Value::Map(subscriptionParams)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());

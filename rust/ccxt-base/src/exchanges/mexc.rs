@@ -3443,8 +3443,8 @@ impl Mexc {
         let mut ask: Option<String> = None;
         let mut bidVolume: Option<String> = None;
         let mut askVolume: Option<String> = None;
-        let mut baseVolume: Value = Value::Null;
-        let mut quoteVolume: Value = Value::Null;
+        let mut baseVolume: Option<String> = None;
+        let mut quoteVolume: Option<String> = None;
         let mut open: Option<String> = None;
         let mut high: Option<String> = None;
         let mut low: Option<String> = None;
@@ -3478,17 +3478,17 @@ impl Mexc {
             timestamp = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
             bid = self.safe_string_k(ticker.clone(), "bid1", &[]).as_str().map(str::to_owned);
             ask = self.safe_string_k(ticker.clone(), "ask1", &[]).as_str().map(str::to_owned);
-            baseVolume = self.safe_string_k(ticker.clone(), "volume24", &[]);
-            quoteVolume = self.safe_string_k(ticker.clone(), "amount24", &[]);
+            baseVolume = self.safe_string_k(ticker.clone(), "volume24", &[]).as_str().map(str::to_owned);
+            quoteVolume = self.safe_string_k(ticker.clone(), "amount24", &[]).as_str().map(str::to_owned);
             let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
             if isSwap && (contractSize.is_some()) {
                 // volume24 counts contracts, amount24 is in the settle currency
-                let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &contractSize.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &contractSize.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 if ((marketResolved).inverse == Some(true)) {
                     baseVolume = quoteVolume.clone();
-                    quoteVolume = contractVolume.clone().map(Value::from).unwrap_or(Value::Null);
+                    quoteVolume = contractVolume.clone();
                 }  else {
-                    baseVolume = contractVolume.map(Value::from).unwrap_or(Value::Null);
+                    baseVolume = contractVolume;
                 }
             }
             high = self.safe_string_k(ticker.clone(), "high24Price", &[]).as_str().map(str::to_owned);
@@ -3530,8 +3530,8 @@ impl Mexc {
             if crate::precise::Precise::stringEq(&askVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 askVolume = None.clone();
             }
-            baseVolume = self.safe_string_k(ticker.clone(), "volume", &[]);
-            quoteVolume = self.safe_string_k(ticker.clone(), "quoteVolume", &[]);
+            baseVolume = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
+            quoteVolume = self.safe_string_k(ticker.clone(), "quoteVolume", &[]).as_str().map(str::to_owned);
             open = self.safe_string_k(ticker.clone(), "openPrice", &[]).as_str().map(str::to_owned);
             high = self.safe_string_k(ticker.clone(), "highPrice", &[]).as_str().map(str::to_owned);
             low = self.safe_string_k(ticker.clone(), "lowPrice", &[]).as_str().map(str::to_owned);
@@ -3558,8 +3558,8 @@ impl Mexc {
         m.insert("change".to_string(), changeValue.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("percentage".to_string(), changePcnt.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), baseVolume);
-        m.insert("quoteVolume".to_string(), quoteVolume);
+        m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
 }), Some(&marketResolved));
@@ -4089,22 +4089,22 @@ impl Mexc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut paramsLoop: Value = params;
         {
                         let mut i: i64 = 0;
             let mut __for_first_950: bool = true;
             while { if !__for_first_950 { i += 1; } __for_first_950 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
-            let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
+            let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(market).spot {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() is only supported for spot markets".into()))));
             }
-            if (symbol == Value::Null) {
-                symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
+            if (symbol.is_none()) {
+                symbol = marketId.clone();
             }  else {
-                if (symbol.as_str() != marketId.as_deref()) {
+                if (symbol != marketId) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
                 }
             }
@@ -5566,11 +5566,11 @@ impl Mexc {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut paramsMarketType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut marginMode: Option<String> = self.safe_string_k(paramsMarketType.clone(), "marginMode", &[]).as_str().map(str::to_owned);
-        let mut isMargin: bool = self.safe_bool_k(paramsMarketType.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted2: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("margin".into()), Value::Str("marginMode".into())]), &[]).into_dict();
+        let mut paramsMarketType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut marginMode: Option<String> = self.safe_string_k(&paramsMarketType, "marginMode", &[]).as_str().map(str::to_owned);
+        let mut isMargin: bool = self.safe_bool_k(&paramsMarketType, "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("margin".into()), Value::Str("marginMode".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (marginMode.is_some()) || isMargin || (marketType.as_deref() == Some("margin")) {
             let mut parsedSymbols: Value = Value::Null;
@@ -7115,14 +7115,14 @@ impl Mexc {
         let mut side: String = (if (rawSide.as_deref() == Some("1")) { "long".to_string() } else { "short".to_string() });
         let mut openType: Option<String> = self.safe_string2(position.clone(), Value::Str("openType".into()), Value::Str("margin_mode".into()), &[]).as_str().map(str::to_owned);
         let mut marginType: String = (if (openType.as_deref() == Some("1")) { "isolated".to_string() } else { "cross".to_string() });
-        let mut collateralString: Value = Value::Null;
-        let mut marginString: Value = Value::Null;
+        let mut collateralString: Option<String> = None;
+        let mut marginString: Option<String> = None;
         if (marginType == "isolated") && (initialMargin.is_some()) {
             // im is the margin mexc holds in the position; funding settles to the available balance
-            collateralString = initialMargin.clone().map(Value::from).unwrap_or(Value::Null);
+            collateralString = initialMargin.clone();
             marginString = collateralString.clone();
             if (unrealizedPnl.is_some()) {
-                collateralString = crate::precise::Precise::stringAdd(&collateralString, &unrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null));
+                collateralString = crate::precise::Precise::stringAdd(&collateralString.map(Value::from).unwrap_or(Value::Null), &unrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
         let mut leverage: Option<f64> = self.safe_number_k(position.clone(), "leverage", &[]).as_f64();
@@ -7136,8 +7136,8 @@ impl Mexc {
         m.insert("contracts".to_string(), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("entryPrice".to_string(), Value::from(entryPrice));
-        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
-        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(marginString.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("side".to_string(), Value::from(side));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("leverage".to_string(), self.parse_number(Value::from(leverage), &[]));

@@ -1986,7 +1986,7 @@ impl Coinone {
             }
             url = format!("{}{}", apiUrl4.as_deref().unwrap_or("null"), Value::Str("/".into()));
         }
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if isPublic {
             url.push_str(&request.to_string());
@@ -2011,7 +2011,7 @@ impl Coinone {
 }), &[params]);
             let mut json: Option<String> = self.json(__ws_arg_10).as_str().map(str::to_owned);
             let mut payload: String = self.string_to_base64(json.map(Value::from).unwrap_or(Value::Null), &[]);
-            requestBody = Value::from(payload.clone());
+            requestBody = Some(payload.clone());
             let mut secret: Value = (if let Some(__s) = self.secret.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(secret), Value::Str("sha512".into()), &[]);
             requestHeaders = Some(crate::value::Dict::new({
@@ -2022,13 +2022,13 @@ impl Coinone {
                 m
             }));
         }
-        let mut bodyResolved: Value = requestBody;
+        let mut bodyResolved: Option<String> = requestBody;
         let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

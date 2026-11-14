@@ -766,7 +766,7 @@ impl Kalshi {
         let mut pageLimit: i64 = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut limit: Option<i64> = Some(pageLimit);
         if (maxMarkets.is_some() && maxMarkets < Some(pageLimit)) {
-            limit = maxMarkets.clone();
+            limit = maxMarkets;
         }
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
@@ -1182,13 +1182,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeLabels: crate::value::List = std::sync::Arc::new(vec![Value::Str("YES".into()), Value::Str("NO".into())]);
         let mut outcomeIds: Value = Value::from(vec![ticker.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", ticker.as_deref().unwrap_or("null"), Value::Str("-NO".into())).into())]);
         let mut outcomes: Vec<Value> = Vec::new();
-        let mut resolvedOutcome: Value = Value::Null;
+        let mut resolvedOutcome: Option<String> = None;
         {
                         let mut oi: i64 = 0;
             let mut __for_first_1266: bool = true;
             while { if !__for_first_1266 { oi += 1; } __for_first_1266 = false; oi < (outcomeLabels.len() as i64) } {
             let mut label: Option<String> = outcomeLabels.get(oi as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone(), label.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone(), label.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Option<i64> = None;
             if resolved && (result.is_some()) && (result.as_deref() != Some("")) {
@@ -1206,7 +1206,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
                     m.insert("outcomeId".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
-                    m.insert("outcome".to_string(), outcomeHandle);
+                    m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("market".to_string(), marketSymbol.clone());
                     m.insert("label".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("active".to_string(), active.clone());
@@ -1230,7 +1230,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
-        let mut marketResolvedOutcome: Value = resolvedOutcome;
+        let mut marketResolvedOutcome: Option<String> = resolvedOutcome;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1252,7 +1252,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), active);
         m.insert("resolved".to_string(), Value::Bool(resolved));
-        m.insert("resolvedOutcome".to_string(), marketResolvedOutcome);
+        m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -3797,7 +3797,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             totalLiquidity = self.sum(&[totalLiquidity.clone(), self.safe_number2(&rawMarket, Value::Str("liquidity_dollars".into()), Value::Str("liquidity".into()), &[Value::Int(0)])]);
             let mut marketCreated: Option<i64> = self.parse8601(self.safe_string_k(&rawMarket, "open_time", &[]));
             if (marketCreated.is_some()) && ((earliestCreated.is_none()) || ((marketCreated.is_some() && earliestCreated.is_some() && marketCreated < earliestCreated))) {
-                earliestCreated = marketCreated.clone();
+                earliestCreated = marketCreated;
             }
             let mut marketStatus: Option<String> = self.safe_string_k(&rawMarket, "status", &[]).as_str().map(str::to_owned);
             if (marketStatus.as_deref() == Some("active")) {
@@ -3810,7 +3810,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut marketClose: Option<i64> = self.parse8601(self.safe_string_k(&rawMarket, "close_time", &[]));
             if (marketClose.is_some()) && ((latestClose.is_none()) || ((marketClose.is_some() && latestClose.is_some() && marketClose > latestClose))) {
-                latestClose = marketClose.clone();
+                latestClose = marketClose;
             }
         }
         }

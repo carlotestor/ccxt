@@ -3560,7 +3560,7 @@ impl Coinbaseinternational {
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             lastTradeTimestamp = None.clone();
             if (filled.is_some()) && (filled > Some(0.0)) {
-                lastTradeTimestamp = lastUpdateTimestamp.clone();
+                lastTradeTimestamp = lastUpdateTimestamp;
             }
             nativeLastUpdateTimestamp = lastUpdateTimestamp.take();
             orderType = self.safe_string_lower2(order.clone(), Value::Str("original_order_type".into()), Value::Str("order_type".into()), &[]).as_str().map(str::to_owned);

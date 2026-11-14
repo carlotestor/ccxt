@@ -1582,7 +1582,7 @@ impl Coincheck {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut bodySigned: Value = Value::Null;
+        let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -1606,7 +1606,7 @@ impl Coincheck {
             }  else {
                 if hasQuery {
                     queryString = self.urlencode(self.keysort(query, &[]), &[]);
-                    bodySigned = Value::from(queryString.clone());
+                    bodySigned = Some(queryString.clone());
                 }
             }
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
@@ -1620,12 +1620,12 @@ impl Coincheck {
             }));
         }
         let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
-        let mut bodyResolved: Value = bodySigned;
+        let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

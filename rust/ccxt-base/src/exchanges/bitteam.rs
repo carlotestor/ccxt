@@ -3175,12 +3175,12 @@ impl Bitteam {
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         let mut query: String = self.urlencode(request.clone(), &[]);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) {
-                requestBody = json_stringify(&request);
+                requestBody = json_stringify(&request).as_str().map(str::to_owned);
             }  else if (((query.chars().count() as i64)) != 0) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), query));
             }
@@ -3196,13 +3196,13 @@ impl Bitteam {
         }  else if (((query.chars().count() as i64)) != 0) {
             url.push_str(&format!("{}{}", Value::Str("?".into()), query));
         }
-        let mut bodyResolved: Value = requestBody;
+        let mut bodyResolved: Option<String> = requestBody;
         let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

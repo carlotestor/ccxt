@@ -941,9 +941,9 @@ impl Btcmarkets {
         let mut minAmount: Option<f64> = self.safe_number_k(market.clone(), "minOrderAmount", &[]).as_f64();
         let mut maxAmount: Option<f64> = self.safe_number_k(market.clone(), "maxOrderAmount", &[]).as_f64();
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut minPrice: Value = Value::Null;
+        let mut minPrice: Option<f64> = None;
         if (quote.as_deref() == Some("AUD")) {
-            minPrice = Value::from(pricePrecision);
+            minPrice = pricePrecision;
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -994,7 +994,7 @@ impl Btcmarkets {
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minPrice);
+        m.insert("min".to_string(), Value::from(minPrice));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -2035,7 +2035,7 @@ impl Btcmarkets {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestHeaders: Option<crate::value::Dict> = None;
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.keysort(self.omit(params, self.extract_params(path), &[]), &[]);
         if (apiName.as_deref() == Some("private")) {
@@ -2049,7 +2049,7 @@ impl Btcmarkets {
                 }
             }  else {
                 let mut jsonBody: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
-                requestBody = jsonBody.clone().map(Value::from).unwrap_or(Value::Null);
+                requestBody = jsonBody.clone();
                 auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, request).into()), nonce).into()), jsonBody.as_deref().unwrap_or("null"));
             }
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), &secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]);
@@ -2074,12 +2074,12 @@ impl Btcmarkets {
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), request);
         let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
-        let mut bodyResult: Value = requestBody;
+        let mut bodyResult: Option<String> = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult);
     m
 });

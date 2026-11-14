@@ -4037,9 +4037,9 @@ impl Htx {
             while { if !__for_first_769 { i += 1; } __for_first_769 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketType: Option<String> = None;
-            let mut baseId: Value = Value::Null;
+            let mut baseId: Option<String> = None;
             let mut quoteId: Option<String> = None;
-            let mut settleId: Value = Value::Null;
+            let mut settleId: Option<String> = None;
             let mut id: Value = Value::Null;
             let mut lowercaseId: Option<String> = None;
             let mut contract: Value = (Value::Bool(market.contains_key("contract_code")));
@@ -4065,16 +4065,16 @@ impl Htx {
                 if swap.as_bool() == Some(true) {
                     marketType = Some("swap".to_string());
                     let mut parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                    baseId = self.safe_string_lower_k(&market, "symbol", &[]);
+                    baseId = self.safe_string_lower_k(&market, "symbol", &[]).as_str().map(str::to_owned);
                     quoteId = self.safe_string_lower(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
                     if (inverse == Some(true)) {
                         settleId = baseId.clone();
                     }  else {
-                        settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
+                        settleId = quoteId.clone();
                     }
                 }  else if future.as_bool() == Some(true) {
                     marketType = Some("future".to_string());
-                    baseId = self.safe_string_lower_k(&market, "symbol", &[]);
+                    baseId = self.safe_string_lower_k(&market, "symbol", &[]).as_str().map(str::to_owned);
                     if (inverse == Some(true)) {
                         quoteId = Some("USD".to_string());
                         settleId = baseId.clone();
@@ -4085,7 +4085,7 @@ impl Htx {
                         }
                         let mut parts: Value = Value::Array(if let Some(__s) = pair.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                         quoteId = self.safe_string_lower(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-                        settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
+                        settleId = quoteId.clone();
                     }
                 }
             }  else {
@@ -4098,18 +4098,18 @@ impl Htx {
                 if (spotBaseId.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing baseId".into()))));
                 }
-                baseId = spotBaseId.clone().map(Value::from).unwrap_or(Value::Null);
+                baseId = spotBaseId.clone();
                 quoteId = spotQuoteId.clone();
                 let mut spotId: String = format!("{}{}", spotBaseId.as_deref().unwrap_or("null"), spotQuoteId.as_deref().unwrap_or("null"));
                 id = Value::from(spotId.clone());
                 lowercaseId = Some(spotId.to_lowercase());
             }
-            let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
+            let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut settle: Option<String> = self.safe_currency_code(settleId.clone(), None);
+            let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
             let mut expiry: Option<i64> = None;
             if matches!(&contract, Value::Bool(true)) {
@@ -4129,9 +4129,9 @@ impl Htx {
             let mut minAmount: Option<f64> = self.safe_number_k(&market, "min-order-amt", &[]).as_f64();
             if matches!(&contract, Value::Bool(true)) {
                 if (linear.as_bool() == Some(true)) {
-                    minAmount = contractSize.clone();
+                    minAmount = contractSize;
                 }  else if (inverse == Some(true)) {
-                    minCost = contractSize.clone();
+                    minCost = contractSize;
                 }
             }
             let mut pricePrecision: Option<f64> = None;
@@ -4191,9 +4191,9 @@ impl Htx {
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("baseId".to_string(), baseId);
+                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("settleId".to_string(), settleId);
+                    m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("spot".to_string(), Value::Bool(spot.clone()));
                     m.insert("margin".to_string(), Value::Bool((spot && hasLeverage)));
@@ -4311,13 +4311,13 @@ impl Htx {
             let mut marketLinear: bool = self.safe_bool_k(&market, "linear", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut marketSymbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
             // see comment on formats a bit above
-            let mut constructedId: Value = Value::Null;
+            let mut constructedId: Option<String> = None;
             if marketLinear {
-                constructedId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketBase, Value::Str("-".into())).into()), marketQuote).into()), Value::Str("-".into())).into()), contractSuffix).into());
+                constructedId = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketBase, Value::Str("-".into())).into()), marketQuote).into()), Value::Str("-".into())).into()), contractSuffix));
             }  else {
-                constructedId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketBase, Value::Str("_".into())).into()), contractSuffix).into());
+                constructedId = Some(format!("{}{}", Value::Str(format!("{}{}", marketBase, Value::Str("_".into())).into()), contractSuffix));
             }
-            if (constructedId.as_str() == symbolOrMarketId.as_str()) {
+            if (constructedId.as_deref() == Some(symbolOrMarketId.as_str().unwrap_or_default().to_string().as_str())) {
                 if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("futureMarketIdsForSymbols".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbolOrMarketId), marketSymbol.clone()); } }
                 return marketSymbol;
             }
@@ -5736,9 +5736,9 @@ impl Htx {
                 accountType = "margin".to_string();
             }
         }
-        let mut marketId: Value = Value::Null;
+        let mut marketId: Option<String> = None;
         if (symbol != Value::Null) {
-            marketId = self.market_id(symbol);
+            marketId = self.market_id(symbol).as_str().map(str::to_owned);
         }
         {
                         let mut i: i64 = 0;
@@ -5746,10 +5746,10 @@ impl Htx {
             while { if !__for_first_773 { i += 1; } __for_first_773 = false; i < (accounts.len() as i64) } {
             let mut account: crate::value::Dict = self.safe_dict(accounts.clone(), Value::Int(i), &[]).into_dict();
             let mut info: crate::value::Dict = self.safe_dict_k(&account, "info", &[]).into_dict();
-            let mut subtype: Option<String> = self.safe_string_k_opt(&info, "subtype", &[]);
+            let mut subtype: Option<String> = self.safe_string_k(&info, "subtype", &[]).as_str().map(str::to_owned);
             let mut typeFromAccount: Option<String> = self.safe_string_k(&account, "type", &[]).as_str().map(str::to_owned);
             if (accountType == "margin") {
-                if (subtype.as_deref() == marketId.as_str()) {
+                if (subtype == marketId) {
                     return self.safe_string_k(&account, "id", &[]);
                 }
             }  else if (typeFromAccount.as_deref() == Some(accountType.as_str())) {
@@ -8508,7 +8508,7 @@ impl Htx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut ordersRequests: Value = Value::from(vec![]);
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         let mut marginMode: Value = Value::Null;
         {
@@ -8516,11 +8516,11 @@ impl Htx {
             let mut __for_first_782: bool = true;
             while { if !__for_first_782 { i += 1; } __for_first_782 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
-            let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
-            if (symbol == Value::Null) {
-                symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
+            let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
+            if (symbol.is_none()) {
+                symbol = marketId.clone();
             }  else {
-                if (symbol.as_str() != marketId.as_deref()) {
+                if (symbol != marketId) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
                 }
             }
@@ -8543,7 +8543,7 @@ impl Htx {
                     }
                 }
             }
-            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut orderRequest: Value = Value::Null;
             if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 orderRequest = self.create_spot_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount.clone(), &[price.clone(), Value::from(&orderParams)]).await;
@@ -10772,7 +10772,7 @@ impl Htx {
     m
 }));
         let mut signedHeaders: Option<crate::value::Dict> = None;
-        let mut signedBody: Value = Value::Null;
+        let mut signedBody: Option<String> = None;
         let mut pathString: Value = path.clone();
         let mut url: Value = Value::Str("/".into());
         let mut isArrayParams: bool = matches!(&params, Value::Arr(_));
@@ -10826,7 +10826,7 @@ impl Htx {
                     }  else {
                         bodyRequest = query.clone();
                     }
-                    signedBody = json_stringify(&bodyRequest);
+                    signedBody = json_stringify(&bodyRequest).as_str().map(str::to_owned);
                     signedHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -10931,9 +10931,9 @@ impl Htx {
                     }  else {
                         bodyRequest = query;
                     }
-                    signedBody = json_stringify(&bodyRequest);
-                    if !isArrayParams && (Value::Int(signedBody.len() as i64).as_f64() == Some(2.0)) {
-                        signedBody = Value::Str("{}".into());
+                    signedBody = json_stringify(&bodyRequest).as_str().map(str::to_owned);
+                    if !isArrayParams && (((signedBody.as_deref().unwrap_or_default().chars().count() as i64)) == 2) {
+                        signedBody = Some("{}".to_string());
                     }
                     signedHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
@@ -10960,12 +10960,12 @@ impl Htx {
 })), url).into());
         }
         let mut headersResolved: Value = signedHeaders.map_or(Value::Null, Value::Dict);
-        let mut bodyResolved: Value = signedBody;
+        let mut bodyResolved: Option<String> = signedBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

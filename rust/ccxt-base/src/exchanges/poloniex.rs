@@ -4070,8 +4070,8 @@ impl Poloniex {
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut networkCode: Option<String> = None;
-        let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut query: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (networkCode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress requires a network parameter for ".into())).into()), code).into()), Value::Str(".".into()))));
         }
@@ -4088,7 +4088,7 @@ impl Poloniex {
                 m.insert("currency".to_string(), exchangeNetworkId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        return Value::from(vec![Value::Map(request), query, crate::Value::from(Some(&currency)), networkEntry]);
+        return Value::from(vec![Value::Map(request), Value::Dict(query), crate::Value::from(Some(&currency)), networkEntry]);
 
     Value::Null
 }
@@ -4972,11 +4972,11 @@ impl Poloniex {
             let mut lever: Option<i64> = self.safe_integer_k(&entry, "lever", &[]).as_i64();
             let mut posSide: Option<String> = self.safe_string_k(&entry, "posSide", &[]).as_str().map(str::to_owned);
             if (posSide.as_deref() == Some("LONG")) {
-                longLeverage = lever.clone();
+                longLeverage = lever;
             }  else if (posSide.as_deref() == Some("SHORT")) {
-                shortLeverage = lever.clone();
+                shortLeverage = lever;
             }  else {
-                longLeverage = lever.clone();
+                longLeverage = lever;
                 shortLeverage = lever;
             }
         }

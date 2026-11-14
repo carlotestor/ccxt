@@ -2495,13 +2495,13 @@ impl Hollaex {
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut addressTo: Option<String> = None;
         let mut addressFrom: Option<String> = None;
-        let mut tag: Value = Value::Null;
-        let mut tagTo: Value = Value::Null;
+        let mut tag: Option<String> = None;
+        let mut tagTo: Option<String> = None;
         let mut tagFrom: Option<String> = None;
         if (address.is_some()) {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = address.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
             address = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-            tag = self.safe_string(&parts, Value::Int(1), &[]);
+            tag = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             addressTo = address.clone();
             tagTo = tag.clone();
         }
@@ -2544,8 +2544,8 @@ impl Hollaex {
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::from(tagFrom.as_deref()));
-        m.insert("tag".to_string(), tag);
-        m.insert("tagTo".to_string(), tagTo);
+        m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
+        m.insert("tagTo".to_string(), tagTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));

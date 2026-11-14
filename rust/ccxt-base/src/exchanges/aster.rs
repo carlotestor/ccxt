@@ -4297,10 +4297,10 @@ impl Aster {
         let mut shortLeverage: Option<i64> = None;
         let mut leverageValue: Option<i64> = self.safe_integer_k(leverage.clone(), "leverage", &[]).as_i64();
         if (side.is_none()) || (side.as_deref() == Some("both")) {
-            longLeverage = leverageValue.clone();
-            shortLeverage = leverageValue.clone();
+            longLeverage = leverageValue;
+            shortLeverage = leverageValue;
         }  else if (side.as_deref() == Some("long")) {
-            longLeverage = leverageValue.clone();
+            longLeverage = leverageValue;
         }  else if (side.as_deref() == Some("short")) {
             shortLeverage = leverageValue;
         }

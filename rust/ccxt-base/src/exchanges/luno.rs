@@ -1661,12 +1661,12 @@ impl Luno {
         if (feeBaseString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeBaseString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(&market, "base", &[]).as_str().map(str::to_owned);
-                feeCost = feeBaseString.clone();
+                feeCost = feeBaseString;
             }
         }  else if (feeCounterString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeCounterString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(&market, "quote", &[]).as_str().map(str::to_owned);
-                feeCost = feeCounterString.clone();
+                feeCost = feeCounterString;
             }
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();

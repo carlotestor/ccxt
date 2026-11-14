@@ -5708,10 +5708,10 @@ impl Woo {
             let mut positionLeverage: Option<i64> = self.safe_integer_k(&position, "leverage", &[]).as_i64();
             let mut side: Option<String> = self.safe_string_k(&position, "positionSide", &[]).as_str().map(str::to_owned);
             if (side.as_deref() == Some("BOTH")) {
-                longLeverage = positionLeverage.clone();
-                shortLeverage = positionLeverage.clone();
+                longLeverage = positionLeverage;
+                shortLeverage = positionLeverage;
             }  else if (side.as_deref() == Some("LONG")) {
-                longLeverage = positionLeverage.clone();
+                longLeverage = positionLeverage;
             }  else if (side.as_deref() == Some("SHORT")) {
                 shortLeverage = positionLeverage;
             }

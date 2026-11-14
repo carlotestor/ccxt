@@ -5689,17 +5689,17 @@ impl Deribit {
         let mut marketId: Option<String> = self.safe_string_k(interest.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut openInterest: Option<f64> = self.safe_number_k(interest.clone(), "open_interest", &[]).as_f64();
-        let mut openInterestAmount: Value = Value::Null;
+        let mut openInterestAmount: Option<f64> = None;
         let mut openInterestValue: Option<f64> = None;
         if (marketResolved).option || ((marketResolved).future && ((marketResolved).linear == Some(true))) {
-            openInterestAmount = Value::from(openInterest);
+            openInterestAmount = openInterest;
         }  else {
             openInterestValue = openInterest.take();
         }
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
-        m.insert("openInterestAmount".to_string(), openInterestAmount);
+        m.insert("openInterestAmount".to_string(), Value::from(openInterestAmount));
         m.insert("openInterestValue".to_string(), Value::from(openInterestValue));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));

@@ -6281,7 +6281,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
             }
         }
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut privateHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -6304,7 +6304,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                 }
                 payload = json_stringify(&params).as_str().map(str::to_owned);
-                requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
+                requestBody = payload.clone();
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", requestPath, queryString).into()), expiryString).into()), payload.as_deref().unwrap_or("null"));
@@ -6316,16 +6316,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         url = format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), url);
         let mut isPrivatePost: bool = (apiName.as_deref() == Some("private")) && (method.as_str() == Some("POST"));
-        let mut bodyResolved: Value = Value::Null;
+        let mut bodyResolved: Option<String> = None;
         if isPrivatePost {
-            bodyResolved = requestBody;
+            bodyResolved = requestBody.take();
         }
         let mut requestHeaders: Value = (if (apiName.as_deref() == Some("private")) { privateHeaders } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders);
     m
 });

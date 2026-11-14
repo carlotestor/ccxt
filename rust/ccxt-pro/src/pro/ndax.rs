@@ -633,18 +633,18 @@ impl Ndax {
                     let mut previousHigh: Option<f64> = self.safe_float(previous.clone(), Value::Int(1), &[]).as_f64();
                     let mut high: Option<f64> = previousHigh;
                     if (parsedHigh.is_some()) {
-                        high = parsedHigh.clone();
+                        high = parsedHigh;
                         if (previousHigh.is_some()) && ((previousHigh.is_some() && parsedHigh.is_some() && previousHigh > parsedHigh)) {
-                            high = previousHigh.clone();
+                            high = previousHigh;
                         }
                     }
                     let mut parsedLow: Option<f64> = self.safe_float(&ohlcv, Value::Int(2), &[]).as_f64();
                     let mut previousLow: Option<f64> = self.safe_float(previous.clone(), Value::Int(2), &[]).as_f64();
                     let mut low: Option<f64> = previousLow;
                     if (parsedLow.is_some()) {
-                        low = parsedLow.clone();
+                        low = parsedLow;
                         if (previousLow.is_some()) && ((parsedLow.is_some() && previousLow.is_some() && parsedLow > previousLow)) {
-                            low = previousLow.clone();
+                            low = previousLow;
                         }
                     }
                     stored.append(Value::from(vec![candleTimestamp.clone(), self.safe_float(previous.clone(), Value::Int(1), &[]), Value::from(high), Value::from(low), self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
@@ -814,7 +814,7 @@ impl Ndax {
             }  else {
                 let mut newTimestamp: Option<i64> = self.safe_integer(&bidask, Value::Int(2), &[]).as_i64();
                 if (newTimestamp.is_some()) && ((newTimestamp.is_some() && timestamp.is_some() && newTimestamp > timestamp)) {
-                    timestamp = newTimestamp.clone();
+                    timestamp = newTimestamp;
                 }
             }
             if (nonce.is_none()) {
@@ -822,7 +822,7 @@ impl Ndax {
             }  else {
                 let mut newNonce: Option<i64> = self.safe_integer(&bidask, Value::Int(0), &[]).as_i64();
                 if (newNonce.is_some()) && ((newNonce.is_some() && nonce.is_some() && newNonce > nonce)) {
-                    nonce = newNonce.clone();
+                    nonce = newNonce;
                 }
             }
             // 0 new, 1 update, 2 remove

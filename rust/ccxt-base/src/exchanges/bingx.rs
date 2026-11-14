@@ -9111,7 +9111,7 @@ impl Bingx {
         }
         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into()), pathValue).into())).into());
         let mut requestHeaders: Value = Value::Null;
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let __ws_arg_82 = self.extend(self.omit(params, self.extract_params(pathValue), &[]), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), self.nonce());
@@ -9148,19 +9148,19 @@ impl Bingx {
                     m
                 })]);
                 add_element_to_object(&mut paramsSorted, &Value::Str("signature".into()), Value::from(signature.clone()));
-                requestBody = json_stringify(&paramsSorted);
+                requestBody = json_stringify(&paramsSorted).as_str().map(str::to_owned);
             }  else {
                 let mut query: String = self.urlencode(parsedParams, &[Value::Bool(true)]);
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("?".into()), query).into()), Value::Str("&".into())).into()), Value::Str("signature=".into())).into()), signature).into())).into());
             }
         }
-        let mut bodyResult: Value = requestBody;
+        let mut bodyResult: Option<String> = requestBody;
         let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult);
     m
 });

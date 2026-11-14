@@ -656,11 +656,11 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            symbolResolved = Value::from(symbolValue.clone());
+            symbolResolved = Some(symbolValue.clone());
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolValue);
         }
         self.authenticate(&[params.clone()]).await;
@@ -682,12 +682,12 @@ impl Onetrading {
         let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        trades = self.filter_by_symbol_since_limit(trades.clone(), symbolResolved.as_str(), since.as_i64(), limitResolved.clone(), &[]);
+        trades = self.filter_by_symbol_since_limit(trades.clone(), symbolResolved.as_deref(), since.as_i64(), limitResolved.clone(), &[]);
         let mut numTrades: i64 = get_array_length(&trades).as_i64().unwrap_or_default();
         if (numTrades == 0) {
-            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_my_trades(symbolResolved.as_str(), since.as_i64(), limitResolved, params)).await);
+            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_my_trades(symbolResolved.as_deref(), since.as_i64(), limitResolved, params)).await);
         }
         return trades;
         Value::Null
@@ -862,11 +862,11 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "orders".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            symbolResolved = Value::from(symbolValue.clone());
+            symbolResolved = Some(symbolValue.clone());
             messageHash = format!("{}{}", Value::Str("orders:".into()), symbolValue);
         }
         self.authenticate(&[params.clone()]).await;
@@ -888,12 +888,12 @@ impl Onetrading {
         let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        orders = self.filter_by_symbol_since_limit(orders.clone(), symbolResolved.as_str(), since.as_i64(), limitResolved.clone(), &[]);
+        orders = self.filter_by_symbol_since_limit(orders.clone(), symbolResolved.as_deref(), since.as_i64(), limitResolved.clone(), &[]);
         let mut numOrders: i64 = get_array_length(&orders).as_i64().unwrap_or_default();
         if (numOrders == 0) {
-            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_orders(symbolResolved.as_str(), since.as_i64(), limitResolved, params)).await);
+            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_orders(symbolResolved.as_deref(), since.as_i64(), limitResolved, params)).await);
         }
         return orders;
         Value::Null

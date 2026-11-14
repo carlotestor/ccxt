@@ -6040,7 +6040,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
             }
         }
-        let mut privateBody: Value = Value::Null;
+        let mut privateBody: Option<String> = None;
         let mut privateHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -6055,14 +6055,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut nonceWindow: Value = nonceWindowrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut requestParams: crate::value::Dict = nonceWindowrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let __ws_arg_43 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("request".to_string(), Value::from(request));
-                    m.insert("nonce".to_string(), nonce);
-                    m.insert("nonceWindow".to_string(), nonceWindow);
-                m
-            }), &[&requestParams]);
-            privateBody = self.json(__ws_arg_43);
-            let mut payload: String = self.string_to_base64(privateBody.clone(), &[]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("request".to_string(), Value::from(request));
+        m.insert("nonce".to_string(), nonce);
+        m.insert("nonceWindow".to_string(), nonceWindow);
+    m
+}), &[&requestParams]);
+            privateBody = self.json(__ws_arg_43).as_str().map(str::to_owned);
+            let mut payload: String = self.string_to_base64(privateBody.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), &secret, Value::Str("sha512".into()), &[]);
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -6074,9 +6074,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             });
         }
         let mut isPrivate: bool = accessibility.as_deref() == Some("private");
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         if isPrivate {
-            requestBody = privateBody;
+            requestBody = privateBody.take();
         }
         let mut requestHeaders: Value = publicHeaders;
         if isPrivate {
@@ -6086,7 +6086,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders);
     m
 });

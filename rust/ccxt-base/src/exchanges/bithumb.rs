@@ -2138,13 +2138,13 @@ impl Bithumb {
                     transactionTime = format!("{}{}", Value::Str("0".into()), rawTransactionTime);
                 }
                 let mut kstTimestamp: Option<i64> = self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", transactionDate.as_deref().unwrap_or("null"), Value::Str(" ".into())).into()), transactionTime).into()));
-                timestamp = kstTimestamp.clone();
+                timestamp = kstTimestamp;
                 if (kstTimestamp.is_some()) && (!isGenerationTwo) {
                     timestamp = (if let Some(__l) = kstTimestamp { Some(__l - ((9 * 3600000))) } else { None }); // they report UTC + 9 hours, server in Korean timezone
                 }
             }  else {
                 let mut productTimestamp: Option<i64> = self.safe_integer_product_k(trade.clone(), "transaction_date", Value::Float(0.001), &[]).as_i64();
-                timestamp = productTimestamp.clone();
+                timestamp = productTimestamp;
                 if (productTimestamp.is_some()) && (!isGenerationTwo) {
                     timestamp = (if let Some(__l) = productTimestamp { Some(__l - ((9 * 3600000))) } else { None }); // they report UTC + 9 hours, server in Korean timezone
                 }

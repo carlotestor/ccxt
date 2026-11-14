@@ -5344,7 +5344,7 @@ impl Paradex {
                     m.insert("PARADEX-PARTNER".to_string(), self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".into())]));
                 m
             });
-            let mut privateBody: Value = Value::Null;
+            let mut privateBody: Option<String> = None;
             // TODO: optimize
             if (pathValue.as_str() == Some("auth")) {
                 privateHeaders.insert("PARADEX-STARKNET-ACCOUNT".into(), self.safe_string_k(query.clone(), "account", &[]));
@@ -5358,10 +5358,10 @@ impl Paradex {
                 privateHeaders.insert("PARADEX-TIMESTAMP".into(), Value::from(self.number_to_string(self.nonce())));
                 privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                 privateBody = self.json(Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("public_key".to_string(), self.safe_string_k(query.clone(), "public_key", &[]));
-                    m
-                }));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("public_key".to_string(), self.safe_string_k(query.clone(), "public_key", &[]));
+    m
+})).as_str().map(str::to_owned);
             }  else {
                 let mut token: Option<String> = self.safe_string_k(self.options.clone(), "authToken", &[]).as_str().map(str::to_owned);
                 if (token.is_none()) {
@@ -5370,7 +5370,7 @@ impl Paradex {
                 privateHeaders.insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token.as_deref().unwrap_or("null")).into()));
                 if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || ((method.as_str() == Some("DELETE")) && (pathValue.as_str() == Some("orders/batch"))) {
                     privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
-                    privateBody = json_stringify(&query);
+                    privateBody = json_stringify(&query).as_str().map(str::to_owned);
                 }  else {
                     url = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query, &[]));
                 }
@@ -5387,12 +5387,12 @@ impl Paradex {
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            let mut bodyResolved: Value = privateBody;
+            let mut bodyResolved: Option<String> = privateBody;
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(privateHeaders));
     m
 });

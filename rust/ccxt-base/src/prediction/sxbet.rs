@@ -1008,7 +1008,7 @@ impl Sxbet {
             let mut gameTime: Option<i64> = self.safe_integer_k(&raw, "gameTime", &[]).as_i64();
             // skip the zero sentinel for "no scheduled game time" so it can't become the epoch
             if (gameTime.is_some()) && (gameTime != Some(0)) && ((earliestGameTime.is_none()) || ((gameTime.is_some() && earliestGameTime.is_some() && gameTime < earliestGameTime))) {
-                earliestGameTime = gameTime.clone();
+                earliestGameTime = gameTime;
             }
         }
         }

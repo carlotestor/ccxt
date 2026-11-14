@@ -3307,7 +3307,7 @@ impl Tokocrypto {
         if (type_var.is_none()) {
             if (insertTime.is_some()) && (createTime.is_none()) {
                 type_var = Some("deposit".to_string());
-                timestamp = insertTime.clone();
+                timestamp = insertTime;
             }  else if (insertTime.is_none()) && (createTime.is_some()) {
                 type_var = Some("withdrawal".to_string());
                 timestamp = createTime;
@@ -3505,18 +3505,18 @@ impl Tokocrypto {
                 m
             });
             let mut queryInUrl: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || (apiName.as_str() == Some("wapi"));
-            let mut bodySigned: Value = Value::Null;
+            let mut bodySigned: Option<String> = None;
             if queryInUrl {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), query));
             }  else {
-                bodySigned = Value::from(query);
+                bodySigned = Some(query);
                 headersSigned.insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into()));
             }
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodySigned);
+        m.insert("body".to_string(), bodySigned.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
 });

@@ -1635,17 +1635,17 @@ impl Backpack {
                     while { if !__for_first_248 { i += 1; } __for_first_248 = false; i < (sessions.len() as i64) } {
                     let mut sessionStep: Option<String> = self.safe_string_k(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "stepSize", &[]).as_str().map(str::to_owned);
                     if (sessionStep.is_some()) && ((stepSize.is_none()) || crate::precise::Precise::stringLt(&sessionStep.clone().map(Value::from).unwrap_or(Value::Null), &stepSize.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
-                        stepSize = sessionStep.clone();
+                        stepSize = sessionStep;
                     }
                     let mut sessionMin: Option<String> = self.safe_string_k(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "minQuantity", &[]).as_str().map(str::to_owned);
                     let mut sessionMax: Option<String> = self.safe_string_k(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "maxQuantity", &[]).as_str().map(str::to_owned);
                     if (sessionMin.is_some()) && ((minimum.is_none()) || crate::precise::Precise::stringLt(&sessionMin.clone().map(Value::from).unwrap_or(Value::Null), &minimum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
-                        minimum = sessionMin.clone();
+                        minimum = sessionMin;
                     }
                     if (sessionMax.is_none()) {
                         unbounded = true;
                     }  else if (maximum.is_none()) || crate::precise::Precise::stringGt(&sessionMax.clone().map(Value::from).unwrap_or(Value::Null), &maximum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
-                        maximum = sessionMax.clone();
+                        maximum = sessionMax;
                     }
                 }
                 }
@@ -5000,7 +5000,7 @@ impl Backpack {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut bodySigned: Value = Value::Null;
+        let mut bodySigned: Option<String> = None;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut ts: Option<String> = self.number_to_string(self.nonce());
@@ -5038,7 +5038,7 @@ impl Backpack {
                 m
             });
             if (method.as_str() != Some("GET")) {
-                bodySigned = json_stringify(&sortedParams);
+                bodySigned = json_stringify(&sortedParams).as_str().map(str::to_owned);
                 if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
         }
@@ -5050,15 +5050,15 @@ impl Backpack {
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         let mut headersResolved: Value = (if (apiName.as_deref() == Some("private")) { headersSigned } else { Value::Null });
-        let mut bodyResolved: Value = Value::Null;
+        let mut bodyResolved: Option<String> = None;
         if (apiName.as_deref() == Some("private")) && (method.as_str() != Some("GET")) {
-            bodyResolved = bodySigned;
+            bodyResolved = bodySigned.take();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

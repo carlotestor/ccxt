@@ -1557,7 +1557,7 @@ impl Predictfun {
         });
         let mut rawOutcomes: crate::value::List = self.safe_list_k(rawMarket.clone(), "outcomes", &[Value::from(vec![])]).into_list();
         let mut outcomes: Vec<Value> = Vec::new();
-        let mut resolvedOutcomeRaw: Value = Value::Null;
+        let mut resolvedOutcomeRaw: Option<String> = None;
         let mut rawOutcomesLength: f64 = ((rawOutcomes.len() as i64) as f64);
         {
                         let mut oi: i64 = 0;
@@ -1577,7 +1577,7 @@ impl Predictfun {
                 winner = Some(outcomeStatus.as_deref() == Some("WON"));
                 if (winner == Some(true)) {
                     settleFractionRaw = Some(1);
-                    resolvedOutcomeRaw = Value::from(outcomeHandle.clone());
+                    resolvedOutcomeRaw = Some(outcomeHandle.clone());
                 }  else {
                     settleFractionRaw = Some(0); // todo check
                 }
@@ -1605,7 +1605,7 @@ impl Predictfun {
             }));
         }
         }
-        let mut resolvedOutcome: Value = resolvedOutcomeRaw;
+        let mut resolvedOutcome: Option<String> = resolvedOutcomeRaw;
         let mut collateral: String = "USDT".to_string();
         let mut marketType: String = "binary".to_string();
         if rawOutcomesLength > ((2i64) as f64) {
@@ -1634,7 +1634,7 @@ impl Predictfun {
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("resolved".to_string(), resolved);
-        m.insert("resolvedOutcome".to_string(), resolvedOutcome);
+        m.insert("resolvedOutcome".to_string(), resolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);

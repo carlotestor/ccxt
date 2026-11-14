@@ -783,7 +783,7 @@ impl Hyperliquid {
         // Parse expiry from description
         let mut expiry: Option<String> = self.safe_string_k(&desc, "expiry", &[]).as_str().map(str::to_owned);
         let mut expiryMs: Option<i64> = None;
-        let mut expiryDatetime: Value = Value::Null;
+        let mut expiryDatetime: Option<String> = None;
         if (expiry.is_some()) && (expiry.as_deref() != Some("")) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             let mut expParts: Value = Value::Array(if let Some(__s) = expiry.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
@@ -799,7 +799,7 @@ impl Hyperliquid {
                     Value::Str("-".into())).into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(6).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("T".into())).into()),
                     (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":00Z".into()));
                 expiryMs = self.parse8601(Value::from(isoStr.clone()));
-                expiryDatetime = Value::from(isoStr);
+                expiryDatetime = Some(isoStr);
             }
         }
         // Side labels from sideSpecs (e.g. "Yes"/"No", but use YES/NO normalised)
@@ -894,7 +894,7 @@ impl Hyperliquid {
         m.insert("maker".to_string(), Value::Float(0.0002));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::from(expiryMs));
-        m.insert("expiryDatetime".to_string(), expiryDatetime);
+        m.insert("expiryDatetime".to_string(), expiryDatetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -2910,7 +2910,7 @@ impl Hyperliquid {
         let mut targetPrice: Option<String> = self.safe_string_k(&desc, "targetPrice", &[]).as_str().map(str::to_owned);
         let mut expiryRaw: Option<String> = self.safe_string_k(&desc, "expiry", &[]).as_str().map(str::to_owned);
         let mut expiryMs: Option<i64> = None;
-        let mut expiryDatetime: Value = Value::Null;
+        let mut expiryDatetime: Option<String> = None;
         if (expiryRaw.is_some()) && (expiryRaw.as_deref() != Some("")) {
             let mut parts: Value = Value::Array(if let Some(__s) = expiryRaw.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             let mut partsLength: i64 = parts.len() as i64;
@@ -2925,7 +2925,7 @@ impl Hyperliquid {
                     Value::Str("-".into())).into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(6).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("T".into())).into()),
                     (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":00Z".into()));
                 expiryMs = self.parse8601(Value::from(isoStr.clone()));
-                expiryDatetime = Value::from(isoStr);
+                expiryDatetime = Some(isoStr);
             }
         }
         let mut firstExpiry: Option<i64> = self.safe_integer_k(firstMarket, "expiry", &[]).as_i64();
@@ -2953,7 +2953,7 @@ impl Hyperliquid {
         m.insert("created".to_string(), Value::Null);
         m.insert("createdDatetime".to_string(), Value::Null);
         m.insert("end".to_string(), Value::from(endValue));
-        m.insert("endDatetime".to_string(), expiryDatetime);
+        m.insert("endDatetime".to_string(), expiryDatetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("category".to_string(), Value::Str("crypto".into()));
         m.insert("lastUpdatedAt".to_string(), Value::Null);
         m.insert("resolutionSource".to_string(), Value::Str("Hyperliquid mark price".into()));

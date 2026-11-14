@@ -1498,7 +1498,7 @@ impl Polymarket {
             let mut closed: bool = self.safe_bool_k(&market, "closed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
             let mut marketResolved: Value = Value::Bool((closed || (self.safe_string_lower_k(&market, "umaResolutionStatus", &[]).as_str() == Some("resolved"))));
-            let mut resolvedOutcome: Value = Value::Null;
+            let mut resolvedOutcome: Option<String> = None;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             let mut tickSize: Value = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
@@ -1553,7 +1553,7 @@ impl Polymarket {
                 if (clobTokenId == Value::Null) || (clobTokenId.as_str() == Some("")) {
                     continue;
                 }
-                let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), Value::from(marketSlug.as_deref()), outcomeLabel.clone());
+                let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventSlug.clone(), Value::from(marketSlug.as_deref()), outcomeLabel.clone()).as_str().map(str::to_owned);
                 let mut winnerRaw: Value = Value::Null;
                 let mut settleFractionRaw: Option<i64> = None;
                 if matches!(&marketResolved, Value::Bool(true)) && (outcomePrice.is_some()) {
@@ -1576,7 +1576,7 @@ impl Polymarket {
                 let mut settleFraction: Option<i64> = settleFractionRaw;
                 outcomes.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("outcome".to_string(), outcomeHandle);
+                        m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
                         m.insert("outcomeId".to_string(), clobTokenId);
                         m.insert("market".to_string(), marketSymbol.clone());
                         m.insert("label".to_string(), outcomeLabel);
@@ -1599,7 +1599,7 @@ impl Polymarket {
             let mut baseId: Option<String> = (if (conditionId.is_some()) { conditionId.clone() } else { marketId });
             let mut marketType: String = (if (outcomeLabelsLength > 2) { "categorical".to_string() } else { "binary".to_string() });
             // effectively-final copy for the market object literal below (reassigned in the loop)
-            let mut marketResolvedOutcome: Value = resolvedOutcome;
+            let mut marketResolvedOutcome: Option<String> = resolvedOutcome;
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), conditionId.map(Value::from).unwrap_or(Value::Null));
@@ -1622,7 +1622,7 @@ impl Polymarket {
                     m.insert("prediction".to_string(), Value::Bool(true));
                     m.insert("active".to_string(), Value::Bool((active && !(closed))));
                     m.insert("resolved".to_string(), marketResolved);
-                    m.insert("resolvedOutcome".to_string(), marketResolvedOutcome);
+                    m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -2095,7 +2095,7 @@ impl Polymarket {
 })]).into_dict();
         let mut last: Option<f64> = self.safe_number_k(&lastTradeData, "price", &[]).as_f64();
         if (last.is_none()) || (last == Some(0.0)) {
-            last = mid.clone();
+            last = mid;
         }
         let mut outcome: Option<String> = self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(&bookData, "timestamp", &[]).as_i64();

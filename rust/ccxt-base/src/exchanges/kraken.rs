@@ -1201,7 +1201,7 @@ impl Kraken {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing currencyPrecision".into()))));
                 }
                 if (currencyPrecision.is_some() && precisionAmount.is_some() && currencyPrecision > precisionAmount) {
-                    precisionAmount = currencyPrecision.clone();
+                    precisionAmount = currencyPrecision;
                 }
             }
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
@@ -2633,18 +2633,18 @@ impl Kraken {
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut orderSymbols: Vec<Value> = Vec::new();
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_852: bool = true;
             while { if !__for_first_852 { i += 1; } __for_first_852 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
-            let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
-            if (symbol == Value::Null) {
-                symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
+            let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
+            if (symbol.is_none()) {
+                symbol = marketId.clone();
             }  else {
-                if (symbol.as_str() != marketId.as_deref()) {
+                if (symbol != marketId) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
                 }
             }
@@ -2937,7 +2937,7 @@ impl Kraken {
         let mut price: Option<String> = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = None;
         let mut cost: Option<String> = None;
-        let mut triggerPrice: Value = Value::Null;
+        let mut triggerPrice: Option<String> = None;
         if (orderDescription.is_some()) {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = orderDescription.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).into_list();
             side = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -2955,7 +2955,7 @@ impl Kraken {
                 descriptionType = Some(format!("{}{}", Value::Str(format!("{}{}", part4.as_deref().unwrap_or("null"), Value::Str(" ".into())).into()), part5.as_deref().unwrap_or("null"))); // eg. stop loss, take profit, trailing stop
             }
             if (descriptionType.as_deref() == Some("stop loss")) || (descriptionType.as_deref() == Some("take profit")) {
-                triggerPrice = self.safe_string(&parts, Value::Int(6), &[]);
+                triggerPrice = self.safe_string(&parts, Value::Int(6), &[]).as_str().map(str::to_owned);
                 price = self.safe_string(&parts, Value::Int(9), &[]).as_str().map(str::to_owned);
             }  else if (descriptionType.as_deref() == Some("limit")) {
                 price = self.safe_string(&parts, Value::Int(5), &[]).as_str().map(str::to_owned);
@@ -3046,19 +3046,19 @@ impl Kraken {
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
         // triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
-        let mut stopLossPrice: Value = Value::Null;
-        let mut takeProfitPrice: Value = Value::Null;
+        let mut stopLossPrice: Option<String> = None;
+        let mut takeProfitPrice: Option<String> = None;
         // the dashed strings are not provided from fields (eg. fetch order)
         // while spaced strings from "order" sentence (when other fields not available)
         if (rawType.is_some()) {
             if (rawType.as_deref().unwrap_or_default().starts_with("take-profit")) {
-                takeProfitPrice = self.safe_string_k(&description, "price", &[]);
+                takeProfitPrice = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
                 price = self.safe_string_k(&description, "price2", &[]).as_str().map(str::to_owned);
                 if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
                     price = None.clone(); // kraken pads an absent price with zeros, so the omit-zero rule applies
                 }
             }  else if (rawType.as_deref().unwrap_or_default().starts_with("stop-loss")) {
-                stopLossPrice = self.safe_string_k(&description, "price", &[]);
+                stopLossPrice = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
                 price = self.safe_string_k(&description, "price2", &[]).as_str().map(str::to_owned);
                 if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
                     price = None.clone(); // kraken pads an absent price with zeros, so the omit-zero rule applies
@@ -3096,9 +3096,9 @@ impl Kraken {
         m.insert("postOnly".to_string(), isPostOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), triggerPrice);
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopLossPrice".to_string(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
@@ -3133,11 +3133,11 @@ impl Kraken {
         let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
         let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         let mut trailingAmount: Option<String> = self.safe_string_k(&paramsOmitted, "trailingAmount", &[]).as_str().map(str::to_owned);
-        let mut trailingPercent: Option<String> = self.safe_string_k(&paramsOmitted, "trailingPercent", &[]).as_str().map(str::to_owned);
+        let mut trailingPercent: Value = self.safe_string_k(&paramsOmitted, "trailingPercent", &[]);
         let mut trailingLimitAmount: Option<String> = self.safe_string_k(&paramsOmitted, "trailingLimitAmount", &[]).as_str().map(str::to_owned);
         let mut trailingLimitPercent: Option<String> = self.safe_string_k(&paramsOmitted, "trailingLimitPercent", &[]).as_str().map(str::to_owned);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
-        let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
+        let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
         let mut isLimitOrder: bool = (type_var != Value::Null) && (type_var.as_str().unwrap_or("").ends_with("limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         let mut cost: Option<String> = self.safe_string_k(&paramsOmitted, "cost", &[]).as_str().map(str::to_owned);
@@ -3180,8 +3180,8 @@ impl Kraken {
             }
         }  else if isTrailingAmountOrder || isTrailingPercentOrder {
             let mut trailingPercentString: Value = Value::Null;
-            if (trailingPercent.is_some()) {
-                trailingPercentString = (if (trailingPercent.as_deref().unwrap_or_default().ends_with("%")) { (Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent.as_deref().unwrap_or("null")).into())) } else { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent.as_deref().unwrap_or("null")).into()), Value::Str("%".into())).into())) });
+            if (trailingPercent != Value::Null) {
+                trailingPercentString = (if (trailingPercent.as_str().unwrap_or("").ends_with("%")) { (Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent).into())) } else { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent).into()), Value::Str("%".into())).into())) });
             }
             let mut trailingAmountString: Option<String> = (if (trailingAmount.is_some()) { Some(format!("{}{}", Value::Str("+".into()), trailingAmount.as_deref().unwrap_or("null"))) } else { None }); // must use + for this
             let mut offset: String = self.safe_string_k(&paramsOmitted2, "offset", &[Value::Str("-".into())]).as_str().unwrap_or("-").to_string(); // can use + or - for this
@@ -3200,7 +3200,7 @@ impl Kraken {
                 }
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordertype".into(), Value::Str("trailing-stop".into())); }
-                if (trailingPercent.is_some()) {
+                if (trailingPercent != Value::Null) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), trailingPercentString); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), trailingAmountString.map(Value::from).unwrap_or(Value::Null)); }

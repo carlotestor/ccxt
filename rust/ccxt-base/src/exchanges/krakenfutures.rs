@@ -1580,7 +1580,7 @@ impl Krakenfutures {
         let mut windowSize: Option<i64> = self.parse_to_int(Value::from(windowLimit));
         let mut limitResolved: Option<i64> = None;
         if (since != Value::Null) || (limit != Value::Null) {
-            limitResolved = windowSize.clone();
+            limitResolved = windowSize;
         }
         if (since != Value::Null) {
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());

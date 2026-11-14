@@ -2753,9 +2753,9 @@ impl Zebpay {
         let mut marginMode: String = self.safe_string_lower_k(position.clone(), "marginMode", &[Value::Str("isolated".into())]).as_str().unwrap_or("isolated").to_string();
         let mut initialMargin: Option<f64> = self.safe_number_k(position.clone(), "initialMargin", &[]).as_f64();
         // isolated positions hold exactly the initial margin posted for them
-        let mut positionMargin: Value = Value::Null;
+        let mut positionMargin: Option<f64> = None;
         if (marginMode == "isolated") {
-            positionMargin = Value::from(initialMargin);
+            positionMargin = initialMargin;
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2777,7 +2777,7 @@ impl Zebpay {
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("positionMargin".to_string(), positionMargin);
+        m.insert("positionMargin".to_string(), Value::from(positionMargin));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("side".to_string(), self.safe_string_lower_k(position, "side", &[]));
@@ -2911,7 +2911,7 @@ impl Zebpay {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut bodySigned: Value = Value::Null;
+        let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
         let mut paramsOmitted: Value = self.omit(params, Value::Str("defaultType".into()), &[]);
         let mut isV1: bool = path.as_str().unwrap_or("").contains("v1/");
@@ -2944,7 +2944,7 @@ impl Zebpay {
     m
 }), &[]));
                 }
-                bodySigned = json_stringify(&paramsBody);
+                bodySigned = json_stringify(&paramsBody).as_str().map(str::to_owned);
                 headersSigned = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Referrer".to_string(), Value::Str("ccxt".into()));
@@ -2967,8 +2967,8 @@ impl Zebpay {
                 suffix = format!("{}{}", Value::Str("?".into()), queryString);
             }  else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                bodySigned = json_stringify(&paramsSigned);
-                signature = self.hmac(self.encode(bodySigned.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+                bodySigned = json_stringify(&paramsSigned).as_str().map(str::to_owned);
+                signature = self.hmac(self.encode(Value::from(bodySigned.as_deref())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             }
             headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -2981,12 +2981,12 @@ impl Zebpay {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), tail).into()), suffix);
         let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
-        let mut bodyResolved: Value = bodySigned;
+        let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

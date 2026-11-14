@@ -2224,7 +2224,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut outcomeObj: Value = Value::Null;
         let mut outcomeSymbol: Option<String> = None;
-        let mut rowOutcomeId: Value = Value::Null;
+        let mut rowOutcomeId: Option<String> = None;
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
             outcomeSymbol = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome]).as_str().map(str::to_owned);
@@ -2234,7 +2234,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]).into_dict();
             request.insert("market_id".into(), self.safe_string_k(&info, "marketId", &[]));
             request.insert("network_id".into(), self.safe_string_k(&info, "networkId", &[]));
-            rowOutcomeId = self.safe_string_k(&info, "outcomeId", &[]);
+            rowOutcomeId = self.safe_string_k(&info, "outcomeId", &[]).as_str().map(str::to_owned);
         }
         if (since != Value::Null) {
             request.insert("since".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
@@ -2288,8 +2288,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (action.as_deref() != Some("buy")) && (action.as_deref() != Some("sell")) {
                 continue;
             }
-            let mut currentOutcomeId: Option<String> = self.safe_string_k_opt(&row, "outcomeId", &[]);
-            if (rowOutcomeId != Value::Null) && (currentOutcomeId.as_deref() != rowOutcomeId.as_str()) {
+            let mut currentOutcomeId: Option<String> = self.safe_string_k(&row, "outcomeId", &[]).as_str().map(str::to_owned);
+            if (rowOutcomeId.is_some()) && (currentOutcomeId != rowOutcomeId) {
                 continue;
             }
             result.push(self.parse_amm_event_to_order(Value::Dict(row), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref()));
@@ -3141,7 +3141,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut voided: bool = self.safe_bool_k_opt(raw.clone(), "voided", &[Value::Bool(false)]).unwrap_or(false);
         let mut hasResolution: bool = (resolvedOutcomeId.as_str() != Some("-1")) && (resolvedOutcomeId != Value::Null) && (resolvedOutcomeId.as_str() != Some(""));
         let mut marketResolved: Value = Value::Bool(hasResolution || voided);
-        let mut resolvedOutcome: Value = Value::Null;
+        let mut resolvedOutcome: Option<String> = None;
         let mut volume24h: Option<f64> = self.safe_number_k(raw.clone(), "volume24h", &[]).as_f64();
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
         // globally unique, so do NOT fall back to networkId — that would prefix every handle.
@@ -3182,7 +3182,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut outcomeId: Value = self.safe_string_k(&outcome, "outcomeId", &[self.safe_string_k(&outcome, "id", &[Value::Str(format!("{}", i).into())])]);
             let mut outcomeLabel: Option<String> = self.safe_string_k(&outcome, "label", &[self.safe_string_k(&outcome, "title", &[outcomeId.clone()])]).as_str().map(str::to_owned);
             let mut price: Option<f64> = self.safe_number_k(&outcome, "price", &[]).as_f64();
-            let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), Value::from(slug.as_deref()), Value::from(outcomeLabel.as_deref()));
+            let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventSlug.clone(), Value::from(slug.as_deref()), Value::from(outcomeLabel.as_deref())).as_str().map(str::to_owned);
             let mut outcomeCompositeId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketId.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into()), outcomeId);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Option<i64> = None;
@@ -3203,7 +3203,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(outcomeCompositeId.clone()));
                     m.insert("outcomeId".to_string(), Value::from(outcomeCompositeId));
-                    m.insert("outcome".to_string(), outcomeHandle);
+                    m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("market".to_string(), marketSymbol.clone());
                     m.insert("label".to_string(), Value::from(outcomeLabel.as_deref()));
                     m.insert("active".to_string(), Value::Bool(active));
@@ -3241,7 +3241,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut outcomesLength: i64 = outcomes.len() as i64;
         // effectively-final copy for the market object literal below (reassigned in the loop)
-        let mut marketResolvedOutcome: Value = resolvedOutcome;
+        let mut marketResolvedOutcome: Option<String> = resolvedOutcome;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketId.as_deref().unwrap_or("null")).into()));
@@ -3263,7 +3263,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("resolved".to_string(), marketResolved);
-        m.insert("resolvedOutcome".to_string(), marketResolvedOutcome);
+        m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -3518,10 +3518,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut outcomeId: Value = (if ((market.is_some()) && (market.is_some())) { self.safe_string_k(crate::value::KeyRead::key_read(&market, "info"), "outcomeId", &[]) } else { Value::Null });
         let mut outcomes: crate::value::List = self.safe_list_k(raw.clone(), "outcomes", &[Value::from(vec![])]).into_list();
-        let mut price: Value = Value::Null;
-        let mut change: Value = Value::Null;
+        let mut price: Option<f64> = None;
+        let mut change: Option<f64> = None;
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE percentage from it
-        let mut previousClose: Value = Value::Null;
+        let mut previousClose: Option<f64> = None;
         let mut percentage: Value = Value::Null;
         {
                         let mut i: i64 = 0;
@@ -3531,11 +3531,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.safe_string_k(&o, "outcomeId", &[self.safe_string_k(&o, "id", &[])]).as_str() == outcomeId.as_str()) {
                 let mut priceValue: Option<f64> = self.safe_number_k(&o, "price", &[]).as_f64();
                 let mut changeValue: Option<f64> = self.safe_number_k(&o, "priceChange24h", &[]).as_f64();
-                price = Value::from(priceValue);
-                change = Value::from(changeValue);
+                price = priceValue;
+                change = changeValue;
                 if (priceValue.is_some()) && (changeValue.is_some()) {
                     let mut previousCloseValue: Option<f64> = (if let (Some(__l), Some(__r)) = (priceValue, changeValue) { Some(__l - __r) } else { None });
-                    previousClose = Value::from(previousCloseValue);
+                    previousClose = previousCloseValue;
                     if (previousCloseValue != Some(0.0)) {
                         percentage = (match (&((match ((Value::from(changeValue)).as_f64(), (Value::from(previousCloseValue)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
                             (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -3555,18 +3555,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), price.clone());
+        m.insert("bid".to_string(), Value::from(price));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), price.clone());
+        m.insert("ask".to_string(), Value::from(price));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), previousClose.clone());
-        m.insert("close".to_string(), price.clone());
-        m.insert("last".to_string(), price.clone());
-        m.insert("previousClose".to_string(), previousClose);
-        m.insert("change".to_string(), change);
+        m.insert("open".to_string(), Value::from(previousClose));
+        m.insert("close".to_string(), Value::from(price));
+        m.insert("last".to_string(), Value::from(price));
+        m.insert("previousClose".to_string(), Value::from(previousClose));
+        m.insert("change".to_string(), Value::from(change));
         m.insert("percentage".to_string(), percentage);
-        m.insert("average".to_string(), price);
+        m.insert("average".to_string(), Value::from(price));
         m.insert("baseVolume".to_string(), self.safe_number_k(raw.clone(), "volumeNotional24h", &[]));
         m.insert("quoteVolume".to_string(), self.safe_number_k(raw.clone(), "volume24h", &[]));
         m.insert("info".to_string(), raw);

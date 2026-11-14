@@ -5408,17 +5408,17 @@ impl Bybit {
                 &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })); }
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::from(limitResolved)); }; // max 1000, default 1000
-        let mut paramsUntil: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end".into()), request.clone(), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsUntil: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end".into()), request.clone(), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("spot".into())); }
-            let __ws_arg_8 = self.extend(request.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_8 = self.extend(request.clone(), &[&paramsUntil]);
             response = self.public_get_v5_market_kline(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
-            let mut price: Option<String> = self.safe_string_k(paramsUntil.clone(), "price", &[]).as_str().map(str::to_owned);
-            let mut paramsOmitted: crate::value::Dict = self.omit(paramsUntil, Value::Str("price".into()), &[]).into_dict();
+            let mut price: Option<String> = self.safe_string_k(&paramsUntil, "price", &[]).as_str().map(str::to_owned);
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::Str("price".into()), &[]).into_dict();
             if ((market).linear == Some(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("linear".into())); }
             }  else if ((market).inverse == Some(true)) {
@@ -7013,13 +7013,13 @@ impl Bybit {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders".into()))));
             }
             if isStopLossOrder || isTakeProfitOrder {
-                let mut tpslModeSl: Value = Value::Null;
-                let mut tpslModeTp: Value = Value::Null;
+                let mut tpslModeSl: Option<String> = None;
+                let mut tpslModeTp: Option<String> = None;
                 if isStopLossOrder {
                     request.insert("stopLoss".into(), self.get_price(Some(symbolValue.as_str()), stopLossTriggerPrice.as_deref()));
                     let mut stopLossLimitPrice: Option<String> = self.safe_string2(query.clone(), Value::Str("stopLossLimitPrice".into()), Value::Str("slLimitPrice".into()), &[]).as_str().map(str::to_owned);
                     if (stopLossLimitPrice.is_some()) {
-                        tpslModeSl = Value::Str("Partial".into());
+                        tpslModeSl = Some("Partial".to_string());
                         request.insert("slOrderType".into(), Value::Str("Limit".into()));
                         request.insert("slLimitPrice".into(), stopLossLimitPrice.map(Value::from).unwrap_or(Value::Null));
                         request.insert("slSize".into(), amountString.clone());
@@ -7027,9 +7027,9 @@ impl Bybit {
                         request.insert("slOrderType".into(), Value::Str("Market".into()));
                         if (amountString != Value::Null) {
                             request.insert("slSize".into(), amountString.clone());
-                            tpslModeSl = Value::Str("Partial".into());
+                            tpslModeSl = Some("Partial".to_string());
                         }  else {
-                            tpslModeSl = Value::Str("Full".into());
+                            tpslModeSl = Some("Full".to_string());
                         }
                     }
                 }
@@ -7037,7 +7037,7 @@ impl Bybit {
                     request.insert("takeProfit".into(), self.get_price(Some(symbolValue.as_str()), takeProfitTriggerPrice.as_deref()));
                     let mut takeProfitLimitPrice: Option<String> = self.safe_string2(query.clone(), Value::Str("takeProfitLimitPrice".into()), Value::Str("tpLimitPrice".into()), &[]).as_str().map(str::to_owned);
                     if (takeProfitLimitPrice.is_some()) {
-                        tpslModeTp = Value::Str("Partial".into());
+                        tpslModeTp = Some("Partial".to_string());
                         request.insert("tpOrderType".into(), Value::Str("Limit".into()));
                         request.insert("tpLimitPrice".into(), takeProfitLimitPrice.map(Value::from).unwrap_or(Value::Null));
                         request.insert("tpSize".into(), amountString.clone());
@@ -7045,19 +7045,19 @@ impl Bybit {
                         request.insert("tpOrderType".into(), Value::Str("Market".into()));
                         if (amountString != Value::Null) {
                             request.insert("tpSize".into(), amountString.clone());
-                            tpslModeTp = Value::Str("Partial".into());
+                            tpslModeTp = Some("Partial".to_string());
                         }  else {
-                            tpslModeTp = Value::Str("Full".into());
+                            tpslModeTp = Some("Full".to_string());
                         }
                     }
                 }
-                if isTakeProfitOrder && isStopLossOrder && (tpslModeSl.as_str() != tpslModeTp.as_str()) {
+                if isTakeProfitOrder && isStopLossOrder && (tpslModeSl != tpslModeTp) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination".into()))));
                 }
-                if (tpslModeSl != Value::Null) {
-                    request.insert("tpslMode".into(), tpslModeSl);
+                if (tpslModeSl.is_some()) {
+                    request.insert("tpslMode".into(), tpslModeSl.map(Value::from).unwrap_or(Value::Null));
                 }  else {
-                    request.insert("tpslMode".into(), tpslModeTp);
+                    request.insert("tpslMode".into(), tpslModeTp.map(Value::from).unwrap_or(Value::Null));
                 }
                 query = self.omit(query, Value::from(vec![Value::Str("stopLossLimitPrice".into()), Value::Str("takeProfitLimitPrice".into()), Value::Str("tradingStopEndpoint".into())]), &[]);
             }
@@ -7863,7 +7863,7 @@ impl Bybit {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersForSymbols() supports UTA accounts only".into()))));
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
-        let mut category: Value = Value::Null;
+        let mut category: Option<String> = None;
         // getBybitType consumes its options from the params threaded through every order
         let mut query: Value = params;
         {
@@ -7873,12 +7873,12 @@ impl Bybit {
             let mut order: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut currentCategory: Value = Value::Null;
-            { let __destr_tmp: Vec<Value> = self.get_bybit_type("cancelOrders", Some(&market), &[query.clone()]).as_array().cloned().unwrap_or_default(); currentCategory = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            if (currentCategory.as_str() == Some("inverse")) {
+            let mut currentCategory: Option<String> = None;
+            { let __destr_tmp: Vec<Value> = self.get_bybit_type("cancelOrders", Some(&market), &[query.clone()]).as_array().cloned().unwrap_or_default(); currentCategory = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            if (currentCategory.as_deref() == Some("inverse")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersForSymbols does not allow inverse orders".into()))));
             }
-            if (category != Value::Null) && (category.as_str() != currentCategory.as_str()) {
+            if (category.is_some()) && (category != currentCategory) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))".into()))));
             }
             category = currentCategory;
@@ -7899,7 +7899,7 @@ impl Bybit {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("category".to_string(), category);
+                m.insert("category".to_string(), category.map(Value::from).unwrap_or(Value::Null));
                 m.insert("request".to_string(), Value::from(ordersRequests));
             m
         });

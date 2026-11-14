@@ -1246,7 +1246,7 @@ impl Latoken {
             let mut timestamp: Option<i64> = self.safe_integer_k(&balance, "timestamp", &[]).as_i64();
             if (timestamp.is_some()) {
                 if (maxTimestamp.is_none()) || ((timestamp.is_some() && maxTimestamp.is_some() && timestamp > maxTimestamp)) {
-                    maxTimestamp = timestamp.clone();
+                    maxTimestamp = timestamp;
                 }
             }
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);

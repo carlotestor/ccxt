@@ -5575,7 +5575,7 @@ impl Weex {
         let mut longLeverage: Option<f64> = self.safe_number_k(leverage.clone(), "isolatedLongLeverage", &[]).as_f64();
         let mut shortLeverage: Option<f64> = self.safe_number_k(leverage.clone(), "isolatedShortLeverage", &[]).as_f64();
         if (marginMode.as_str() == Some("cross")) {
-            longLeverage = crossLeverage.clone();
+            longLeverage = crossLeverage;
             shortLeverage = crossLeverage;
         }
         return Value::Map({

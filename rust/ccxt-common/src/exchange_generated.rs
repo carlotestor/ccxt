@@ -4677,7 +4677,7 @@ pub trait ExchangeBase:
         let mut deposit: crate::value::Dict = self.safe_dict_k(&limits, "deposit", &[]).into_dict();
         let mut isEnabled: Option<bool> = withdrawEnabled;
         if (withdrawEnabled == Some(true)) {
-            isEnabled = depositEnabled.clone();
+            isEnabled = depositEnabled;
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5264,7 +5264,7 @@ pub trait ExchangeBase:
                     if (pnlDiff.is_some()) {
                         let mut candidateUpnl: Option<String> = crate::precise::Precise::stringMul(&pnlDiff.map(Value::from).unwrap_or(Value::Null), &totalSize.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         if crate::precise::Precise::stringEq(&candidateUpnl.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) || crate::precise::Precise::stringGe(&crate::precise::Precise::stringAbs(&candidateUpnl.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("0.000001".into())).as_bool() == Some(true) {
-                            unrealizedPnlString = candidateUpnl.clone();
+                            unrealizedPnlString = candidateUpnl;
                             if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("unrealizedPnl".into(), self.parse_number(unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null), &[])); }
                         }
                     }

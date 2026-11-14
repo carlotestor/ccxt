@@ -2061,7 +2061,7 @@ impl Coinmate {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut bodySigned: Value = Value::Null;
+        let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -2083,14 +2083,14 @@ impl Coinmate {
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone());
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let __ws_arg_10 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("clientId".to_string(), self.uid.clone());
-                    m.insert("nonce".to_string(), nonce);
-                    m.insert("publicKey".to_string(), self.apiKey.clone());
-                    m.insert("signature".to_string(), Value::from(signature.to_uppercase()));
-                m
-            }), &[params]);
-            bodySigned = Value::from(self.urlencode(__ws_arg_10, &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("clientId".to_string(), self.uid.clone());
+        m.insert("nonce".to_string(), nonce);
+        m.insert("publicKey".to_string(), self.apiKey.clone());
+        m.insert("signature".to_string(), Value::from(signature.to_uppercase()));
+    m
+}), &[params]);
+            bodySigned = Some(self.urlencode(__ws_arg_10, &[]));
             headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -2098,12 +2098,12 @@ impl Coinmate {
             }));
         }
         let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
-        let mut bodyResolved: Value = bodySigned;
+        let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

@@ -1022,7 +1022,7 @@ impl Binance {
         let mut liquidity: Option<f64> = self.safe_number_k(rawMarket.clone(), "liquidity", &[]).as_f64();
         let mut rawOutcomes: crate::value::List = self.safe_list_k(rawMarket.clone(), "outcomes", &[Value::from(vec![])]).into_list();
         let mut outcomes: Vec<Value> = Vec::new();
-        let mut resolvedOutcomeRaw: Value = Value::Null;
+        let mut resolvedOutcomeRaw: Option<String> = None;
         let mut rawOutcomesLength: f64 = ((rawOutcomes.len() as i64) as f64);
         {
                         let mut oi: i64 = 0;
@@ -1039,7 +1039,7 @@ impl Binance {
                 winnerRaw = crate::precise::Precise::stringEq(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into()));
                 settleFractionRaw = (if (winnerRaw).as_bool() == Some(true) { Some(1) } else { Some(0) });
                 if winnerRaw.as_bool() == Some(true) {
-                    resolvedOutcomeRaw = Value::from(outcomeHandle.clone());
+                    resolvedOutcomeRaw = Some(outcomeHandle.clone());
                 }
             }
             let mut winner: Value = winnerRaw;
@@ -1080,7 +1080,7 @@ impl Binance {
             }));
         }
         }
-        let mut resolvedOutcome: Value = resolvedOutcomeRaw;
+        let mut resolvedOutcome: Option<String> = resolvedOutcomeRaw;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1103,7 +1103,7 @@ impl Binance {
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("resolved".to_string(), Value::Bool(resolved));
-        m.insert("resolvedOutcome".to_string(), resolvedOutcome);
+        m.insert("resolvedOutcome".to_string(), resolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);

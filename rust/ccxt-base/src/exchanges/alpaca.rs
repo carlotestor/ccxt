@@ -3247,22 +3247,22 @@ impl Alpaca {
             headersValue.insert("APCA-API-SECRET-KEY".into(), self.secret.clone());
         }
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut bodyJson: Value = Value::Null;
+        let mut bodyJson: Option<String> = None;
         if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }  else {
-                bodyJson = json_stringify(&query);
+                bodyJson = json_stringify(&query).as_str().map(str::to_owned);
                 headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));
             }
         }
         let mut url: String = format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), endpoint);
-        let mut bodyResolved: Value = bodyJson;
+        let mut bodyResolved: Option<String> = bodyJson;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersValue));
     m
 });

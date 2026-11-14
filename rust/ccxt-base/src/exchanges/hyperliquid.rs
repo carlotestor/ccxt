@@ -5051,13 +5051,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         let mut orderTypeRaw: Value = self.safe_string_lower_k(&entry, "orderType", &[Value::Str("".into())]);
-        let mut stopLossPrice: Value = Value::Null;
-        let mut takeProfitPrice: Value = Value::Null;
+        let mut stopLossPrice: Option<f64> = None;
+        let mut takeProfitPrice: Option<f64> = None;
         if (triggerPx.is_some()) {
             if orderTypeRaw.as_str().unwrap_or("").contains("stop") {
-                stopLossPrice = Value::from(triggerPx);
+                stopLossPrice = triggerPx;
             }  else if orderTypeRaw.as_str().unwrap_or("").contains("take profit") {
-                takeProfitPrice = Value::from(triggerPx);
+                takeProfitPrice = triggerPx;
             }
         }
         return self.safe_order(Value::Map({
@@ -5077,8 +5077,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(&entry, "limitPx", &[]));
         m.insert("triggerPrice".to_string(), Value::from(triggerPx));
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
+        m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
+        m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
         m.insert("amount".to_string(), totalAmount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string_k(&entry, "avgPx", &[]));
@@ -5642,16 +5642,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawUnrealizedPnl: Option<String> = self.safe_string_k(&entry, "unrealizedPnl", &[]).as_str().map(str::to_owned);
         let mut absRawUnrealizedPnl: Option<String> = crate::precise::Precise::stringAbs(&rawUnrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut marginUsed: Option<String> = self.safe_string_k(&entry, "marginUsed", &[]).as_str().map(str::to_owned);
-        let mut initialMargin: Value = Value::Null;
+        let mut initialMargin: Option<String> = None;
         if isIsolated {
-            initialMargin = crate::precise::Precise::stringSub(&marginUsed.clone().map(Value::from).unwrap_or(Value::Null), &rawUnrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null));
+            initialMargin = crate::precise::Precise::stringSub(&marginUsed.clone().map(Value::from).unwrap_or(Value::Null), &rawUnrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
-            initialMargin = marginUsed.clone().map(Value::from).unwrap_or(Value::Null);
+            initialMargin = marginUsed.clone();
         }
         let mut percentage: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&absRawUnrealizedPnl.map(Value::from).unwrap_or(Value::Null), &marginUsed.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut positionValueString: Option<String> = self.safe_string_k(&entry, "positionValue", &[]).as_str().map(str::to_owned);
         let mut markPriceString: Option<String> = crate::precise::Precise::stringDiv(&positionValueString.clone().map(Value::from).unwrap_or(Value::Null), &size.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut marginString: Value = Value::Null;
+        let mut marginString: Option<String> = None;
         if isIsolated {
             marginString = initialMargin.clone();
         }
@@ -5671,9 +5671,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("markPrice".to_string(), self.parse_number(markPriceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("notional".to_string(), self.parse_number(positionValueString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("leverage".to_string(), self.safe_number_k(&leverage, "value", &[]));
-        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(marginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("collateral".to_string(), self.parse_number(marginUsed.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("initialMargin".to_string(), self.parse_number(initialMargin, &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(initialMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);

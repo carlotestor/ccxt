@@ -2701,7 +2701,7 @@ impl Derive {
         let mut end: Value = Value::from(untilSeconds);
         if (since != Value::Null) {
             let mut sinceSeconds: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            start = sinceSeconds.clone();
+            start = sinceSeconds;
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
             if (sinceSeconds.is_some() && windowStart.is_some() && sinceSeconds < windowStart) {
                 end = self.sum(&[Value::from(sinceSeconds), Value::from(span)]);
@@ -4103,11 +4103,11 @@ impl Derive {
             }
         }
         let mut triggerType: Option<String> = self.safe_string_k(order.clone(), "trigger_type", &[]).as_str().map(str::to_owned);
-        let mut stopLossPrice: Value = Value::Null;
-        let mut takeProfitPrice: Value = Value::Null;
-        let mut triggerPrice: Value = Value::Null;
+        let mut stopLossPrice: Option<String> = None;
+        let mut takeProfitPrice: Option<String> = None;
+        let mut triggerPrice: Option<String> = None;
         if (triggerType.is_some()) {
-            triggerPrice = self.safe_string_k(order.clone(), "trigger_price", &[]);
+            triggerPrice = self.safe_string_k(order.clone(), "trigger_price", &[]).as_str().map(str::to_owned);
             if (triggerType.as_deref() == Some("stoploss")) {
                 stopLossPrice = triggerPrice.clone();
             }  else {
@@ -4133,9 +4133,9 @@ impl Derive {
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduce_only", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), triggerPrice);
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopLossPrice".to_string(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
