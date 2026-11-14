@@ -75,7 +75,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         // Forward to the inherent method on Polymarket.
         Polymarket::parse_prediction_position(self, position, market)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Polymarket.
         Polymarket::sign(self, path, &[api, method, params, headers, body])
     }
@@ -146,7 +146,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "polymarket_order_raw_amounts" => self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_str), args.get(4).and_then(crate::Value::as_f64)),
                 "set_api_credentials" => self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default()),
                 "subscribe_user_channel" => self.subscribe_user_channel(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
@@ -4335,7 +4335,8 @@ impl Polymarket {
  * @param {object} params the request parameters
  * @returns {object} a dict with url, method, body and headers
  */
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("gamma".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -4413,8 +4414,8 @@ impl Polymarket {
             // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
             // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
             // would corrupt the literal to 'auth/derive-$api-key' and break this check
-            let mut deriveApiKeyPath: Value = Value::Str(format!("{}{}", "auth/derive-", "api-key").into());
-            let mut isL1Auth: bool = (path.as_str() == Some("auth/api-key")) || (path.as_str() == deriveApiKeyPath.as_str()) || (path.as_str() == Some("auth/api-keys"));
+            let mut deriveApiKeyPath: String = format!("{}{}", "auth/derive-", "api-key");
+            let mut isL1Auth: bool = (path.as_str() == Some("auth/api-key")) || (path.as_str().unwrap_or_default().to_string() == deriveApiKeyPath) || (path.as_str() == Some("auth/api-keys"));
             if isL1Auth {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if (self.privateKey.clone() == Value::Null) {

@@ -104,7 +104,7 @@ impl crate::exchange::DerivedExchange for Grvt {
         // Forward to the inherent method on Grvt.
         Grvt::parse_leverage(self, leverage, market)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Grvt.
         Grvt::sign(self, path, &[api, method, params, headers, body])
     }
@@ -177,7 +177,7 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "request_id" => crate::Value::from(self.request_id()),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_in" => self.sign_in(&args[..]).await,
                 "sign_in_with_api_key" => self.sign_in_with_api_key(&args[..]).await,
                 "sign_in_with_private_key" => self.sign_in_with_private_key(&args[..]).await,
@@ -4767,7 +4767,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         return requestId;
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -4778,8 +4779,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
-        let mut requestPath: Value = path.clone();
-        let mut query: Value = self.omit(params.clone(), self.extract_params(requestPath.clone()), &[]);
+        let mut requestPath: String = path.as_str().unwrap_or_default().to_string();
+        let mut query: Value = self.omit(params.clone(), self.extract_params(Value::from(requestPath.clone())), &[]);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -4812,9 +4813,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if isPrivate {
             self.check_required_credentials(&[]);
             if (queryString != "") {
-                requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, "?").into()), queryString).into());
+                requestPath = format!("{}{}", Value::Str(format!("{}{}", path, "?").into()), queryString);
             }
-            if (requestPath.as_str().unwrap_or("").ends_with("auth/api_key/login")) || (requestPath.as_str().unwrap_or("").ends_with("auth/wallet/login")) {
+            if (requestPath.ends_with("auth/api_key/login")) || (requestPath.ends_with("auth/wallet/login")) {
                 requestHeaders = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));

@@ -1132,11 +1132,12 @@ pub trait ExchangeBase:
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableDemoTrading".into(), enable); }
 }
 
-    fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
         // virtual-dispatch (static: DerivedExchange::sign(self, ...))
         { let __v = crate::exchange::DerivedExchange::sign(self, path, crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3, crate::Value::Null),
             crate::runtime::get_arg(optional_args, 4, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -5878,7 +5879,7 @@ pub trait ExchangeBase:
             }
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.set_last_rest_request_timestamp();
-                let mut request: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), Value::from(&paramsMaxRetriesOnFailureDelay)]).as_map().cloned().unwrap_or_default();
+                let mut request: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.as_str().unwrap_or_default(), &[api.clone(), method.clone(), Value::from(&paramsMaxRetriesOnFailureDelay)]).as_map().cloned().unwrap_or_default();
                 if (fetchData != Value::Null) {
                     if let Value::Dict(__d) = &mut fetchData { std::sync::Arc::make_mut(__d).insert("request".into(), Value::Map(request.clone())); }
                 }
@@ -13739,7 +13740,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
             "set_take_profit_and_stop_loss_params" => self.set_take_profit_and_stop_loss_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-            "sign" => <Self as crate::exchange_generated::ExchangeBase>::sign(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "sign" => <Self as crate::exchange_generated::ExchangeBase>::sign(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
             "sign_in" => self.sign_in(&args[..]).await,
             "sort_cursor_paginated_result" => self.sort_cursor_paginated_result(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "string_to_base16" => self.string_to_base16(args.get(0).cloned().unwrap_or(crate::Value::Null)),
