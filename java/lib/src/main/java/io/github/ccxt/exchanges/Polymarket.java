@@ -3066,7 +3066,7 @@ public class Polymarket extends PolymarketApi
 
     }
 
-    public Object hashMessage(Object message)
+    public String hashMessage(Object message)
     {
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
@@ -3218,7 +3218,7 @@ public class Polymarket extends PolymarketApi
 
             Map<String, Object> credentials = (this.loadProxyCredentials(new HashMap<String, Object>() {{}})).join();
             Object packed = this.packb(signable);
-            Object dataHash = this.hashMessage(packed);
+            String dataHash = this.hashMessage(packed);
             Long ts = this.milliseconds();
             Object salt = this.randNumber(9);
             Long chainId = this.safeInteger(this.options, "chainId", 137);

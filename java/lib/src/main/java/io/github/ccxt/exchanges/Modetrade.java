@@ -3634,7 +3634,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Object hashMessage(Object message)
+    public String hashMessage(Object message)
     {
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
