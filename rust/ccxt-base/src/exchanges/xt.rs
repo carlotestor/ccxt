@@ -2751,8 +2751,8 @@ impl Xt {
         }
         let mut limitResolved: Value = limit.clone();
         if (limit != Value::Null) {
-            let mut maxLimit: Value = (if (market).spot { Value::Int(1000) } else { Value::Int(1500) }); // spot : derivatives max limit
-            limitResolved = crate::runtime::Math::min(&limit, &maxLimit);
+            let mut maxLimit: i64 = (if (market).spot { 1000 } else { 1500 }); // spot : derivatives max limit
+            limitResolved = crate::runtime::Math::min(&limit, &Value::from(maxLimit));
             request.insert("limit".into(), limitResolved.clone());
         }  else {
             request.insert("limit".into(), Value::Int(1000));

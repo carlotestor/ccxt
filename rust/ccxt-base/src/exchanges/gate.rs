@@ -5262,8 +5262,8 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             // gateeu returns an empty book for a spot limit above 100
             let mut maxSpotLimit: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)]));
-            let mut maxLimit: Value = (if (market).spot { Value::from(maxSpotLimit) } else { Value::Int(300) });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit)); }
+            let mut maxLimit: Option<i64> = (if (market).spot { maxSpotLimit } else { Some(300) });
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::from(maxLimit))); }
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("with_id".into(), Value::Bool(true)); }
         let mut response: Option<crate::value::Dict> = None;
@@ -6026,8 +6026,8 @@ if _try_result.is_err() {
         let mut request: Value = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
-        let mut maxLimit: Value = (if (market).contract { Value::Int(1999) } else { Value::Int(1000) });
-        let mut limitValue: Value = (if (limit == Value::Null) { maxLimit.clone() } else { crate::runtime::Math::min(&limit, &maxLimit) });
+        let mut maxLimit: i64 = (if (market).contract { 1999 } else { 1000 });
+        let mut limitValue: Value = (if (limit == Value::Null) { Value::from(maxLimit) } else { crate::runtime::Math::min(&limit, &Value::from(maxLimit)) });
         let mut untilMs: Option<i64> = self.safe_integer_k(&paramsRequest, "until", &[]).as_i64();
         let mut until: Value = Value::Null;
         if (untilMs.is_some()) {

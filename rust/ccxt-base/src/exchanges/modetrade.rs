@@ -3754,12 +3754,12 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut maxLimit: Value = (if isTrigger { Value::Int(100) } else { Value::Int(500) });
+        let mut maxLimit: i64 = (if isTrigger { 100 } else { 500 });
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3775,9 +3775,9 @@ impl Modetrade {
             request.insert("start_t".into(), since.clone());
         }
         if (limit != Value::Null) {
-            request.insert("size".into(), crate::runtime::Math::min(&limit, &maxLimit));
+            request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::from(maxLimit)));
         }  else {
-            request.insert("size".into(), maxLimit);
+            request.insert("size".into(), Value::from(maxLimit));
         }
         if isTrigger {
             request.insert("algo_type".into(), Value::Str("STOP".into()));

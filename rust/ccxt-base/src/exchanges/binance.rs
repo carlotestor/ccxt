@@ -9633,8 +9633,8 @@ impl Binance {
         if (limit != Value::Null) {
             let mut isFutureOrSwap: bool = ((market).swap) || ((market).future);
             let mut isHistoricalEndpoint: bool = (method.is_some()) && (method.as_deref().unwrap_or_default().contains("GetHistoricalTrades"));
-            let mut maxLimitForContractHistorical: Value = (if isHistoricalEndpoint { Value::Int(500) } else { Value::Int(1000) });
-            request.insert("limit".into(), (if (isFutureOrSwap) { crate::runtime::Math::min(&limit, &maxLimitForContractHistorical) } else { limit.clone() })); // default = 500, maximum = 1000
+            let mut maxLimitForContractHistorical: i64 = (if isHistoricalEndpoint { 500 } else { 1000 });
+            request.insert("limit".into(), (if (isFutureOrSwap) { crate::runtime::Math::min(&limit, &Value::from(maxLimitForContractHistorical)) } else { limit.clone() })); // default = 500, maximum = 1000
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into()), Value::Str("fetchTradesMethod".into())]), &[]).into_dict();
         if (method.is_none()) {
