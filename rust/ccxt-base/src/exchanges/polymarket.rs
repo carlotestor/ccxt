@@ -2244,7 +2244,7 @@ impl Polymarket {
                 clientOrderIds = Value::from(vec![clientOrderId.map(Value::from).unwrap_or(Value::Null)]);
             }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOrderId".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
         let mut signable: Value = Value::Null;
         let mut bodyOp: Value = Value::Null;
         let mut response: Value = Value::Null;
@@ -2256,7 +2256,7 @@ impl Polymarket {
                     m.insert("args".to_string(), clientOrderIds);
                 m
             });
-            let mut signed: crate::value::Dict = self.sign_perps_op(signable.clone(), bodyOp.clone(), &[paramsOmitted.clone()]).await.into_dict();
+            let mut signed: crate::value::Dict = self.sign_perps_op(signable.clone(), bodyOp.clone(), &[Value::from(&paramsOmitted)]).await.into_dict();
             response = self.trade_delete_trade_orders_coid(&[Value::Dict(signed)]).await;
         }  else {
             let mut numericIds: Value = Value::from(vec![]);
@@ -2274,7 +2274,7 @@ impl Polymarket {
                     m.insert("args".to_string(), numericIds);
                 m
             });
-            let mut signed: crate::value::Dict = self.sign_perps_op(signable, bodyOp, &[paramsOmitted]).await.into_dict();
+            let mut signed: crate::value::Dict = self.sign_perps_op(signable, bodyOp, &[Value::Dict(paramsOmitted)]).await.into_dict();
             response = self.trade_delete_trade_orders(&[Value::Dict(signed)]).await;
         }
         //

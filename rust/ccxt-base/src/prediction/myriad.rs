@@ -576,13 +576,13 @@ impl Myriad {
     m
 }));
         let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]).into_dict();
         let mut queriesLength: i64 = queries.len() as i64;
         let mut rawMarkets: Value = Value::from(vec![]);
         if queriesLength > 0 {
-            rawMarkets = self.fetch_raw_markets_by_search(Value::Arr(queries), &[rest.clone()]).await;
+            rawMarkets = self.fetch_raw_markets_by_search(Value::Arr(queries), &[Value::from(&rest)]).await;
         }  else {
-            rawMarkets = self.fetch_raw_markets_list(&[rest]).await;
+            rawMarkets = self.fetch_raw_markets_list(&[Value::Dict(rest)]).await;
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: Value = Value::Map({
@@ -1363,9 +1363,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]).into_dict();
         let mut defaultModel: String = self.safe_string_k(&info, "tradingModel", &[Value::Str("amm".into())]).as_str().unwrap_or("amm").to_string();
         let mut tradingModel: Option<String> = self.safe_string_lower_k(params.clone(), "tradingModel", &[Value::from(defaultModel)]).as_str().map(str::to_owned);
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("tradingModel".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("tradingModel".into())]), &[]).into_dict();
         if (tradingModel.as_deref() == Some("ob")) {
-            return self.create_orderbook_order(outcome.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), rest.clone()]).await;
+            return self.create_orderbook_order(outcome.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), Value::from(&rest)]).await;
         }
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
@@ -1373,7 +1373,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !(enableAmm == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")));
         }
-        return self.create_amm_order(outcome.as_str().unwrap_or_default(), type_var.as_str(), side.as_str().unwrap_or_default(), amount, price.as_f64(), &[self.omit(rest, Value::from(vec![Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into())]), &[])]).await;
+        return self.create_amm_order(outcome.as_str().unwrap_or_default(), type_var.as_str(), side.as_str().unwrap_or_default(), amount, price.as_f64(), &[self.omit(&rest, Value::from(vec![Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into())]), &[])]).await;
         Value::Null
         }).await?))
     }
@@ -2674,7 +2674,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut requestedTradingModel: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("tradingModel".into()), Value::Str("trading_model".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("tradingModel".into()), Value::Str("trading_model".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("tradingModel".into()), Value::Str("trading_model".into())]), &[]).into_dict();
         let mut outcomeObj: Value = Value::Null;
         let mut outcomeSymbol: Option<String> = None;
         if (outcome != Value::Null) {
@@ -2689,9 +2689,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if (requestedTradingModel.as_deref() == Some("amm")) {
-            return self.fetch_amm_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), &[paramsOmitted.clone()]).await;
+            return self.fetch_amm_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), &[Value::from(&paramsOmitted)]).await;
         }
-        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.myriad_public_get_orders(&[__ws_arg_18]).await.into_dict();
         //
         //     {
@@ -4371,8 +4371,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.populate_outcomes();
         // tags were already applied server-side (mapped to keyword searches); strip them before
         // the client-side pass — raw markets don't carry a matching event-level tags field
-        let mut postParams: Value = self.omit(params, Value::from(vec![Value::Str("tags".into())]), &[]);
-        return self.apply_event_fetch_params(Value::from(result), &[postParams, queries]);
+        let mut postParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("tags".into())]), &[]).into_dict();
+        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), queries]);
         Value::Null
         }).await?))
     }

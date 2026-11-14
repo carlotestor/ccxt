@@ -5223,8 +5223,8 @@ impl Bingx {
         if test && (!(market).swap || ((market).inverse == Some(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() only supports test orders for linear swap markets")));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("test".into()), &[]);
-        let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, paramsOmitted]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("test".into()), &[]).into_dict();
+        let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(paramsOmitted)]).into_dict();
         let mut response: Value = Value::Null;
         if (market).swap {
             if test {
@@ -8702,8 +8702,8 @@ impl Bingx {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " editOrder() is not supported for inverse swap markets")));
         }
         let mut cancelClientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("cancelClientOrderId".into()), Value::Str("cancelClientOrderID".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("cancelClientOrderId".into()), Value::Str("cancelClientOrderID".into())]), &[]);
-        let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, paramsOmitted.clone()]).as_map().cloned().unwrap_or_default();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("cancelClientOrderId".into()), Value::Str("cancelClientOrderID".into())]), &[]).into_dict();
+        let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::from(&paramsOmitted)]).as_map().cloned().unwrap_or_default();
         if (cancelClientOrderId.is_some()) {
             let mut cancelClientOrderIdRequest: String = "cancelClientOrderId".to_string();
             if (market).spot {
@@ -8713,7 +8713,7 @@ impl Bingx {
         }  else {
             request.insert("cancelOrderId".into(), id);
         }
-        request.insert("cancelReplaceMode".into(), self.safe_string_k(paramsOmitted, "cancelReplaceMode", &[Value::Str("STOP_ON_FAILURE".into())]));
+        request.insert("cancelReplaceMode".into(), self.safe_string_k(&paramsOmitted, "cancelReplaceMode", &[Value::Str("STOP_ON_FAILURE".into())]));
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             response = self.swap_v1_private_post_trade_cancel_replace(&[Value::Map(request.clone())]).await.into_opt_dict();

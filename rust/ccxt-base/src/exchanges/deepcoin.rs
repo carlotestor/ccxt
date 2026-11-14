@@ -2759,12 +2759,12 @@ impl Deepcoin {
             typePostOnly = Value::Str("post_only".into());
         }
         let mut timeInForce: Option<String> = self.handle_time_in_force(&[Value::from(&paramsPostOnly)]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(&paramsPostOnly, Value::Str("timeInForce".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, Value::Str("timeInForce".into()), &[]).into_dict();
         let mut typeValue: Value = typePostOnly;
         if (timeInForce.as_deref() == Some("IOC")) {
             typeValue = Value::Str("ioc".into());
         }
-        return Value::from(vec![typeValue, paramsOmitted]);
+        return Value::from(vec![typeValue, Value::Dict(paramsOmitted)]);
 
     Value::Null
 }

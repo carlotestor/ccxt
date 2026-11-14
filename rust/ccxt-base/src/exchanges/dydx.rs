@@ -2386,7 +2386,7 @@ impl Dydx {
     m
 }));
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if (!isTrigger) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
@@ -2394,7 +2394,7 @@ impl Dydx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[id.clone()]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[id.clone()]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")));
         }
@@ -2402,11 +2402,11 @@ impl Dydx {
         if idString.as_deref().unwrap_or_default().contains("-") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")));
         }
-        let mut goodTillBlockOption: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "goodTillBlock", &[]).as_i64();
+        let mut goodTillBlockOption: Option<i64> = self.safe_integer_k(&paramsOmitted, "goodTillBlock", &[]).as_i64();
         let mut goodTillBlock: Option<i64> = goodTillBlockOption;
         let mut goodTillBlockTimeInSeconds: i64 = 2592000;
         // default is 30 days
-        let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsOmitted, Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
+        let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsOmitted, Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
         let mut goodTillBlockTimeInSecondsOption: Option<i64> = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).and_then(Value::as_i64);
         let mut paramsGoodTillBlockTimeInSeconds: crate::value::Dict = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut goodTillBlockTime: Option<i64> = None;

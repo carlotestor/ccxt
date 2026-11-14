@@ -10074,12 +10074,12 @@ if _try_result.is_err() {
         let mut marginMode: Value = marginParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
-        let mut paramsStock: Value = self.omit(params.clone(), Value::Str("stock".into()), &[]);
-        let mut triggerPrice: Option<f64> = self.safe_number2(paramsStock.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
-        let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(paramsStock.clone(), "stopLossPrice", &[]).as_f64();
-        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(paramsStock.clone(), "takeProfitPrice", &[]).as_f64();
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsStock.clone(), "stopLoss", &[]).into_opt_dict();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsStock.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut paramsStock: crate::value::Dict = self.omit(params.clone(), Value::Str("stock".into()), &[]).into_dict();
+        let mut triggerPrice: Option<f64> = self.safe_number2(&paramsStock, Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
+        let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(&paramsStock, "stopLossPrice", &[]).as_f64();
+        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(&paramsStock, "takeProfitPrice", &[]).as_f64();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&paramsStock, "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&paramsStock, "takeProfit", &[]).into_opt_dict();
         let mut trailingPercent: Option<String> = self.safe_string2(params, Value::Str("trailingPercent".into()), Value::Str("callbackRatio".into()), &[]).as_str().map(str::to_owned);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTriggerOrder: bool = triggerPrice.is_some();
@@ -10089,7 +10089,7 @@ if _try_result.is_err() {
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut response: Option<crate::value::Dict> = None;
-        let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(paramsStock, Some("createOrder"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
+        let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsStock, Some("createOrder"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isStockOrUta: bool = isStockSpot || (uta.as_bool() == Some(true));

@@ -584,11 +584,8 @@ impl Phemex {
             let mut ticker: crate::value::Dict = __pro_message.get("market24h").cloned().unwrap_or_default().into_dict();
             tickers.push(self.parse_swap_ticker(&ticker, None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) {
-            let mut ticker: Value = (match __pro_message.get("spot_market24h").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            tickers.push(self.parse_ticker(ticker, None));
+            let mut ticker: crate::value::Dict = __pro_message.get("spot_market24h").cloned().unwrap_or_default().into_dict();
+            tickers.push(self.parse_ticker(Value::Dict(ticker), None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("data"))) {
             let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
             {

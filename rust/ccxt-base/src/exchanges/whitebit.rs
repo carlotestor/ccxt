@@ -3753,11 +3753,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             let mut defaultAccount: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("fetchBalance")).cloned().unwrap_or(Value::Null), Value::Str("account".into()), &[]).as_str().map(str::to_owned);
             let mut account: Option<String> = self.safe_string2(Value::from(&paramsMarketType), Value::Str("account".into()), Value::Str("type".into()), &[defaultAccount.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut paramsOmitted: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("account".into()), Value::Str("type".into())]), &[]);
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("account".into()), Value::Str("type".into())]), &[]).into_dict();
             if (account.as_deref() == Some("main")) || (account.as_deref() == Some("funding")) {
-                response = self.v4_private_post_main_account_balance(&[paramsOmitted.clone()]).await.into_opt_dict();
+                response = self.v4_private_post_main_account_balance(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
             }  else {
-                response = self.v4_private_post_trade_account_balance(&[paramsOmitted]).await.into_opt_dict();
+                response = self.v4_private_post_trade_account_balance(&[Value::Dict(paramsOmitted)]).await.into_opt_dict();
             }
         }
         return self.parse_balance(&response);

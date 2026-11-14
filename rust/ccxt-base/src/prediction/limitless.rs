@@ -4177,8 +4177,8 @@ if _try_result.is_err() {
                 m.insert("searchIn".to_string(), Value::Str("both".into()));
             m
         }), &[params]).into_dict();
-        let mut postParams: Value = self.omit(&searchParams, Value::from(vec![Value::Str("tags".into())]), &[]);
-        return self.apply_event_fetch_params(Value::from(result), &[postParams, queries]);
+        let mut postParams: crate::value::Dict = self.omit(&searchParams, Value::from(vec![Value::Str("tags".into())]), &[]).into_dict();
+        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), queries]);
         Value::Null
         }).await?))
     }

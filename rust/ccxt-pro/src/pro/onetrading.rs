@@ -792,8 +792,8 @@ impl Onetrading {
             let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else if (type_var == "ORDER_BOOK_UPDATE") {
-            let mut changes: Value = (match __pro_message.get("changes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-            self.handle_book_deltas(Value::from(&orderbook), changes);
+            let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
+            self.handle_book_deltas(Value::from(&orderbook), Value::Arr(changes));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOrderBook() did not recognize message type ").into()), type_var)));
         }

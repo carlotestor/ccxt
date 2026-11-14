@@ -1870,7 +1870,7 @@ impl Hitbtc {
     m
 }));
         let mut type_var: String = self.safe_string_lower_k(params.clone(), "type", &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("type".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("type".into())]), &[]).into_dict();
         let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1878,11 +1878,11 @@ impl Hitbtc {
         let mut account: Option<String> = (if (false) { None } else { self.safe_string(&accountsByType, Value::from(type_var.clone()), &[Value::from(type_var)]).as_str().map(str::to_owned) });
         let mut response: Option<crate::value::List> = None;
         if (account.as_deref() == Some("wallet")) {
-            response = self.private_get_wallet_balance(&[paramsOmitted.clone()]).await.into_opt_list();
+            response = self.private_get_wallet_balance(&[Value::from(&paramsOmitted)]).await.into_opt_list();
         }  else if (account.as_deref() == Some("spot")) {
-            response = self.private_get_spot_balance(&[paramsOmitted.clone()]).await.into_opt_list();
+            response = self.private_get_spot_balance(&[Value::from(&paramsOmitted)]).await.into_opt_list();
         }  else if (account.as_deref() == Some("derivatives")) {
-            response = self.private_get_futures_balance(&[paramsOmitted]).await.into_opt_list();
+            response = self.private_get_futures_balance(&[Value::Dict(paramsOmitted)]).await.into_opt_list();
         }  else {
             let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchBalance() type parameter must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));

@@ -11434,13 +11434,13 @@ if _try_result.is_err() {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: Option<crate::value::List> = None;
         let mut isUnified: bool = self.safe_bool_k(params.clone(), "unified", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("unified".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("unified".into()), &[]).into_dict();
         let mut marketIdRequest: String = "id".to_string();
         if isUnified {
             marketIdRequest = "currency_pair".to_string();
-            response = self.public_margin_get_uni_currency_pairs(&[paramsOmitted.clone()]).await.into_opt_list();
+            response = self.public_margin_get_uni_currency_pairs(&[Value::from(&paramsOmitted)]).await.into_opt_list();
         }  else {
-            response = self.public_margin_get_currency_pairs(&[paramsOmitted]).await.into_opt_list(); // deprecated
+            response = self.public_margin_get_currency_pairs(&[Value::Dict(paramsOmitted)]).await.into_opt_list(); // deprecated
         }
         return self.parse_leverages(self.to_array(&response), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(marketIdRequest), Value::Str("spot".into())]);
         Value::Null
@@ -11654,8 +11654,8 @@ if _try_result.is_err() {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut until: Option<i64> = self.safe_integer_k(&paramsMarketType, "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(&paramsMarketType, Value::Str("until".into()), &[]);
-        let requestparamsValueVariable: Vec<Value> = self.prepare_request(market.as_ref(), &[marketType.clone().map(Value::from).unwrap_or(Value::Null), paramsOmitted]).as_array().cloned().unwrap_or_default();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::Str("until".into()), &[]).into_dict();
+        let requestparamsValueVariable: Vec<Value> = self.prepare_request(market.as_ref(), &[marketType.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {

@@ -1928,8 +1928,8 @@ impl Bitfinex {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchBalance() type parameter must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut isDerivative: bool = requestedType == "derivatives";
-        let mut query: Value = self.omit(params, Value::Str("type".into()), &[]);
-        let mut response: Value = self.private_post_auth_r_wallets(&[query]).await;
+        let mut query: crate::value::Dict = self.omit(params, Value::Str("type".into()), &[]).into_dict();
+        let mut response: Value = self.private_post_auth_r_wallets(&[Value::Dict(query)]).await;
         let mut balances: crate::value::List = self.to_array(response.clone()).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

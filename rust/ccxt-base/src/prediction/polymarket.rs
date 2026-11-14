@@ -1085,13 +1085,13 @@ impl Polymarket {
     m
 }));
         let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]).into_dict();
         let mut queriesLength: i64 = queries.len() as i64;
         let mut rawEvents: Value = Value::from(vec![]);
         if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(Value::Arr(queries), &[rest.clone()]).await;
+            rawEvents = self.fetch_raw_events_by_search(Value::Arr(queries), &[Value::from(&rest)]).await;
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[rest]).await;
+            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await;
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: Value = Value::Map({
@@ -3991,7 +3991,7 @@ impl Polymarket {
         let mut requestedEventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
         let mut requestedSlug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("eventId".into()), Value::Str("slug".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("eventId".into()), Value::Str("slug".into())]), &[]).into_dict();
         if (queries == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
@@ -4012,9 +4012,9 @@ impl Polymarket {
             let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
             rawEvents = (if (responseIsArray) { response } else { Value::from(vec![]) });
         }  else if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[rest.clone()]).await;
+            rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[Value::from(&rest)]).await;
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[rest]).await;
+            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await;
         }
         // Parse and merge into class-level caches
         if (self.exchange.events.clone() == Value::Null) {

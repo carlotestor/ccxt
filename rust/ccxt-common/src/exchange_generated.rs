@@ -6622,8 +6622,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsOption1: crate::value::Dict = valueparamsOption1Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (value != Value::Null) {
             // omit optionName2 too from params
-            let mut paramsOmitted: Value = self.omit(&paramsOption1, optionName2.clone(), &[]);
-            return Value::from(vec![value, paramsOmitted]);
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOption1, optionName2.clone(), &[]).into_dict();
+            return Value::from(vec![value, Value::Dict(paramsOmitted)]);
         }
         return self.handle_option_and_params(&paramsOption1, methodName1, optionName2, &[defaultValue]);
 
@@ -9394,13 +9394,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
         // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
-        let mut paramsOmitted: Value = self.omit(&paramsMaxEntriesPerRequest, Value::Str("paginationDirection".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMaxEntriesPerRequest, Value::Str("paginationDirection".into()), &[]).into_dict();
         let mut current: Value = Value::Int(self.milliseconds());
         let mut tasks: Vec<Value> = Vec::new();
         let mut time: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
         let mut maxEntriesPerRequestValue: Value = self.require_value(maxEntriesPerRequestOption, &[Value::Str("fetchPaginatedCallDeterministic() maxEntriesPerRequest is required".into())]);
         let mut step: Value = (match (&(Value::from(time)), &(Value::from(self.parse_to_int(maxEntriesPerRequestValue.clone())))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut until: Value = self.safe_integer2(paramsOmitted.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]); // do not omit it here
+        let mut until: Value = self.safe_integer2(&paramsOmitted, Value::Str("until".into()), Value::Str("till".into()), &[]); // do not omit it here
         let mut currentSince: Value = (match (&((match (&(current), &(((match (&(maxCallsLimit), &(step)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
             _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x),
             Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -9438,7 +9438,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if currentSince.as_f64().unwrap_or(f64::NAN) >= current.as_f64().unwrap_or(f64::NAN) {
                 break;
             }
-            tasks.push(self.safe_deterministic_call(method.clone(), &[symbol.clone(), currentSince.clone(), maxEntriesPerRequestValue.clone(), timeframe.clone(), paramsOmitted.clone()]).await);
+            tasks.push(self.safe_deterministic_call(method.clone(), &[symbol.clone(), currentSince.clone(), maxEntriesPerRequestValue.clone(), timeframe.clone(), Value::from(&paramsOmitted)]).await);
             // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
             currentSince = (match (&(self.sum(&[currentSince.clone(), step.clone()])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }

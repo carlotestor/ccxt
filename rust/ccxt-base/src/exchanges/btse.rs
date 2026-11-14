@@ -1903,8 +1903,8 @@ impl Btse {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]).into_opt_list();
         // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
-        let mut response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[paramsOmitted]).await.into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("type".into()), &[]).into_dict();
+        let mut response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[Value::Dict(paramsOmitted)]).await.into_dict();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         return self.parse_tickers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null

@@ -715,11 +715,8 @@ impl Kraken {
         //         "time_out": "2025-05-14T13:54:10.855046Z"
         //     }
         //
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut order: crate::value::Dict = self.parse_order(result, None).into_dict();
+        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut order: crate::value::Dict = self.parse_order(Value::Dict(result), None).into_dict();
         let mut messageHash: Option<String> = self.safe_string2(message, Value::Str("reqid".into()), Value::Str("req_id".into()), &[]).as_str().map(str::to_owned);
         client.resolve(Value::Dict(order), messageHash.as_deref());
 }

@@ -441,8 +441,8 @@ impl Bitrue {
         //      "u": 2285311
         //    }
         //
-        let mut balances: Value = (match message.get("B") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        self.parse_ws_balances(balances);
+        let mut balances: crate::value::List = message.get("B").cloned().unwrap_or_default().into_list();
+        self.parse_ws_balances(Value::Arr(balances));
         let mut messageHash: String = "balance".to_string();
         client.resolve(self.balance.clone(), messageHash.as_str());
 }

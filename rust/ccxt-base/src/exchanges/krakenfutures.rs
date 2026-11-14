@@ -3889,8 +3889,8 @@ impl Krakenfutures {
         }
         let mut type_var: Option<String> = self.safe_string2(params.clone(), Value::Str("type".into()), Value::Str("account".into()), &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_string_k(params.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("type".into()), Value::Str("account".into()), Value::Str("symbol".into())]), &[]);
-        let mut response: Value = self.private_get_accounts(&[paramsOmitted]).await;
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("type".into()), Value::Str("account".into()), Value::Str("symbol".into())]), &[]).into_dict();
+        let mut response: Value = self.private_get_accounts(&[Value::Dict(paramsOmitted)]).await;
         //
         //    {
         //        "result": "success",

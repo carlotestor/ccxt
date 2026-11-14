@@ -13677,7 +13677,7 @@ impl Okx {
         }
         let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut instType: Option<String> = self.safe_string_upper_k(params.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("marginMode".into()), Value::Str("instType".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("marginMode".into()), Value::Str("instType".into())]), &[]).into_dict();
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -13697,7 +13697,7 @@ impl Okx {
         if (instType.is_some()) {
             request.insert("instType".into(), instType.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_102 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
+        let __ws_arg_102 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_account_positions_history(&[__ws_arg_102]).await.into_dict();
         //
         //    {
@@ -13733,7 +13733,7 @@ impl Okx {
         //    }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut positions: crate::value::List = self.parse_positions(&data, &[symbols, paramsOmitted]).into_list();
+        let mut positions: crate::value::List = self.parse_positions(&data, &[symbols, Value::Dict(paramsOmitted)]).into_list();
         return self.filter_by_since_limit(&positions, since.as_i64(), Some(limitResolved), &[]);
         Value::Null
         }).await?))

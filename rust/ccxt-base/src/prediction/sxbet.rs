@@ -471,9 +471,9 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]).into_dict();
         let mut userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
-        let mut rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[rest, Value::from(userLimit)]).await.as_array().cloned().unwrap_or_default();
+        let mut rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[Value::Dict(rest), Value::from(userLimit)]).await.as_array().cloned().unwrap_or_default();
         let mut markets: Vec<Value> = Vec::new();
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
@@ -872,8 +872,8 @@ impl Sxbet {
         }
         self.populate_outcomes();
         self.set_events(Value::from(result.clone()));
-        let mut postParams: Value = self.omit(params, Value::from(vec![Value::Str("leagueId".into()), Value::Str("sportId".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into())]), &[]);
-        return self.apply_event_fetch_params(Value::from(result), &[postParams, Value::from(vec![])]);
+        let mut postParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("leagueId".into()), Value::Str("sportId".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into())]), &[]).into_dict();
+        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), Value::from(vec![])]);
         Value::Null
         }).await?))
     }
@@ -1859,7 +1859,7 @@ impl Sxbet {
 }));
         self.check_required_credentials(&[]);
         let mut eventId: Option<String> = self.safe_string2(params.clone(), Value::Str("eventId".into()), Value::Str("sportXeventId".into()), &[]).as_str().map(str::to_owned);
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("eventId".into()), Value::Str("sportXeventId".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("eventId".into()), Value::Str("sportXeventId".into())]), &[]).into_dict();
         let mut isEventScoped: bool = eventId.is_some();
         let mut response: Option<crate::value::Dict> = None;
         if isEventScoped {
@@ -1870,10 +1870,10 @@ impl Sxbet {
                     m.insert("eventId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            let __ws_arg_9 = self.extend(Value::Map(request), &[rest.clone()]);
+            let __ws_arg_9 = self.extend(Value::Map(request), &[&rest]);
             response = self.sxbet_private_delete_orders_v3_event(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
-            response = self.sxbet_private_delete_orders_v3_all(&[rest.clone()]).await.into_opt_dict();
+            response = self.sxbet_private_delete_orders_v3_all(&[Value::from(&rest)]).await.into_opt_dict();
         }
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         result = self.array_concat(Value::Arr(result), self.parse_sxbet_cancel_response(&response)).into_list();
@@ -1896,10 +1896,10 @@ impl Sxbet {
                         m.insert("eventId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
                     m
                 });
-                let __ws_arg_10 = self.extend(Value::Map(nextRequest), &[rest.clone()]);
+                let __ws_arg_10 = self.extend(Value::Map(nextRequest), &[&rest]);
                 nextResponse = self.sxbet_private_delete_orders_v3_event(&[__ws_arg_10]).await.into_opt_dict();
             }  else {
-                nextResponse = self.sxbet_private_delete_orders_v3_all(&[rest.clone()]).await.into_opt_dict();
+                nextResponse = self.sxbet_private_delete_orders_v3_all(&[Value::from(&rest)]).await.into_opt_dict();
             }
             result = self.array_concat(Value::Arr(result), self.parse_sxbet_cancel_response(&nextResponse)).into_list();
             hasMore = self.safe_bool(self.safe_dict_k(&nextResponse, "data", &[Value::Map({

@@ -422,8 +422,8 @@ impl Binance {
             return Value::from(queryMarkets);
         }
         let mut maxMarkets: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(200)])]).as_i64();
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]);
-        let mut rawTopics: Vec<Value> = self.fetch_raw_topics(Value::from(maxMarkets), &[rest]).await.as_array().cloned().unwrap_or_default();
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]).into_dict();
+        let mut rawTopics: Vec<Value> = self.fetch_raw_topics(Value::from(maxMarkets), &[Value::Dict(rest)]).await.as_array().cloned().unwrap_or_default();
         let mut parsedEvents: Vec<Value> = Vec::new();
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut rawTopicsLength: f64 = ((rawTopics.len() as i64) as f64);
@@ -750,8 +750,8 @@ impl Binance {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let mut postParams: Value = self.omit(&paramsOmitted, Value::from(postOmitKeys), &[]);
-        return self.apply_event_fetch_params(Value::from(result), &[postParams, Value::from(vec![])]);
+        let mut postParams: crate::value::Dict = self.omit(&paramsOmitted, Value::from(postOmitKeys), &[]).into_dict();
+        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), Value::from(vec![])]);
         Value::Null
         }).await?))
     }
@@ -1722,13 +1722,13 @@ impl Binance {
             request.insert("startDate".into(), self.yyyymmdd(since.clone(), &[]));
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsMaxEntriesPerRequest, "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(&paramsMaxEntriesPerRequest, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMaxEntriesPerRequest, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endDate".into(), self.yyyymmdd(Value::from(until), &[]));
         }
-        let mut wallet: Value = self.fetch_wallet("fetchOrders", &[paramsOmitted.clone()]).await;
+        let mut wallet: Value = self.fetch_wallet("fetchOrders", &[Value::from(&paramsOmitted)]).await;
         request.insert("walletAddress".into(), self.safe_string_k(wallet, "walletAddress", &[]));
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.sapi_private_get_order_history(&[__ws_arg_9]).await.into_dict();
         //
         // {
@@ -2059,13 +2059,13 @@ impl Binance {
             request.insert("startDate".into(), self.yyyymmdd(since.clone(), &[]));
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsMaxEntriesPerRequest, "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(&paramsMaxEntriesPerRequest, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMaxEntriesPerRequest, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endDate".into(), self.yyyymmdd(Value::from(until), &[]));
         }
-        let mut wallet: Value = self.fetch_wallet("fetchMyTrades", &[paramsOmitted.clone()]).await;
+        let mut wallet: Value = self.fetch_wallet("fetchMyTrades", &[Value::from(&paramsOmitted)]).await;
         request.insert("walletAddress".into(), self.safe_string_k(wallet, "walletAddress", &[]));
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.sapi_private_get_order_history(&[__ws_arg_12]).await.into_dict();
         //
         // {
@@ -2394,7 +2394,7 @@ impl Binance {
         if (accountType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder requires accountType (SPOT, FUNDING)")));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("accountType".into()), Value::Str("cost".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("accountType".into()), Value::Str("cost".into())]), &[]).into_dict();
         let __ws_arg_14 = self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amountStr.map(Value::from).unwrap_or(Value::Null));
         let mut quoteRequest: crate::value::Dict = self.extend(Value::Map(commonRequest.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2403,7 +2403,7 @@ impl Binance {
                 m.insert("amountIn".to_string(), crate::precise::Precise::stringMul(&Value::from(__ws_arg_14), &Value::Str("1000000000000000000".into())));
             m
         })]).into_dict();
-        let mut quote: Value = self.fetch_quote(&quoteRequest, &[paramsOmitted.clone()]).await;
+        let mut quote: Value = self.fetch_quote(&quoteRequest, &[Value::from(&paramsOmitted)]).await;
         let mut quoteId: Option<String> = self.safe_string_k(quote, "quoteId", &[]).as_str().map(str::to_owned);
         let __ws_arg_15 = self.safe_string_k(wallet, "walletId", &[]);
         let mut orderRequest: crate::value::Dict = self.extend(Value::Map(commonRequest), &[Value::Map({
@@ -2414,7 +2414,7 @@ impl Binance {
                 m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
         })]).into_dict();
-        let __ws_arg_16 = self.extend(orderRequest, &[paramsOmitted]);
+        let __ws_arg_16 = self.extend(orderRequest, &[&paramsOmitted]);
         let mut response: Value = self.sapi_private_post_trade_place_order_bundle(&[__ws_arg_16]).await;
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

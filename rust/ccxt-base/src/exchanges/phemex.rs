@@ -2676,14 +2676,14 @@ impl Phemex {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut query: Value = self.omit(&paramsSubType, Value::Str("type".into()), &[]);
+        let mut query: crate::value::Dict = self.omit(&paramsSubType, Value::Str("type".into()), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("spot")) {
-            response = self.v1_get_md_spot_ticker24hr_all(&[query.clone()]).await.into_opt_dict();
+            response = self.v1_get_md_spot_ticker24hr_all(&[Value::from(&query)]).await.into_opt_dict();
         }  else if (subType.as_deref() == Some("inverse")) || (self.safe_string_k(&market, "settle", &[]).as_str() == Some("USD")) {
-            response = self.v1_get_md_ticker24hr_all(&[query.clone()]).await.into_opt_dict();
+            response = self.v1_get_md_ticker24hr_all(&[Value::from(&query)]).await.into_opt_dict();
         }  else {
-            response = self.v2_get_md_v2_ticker24hr_all(&[query]).await.into_opt_dict();
+            response = self.v2_get_md_v2_ticker24hr_all(&[Value::Dict(query)]).await.into_opt_dict();
         }
         let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         return self.parse_tickers(&result, &[symbols]);
