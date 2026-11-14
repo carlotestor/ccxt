@@ -1293,8 +1293,10 @@ impl Exchange {
         self.milliseconds() * 1000
     }
 
-    pub fn iso8601(&self, ts: Value) -> Value {
-        let n = match ts {
+    /// `ts` takes any `Into<Value>`: a typed `i64` / `Option<i64>` / `f64` local passes as is and converts to the very
+    /// `Int` / `Null` / `Float` its box held, so the answer is the one the boxed call gave.
+    pub fn iso8601(&self, ts: impl Into<Value>) -> Value {
+        let n = match ts.into() {
             Value::Int(n)   => n,
             Value::Float(f) => f as i64,
             Value::Str(ref s) => match s.parse::<i64>() { Ok(v) => v, Err(_) => return Value::Null },
