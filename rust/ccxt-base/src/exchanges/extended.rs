@@ -1418,16 +1418,16 @@ impl Extended {
             m
         });
         if (symbolsNormalized.is_some()) {
-            let mut marketIds: Vec<Value> = vec![];
+            let mut marketIds: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_662: bool = true;
                 while { if !__for_first_662 { i += 1; } __for_first_662 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                marketIds.push(Value::from((market).id.as_deref()));
+                std::sync::Arc::make_mut(&mut marketIds).push(Value::from((market).id.as_deref()));
             }
             }
-            request.insert("market".into(), Value::Array(marketIds));
+            request.insert("market".into(), Value::Arr(marketIds));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v1_public_get_info_markets(&[__ws_arg_1]).await.into_dict();

@@ -436,7 +436,7 @@ impl Krakenfutures {
                 m.insert("feed".to_string(), name.clone());
             m
         });
-        let mut marketIds: Value = Value::from(vec![]);
+        let mut marketIds: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut messageHash: String = name.as_str().unwrap_or_default().to_string();
         let mut symbolsValue: Value = symbols;
         {
@@ -444,15 +444,15 @@ impl Krakenfutures {
             let mut __for_first_430: bool = true;
             while { if !__for_first_430 { i += 1; } __for_first_430 = false; i < (symbolsValue.len() as i64) } {
             let mut symbol: Option<String> = symbolsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(self.market_id(symbol.map(Value::from).unwrap_or(Value::Null))); }
+            std::sync::Arc::make_mut(&mut marketIds).push(self.market_id(symbol.map(Value::from).unwrap_or(Value::Null)));
         }
         }
         let mut length: i64 = symbolsValue.len() as i64;
         if (length == 1) {
-            let mut market: crate::types::Market = (match self.market((marketIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut market: crate::types::Market = (match self.market((marketIds.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash.push_str(&format!("{}{}", ":", Value::from((market).symbol.clone())));
         }
-        subscribe.insert("product_ids".into(), marketIds);
+        subscribe.insert("product_ids".into(), Value::Arr(marketIds));
         let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
         return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
 

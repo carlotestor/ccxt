@@ -11093,7 +11093,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " cancelOrder() does not support trigger or trailing orders for tokenized stock markets")));
         }
         if isContractTriggerEndpoint {
-            let mut orderIdList: Vec<Value> = vec![];
+            let mut orderIdList: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut orderId: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -11104,8 +11104,8 @@ if _try_result.is_err() {
             }  else {
                 orderId.insert("orderId".into(), id.clone());
             }
-            orderIdList.push(Value::Map(orderId));
-            request.insert("orderIdList".into(), Value::Array(orderIdList));
+            std::sync::Arc::make_mut(&mut orderIdList).push(Value::Map(orderId));
+            request.insert("orderIdList".into(), Value::Arr(orderIdList));
         }  else {
             if (clientOrderId.is_some()) {
                 paramsMarginMode = self.omit(&paramsMarginMode, Value::Str("clientOrderId".into()), &[]).into_dict();

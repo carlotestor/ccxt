@@ -8502,7 +8502,7 @@ impl Htx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut ordersRequests: Value = Value::from(vec![]);
+        let mut ordersRequests: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut symbol: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         let mut marginMode: Value = Value::Null;
@@ -8546,7 +8546,7 @@ impl Htx {
                 orderRequest = self.create_contract_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[price, Value::Dict(orderParams)]);
             }
             orderRequest = self.omit(orderRequest, Value::Str("marginMode".into()), &[]);
-            if let Value::Arr(__a) = &mut ordersRequests { std::sync::Arc::make_mut(__a).push(orderRequest); }
+            std::sync::Arc::make_mut(&mut ordersRequests).push(orderRequest);
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -8555,12 +8555,12 @@ impl Htx {
         });
         let mut response: Option<crate::value::Dict> = None;
         if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
-            response = self.private_post_order_batch_orders(&[ordersRequests.clone()]).await.into_opt_dict();
+            response = self.private_post_order_batch_orders(&[Value::Arr(ordersRequests.clone())]).await.into_opt_dict();
         }  else {
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                response = self.contract_private_post_v5_trade_batch_orders(&[ordersRequests.clone()]).await.into_opt_dict();
+                response = self.contract_private_post_v5_trade_batch_orders(&[Value::Arr(ordersRequests.clone())]).await.into_opt_dict();
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
-                request.insert("orders_data".into(), ordersRequests);
+                request.insert("orders_data".into(), Value::Arr(ordersRequests));
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     response = self.contract_private_post_swap_api_v1_swap_batchorder(&[Value::Map(request.clone())]).await.into_opt_dict();
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
