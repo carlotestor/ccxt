@@ -1868,16 +1868,16 @@ impl Gemini {
         let mut tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[params]).await.into_dict();
         let tickerAtickerBVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tickerPromiseA), Value::Dict(tickerPromiseB)])).await.as_array().cloned().unwrap_or_default();
         let mut tickerA: Value = tickerAtickerBVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut tickerB: Value = tickerAtickerBVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut tickerB: crate::value::Dict = tickerAtickerBVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         return self.deep_extend(tickerA, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("open".to_string(), self.safe_string_k(tickerB.clone(), "open", &[]));
-        m.insert("high".to_string(), self.safe_string_k(tickerB.clone(), "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(tickerB.clone(), "low", &[]));
-        m.insert("change".to_string(), self.safe_string_k(tickerB.clone(), "change", &[]));
-        m.insert("percentage".to_string(), self.safe_string_k(tickerB.clone(), "percentage", &[]));
-        m.insert("average".to_string(), self.safe_string_k(tickerB.clone(), "average", &[]));
-        m.insert("info".to_string(), self.safe_dict_k(tickerB, "info", &[]));
+        m.insert("open".to_string(), self.safe_string_k(&tickerB, "open", &[]));
+        m.insert("high".to_string(), self.safe_string_k(&tickerB, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(&tickerB, "low", &[]));
+        m.insert("change".to_string(), self.safe_string_k(&tickerB, "change", &[]));
+        m.insert("percentage".to_string(), self.safe_string_k(&tickerB, "percentage", &[]));
+        m.insert("average".to_string(), self.safe_string_k(&tickerB, "average", &[]));
+        m.insert("info".to_string(), self.safe_dict_k(&tickerB, "info", &[]));
     m
 })]);
 
