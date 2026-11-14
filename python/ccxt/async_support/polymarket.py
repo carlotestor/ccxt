@@ -2473,7 +2473,7 @@ class polymarket(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + sVal.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: object):
+    def sign_message(self, message: object, privateKey: object) -> str:
         return self.sign_hash(self.hash_message(message), privateKey)
 
     async def create_proxy_credentials(self, params: dict = {}) -> dict:
