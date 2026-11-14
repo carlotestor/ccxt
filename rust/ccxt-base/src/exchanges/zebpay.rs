@@ -2753,9 +2753,9 @@ impl Zebpay {
         let mut marginMode: String = self.safe_string_lower_k(position.clone(), "marginMode", &[Value::Str("isolated".into())]).as_str().unwrap_or("isolated").to_string();
         let mut initialMargin: Option<f64> = self.safe_number_k(position.clone(), "initialMargin", &[]).as_f64();
         // isolated positions hold exactly the initial margin posted for them
-        let mut positionMargin: Option<f64> = None;
+        let mut positionMargin: Value = Value::Null;
         if (marginMode == "isolated") {
-            positionMargin = initialMargin.clone();
+            positionMargin = Value::from(initialMargin);
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2777,7 +2777,7 @@ impl Zebpay {
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("positionMargin".to_string(), Value::from(positionMargin));
+        m.insert("positionMargin".to_string(), positionMargin);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("side".to_string(), self.safe_string_lower_k(position, "side", &[]));

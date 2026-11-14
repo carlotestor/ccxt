@@ -941,9 +941,9 @@ impl Btcmarkets {
         let mut minAmount: Option<f64> = self.safe_number_k(market.clone(), "minOrderAmount", &[]).as_f64();
         let mut maxAmount: Option<f64> = self.safe_number_k(market.clone(), "maxOrderAmount", &[]).as_f64();
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut minPrice: Option<f64> = None;
+        let mut minPrice: Value = Value::Null;
         if (quote.as_deref() == Some("AUD")) {
-            minPrice = pricePrecision.clone();
+            minPrice = Value::from(pricePrecision);
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -994,7 +994,7 @@ impl Btcmarkets {
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), Value::from(minPrice));
+        m.insert("min".to_string(), minPrice);
         m.insert("max".to_string(), Value::Null);
     m
 }));

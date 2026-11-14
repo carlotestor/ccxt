@@ -2198,9 +2198,9 @@ impl Okx {
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut depth: Option<String> = None;
-        let mut paramsDepth: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default(); depth = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsDepth = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut limit: Option<i64> = self.safe_integer_k(paramsDepth, "limit", &[]).as_i64();
+        let mut paramsDepth: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default(); depth = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsDepth = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut limit: Option<i64> = self.safe_integer_k(&paramsDepth, "limit", &[]).as_i64();
         if (limit.is_some()) {
             if (limit == Some(1)) {
                 depth = Some("bbo-tbt".to_string());

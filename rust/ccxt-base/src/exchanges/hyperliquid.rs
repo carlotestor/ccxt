@@ -5051,13 +5051,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         let mut orderTypeRaw: Value = self.safe_string_lower_k(&entry, "orderType", &[Value::Str("".into())]);
-        let mut stopLossPrice: Option<f64> = None;
-        let mut takeProfitPrice: Option<f64> = None;
+        let mut stopLossPrice: Value = Value::Null;
+        let mut takeProfitPrice: Value = Value::Null;
         if (triggerPx.is_some()) {
             if orderTypeRaw.as_str().unwrap_or("").contains("stop") {
-                stopLossPrice = triggerPx.clone();
+                stopLossPrice = Value::from(triggerPx);
             }  else if orderTypeRaw.as_str().unwrap_or("").contains("take profit") {
-                takeProfitPrice = triggerPx.clone();
+                takeProfitPrice = Value::from(triggerPx);
             }
         }
         return self.safe_order(Value::Map({
@@ -5077,8 +5077,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(&entry, "limitPx", &[]));
         m.insert("triggerPrice".to_string(), Value::from(triggerPx));
-        m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
-        m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
+        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
         m.insert("amount".to_string(), totalAmount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string_k(&entry, "avgPx", &[]));

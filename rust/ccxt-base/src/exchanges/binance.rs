@@ -8150,9 +8150,9 @@ impl Binance {
         let mut isPortfolioMargin: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType.clone(), Value::Str("fetchBalance".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut marginMode: Option<String> = None;
-        let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[paramsSubType.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        query = self.omit(query.clone(), Value::Str("type".into()), &[]);
+        let mut query: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[paramsSubType.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        query = self.omit(&query, Value::Str("type".into()), &[]).into_dict();
         let mut response: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -8165,13 +8165,13 @@ impl Binance {
                 type_var = Some("inverse".to_string());
             }
             isPortfolioMargin = Some(true);
-            let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.papi_get_balance(&[__ws_arg_4]).await;
         }  else if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             type_var = Some("linear".to_string());
             let mut useV2: Option<bool> = None;
             { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsSubType.clone(), Value::Str("fetchBalance".into()), Value::Str("useV2".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); useV2 = __destr_tmp.get(0).and_then(Value::as_bool); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            paramsSubType = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            paramsSubType = self.extend(Value::Map(request.clone()), &[&query]);
             if !(useV2 == Some(true)) {
                 response = self.fapi_private_v3_get_account(&[paramsSubType.clone()]).await;
             }  else {
@@ -8179,11 +8179,11 @@ impl Binance {
             }
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             type_var = Some("inverse".to_string());
-            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.dapi_private_get_account(&[__ws_arg_5]).await;
         }  else if (marginMode.as_deref() == Some("isolated")) {
             let mut paramSymbols: Value = self.safe_list_k(paramsSubType, "symbols", &[]);
-            query = self.omit(query.clone(), Value::Str("symbols".into()), &[]);
+            query = self.omit(&query, Value::Str("symbols".into()), &[]).into_dict();
             if (paramSymbols != Value::Null) {
                 let mut symbols: Value = Value::Str("".into());
                 if (matches!(&paramSymbols, Value::Arr(_))) {
@@ -8206,19 +8206,19 @@ impl Binance {
                 }
                 request.insert("symbols".into(), symbols);
             }
-            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.sapi_get_margin_isolated_account(&[__ws_arg_6]).await;
         }  else if (type_var.as_deref() == Some("margin")) || (marginMode.as_deref() == Some("cross")) {
-            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.sapi_get_margin_account(&[__ws_arg_7]).await;
         }  else if (type_var.as_deref() == Some("savings")) {
-            let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.sapi_get_lending_union_account(&[__ws_arg_8]).await;
         }  else if (type_var.as_deref() == Some("funding")) {
-            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.sapi_post_asset_get_funding_asset(&[__ws_arg_9]).await;
         }  else {
-            let __ws_arg_10 = self.extend(Value::Map(request), &[query]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_account(&[__ws_arg_10]).await;
         }
         return self.parse_balance_custom(response, type_var.as_deref(), marginMode.as_deref(), &[isPortfolioMargin.map(Value::from).unwrap_or(Value::Null)]);
@@ -8880,18 +8880,18 @@ impl Binance {
         }
         let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut type_var: Option<String> = None;
-        let mut paramsMarketType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsMarketType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut subType: Option<String> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[paramsMarketType.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut response: Value = Value::Null;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            response = self.fapi_public_get_ticker24hr(&[paramsMarketType.clone()]).await;
+            response = self.fapi_public_get_ticker24hr(&[Value::from(&paramsMarketType)]).await;
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            response = self.dapi_public_get_ticker24hr(&[paramsMarketType.clone()]).await;
+            response = self.dapi_public_get_ticker24hr(&[Value::from(&paramsMarketType)]).await;
         }  else if (type_var.as_deref() == Some("spot")) {
-            let mut rolling: bool = self.safe_bool_k(paramsMarketType.clone(), "rolling", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            paramsMarketType = self.omit(paramsMarketType.clone(), Value::Str("rolling".into()), &[]);
+            let mut rolling: bool = self.safe_bool_k(&paramsMarketType, "rolling", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            paramsMarketType = self.omit(&paramsMarketType, Value::Str("rolling".into()), &[]).into_dict();
             if rolling {
                 symbolsNormalized = self.market_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
                 let mut request: Value = Value::Map({
@@ -8899,7 +8899,7 @@ impl Binance {
                         m.insert("symbols".to_string(), self.json(self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)])));
                     m
                 });
-                let __ws_arg_25 = self.extend(request.clone(), &[paramsMarketType.clone()]);
+                let __ws_arg_25 = self.extend(request.clone(), &[&paramsMarketType]);
                 response = self.public_get_ticker(&[__ws_arg_25]).await;
                 return self.parse_tickers_for_rolling(response.clone(), symbolsNormalized.map_or(Value::Null, Value::Arr));
             }  else {
@@ -8910,11 +8910,11 @@ impl Binance {
                 if (symbolsNormalized.is_some()) {
                     request.insert("symbols".into(), self.json(self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)])));
                 }
-                let __ws_arg_26 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
+                let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsMarketType]);
                 response = self.public_get_ticker24hr(&[__ws_arg_26]).await;
             }
         }  else if (type_var.as_deref() == Some("option")) {
-            response = self.eapi_public_get_ticker(&[paramsMarketType]).await;
+            response = self.eapi_public_get_ticker(&[Value::Dict(paramsMarketType)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() does not support ".into())).into()), type_var.as_deref().unwrap_or("null")).into()), Value::Str(" markets yet".into()))));
         }
@@ -13889,24 +13889,24 @@ impl Binance {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut paginate: bool = false;
-        let mut paramsPaginate: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsPaginate: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchWithdrawals".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchWithdrawals".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate)]).await;
         }
         let mut legalMoney: Value = self.safe_dict_k(self.options.clone(), "legalMoney", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fiatOnly: bool = self.safe_bool_k(paramsPaginate.clone(), "fiat", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        paramsPaginate = self.omit(paramsPaginate.clone(), Value::Str("fiatOnly".into()), &[]);
+        let mut fiatOnly: bool = self.safe_bool_k(&paramsPaginate, "fiat", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        paramsPaginate = self.omit(&paramsPaginate, Value::Str("fiatOnly".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
-            paramsPaginate = self.omit(paramsPaginate.clone(), Value::Str("until".into()), &[]);
+            paramsPaginate = self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict();
             request.insert("endTime".into(), Value::from(until));
         }
         let mut response: Value = Value::Null;
@@ -13919,7 +13919,7 @@ impl Binance {
             if (since != Value::Null) {
                 request.insert("beginTime".into(), since.clone());
             }
-            let __ws_arg_142 = self.extend(Value::Map(request.clone()), &[paramsPaginate.clone()]);
+            let __ws_arg_142 = self.extend(Value::Map(request.clone()), &[&paramsPaginate]);
             let mut raw: crate::value::Dict = self.sapi_get_fiat_orders(&[__ws_arg_142]).await.into_dict();
             response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]);
         }  else {
@@ -13935,7 +13935,7 @@ impl Binance {
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());
             }
-            let __ws_arg_143 = self.extend(Value::Map(request), &[paramsPaginate]);
+            let __ws_arg_143 = self.extend(Value::Map(request), &[&paramsPaginate]);
             response = self.sapi_get_capital_withdraw_history(&[__ws_arg_143]).await;
         }
         if (response == Value::Null) {

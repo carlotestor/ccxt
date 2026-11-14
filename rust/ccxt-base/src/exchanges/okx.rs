@@ -7700,8 +7700,8 @@ impl Okx {
             request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut type_var: Option<String> = None;
-        let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchCanceledOrders".into()), market.as_ref(), &[params.clone()]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut query: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchCanceledOrders".into()), market.as_ref(), &[params.clone()]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         request.insert("instType".into(), self.convert_to_instrument_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100, max 100
@@ -7739,13 +7739,13 @@ impl Okx {
             if (since != Value::Null) {
                 request.insert("begin".into(), since.clone());
             }
-            let mut until: Option<i64> = self.safe_integer_k(query.clone(), "until", &[]).as_i64();
+            let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
             if (until.is_some()) {
                 request.insert("end".into(), Value::from(until));
-                query = self.omit(query.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
+                query = self.omit(&query, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
             }
         }
-        let mut send: crate::value::Dict = self.omit(query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
+        let mut send: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&send]);
@@ -7912,8 +7912,8 @@ impl Okx {
             request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut type_var: Option<String> = None;
-        let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsPaginate)]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut query: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsPaginate)]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         request.insert("instType".into(), self.convert_to_instrument_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit)); // default 100, max 100
@@ -7945,14 +7945,14 @@ impl Okx {
             if (since != Value::Null) {
                 request.insert("begin".into(), since.clone());
             }
-            let mut until: Option<i64> = self.safe_integer_k(query.clone(), "until", &[]).as_i64();
+            let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
             if (until.is_some()) {
                 request.insert("end".into(), Value::from(until));
-                query = self.omit(query.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
+                query = self.omit(&query, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
             }
             request.insert("state".into(), Value::Str("filled".into()));
         }
-        let mut send: crate::value::Dict = self.omit(query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
+        let mut send: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_44 = self.extend(Value::Map(request.clone()), &[&send]);

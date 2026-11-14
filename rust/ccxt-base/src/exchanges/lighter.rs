@@ -3498,14 +3498,14 @@ if _try_result.is_err() {
             type_var = self.parse_order_type_integer(typeAsInteger).map(Value::from).unwrap_or(Value::Null);
         }
         let mut triggerPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(order.clone(), "trigger_price", &[]))), &[]).as_f64();
-        let mut stopLossPrice: Option<f64> = None;
-        let mut takeProfitPrice: Option<f64> = None;
+        let mut stopLossPrice: Value = Value::Null;
+        let mut takeProfitPrice: Value = Value::Null;
         if (type_var != Value::Null) {
             if type_var.as_str().unwrap_or("").contains("stop-loss") {
-                stopLossPrice = triggerPrice.clone();
+                stopLossPrice = Value::from(triggerPrice);
             }
             if type_var.as_str().unwrap_or("").contains("take-profit") {
-                takeProfitPrice = triggerPrice.clone();
+                takeProfitPrice = Value::from(triggerPrice);
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
@@ -3535,8 +3535,8 @@ if _try_result.is_err() {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), Value::from(triggerPrice));
-        m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
-        m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
+        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "initial_base_amount", &[]));
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "filled_quote_amount", &[]));
         m.insert("average".to_string(), Value::Null);

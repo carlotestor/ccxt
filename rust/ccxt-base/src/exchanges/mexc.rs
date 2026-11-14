@@ -5566,11 +5566,11 @@ impl Mexc {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut paramsMarketType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut marginMode: Option<String> = self.safe_string_k(paramsMarketType.clone(), "marginMode", &[]).as_str().map(str::to_owned);
-        let mut isMargin: bool = self.safe_bool_k(paramsMarketType.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted2: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("margin".into()), Value::Str("marginMode".into())]), &[]).into_dict();
+        let mut paramsMarketType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut marginMode: Option<String> = self.safe_string_k(&paramsMarketType, "marginMode", &[]).as_str().map(str::to_owned);
+        let mut isMargin: bool = self.safe_bool_k(&paramsMarketType, "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("margin".into()), Value::Str("marginMode".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (marginMode.is_some()) || isMargin || (marketType.as_deref() == Some("margin")) {
             let mut parsedSymbols: Value = Value::Null;

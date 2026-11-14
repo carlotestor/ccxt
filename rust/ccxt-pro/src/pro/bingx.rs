@@ -416,9 +416,9 @@ impl Bingx {
         let mut marketType: Option<String> = None;
         let mut subType: Option<String> = None;
         let mut url: Value = Value::Null;
-        let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(methodName.clone(), market.clone(), &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(methodName, market.clone(), &[query.clone(), Value::Str("linear".into())]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut query: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(methodName.clone(), market.clone(), &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(methodName, market.clone(), &[Value::from(&query), Value::Str("linear".into())]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
@@ -446,12 +446,12 @@ impl Bingx {
                 m.insert("topic".to_string(), topic);
             m
         });
-        let mut symbolsAndTimeframes: Value = self.safe_list_k(query.clone(), "symbolsAndTimeframes", &[]);
+        let mut symbolsAndTimeframes: Value = self.safe_list_k(&query, "symbolsAndTimeframes", &[]);
         if (symbolsAndTimeframes != Value::Null) {
             subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
-            query = self.omit(query.clone(), Value::Str("symbolsAndTimeframes".into()), &[]);
+            query = self.omit(&query, Value::Str("symbolsAndTimeframes".into()), &[]).into_dict();
         }
-        let __ws_arg_0 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&query]);
         return self.watch(&url, &messageHash, __ws_arg_0, &subscribeHash, Value::Map(subscription)).await;
 
     Value::Null

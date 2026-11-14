@@ -5408,17 +5408,17 @@ impl Bybit {
                 &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })); }
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::from(limitResolved)); }; // max 1000, default 1000
-        let mut paramsUntil: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end".into()), request.clone(), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsUntil: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end".into()), request.clone(), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("spot".into())); }
-            let __ws_arg_8 = self.extend(request.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_8 = self.extend(request.clone(), &[&paramsUntil]);
             response = self.public_get_v5_market_kline(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
-            let mut price: Option<String> = self.safe_string_k(paramsUntil.clone(), "price", &[]).as_str().map(str::to_owned);
-            let mut paramsOmitted: crate::value::Dict = self.omit(paramsUntil, Value::Str("price".into()), &[]).into_dict();
+            let mut price: Option<String> = self.safe_string_k(&paramsUntil, "price", &[]).as_str().map(str::to_owned);
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::Str("price".into()), &[]).into_dict();
             if ((market).linear == Some(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("linear".into())); }
             }  else if ((market).inverse == Some(true)) {

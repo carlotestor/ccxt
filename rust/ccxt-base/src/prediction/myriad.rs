@@ -3518,10 +3518,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut outcomeId: Value = (if ((market.is_some()) && (market.is_some())) { self.safe_string_k(crate::value::KeyRead::key_read(&market, "info"), "outcomeId", &[]) } else { Value::Null });
         let mut outcomes: crate::value::List = self.safe_list_k(raw.clone(), "outcomes", &[Value::from(vec![])]).into_list();
-        let mut price: Option<f64> = None;
-        let mut change: Option<f64> = None;
+        let mut price: Value = Value::Null;
+        let mut change: Value = Value::Null;
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE percentage from it
-        let mut previousClose: Option<f64> = None;
+        let mut previousClose: Value = Value::Null;
         let mut percentage: Value = Value::Null;
         {
                         let mut i: i64 = 0;
@@ -3531,11 +3531,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.safe_string_k(&o, "outcomeId", &[self.safe_string_k(&o, "id", &[])]).as_str() == outcomeId.as_str()) {
                 let mut priceValue: Option<f64> = self.safe_number_k(&o, "price", &[]).as_f64();
                 let mut changeValue: Option<f64> = self.safe_number_k(&o, "priceChange24h", &[]).as_f64();
-                price = priceValue.clone();
-                change = changeValue.clone();
+                price = Value::from(priceValue);
+                change = Value::from(changeValue);
                 if (priceValue.is_some()) && (changeValue.is_some()) {
                     let mut previousCloseValue: Option<f64> = (if let (Some(__l), Some(__r)) = (priceValue, changeValue) { Some(__l - __r) } else { None });
-                    previousClose = previousCloseValue.clone();
+                    previousClose = Value::from(previousCloseValue);
                     if (previousCloseValue != Some(0.0)) {
                         percentage = (match (&((match ((Value::from(changeValue)).as_f64(), (Value::from(previousCloseValue)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
                             (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -3555,18 +3555,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), Value::from(price));
+        m.insert("bid".to_string(), price.clone());
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), Value::from(price));
+        m.insert("ask".to_string(), price.clone());
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), Value::from(previousClose));
-        m.insert("close".to_string(), Value::from(price));
-        m.insert("last".to_string(), Value::from(price));
-        m.insert("previousClose".to_string(), Value::from(previousClose));
-        m.insert("change".to_string(), Value::from(change));
+        m.insert("open".to_string(), previousClose.clone());
+        m.insert("close".to_string(), price.clone());
+        m.insert("last".to_string(), price.clone());
+        m.insert("previousClose".to_string(), previousClose);
+        m.insert("change".to_string(), change);
         m.insert("percentage".to_string(), percentage);
-        m.insert("average".to_string(), Value::from(price));
+        m.insert("average".to_string(), price);
         m.insert("baseVolume".to_string(), self.safe_number_k(raw.clone(), "volumeNotional24h", &[]));
         m.insert("quoteVolume".to_string(), self.safe_number_k(raw.clone(), "volume24h", &[]));
         m.insert("info".to_string(), raw);

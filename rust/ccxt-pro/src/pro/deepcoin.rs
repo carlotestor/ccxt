@@ -1223,8 +1223,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // tick was rejected accepted the next coarser level
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut aggregation: Option<String> = None;
-        let mut paramsAggregation: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("aggregation".into()), &[]).as_array().cloned().unwrap_or_default(); aggregation = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsAggregation = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsAggregation: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("aggregation".into()), &[]).as_array().cloned().unwrap_or_default(); aggregation = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsAggregation = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (aggregation.is_none()) {
             let mut precision: crate::value::Dict = self.safe_dict_k(&market, "precision", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1237,7 +1237,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             aggregation = self.number_to_string(Value::from(tickSize));
         }
-        return Value::from(vec![Value::Str(format!("{}{}", Value::Str("_".into()), aggregation.as_deref().unwrap_or("null")).into()), paramsAggregation]);
+        return Value::from(vec![Value::Str(format!("{}{}", Value::Str("_".into()), aggregation.as_deref().unwrap_or("null")).into()), Value::Dict(paramsAggregation)]);
 
     Value::Null
 }
