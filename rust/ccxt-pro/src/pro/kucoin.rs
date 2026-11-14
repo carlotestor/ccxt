@@ -1157,7 +1157,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut first: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
                 let mut marketId: Option<String> = None;
                 if (first.as_deref() == Some("all")) {
-                    marketId = (match __pro_message.get("subject").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+                    marketId = (match __pro_message.get("subject") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 }  else {
                     marketId = first.take();
                 }
@@ -3218,7 +3218,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         cachedOrders.append(Value::from(&parsed));
         let mut messageHash: String = "orders".to_string();
-        let mut topic: Option<String> = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut topic: Option<String> = (match __pro_message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut suffix: Option<String> = self.get_orders_message_hash_suffix(topic.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut typeSpecificMessageHash: String = format!("{}{}", messageHash, suffix.as_deref().unwrap_or("null"));
         client.resolve(cachedOrders.clone(), typeSpecificMessageHash.as_str());

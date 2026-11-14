@@ -1068,8 +1068,8 @@ impl Bithumb {
                         continue;
                     }
                     let mut market: Value = data.get(currencyId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                    let mut base: Value = self.safe_currency_code(currencyId.clone(), None).map(Value::from).unwrap_or(Value::Null);
-                    if (base == Value::Null) {
+                    let mut base: Option<String> = self.safe_currency_code(currencyId.clone(), None);
+                    if (base.is_none()) {
                         continue;
                     }
                     let mut active: bool = true;
@@ -1082,8 +1082,8 @@ impl Bithumb {
                     let mut entry: Value = self.deep_extend(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("id".to_string(), currencyId.clone());
-                            m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote).into()));
-                            m.insert("base".to_string(), base);
+                            m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote).into()));
+                            m.insert("base".to_string(), Value::from(base.as_deref()));
                             m.insert("quote".to_string(), quote.clone());
                             m.insert("settle".to_string(), Value::Null);
                             m.insert("baseId".to_string(), currencyId);
@@ -2983,23 +2983,23 @@ impl Bithumb {
         //         "cancel_type": "user"
         //     }
         //
-        let mut datetime: Value = self.safe_string_k(order.clone(), "created_at", &[]);
+        let mut datetime: Option<String> = self.safe_string_k(order.clone(), "created_at", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = None;
-        if (datetime != Value::Null) {
-            if datetime.as_str().unwrap_or("").contains("+09:00") {
-                let mut normalized: Value = datetime.as_str().map(|__s| Value::Str(__s.replace("+09:00", "Z").into())).unwrap_or_else(|| datetime.clone());
-                let mut normalizedTimestamp: Option<i64> = self.parse8601(normalized);
+        if (datetime.is_some()) {
+            if datetime.as_deref().unwrap_or_default().contains("+09:00") {
+                let mut normalized: Option<String> = (if let Some(__s) = datetime.as_deref() { Some(__s.replace("+09:00", "Z")) } else { None });
+                let mut normalizedTimestamp: Option<i64> = self.parse8601(normalized.map(Value::from).unwrap_or(Value::Null));
                 if (normalizedTimestamp.is_some()) {
                     timestamp = (if let Some(__l) = normalizedTimestamp { Some(__l - ((9 * 3600000))) } else { None });
                 }  else {
-                    timestamp = self.parse8601(datetime.clone());
+                    timestamp = self.parse8601(Value::from(datetime.as_deref()));
                 }
             }  else {
-                timestamp = self.parse8601(datetime.clone());
+                timestamp = self.parse8601(Value::from(datetime.as_deref()));
             }
         }  else {
             timestamp = self.safe_integer_product_k(order.clone(), "order_date", Value::Float(0.001), &[]).as_i64();
-            datetime = self.iso8601(Value::from(timestamp));
+            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
         let mut sideProperty: Option<String> = self.safe_string2(order.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
@@ -3070,7 +3070,7 @@ impl Bithumb {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), datetime);
+        m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -3713,11 +3713,11 @@ impl Bithumb {
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
-        let mut datetime: Value = self.safe_string_k(transaction.clone(), "created_at", &[]);
-        let mut timestamp: Option<i64> = self.parse8601(datetime.clone());
-        if (datetime != Value::Null) && (datetime.as_str().unwrap_or("").contains("+09:00")) {
-            let mut normalized: Value = datetime.as_str().map(|__s| Value::Str(__s.replace("+09:00", "Z").into())).unwrap_or_else(|| datetime.clone());
-            let mut normalizedTimestamp: Option<i64> = self.parse8601(normalized);
+        let mut datetime: Option<String> = self.safe_string_k(transaction.clone(), "created_at", &[]).as_str().map(str::to_owned);
+        let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
+        if (datetime.is_some()) && (datetime.as_deref().unwrap_or_default().contains("+09:00")) {
+            let mut normalized: Option<String> = (if let Some(__s) = datetime.as_deref() { Some(__s.replace("+09:00", "Z")) } else { None });
+            let mut normalizedTimestamp: Option<i64> = self.parse8601(normalized.map(Value::from).unwrap_or(Value::Null));
             if (normalizedTimestamp.is_some()) {
                 timestamp = (if let Some(__l) = normalizedTimestamp { Some(__l - ((9 * 3600000))) } else { None });
             }
@@ -3727,7 +3727,7 @@ impl Bithumb {
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "uuid", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), datetime);
+        m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "net_type", &[]), crate::value::KeyRead::key_read(&&currencyResolved, "code")])));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);

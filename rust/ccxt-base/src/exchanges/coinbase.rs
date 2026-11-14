@@ -3717,10 +3717,10 @@ if _try_result.is_err() {
                 let mut value: Option<crate::value::Dict> = self.safe_dict_k(&balance, "balance", &[]).into_opt_dict();
                 if (value.is_some()) {
                     let mut currencyId: Option<String> = self.safe_string_k(&value, "currency", &[]).as_str().map(str::to_owned);
-                    let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                    let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                     let mut total: Option<String> = self.safe_string_k_opt(&value, "amount", &[]);
                     let mut free: Value = total.clone().map(Value::from).unwrap_or(Value::Null);
-                    let mut account: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
+                    let mut account: Value = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]);
                     if (account == Value::Null) {
                         let __ws_arg_19 = self.account();
                         account = self.extend(__ws_arg_19, &[Value::Map({
@@ -3739,8 +3739,8 @@ if _try_result.is_err() {
                             m
                         })]);
                     }
-                    if (code != Value::Null) {
-                        result.insert(crate::runtime::stringify_param(&code), account.clone());
+                    if (code.is_some()) {
+                        result.insert(code.as_deref().unwrap_or("null").to_string(), account.clone());
                     }
                 }
             }  else if self.in_array(&type_var, v3Accounts.clone()) {
@@ -3748,11 +3748,11 @@ if _try_result.is_err() {
                 let mut hold: Option<crate::value::Dict> = self.safe_dict_k(&balance, "hold", &[]).into_opt_dict();
                 if (available.is_some()) && (hold.is_some()) {
                     let mut currencyId: Option<String> = self.safe_string_k(&available, "currency", &[]).as_str().map(str::to_owned);
-                    let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                    let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                     let mut used: Option<String> = self.safe_string_k_opt(&hold, "value", &[]);
                     let mut free: Option<String> = self.safe_string_k_opt(&available, "value", &[]);
                     let mut total: Value = crate::precise::Precise::stringAdd(&used.clone().map(Value::from).unwrap_or(Value::Null), &free.clone().map(Value::from).unwrap_or(Value::Null));
-                    let mut account: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
+                    let mut account: Value = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]);
                     if (account == Value::Null) {
                         let __ws_arg_22 = self.account();
                         account = self.extend(__ws_arg_22, &[Value::Map({
@@ -3774,8 +3774,8 @@ if _try_result.is_err() {
                             m
                         })]);
                     }
-                    if (code != Value::Null) {
-                        result.insert(crate::runtime::stringify_param(&code), account);
+                    if (code.is_some()) {
+                        result.insert(code.as_deref().unwrap_or("null").to_string(), account);
                     }
                 }
             }

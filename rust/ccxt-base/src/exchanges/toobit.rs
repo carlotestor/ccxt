@@ -2753,9 +2753,9 @@ impl Toobit {
                 request.insert("slOrderType".into(), Value::Str("LIMIT".into()));
                 request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), limitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
-            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
+            let mut triggerPriceType: Option<String> = self.safe_string_k(&stopLoss, "triggerPriceType", &[]).as_str().map(str::to_owned);
             if (triggerPriceType.is_some()) {
-                request.insert("slTriggerBy".into(), self.safe_string(&triggerPriceTypes, triggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[triggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
+                request.insert("slTriggerBy".into(), self.safe_string(&triggerPriceTypes, Value::from(triggerPriceType.as_deref()), &[Value::from(triggerPriceType.as_deref())]));
             }
         }
         if hasTakeProfit {
@@ -2765,9 +2765,9 @@ impl Toobit {
                 request.insert("tpOrderType".into(), Value::Str("LIMIT".into()));
                 request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(symbol, limitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
-            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
+            let mut triggerPriceType: Option<String> = self.safe_string_k(&takeProfit, "triggerPriceType", &[]).as_str().map(str::to_owned);
             if (triggerPriceType.is_some()) {
-                request.insert("tpTriggerBy".into(), self.safe_string(&triggerPriceTypes, triggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[triggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
+                request.insert("tpTriggerBy".into(), self.safe_string(&triggerPriceTypes, Value::from(triggerPriceType.as_deref()), &[Value::from(triggerPriceType.as_deref())]));
             }
         }
         let mut paramsOmitted: Value = self.omit(paramsTrigger, &["stopLoss", "takeProfit"], &[]);

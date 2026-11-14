@@ -922,7 +922,7 @@ if _try_result.is_err() {
         //     }
         //
         // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
-        let mut requestId: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut authSubscription: crate::value::Dict = self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]).into_dict();
         let mut authRequestId: Option<String> = self.safe_string_k(&authSubscription, "id", &[]).as_str().map(str::to_owned);
         let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();

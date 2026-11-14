@@ -1465,8 +1465,8 @@ impl Krakenfutures {
             while { if !__for_first_869 { i += 1; } __for_first_869 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut uid: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&market, "info"), "feeScheduleUid", &[]);
-            let mut schedule: Option<crate::value::Dict> = self.safe_dict(Value::Map(schedulesByUid.clone()), uid.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut uid: Option<String> = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "feeScheduleUid", &[]).as_str().map(str::to_owned);
+            let mut schedule: Option<crate::value::Dict> = self.safe_dict(Value::Map(schedulesByUid.clone()), Value::from(uid.as_deref()), &[]).into_opt_dict();
             if (schedule.is_none()) {
                 continue;
             }

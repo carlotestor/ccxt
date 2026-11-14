@@ -1335,8 +1335,8 @@ if _try_result.is_err() {
         //       "instrument_type": "spot",
         //       "base_asset": "SOL"
         //     },
-        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
-        let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_asset", &[id.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_asset", &[Value::from(id.as_deref())]).as_str().map(str::to_owned);
         let mut instrumentType: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
         let mut isSpot: Value = (Value::Bool(instrumentType.as_deref() == Some("spot")));
         let mut isSwap: bool = !(matches!(&isSpot, Value::Bool(true)));

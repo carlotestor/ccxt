@@ -652,7 +652,7 @@ impl Mexc {
         //
         let mut data: crate::value::List = self.safe_list2(message, Value::Str("data".into()), Value::Str("d".into()), &[Value::from(vec![])]).into_list();
         let mut channel: String = (match __pro_message.get("c").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut marketId: Option<String> = (match __pro_message.get("s").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut channelStartsWithSpot: bool = channel.starts_with("spot");
         let mut marketIdIsUndefined: bool = marketId.is_none();
@@ -1956,8 +1956,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parsed: Value = Value::Null;
         if (market).spot {
             parsed = self.parse_ws_order(&data, Some(&market));
-            let mut sendTime: Option<i64> = (match __pro_message.get("sendTime").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-                Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+            let mut sendTime: Option<i64> = (match __pro_message.get("sendTime") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
             if (sendTime.is_some()) {
                 if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("lastTradeTimestamp".to_string(), Value::from(sendTime)); }
             }
@@ -2674,11 +2673,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_491: bool = true;
             while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
-            let mut subMessageHash: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:", "").into())).unwrap_or_else(|| messageHash.clone());
-            self.clean_unsubscription(client.clone(), subMessageHash, messageHash.clone(), &[]);
-            if messageHash.as_str().unwrap_or("").contains("ticker") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:ticker:", "").into())).unwrap_or_else(|| messageHash.clone());
+            let mut messageHash: String = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut subMessageHash: String = messageHash.replace("unsubscribe:", "");
+            self.clean_unsubscription(client.clone(), Value::from(subMessageHash), Value::from(messageHash.as_str()), &[]);
+            if messageHash.contains("ticker") {
+                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:ticker:", ""));
                 if symbol.as_str().unwrap_or("").contains("unsubscribe") {
                     // unWatchTickers
                     let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
@@ -2692,13 +2691,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }  else if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("bidask") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:bidask:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("bidask") {
+                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:bidask:", ""));
                 if (matches!((&self.bidsasks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("candles") {
-                let mut splitHashes: crate::value::List = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
+            }  else if messageHash.contains("candles") {
+                let mut splitHashes: crate::value::List = Value::Array(messageHash.split(":").map(Value::from).collect()).into_list();
                 let mut candlesSymbol: String = self.safe_string(&splitHashes, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut splitHashesLength: i64 = splitHashes.len() as i64; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if splitHashesLength > 4 {
@@ -2707,18 +2706,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (CacheShelves::has(&self.ohlcvs, &candlesSymbol)) {
                     CacheShelves::forget(&mut self.ohlcvs, &candlesSymbol);
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("orderbook") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:orderbook:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("orderbook") {
+                let mut symbol: String = messageHash.replace("unsubscribe:orderbook:", "");
                 if (self.orderbooks.has(&symbol)) {
                     CacheStore::forget(&mut self.orderbooks, &symbol);
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("trades") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:trades:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("trades") {
+                let mut symbol: String = messageHash.replace("unsubscribe:trades:", "");
                 if (self.trades.has(&symbol)) {
                     CacheStore::forget(&mut self.trades, &symbol);
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("fundingRate") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:fundingRate:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("fundingRate") {
+                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:fundingRate:", ""));
                 if (matches!((&self.fundingRates, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.fundingRates, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
@@ -2947,7 +2946,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.handle_subscription_status(client.clone(), message.clone());
             return;
         }
-        let mut c: Option<String> = (match __pro_message.get("c").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut c: Option<String> = (match __pro_message.get("c") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut channel: Option<String> = None;
         if (c.is_none()) {
             channel = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
