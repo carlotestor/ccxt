@@ -1427,7 +1427,7 @@ impl Upbit {
                 while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (marketSymbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((marketSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut quoteId: Option<String> = (market).quote_id.as_deref().map(str::to_owned);
-                if !self.in_array(&quoteId, Value::Arr(quoteIds.clone())) {
+                if !self.in_array(&quoteId, &quoteIds) {
                     std::sync::Arc::make_mut(&mut quoteIds).push(quoteId.map(Value::from).unwrap_or(Value::Null));
                 }
             }

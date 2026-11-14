@@ -1687,8 +1687,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isContractMarket {
             baseVolumeIndex = 6; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         }
-        let mut parsed: Value = Value::from(vec![self.safe_timestamp(&candles, Value::Int(0), &[]), self.safe_number(&candles, Value::Int(1), &[]), self.safe_number(&candles, Value::Int(3), &[]), self.safe_number(&candles, Value::Int(4), &[]), self.safe_number(&candles, Value::Int(2), &[]), self.safe_number(&candles, Value::from(baseVolumeIndex), &[])]);
-        stored.append(parsed);
+        let mut parsed: crate::value::List = std::sync::Arc::new(vec![self.safe_timestamp(&candles, Value::Int(0), &[]), self.safe_number(&candles, Value::Int(1), &[]), self.safe_number(&candles, Value::Int(3), &[]), self.safe_number(&candles, Value::Int(4), &[]), self.safe_number(&candles, Value::Int(2), &[]), self.safe_number(&candles, Value::from(baseVolumeIndex), &[])]);
+        stored.append(Value::Arr(parsed));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -1728,8 +1728,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stored = Some(ArrayCacheByTimestamp::new(limit));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
-        let mut parsed: Value = Value::from(vec![self.safe_integer_product_k(&data, "O", Value::Int(1000), &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
-        stored.append(parsed);
+        let mut parsed: crate::value::List = std::sync::Arc::new(vec![self.safe_integer_product_k(&data, "O", Value::Int(1000), &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
+        stored.append(Value::Arr(parsed));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 

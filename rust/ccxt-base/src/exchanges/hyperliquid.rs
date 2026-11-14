@@ -986,15 +986,15 @@ impl Hyperliquid {
         }
         }
         let mut promises: Value = promise_all(&Value::from(rawPromises)).await;
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_798: bool = true;
             while { if !__for_first_798 { i += 1; } __for_first_798 = false; i < (promises.len() as i64) } {
-            result = self.array_concat(result, self.safe_list(promises.clone(), Value::Int(i), &[Value::from(vec![])]));
+            result = self.array_concat(Value::Arr(result), self.safe_list(promises.clone(), Value::Int(i), &[Value::from(vec![])])).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }
@@ -1119,7 +1119,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })); }
-        let mut markets: Value = Value::from(vec![]);
+        let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_803: bool = true;
@@ -1178,10 +1178,10 @@ impl Hyperliquid {
                 result.push(Value::Dict(data));
             }
             }
-            markets = self.array_concat(markets, self.parse_markets(Value::from(result)));
+            markets = self.array_concat(Value::Arr(markets), self.parse_markets(Value::from(result))).into_list();
         }
         }
-        return markets;
+        return Value::Arr(markets);
 
     Value::Null
 }

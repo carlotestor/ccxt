@@ -670,7 +670,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 m.insert("percent".to_string(), Value::Str("pct".into()));
             m
         });
-        let mut stopWords: Value = Value::from(vec![Value::Str("will".into()), Value::Str("the".into()), Value::Str("a".into()), Value::Str("an".into()), Value::Str("after".into()), Value::Str("before".into()), Value::Str("in".into()), Value::Str("at".into()), Value::Str("by".into()), Value::Str("of".into()), Value::Str("there".into()),
+        let mut stopWords: crate::value::List = std::sync::Arc::new(vec![Value::Str("will".into()), Value::Str("the".into()), Value::Str("a".into()), Value::Str("an".into()), Value::Str("after".into()), Value::Str("before".into()), Value::Str("in".into()), Value::Str("at".into()), Value::Str("by".into()), Value::Str("of".into()), Value::Str("there".into()),
             Value::Str("be".into()), Value::Str("to".into()), Value::Str("or".into()), Value::Str("and".into()), Value::Str("for".into()), Value::Str("on".into()), Value::Str("its".into()), Value::Str("that".into()), Value::Str("this".into()), Value::Str("from".into()), Value::Str("with".into()), Value::Str("as".into()), Value::Str("is".into()),
             Value::Str("are".into()), Value::Str("was".into()), Value::Str("were".into()), Value::Str("?".into()), Value::Str("how".into()), Value::Str("many".into()), Value::Str("who".into()), Value::Str("what".into()), Value::Str("when".into()), Value::Str("where".into()), Value::Str("which".into()), Value::Str("much".into())]);
         let mut lower: Option<String> = (if (slug == Value::Null) { Some("".to_string()) } else { slug.as_str().map(str::to_lowercase) });
@@ -711,7 +711,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_201: bool = true;
             while { if !__for_first_201 { i += 1; } __for_first_201 = false; i < (rawParts.len() as i64) } {
             let mut w: Option<String> = rawParts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if ((w.as_deref().unwrap_or_default().chars().count() as i64)) > 0 && !self.in_array(&w, stopWords.clone()) {
+            if ((w.as_deref().unwrap_or_default().chars().count() as i64)) > 0 && !self.in_array(&w, &stopWords) {
                 parts.push(w.map(Value::from).unwrap_or(Value::Null));
             }
         }

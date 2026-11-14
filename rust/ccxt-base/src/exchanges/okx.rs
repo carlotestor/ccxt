@@ -4111,7 +4111,7 @@ impl Okx {
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types]); // backward-support
         }
         let mut promises: Vec<Value> = Vec::new();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_1001: bool = true;
@@ -4124,10 +4124,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1002: bool = true;
             while { if !__for_first_1002 { i += 1; } __for_first_1002 = false; i < (responses.len() as i64) } {
-            result = self.array_concat(result, responses.get(i as usize).cloned().unwrap_or(Value::Null));
+            result = self.array_concat(Value::Arr(result), responses.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }

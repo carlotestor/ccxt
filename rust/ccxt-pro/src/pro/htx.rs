@@ -923,7 +923,7 @@ impl Htx {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut allowedLimits: Value = Value::from(vec![Value::Int(5), Value::Int(20), Value::Int(150), Value::Int(400)]);
+        let mut allowedLimits: crate::value::List = std::sync::Arc::new(vec![Value::Int(5), Value::Int(20), Value::Int(150), Value::Int(400)]);
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
@@ -933,7 +933,7 @@ impl Htx {
             m
         })]).into_dict();
         let mut limitResolved: Value = Value::from(self.parse_to_int((if (limit == Value::Null) { self.safe_integer_k(&options, "depth", &[Value::Int(150)]) } else { limit.clone() })));
-        if !self.in_array(limitResolved.clone(), allowedLimits) {
+        if !self.in_array(limitResolved.clone(), &allowedLimits) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")));
         }
         let mut messageHash: String = "".to_string();

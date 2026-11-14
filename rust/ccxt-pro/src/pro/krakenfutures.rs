@@ -2200,14 +2200,14 @@ impl Krakenfutures {
     pub fn prune_stale_balance_keys(&self, mut balanceObject: Value, mut seenKeys: Value) -> Value {
         let __seenKeys_empty = indexmap::IndexMap::new();
         let seenKeys = seenKeys.as_map().unwrap_or(&__seenKeys_empty);
-        let mut reserved: Value = Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into()), Value::Str("debt".into())]);
+        let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into()), Value::Str("debt".into())]);
         let mut keys: Vec<Value> = object_keys(&balanceObject).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_443: bool = true;
             while { if !__for_first_443 { i += 1; } __for_first_443 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!(key.as_str(), Some(__k) if seenKeys.contains_key(__k))) && !self.in_array(key.clone(), reserved.clone()) {
+            if !(matches!(key.as_str(), Some(__k) if seenKeys.contains_key(__k))) && !self.in_array(key.clone(), &reserved) {
                 remove(&mut balanceObject, &key);
             }
         }

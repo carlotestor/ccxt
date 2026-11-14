@@ -1360,7 +1360,7 @@ impl Backpack {
                 m.insert("stock".to_string(), Value::Str("RFQ".into()));
             m
         });
-        let mut supportedTypes: Value = Value::from(vec![Value::Str("SPOT".into()), Value::Str("PERP".into()), Value::Str("RFQ".into())]);
+        let mut supportedTypes: crate::value::List = std::sync::Arc::new(vec![Value::Str("SPOT".into()), Value::Str("PERP".into()), Value::Str("RFQ".into())]);
         let mut marketTypes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -1368,7 +1368,7 @@ impl Backpack {
             while { if !__for_first_245 { i += 1; } __for_first_245 = false; i < (requestedTypes.len() as i64) } {
             let mut requestedType: String = self.safe_string(requestedTypes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut normalizedType: Option<String> = self.safe_string(&aliases, Value::from(requestedType.clone()), &[Value::from(requestedType.clone())]).as_str().map(str::to_owned);
-            if !self.in_array(&normalizedType, supportedTypes.clone()) {
+            if !self.in_array(&normalizedType, &supportedTypes) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchMarkets() unsupported marketType ").into()), requestedType)));
             }
             if !self.in_array(&normalizedType, marketTypes.clone()) {

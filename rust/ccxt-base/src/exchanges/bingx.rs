@@ -9101,8 +9101,8 @@ impl Bingx {
             version = section.get(2).and_then(Value::as_str).map(str::to_owned);
             access = section.get(3).and_then(Value::as_str).map(str::to_owned);
         }
-        let mut flatAccountPaths: Value = Value::from(vec![Value::Str("account/apiPermissions".into()), Value::Str("account/apiRestrictions".into())]);
-        if !self.in_array(pathValue.clone(), flatAccountPaths) {
+        let mut flatAccountPaths: crate::value::List = std::sync::Arc::new(vec![Value::Str("account/apiPermissions".into()), Value::Str("account/apiRestrictions".into())]);
+        if !self.in_array(pathValue.clone(), &flatAccountPaths) {
             if (type_var.as_str() == Some("spot")) && (version.as_deref() == Some("v3")) {
                 url = Value::Str(format!("{}{}", url, "/api").into());
             }  else {

@@ -2906,7 +2906,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         let mut inverse: Option<bool> = self.safe_bool_k(&market, "inverse", &[]).as_bool();
         let mut volumeKey: String = (if (inverse == Some(true)) { "q".to_string() } else { "v".to_string() });
-        let mut parsed: Value = Value::from(vec![self.safe_integer_k(&kline, "t", &[]), self.safe_float_k(&kline, "o", &[]), self.safe_float_k(&kline, "h", &[]), self.safe_float_k(&kline, "l", &[]), self.safe_float_k(&kline, "c", &[]), self.safe_float(&kline, Value::from(volumeKey), &[])]);
+        let mut parsed: crate::value::List = std::sync::Arc::new(vec![self.safe_integer_k(&kline, "t", &[]), self.safe_float_k(&kline, "o", &[]), self.safe_float_k(&kline, "h", &[]), self.safe_float_k(&kline, "l", &[]), self.safe_float_k(&kline, "c", &[]), self.safe_float(&kline, Value::from(volumeKey), &[])]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbol.as_deref().unwrap_or("null")).into()), "::").into()), unifiedTimeframe.as_deref().unwrap_or("null"));
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&unifiedTimeframe);
@@ -2917,7 +2917,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, stored.clone());
             }
         }
-        stored.append(parsed);
+        stored.append(Value::Arr(parsed));
         let mut resolveData: Value = Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
         client.resolve(resolveData, messageHash.as_str());
 }

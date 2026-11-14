@@ -1797,9 +1797,9 @@ impl Cex {
             return;
         }
         let mut messageHash: String = format!("{}{}", "ohlcv:", symbol.as_deref().unwrap_or("null"));
-        let mut ohlcv: Value = Value::from(vec![self.safe_timestamp_k(&data, "time", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
+        let mut ohlcv: crate::value::List = std::sync::Arc::new(vec![self.safe_timestamp_k(&data, "time", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&(Value::Str("unknown".into())));
-        stored.append(ohlcv);
+        stored.append(Value::Arr(ohlcv));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -1828,9 +1828,9 @@ impl Cex {
                         let mut i: i64 = 0;
             let mut __for_first_221: bool = true;
             while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (data.len() as i64) } {
-            let mut ohlcv: Value = Value::from(vec![self.safe_timestamp(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(2), &[]),
+            let mut ohlcv: crate::value::List = std::sync::Arc::new(vec![self.safe_timestamp(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(2), &[]),
                 self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(3), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(4), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(5), &[])]);
-            stored.append(ohlcv);
+            stored.append(Value::Arr(ohlcv));
         }
         }
         let mut dataLength: i64 = data.len() as i64;

@@ -732,15 +732,15 @@ pub trait ExchangeBase:
     fn arrays_concat(&self, mut arraysOfArrays: Value) -> Value {
         let __arraysOfArrays_empty = Vec::new();
         let arraysOfArrays = arraysOfArrays.as_array().unwrap_or(&__arraysOfArrays_empty);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_74: bool = true;
             while { if !__for_first_74 { i += 1; } __for_first_74 = false; i < (arraysOfArrays.len() as i64) } {
-            result = self.array_concat(result, arraysOfArrays.get(i as usize).cloned().unwrap_or(Value::Null));
+            result = self.array_concat(Value::Arr(result), arraysOfArrays.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
 
     Value::Null
 }
@@ -3945,17 +3945,17 @@ pub trait ExchangeBase:
             }
         }
         }
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut feeValues: Vec<Value> = Value::Array(reduced.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_104: bool = true;
             while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < (feeValues.len() as i64) } {
             let mut reducedFeeValues: Value = object_values(&feeValues.get(i as usize).cloned().unwrap_or(Value::Null));
-            result = self.array_concat(result, reducedFeeValues);
+            result = self.array_concat(Value::Arr(result), reducedFeeValues).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
 
     Value::Null
 }

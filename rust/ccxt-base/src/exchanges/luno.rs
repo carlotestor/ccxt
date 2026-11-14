@@ -969,23 +969,23 @@ impl Luno {
             // rates below are read from Luno's own Help Centre fee article for the ZAR
             // market; markets quoted in other fiat currencies are left on the
             // exchange-wide default until their schedules are verified the same way.
-            let mut fiats: Value = Value::from(vec![Value::Str("ZAR".into())]);
+            let mut fiats: crate::value::List = std::sync::Arc::new(vec![Value::Str("ZAR".into())]);
             // live-but-unverified counters, kept on the exchange-wide default; the market
             // list is geo-filtered so this is a superset of any one region's view, and
             // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-            let mut unverifiedQuotes: Value = Value::from(vec![Value::Str("MYR".into()), Value::Str("NGN".into()), Value::Str("IDR".into()), Value::Str("KES".into()), Value::Str("UGX".into()), Value::Str("AUD".into()), Value::Str("GBP".into()), Value::Str("EUR".into()), Value::Str("USD".into()), Value::Str("ZARU".into())]);
-            let mut stablecoins: Value = Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())]);
+            let mut unverifiedQuotes: crate::value::List = std::sync::Arc::new(vec![Value::Str("MYR".into()), Value::Str("NGN".into()), Value::Str("IDR".into()), Value::Str("KES".into()), Value::Str("UGX".into()), Value::Str("AUD".into()), Value::Str("GBP".into()), Value::Str("EUR".into()), Value::Str("USD".into()), Value::Str("ZARU".into())]);
+            let mut stablecoins: crate::value::List = std::sync::Arc::new(vec![Value::Str("USDT".into()), Value::Str("USDC".into())]);
             let mut taker: Option<f64> = None;
             let mut maker: Option<f64> = None;
-            if self.in_array(&quote, fiats) {
-                if self.in_array(&base, stablecoins) {
+            if self.in_array(&quote, &fiats) {
+                if self.in_array(&base, &stablecoins) {
                     taker = Some(0.002_f64);
                     maker = Some(-0.0001_f64); // a rebate, not a charge
                 }  else {
                     taker = Some(0.006_f64);
                     maker = Some(0.004_f64);
                 }
-            }  else if !self.in_array(&quote, unverifiedQuotes) {
+            }  else if !self.in_array(&quote, &unverifiedQuotes) {
                 // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                 // are both in Luno's crypto/crypto column
                 taker = Some(0.001_f64);

@@ -3859,7 +3859,7 @@ impl Htx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_array().cloned().unwrap_or_default(); types = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsTypes = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut allMarkets: Value = Value::from(vec![]);
+        let mut allMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut promises: Vec<Value> = Vec::new();
         let mut keys: Vec<Value> = Value::Array(types.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
@@ -3884,10 +3884,10 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_768: bool = true;
             while { if !__for_first_768 { i += 1; } __for_first_768 = false; i < (responses.len() as i64) } {
-            allMarkets = self.array_concat(allMarkets, responses.get(i as usize).cloned().unwrap_or(Value::Null));
+            allMarkets = self.array_concat(Value::Arr(allMarkets), responses.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
         }
         }
-        return allMarkets;
+        return Value::Arr(allMarkets);
         Value::Null
         }).await?))
     }

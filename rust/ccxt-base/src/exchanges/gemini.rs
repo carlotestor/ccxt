@@ -2643,12 +2643,12 @@ impl Gemini {
         let mut typeValue: Option<String> = self.safe_string_k(params.clone(), "type", &[type_var]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]), &[]).as_str().map(str::to_owned);
         // timeInForce and postOnly are consumed only by non-trigger orders
-        let mut omitKeys: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("type".into()), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]);
-        let mut optionKeys: Value = Value::from(vec![]);
+        let mut omitKeys: crate::value::List = std::sync::Arc::new(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("type".into()), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]);
+        let mut optionKeys: crate::value::List = std::sync::Arc::new(Vec::new());
         if (triggerPrice.is_none()) {
-            optionKeys = Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]);
+            optionKeys = std::sync::Arc::new(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), self.array_concat(omitKeys, optionKeys), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), self.array_concat(Value::Arr(omitKeys), Value::Arr(optionKeys)), &[]).into_dict();
         if (typeValue.as_deref() == Some("stopLimit")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter or a stop_price parameter for ").into()), typeValue.as_deref().unwrap_or("null")).into()), " orders")));
         }

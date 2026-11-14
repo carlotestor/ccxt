@@ -4315,16 +4315,16 @@ impl Bybit {
         }
         }
         let mut promises: Vec<Value> = promise_all(&Value::from(promisesUnresolved)).await.as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_501: bool = true;
             while { if !__for_first_501 { i += 1; } __for_first_501 = false; i < (promises.len() as i64) } {
             let mut parsedMarket: Value = promises.get(i as usize).cloned().unwrap_or(Value::Null);
-            result = self.array_concat(result, parsedMarket);
+            result = self.array_concat(Value::Arr(result), parsedMarket).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }

@@ -1789,7 +1789,7 @@ impl Sxbet {
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "cancelOrdersBatchSize", &[Value::Int(100)]);
         let mut chunkCount: Value = Value::from(self.parse_to_int((match ((self.sum(&[Value::from(idsLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut c: i64 = 0;
             let mut __for_first_1508: bool = true;
@@ -1824,10 +1824,10 @@ impl Sxbet {
             });
             let __ws_arg_8 = self.extend(Value::Map(request), &[params.clone()]);
             let mut response: Value = self.sxbet_private_delete_orders_v3(&[__ws_arg_8]).await;
-            result = self.array_concat(result, self.parse_sxbet_cancel_response(response));
+            result = self.array_concat(Value::Arr(result), self.parse_sxbet_cancel_response(response)).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }
@@ -1872,8 +1872,8 @@ impl Sxbet {
         }  else {
             response = self.sxbet_private_delete_orders_v3_all(&[rest.clone()]).await;
         }
-        let mut result: Value = Value::from(vec![]);
-        result = self.array_concat(result, self.parse_sxbet_cancel_response(response.clone()));
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
+        result = self.array_concat(Value::Arr(result), self.parse_sxbet_cancel_response(response.clone())).into_list();
         // both paths paginate their async submission - keep going on the SAME route while more remain
         let mut hasMore: bool = self.safe_bool(self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1898,14 +1898,14 @@ impl Sxbet {
             }  else {
                 nextResponse = self.sxbet_private_delete_orders_v3_all(&[rest.clone()]).await;
             }
-            result = self.array_concat(result, self.parse_sxbet_cancel_response(nextResponse.clone()));
+            result = self.array_concat(Value::Arr(result), self.parse_sxbet_cancel_response(nextResponse.clone())).into_list();
             hasMore = self.safe_bool(self.safe_dict_k(nextResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("hasMore".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         }
         }
-        return result;
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }
