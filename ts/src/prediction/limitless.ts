@@ -1177,7 +1177,7 @@ export default class limitless extends Exchange {
         // market and book only once
         await this.loadOutcomes (outcomes);
         const outcomesBySlug: Dict = {};
-        const slugs: any[] = [];
+        const slugs: string[] = [];
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const slug = this.safeString (outcomeObj['info'], 'slug');
