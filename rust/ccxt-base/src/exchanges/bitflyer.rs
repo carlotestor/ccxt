@@ -1842,7 +1842,7 @@ impl Bitflyer {
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), request);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), request);
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 if (method.as_str() != Some("GET")) {
@@ -1854,7 +1854,7 @@ impl Bitflyer {
             headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("ACCESS-TIMESTAMP".to_string(), nonce);
+                    m.insert("ACCESS-TIMESTAMP".to_string(), Value::from(nonce));
                     m.insert("ACCESS-SIGN".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m

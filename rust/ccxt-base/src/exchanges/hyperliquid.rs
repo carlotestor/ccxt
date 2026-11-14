@@ -198,6 +198,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "get_dex_from_symbols" => self.get_dex_from_symbols(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "handle_builder_fee_approval" => self.handle_builder_fee_approval().await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -2058,7 +2059,7 @@ impl Hyperliquid {
                 m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
             m
         });
-        let mut dexName: Value = self.get_dex_from_symbols("fetchFundingRates", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null);
+        let mut dexName: Value = self.get_dex_from_symbols("fetchFundingRates", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         if (dexName != Value::Null) {
             request.insert("dex".into(), dexName);
         }
@@ -5459,32 +5460,34 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub fn get_dex_from_symbols(&self, methodName: &str, optional_args: &[Value]) -> Option<String> {
+    pub fn get_dex_from_symbols(&self, methodName: &str, optional_args: &[Value]) -> Value {
         let mut methodName: Value = methodName.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         if (symbols == Value::Null) {
-            return None;
+            return Value::Null;
         }
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (symbolsLength == 0.0) {
-            return None;
+            return Value::Null;
         }
         // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
         // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
         let mut firstMarket: crate::types::Market = (match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut dexName: Value = self.get_dex_from_hip3_symbol(Some(&firstMarket)).map(Value::from).unwrap_or(Value::Null);
+        let mut dexName: Option<String> = self.get_dex_from_hip3_symbol(Some(&firstMarket));
         {
                         let mut i: i64 = 1;
             let mut __for_first_825: bool = true;
             while { if !__for_first_825 { i += 1; } __for_first_825 = false; (i as f64) < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut currentDexName: Value = self.get_dex_from_hip3_symbol(Some(&market)).map(Value::from).unwrap_or(Value::Null);
+            let mut currentDexName: Option<String> = self.get_dex_from_hip3_symbol(Some(&market));
             if (currentDexName != dexName) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str(" only supports symbols from one DEX at a time for HIP3 markets".into()))));
             }
         }
         }
-        return dexName.as_str().map(str::to_owned);
+        return dexName.map(Value::from).unwrap_or(Value::Null);
+
+    Value::Null
 }
 
 /*
@@ -5525,7 +5528,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut dexName: Value = self.get_dex_from_symbols("fetchPositions", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null);
+        let mut dexName: Value = self.get_dex_from_symbols("fetchPositions", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         if (dexName != Value::Null) {
             request.insert("dex".into(), dexName);
         }
@@ -6829,7 +6832,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut dexName: Value = self.get_dex_from_symbols("fetchOpenInterests", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null);
+        let mut dexName: Value = self.get_dex_from_symbols("fetchOpenInterests", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         if (dexName != Value::Null) {
             request.insert("dex".into(), dexName);
         }

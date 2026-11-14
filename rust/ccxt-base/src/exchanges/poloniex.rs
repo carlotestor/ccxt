@@ -3161,7 +3161,7 @@ impl Poloniex {
         }
         let mut upperCaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut isMarket: bool = upperCaseType == "MARKET";
-        let mut isPostOnly: Value = self.is_post_only(Value::Bool(isMarket), Value::Bool(upperCaseType == "LIMIT_MAKER"), &[query.clone()]);
+        let mut isPostOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(upperCaseType == "LIMIT_MAKER"), &[query.clone()]);
         let mut queryOmitted: Value = self.omit(query, Value::from(vec![Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
         if (triggerPrice.is_some()) {
             if !(market).spot {
@@ -3169,7 +3169,7 @@ impl Poloniex {
             }
             upperCaseType = (if (price == Value::Null) { "STOP".to_string() } else { "STOP_LIMIT".to_string() });
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), Value::from(triggerPrice)); }
-        }  else if isPostOnly.as_bool() == Some(true) {
+        }  else if isPostOnly {
             upperCaseType = "LIMIT_MAKER".to_string();
         }
         if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("type".into(), Value::from(upperCaseType)); }
@@ -5362,7 +5362,7 @@ impl Poloniex {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut implodedPath: Value = Value::from(self.implode_params(path, params));
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);
-        if self.in_array(apiName.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])) {
+        if self.in_array(&apiName, Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])) {
             url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("swap".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);
         }
         // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact

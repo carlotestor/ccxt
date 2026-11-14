@@ -2783,10 +2783,10 @@ impl Btse {
         let mut query: Value = self.omit(params, Value::Str("clientOrderId".into()), &[]);
         let mut isMarketOrder: Value = (Value::Bool(typeValue == "MARKET"));
         let mut isLimitOrder: bool = typeValue == "LIMIT";
-        let mut postOnly: Value = Value::Bool(false);
+        let mut postOnly: bool = false;
         // exchange-specific postOnly is the same as the unified one
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), postOnly.clone(), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }; // this will remove PO from params.timeInForce if present
-        if postOnly.as_bool() == Some(true) {
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(postOnly), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }; // this will remove PO from params.timeInForce if present
+        if postOnly {
             request.insert("postOnly".into(), Value::Bool(true));
         }
         let mut timeInForce: Option<String> = self.handle_time_in_force(&[query.clone()]).as_str().map(str::to_owned);
@@ -3009,25 +3009,25 @@ impl Btse {
         let mut positionMode: Option<String> = self.safe_string_k(query.clone(), "positionMode", &[]).as_str().map(str::to_owned);
         // if positionMode is provided, we will get it from params and send it as is
         if (positionMode.is_none()) {
-            let mut hedged: Value = Value::Bool(false);
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("hedged".into()), &[hedged.clone()]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            let mut hedged: bool = false;
+            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("hedged".into()), &[Value::Bool(hedged)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             let mut marginMode: Value = Value::Str("cross".into());
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("marginMode".into()), &[marginMode.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if (marginMode.as_str() == Some("isolated")) {
-                if hedged.as_bool() == Some(true) {
+                if hedged {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot use isolated margin with hedged positions".into()))));
                 }
                 request.insert("positionMode".into(), Value::Str("ISOLATED".into()));
-            }  else if hedged.as_bool() == Some(true) {
+            }  else if hedged {
                 request.insert("positionMode".into(), Value::Str("HEDGE".into()));
             }
         }
         let mut isMarketOrder: Value = (Value::Bool(typeValue == "MARKET"));
         let mut isLimitOrder: bool = typeValue == "LIMIT";
-        let mut postOnly: Value = Value::Bool(false);
+        let mut postOnly: bool = false;
         // exchange-specific postOnly is the same as the unified one
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), postOnly.clone(), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }; // this will remove PO from params.timeInForce if present
-        if postOnly.as_bool() == Some(true) {
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(postOnly), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }; // this will remove PO from params.timeInForce if present
+        if postOnly {
             request.insert("postOnly".into(), Value::Bool(true));
         }
         let mut timeInForce: Option<String> = self.handle_time_in_force(&[query.clone()]).as_str().map(str::to_owned);

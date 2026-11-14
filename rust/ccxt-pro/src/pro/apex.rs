@@ -1139,10 +1139,10 @@ impl Apex {
         if !(self.is_empty(symbols).as_bool() == Some(true)) {
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
-        let mut url: Value = self.get_ws_private_url();
+        let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
         messageHash = format!("{}{}", Value::Str("positions".into()), messageHash);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        self.authenticate(url.as_str().unwrap_or_default(), &[]).await;
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         self.set_positions_cache(client.as_value(), &[symbolsNormalized2.clone()]);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         if (cache.is_none()) {
@@ -1150,7 +1150,7 @@ impl Apex {
             return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized2.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut topics: Value = Value::from(vec![Value::Str("positions".into())]);
-        let mut newPositions: Value = self.watch_topics(url.as_str().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
+        let mut newPositions: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }

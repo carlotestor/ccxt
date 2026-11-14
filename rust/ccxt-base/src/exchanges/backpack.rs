@@ -1368,10 +1368,10 @@ impl Backpack {
             while { if !__for_first_245 { i += 1; } __for_first_245 = false; i < (requestedTypes.len() as i64) } {
             let mut requestedType: String = self.safe_string(requestedTypes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut normalizedType: Option<String> = self.safe_string(&aliases, Value::from(requestedType.clone()), &[Value::from(requestedType.clone())]).as_str().map(str::to_owned);
-            if !self.in_array(Value::from(normalizedType.as_deref()), supportedTypes.clone()) {
+            if !self.in_array(&normalizedType, supportedTypes.clone()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() unsupported marketType ".into())).into()), requestedType)));
             }
-            if !self.in_array(Value::from(normalizedType.as_deref()), marketTypes.clone()) {
+            if !self.in_array(&normalizedType, marketTypes.clone()) {
                 if let Value::Arr(__a) = &mut marketTypes { std::sync::Arc::make_mut(__a).push(normalizedType.map(Value::from).unwrap_or(Value::Null)); }
             }
         }

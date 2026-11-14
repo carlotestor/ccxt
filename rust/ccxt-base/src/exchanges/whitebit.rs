@@ -2072,7 +2072,7 @@ impl Whitebit {
             let mut symbol: Option<String> = marketSymbol;
             // Filter by symbols if specified
             if (symbols != Value::Null) {
-                if !self.in_array(Value::from(symbol.as_deref()), symbols.clone()) {
+                if !self.in_array(&symbol, symbols.clone()) {
                     continue;
                 }
             }
@@ -3097,7 +3097,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (since != Value::Null) {
                 let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
                 request.insert("start".into(), Value::from(start));
-                let mut rangeEnd: Value = self.sum(&[Value::from(start), Value::from((if let Some(__r) = cappedLimit { Some(duration * __r) } else { None }))]);
+                let mut rangeEnd: Value = Value::from((if let (Some(__m0), Some(__m1)) = (start, ((if let Some(__r) = cappedLimit { Some(duration * __r) } else { None }))) { Some((__m0 + __m1)) } else { None }));
                 if (endTime == Value::Null) || (rangeEnd.as_f64().unwrap_or(f64::NAN) < endTime.as_f64().unwrap_or(f64::NAN)) {
                     endTime = rangeEnd;
                 }
@@ -3334,7 +3334,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (timeInForce.is_some()) && (timeInForce.as_deref() != Some("GTC")) && (timeInForce.as_deref() != Some("IOC")) && (timeInForce.as_deref() != Some("PO")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support timeInForce ".into())).into()), timeInForce.as_deref().unwrap_or("null")).into()), Value::Str(", only GTC, IOC and PO are allowed".into()))));
         }
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsOmitted)]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsOmitted)]);
         let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
         if isStopOrder && (postOnly || ioc) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support postOnly or timeInForce IOC for stop orders".into()))));

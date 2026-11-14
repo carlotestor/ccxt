@@ -3908,7 +3908,7 @@ if _try_result.is_err() {
         let mut remaining: Option<String> = crate::precise::Precise::stringSub(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &filledAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut average: Option<String> = self.safe_string2(order.clone(), Value::Str("average_filled_price".into()), Value::Str("p".into()), &[]).as_str().map(str::to_owned);
         let mut eventType: Option<String> = self.safe_string_k(order.clone(), "event_type", &[]).as_str().map(str::to_owned);
-        let mut isFillEvent: bool = self.in_array(eventType.map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("fulfill_market".into()), Value::Str("fulfill_limit".into())]));
+        let mut isFillEvent: bool = self.in_array(&eventType, Value::from(vec![Value::Str("fulfill_market".into()), Value::Str("fulfill_limit".into())]));
         if (average.is_none()) && isFillEvent {
             average = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned); // on a matching event price is the fill price
         }

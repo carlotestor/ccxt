@@ -2195,7 +2195,7 @@ impl Hyperliquid {
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut dexName: Value = self.parent.get_dex_from_symbols("watchPositions", &[symbolsNormalized.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut dexName: Value = self.parent.get_dex_from_symbols("watchPositions", &[symbolsNormalized.clone()]);
         if (dexName != Value::Null) {
             subscription.insert("dex".into(), dexName);
         }

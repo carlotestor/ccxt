@@ -2245,7 +2245,7 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]).as_str().map(str::to_owned);
-        if !self.in_array(interval.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("PT1H".into()), Value::Str("P1D".into())])) {
+        if !self.in_array(&interval, Value::from(vec![Value::Str("PT1H".into()), Value::Str("P1D".into())])) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterestHistory() supports 1h and 1d timeframes only".into()))));
         }
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
@@ -3967,13 +3967,13 @@ impl Extended {
         }
         let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
         let mut priceString: Value = self.price_to_precision(symbol.clone(), price);
-        let mut postOnly: Value = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Null, &[params.clone()]);
-        let mut reduceOnly: bool = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Null, &[params.clone()]);
+        let mut reduceOnly: bool = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         if (timeInForce.is_none()) {
             timeInForce = (if (uppercaseType == "MARKET") { Some("IOC".to_string()) } else { Some("GTT".to_string()) });
         }
-        let mut fee: Value = self.safe_string_k(params.clone(), "fee", &[Value::Str("0.0005".into())]);
+        let mut fee: String = self.safe_string_k(params.clone(), "fee", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
         let mut builderFeeRate: Value = Value::Null;
         let mut builderId: Option<String> = None;
         let mut paramsBuilder: Value = params.clone();
@@ -3989,15 +3989,14 @@ impl Extended {
                 { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]).as_array().cloned().unwrap_or_default(); builderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilder = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             }
         }
-        let mut totalFee: Value = fee.clone();
+        let mut totalFee: Value = Value::from(fee.clone());
         if (builderFeeRate != Value::Null) {
-            totalFee = crate::precise::Precise::stringAdd(&fee, &builderFeeRate);
+            totalFee = crate::precise::Precise::stringAdd(&Value::from(fee.clone()), &builderFeeRate);
         }
         let mut now: i64 = self.milliseconds();
-        let mut expiryEpochMillis: Value = self.safe_integer_k(paramsBuilder.clone(), "expiryEpochMillis", &[Value::Int((now + 3600000))]);
-        let mut settlementDefault: Value = (if (expiryEpochMillis != Value::Null) { (match (&(Value::from(self.parse_to_int((match ((((match (&(expiryEpochMillis), &(Value::Int(999))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))), &(Value::Int(1209600))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x),
-            Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::Null });
+        let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(paramsBuilder.clone(), "expiryEpochMillis", &[Value::Int((now + 3600000))]).as_i64();
+        let mut settlementDefault: Value = (if (expiryEpochMillis.is_some()) { (match (&(Value::from(self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = expiryEpochMillis { Some(__l + 999) } else { None })) { Some((__l as f64) / 1000.0) } else { None }))))), &(Value::Int(1209600))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y),
+            (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::Null });
         let mut settlementExpiration: Value = self.safe_integer_k(paramsBuilder.clone(), "settlementExpiration", &[settlementDefault]);
         let mut nonce: Option<String> = self.number_to_string(self.nonce());
         let mut account: Value = self.fetch_extended_account(&[]).await;
@@ -4032,20 +4031,20 @@ impl Extended {
             m
         });
         let mut isBuy: bool = uppercaseSide == "BUY";
-        let mut clientOrderId: Value = self.safe_string2(paramsBuilder.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[Value::from(self.uuid(&[]))]);
+        let mut clientOrderId: Option<String> = self.safe_string2(paramsBuilder.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), clientOrderId.clone());
+                m.insert("id".to_string(), Value::from(clientOrderId.as_deref()));
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), Value::from(uppercaseType));
                 m.insert("side".to_string(), Value::from(uppercaseSide));
                 m.insert("qty".to_string(), amountString.clone());
                 m.insert("price".to_string(), priceString.clone());
                 m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
-                m.insert("expiryEpochMillis".to_string(), expiryEpochMillis);
-                m.insert("fee".to_string(), fee);
+                m.insert("expiryEpochMillis".to_string(), Value::from(expiryEpochMillis));
+                m.insert("fee".to_string(), Value::from(fee));
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
-                m.insert("postOnly".to_string(), postOnly);
+                m.insert("postOnly".to_string(), Value::Bool(postOnly));
                 m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
                 m.insert("selfTradeProtectionLevel".to_string(), Value::Str("ACCOUNT".into()));
             m
@@ -4190,7 +4189,7 @@ impl Extended {
         m.insert("request".to_string(), self.extend(Value::Map(request), &[paramsOmitted]));
         m.insert("market".to_string(), (market).raw.clone());
         m.insert("timestamp".to_string(), Value::from(now));
-        m.insert("clientOrderId".to_string(), clientOrderId);
+        m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString);
         m.insert("amount".to_string(), amountString);
     m
@@ -5092,9 +5091,9 @@ impl Extended {
         let mut domainHash: Value = self.get_extended_domain_hash();
         // Order fields
         let mut positionId: Value = self.convert_to_big_int(self.safe_string_k(settlement.clone(), "collateralPosition", &[Value::Str("0".into())]));
-        let mut baseAssetId: Value = self.safe_string_k(settlement.clone(), "baseAssetId", &[Value::Str("0".into())]);
+        let mut baseAssetId: String = self.safe_string_k(settlement.clone(), "baseAssetId", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut baseAmount: Value = self.convert_to_big_int(self.safe_string_k(settlement.clone(), "baseAmount", &[Value::Str("0".into())]));
-        let mut quoteAssetId: Value = self.safe_string_k(settlement.clone(), "quoteAssetId", &[Value::Str("0".into())]);
+        let mut quoteAssetId: String = self.safe_string_k(settlement.clone(), "quoteAssetId", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut quoteAmount: Value = self.convert_to_big_int(self.safe_string_k(settlement.clone(), "quoteAmount", &[Value::Str("0".into())]));
         let mut feeAssetId: Value = self.safe_string_k(settlement.clone(), "feeAssetId", &[Value::Str("0".into())]);
         let mut feeAmount: Value = self.convert_to_big_int(self.safe_string_k(settlement.clone(), "feeAmount", &[Value::Str("0".into())]));
@@ -5102,7 +5101,8 @@ impl Extended {
         let mut salt: Value = self.convert_to_big_int(self.safe_string2(settlement.clone(), Value::Str("salt".into()), Value::Str("nonce".into()), &[Value::Str("0".into())]));
         let mut starkKey: Value = self.convert_to_big_int(self.safe_string_k(settlement, "starkKey", &[Value::Str("0".into())]));
         // Order struct hash
-        let mut orderHash: Value = self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements(Value::from(vec![orderTypeHash, positionId, self.convert_to_big_int(baseAssetId), self.get_extended_encode_i64(baseAmount), self.convert_to_big_int(quoteAssetId), self.get_extended_encode_i64(quoteAmount), self.convert_to_big_int(feeAssetId), feeAmount, expiration, salt])));
+        let mut orderHash: Value = self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements(Value::from(vec![orderTypeHash, positionId, self.convert_to_big_int(Value::from(baseAssetId)), self.get_extended_encode_i64(baseAmount), self.convert_to_big_int(Value::from(quoteAssetId)), self.get_extended_encode_i64(quoteAmount),
+            self.convert_to_big_int(feeAssetId), feeAmount, expiration, salt])));
         return self.extended_starknet_compute_poseidon_hash_on_elements(Value::from(vec![self.get_extended_string_to_felt("StarkNet Message"), domainHash, starkKey, orderHash])).as_str().map(str::to_owned);
 }
 

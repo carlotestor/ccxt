@@ -2817,7 +2817,7 @@ impl Bitstamp {
                 if untilIsDefined {
                     request.insert("end".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
                 }  else {
-                    request.insert("end".into(), self.sum(&[Value::from(startDefault), Value::Int((((duration * 1000)) - 1))]));
+                    request.insert("end".into(), Value::from((if let Some(__m0) = startDefault { Some((__m0 + ((((duration * 1000)) - 1)))) } else { None })));
                 }
                 request.insert("limit".into(), Value::Int(1000));
             }
@@ -3076,7 +3076,7 @@ impl Bitstamp {
     m
 })]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(Value::from(id.as_deref()), None);
-            if (codes != Value::Null) && !self.in_array(Value::from(code.as_deref()), codes.clone()) {
+            if (codes != Value::Null) && !self.in_array(&code, codes.clone()) {
                 continue;
             }
             if (code.is_some()) {
@@ -3823,8 +3823,8 @@ impl Bitstamp {
         //     }
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "datetime", &[]));
-        let mut currencyId: Value = self.get_currency_id_from_transaction(transaction.clone());
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), currency);
+        let mut currencyId: Option<String> = self.get_currency_id_from_transaction(transaction.clone()).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), currency);
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Value = Value::Null;
         let mut amount: Option<String> = None;
@@ -3833,8 +3833,8 @@ impl Bitstamp {
         }  else if (currency.is_some()) {
             amount = self.safe_string(transaction.clone(), crate::value::KeyRead::key_read(&currency, "id"), &[]).as_str().map(str::to_owned);
             feeCurrency = crate::value::KeyRead::key_read(&currency, "code");
-        }  else if (code.is_some()) && (currencyId != Value::Null) {
-            amount = self.safe_string(transaction.clone(), currencyId, &[]).as_str().map(str::to_owned);
+        }  else if (code.is_some()) && (currencyId.is_some()) {
+            amount = self.safe_string(transaction.clone(), currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             feeCurrency = code.clone().map(Value::from).unwrap_or(Value::Null);
         }
         if (amount.is_some()) {

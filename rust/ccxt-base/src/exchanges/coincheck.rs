@@ -1597,7 +1597,7 @@ impl Coincheck {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut queryString: String = "".to_string();
             if (method.as_str() == Some("GET")) {
                 if hasQuery {
@@ -1614,7 +1614,7 @@ impl Coincheck {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("ACCESS-NONCE".to_string(), nonce);
+                    m.insert("ACCESS-NONCE".to_string(), Value::from(nonce));
                     m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
                 m
             }));

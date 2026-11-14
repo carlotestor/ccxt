@@ -1542,7 +1542,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut ts: String = format!("{}", self.nonce());
             let mut auth: String = format!("{}{}", Value::Str("|".into()), ts);
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1552,7 +1552,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     let mut m = indexmap::IndexMap::new();
         m.insert("apikey".to_string(), self.apiKey.clone());
         m.insert("sign".to_string(), Value::from(signature));
-        m.insert("timestamp".to_string(), ts);
+        m.insert("timestamp".to_string(), Value::from(ts));
     m
 }));
                 m

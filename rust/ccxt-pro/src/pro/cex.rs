@@ -714,7 +714,7 @@ impl Cex {
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params.clone()]).into_dict();
         let mut ticker: Value = self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        if (symbolsNormalized != Value::Null) && !self.in_array(Value::from(tickerSymbol.as_deref()), symbolsNormalized.clone()) {
+        if (symbolsNormalized != Value::Null) && !self.in_array(&tickerSymbol, symbolsNormalized.clone()) {
             return crate::types::IntoRaw::into_raw(Box::pin(self.watch_tickers(symbolsNormalized.to_opt_str_vec(), params)).await);
         }
         if self.newUpdates.as_bool() == Some(true) {

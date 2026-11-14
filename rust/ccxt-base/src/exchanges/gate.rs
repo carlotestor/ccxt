@@ -4966,7 +4966,7 @@ if _try_result.is_err() {
 })]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-            if (codes != Value::Null) && !self.in_array(Value::from(code.as_deref()), codes.clone()) {
+            if (codes != Value::Null) && !self.in_array(&code, codes.clone()) {
                 continue;
             }
             let mut withdrawFixOnChains: Value = self.safe_dict_k(&entry, "withdraw_fix_on_chains", &[]);
@@ -6704,9 +6704,7 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("from".into(), Value::from(start));
-            request.insert("to".into(), self.sum(&[Value::from(start), (match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            request.insert("to".into(), Value::from((if let Some(__m0) = start { Some((__m0 + ((((((30 * 24)) * 60)) * 60)))) } else { None })));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("to".into()), Value::Map(request), &paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
@@ -6768,9 +6766,7 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("from".into(), Value::from(start));
-            request.insert("to".into(), self.sum(&[Value::from(start), (match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            request.insert("to".into(), Value::from((if let Some(__m0) = start { Some((__m0 + ((((((30 * 24)) * 60)) * 60)))) } else { None })));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("to".into()), Value::Map(request), &paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
@@ -9460,7 +9456,7 @@ if _try_result.is_err() {
         }
         let mut requestedLimit: i64 = self.safe_integer_k(&requestParams, "limit", &[Value::Int(100)]).as_i64().unwrap_or(100);
         let mut limit: Option<i64> = self.parse_to_int((if (false) { Value::Int(100) } else { crate::runtime::Math::max(&Value::Int(1), &Value::Int(i64::min(requestedLimit, 100))) }));
-        let mut offset: Value = self.safe_integer_k(&requestParams, "offset", &[Value::Int(0)]);
+        let mut offset: Option<i64> = self.safe_integer_k(&requestParams, "offset", &[Value::Int(0)]).as_i64();
         let mut contract: Value = self.safe_string_k(&requestParams, "contract", &[Value::Str("".into())]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&requestParams, Value::from(vec![Value::Str("limit".into()), Value::Str("offset".into())]), &[]).into_dict();
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::from(limit)); }
@@ -9469,7 +9465,7 @@ if _try_result.is_err() {
             m
         });
         loop {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".into(), offset.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".into(), Value::from(offset)); }
             let mut response: Value = Value::Null;
             if (type_var.as_deref() == Some("swap")) {
                 let __ws_arg_81 = self.extend(request.clone(), &[&paramsOmitted]);
@@ -9494,7 +9490,7 @@ if _try_result.is_err() {
             if (contract.as_str() != Some("")) || (Some(numContracts) < limit) {
                 break;
             }
-            offset = self.sum(&[offset.clone(), Value::from(limit)]);
+            offset = (if let (Some(__m0), Some(__m1)) = (offset, limit) { Some((__m0 + __m1)) } else { None });
         }
         return self.parse_leverage_tiers(tiers, &[symbols]);
         Value::Null

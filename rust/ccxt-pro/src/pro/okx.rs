@@ -2139,8 +2139,8 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(topics.clone()));
             m
         });
-        let mut url: Value = self.get_url(depth, &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_url(depth, &[Value::Str("public".into())]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut resyncTopics: Vec<Value> = Vec::new();
         let mut resyncHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut resyncNeeded: bool = false;
@@ -2163,9 +2163,9 @@ impl Okx {
                     m.insert("args".to_string(), Value::from(resyncTopics));
                 m
             });
-            self.watch_multiple(&url, &resyncHashes, Value::Map(unsubscribeRequest), &resyncHashes, Value::Null).await;
+            self.watch_multiple(url.as_deref(), &resyncHashes, Value::Map(unsubscribeRequest), &resyncHashes, Value::Null).await;
         }
-        let mut orderbook: Value = self.watch_multiple(&url, &messageHashes, Value::Map(request), &messageHashes, Value::Null).await;
+        let mut orderbook: Value = self.watch_multiple(url.as_deref(), &messageHashes, Value::Map(request), &messageHashes, Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -2543,9 +2543,9 @@ impl Okx {
         self.check_required_credentials(&[]);
         let mut access: String = self.safe_string_k(params.clone(), "access", &[Value::Str("private".into())]).as_str().unwrap_or("private").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("access".into())]), &[]).into_dict();
-        let mut url: Value = self.get_url(Value::Str("users".into()), &[Value::from(access)]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Option<String> = self.get_url(Value::Str("users".into()), &[Value::from(access)]);
         let mut messageHash: String = "authenticated".to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
@@ -2572,7 +2572,7 @@ impl Okx {
             if (paramsOmitted.contains_key("access")) {
                 request.insert("access".into(), crate::value::KeyRead::key_read(&&paramsOmitted, "access"));
             }
-            self.watch(&url, &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
+            self.watch(url.as_deref(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

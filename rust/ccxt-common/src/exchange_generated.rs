@@ -8447,7 +8447,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
-        if !self.in_array(triggerDirection.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("ascending".into()), Value::Str("descending".into()), Value::Str("up".into()), Value::Str("down".into()), Value::Str("above".into()), Value::Str("below".into())])) && !exchangeSpecificDefined && !(allowEmpty.as_bool() == Some(true)) {
+        if !self.in_array(&triggerDirection, Value::from(vec![Value::Str("ascending".into()), Value::Str("descending".into()), Value::Str("up".into()), Value::Str("down".into()), Value::Str("above".into()), Value::Str("below".into())])) && !exchangeSpecificDefined && !(allowEmpty.as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\"".into()))));
         }
         // if old format was provided, overwrite to new
@@ -8476,7 +8476,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn is_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificParam: Value, optional_args: &[Value]) -> Value {
+    fn is_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificParam: Value, optional_args: &[Value]) -> bool {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8501,13 +8501,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else if isMarketOrder.as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" market orders cannot be postOnly".into()))));
             }  else {
-                return Value::Bool(true);
+                return true;
             }
         }  else {
-            return Value::Bool(false);
+            return false;
         }
-
-    Value::Null
 }
 
     fn handle_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificPostOnlyOption: Value, optional_args: &[Value]) -> Value {
@@ -8984,7 +8982,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut currency: crate::types::Currency = self.safe_currency(currencyId, None);
             let mut code: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
-            if (codes == Value::Null) || (self.in_array(Value::from(code.as_deref()), codes.clone())) {
+            if (codes == Value::Null) || (self.in_array(&code, codes.clone())) {
                 depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange_generated::ExchangeBase>::parse_deposit_withdraw_fee(self, dictionary, Some(&currency)));
             }
         }
@@ -13598,7 +13596,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "invert_flat_string_dictionary" => self.invert_flat_string_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_empty_string" => self.is_empty_string(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_leveraged_currency" => self.is_leveraged_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "is_post_only" => self.is_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "is_post_only" => crate::Value::from(self.is_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..])),
             "is_round_number" => self.is_round_number(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_significant_precision" => self.is_significant_precision(),
             "is_tick_precision" => self.is_tick_precision(),

@@ -1154,7 +1154,7 @@ impl Sxbet {
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         let mut lengthHex: Value = hex.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(64); let __j = __l.min(128); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         let mut length: Option<i64> = self.parse_to_int(self.hex_to_int(lengthHex.as_str().unwrap_or_default()));
-        let mut dataEnd: Value = self.sum(&[Value::Int(128), Value::from((if let Some(__l) = length { Some(__l * 2) } else { None }))]);
+        let mut dataEnd: Value = Value::from((if let Some(__m1) = ((if let Some(__l) = length { Some(__l * 2) } else { None })) { Some((128 + __m1)) } else { None }));
         let mut dataHex: Value = (match (&(hex), 128i64, (match &(dataEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
             __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
             __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
@@ -1185,7 +1185,7 @@ impl Sxbet {
             let mut ch: Value = get_value(&lowerHex, &Value::Int(i));
             let mut digitValue: Option<i64> = self.parse_to_int(Value::Int((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })));
             let mut shifted: Option<i64> = (if let Some(__l) = result { Some(__l * 16) } else { None });
-            result = self.parse_to_int(self.sum(&[Value::from(shifted), Value::from(digitValue)]));
+            result = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (shifted, digitValue) { Some((__m0 + __m1)) } else { None })));
         }
         }
         return Value::from(result);

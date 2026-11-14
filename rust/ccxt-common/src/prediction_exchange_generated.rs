@@ -711,7 +711,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_201: bool = true;
             while { if !__for_first_201 { i += 1; } __for_first_201 = false; i < (rawParts.len() as i64) } {
             let mut w: Option<String> = rawParts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if ((w.as_deref().unwrap_or_default().chars().count() as i64)) > 0 && !self.in_array(w.clone().map(Value::from).unwrap_or(Value::Null), stopWords.clone()) {
+            if ((w.as_deref().unwrap_or_default().chars().count() as i64)) > 0 && !self.in_array(&w, stopWords.clone()) {
                 parts.push(w.map(Value::from).unwrap_or(Value::Null));
             }
         }

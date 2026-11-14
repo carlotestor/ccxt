@@ -508,7 +508,7 @@ impl Weex {
         if (self.clients.clone() != Value::Null) && (matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
-        let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
+        let mut timestamp: String = format!("{}", self.nonce());
         let mut payload: String = format!("{}{}", timestamp, Value::Str("/v3/ws/private".into()));
         let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
         let mut originalHeaders: crate::value::Dict = self.safe_dict(crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), Value::Str("headers".into()), &[]).into_dict();
@@ -525,7 +525,7 @@ impl Weex {
         m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
         m.insert("ACCESS-SIGN".to_string(), Value::from(signature));
         m.insert("ACCESS-PASSPHRASE".to_string(), self.password.clone());
-        m.insert("ACCESS-TIMESTAMP".to_string(), timestamp);
+        m.insert("ACCESS-TIMESTAMP".to_string(), Value::from(timestamp));
     m
 }));
     m
@@ -1639,16 +1639,12 @@ impl Weex {
             }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut timestamp: Value = (match __pro_message.get("E").cloned() {
-            Some(Value::Int(__n)) => Value::Int(__n),
-            Some(Value::Float(__f)) => Value::Int(__f as i64),
-            Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } },
-            _ => Value::Null
-        });
+        let mut timestamp: Option<i64> = (match __pro_message.get("E").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
+            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut event: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut nonce: Value = (match __pro_message.get("u").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         if (event.as_deref() == Some("depthSnapshot")) {
-            let mut parsed: crate::value::Dict = self.parse_order_book(message, Value::from(symbol), &[timestamp.clone(), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_order_book(message, Value::from(symbol), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
             std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), nonce.clone());
             orderbook.reset(Value::Dict(parsed));
         }  else {
@@ -1656,8 +1652,8 @@ impl Weex {
             let mut bids: Value = (match __pro_message.get("b").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
             self.handle_deltas(orderbook.book_field("asks"), asks);
             self.handle_deltas(orderbook.book_field("bids"), bids);
-            orderbook.set_book_meta("timestamp", timestamp.clone());
-            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+            orderbook.set_book_meta("timestamp", Value::from(timestamp));
+            orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
             orderbook.set_book_meta("nonce", nonce);
         }
         client.resolve(Value::from(&orderbook), messageHash.as_str());

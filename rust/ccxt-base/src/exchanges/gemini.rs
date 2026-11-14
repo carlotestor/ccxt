@@ -1552,7 +1552,7 @@ impl Gemini {
                     while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut pairInfo: Option<crate::value::List> = self.safe_list(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), &[]).into_opt_list();
-                    if (pairInfo.is_some()) && !self.in_array(marketId.map(Value::from).unwrap_or(Value::Null), Value::from(&brokenPairs)) {
+                    if (pairInfo.is_some()) && !self.in_array(&marketId, Value::from(&brokenPairs)) {
                         let mut parsed: Value = self.parse_market(pairInfo.map_or(Value::Null, Value::Arr));
                         if (parsed != Value::Null) {
                             result.push(parsed.clone());

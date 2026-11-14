@@ -1180,14 +1180,14 @@ impl Hyperliquid {
         let mut rawAsks: crate::value::List = self.safe_list(&levels, Value::Int(1), &[Value::from(vec![])]).into_list();
         let mut topBid: Option<crate::value::Dict> = self.safe_dict(&rawBids, Value::Int(0), &[]).into_opt_dict();
         let mut topAsk: Option<crate::value::Dict> = self.safe_dict(&rawAsks, Value::Int(0), &[]).into_opt_dict();
-        let mut bid: Value = (if (topBid.is_some()) { self.safe_number_k(&topBid, "px", &[]) } else { Value::Null });
-        let mut ask: Value = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "px", &[]) } else { Value::Null });
+        let mut bid: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "px", &[]).as_f64() } else { None });
+        let mut ask: Option<f64> = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "px", &[]).as_f64() } else { None });
         let mut bidVolume: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "sz", &[]).as_f64() } else { None });
         let mut askVolume: Option<f64> = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "sz", &[]).as_f64() } else { None });
         // Use synthetic mid if no l2Book
-        let mut mid: Value = self.safe_number_k(raw.clone(), "mid", &[]);
-        if (mid == Value::Null) && (bid != Value::Null) && (ask != Value::Null) {
-            mid = (match ((self.sum(&[bid.clone(), ask.clone()])).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+        let mut mid: Option<f64> = self.safe_number_k(raw.clone(), "mid", &[]).as_f64();
+        if (mid.is_none()) && (bid.is_some()) && (ask.is_some()) {
+            mid = (if let Some(__l) = ((if let (Some(__m0), Some(__m1)) = (bid, ask) { Some((__m0 + __m1)) } else { None })) { Some(__l / 2.0) } else { None });
         }
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         let mut parentSymbol: Option<String> = self.safe_string_k(&mkt, "market", &[]).as_str().map(str::to_owned);
@@ -1216,18 +1216,18 @@ impl Hyperliquid {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), bid);
+        m.insert("bid".to_string(), Value::from(bid));
         m.insert("bidVolume".to_string(), Value::from(bidVolume));
-        m.insert("ask".to_string(), ask);
+        m.insert("ask".to_string(), Value::from(ask));
         m.insert("askVolume".to_string(), Value::from(askVolume));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), mid.clone());
-        m.insert("last".to_string(), mid.clone());
+        m.insert("close".to_string(), Value::from(mid));
+        m.insert("last".to_string(), Value::from(mid));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), mid);
+        m.insert("average".to_string(), Value::from(mid));
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::from(dayVolume));
         m.insert("info".to_string(), raw);
@@ -1357,7 +1357,7 @@ impl Hyperliquid {
             let mut tf: i64 = self.parse_timeframe(timeframe.clone());
             let mut candleCount: i64 = limit.as_i64().unwrap_or(100);
             let mut startOffset: i64 = (((tf * candleCount)) * -1000);
-            let mut shiftedStart: Value = self.sum(&[Value::from(until), Value::from(startOffset)]);
+            let mut shiftedStart: Value = Value::from((if let Some(__m0) = until { Some((__m0 + startOffset)) } else { None }));
             startTime = shiftedStart.clone();
             if (startTime == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing startTime".into()))));

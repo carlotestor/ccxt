@@ -3922,7 +3922,7 @@ impl Aster {
                 uppercaseType = Some("TAKE_PROFIT".to_string());
             }
         }
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[params.clone()]);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("GTX".into()));
         }
@@ -5705,10 +5705,10 @@ impl Aster {
 
     pub fn hash_message(&self, mut binaryMessage: Value) -> Option<String> {
         // const binaryMessage = this.encode (message);
-        let mut binaryMessageLength: Value = self.binary_length(binaryMessage.clone(), &[]);
+        let mut binaryMessageLength: i64 = self.binary_length(binaryMessage.clone(), &[]);
         let mut x19: crate::value::Bytes = self.base16_to_binary(Value::Str("19".into()), &[]);
         let mut newline: crate::value::Bytes = self.base16_to_binary(Value::Str("0a".into()), &[]);
-        let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(binaryMessageLength))))]);
+        let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(Value::from(binaryMessageLength)))))]);
         return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[binaryMessage]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
 }
 

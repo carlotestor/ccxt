@@ -945,13 +945,13 @@ impl Krakenfutures {
             let mut index: Value = (Value::Bool(marketType.as_deref().unwrap_or("").contains(" index")));
             let mut linear: Value = Value::Null;
             let mut inverse: Value = Value::Null;
-            let mut expiry: Value = Value::Null;
+            let mut expiry: Option<i64> = None;
             if !(matches!(&index, Value::Bool(true))) {
                 linear = (Value::Bool(marketType.as_deref().unwrap_or("").contains("_vanilla")));
                 inverse = Value::Bool(!(linear.as_bool() == Some(true)));
                 let mut settleTime: Option<String> = self.safe_string_k(&market, "lastTradingTime", &[]).as_str().map(str::to_owned);
                 type_var = (if (settleTime.is_none()) { Some("swap".to_string()) } else { Some("future".to_string()) });
-                expiry = Value::from(self.parse8601(settleTime.map(Value::from).unwrap_or(Value::Null)));
+                expiry = self.parse8601(settleTime.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 type_var = Some("index".to_string());
             }
@@ -993,7 +993,7 @@ impl Krakenfutures {
                 linear = Value::Bool(!(inverse.as_bool() == Some(true)));
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
                 if matches!(&future, Value::Bool(true)) {
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into());
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[])).into());
                 }
             }
             result.push(Value::Map({
@@ -1021,8 +1021,8 @@ impl Krakenfutures {
                     m.insert("taker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]));
                     m.insert("maker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]));
                     m.insert("maintenanceMarginRate".to_string(), Value::Null);
-                    m.insert("expiry".to_string(), expiry.clone());
-                    m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
+                    m.insert("expiry".to_string(), Value::from(expiry));
+                    m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
@@ -1586,7 +1586,7 @@ impl Krakenfutures {
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             let mut fromTimestamp: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("from".into(), Value::from(fromTimestamp));
-            let mut toTimestamp: Option<i64> = self.parse_to_int(self.sum(&[Value::from(fromTimestamp), Value::from((if let Some(__l) = ((if let Some(__l) = windowSize { Some(__l * duration) } else { None })) { Some(__l - 1) } else { None }))]));
+            let mut toTimestamp: Option<i64> = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (fromTimestamp, ((if let Some(__l) = ((if let Some(__l) = windowSize { Some(__l * duration) } else { None })) { Some(__l - 1) } else { None }))) { Some((__m0 + __m1)) } else { None })));
             let mut currentTimestamp: i64 = self.seconds();
             request.insert("to".into(), (if ((toTimestamp.is_some() && toTimestamp < Some(currentTimestamp))) { Value::from(toTimestamp) } else { Value::from(currentTimestamp) }));
         }  else if (limitResolved.is_some()) {
@@ -4158,7 +4158,7 @@ impl Krakenfutures {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&tickers, Value::Int(i), &[]).into_opt_dict();
             let mut entry_symbol: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             if (marketIds.is_some()) {
-                if !self.in_array(entry_symbol.clone().map(Value::from).unwrap_or(Value::Null), marketIds.clone().map_or(Value::Null, Value::Arr)) {
+                if !self.in_array(&entry_symbol, marketIds.clone().map_or(Value::Null, Value::Arr)) {
                     continue;
                 }
             }

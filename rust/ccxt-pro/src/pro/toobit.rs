@@ -1243,11 +1243,11 @@ impl Toobit {
         if isSpot {
             subscriptionHash = spotSubHash;
         }
-        let mut url: Value = self.get_user_stream_url().map(Value::from).unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_user_stream_url();
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         self.set_balance_cache(client.as_value(), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::from(subscriptionHash.clone()), Value::from(&paramsMarketType)]);
         client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into()));
-        return self.watch(&url, messageHash.as_str(), &paramsMarketType, subscriptionHash.as_str(), Value::Null).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), &paramsMarketType, subscriptionHash.as_str(), Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1662,15 +1662,15 @@ impl Toobit {
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(marketSymbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
         messageHash = format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":positions".into())).into()), messageHash);
-        let mut url: Value = self.get_user_stream_url().map(Value::from).unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_user_stream_url();
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         self.set_positions_cache(client.as_value(), Value::from(type_var.clone()), &[symbolsNormalized.clone()]);
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&type_var);
         if (cache.is_none()) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
-        let mut newPositions: Value = self.watch(&url, &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
+        let mut newPositions: Value = self.watch(url.as_deref(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }

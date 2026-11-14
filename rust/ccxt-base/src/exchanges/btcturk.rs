@@ -1630,13 +1630,13 @@ impl Btcturk {
         let mut privateHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
             let mut auth: String = format!("{}{}", self.apiKey.clone(), nonce);
             privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-PCK".to_string(), self.apiKey.clone());
-                    m.insert("X-Stamp".to_string(), nonce);
+                    m.insert("X-Stamp".to_string(), Value::from(nonce));
                     m.insert("X-Signature".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), &secret, Value::Str("sha256".into()), &[Value::Str("base64".into())])));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m

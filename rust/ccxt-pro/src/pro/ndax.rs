@@ -612,13 +612,13 @@ impl Ndax {
                 let mut timeframe: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
                 let mut duration: Value = (match (&(Value::from(self.parse_to_int(interval))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-                let mut timestamp: Value = self.safe_integer(&ohlcv, Value::Int(0), &[]);
-                if (timestamp == Value::Null) {
+                let mut timestamp: Option<i64> = self.safe_integer(&ohlcv, Value::Int(0), &[]).as_i64();
+                if (timestamp.is_none()) {
                     continue;
                 }
-                let mut candleTimestamp: Value = Value::from(self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
-                    (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
-                let mut parsed: Value = Value::from(vec![candleTimestamp.clone(), self.safe_float(&ohlcv, Value::Int(3), &[]), self.safe_float(&ohlcv, Value::Int(1), &[]), self.safe_float(&ohlcv, Value::Int(2), &[]), self.safe_float(&ohlcv, Value::Int(4), &[]), self.safe_float(&ohlcv, Value::Int(5), &[])]);
+                let mut candleTimestamp: Option<i64> = self.parse_to_int((match (&(((match ((Value::from(timestamp)).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
+                    Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                let mut parsed: Value = Value::from(vec![Value::from(candleTimestamp), self.safe_float(&ohlcv, Value::Int(3), &[]), self.safe_float(&ohlcv, Value::Int(1), &[]), self.safe_float(&ohlcv, Value::Int(2), &[]), self.safe_float(&ohlcv, Value::Int(4), &[]), self.safe_float(&ohlcv, Value::Int(5), &[])]);
                 let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
                 if (stored.is_none()) {
                     let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -627,8 +627,8 @@ impl Ndax {
                 }
                 let mut length: i64 = Value::Int(CacheSlot::size(&stored)).as_i64().unwrap_or_default();
                 let mut previous: Value = self.safe_value(Value::from(&stored), Value::Int((length - 1)), &[]);
-                let mut previousTimestamp: Value = self.safe_integer(previous.clone(), Value::Int(0), &[]);
-                if (length > 0) && (previousTimestamp != Value::Null) && (previousTimestamp.as_f64() == candleTimestamp.as_f64()) {
+                let mut previousTimestamp: Option<i64> = self.safe_integer(previous.clone(), Value::Int(0), &[]).as_i64();
+                if (length > 0) && (previousTimestamp.is_some()) && (previousTimestamp == candleTimestamp) {
                     let mut parsedHigh: Option<f64> = self.safe_float(&ohlcv, Value::Int(1), &[]).as_f64();
                     let mut previousHigh: Option<f64> = self.safe_float(previous.clone(), Value::Int(1), &[]).as_f64();
                     let mut high: Option<f64> = previousHigh;
@@ -647,13 +647,13 @@ impl Ndax {
                             low = previousLow.clone();
                         }
                     }
-                    stored.append(Value::from(vec![candleTimestamp.clone(), self.safe_float(previous.clone(), Value::Int(1), &[]), Value::from(high), Value::from(low), self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
+                    stored.append(Value::from(vec![Value::from(candleTimestamp), self.safe_float(previous.clone(), Value::Int(1), &[]), Value::from(high), Value::from(low), self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
                     if (marketId.is_some()) {
                         marketUpdates.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
                     }
                 }  else {
                     if length > 0 {
-                        if (previousTimestamp != Value::Null) && (previousTimestamp.as_f64().unwrap_or(f64::NAN) > candleTimestamp.as_f64().unwrap_or(f64::NAN)) {
+                        if (previousTimestamp.is_some()) && ((previousTimestamp.is_some() && candleTimestamp.is_some() && previousTimestamp > candleTimestamp)) {
                             continue;
                         }
                     }

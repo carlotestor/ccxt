@@ -6575,7 +6575,7 @@ impl Xt {
             let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::Str("contract".into())]);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
             if (symbols != Value::Null) {
-                if self.in_array(Value::from(symbol.as_deref()), symbols.clone()) {
+                if self.in_array(&symbol, symbols.clone()) {
                     result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_market_leverage_tiers(&entry, Some(&market)));
                 }
             }  else {

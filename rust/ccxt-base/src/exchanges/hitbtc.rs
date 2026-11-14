@@ -3568,7 +3568,7 @@ impl Hitbtc {
         let mut reduceOnly: Option<bool> = self.safe_bool_k(params.clone(), "reduceOnly", &[]).as_bool();
         let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_f64();
-        let mut isPostOnly: Value = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Null, &[params.clone()]);
+        let mut isPostOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Null, &[params.clone()]);
         let mut resolvedMarketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3587,7 +3587,7 @@ impl Hitbtc {
         if (reduceOnly == Some(true)) {
             request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
-        if isPostOnly.as_bool() == Some(true) {
+        if isPostOnly {
             request.insert("post_only".into(), Value::Bool(true));
         }
         if (timeInForce.is_some()) {

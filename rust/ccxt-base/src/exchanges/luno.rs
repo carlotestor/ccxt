@@ -977,15 +977,15 @@ impl Luno {
             let mut stablecoins: Value = Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())]);
             let mut taker: Option<f64> = None;
             let mut maker: Option<f64> = None;
-            if self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), fiats) {
-                if self.in_array(base.clone().map(Value::from).unwrap_or(Value::Null), stablecoins) {
+            if self.in_array(&quote, fiats) {
+                if self.in_array(&base, stablecoins) {
                     taker = Some(0.002_f64);
                     maker = Some(-0.0001_f64); // a rebate, not a charge
                 }  else {
                     taker = Some(0.006_f64);
                     maker = Some(0.004_f64);
                 }
-            }  else if !self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), unverifiedQuotes) {
+            }  else if !self.in_array(&quote, unverifiedQuotes) {
                 // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                 // are both in Luno's crypto/crypto column
                 taker = Some(0.001_f64);

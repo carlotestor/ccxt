@@ -1337,7 +1337,7 @@ impl Bitstamp {
             while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (entries.len() as i64) } {
             let mut entry: Value = entries.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entrySymbol: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            if !self.in_array(entrySymbol.map(Value::from).unwrap_or(Value::Null), symbols.clone()) {
+            if !self.in_array(&entrySymbol, symbols.clone()) {
                 newCache.append(entry);
             }
         }
@@ -1525,7 +1525,7 @@ impl Bitstamp {
                 }
                 let mut userId: Option<String> = self.safe_string_k(&response, "user_id", &[]).as_str().map(str::to_owned);
                 let mut validity: Option<i64> = self.safe_integer_product_k(&response, "valid_sec", Value::Int(1000), &[]).as_i64();
-                { let __be_tmp = self.sum(&[Value::from(time), Value::from(validity)]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), __be_tmp); } }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), Value::from((if let Some(__m1) = validity { Some((time + __m1)) } else { None }))); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".into(), userId.map(Value::from).unwrap_or(Value::Null)); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsSessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
                 // settle the flight: client.resolve deletes the future from

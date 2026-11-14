@@ -1215,10 +1215,10 @@ impl Lighter {
     pub fn hash_message(&self, message: &str) -> Option<String> {
         let mut message: Value = message.into();
         let mut binaryMessage: crate::value::Bytes = self.encode(message);
-        let mut binaryMessageLength: Value = self.binary_length(&binaryMessage, &[]);
+        let mut binaryMessageLength: i64 = self.binary_length(&binaryMessage, &[]);
         let mut x19: crate::value::Bytes = self.base16_to_binary(Value::Str("19".into()), &[]);
         let mut newline: crate::value::Bytes = self.base16_to_binary(Value::Str("0a".into()), &[]);
-        let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(binaryMessageLength))))]);
+        let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(Value::from(binaryMessageLength)))))]);
         return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[Value::from(&binaryMessage)]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
 }
 
@@ -1518,7 +1518,7 @@ if _try_result.is_err() {
         let mut isConditional: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isMarketOrder: bool = orderType.as_deref() == Some("MARKET");
         let mut timeInForce: Option<String> = self.safe_string_lower_k(&paramsOrderExpiry, "timeInForce", &[Value::Str("gtt".into())]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[Value::from(&paramsOrderExpiry)]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[Value::from(&paramsOrderExpiry)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOrderExpiry, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
         let mut orderTypeNum: Option<i64> = None;
         let mut timeInForceNum: Option<i64> = None;

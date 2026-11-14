@@ -2536,8 +2536,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("authenticate", &[params]).into_dict();
-        let mut url: Value = self.get_ws_url(&[Value::Bool(true)]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_ws_url(&[Value::Bool(true)]).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future != Value::Null) {
@@ -2576,7 +2576,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             future = Value::from(client.reusable_future(messageHash.clone()));
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsResolved]);
-            self.watch(&url, &messageHash, __ws_arg_5, &messageHash, Value::Null).await;
+            self.watch(url.as_deref(), &messageHash, __ws_arg_5, &messageHash, Value::Null).await;
             client.add_subscription(&messageHash, future.clone());
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;

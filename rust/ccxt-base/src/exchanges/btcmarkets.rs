@@ -2040,7 +2040,7 @@ impl Btcmarkets {
         let mut query: Value = self.keysort(self.omit(params, self.extract_params(path), &[]), &[]);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), nonce);
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
@@ -2059,7 +2059,7 @@ impl Btcmarkets {
                     m.insert("Accept-Charset".to_string(), Value::Str("UTF-8".into()));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("BM-AUTH-APIKEY".to_string(), self.apiKey.clone());
-                    m.insert("BM-AUTH-TIMESTAMP".to_string(), nonce);
+                    m.insert("BM-AUTH-TIMESTAMP".to_string(), Value::from(nonce));
                     m.insert("BM-AUTH-SIGNATURE".to_string(), Value::from(signature));
                 m
             }));

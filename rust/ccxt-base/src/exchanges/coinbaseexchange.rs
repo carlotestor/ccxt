@@ -3244,7 +3244,7 @@ impl Coinbaseexchange {
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), request);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut payload: Option<String> = Some("".to_string());
             if (method.as_str() != Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -3265,7 +3265,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("CB-ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("CB-ACCESS-SIGN".to_string(), Value::from(signature));
-                    m.insert("CB-ACCESS-TIMESTAMP".to_string(), nonce);
+                    m.insert("CB-ACCESS-TIMESTAMP".to_string(), Value::from(nonce));
                     m.insert("CB-ACCESS-PASSPHRASE".to_string(), self.password.clone());
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m

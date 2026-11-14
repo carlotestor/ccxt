@@ -1999,7 +1999,7 @@ impl Apex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".into()))));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]);
         if (timeInForce.is_none()) {
             timeInForce = Some("GOOD_TIL_CANCEL".to_string());
         }
@@ -2013,13 +2013,13 @@ impl Apex {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("timeInForce".into()), &[]).into_dict();
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("postOnly".into()), &[]).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_n(&paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut accountId: Value = self.get_account_id().await;
-        let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(accountId.clone()).map(Value::from).unwrap_or(Value::Null) });
+        let mut accountId: Option<String> = self.get_account_id().await.as_str().map(str::to_owned);
+        let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(Value::from(accountId.as_deref())).map(Value::from).unwrap_or(Value::Null) });
         let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
         let mut finalOrderPrice: Value = orderPrice; // java req
         let mut orderToSign: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("accountId".to_string(), accountId);
+                m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("slotId".to_string(), finalClientOrderId.clone());
                 m.insert("nonce".to_string(), finalClientOrderId.clone());
                 m.insert("pairId".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));

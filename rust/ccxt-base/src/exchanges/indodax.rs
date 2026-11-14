@@ -2084,7 +2084,7 @@ impl Indodax {
             let mut marketId: Option<String> = addressKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(marketId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut address: Option<String> = self.safe_string(&addresses, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-            if (address.is_some()) && ((codes == Value::Null) || (self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), codes.clone()))) {
+            if (address.is_some()) && ((codes == Value::Null) || (self.in_array(&code, codes.clone()))) {
                 self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
                 let mut network: Value = Value::Null;
                 if (matches!((&networks, marketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {

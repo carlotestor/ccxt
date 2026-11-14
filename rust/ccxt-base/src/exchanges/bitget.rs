@@ -6097,9 +6097,9 @@ if _try_result.is_err() {
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
         let mut supportMarginCoins: crate::value::List = self.safe_list_k(market.clone(), "supportMarginCoins", &[Value::from(vec![])]).into_list();
         let mut settleId: Option<String> = None;
-        if self.in_array(baseId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(&supportMarginCoins)) {
+        if self.in_array(&baseId, Value::from(&supportMarginCoins)) {
             settleId = baseId.clone();
-        }  else if self.in_array(quoteId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(&supportMarginCoins)) {
+        }  else if self.in_array(&quoteId, Value::from(&supportMarginCoins)) {
             settleId = quoteId.clone();
         }  else {
             settleId = self.safe_string(&supportMarginCoins, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -6131,8 +6131,8 @@ if _try_result.is_err() {
             amountPrecision = self.parse_number(amountStep, &[]);
             let mut crossMarginPairs: crate::value::List = self.safe_list_k(self.options.clone(), "crossMarginPairsData", &[Value::from(vec![])]).into_list();
             let mut isolatedMarginPairs: crate::value::List = self.safe_list_k(self.options.clone(), "isolatedMarginPairsData", &[Value::from(vec![])]).into_list();
-            let mut hasCrossMargin: bool = self.in_array(marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Arr(crossMarginPairs));
-            let mut hasIsolatedMargin: bool = self.in_array(marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Arr(isolatedMarginPairs));
+            let mut hasCrossMargin: bool = self.in_array(&marketId, Value::Arr(crossMarginPairs));
+            let mut hasIsolatedMargin: bool = self.in_array(&marketId, Value::Arr(isolatedMarginPairs));
             marginModes = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cross".to_string(), Value::Bool(hasCrossMargin));
@@ -6486,7 +6486,7 @@ if _try_result.is_err() {
                 let mut expiryString: String = format!("{}{}", year, monthDay);
                 type_var = Some("future".to_string());
                 future = true;
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), expiryString);
+                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), expiryString);
             }
             contract = true;
             inverse = (Value::Bool(base == settle));
@@ -6707,7 +6707,7 @@ if _try_result.is_err() {
         }
         }
         let mut active: Value = Value::Bool((withdraw.as_bool() == Some(true)) && (deposit.as_bool() == Some(true)));
-        let mut isFiat: bool = self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), fiatCurrencies);
+        let mut isFiat: bool = self.in_array(&code, fiatCurrencies);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry);

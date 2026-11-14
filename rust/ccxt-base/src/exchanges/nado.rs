@@ -1561,7 +1561,7 @@ impl Nado {
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
-                m.insert("recvTime".to_string(), Value::from(self.number_to_string(self.sum(&[Value::Int(self.milliseconds()), Value::from(recvWindow)]))));
+                m.insert("recvTime".to_string(), Value::from(self.number_to_string(Value::from((if let Some(__m1) = recvWindow { Some(((self.milliseconds()) + __m1)) } else { None })))));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4126,7 +4126,7 @@ impl Nado {
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         let mut reduceOnly: bool = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(false), Value::Null, &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(false), Value::Null, &[params.clone()]);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params, "timeInForce", &[]).as_str().map(str::to_owned);
         let mut orderType: i64 = 0;
         if (timeInForce.as_deref() == Some("IOC")) {

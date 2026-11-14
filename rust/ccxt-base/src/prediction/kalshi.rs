@@ -2054,7 +2054,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_dict();
         // no-trade periods carry only previous_dollars (last trade price) → flat candle
-        let mut previous: Value = self.safe_number_k(&price, "previous_dollars", &[]);
+        let mut previous: Option<f64> = self.safe_number_k(&price, "previous_dollars", &[]).as_f64();
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
         let mut endTimestamp: Option<i64> = self.safe_timestamp_k(ohlcv.clone(), "end_period_ts", &[]).as_i64();
@@ -2063,7 +2063,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (endTimestamp.is_some()) {
             timestamp = Value::from((if let Some(__l) = endTimestamp { Some(__l - ((durationSeconds * 1000))) } else { None }));
         }
-        return Value::from(vec![timestamp, self.safe_number_k(&price, "open_dollars", &[previous.clone()]), self.safe_number_k(&price, "high_dollars", &[previous.clone()]), self.safe_number_k(&price, "low_dollars", &[previous.clone()]), self.safe_number_k(&price, "close_dollars", &[previous]), self.safe_number_k(ohlcv, "volume_fp", &[Value::Int(0)])]);
+        return Value::from(vec![timestamp, self.safe_number_k(&price, "open_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "high_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "low_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "close_dollars", &[Value::from(previous)]), self.safe_number_k(ohlcv, "volume_fp", &[Value::Int(0)])]);
 
     Value::Null
 }

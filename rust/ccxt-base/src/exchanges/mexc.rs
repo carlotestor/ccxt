@@ -7714,7 +7714,7 @@ impl Mexc {
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
             let mut currency: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut code: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
-            if (codes == Value::Null) || (self.in_array(Value::from(code.as_deref()), codes.clone())) {
+            if (codes == Value::Null) || (self.in_array(&code, codes.clone())) {
                 withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_transaction_fee(Value::Dict(entry), &[crate::Value::from(Some(&currency))]));
             }
         }
@@ -8249,7 +8249,7 @@ impl Mexc {
                 }
             }  else {
                 self.check_required_credentials(&[]);
-                let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
+                let mut timestamp: String = format!("{}", self.nonce());
                 let mut auth: Value = Value::Str("".into());
                 if (method.as_str() == Some("POST")) {
                     auth = json_stringify(&paramsOmitted);
@@ -8266,7 +8266,7 @@ impl Mexc {
                 requestHeaders = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("ApiKey".to_string(), self.apiKey.clone());
-                        m.insert("Request-Time".to_string(), timestamp);
+                        m.insert("Request-Time".to_string(), Value::from(timestamp));
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m.insert("source".to_string(), self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".into())]));
                         m.insert("Signature".to_string(), Value::from(signature));

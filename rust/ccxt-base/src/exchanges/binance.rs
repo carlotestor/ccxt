@@ -9879,7 +9879,7 @@ impl Binance {
         });
         let mut initialUppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut uppercaseType: String = initialUppercaseType.clone();
-        let mut postOnly: bool = self.is_post_only(Value::Bool(initialUppercaseType == "MARKET"), Value::Bool(initialUppercaseType == "LIMIT_MAKER"), &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(initialUppercaseType == "MARKET"), Value::Bool(initialUppercaseType == "LIMIT_MAKER"), &[params.clone()]);
         if postOnly {
             uppercaseType = "LIMIT_MAKER".to_string();
         }
@@ -10947,7 +10947,7 @@ impl Binance {
         let mut stopPriceString: Option<String> = self.safe_string2(order.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(stopPriceString.map(Value::from).unwrap_or(Value::Null))), &[]).as_f64();
         // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
-        let mut isTakeProfitType: bool = self.in_array(type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("take_profit".into()), Value::Str("take_profit_market".into()), Value::Str("take_profit_limit".into())]));
+        let mut isTakeProfitType: bool = self.in_array(&type_var, Value::from(vec![Value::Str("take_profit".into()), Value::Str("take_profit_market".into()), Value::Str("take_profit_limit".into())]));
         let mut takeProfitPrice: Option<f64> = (if isTakeProfitType { triggerPrice } else { None });
         let mut feeCost: Option<f64> = self.safe_number_k(order.clone(), "fee", &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
@@ -11547,7 +11547,7 @@ impl Binance {
             if stock {
                 validOrderTypes = Value::from(vec![Value::Str("LIMIT".into()), Value::Str("MARKET".into())]);
             }
-            if !self.in_array(uppercaseType.clone().map(Value::from).unwrap_or(Value::Null), validOrderTypes) {
+            if !self.in_array(&uppercaseType, validOrderTypes) {
                 if (initialUppercaseType != uppercaseType) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), Value::from((market).symbol.as_str())).into()),
                         Value::Str(" ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
@@ -11576,7 +11576,7 @@ impl Binance {
         }
         let mut postOnly: Value = Value::Null;
         if !(isPortfolioMargin.as_bool() == Some(true)) {
-            postOnly = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]);
+            postOnly = Value::Bool(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
             if (market).spot || (marketType.as_deref() == Some("margin")) {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if postOnly.as_bool() == Some(true) {
@@ -11587,7 +11587,7 @@ impl Binance {
                 }
             }
         }  else {
-            postOnly = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]);
+            postOnly = Value::Bool(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
             if postOnly.as_bool() == Some(true) {
                 if !(market).contract {
                     uppercaseType = Some("LIMIT_MAKER".to_string());
@@ -19717,7 +19717,7 @@ if _try_result.is_err() {
             if (market == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingLimits() could not resolve market".into()))));
             }
-            if (symbols == Value::Null) || (self.in_array(Value::from(symbol.as_deref()), symbols.clone())) {
+            if (symbols == Value::Null) || (self.in_array(&symbol, symbols.clone())) {
                 if (symbol.is_some()) {
                     tradingLimits.insert(symbol.as_deref().unwrap_or("null").to_string(), crate::value::get_value_k(&crate::value::get_value_k(&market, "limits"), "amount"));
                 }
