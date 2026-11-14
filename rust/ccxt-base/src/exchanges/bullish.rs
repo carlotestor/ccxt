@@ -1635,10 +1635,10 @@ impl Bullish {
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (clientOrderId.is_some()) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_v1_trades_client_order_id_client_order_id(&[__ws_arg_2]).await;
+            response = self.private_get_v1_trades_client_order_id_client_order_id(&[__ws_arg_2]).await.into_opt_list();
         }  else {
             let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -1672,9 +1672,9 @@ impl Bullish {
             //     ]
             //
             let __ws_arg_3 = self.extend(Value::Map(request), &[paramsSinceAndUntil]);
-            response = self.private_get_v1_history_trades(&[__ws_arg_3]).await;
+            response = self.private_get_v1_history_trades(&[__ws_arg_3]).await.into_opt_list();
         }
-        return self.parse_trades(response, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

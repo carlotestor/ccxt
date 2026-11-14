@@ -788,7 +788,7 @@ impl Coincheck {
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "pending_amount", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "pending_amount", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "rate", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "pair", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
@@ -805,7 +805,7 @@ impl Coincheck {
         m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status.as_deref()));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);

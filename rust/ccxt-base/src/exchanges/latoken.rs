@@ -1530,7 +1530,7 @@ impl Latoken {
         //         "makerBuyer":false
         //     }
         //
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "quantity", &[]).as_str().map(str::to_owned);
@@ -1581,7 +1581,7 @@ impl Latoken {
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -1972,7 +1972,7 @@ impl Latoken {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1985,12 +1985,12 @@ impl Latoken {
         });
         if (isTrigger == Some(true)) {
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_auth_stop_order_pair_currency_quote_active(&[__ws_arg_7]).await;
+            response = self.private_get_auth_stop_order_pair_currency_quote_active(&[__ws_arg_7]).await.into_opt_list();
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_auth_order_pair_currency_quote_active(&[__ws_arg_8]).await;
+            response = self.private_get_auth_order_pair_currency_quote_active(&[__ws_arg_8]).await.into_opt_list();
         }
-        return self.parse_orders(response, Some(&market), &[since, limit]);
+        return self.parse_orders(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2036,28 +2036,28 @@ impl Latoken {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
             request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             if (isTrigger == Some(true)) {
                 let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_get_auth_stop_order_pair_currency_quote(&[__ws_arg_9]).await;
+                response = self.private_get_auth_stop_order_pair_currency_quote(&[__ws_arg_9]).await.into_opt_list();
             }  else {
                 let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_get_auth_order_pair_currency_quote(&[__ws_arg_10]).await;
+                response = self.private_get_auth_order_pair_currency_quote(&[__ws_arg_10]).await.into_opt_list();
             }
         }  else {
             if (isTrigger == Some(true)) {
                 let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_get_auth_stop_order(&[__ws_arg_11]).await;
+                response = self.private_get_auth_stop_order(&[__ws_arg_11]).await.into_opt_list();
             }  else {
                 let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_get_auth_order(&[__ws_arg_12]).await;
+                response = self.private_get_auth_order(&[__ws_arg_12]).await.into_opt_list();
             }
         }
-        return self.parse_orders(response, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2096,15 +2096,15 @@ impl Latoken {
         });
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (isTrigger == Some(true)) {
             let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_auth_stop_order_get_order_id(&[__ws_arg_13]).await;
+            response = self.private_get_auth_stop_order_get_order_id(&[__ws_arg_13]).await.into_opt_dict();
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_auth_order_get_order_id(&[__ws_arg_14]).await;
+            response = self.private_get_auth_order_get_order_id(&[__ws_arg_14]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -2166,16 +2166,16 @@ impl Latoken {
         }
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) {
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_post_auth_stop_order_place(&[__ws_arg_15]).await;
+            response = self.private_post_auth_stop_order_place(&[__ws_arg_15]).await.into_opt_dict();
         }  else {
             let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_auth_order_place(&[__ws_arg_16]).await;
+            response = self.private_post_auth_order_place(&[__ws_arg_16]).await.into_opt_dict();
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2214,15 +2214,15 @@ impl Latoken {
         });
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (isTrigger == Some(true)) {
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_post_auth_stop_order_cancel(&[__ws_arg_17]).await;
+            response = self.private_post_auth_stop_order_cancel(&[__ws_arg_17]).await.into_opt_dict();
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_auth_order_cancel(&[__ws_arg_18]).await;
+            response = self.private_post_auth_order_cancel(&[__ws_arg_18]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -2259,30 +2259,30 @@ impl Latoken {
         let mut market: Option<crate::types::Market> = None;
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
             request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             if (isTrigger == Some(true)) {
                 let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_auth_stop_order_cancel_all_currency_quote(&[__ws_arg_19]).await;
+                response = self.private_post_auth_stop_order_cancel_all_currency_quote(&[__ws_arg_19]).await.into_opt_dict();
             }  else {
                 let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_auth_order_cancel_all_currency_quote(&[__ws_arg_20]).await;
+                response = self.private_post_auth_order_cancel_all_currency_quote(&[__ws_arg_20]).await.into_opt_dict();
             }
         }  else {
             if (isTrigger == Some(true)) {
                 let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_auth_stop_order_cancel_all(&[__ws_arg_21]).await;
+                response = self.private_post_auth_stop_order_cancel_all(&[__ws_arg_21]).await.into_opt_dict();
             }  else {
                 let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_post_auth_order_cancel_all(&[__ws_arg_22]).await;
+                response = self.private_post_auth_order_cancel_all(&[__ws_arg_22]).await.into_opt_dict();
             }
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None)]);
         Value::Null
@@ -2561,18 +2561,18 @@ impl Latoken {
                 m.insert("value".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if toAccount.as_str().unwrap_or("").contains("@") {
             let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_auth_transfer_email(&[__ws_arg_24]).await;
+            response = self.private_post_auth_transfer_email(&[__ws_arg_24]).await.into_opt_dict();
         }  else if (Value::Int(toAccount.len() as i64).as_f64() == Some(36.0)) {
             let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_auth_transfer_id(&[__ws_arg_25]).await;
+            response = self.private_post_auth_transfer_id(&[__ws_arg_25]).await.into_opt_dict();
         }  else {
             let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_auth_transfer_phone(&[__ws_arg_26]).await;
+            response = self.private_post_auth_transfer_phone(&[__ws_arg_26]).await.into_opt_dict();
         }
-        return self.parse_transfer(response, None);
+        return self.parse_transfer(&response, None);
         Value::Null
         }).await?))
     }

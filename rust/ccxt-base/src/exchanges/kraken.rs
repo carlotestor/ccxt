@@ -1977,9 +1977,9 @@ impl Kraken {
         //
         let mut id: Option<String> = self.safe_string_k(item.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
-        let mut account: Value = Value::Null;
+        let mut account: Option<String> = None;
         let mut referenceId: Option<String> = self.safe_string_k(item.clone(), "refid", &[]).as_str().map(str::to_owned);
-        let mut referenceAccount: Value = Value::Null;
+        let mut referenceAccount: Option<String> = None;
         let mut type_var: Option<String> = self.parse_ledger_entry_type((self.safe_string_k(item.clone(), "type", &[])).as_str());
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "asset", &[]).as_str().map(str::to_owned);
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone()).map(Value::from).unwrap_or(Value::Null);
@@ -1997,9 +1997,9 @@ impl Kraken {
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("account".to_string(), account);
+        m.insert("account".to_string(), Value::from(account.as_deref()));
         m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("referenceAccount".to_string(), referenceAccount);
+        m.insert("referenceAccount".to_string(), Value::from(referenceAccount.as_deref()));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone());
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -3314,7 +3314,7 @@ impl Kraken {
         }
         let mut isMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (postOnly == Some(true)) {
             request.insert("post_only".into(), Value::Str("true".into())); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
@@ -3743,7 +3743,7 @@ impl Kraken {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut requestId: Value = self.safe_value_k(params.clone(), "userref", &[id.clone()]); // string or integer
         let mut paramsUserref: Value = self.omit(params, Value::Str("userref".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3759,7 +3759,7 @@ impl Kraken {
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_cancel_order(&[__ws_arg_15]).await;
+            response = self.private_post_cancel_order(&[__ws_arg_15]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.last_http_response.clone() != Value::Null) && (self.last_http_response.as_str() != Some("")) {
@@ -3771,7 +3771,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None);
         Value::Null

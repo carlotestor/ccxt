@@ -3799,14 +3799,14 @@ impl Xt {
         }
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("t".into()), Value::Str("time".into()), Value::Str("timestamp".into())]), &[]).as_i64();
         let mut quantity: Option<String> = self.safe_string2(trade.clone(), Value::Str("q".into()), Value::Str("quantity".into()), &[]).as_str().map(str::to_owned);
-        let mut amount: Value = Value::Null;
+        let mut amount: Option<String> = None;
         if (marketType.as_deref() == Some("spot")) {
-            amount = quantity.clone().map(Value::from).unwrap_or(Value::Null);
+            amount = quantity.clone();
         }  else {
             if (quantity.is_none()) {
-                amount = crate::precise::Precise::stringMul(&self.safe_string_k(trade.clone(), "a", &[]), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize"))));
+                amount = crate::precise::Precise::stringMul(&self.safe_string_k(trade.clone(), "a", &[]), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize")))).as_str().map(str::to_owned);
             }  else {
-                amount = crate::precise::Precise::stringMul(&quantity.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize"))));
+                amount = crate::precise::Precise::stringMul(&quantity.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize")))).as_str().map(str::to_owned);
             }
         }
         return self.safe_trade(Value::Map({
@@ -3821,7 +3821,7 @@ impl Xt {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string2(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4131,13 +4131,13 @@ impl Xt {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
-                        let mut costCalculated: Value = Value::Null;
+                        let mut costCalculated: Option<String> = None;
                         if (price != Value::Null) {
-                            costCalculated = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
+                            costCalculated = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         }  else {
-                            costCalculated = cost.clone().map(Value::from).unwrap_or(Value::Null);
+                            costCalculated = cost.clone();
                         }
-                        request.insert("quoteQty".into(), self.cost_to_precision(symbol.clone(), costCalculated));
+                        request.insert("quoteQty".into(), self.cost_to_precision(symbol.clone(), costCalculated.map(Value::from).unwrap_or(Value::Null)));
                     }
                 }  else {
                     let mut amountCost: Value = (if (cost.is_some()) { cost.clone().map(Value::from).unwrap_or(Value::Null) } else { amount.clone() });
@@ -6348,15 +6348,15 @@ impl Xt {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("setLeverage".into()), Some(&market), &[params]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_83 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-            response = self.private_inverse_post_future_user_v1_position_adjust_leverage(&[__ws_arg_83]).await;
+            response = self.private_inverse_post_future_user_v1_position_adjust_leverage(&[__ws_arg_83]).await.into_opt_dict();
         }  else {
             let __ws_arg_84 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_linear_post_future_user_v1_position_adjust_leverage(&[__ws_arg_84]).await;
+            response = self.private_linear_post_future_user_v1_position_adjust_leverage(&[__ws_arg_84]).await.into_opt_dict();
         }
-        return response;
+        return response.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -6445,15 +6445,15 @@ impl Xt {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("modifyMarginHelper".into()), Some(&market), &[params]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_85 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-            response = self.private_inverse_post_future_user_v1_position_margin(&[__ws_arg_85]).await;
+            response = self.private_inverse_post_future_user_v1_position_margin(&[__ws_arg_85]).await.into_opt_dict();
         }  else {
             let __ws_arg_86 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_linear_post_future_user_v1_position_margin(&[__ws_arg_86]).await;
+            response = self.private_linear_post_future_user_v1_position_margin(&[__ws_arg_86]).await.into_opt_dict();
         }
-        return self.parse_margin_modification(response, Some(&market));
+        return self.parse_margin_modification(&response, Some(&market));
 
     Value::Null
 }
@@ -7897,15 +7897,15 @@ impl Xt {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("setMarginMode".into()), Some(&market), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_106 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-            response = self.private_inverse_post_future_user_v1_position_change_type(&[__ws_arg_106]).await;
+            response = self.private_inverse_post_future_user_v1_position_change_type(&[__ws_arg_106]).await.into_opt_dict();
         }  else {
             let __ws_arg_107 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_linear_post_future_user_v1_position_change_type(&[__ws_arg_107]).await;
+            response = self.private_linear_post_future_user_v1_position_change_type(&[__ws_arg_107]).await.into_opt_dict();
         }
-        return response;
+        return response.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

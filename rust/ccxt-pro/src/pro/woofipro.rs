@@ -1387,7 +1387,7 @@ impl Woofipro {
         }
         let mut rawStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parent.parse_order_status(rawStatus.as_deref());
-        let mut trades: Value = Value::Null;
+        let mut trades: Option<String> = None;
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "triggerPrice", &[]).as_f64();
         return self.safe_order(Value::Map({
@@ -1413,7 +1413,7 @@ impl Woofipro {
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
-        m.insert("trades".to_string(), trades);
+        m.insert("trades".to_string(), Value::from(trades.as_deref()));
     m
 }), None);
 

@@ -1685,8 +1685,8 @@ impl Deepcoin {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut marketType: Value = Value::Null;
-        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params, marketType]).as_array().cloned().unwrap_or_default();
+        let mut marketType: Option<String> = None;
+        let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params, Value::from(marketType.as_deref())]).as_array().cloned().unwrap_or_default();
         let mut marketTypeOption: Option<String> = marketTypeOptionparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeOptionparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3937,9 +3937,9 @@ impl Deepcoin {
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "mgnMode", &[]).as_str().map(str::to_owned);
         let mut useMargin: Option<f64> = self.safe_number_k(position.clone(), "useMargin", &[]).as_f64();
         // useMargin is the margin held in the position (excludes unrealized pnl)
-        let mut positionMargin: Value = Value::Null;
+        let mut positionMargin: Option<f64> = None;
         if (marginMode.as_deref() == Some("isolated")) {
-            positionMargin = Value::from(useMargin);
+            positionMargin = useMargin.clone();
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3954,7 +3954,7 @@ impl Deepcoin {
         m.insert("leverage".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "lever", &[]))), &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedProfit", &[]));
         m.insert("realizedPnl".to_string(), Value::Null);
-        m.insert("positionMargin".to_string(), positionMargin);
+        m.insert("positionMargin".to_string(), Value::from(positionMargin));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "avgPx", &[]));
         m.insert("markPrice".to_string(), Value::Null);

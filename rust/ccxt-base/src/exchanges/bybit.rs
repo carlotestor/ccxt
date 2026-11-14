@@ -6463,22 +6463,22 @@ impl Bybit {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[Value::from(&paramsSubType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isSpot && (marginMode.is_some()) {
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
-            response = self.private_get_v5_spot_cross_margin_trade_account(&[__ws_arg_17]).await;
+            response = self.private_get_v5_spot_cross_margin_trade_account(&[__ws_arg_17]).await.into_opt_dict();
         }  else if isFunding {
             // use this endpoint only we have no other choice
             // because it requires transfer permission
             request.insert("accountType".into(), Value::Str("FUND".into()));
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
-            response = self.private_get_v5_asset_transfer_query_account_coins_balance(&[__ws_arg_18]).await;
+            response = self.private_get_v5_asset_transfer_query_account_coins_balance(&[__ws_arg_18]).await.into_opt_dict();
         }  else {
             request.insert("accountType".into(), unifiedType);
             let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.private_get_v5_account_wallet_balance(&[__ws_arg_19]).await;
+            response = self.private_get_v5_account_wallet_balance(&[__ws_arg_19]).await.into_opt_dict();
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -7067,7 +7067,7 @@ impl Bybit {
             request.insert("orderType".into(), self.capitalize(lowerCaseType.clone().map(Value::from).unwrap_or(Value::Null)));
             let mut timeInForce: Option<String> = self.safe_string_lower_k(query.clone(), "timeInForce", &[]).as_str().map(str::to_owned); // this is same as exchange specific param
             let mut postOnly: Option<bool> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(timeInForce.as_deref() == Some("postonly")), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(timeInForce.as_deref() == Some("postonly")), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if (postOnly == Some(true)) {
                 request.insert("timeInForce".into(), Value::Str("PostOnly".into()));
             }  else if (timeInForce.as_deref() == Some("gtc")) {
@@ -7096,9 +7096,9 @@ impl Bybit {
                 request.insert("price".into(), priceString.clone());
             }
         }
-        let mut category: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.get_bybit_type("createOrderRequest", Some(&market), &[query.clone()]).as_array().cloned().unwrap_or_default(); category = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        request.insert("category".into(), category);
+        let mut category: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.get_bybit_type("createOrderRequest", Some(&market), &[query.clone()]).as_array().cloned().unwrap_or_default(); category = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
         let mut cost: Option<String> = self.safe_string_k(query.clone(), "cost", &[]).as_str().map(str::to_owned);
         query = self.omit(query.clone(), Value::Str("cost".into()), &[]);
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -9674,13 +9674,13 @@ impl Bybit {
         let mut after: Value = Value::Null;
         let mut amount: Value = Value::Null;
         if (afterString.is_some()) && (amountString.is_some()) {
-            let mut difference: Value = Value::Null;
+            let mut difference: Option<String> = None;
             if (direction == "out") {
-                difference = amountString.clone().map(Value::from).unwrap_or(Value::Null);
+                difference = amountString.clone();
             }  else {
-                difference = crate::precise::Precise::stringNeg(&amountString.clone().map(Value::from).unwrap_or(Value::Null));
+                difference = crate::precise::Precise::stringNeg(&amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
-            before = self.parse_to_numeric(crate::precise::Precise::stringAdd(&afterString.clone().map(Value::from).unwrap_or(Value::Null), &difference));
+            before = self.parse_to_numeric(crate::precise::Precise::stringAdd(&afterString.clone().map(Value::from).unwrap_or(Value::Null), &difference.map(Value::from).unwrap_or(Value::Null)));
             after = self.parse_to_numeric(afterString.map(Value::from).unwrap_or(Value::Null));
             amount = self.parse_to_numeric(crate::precise::Precise::stringAbs(&amountString.map(Value::from).unwrap_or(Value::Null)));
         }
@@ -10417,7 +10417,7 @@ impl Bybit {
         let mut enableUnifiedAccount: bool = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin || enableUnifiedAccount);
         let mut market: Option<crate::types::Market> = None;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut marginModes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("isolated".to_string(), Value::Str("ISOLATED_MARGIN".into()));
@@ -10436,7 +10436,7 @@ impl Bybit {
                 m
             });
             let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_post_v5_account_set_margin_mode(&[__ws_arg_49]).await;
+            response = self.private_post_v5_account_set_margin_mode(&[__ws_arg_49]).await.into_opt_dict();
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol parameter for non unified account".into()))));
@@ -10454,7 +10454,7 @@ impl Bybit {
                     m
                 });
                 let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_post_v5_account_set_margin_mode(&[__ws_arg_50]).await;
+                response = self.private_post_v5_account_set_margin_mode(&[__ws_arg_50]).await.into_opt_dict();
             }  else {
                 let type_varparamsTypeVariable: Vec<Value> = self.get_bybit_type("setPositionMode", market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
                 let mut type_var: Option<String> = type_varparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -10499,10 +10499,10 @@ impl Bybit {
                     m
                 });
                 let __ws_arg_51 = self.extend(request, &[paramsOmitted]);
-                response = self.private_post_v5_position_switch_isolated(&[__ws_arg_51]).await;
+                response = self.private_post_v5_position_switch_isolated(&[__ws_arg_51]).await.into_opt_dict();
             }
         }
-        return response;
+        return response.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -10610,9 +10610,9 @@ impl Bybit {
             let mut isLinear: bool = self.safe_bool_k(&market, "linear", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             request.insert("category".into(), (if isLinear { Value::Str("linear".into()) } else { Value::Str("inverse".into()) }));
         }  else {
-            let mut type_var: Value = Value::Null;
-            { let __destr_tmp: Vec<Value> = self.get_bybit_type("setPositionMode", market.as_ref(), &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            request.insert("category".into(), type_var);
+            let mut type_var: Option<String> = None;
+            { let __destr_tmp: Vec<Value> = self.get_bybit_type("setPositionMode", market.as_ref(), &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(query, Value::Str("type".into()), &[]).into_dict();
         let __ws_arg_53 = self.extend(Value::Map(request), &[&paramsOmitted]);

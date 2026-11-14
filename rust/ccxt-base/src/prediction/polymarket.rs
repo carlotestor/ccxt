@@ -3922,7 +3922,7 @@ impl Polymarket {
     m
 }));
         self.load_api_credentials().await;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (outcome != Value::Null) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
             let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
@@ -3932,12 +3932,12 @@ impl Polymarket {
                 m
             });
             let __ws_arg_15 = self.extend(Value::Map(request), &[params.clone()]);
-            response = self.clob_private_delete_cancel_market_orders(&[__ws_arg_15]).await;
+            response = self.clob_private_delete_cancel_market_orders(&[__ws_arg_15]).await.into_opt_dict();
         }  else {
             // cancel every open order via DELETE /cancel-all (no body, no market data needed)
-            response = self.clob_private_delete_cancel_all(&[params]).await;
+            response = self.clob_private_delete_cancel_all(&[params]).await.into_opt_dict();
         }
-        let mut canceled: crate::value::List = self.safe_list_k(response.clone(), "canceled", &[Value::from(vec![])]).into_list();
+        let mut canceled: crate::value::List = self.safe_list_k(&response, "canceled", &[Value::from(vec![])]).into_list();
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3947,7 +3947,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(&canceled, Value::Int(i), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
     m
 }), &[]));
         }

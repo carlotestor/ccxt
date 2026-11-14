@@ -3206,7 +3206,7 @@ impl Bitvavo {
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        let mut id: Value = Value::Null;
+        let mut id: Option<String> = None;
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
@@ -3234,7 +3234,7 @@ impl Bitvavo {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), Value::from(id.as_deref()));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -3359,7 +3359,7 @@ impl Bitvavo {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestHeaders: Option<crate::value::Dict> = None;
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path, params));
         let mut getOrDelete: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"));
@@ -3374,7 +3374,7 @@ impl Bitvavo {
             if !getOrDelete {
                 if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
                     payload = json_stringify(&query).as_str().map(str::to_owned);
-                    requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
+                    requestBody = payload.clone();
                 }
             }
             let mut timestamp: String = format!("{}", self.milliseconds());
@@ -3402,7 +3402,7 @@ impl Bitvavo {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(fullUrl));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });

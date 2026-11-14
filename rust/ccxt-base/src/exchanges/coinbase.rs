@@ -2143,16 +2143,16 @@ impl Coinbase {
         }
         let mut sizeInQuote: bool = self.safe_bool_k(trade.clone(), "size_in_quote", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut v3Price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut v3Cost: Value = Value::Null;
+        let mut v3Cost: Option<String> = None;
         let mut v3Amount: Option<String> = self.safe_string_k(trade.clone(), "size", &[]).as_str().map(str::to_owned);
         if sizeInQuote {
             // calculate base size
-            v3Cost = v3Amount.clone().map(Value::from).unwrap_or(Value::Null);
+            v3Cost = v3Amount.clone();
             v3Amount = crate::precise::Precise::stringDiv(&v3Amount.clone().map(Value::from).unwrap_or(Value::Null), &v3Price.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut v3FeeCost: Option<String> = self.safe_string_k(trade.clone(), "commission", &[]).as_str().map(str::to_owned);
         let mut amountString: Value = self.safe_string_k(&amountObject, "amount", &[v3Amount.map(Value::from).unwrap_or(Value::Null)]);
-        let mut costString: Value = self.safe_string_k(&subtotalObject, "amount", &[v3Cost]);
+        let mut costString: Value = self.safe_string_k(&subtotalObject, "amount", &[v3Cost.map(Value::from).unwrap_or(Value::Null)]);
         let mut priceString: Option<String> = None;
         let mut cost: Value = Value::Null;
         if (costString != Value::Null) && (amountString != Value::Null) {

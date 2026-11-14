@@ -2484,14 +2484,14 @@ impl Lbank {
                 request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }  else if (side.as_str() == Some("buy")) {
                 request.insert("type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", side, Value::Str("_".into())).into()), Value::Str("market".into())).into()));
-                let mut quoteAmount: Value = Value::Null;
+                let mut quoteAmount: Option<String> = None;
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
                 { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsRequest.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
                     paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
                 let mut cost: Option<f64> = self.safe_number_k(paramsRequest.clone(), "cost", &[]).as_f64();
                 paramsRequest = self.omit(paramsRequest.clone(), Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
                 }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
@@ -2499,13 +2499,13 @@ impl Lbank {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
                         let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
+                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }
                 }  else {
-                    quoteAmount = self.cost_to_precision(symbol, amount);
+                    quoteAmount = self.cost_to_precision(symbol, amount).as_str().map(str::to_owned);
                 }
                 // market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
-                request.insert("price".into(), quoteAmount);
+                request.insert("price".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }
         }
         if (clientOrderId.is_some()) {
@@ -3540,12 +3540,12 @@ impl Lbank {
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txId", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("applyTime".into()), &[]).as_i64();
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
-        let mut addressFrom: Value = Value::Null;
-        let mut addressTo: Value = Value::Null;
+        let mut addressFrom: Option<String> = None;
+        let mut addressTo: Option<String> = None;
         if (type_var.as_deref() == Some("deposit")) {
-            addressFrom = address.clone().map(Value::from).unwrap_or(Value::Null);
+            addressFrom = address.clone();
         }  else {
-            addressTo = address.clone().map(Value::from).unwrap_or(Value::Null);
+            addressTo = address.clone();
         }
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("coin".into()), Value::Str("coid".into()), &[]).as_str().map(str::to_owned);
@@ -3570,8 +3570,8 @@ impl Lbank {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction, "networkName", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("addressTo".to_string(), addressTo);
-        m.insert("addressFrom".to_string(), addressFrom);
+        m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);

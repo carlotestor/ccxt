@@ -2769,13 +2769,13 @@ impl Paradex {
         let mut average: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "avg_fill_price", &[]));
         let mut remaining: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "remaining_size", &[]));
         let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "trigger_price", &[]));
-        let mut stopLossPrice: Value = Value::Null;
-        let mut takeProfitPrice: Value = Value::Null;
+        let mut stopLossPrice: Option<String> = None;
+        let mut takeProfitPrice: Option<String> = None;
         if (orderType.is_some()) {
             if orderType.as_deref().unwrap_or_default().contains("STOP_LOSS") {
-                stopLossPrice = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
+                stopLossPrice = triggerPrice.clone();
             }  else if orderType.as_deref().unwrap_or_default().contains("TAKE_PROFIT") {
-                takeProfitPrice = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
+                takeProfitPrice = triggerPrice.clone();
             }
         }
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "instruction", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
@@ -2806,8 +2806,8 @@ impl Paradex {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopLossPrice".to_string(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::Null);
@@ -3355,17 +3355,17 @@ impl Paradex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_delete_orders_by_client_id_client_id(&[__ws_arg_8]).await;
+            response = self.private_delete_orders_by_client_id_client_id(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
             request.insert("order_id".into(), id);
             let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-            response = self.private_delete_orders_order_id(&[__ws_arg_9]).await;
+            response = self.private_delete_orders_order_id(&[__ws_arg_9]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -3552,17 +3552,17 @@ impl Paradex {
         });
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_orders_by_client_id_client_id(&[__ws_arg_12]).await;
+            response = self.private_get_orders_by_client_id_client_id(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
             request.insert("order_id".into(), id);
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_orders_order_id(&[__ws_arg_13]).await;
+            response = self.private_get_orders_order_id(&[__ws_arg_13]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }

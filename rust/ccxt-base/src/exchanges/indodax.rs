@@ -1231,7 +1231,7 @@ impl Indodax {
             filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("receive_".into()), baseId).into()), &[]).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "submit_time", &[]).as_i64();
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<String> = None;
         let mut id: Option<String> = self.safe_string_k(order.clone(), "order_id", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1254,7 +1254,7 @@ impl Indodax {
         m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), Value::from(fee.as_deref()));
         m.insert("trades".to_string(), Value::Null);
     m
 }), None);
@@ -1486,10 +1486,10 @@ impl Indodax {
         }
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
-                let mut quoteAmount: Value = Value::Null;
+                let mut quoteAmount: Option<String> = None;
                 let mut cost: Option<f64> = self.safe_number_k(params, "cost", &[]).as_f64();
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
                 }  else {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).".into()))));
@@ -1497,9 +1497,9 @@ impl Indodax {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
-                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), quoteAmount);
+                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 quantityIsRequired = true;
             }

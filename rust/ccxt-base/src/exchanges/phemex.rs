@@ -4313,21 +4313,21 @@ impl Phemex {
         if trigger {
             request.insert("untriggerred".into(), Value::Bool(trigger));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut marketSettle: Option<String> = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
         if (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")) {
             let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_delete_g_orders_all(&[__ws_arg_24]).await;
+            response = self.private_delete_g_orders_all(&[__ws_arg_24]).await.into_opt_dict();
         }  else if (market).swap {
             let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_delete_orders_all(&[__ws_arg_25]).await;
+            response = self.private_delete_orders_all(&[__ws_arg_25]).await.into_opt_dict();
         }  else {
             let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_delete_spot_orders_all(&[__ws_arg_26]).await;
+            response = self.private_delete_spot_orders_all(&[__ws_arg_26]).await.into_opt_dict();
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None)]);
         Value::Null
@@ -5155,7 +5155,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
-        let mut tag: Value = Value::Null;
+        let mut tag: Option<String> = None;
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txHash", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
@@ -5193,8 +5193,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("tag".to_string(), tag.clone());
-        m.insert("tagTo".to_string(), tag);
+        m.insert("tag".to_string(), Value::from(tag.as_deref()));
+        m.insert("tagTo".to_string(), Value::from(tag.as_deref()));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
@@ -6378,7 +6378,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut marketSettle: Option<String> = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
         if (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")) {
             if (!isHedged) && (longLeverageRr.is_none()) && (shortLeverageRr.is_none()) {
@@ -6390,13 +6390,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 request.insert("shortLeverageRr".into(), shortVar);
             }
             let __ws_arg_56 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_put_g_positions_leverage(&[__ws_arg_56]).await;
+            response = self.private_put_g_positions_leverage(&[__ws_arg_56]).await.into_opt_dict();
         }  else {
             request.insert("leverage".into(), leverage);
             let __ws_arg_57 = self.extend(Value::Map(request), &[params]);
-            response = self.private_put_positions_leverage(&[__ws_arg_57]).await;
+            response = self.private_put_positions_leverage(&[__ws_arg_57]).await.into_opt_dict();
         }
-        return response;
+        return response.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

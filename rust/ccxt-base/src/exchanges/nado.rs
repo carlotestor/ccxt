@@ -3543,13 +3543,13 @@ impl Nado {
         let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<String> = None;
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last_price", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp.as_deref())));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), Value::Null);

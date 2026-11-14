@@ -2411,19 +2411,19 @@ if _try_result.is_err() {
         let mut operationType: Option<String> = requestoperationTypeVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clientOrderId".into()), Value::Str("stopLimitPrice".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossCloid".into()),
             Value::Str("stopLossPrice".into()), Value::Str("stopLossLimitPrice".into()), Value::Str("takeProfitCloid".into()), Value::Str("takeProfitPrice".into()), Value::Str("takeProfitLimitPrice".into()), Value::Str("expiryWindow".into()), Value::Str("slippage".into()), Value::Str("slippage_percent".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (operationType.as_deref() == Some("create_market_order")) {
             let __ws_arg_8 = self.extend(request.clone(), &[&paramsOmitted]);
-            response = self.private_post_orders_create_market(&[__ws_arg_8]).await;
+            response = self.private_post_orders_create_market(&[__ws_arg_8]).await.into_opt_dict();
         }  else if (operationType.as_deref() == Some("create_stop_order")) {
             let __ws_arg_9 = self.extend(request.clone(), &[&paramsOmitted]);
-            response = self.private_post_orders_stop_create(&[__ws_arg_9]).await;
+            response = self.private_post_orders_stop_create(&[__ws_arg_9]).await.into_opt_dict();
         }  else if (operationType.as_deref() == Some("set_position_tpsl")) {
             let __ws_arg_10 = self.extend(request.clone(), &[&paramsOmitted]);
-            response = self.private_post_positions_tpsl(&[__ws_arg_10]).await;
+            response = self.private_post_positions_tpsl(&[__ws_arg_10]).await.into_opt_dict();
         }  else {
             let __ws_arg_11 = self.extend(request, &[&paramsOmitted]);
-            response = self.private_post_orders_create(&[__ws_arg_11]).await;
+            response = self.private_post_orders_create(&[__ws_arg_11]).await.into_opt_dict();
         }
         //
         // {
@@ -2433,23 +2433,23 @@ if _try_result.is_err() {
         //    },
         // }
         //
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut success: bool = self.safe_bool_k(&response, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut status: Option<String> = None;
         if !success {
             status = Some("rejected".to_string());
         }  else {
             status = Some("open".to_string());
         }
-        let mut order: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut order: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut orderId: Option<String> = self.safe_string_k(&order, "order_id", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol);
     m
 }), None);
@@ -2996,13 +2996,13 @@ if _try_result.is_err() {
         let mut request: Value = self.cancel_order_request(id.clone(), symbol.as_str(), &[params.clone()]);
         let mut isStopOrder: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("expiryWindow".into()), Value::Str("trigger".into()), Value::Str("stop".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isStopOrder {
             let __ws_arg_16 = self.extend(request.clone(), &[&paramsOmitted]);
-            response = self.private_post_orders_stop_cancel(&[__ws_arg_16]).await;
+            response = self.private_post_orders_stop_cancel(&[__ws_arg_16]).await.into_opt_dict();
         }  else {
             let __ws_arg_17 = self.extend(request, &[&paramsOmitted]);
-            response = self.private_post_orders_cancel(&[__ws_arg_17]).await;
+            response = self.private_post_orders_cancel(&[__ws_arg_17]).await.into_opt_dict();
         }
         //
         // response:
@@ -3011,7 +3011,7 @@ if _try_result.is_err() {
         //   "data": null
         // }
         //
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut success: bool = self.safe_bool_k(&response, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut status: String = "closed".to_string();
         if success {
             status = "canceled".to_string();
@@ -3020,7 +3020,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
         m.insert("status".to_string(), Value::from(status));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol);
     m
 }), None);

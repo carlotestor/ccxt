@@ -999,13 +999,13 @@ impl Coinspot {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("privatePostMyBalances".into())]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("private_post_ro_my_balances")) || (method.as_deref() == Some("privatePostRoMyBalances")) {
-            response = self.private_post_ro_my_balances(&[params.clone()]).await;
+            response = self.private_post_ro_my_balances(&[params.clone()]).await.into_opt_dict();
         }  else {
-            response = self.private_post_my_balances(&[params]).await;
+            response = self.private_post_my_balances(&[params]).await.into_opt_dict();
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -1467,19 +1467,19 @@ impl Coinspot {
                 m.insert("rate".to_string(), price);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (sideUpper == "BUY") {
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_my_buy(&[__ws_arg_3]).await;
+            response = self.private_post_my_buy(&[__ws_arg_3]).await.into_opt_dict();
         }  else if (sideUpper == "SELL") {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_my_sell(&[__ws_arg_4]).await;
+            response = self.private_post_my_sell(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support buy/sell side".into()))));
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None);
         Value::Null
@@ -1519,17 +1519,17 @@ impl Coinspot {
                 m.insert("id".to_string(), id);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (side.as_deref() == Some("buy")) {
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_post_my_buy_cancel(&[__ws_arg_5]).await;
+            response = self.private_post_my_buy_cancel(&[__ws_arg_5]).await.into_opt_dict();
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_my_sell_cancel(&[__ws_arg_6]).await;
+            response = self.private_post_my_sell_cancel(&[__ws_arg_6]).await.into_opt_dict();
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None);
         Value::Null

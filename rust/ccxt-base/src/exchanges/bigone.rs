@@ -2056,13 +2056,13 @@ impl Bigone {
         }
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[Value::Str("".into())]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("funding")) || (type_var.as_deref() == Some("fund")) {
-            response = self.private_get_fund_accounts(&[paramsOmitted.clone()]).await;
+            response = self.private_get_fund_accounts(&[paramsOmitted.clone()]).await.into_opt_dict();
         }  else {
-            response = self.private_get_accounts(&[paramsOmitted]).await;
+            response = self.private_get_accounts(&[paramsOmitted]).await.into_opt_dict();
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -2245,7 +2245,7 @@ impl Bigone {
         let mut exchangeSpecificParam: bool = self.safe_bool_k(params.clone(), "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut postOnly: Option<bool> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(exchangeSpecificParam), &[params]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(exchangeSpecificParam), &[params]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut triggerPrice: Option<String> = self.safe_string_n(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2269,8 +2269,7 @@ impl Bigone {
         }  else {
             if isBuy {
                 let mut createMarketBuyOrderRequiresPrice: Option<bool> = None;
-                { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool();
-                    query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+                { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
                 let mut cost: Option<f64> = self.safe_number_k(query.clone(), "cost", &[]).as_f64();
                 query = self.omit(query.clone(), Value::Str("cost".into()), &[]);
                 if (createMarketBuyOrderRequiresPrice == Some(true)) {

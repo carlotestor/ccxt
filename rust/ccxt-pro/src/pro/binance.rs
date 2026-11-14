@@ -1209,8 +1209,8 @@ impl Binance {
         })]).into_dict();
         let mut listenKey: Option<String> = self.safe_string_k(&optionsType, "listenKey", &[]).as_str().map(str::to_owned);
         let mut url: Option<String> = self.get_private_ws_url(type_var.clone(), listenKey.map(Value::from).unwrap_or(Value::Null));
-        let mut message: Value = Value::Null;
-        let mut newLiquidations: Value = self.watch_multiple(url.as_deref(), Value::from(messageHashes), message, Value::from(vec![type_var]), Value::Null).await;
+        let mut message: Option<String> = None;
+        let mut newLiquidations: Value = self.watch_multiple(url.as_deref(), Value::from(messageHashes), Value::from(message.as_deref()), Value::from(vec![type_var]), Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
@@ -4073,17 +4073,17 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }), &[params]);
         extendedParams = self.keysort(extendedParams.clone(), &[]);
         let mut query: Value = Value::from(self.rawencode(extendedParams.clone(), &[]));
-        let mut signature: Value = Value::Null;
+        let mut signature: Option<String> = None;
         if self.secret.as_str().unwrap_or("").contains("PRIVATE KEY") {
             if ((self.secret.len() as i64) as f64) > ((120i64) as f64) {
-                signature = Value::from(rsa(query.clone(), self.secret.clone(), Value::Str("sha256".into())));
+                signature = Some(rsa(query.clone(), self.secret.clone(), Value::Str("sha256".into())));
             }  else {
-                signature = Value::from(eddsa(self.encode(query.clone()), self.secret.clone(), Value::Str("ed25519".into())));
+                signature = Some(eddsa(self.encode(query.clone()), self.secret.clone(), Value::Str("ed25519".into())));
             }
         }  else {
-            signature = Value::from(self.hmac(self.encode(query), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+            signature = Some(self.hmac(self.encode(query), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
         }
-        add_element_to_object(&mut extendedParams, &Value::Str("signature".into()), signature);
+        add_element_to_object(&mut extendedParams, &Value::Str("signature".into()), signature.map(Value::from).unwrap_or(Value::Null));
         return extendedParams;
 
     Value::Null
@@ -5106,8 +5106,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
         }
         let mut messageHash: String = format!("{}{}", type_var, Value::Str(":balance".into()));
-        let mut message: Value = Value::Null;
-        return self.watch(&url, messageHash.as_str(), message.clone(), &type_var, Value::Null).await;
+        let mut message: Option<String> = None;
+        return self.watch(&url, messageHash.as_str(), Value::from(message.as_deref()), &type_var, Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -6337,8 +6337,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         self.set_balance_cache(client.as_value(), type_var.clone(), &[isPortfolioMargin.clone()]);
         self.set_positions_cache(client.as_value(), type_var.clone(), &[Value::Null, isPortfolioMargin]);
-        let mut message: Value = Value::Null;
-        let mut orders: Value = self.watch(&url, messageHash.as_str(), message.clone(), &type_var, Value::Null).await;
+        let mut message: Option<String> = None;
+        let mut orders: Value = self.watch(&url, messageHash.as_str(), Value::from(message.as_deref()), &type_var, Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -6551,13 +6551,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(marketType.clone())]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "O", &[]).as_i64();
         let mut T: Option<i64> = self.safe_integer_k(order.clone(), "T", &[]).as_i64();
-        let mut lastTradeTimestamp: Value = Value::Null;
+        let mut lastTradeTimestamp: Option<i64> = None;
         if (executionType.as_deref() == Some("NEW")) || (executionType.as_deref() == Some("AMENDMENT")) || (executionType.as_deref() == Some("CANCELED")) {
             if (timestamp.is_none()) {
                 timestamp = T.clone();
             }
         }  else if (executionType.as_deref() == Some("TRADE")) {
-            lastTradeTimestamp = Value::from(T);
+            lastTradeTimestamp = T.clone();
         }
         let mut isAlgoOrder: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("aid")); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
         if isAlgoOrder && (timestamp.is_none()) {
@@ -6604,7 +6604,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
+        m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("type".to_string(), self.parent.parse_order_type_by_market(orderType.as_deref(), Some(marketType.as_str())).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
@@ -7638,8 +7638,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         self.set_balance_cache(client.as_value(), type_var.clone(), &[isPortfolioMargin.clone()]);
         self.set_positions_cache(client.as_value(), type_var.clone(), &[Value::Null, isPortfolioMargin]);
-        let mut message: Value = Value::Null;
-        let mut trades: Value = self.watch(&url, messageHash.as_str(), message.clone(), &type_var, Value::Null).await;
+        let mut message: Option<String> = None;
+        let mut trades: Value = self.watch(&url, messageHash.as_str(), Value::from(message.as_deref()), &type_var, Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());

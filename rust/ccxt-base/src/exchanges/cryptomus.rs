@@ -1201,7 +1201,7 @@ impl Cryptomus {
         let mut paramsCost: Value = self.omit(&paramsOmitted, Value::Str("cost".into()), &[]);
         let mut costParam: Option<String> = self.safe_string_k(&paramsOmitted, "cost", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = costParam.clone();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("market")) {
             let mut requiresPriceAndParams: Value = self.handle_option_bool_and_params(paramsCost.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
             let mut paramsMarket: Value = paramsCost.clone();
@@ -1224,7 +1224,7 @@ impl Cryptomus {
                 request.insert("quantity".into(), amountToString.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[paramsMarket]);
-            response = self.private_post_v2_user_api_exchange_orders_market(&[__ws_arg_3]).await;
+            response = self.private_post_v2_user_api_exchange_orders_market(&[__ws_arg_3]).await.into_opt_dict();
         }  else if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price parameter for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
@@ -1232,11 +1232,11 @@ impl Cryptomus {
             request.insert("quantity".into(), amountToString.map(Value::from).unwrap_or(Value::Null));
             request.insert("price".into(), price);
             let __ws_arg_4 = self.extend(Value::Map(request), &[paramsCost]);
-            response = self.private_post_v2_user_api_exchange_orders(&[__ws_arg_4]).await;
+            response = self.private_post_v2_user_api_exchange_orders(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a type parameter (limit or market)".into()))));
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
         Value::Null
         }).await?))
     }

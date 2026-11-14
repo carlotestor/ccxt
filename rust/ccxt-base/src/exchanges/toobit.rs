@@ -3029,17 +3029,17 @@ impl Toobit {
         if (marketType.as_deref() == Some("none")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            response = self.private_delete_api_v1_spot_open_orders(&[__ws_arg_15]).await;
+            response = self.private_delete_api_v1_spot_open_orders(&[__ws_arg_15]).await.into_opt_dict();
         }  else {
             let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_delete_api_v1_futures_batch_orders(&[__ws_arg_16]).await;
+            response = self.private_delete_api_v1_futures_batch_orders(&[__ws_arg_16]).await.into_opt_dict();
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None)]);
         Value::Null
@@ -3518,15 +3518,15 @@ impl Toobit {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), None, &[Value::from(&paramsUntil)]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_25 = self.extend(&requestUntil, &[&paramsMarketType]);
-            response = self.private_get_api_v1_account_balance_flow(&[__ws_arg_25]).await;
+            response = self.private_get_api_v1_account_balance_flow(&[__ws_arg_25]).await.into_opt_list();
         }  else {
             let __ws_arg_26 = self.extend(requestUntil, &[&paramsMarketType]);
-            response = self.private_get_api_v1_futures_balance_flow(&[__ws_arg_26]).await;
+            response = self.private_get_api_v1_futures_balance_flow(&[__ws_arg_26]).await.into_opt_list();
         }
-        return self.parse_ledger(response, currency.as_ref(), &[since, limit]);
+        return self.parse_ledger(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

@@ -4026,7 +4026,7 @@ impl Bitrue {
         if !(market).swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMargin only support swap markets".into()))));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
@@ -4035,12 +4035,12 @@ impl Bitrue {
         });
         if ((market).linear == Some(true)) {
             let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.fapi_v2_private_post_position_margin(&[__ws_arg_40]).await;
+            response = self.fapi_v2_private_post_position_margin(&[__ws_arg_40]).await.into_opt_dict();
         }  else if ((market).inverse == Some(true)) {
             let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
-            response = self.dapi_v2_private_post_position_margin(&[__ws_arg_41]).await;
+            response = self.dapi_v2_private_post_position_margin(&[__ws_arg_41]).await.into_opt_dict();
         }
-        return self.parse_margin_modification(response, Some(&market));
+        return self.parse_margin_modification(&response, Some(&market));
         Value::Null
         }).await?))
     }

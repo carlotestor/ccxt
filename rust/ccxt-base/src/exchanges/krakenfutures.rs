@@ -4888,20 +4888,20 @@ impl Krakenfutures {
                 m.insert("amount".to_string(), amount.clone());
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (toAccount.as_str() == Some("spot")) {
             if (self.parse_kraken_account_name(fromAccount.as_str().unwrap_or_default()).as_str() != Some("cash")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer cannot transfer from ".into())).into()), fromAccount).into()), Value::Str(" to ".into())).into()), toAccount)));
             }
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_withdrawal(&[__ws_arg_20]).await;
+            response = self.private_post_withdrawal(&[__ws_arg_20]).await.into_opt_dict();
         }  else {
             request.insert("fromAccount".into(), self.parse_kraken_account_name(fromAccount.as_str().unwrap_or_default()));
             request.insert("toAccount".into(), self.parse_kraken_account_name(toAccount.as_str().unwrap_or_default()));
             request.insert("unit".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_transfer(&[__ws_arg_21]).await;
+            response = self.private_post_transfer(&[__ws_arg_21]).await.into_opt_dict();
         }
         //
         //    {
@@ -4909,7 +4909,7 @@ impl Krakenfutures {
         //        "serverTime": "2022-04-12T01:22:53.420Z"
         //    }
         //
-        let mut transfer: Value = self.parse_transfer(response, Some(&currency));
+        let mut transfer: Value = self.parse_transfer(&response, Some(&currency));
         return self.extend(transfer, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);

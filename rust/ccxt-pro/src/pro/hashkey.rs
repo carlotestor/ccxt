@@ -831,11 +831,11 @@ impl Hashkey {
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "O", &[]).as_i64();
         let mut side: Value = self.safe_string_lower_k(order.clone(), "S", &[]);
         let mut reduceOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parent.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).as_bool(); }
+        { let __destr_tmp: Vec<Value> = self.parent.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
         let mut type_var: Value = self.parent.parse_order_type((self.safe_string_k(order.clone(), "o", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "f", &[]);
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parent.parse_order_type_time_in_force_and_post_only(type_var.as_str(), timeInForce.as_str()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).cloned().unwrap_or(Value::Null).as_bool(); }
+        { let __destr_tmp: Vec<Value> = self.parent.parse_order_type_time_in_force_and_post_only(type_var.as_str(), timeInForce.as_str()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
         if (marketResolved).contract {
             type_var = Value::Null;
         }

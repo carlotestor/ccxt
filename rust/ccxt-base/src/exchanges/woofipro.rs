@@ -3668,19 +3668,19 @@ impl Woofipro {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderIds != Value::Null) {
             request.insert("client_order_ids".into(), join(&clientOrderIds, &Value::Str(",".into())));
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.v1_private_delete_client_batch_order(&[__ws_arg_17]).await;
+            response = self.v1_private_delete_client_batch_order(&[__ws_arg_17]).await.into_opt_dict();
         }  else {
             request.insert("order_ids".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.v1_private_delete_batch_order(&[__ws_arg_18]).await;
+            response = self.v1_private_delete_batch_order(&[__ws_arg_18]).await.into_opt_dict();
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None)]);
         Value::Null

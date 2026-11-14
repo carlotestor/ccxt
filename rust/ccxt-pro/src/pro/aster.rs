@@ -2186,11 +2186,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut type_var: Value = Value::Null;
-        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params, type_var.clone()]).as_array().cloned().unwrap_or_default();
+        let mut type_var: Option<String> = None;
+        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params, Value::from(type_var.as_deref())]).as_array().cloned().unwrap_or_default();
         let mut typeMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: crate::value::Dict = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (type_var == Value::Null) || (typeMarketType == Value::Null) {
+        if (type_var.is_none()) || (typeMarketType == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a market type".into()))));
         }
         self.authenticate(&[typeMarketType.clone(), Value::Dict(paramsMarketType)]).await;
@@ -2204,8 +2204,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", typeMarketType, Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
         }
         let mut messageHash: String = format!("{}{}", typeMarketType, Value::Str(":balance".into()));
-        let mut message: Value = Value::Null;
-        return self.watch(&url, messageHash.as_str(), message, &typeMarketType, Value::Null).await;
+        let mut message: Option<String> = None;
+        return self.watch(&url, messageHash.as_str(), Value::from(message.as_deref()), &typeMarketType, Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -2614,11 +2614,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: String = "orders".to_string();
-        let mut type_var: Value = Value::Null;
-        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[params, type_var.clone()]).as_array().cloned().unwrap_or_default();
+        let mut type_var: Option<String> = None;
+        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[params, Value::from(type_var.as_deref())]).as_array().cloned().unwrap_or_default();
         let mut typeMarketType: Option<String> = typeMarketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (type_var == Value::Null) || (typeMarketType.is_none()) {
+        if (type_var.is_none()) || (typeMarketType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a market type".into()))));
         }
         self.authenticate(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarketType)]).await;
@@ -2674,11 +2674,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: String = "myTrades".to_string();
-        let mut type_var: Value = Value::Null;
-        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[params, type_var.clone()]).as_array().cloned().unwrap_or_default();
+        let mut type_var: Option<String> = None;
+        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[params, Value::from(type_var.as_deref())]).as_array().cloned().unwrap_or_default();
         let mut typeMarketType: Option<String> = typeMarketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (type_var == Value::Null) || (typeMarketType.is_none()) {
+        if (type_var.is_none()) || (typeMarketType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a market type".into()))));
         }
         self.authenticate(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarketType)]).await;
@@ -2906,13 +2906,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "O", &[]).as_i64();
         let mut T: Option<i64> = self.safe_integer_k(order.clone(), "T", &[]).as_i64();
-        let mut lastTradeTimestamp: Value = Value::Null;
+        let mut lastTradeTimestamp: Option<i64> = None;
         if (executionType.as_deref() == Some("NEW")) || (executionType.as_deref() == Some("AMENDMENT")) || (executionType.as_deref() == Some("CANCELED")) {
             if (timestamp.is_none()) {
                 timestamp = T.clone();
             }
         }  else if (executionType.as_deref() == Some("TRADE")) {
-            lastTradeTimestamp = Value::from(T);
+            lastTradeTimestamp = T.clone();
         }
         let mut lastUpdateTimestamp: Option<i64> = T;
         let mut fee: Option<crate::value::Dict> = None;
@@ -2947,7 +2947,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
+        m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("type".to_string(), self.parent.parse_order_type((self.safe_string_lower_k(order.clone(), "o", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));

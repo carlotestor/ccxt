@@ -3459,26 +3459,26 @@ impl Modetrade {
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(&paramsOmitted, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut paramsClientOrder: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if trigger {
             if isByClientOrder {
                 request.insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone());
                 let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsClientOrder]);
-                response = self.v1_private_delete_algo_client_order(&[__ws_arg_11]).await;
+                response = self.v1_private_delete_algo_client_order(&[__ws_arg_11]).await.into_opt_dict();
             }  else {
                 request.insert("order_id".into(), id.clone());
                 let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.v1_private_delete_algo_order(&[__ws_arg_12]).await;
+                response = self.v1_private_delete_algo_order(&[__ws_arg_12]).await.into_opt_dict();
             }
         }  else {
             if isByClientOrder {
                 request.insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone());
                 let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsClientOrder]);
-                response = self.v1_private_delete_client_order(&[__ws_arg_13]).await;
+                response = self.v1_private_delete_client_order(&[__ws_arg_13]).await.into_opt_dict();
             }  else {
                 request.insert("order_id".into(), id.clone());
                 let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.v1_private_delete_order(&[__ws_arg_14]).await;
+                response = self.v1_private_delete_order(&[__ws_arg_14]).await.into_opt_dict();
             }
         }
         //
@@ -3507,13 +3507,13 @@ impl Modetrade {
             extendParams.insert("id".into(), id);
         }
         if trigger {
-            let __ws_arg_15 = self.parse_order(response.clone(), None);
+            let __ws_arg_15 = self.parse_order(&response, None);
             return self.extend(__ws_arg_15, &[Value::Map(extendParams.clone())]);
         }
-        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let __ws_arg_16 = self.parse_order(&data, None);
         return self.extend(__ws_arg_16, &[Value::Map(extendParams)]);
         Value::Null
@@ -3553,19 +3553,19 @@ impl Modetrade {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderIds.is_some()) {
             request.insert("client_order_ids".into(), Value::Str(clientOrderIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.v1_private_delete_client_batch_order(&[__ws_arg_17]).await;
+            response = self.v1_private_delete_client_batch_order(&[__ws_arg_17]).await.into_opt_dict();
         }  else {
             request.insert("order_ids".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.v1_private_delete_batch_order(&[__ws_arg_18]).await;
+            response = self.v1_private_delete_batch_order(&[__ws_arg_18]).await.into_opt_dict();
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None)]);
         Value::Null

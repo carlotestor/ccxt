@@ -1727,15 +1727,15 @@ impl Coinbaseexchange {
         });
         // publicGetProductsIdTicker or publicGetProductsIdStats
         let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTickerMethod", &[Value::Str("publicGetProductsIdTicker".into())]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("publicGetProductsIdStats")) {
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_products_id_stats(&[__ws_arg_7]).await;
+            response = self.public_get_products_id_stats(&[__ws_arg_7]).await.into_opt_dict();
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_products_id_ticker(&[__ws_arg_8]).await;
+            response = self.public_get_products_id_ticker(&[__ws_arg_8]).await.into_opt_dict();
         }
-        return self.parse_ticker(response, Some(&market));
+        return self.parse_ticker(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2224,18 +2224,18 @@ impl Coinbaseexchange {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_oid".into()), &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_none()) {
             request.insert("id".into(), id);
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_orders_id(&[__ws_arg_12]).await;
+            response = self.private_get_orders_id(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
             request.insert("client_oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]).into_dict();
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await;
+            response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -3229,7 +3229,7 @@ impl Coinbaseexchange {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestHeaders: Option<crate::value::Dict> = None;
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut request: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (method.as_str() == Some("GET")) {
@@ -3249,7 +3249,7 @@ impl Coinbaseexchange {
             if (method.as_str() != Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     payload = json_stringify(&query).as_str().map(str::to_owned);
-                    requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
+                    requestBody = payload.clone();
                 }
             }
             let mut what: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), request).into()), payload.map(Value::from).unwrap_or(Value::Null));
@@ -3275,7 +3275,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });

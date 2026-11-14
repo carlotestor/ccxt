@@ -9664,7 +9664,7 @@ impl Okx {
         let mut leverageString: Option<String> = self.safe_string_k(position.clone(), "lever", &[]).as_str().map(str::to_owned);
         let mut initialMarginPercentage: Value = Value::Null;
         let mut collateralString: Value = Value::Null;
-        let mut marginString: Value = Value::Null;
+        let mut marginString: Option<String> = None;
         if (marginMode.as_deref() == Some("cross")) {
             initialMarginString = self.safe_string_k(position.clone(), "imr", &[]);
             collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&initialMarginString, &unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null)) } else { initialMarginString.clone() });
@@ -9673,7 +9673,7 @@ impl Okx {
             let mut isolatedMarginString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "margin", &[]));
             if (isolatedMarginString.is_some()) {
                 initialMarginString = isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null);
-                marginString = isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null);
+                marginString = isolatedMarginString.clone();
                 collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null), &unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null)) } else { isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null) });
             }
         }
@@ -9722,7 +9722,7 @@ impl Okx {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position, "uTime", &[]));
         m.insert("maintenanceMargin".to_string(), Value::from(maintenanceMargin));
         m.insert("maintenanceMarginPercentage".to_string(), Value::from(maintenanceMarginPercentage));
-        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(marginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString, &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage, &[]));

@@ -1623,7 +1623,7 @@ impl Gemini {
         let mut minSize: Option<f64> = None;
         let mut status: Value = Value::Null;
         let mut swap: bool = false;
-        let mut contractSize: Value = Value::Null;
+        let mut contractSize: Option<f64> = None;
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
         let mut isString: bool = matches!(&response, Value::Str(_));
@@ -1696,7 +1696,7 @@ impl Gemini {
         if (settle.is_some()) {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
             swap = true;
-            contractSize = Value::from(tickSize); // always same
+            contractSize = tickSize.clone(); // always same
             linear = Some(true); // always linear
             inverse = Some(false);
         }
@@ -1725,7 +1725,7 @@ impl Gemini {
         m.insert("contract".to_string(), Value::Bool(swap));
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2441,7 +2441,7 @@ impl Gemini {
         }  else {
             type_var = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         }
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<String> = None;
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_k(order.clone(), "order_id", &[]).as_str().map(str::to_owned);
@@ -2482,7 +2482,7 @@ impl Gemini {
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), Value::from(fee.as_deref()));
         m.insert("trades".to_string(), Value::Null);
     m
 }), market);

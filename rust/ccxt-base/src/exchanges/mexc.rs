@@ -2947,7 +2947,7 @@ impl Mexc {
         let mut orderId: Option<String> = None;
         let mut symbol: Value = Value::Null;
         let mut fee: Option<crate::value::Dict> = None;
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Option<String> = None;
         let mut priceString: Option<String> = None;
@@ -3083,7 +3083,7 @@ impl Mexc {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3857,11 +3857,11 @@ impl Mexc {
         let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("test".into()), &[]);
         let mut request: crate::value::Dict = self.create_spot_order_request(market.clone(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), marginMode, paramsOmitted]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if test {
-            response = self.spot_private_post_order_test(&[Value::from(&request)]).await;
+            response = self.spot_private_post_order_test(&[Value::from(&request)]).await.into_opt_dict();
         }  else {
-            response = self.spot_private_post_order(&[Value::Dict(request)]).await;
+            response = self.spot_private_post_order(&[Value::Dict(request)]).await.into_opt_dict();
         }
         //
         // spot
@@ -3882,7 +3882,7 @@ impl Mexc {
         //         "transactTime": 1661992652132
         //     }
         //
-        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(response, market).as_map().cloned().unwrap_or_default();
+        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(&response, market).as_map().cloned().unwrap_or_default();
         order.insert("side".into(), side);
         order.insert("type".into(), type_var);
         if (self.safe_string(Value::Map(order.clone()), Value::Str("price".into()), &[]) == Value::Null) {
@@ -4537,18 +4537,18 @@ impl Mexc {
             let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            let mut response: Value = Value::Null;
+            let mut response: Option<crate::value::List> = None;
             if (marginMode.is_some()) {
                 if (marginMode.as_deref() != Some("isolated")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support marginMode ".into())).into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&query]);
-                response = self.spot_private_get_margin_open_orders(&[__ws_arg_26]).await;
+                response = self.spot_private_get_margin_open_orders(&[__ws_arg_26]).await.into_opt_list();
             }  else {
                 let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[&query]);
-                response = self.spot_private_get_open_orders(&[__ws_arg_27]).await;
+                response = self.spot_private_get_open_orders(&[__ws_arg_27]).await.into_opt_list();
             }
-            return self.parse_orders(response, market.as_ref(), &[since.clone(), limit.clone()]);
+            return self.parse_orders(&response, market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
             let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
             let mut swapParams: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
@@ -4743,9 +4743,9 @@ impl Mexc {
             if (trigger == Some(true)) {
                 method = Some("contractPrivatePostPlanorderCancel".to_string());
             }
-            let mut response: Value = Value::Null;
+            let mut response: Option<crate::value::Dict> = None;
             if (method.as_deref() == Some("contractPrivatePostOrderCancel")) {
-                response = self.contract_private_post_order_cancel(&[Value::from(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
+                response = self.contract_private_post_order_cancel(&[Value::from(vec![id.clone()])]).await.into_opt_dict(); // the request cannot be changed or extended. This is the only way to send.
             }  else if (method.as_deref() == Some("contractPrivatePostPlanorderCancel")) {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument for trigger orders".into()))));
@@ -4756,7 +4756,7 @@ impl Mexc {
                         m.insert("orderId".to_string(), id.clone());
                     m
                 });
-                response = self.contract_private_post_planorder_cancel(&[Value::from(vec![cancelRequest])]).await; // the request cannot be changed or extended. This is the only way to send.
+                response = self.contract_private_post_planorder_cancel(&[Value::from(vec![cancelRequest])]).await.into_opt_dict(); // the request cannot be changed or extended. This is the only way to send.
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() not support this method".into()))));
             }
@@ -4778,11 +4778,11 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
     m
 }), market.as_ref());
             }
-            data = self.safe_value_k(response, "data", &[]);
+            data = self.safe_value_k(&response, "data", &[]);
             let mut order: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(0), &[]).into_dict();
             let mut errorMsg: String = self.safe_string_k(&order, "errorMsg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (errorMsg != "success") {

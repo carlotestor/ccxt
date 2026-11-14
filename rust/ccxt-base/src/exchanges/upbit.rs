@@ -1559,7 +1559,7 @@ impl Upbit {
         //         }
         //
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("sequential_id".into()), Value::Str("uuid".into()), &[]).as_str().map(str::to_owned);
-        let mut orderId: Value = Value::Null;
+        let mut orderId: Option<String> = None;
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         if (timestamp.is_none()) {
             timestamp = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
@@ -1590,7 +1590,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
-        m.insert("order".to_string(), orderId);
+        m.insert("order".to_string(), Value::from(orderId.as_deref()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -1835,7 +1835,7 @@ impl Upbit {
                 m.insert("count".to_string(), Value::from(limitResolved));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (since != Value::Null) {
             // convert `since` to `to` value
             request.insert("to".into(), self.iso8601(self.sum(&[since.clone(), Value::Int((((timeframePeriod * limitResolved)) * 1000))])));
@@ -1844,10 +1844,10 @@ impl Upbit {
             let mut numMinutes: Value = (Value::Float(((timeframePeriod as f64) / 60.0))).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null);
             request.insert("unit".into(), numMinutes);
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_candles_timeframe_unit(&[__ws_arg_7]).await;
+            response = self.public_get_candles_timeframe_unit(&[__ws_arg_7]).await.into_opt_list();
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_candles_timeframe(&[__ws_arg_8]).await;
+            response = self.public_get_candles_timeframe(&[__ws_arg_8]).await.into_opt_list();
         }
         //
         //     [
@@ -1879,7 +1879,7 @@ impl Upbit {
         //         }
         //     ]
         //
-        let mut ohlcvs: Value = self.to_array(response);
+        let mut ohlcvs: Value = self.to_array(&response);
         return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -2038,16 +2038,16 @@ impl Upbit {
         if (self.safe_string(Value::Map(request.clone()), Value::Str("ord_type".into()), &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a timeInForce parameter for best type orders".into()))));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut paramsRequest: crate::value::Dict = self.omit(&paramsOrdType, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), Value::Str("test".into())]), &[]).into_dict();
         if test {
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);
-            response = self.private_post_orders_test(&[__ws_arg_9]).await;
+            response = self.private_post_orders_test(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.private_post_orders(&[__ws_arg_10]).await;
+            response = self.private_post_orders(&[__ws_arg_10]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -2464,8 +2464,8 @@ impl Upbit {
         //         "krw_amount": "80420.0"
         //     }
         //
-        let mut address: Value = Value::Null; // not present in the data structure received from the exchange
-        let mut tag: Value = Value::Null; // not present in the data structure received from the exchange
+        let mut address: Option<String> = None; // not present in the data structure received from the exchange
+        let mut tag: Option<String> = None; // not present in the data structure received from the exchange
         let mut updatedRaw: Option<String> = self.safe_string_k(transaction.clone(), "done_at", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[updatedRaw.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -2481,10 +2481,10 @@ impl Upbit {
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("tag".to_string(), tag);
+        m.insert("tag".to_string(), Value::from(tag.as_deref()));
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_lower_k(transaction.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
@@ -3092,7 +3092,7 @@ impl Upbit {
                 m.insert("amount".to_string(), amount);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (code.as_str() != Some("KRW")) {
             self.check_address(&[address.clone(), code, tagResolved.clone().map(Value::from).unwrap_or(Value::Null)]);
             // 2023-05-23 Change to required parameters for digital assets
@@ -3108,12 +3108,12 @@ impl Upbit {
                 request.insert("secondary_address".into(), tagResolved.map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_post_withdraws_coin(&[__ws_arg_23]).await;
+            response = self.private_post_withdraws_coin(&[__ws_arg_23]).await.into_opt_dict();
         }  else {
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsTag]);
-            response = self.private_post_withdraws_krw(&[__ws_arg_24]).await;
+            response = self.private_post_withdraws_krw(&[__ws_arg_24]).await.into_opt_dict();
         }
-        return self.parse_transaction(response, None);
+        return self.parse_transaction(&response, None);
         Value::Null
         }).await?))
     }

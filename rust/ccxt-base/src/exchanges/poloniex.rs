@@ -3175,14 +3175,14 @@ impl Poloniex {
         if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("type".into(), Value::from(upperCaseType)); }
         if isMarket {
             if (side.as_str() == Some("buy")) {
-                let mut quoteAmount: Value = Value::Null;
+                let mut quoteAmount: Option<String> = None;
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
                 { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(queryOmitted.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
                     queryOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
                 let mut cost: Option<f64> = self.safe_number_k(queryOmitted.clone(), "cost", &[]).as_f64();
                 queryOmitted = self.omit(queryOmitted.clone(), Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
                 }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) && (market).spot {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
@@ -3190,16 +3190,16 @@ impl Poloniex {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
                         let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
+                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }
                 }  else {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
+                    quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone()).as_str().map(str::to_owned);
                 }
                 let mut amountKey: String = "sz".to_string();
                 if (market).spot {
                     amountKey = "amount".to_string();
                 }
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey.clone(), quoteAmount); }
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(amountKey.clone(), quoteAmount.map(Value::from).unwrap_or(Value::Null)); }
             }  else {
                 let mut amountKey: String = "sz".to_string();
                 if (market).spot {
@@ -4100,7 +4100,7 @@ impl Poloniex {
         if (address.is_none()) {
             address = self.safe_string(response.clone(), self.safe_string_k(networkEntry.clone(), "id", &[]), &[]).as_str().map(str::to_owned);
         }
-        let mut tag: Value = Value::Null;
+        let mut tag: Option<String> = None;
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (networkEntry != Value::Null) {
             let mut depositAddress: Option<String> = self.safe_string(self.safe_dict_k(networkEntry.clone(), "info", &[Value::Map({
@@ -4108,7 +4108,7 @@ impl Poloniex {
     m
 })]), Value::Str("depositAddress".into()), &[]).as_str().map(str::to_owned);
             if (depositAddress.is_some()) {
-                tag = address.clone().map(Value::from).unwrap_or(Value::Null);
+                tag = address.clone();
                 address = depositAddress;
             }
         }
@@ -4118,7 +4118,7 @@ impl Poloniex {
         m.insert("currency".to_string(), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("network".to_string(), self.safe_string_k(networkEntry, "network", &[]));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tag);
+        m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
     m
 });
 

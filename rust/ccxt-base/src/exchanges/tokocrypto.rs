@@ -1619,17 +1619,17 @@ impl Tokocrypto {
         }
         let mut defaultMethod: String = "binanceGetTrades".to_string();
         let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (method.as_deref() == Some("binanceGetAggTrades")) && (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
             // https://github.com/ccxt/ccxt/issues/6400
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             request.insert("endTime".into(), self.sum(&[since.clone(), Value::Int(3600000)]));
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.binance_get_agg_trades(&[__ws_arg_3]).await;
+            response = self.binance_get_agg_trades(&[__ws_arg_3]).await.into_opt_list();
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.binance_get_trades(&[__ws_arg_4]).await;
+            response = self.binance_get_trades(&[__ws_arg_4]).await.into_opt_list();
         }
         //
         // Caveats:
@@ -1669,7 +1669,7 @@ impl Tokocrypto {
         //         }
         //     ]
         //
-        let mut responseList: Value = self.to_array(response);
+        let mut responseList: Value = self.to_array(&response);
         return self.parse_trades(responseList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

@@ -882,14 +882,14 @@ impl Coinbase {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<String> = None;
         let mut last: Option<f64> = self.safe_number_k(ticker.clone(), "price", &[]).as_f64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), ticker.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp.as_deref())));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high_24_h", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low_24_h", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "best_bid", &[]));

@@ -2422,12 +2422,12 @@ impl Weex {
         let mut rawStatus: Option<String> = self.safe_string_lower_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut rawType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "triggerPrice", &[]));
-        let mut stopLossPrice: Value = Value::Null;
-        let mut takeProfitPrice: Value = Value::Null;
+        let mut stopLossPrice: Option<String> = None;
+        let mut takeProfitPrice: Option<String> = None;
         if (rawType.as_deref() == Some("TAKE_PROFIT_MARKET")) || (rawType.as_deref() == Some("TAKE_PROFIT")) {
-            takeProfitPrice = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
+            takeProfitPrice = triggerPrice.clone();
         }  else if (rawType.as_deref() == Some("STOP_LOSS")) || (rawType.as_deref() == Some("STOP")) || (rawType.as_deref() == Some("STOP_MARKET")) {
-            stopLossPrice = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
+            stopLossPrice = triggerPrice.clone();
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2453,8 +2453,8 @@ impl Weex {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "updatedTime", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
+        m.insert("stopLossPrice".to_string(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), order);
     m
 }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketValue).as_ref());

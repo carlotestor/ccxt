@@ -862,7 +862,7 @@ impl Btcbox {
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "tid", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -872,7 +872,7 @@ impl Btcbox {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -1064,7 +1064,7 @@ impl Btcbox {
                 status = Value::Str("closed".into());
             }
         }
-        let mut trades: Value = Value::Null; // todo: this.parseTrades (order['trades']);
+        let mut trades: Option<String> = None; // todo: this.parseTrades (order['trades']);
         let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut side: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
@@ -1086,7 +1086,7 @@ impl Btcbox {
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
-        m.insert("trades".to_string(), trades);
+        m.insert("trades".to_string(), Value::from(trades.as_deref()));
         m.insert("fee".to_string(), Value::Null);
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);

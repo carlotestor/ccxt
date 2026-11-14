@@ -2432,8 +2432,8 @@ impl Bitopro {
             m
         });
         let mut isSignedBody: bool = (apiName.as_deref() == Some("private")) && ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")));
-        let mut signedBody: Value = json_stringify(&params);
-        let mut requestBody: Value = Value::Null;
+        let mut signedBody: Option<String> = json_stringify(&params).as_str().map(str::to_owned);
+        let mut requestBody: Option<String> = None;
         if isSignedBody {
             requestBody = signedBody.clone();
         }
@@ -2441,7 +2441,7 @@ impl Bitopro {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
-                let mut payload: Value = Value::from(self.string_to_base64(signedBody, &[]));
+                let mut payload: Value = Value::from(self.string_to_base64(signedBody.map(Value::from).unwrap_or(Value::Null), &[]));
                 let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 requestHeaders.insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone());
                 requestHeaders.insert("X-BITOPRO-PAYLOAD".into(), payload.clone());
@@ -2477,7 +2477,7 @@ impl Bitopro {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(fullUrl));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(requestHeaders));
     m
 });

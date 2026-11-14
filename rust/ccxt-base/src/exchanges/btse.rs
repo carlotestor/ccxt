@@ -2810,29 +2810,29 @@ impl Btse {
         // sizing rules are strict on both sides, verified live
         let mut needsQuoteSize: bool = (matches!(&isMarketOrder, Value::Bool(true)) || (typeValue == "TRAILING")) && (upperSide.as_str() == Some("BUY"));
         if needsQuoteSize {
-            let mut quoteAmount: Value = Value::Null;
+            let mut quoteAmount: Option<String> = None;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
             { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             let mut cost: Option<String> = self.safe_string_k(query.clone(), "cost", &[]).as_str().map(str::to_owned);
             query = self.omit(query.clone(), Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
-                quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null));
+                quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
-                    quoteAmount = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
                 }
             }  else {
-                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(self.number_to_string(amount.clone())));
+                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(self.number_to_string(amount.clone()))).as_str().map(str::to_owned);
             }
-            request.insert("quoteOrderSize".into(), quoteAmount);
+            request.insert("quoteOrderSize".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
         }  else {
             request.insert("orderSize".into(), self.amount_to_precision(symbol.clone(), amount));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if !isAlgoOrder {
             request.insert("orderType".into(), Value::from(typeValue.clone()));
             if isLimitOrder {
@@ -2868,7 +2868,7 @@ impl Btse {
             //     ]
             //
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[query.clone()]);
-            response = self.private_post_spot_api_v4_trade_orders(&[__ws_arg_12]).await;
+            response = self.private_post_spot_api_v4_trade_orders(&[__ws_arg_12]).await.into_opt_list();
         }  else {
             if isConditionalOrder {
                 request.insert("orderType".into(), Value::Str("CONDITIONAL".into()));
@@ -2934,9 +2934,9 @@ impl Btse {
                 }
             }
             let __ws_arg_13 = self.extend(Value::Map(request), &[query]);
-            response = self.private_post_spot_api_v4_trade_orders_algo(&[__ws_arg_13]).await;
+            response = self.private_post_spot_api_v4_trade_orders_algo(&[__ws_arg_13]).await.into_opt_list();
         }
-        let mut order: crate::value::Dict = self.safe_dict(response, Value::Int(0), &[Value::Map({
+        let mut order: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3324,11 +3324,11 @@ impl Btse {
         if (amount == Value::Null) && (price == Value::Null) && (triggerPrice.is_none()) && (!isSlide) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument, a price argument or a triggerPrice parameter".into()))));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.private_put_spot_api_v4_trade_orders(&[__ws_arg_18]).await;
+            response = self.private_put_spot_api_v4_trade_orders(&[__ws_arg_18]).await.into_opt_list();
         }  else {
             // the futures amend requires an explicit amendType discriminator
             // which can change the price and size together or a single field
@@ -3346,9 +3346,9 @@ impl Btse {
                 request.insert("amendType".into(), Value::Str("PRICE".into()));
             }
             let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_put_futures_api_v3_trade_orders(&[__ws_arg_19]).await;
+            response = self.private_put_futures_api_v3_trade_orders(&[__ws_arg_19]).await.into_opt_list();
         }
-        let mut order: crate::value::Dict = self.safe_dict(response, Value::Int(0), &[Value::Map({
+        let mut order: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3399,11 +3399,11 @@ impl Btse {
             request.insert("orderId".into(), id.clone());
         }
         let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params }).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_delete_spot_api_v4_trade_orders(&[__ws_arg_20]).await;
+            response = self.private_delete_spot_api_v4_trade_orders(&[__ws_arg_20]).await.into_opt_list();
         }  else {
             //
             //     [
@@ -3423,9 +3423,9 @@ impl Btse {
             //
             request.insert("symbol".into(), self.futures_request_id(Some(&market)));
             let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_delete_futures_api_v3_trade_orders(&[__ws_arg_21]).await;
+            response = self.private_delete_futures_api_v3_trade_orders(&[__ws_arg_21]).await.into_opt_list();
         }
-        let mut order: crate::value::Dict = self.safe_dict(response, Value::Int(0), &[Value::Map({
+        let mut order: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3515,7 +3515,7 @@ impl Btse {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut marketType: String = "spot".to_string();
         let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrdersAfter".into()), None, &[params, Value::from(marketType)]).as_array().cloned().unwrap_or_default();
         let mut marketTypeOption: Option<String> = marketTypeOptionparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -3523,14 +3523,14 @@ impl Btse {
         if (marketTypeOption.as_deref() == Some("spot")) {
             request.insert("timeout".into(), timeout.clone());
             let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            response = self.private_post_spot_api_v4_trade_orders_cancel_all_after(&[__ws_arg_24]).await;
+            response = self.private_post_spot_api_v4_trade_orders_cancel_all_after(&[__ws_arg_24]).await.into_opt_dict();
         }  else {
             // the futures param is named timeoutMs and is required, zero disarms
             request.insert("timeoutMs".into(), timeout);
             let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_post_futures_api_v3_trade_orders_cancel_all_after(&[__ws_arg_25]).await;
+            response = self.private_post_futures_api_v3_trade_orders_cancel_all_after(&[__ws_arg_25]).await.into_opt_dict();
         }
-        return response;
+        return response.map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -4921,7 +4921,7 @@ impl Btse {
         });
         let mut longLeverage: Option<i64> = None;
         let mut shortLeverage: Option<i64> = None;
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_491: bool = true;
@@ -4929,7 +4929,7 @@ impl Btse {
             let mut entrty: crate::value::Dict = self.safe_dict(safeResponse.clone(), Value::Int(i), &[]).into_dict();
             let mut leverageValue: Option<i64> = self.safe_integer_k(&entrty, "leverage", &[]).as_i64();
             let mut positionDirection: Option<String> = self.safe_string_k(&entrty, "positionDirection", &[]).as_str().map(str::to_owned);
-            marginMode = self.safe_string_lower_k(&entrty, "marginMode", &[]);
+            marginMode = self.safe_string_lower_k(&entrty, "marginMode", &[]).as_str().map(str::to_owned);
             if (positionDirection.as_deref() == Some("LONG")) {
                 longLeverage = leverageValue.clone();
             }  else if (positionDirection.as_deref() == Some("SHORT")) {
@@ -4940,7 +4940,7 @@ impl Btse {
             }
         }
         }
-        result.insert("marginMode".into(), marginMode);
+        result.insert("marginMode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
         result.insert("longLeverage".into(), Value::from(longLeverage));
         result.insert("shortLeverage".into(), Value::from(shortLeverage));
         return Value::Map(result);
@@ -5092,7 +5092,7 @@ impl Btse {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -5115,9 +5115,9 @@ impl Btse {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = self.nonce();
-            let mut bodyString: Value = json_stringify(&query);
+            let mut bodyString: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
             if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && !isBodyDelete {
-                bodyString = Value::Str("".into());
+                bodyString = Some("".to_string());
             }  else {
                 requestBody = bodyString.clone();
             }
@@ -5131,7 +5131,7 @@ impl Btse {
             }  else {
                 signPath = self.clean_path(path.as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
             }
-            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", signPath, Value::Str(format!("{}", nonce).into())).into()), bodyString);
+            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", signPath, Value::Str(format!("{}", nonce).into())).into()), bodyString.map(Value::from).unwrap_or(Value::Null));
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -5147,7 +5147,7 @@ impl Btse {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });

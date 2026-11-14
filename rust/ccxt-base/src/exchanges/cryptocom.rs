@@ -2772,14 +2772,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsMarketBuy: Value = params.clone();
         if isMarketBuy {
             // use createmarketBuy logic here
-            let mut quoteAmount: Value = Value::Null;
+            let mut quoteAmount: Option<String> = None;
             let createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsCreateMarketBuy: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsCreateMarketBuy), Value::Str("cost".into()), Value::Str("notional".into()), &[]).as_f64();
             paramsMarketBuy = self.omit(&paramsCreateMarketBuy, Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
-                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
             }  else if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
@@ -2787,12 +2787,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price);
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
             }  else {
-                quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
+                quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone()).as_str().map(str::to_owned);
             }
-            request.insert("notional".into(), quoteAmount);
+            request.insert("notional".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
         }  else {
             request.insert("quantity".into(), self.amount_to_precision(symbol, amount));
         }

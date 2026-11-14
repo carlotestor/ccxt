@@ -3635,18 +3635,18 @@ impl Derive {
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (market.is_some()) {
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsDeriveSubaccountId]);
-            response = self.private_post_cancel_by_instrument(&[__ws_arg_19]).await;
+            response = self.private_post_cancel_by_instrument(&[__ws_arg_19]).await.into_opt_dict();
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-            response = self.private_post_cancel_all(&[__ws_arg_20]).await;
+            response = self.private_post_cancel_all(&[__ws_arg_20]).await.into_opt_dict();
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None)]);
         Value::Null

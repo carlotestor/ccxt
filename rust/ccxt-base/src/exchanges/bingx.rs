@@ -4280,7 +4280,7 @@ impl Bingx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let standardparamsStandardVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchBalance".into()), Value::Str("standard".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut standard: bool = standardparamsStandardVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStandard: crate::value::Dict = standardparamsStandardVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -4291,19 +4291,19 @@ impl Bingx {
         let mut marketType: Option<String> = marketTypemarketTypeQueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut marketTypeQuery: crate::value::Dict = marketTypemarketTypeQueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if standard {
-            response = self.contract_v1_private_get_balance(&[Value::from(&marketTypeQuery)]).await;
+            response = self.contract_v1_private_get_balance(&[Value::from(&marketTypeQuery)]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("funding")) || (marketType.as_deref() == Some("fund")) {
-            response = self.fund_v1_private_get_account_balance(&[Value::from(&marketTypeQuery)]).await;
+            response = self.fund_v1_private_get_account_balance(&[Value::from(&marketTypeQuery)]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("spot")) {
-            response = self.spot_v1_private_get_account_balance(&[Value::from(&marketTypeQuery)]).await;
+            response = self.spot_v1_private_get_account_balance(&[Value::from(&marketTypeQuery)]).await.into_opt_dict();
         }  else {
             if (subType.as_deref() == Some("inverse")) {
-                response = self.cswap_v1_private_get_user_balance(&[Value::from(&marketTypeQuery)]).await;
+                response = self.cswap_v1_private_get_user_balance(&[Value::from(&marketTypeQuery)]).await.into_opt_dict();
             }  else {
-                response = self.swap_v3_private_get_user_balance(&[Value::Dict(marketTypeQuery)]).await;
+                response = self.swap_v3_private_get_user_balance(&[Value::Dict(marketTypeQuery)]).await.into_opt_dict();
             }
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -6294,7 +6294,7 @@ impl Bingx {
                 m.insert("timeOut".to_string(), (if (isActive) { (Value::from(self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))) } else { Value::Int(0) }));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrdersAfter".into()), None, &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6306,14 +6306,14 @@ impl Bingx {
         }
         if (type_var.as_deref() == Some("spot")) {
             let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-            response = self.spot_v1_private_post_trade_cancel_all_after(&[__ws_arg_34]).await;
+            response = self.spot_v1_private_post_trade_cancel_all_after(&[__ws_arg_34]).await.into_opt_dict();
         }  else if (type_var.as_deref() == Some("swap")) {
             let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.swap_v2_private_post_trade_cancel_all_after(&[__ws_arg_35]).await;
+            response = self.swap_v2_private_post_trade_cancel_all_after(&[__ws_arg_35]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() is not supported for ".into())).into()), type_var.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
         }
-        return response;
+        return response.map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

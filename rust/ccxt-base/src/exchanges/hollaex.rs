@@ -2492,17 +2492,17 @@ impl Hollaex {
         let mut updated: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "updated_at", &[]));
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
-        let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
-        let mut addressTo: Value = Value::Null;
-        let mut addressFrom: Value = Value::Null;
+        let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
+        let mut addressTo: Option<String> = None;
+        let mut addressFrom: Option<String> = None;
         let mut tag: Value = Value::Null;
         let mut tagTo: Value = Value::Null;
-        let mut tagFrom: Value = Value::Null;
+        let mut tagFrom: Option<String> = None;
         if (address.is_some()) {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = address.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
-            address = self.safe_string_opt(&parts, Value::Int(0), &[]);
+            address = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             tag = self.safe_string(&parts, Value::Int(1), &[]);
-            addressTo = address.clone().map(Value::from).unwrap_or(Value::Null);
+            addressTo = address.clone();
             tagTo = tag.clone();
         }
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
@@ -2540,10 +2540,10 @@ impl Hollaex {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), Value::Null);
-        m.insert("addressFrom".to_string(), addressFrom);
+        m.insert("addressFrom".to_string(), Value::from(addressFrom.as_deref()));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("addressTo".to_string(), addressTo);
-        m.insert("tagFrom".to_string(), tagFrom);
+        m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
+        m.insert("tagFrom".to_string(), Value::from(tagFrom.as_deref()));
         m.insert("tag".to_string(), tag);
         m.insert("tagTo".to_string(), tagTo);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));

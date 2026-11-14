@@ -2591,16 +2591,16 @@ impl Woo {
             let mut cost: Option<String> = self.safe_string_n(Value::Dict(paramsMarginMode), Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]).as_str().map(str::to_owned);
             let mut isPriceProvided: bool = price != Value::Null;
             if (market).spot && (isPriceProvided || (cost.is_some())) {
-                let mut quoteAmount: Value = Value::Null;
+                let mut quoteAmount: Option<String> = None;
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price);
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
-                request.insert("amount".into(), quoteAmount);
+                request.insert("amount".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }

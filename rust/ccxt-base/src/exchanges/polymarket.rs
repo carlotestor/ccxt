@@ -2574,13 +2574,13 @@ impl Polymarket {
             type_var = (if (price.is_none()) { Some("market".to_string()) } else { Some("limit".to_string()) });
         }
         let mut tpsl: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "tpsl", &[]).into_opt_dict();
-        let mut stopLossPrice: Value = Value::Null;
+        let mut stopLossPrice: Option<String> = None;
         let mut takeProfitPrice: Option<String> = None;
         if (tpsl.is_some()) {
             let mut kind: Option<String> = self.safe_string_k(&tpsl, "kind", &[]).as_str().map(str::to_owned);
             let mut triggerValue: Option<String> = self.safe_string_k(&tpsl, "trp", &[]).as_str().map(str::to_owned);
             if (kind.as_deref() == Some("sl")) {
-                stopLossPrice = triggerValue.clone().map(Value::from).unwrap_or(Value::Null);
+                stopLossPrice = triggerValue.clone();
             }  else if (kind.as_deref() == Some("tp")) {
                 takeProfitPrice = triggerValue.take();
             }
@@ -2602,7 +2602,7 @@ impl Polymarket {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("stopLossPrice".to_string(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("takeProfitPrice".to_string(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string2(order.clone(), Value::Str("quantity".into()), Value::Str("qty".into()), &[]));
         m.insert("cost".to_string(), Value::Null);

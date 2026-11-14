@@ -1988,7 +1988,7 @@ impl Coinsph {
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "time", &[]).as_i64();
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "qty", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2024,7 +2024,7 @@ impl Coinsph {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -2169,14 +2169,14 @@ impl Coinsph {
             if (orderSide.as_str() == Some("SELL")) {
                 request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }  else if (orderSide.as_str() == Some("BUY")) {
-                let mut quoteAmount: Value = Value::Null;
+                let mut quoteAmount: Option<String> = None;
                 let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(paramsType.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
                 let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
                 let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
                 let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsRequiresPrice), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]).as_f64();
                 paramsQuote = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
                 }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
@@ -2184,12 +2184,12 @@ impl Coinsph {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
                         let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
+                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }
                 }  else {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), amount);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
                 }
-                request.insert("quoteOrderQty".into(), quoteAmount);
+                request.insert("quoteOrderQty".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }
         }
         if (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("STOP_LOSS_LIMIT")) || (orderType.as_str() == Some("TAKE_PROFIT")) || (orderType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
@@ -2983,7 +2983,7 @@ impl Coinsph {
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = None;
         timestamp = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("applyTime".into()), &[]).as_i64();
-        let mut updated: Value = Value::Null;
+        let mut updated: Option<String> = None;
         let mut type_var: Option<String> = None;
         let mut withdrawOrderId: Option<String> = self.safe_string_k(transaction.clone(), "withdrawOrderId", &[]).as_str().map(str::to_owned);
         let mut depositOrderId: Option<String> = self.safe_string_k(transaction.clone(), "depositOrderId", &[]).as_str().map(str::to_owned);
@@ -3024,7 +3024,7 @@ impl Coinsph {
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), updated);
+        m.insert("updated".to_string(), Value::from(updated.as_deref()));
         m.insert("internal".to_string(), Value::Bool(internal));
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));

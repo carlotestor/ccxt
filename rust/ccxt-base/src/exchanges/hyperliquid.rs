@@ -5051,13 +5051,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         let mut orderTypeRaw: Value = self.safe_string_lower_k(&entry, "orderType", &[Value::Str("".into())]);
-        let mut stopLossPrice: Value = Value::Null;
-        let mut takeProfitPrice: Value = Value::Null;
+        let mut stopLossPrice: Option<f64> = None;
+        let mut takeProfitPrice: Option<f64> = None;
         if (triggerPx.is_some()) {
             if orderTypeRaw.as_str().unwrap_or("").contains("stop") {
-                stopLossPrice = Value::from(triggerPx);
+                stopLossPrice = triggerPx.clone();
             }  else if orderTypeRaw.as_str().unwrap_or("").contains("take profit") {
-                takeProfitPrice = Value::from(triggerPx);
+                takeProfitPrice = triggerPx.clone();
             }
         }
         return self.safe_order(Value::Map({
@@ -5077,8 +5077,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(&entry, "limitPx", &[]));
         m.insert("triggerPrice".to_string(), Value::from(triggerPx));
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
+        m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
+        m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
         m.insert("amount".to_string(), totalAmount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string_k(&entry, "avgPx", &[]));
@@ -6062,7 +6062,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut useSendAsset: bool = transferMethod.as_deref() == Some("sendAsset");
         if (transferMethod.is_none()) {
             let mut isUnified: Option<bool> = None;
-            { let __destr_tmp: Vec<Value> = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[Value::Bool(false), query.clone()]).await.as_array().cloned().unwrap_or_default(); isUnified = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[Value::Bool(false), query.clone()]).await.as_array().cloned().unwrap_or_default(); isUnified = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             useSendAsset = (isUnified == Some(true));
         }
         if useSendAsset {

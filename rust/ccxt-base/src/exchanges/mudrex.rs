@@ -1401,14 +1401,14 @@ impl Mudrex {
         let mut isRiskOrder: bool = (rawSide.as_deref() == Some("STOPLOSS")) || (rawSide.as_deref() == Some("TAKEPROFIT"));
         let mut priceString: Option<String> = self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("order_price".into()), &[]).as_str().map(str::to_owned);
         let mut orderPrice: Option<String> = priceString.clone();
-        let mut triggerPrice: Value = Value::Null;
-        let mut stopLossPrice: Value = Value::Null;
+        let mut triggerPrice: Option<String> = None;
+        let mut stopLossPrice: Option<String> = None;
         let mut takeProfitPrice: Option<String> = None;
         if isRiskOrder {
-            triggerPrice = priceString.clone().map(Value::from).unwrap_or(Value::Null);
+            triggerPrice = priceString.clone();
             orderPrice = None.clone();
             if (rawSide.as_deref() == Some("STOPLOSS")) {
-                stopLossPrice = priceString.clone().map(Value::from).unwrap_or(Value::Null);
+                stopLossPrice = priceString.clone();
             }  else {
                 takeProfitPrice = priceString.take();
             }
@@ -1437,8 +1437,8 @@ impl Mudrex {
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), orderPrice.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), triggerPrice);
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopLossPrice".to_string(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("takeProfitPrice".to_string(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string2(order.clone(), Value::Str("quantity".into()), Value::Str("amount".into()), &[]));
         m.insert("cost".to_string(), Value::Null);

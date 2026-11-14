@@ -1526,20 +1526,20 @@ impl Independentreserve {
                 m.insert("orderType".to_string(), orderType);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         request.insert("volume".into(), amount);
         if (type_var.as_str() == Some("limit")) {
             request.insert("price".into(), price);
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_place_limit_order(&[__ws_arg_7]).await;
+            response = self.private_post_place_limit_order(&[__ws_arg_7]).await.into_opt_dict();
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_place_market_order(&[__ws_arg_8]).await;
+            response = self.private_post_place_market_order(&[__ws_arg_8]).await.into_opt_dict();
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), self.safe_string_k(response, "OrderGuid", &[]));
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
+        m.insert("id".to_string(), self.safe_string_k(&response, "OrderGuid", &[]));
     m
 }), Some(&market));
         Value::Null

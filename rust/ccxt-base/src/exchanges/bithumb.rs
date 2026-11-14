@@ -2150,7 +2150,7 @@ impl Bithumb {
                 }
             }
         }
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut side: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("ask_bid".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("bid")) {
             side = Some("buy".to_string());
@@ -2186,7 +2186,7 @@ impl Bithumb {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -2526,10 +2526,10 @@ impl Bithumb {
             m
         });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (generation == Some(2.0)) {
             request = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), Value::from(&paramsGeneration)]).as_map().cloned().unwrap_or_default();
-            response = self.private_post_v2_orders(&[Value::Map(request.clone())]).await;
+            response = self.private_post_v2_orders(&[Value::Map(request.clone())]).await.into_opt_dict();
         }  else {
             request.insert("order_currency".into(), Value::from((market).base.clone()));
             request.insert("payment_currency".into(), Value::from((market).quote.clone()));
@@ -2544,23 +2544,23 @@ impl Bithumb {
                 }
                 request.insert("type".into(), typeRequest.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-                response = self.private_post_trade_place(&[__ws_arg_17]).await;
+                response = self.private_post_trade_place(&[__ws_arg_17]).await.into_opt_dict();
             }  else if (side.as_str() == Some("buy")) {
                 let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-                response = self.private_post_trade_market_buy(&[__ws_arg_18]).await;
+                response = self.private_post_trade_market_buy(&[__ws_arg_18]).await.into_opt_dict();
             }  else {
                 let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsGeneration]);
-                response = self.private_post_trade_market_sell(&[__ws_arg_19]).await;
+                response = self.private_post_trade_market_sell(&[__ws_arg_19]).await.into_opt_dict();
             }
         }
-        let mut id: Option<String> = self.safe_string_k(response.clone(), "order_id", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k(&response, "order_id", &[]).as_str().map(str::to_owned);
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() did not return an order id".into()))));
         }
-        let __ws_arg_20 = self.parse_order(response.clone(), Some(&market));
+        let __ws_arg_20 = self.parse_order(&response, Some(&market));
         return self.extend(__ws_arg_20, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
@@ -3401,7 +3401,7 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]);
         let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
@@ -3422,10 +3422,10 @@ impl Bithumb {
         if (generation == Some(2.0)) {
             if twap {
                 let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
-                response = self.private_delete_v1_twap(&[__ws_arg_30]).await;
+                response = self.private_delete_v1_twap(&[__ws_arg_30]).await.into_opt_dict();
             }  else {
                 let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
-                response = self.private_delete_v2_order(&[__ws_arg_31]).await;
+                response = self.private_delete_v2_order(&[__ws_arg_31]).await.into_opt_dict();
             }
         }  else {
             if (symbol == Value::Null) {
@@ -3453,9 +3453,9 @@ impl Bithumb {
             request.insert("order_currency".into(), base.map(Value::from).unwrap_or(Value::Null));
             request.insert("payment_currency".into(), quote.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsSide]);
-            response = self.private_post_trade_cancel(&[__ws_arg_32]).await;
+            response = self.private_post_trade_cancel(&[__ws_arg_32]).await.into_opt_dict();
         }
-        let __ws_arg_33 = self.parse_order(response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        let __ws_arg_33 = self.parse_order(&response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
         return self.extend(__ws_arg_33, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -3611,7 +3611,7 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut destinationRequest: Option<String> = None;
         let mut requiresDestination: bool = (code.as_str() == Some("XRP")) || (code.as_str() == Some("XMR")) || (code.as_str() == Some("EOS")) || (code.as_str() == Some("STEEM")) || (code.as_str() == Some("TON"));
         let mut paramsDestination: Value = paramsNetwork.clone();
@@ -3642,7 +3642,7 @@ impl Bithumb {
                     m
                 }); // KRW withdraw only accepts amount and two_factor_type parameters
                 let __ws_arg_38 = self.extend(Value::Map(krwRequest), &[&paramsReceiverType]);
-                response = self.private_post_v1_withdraws_krw(&[__ws_arg_38]).await;
+                response = self.private_post_v1_withdraws_krw(&[__ws_arg_38]).await.into_opt_dict();
             }  else {
                 if (network.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), code).into()), Value::Str(" withdraw() requires a network parameter".into()))));
@@ -3658,7 +3658,7 @@ impl Bithumb {
                     request.insert("receiver_type".into(), receiverType.clone().map(Value::from).unwrap_or(Value::Null));
                 }
                 let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[&paramsReceiverType]);
-                response = self.private_post_v1_withdraws_coin(&[__ws_arg_39]).await;
+                response = self.private_post_v1_withdraws_coin(&[__ws_arg_39]).await.into_opt_dict();
             }
         }  else {
             request.insert("address".into(), address);
@@ -3680,9 +3680,9 @@ impl Bithumb {
                 }
             }
             let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsReceiverType]);
-            response = self.private_post_trade_btc_withdrawal(&[__ws_arg_40]).await;
+            response = self.private_post_trade_btc_withdrawal(&[__ws_arg_40]).await.into_opt_dict();
         }
-        return self.parse_transaction(response, Some(&currency));
+        return self.parse_transaction(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -3917,21 +3917,21 @@ impl Bithumb {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         let mut currency: Option<crate::types::Currency> = None;
         if (code.as_str() == Some("KRW")) {
             currency = Some(self.currency(code.clone()));
             let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-            response = self.private_get_v1_withdraws_krw(&[__ws_arg_42]).await;
+            response = self.private_get_v1_withdraws_krw(&[__ws_arg_42]).await.into_opt_list();
         }  else {
             if (code != Value::Null) {
                 currency = Some(self.currency(code));
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             }
             let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            response = self.private_get_v1_withdraws(&[__ws_arg_43]).await;
+            response = self.private_get_v1_withdraws(&[__ws_arg_43]).await.into_opt_list();
         }
-        return self.parse_transactions(response, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4030,21 +4030,21 @@ impl Bithumb {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         let mut currency: Option<crate::types::Currency> = None;
         if (code.as_str() == Some("KRW")) {
             currency = Some(self.currency(code.clone()));
             let __ws_arg_45 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-            response = self.private_get_v1_deposits_krw(&[__ws_arg_45]).await;
+            response = self.private_get_v1_deposits_krw(&[__ws_arg_45]).await.into_opt_list();
         }  else {
             if (code != Value::Null) {
                 currency = Some(self.currency(code));
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             }
             let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            response = self.private_get_v1_deposits(&[__ws_arg_46]).await;
+            response = self.private_get_v1_deposits(&[__ws_arg_46]).await.into_opt_list();
         }
-        return self.parse_transactions(response, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

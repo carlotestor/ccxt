@@ -1933,22 +1933,22 @@ impl Coinmate {
             method.push_str(&(self.capitalize(type_var.clone())).to_string());
         }
         let mut requestParams: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method == "privatePostBuyInstant") {
-            response = self.private_post_buy_instant(&[Value::from(&requestParams)]).await;
+            response = self.private_post_buy_instant(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method == "privatePostSellInstant") {
-            response = self.private_post_sell_instant(&[Value::from(&requestParams)]).await;
+            response = self.private_post_sell_instant(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method == "privatePostBuyLimit") {
-            response = self.private_post_buy_limit(&[Value::from(&requestParams)]).await;
+            response = self.private_post_buy_limit(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method == "privatePostSellLimit") {
-            response = self.private_post_sell_limit(&[Value::Dict(requestParams)]).await;
+            response = self.private_post_sell_limit(&[Value::Dict(requestParams)]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
         }
-        let mut id: Option<String> = self.safe_string_k(response.clone(), "data", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k(&response, "data", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
     m
 }), Some(&market));

@@ -3627,19 +3627,19 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) {
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_cancel_all(&[__ws_arg_20]).await;
+            response = self.private_get_cancel_all(&[__ws_arg_20]).await.into_opt_dict();
         }  else {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), Value::from((market).id.as_deref()));
             let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_cancel_all_by_instrument(&[__ws_arg_21]).await;
+            response = self.private_get_cancel_all_by_instrument(&[__ws_arg_21]).await.into_opt_dict();
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None)]);
         Value::Null
@@ -5689,17 +5689,17 @@ impl Deribit {
         let mut marketId: Option<String> = self.safe_string_k(interest.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut openInterest: Option<f64> = self.safe_number_k(interest.clone(), "open_interest", &[]).as_f64();
-        let mut openInterestAmount: Value = Value::Null;
+        let mut openInterestAmount: Option<f64> = None;
         let mut openInterestValue: Option<f64> = None;
         if (marketResolved).option || ((marketResolved).future && ((marketResolved).linear == Some(true))) {
-            openInterestAmount = Value::from(openInterest);
+            openInterestAmount = openInterest.clone();
         }  else {
             openInterestValue = openInterest.take();
         }
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
-        m.insert("openInterestAmount".to_string(), openInterestAmount);
+        m.insert("openInterestAmount".to_string(), Value::from(openInterestAmount));
         m.insert("openInterestValue".to_string(), Value::from(openInterestValue));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));

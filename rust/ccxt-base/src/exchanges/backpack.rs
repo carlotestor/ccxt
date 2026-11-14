@@ -2945,16 +2945,16 @@ impl Backpack {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // api maximum 1000
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         let mut offset: Option<i64> = self.safe_integer_k(&query, "offset", &[]).as_i64();
         if (offset.is_some()) {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.public_get_api_v1_trades_history(&[__ws_arg_10]).await;
+            response = self.public_get_api_v1_trades_history(&[__ws_arg_10]).await.into_opt_list();
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&query]);
-            response = self.public_get_api_v1_trades(&[__ws_arg_11]).await;
+            response = self.public_get_api_v1_trades(&[__ws_arg_11]).await.into_opt_list();
         }
-        let mut responseList: Value = self.to_array(response);
+        let mut responseList: Value = self.to_array(&response);
         return self.parse_trades(responseList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

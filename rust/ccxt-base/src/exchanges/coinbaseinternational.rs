@@ -3751,7 +3751,7 @@ impl Coinbaseinternational {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate_v2(&[]).await;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3760,9 +3760,9 @@ impl Coinbaseinternational {
                 m
             });
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsResolved]);
-            response = self.private_get_cancel_all_by_instrument(&[__ws_arg_14]).await;
+            response = self.private_get_cancel_all_by_instrument(&[__ws_arg_14]).await.into_opt_dict();
         }  else {
-            response = self.private_get_cancel_all(&[Value::Dict(paramsResolved)]).await;
+            response = self.private_get_cancel_all(&[Value::Dict(paramsResolved)]).await.into_opt_dict();
         }
         //
         //     {
@@ -3773,7 +3773,7 @@ impl Coinbaseinternational {
         //
         let mut order: Value = self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response);
+                m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
             m
         }), None);
         return Value::from(vec![order]);

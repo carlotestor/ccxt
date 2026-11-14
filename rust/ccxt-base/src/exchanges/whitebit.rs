@@ -1371,7 +1371,7 @@ impl Whitebit {
         let mut typeId: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
         let mut settle: Option<String> = None;
-        let mut settleId: Value = Value::Null;
+        let mut settleId: Option<String> = None;
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut swap: Value = Value::Bool((typeId.as_deref() == Some("futures")) || (typeId.as_deref() == Some("tradfiFutures")));
         let mut margin: Value = Value::Bool(isCollateral && !(matches!(&swap, Value::Bool(true))));
@@ -1380,8 +1380,8 @@ impl Whitebit {
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
         if matches!(&swap, Value::Bool(true)) {
-            settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
-            settle = self.safe_currency_code(settleId.clone(), None);
+            settleId = quoteId.clone();
+            settle = self.safe_currency_code(Value::from(settleId.as_deref()), None);
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             type_var = Some("swap".to_string());
             contract = true;
@@ -1404,7 +1404,7 @@ impl Whitebit {
         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), settleId);
+        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), isSpot.clone());
         m.insert("margin".to_string(), margin);
@@ -3356,22 +3356,22 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut orderParams: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
         let mut useCollateralEndpoint: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("swap"));
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isStopOrder {
             request.insert("activation_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
             if isLimitOrder {
                 // stop limit order
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
                 let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                response = self.v4_private_post_order_stop_limit(&[__ws_arg_8]).await;
+                response = self.v4_private_post_order_stop_limit(&[__ws_arg_8]).await.into_opt_dict();
             }  else {
                 // stop market order
                 if useCollateralEndpoint {
                     let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_collateral_trigger_market(&[__ws_arg_9]).await;
+                    response = self.v4_private_post_order_collateral_trigger_market(&[__ws_arg_9]).await.into_opt_dict();
                 }  else {
                     let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_stop_market(&[__ws_arg_10]).await;
+                    response = self.v4_private_post_order_stop_market(&[__ws_arg_10]).await.into_opt_dict();
                 }
             }
         }  else {
@@ -3380,28 +3380,28 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 request.insert("price".into(), self.price_to_precision(symbol, price));
                 if useCollateralEndpoint {
                     let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_collateral_limit(&[__ws_arg_11]).await;
+                    response = self.v4_private_post_order_collateral_limit(&[__ws_arg_11]).await.into_opt_dict();
                 }  else {
                     let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_new(&[__ws_arg_12]).await;
+                    response = self.v4_private_post_order_new(&[__ws_arg_12]).await.into_opt_dict();
                 }
             }  else {
                 // market order
                 if useCollateralEndpoint {
                     let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_collateral_market(&[__ws_arg_13]).await;
+                    response = self.v4_private_post_order_collateral_market(&[__ws_arg_13]).await.into_opt_dict();
                 }  else {
                     if (cost.is_some()) {
                         let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                        response = self.v4_private_post_order_market(&[__ws_arg_14]).await;
+                        response = self.v4_private_post_order_market(&[__ws_arg_14]).await.into_opt_dict();
                     }  else {
                         let __ws_arg_15 = self.extend(Value::Map(request), &[&orderParams]);
-                        response = self.v4_private_post_order_stock_market(&[__ws_arg_15]).await;
+                        response = self.v4_private_post_order_stock_market(&[__ws_arg_15]).await.into_opt_dict();
                     }
                 }
             }
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -3747,20 +3747,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
-            response = self.v4_private_post_collateral_account_balance(&[Value::from(&paramsMarketType)]).await;
+            response = self.v4_private_post_collateral_account_balance(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
         }  else {
             let mut defaultAccount: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("fetchBalance")).cloned().unwrap_or(Value::Null), Value::Str("account".into()), &[]).as_str().map(str::to_owned);
             let mut account: Option<String> = self.safe_string2(Value::from(&paramsMarketType), Value::Str("account".into()), Value::Str("type".into()), &[defaultAccount.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut paramsOmitted: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("account".into()), Value::Str("type".into())]), &[]);
             if (account.as_deref() == Some("main")) || (account.as_deref() == Some("funding")) {
-                response = self.v4_private_post_main_account_balance(&[paramsOmitted.clone()]).await;
+                response = self.v4_private_post_main_account_balance(&[paramsOmitted.clone()]).await.into_opt_dict();
             }  else {
-                response = self.v4_private_post_trade_account_balance(&[paramsOmitted]).await;
+                response = self.v4_private_post_trade_account_balance(&[paramsOmitted]).await.into_opt_dict();
             }
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -4279,7 +4279,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("ticker".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if self.is_fiat(code.as_str().unwrap_or_default()).as_bool() == Some(true) {
             let mut provider: Option<String> = self.safe_string_k(params.clone(), "provider", &[]).as_str().map(str::to_owned);
             if (provider.is_none()) {
@@ -4296,10 +4296,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires an uniqueId when the ticker is fiat".into()))));
             }
             let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.v4_private_post_main_account_fiat_deposit_url(&[__ws_arg_25]).await;
+            response = self.v4_private_post_main_account_fiat_deposit_url(&[__ws_arg_25]).await.into_opt_dict();
         }  else {
             let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-            response = self.v4_private_post_main_account_address(&[__ws_arg_26]).await;
+            response = self.v4_private_post_main_account_address(&[__ws_arg_26]).await.into_opt_dict();
         }
         //
         // fiat
@@ -4327,17 +4327,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     }
         //
-        let mut url: Option<String> = self.safe_string_k(response.clone(), "url", &[]).as_str().map(str::to_owned);
-        let mut account: crate::value::Dict = self.safe_dict_k(response.clone(), "account", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&response, "url", &[]).as_str().map(str::to_owned);
+        let mut account: crate::value::Dict = self.safe_dict_k(&response, "account", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&account, "address", &[url.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(&account, "memo", &[]).as_str().map(str::to_owned);
         self.check_address(&[Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));

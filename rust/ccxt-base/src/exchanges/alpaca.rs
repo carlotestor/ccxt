@@ -1982,14 +1982,14 @@ impl Alpaca {
         });
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
-            let mut newType: Value = Value::Null;
+            let mut newType: Option<String> = None;
             if type_var.as_str().unwrap_or("").contains("limit") {
-                newType = Value::Str("stop_limit".into());
+                newType = Some("stop_limit".to_string());
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support stop orders for ".into())).into()), type_var).into()), Value::Str(" orders, only stop_limit orders are supported".into()))));
             }
             request.insert("stop_price".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
-            request.insert("type".into(), newType);
+            request.insert("type".into(), newType.map(Value::from).unwrap_or(Value::Null));
         }
         if type_var.as_str().unwrap_or("").contains("limit") {
             request.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price));
@@ -2950,7 +2950,7 @@ impl Alpaca {
         let mut amount: Option<f64> = None;
         let mut code: Value = Value::Null;
         let mut status: Value = Value::Null;
-        let mut comment: Value = Value::Null;
+        let mut comment: Option<String> = None;
         let mut internal: Option<bool> = None;
         let mut fee: Option<crate::value::Dict> = None;
         if (activityType.is_some()) {
@@ -2973,7 +2973,7 @@ impl Alpaca {
                 code = self.safe_currency_code(Value::Null, currency.clone()).map(Value::from).unwrap_or(Value::Null);
             }
             status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-            comment = activityType.clone().map(Value::from).unwrap_or(Value::Null);
+            comment = activityType.clone();
             internal = Some(activityType.as_deref() != Some("TRANS"));
         }  else {
             txid = self.safe_string_k(transaction.clone(), "tx_hash", &[]).as_str().map(str::to_owned);
@@ -3017,7 +3017,7 @@ impl Alpaca {
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);
         m.insert("updated".to_string(), Value::Null);
-        m.insert("comment".to_string(), comment);
+        m.insert("comment".to_string(), comment.map(Value::from).unwrap_or(Value::Null));
         m.insert("internal".to_string(), internal.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m

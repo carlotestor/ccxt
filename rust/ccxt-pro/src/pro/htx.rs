@@ -1414,7 +1414,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut type_var: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: Option<String> = None;
-        let mut channel: Value = Value::Null;
+        let mut channel: Option<String> = None;
         let mut trades: Value = Value::Null;
         let mut subType: Option<String> = None;
         if (symbol != Value::Null) {
@@ -1442,10 +1442,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             mode = self.safe_string_k(paramsRequest.clone(), "mode", &[Value::from(mode.as_deref())]).as_str().map(str::to_owned);
             paramsRequest = self.omit(paramsRequest.clone(), Value::Str("mode".into()), &[]);
             messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade.clearing".into()), Value::Str("#".into())).into()), self.safe_string_k(&market, "lowercaseId", &[Value::Str("*".into())])).into()), Value::Str("#".into())).into()), mode.map(Value::from).unwrap_or(Value::Null)));
-            channel = messageHash.clone().map(Value::from).unwrap_or(Value::Null);
+            channel = messageHash.clone();
         }  else if matches!(&isV5Linear, Value::Bool(true)) {
             let mut channelAndMessageHashAndParams: crate::value::List = self.get_v5_linear_channel_and_message_hash(Value::Str("trade".into()), &[crate::Value::from(market.as_ref()), paramsRequest.clone()]).into_list();
-            channel = self.safe_string(&channelAndMessageHashAndParams, Value::Int(0), &[]);
+            channel = self.safe_string(&channelAndMessageHashAndParams, Value::Int(0), &[]).as_str().map(str::to_owned);
             messageHash = self.safe_string(&channelAndMessageHashAndParams, Value::Int(1), &[]).as_str().map(str::to_owned);
             paramsRequest = self.safe_dict(&channelAndMessageHashAndParams, Value::Int(2), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1453,7 +1453,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             })]);
         }  else {
             let mut channelAndMessageHash: crate::value::List = self.get_order_channel_and_message_hash(type_var.clone().map(Value::from).unwrap_or(Value::Null), subType.clone().map(Value::from).unwrap_or(Value::Null), market.as_ref(), &[paramsRequest.clone()]).into_list();
-            channel = self.safe_string(&channelAndMessageHash, Value::Int(0), &[]);
+            channel = self.safe_string(&channelAndMessageHash, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut orderMessageHash: Option<String> = self.safe_string(&channelAndMessageHash, Value::Int(1), &[]).as_str().map(str::to_owned);
             // we will take advantage of the order messageHash because already handles stuff
             // like symbol/margin/subtype/type variations
@@ -1466,7 +1466,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("isV5".to_string(), isV5Linear);
             m
         });
-        trades = self.subscribe_private(channel.as_str(), messageHash.as_deref(), type_var.as_deref(), subType.as_deref(), &[paramsRequest, Value::Map(subscriptionParams)]).await;
+        trades = self.subscribe_private(channel.as_deref(), messageHash.as_deref(), type_var.as_deref(), subType.as_deref(), &[paramsRequest, Value::Map(subscriptionParams)]).await;
         if (trades == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() trades is required".into()))));
         }

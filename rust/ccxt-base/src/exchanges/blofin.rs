@@ -1371,9 +1371,9 @@ impl Blofin {
         if swap {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut expiry: Value = Value::Null;
-        let mut strikePrice: Value = Value::Null;
-        let mut optionType: Value = Value::Null;
+        let mut expiry: Option<String> = None;
+        let mut strikePrice: Option<String> = None;
+        let mut optionType: Option<String> = None;
         let mut tickSize: Option<String> = self.safe_string_k(market.clone(), "tickSize", &[]).as_str().map(str::to_owned);
         let mut fees: crate::value::Dict = self.safe_dict2(self.fees.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("trading".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1411,10 +1411,10 @@ impl Blofin {
         m.insert("linear".to_string(), (if contract { (Value::Bool(contractType.as_deref() == Some("linear"))) } else { Value::Null }));
         m.insert("inverse".to_string(), (if contract { (Value::Bool(contractType.as_deref() == Some("inverse"))) } else { Value::Null }));
         m.insert("contractSize".to_string(), (if contract { self.safe_number_k(market.clone(), "contractValue", &[]) } else { Value::Null }));
-        m.insert("expiry".to_string(), expiry.clone());
-        m.insert("expiryDatetime".to_string(), expiry);
-        m.insert("strike".to_string(), strikePrice);
-        m.insert("optionType".to_string(), optionType);
+        m.insert("expiry".to_string(), Value::from(expiry.as_deref()));
+        m.insert("expiryDatetime".to_string(), Value::from(expiry.as_deref()));
+        m.insert("strike".to_string(), Value::from(strikePrice.as_deref()));
+        m.insert("optionType".to_string(), Value::from(optionType.as_deref()));
         m.insert("created".to_string(), self.safe_integer_k(market.clone(), "listTime", &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2346,10 +2346,10 @@ impl Blofin {
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("ec6dd3a7dd982d0b".into())]));
             m
         });
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        request.insert("marginMode".into(), marginMode);
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        request.insert("marginMode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
         let mut triggerPriceAny: Option<String> = self.safe_string_n(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).as_str().map(str::to_owned);
         let mut triggerPriceSlTp: Option<String> = self.safe_string2(query.clone(), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), &[]).as_str().map(str::to_owned);
         let mut timeInForce: Option<String> = self.safe_string_k(query.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
@@ -4487,7 +4487,7 @@ impl Blofin {
         let mut leverageString: Option<String> = self.safe_string_k(position.clone(), "leverage", &[]).as_str().map(str::to_owned);
         let mut initialMarginPercentage: Value = Value::Null;
         let mut collateralString: Value = Value::Null;
-        let mut marginString: Value = Value::Null;
+        let mut marginString: Option<String> = None;
         if (marginMode.as_deref() == Some("cross")) {
             initialMarginString = self.safe_string_k(position.clone(), "initialMargin", &[]);
             collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&initialMarginString, &unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null)) } else { initialMarginString.clone() });
@@ -4496,7 +4496,7 @@ impl Blofin {
             let mut isolatedMarginString: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("margin".into()), Value::Str("initialMargin".into()), &[]));
             if (isolatedMarginString.is_some()) {
                 initialMarginString = isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null);
-                marginString = isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null);
+                marginString = isolatedMarginString.clone();
                 collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null), &unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null)) } else { isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null) });
             }
         }
@@ -4552,7 +4552,7 @@ impl Blofin {
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::from(maintenanceMargin));
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentage);
-        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(marginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString, &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage, &[]));

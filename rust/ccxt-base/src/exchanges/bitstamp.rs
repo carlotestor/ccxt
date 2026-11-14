@@ -2577,7 +2577,7 @@ impl Bitstamp {
         let mut side: Option<String> = None;
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut costString: Value = self.safe_string_k(trade.clone(), "cost", &[]);
         let mut rawMarketId: Option<String> = None;
         // resolved in the key scan below, falling back to the passed market
@@ -2679,7 +2679,7 @@ impl Bitstamp {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "order_id", &[]));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -4488,22 +4488,22 @@ impl Bitstamp {
                 m.insert("currency".to_string(), self.safe_string_upper_k(&currency, "id", &[]));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (fromAccount.as_str() == Some("main")) {
             request.insert("subAccount".into(), toAccount.clone());
             let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_transfer_from_main(&[__ws_arg_27]).await;
+            response = self.private_post_transfer_from_main(&[__ws_arg_27]).await.into_opt_dict();
         }  else if (toAccount.as_str() == Some("main")) {
             request.insert("subAccount".into(), fromAccount.clone());
             let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_transfer_to_main(&[__ws_arg_28]).await;
+            response = self.private_post_transfer_to_main(&[__ws_arg_28]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports from or to main".into()))));
         }
         //
         //    { status: 'ok' }
         //
-        let mut transfer: Value = self.parse_transfer(response, Some(&currency));
+        let mut transfer: Value = self.parse_transfer(&response, Some(&currency));
         if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
         if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
         if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }

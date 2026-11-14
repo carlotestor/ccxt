@@ -1814,7 +1814,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut filled: Option<String> = self.safe_string2(order.clone(), Value::Str("totalExecutedQuantity".into()), Value::Str("executed".into()), &[]).as_str().map(str::to_owned);
         let mut rawStatus: Option<String> = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parent.parse_order_status(rawStatus.as_deref());
-        let mut trades: Value = Value::Null;
+        let mut trades: Option<String> = None;
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<String> = self.safe_string_k(order.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
@@ -1841,7 +1841,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
-        m.insert("trades".to_string(), trades);
+        m.insert("trades".to_string(), Value::from(trades.as_deref()));
     m
 }), None);
 

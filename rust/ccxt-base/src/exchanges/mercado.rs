@@ -817,7 +817,7 @@ impl Mercado {
         let mut timestamp: Option<i64> = self.safe_timestamp2(trade.clone(), Value::Str("date".into()), Value::Str("executed_timestamp".into()), &[]).as_i64();
         let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("tid".into()), Value::Str("operation_id".into()), &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string2(trade.clone(), Value::Str("amount".into()), Value::Str("quantity".into()), &[]).as_str().map(str::to_owned);
@@ -839,7 +839,7 @@ impl Mercado {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -888,18 +888,18 @@ impl Mercado {
             request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut to: Option<i64> = self.safe_integer_k(params.clone(), "to", &[]).as_i64();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (since != Value::Null) && (to.is_some()) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await;
+            response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await.into_opt_list();
         }  else if (since != Value::Null) {
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_coin_trades_from(&[__ws_arg_3]).await;
+            response = self.public_get_coin_trades_from(&[__ws_arg_3]).await.into_opt_list();
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_coin_trades(&[__ws_arg_4]).await;
+            response = self.public_get_coin_trades(&[__ws_arg_4]).await.into_opt_list();
         }
-        return self.parse_trades(response, Some(&market), &[since, limit]);
+        return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1007,16 +1007,16 @@ impl Mercado {
                 m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
             request.insert("limit_price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price.clone()));
             request.insert("quantity".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone()));
             if (side.as_str() == Some("buy")) {
                 let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.private_post_place_buy_order(&[__ws_arg_5]).await;
+                response = self.private_post_place_buy_order(&[__ws_arg_5]).await.into_opt_dict();
             }  else {
                 let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.private_post_place_sell_order(&[__ws_arg_6]).await;
+                response = self.private_post_place_sell_order(&[__ws_arg_6]).await.into_opt_dict();
             }
         }  else {
             if (side.as_str() == Some("buy")) {
@@ -1028,17 +1028,17 @@ impl Mercado {
                 let mut cost: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
                 request.insert("cost".into(), self.price_to_precision(Value::from((market).symbol.clone()), cost));
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.private_post_place_market_buy_order(&[__ws_arg_7]).await;
+                response = self.private_post_place_market_buy_order(&[__ws_arg_7]).await.into_opt_dict();
             }  else {
                 request.insert("quantity".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount));
                 let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-                response = self.private_post_place_market_sell_order(&[__ws_arg_8]).await;
+                response = self.private_post_place_market_sell_order(&[__ws_arg_8]).await.into_opt_dict();
             }
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), self.safe_string(self.safe_dict(self.safe_dict_k(response, "response_data", &[]), Value::Str("order".into()), &[]), Value::Str("order_id".into()), &[]));
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
+        m.insert("id".to_string(), self.safe_string(self.safe_dict_k(self.safe_dict_k(&response, "response_data", &[]), "order", &[]), Value::Str("order_id".into()), &[]));
     m
 }), Some(&market));
         Value::Null

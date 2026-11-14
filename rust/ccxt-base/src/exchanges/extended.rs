@@ -1122,7 +1122,7 @@ impl Extended {
         let mut minAmount: Option<f64> = self.safe_number_k(&tradingConfig, "minOrderSize", &[]).as_f64();
         let mut maxCost: Option<f64> = self.safe_number_k(&tradingConfig, "maxLimitOrderValue", &[]).as_f64();
         let mut created: Option<i64> = self.safe_integer_k(market.clone(), "createdAt", &[]).as_i64();
-        let mut settleId: Value = Value::Null;
+        let mut settleId: Option<String> = None;
         let mut settle: Option<String> = None;
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut isSpot: bool = false;
@@ -1137,7 +1137,7 @@ impl Extended {
             isSpot = true;
         }  else {
             type_var = Some("swap".to_string());
-            settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
+            settleId = quoteId.clone();
             settle = quote.clone();
             symbol.push_str(&format!("{}{}", Value::Str(":".into()), settle.as_deref().unwrap_or("null")));
             contractSize = Some(1_f64);
@@ -1153,7 +1153,7 @@ impl Extended {
         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), Value::from(baseId));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), settleId);
+        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(isSpot.clone()));
         m.insert("margin".to_string(), Value::Bool(false));
@@ -4422,7 +4422,7 @@ impl Extended {
             market = Some(crate::types::Market::clone(&symbolMarket));
             orderSymbol = Value::from((symbolMarket).symbol.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
@@ -4432,7 +4432,7 @@ impl Extended {
                 m
             });
             let __ws_arg_23 = self.extend(request.clone(), &[&paramsOmitted]);
-            response = self.v1_private_delete_user_order(&[__ws_arg_23]).await;
+            response = self.v1_private_delete_user_order(&[__ws_arg_23]).await.into_opt_dict();
         }  else {
             if (id == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an id argument".into()))));
@@ -4443,7 +4443,7 @@ impl Extended {
                 m
             });
             let __ws_arg_24 = self.extend(request, &[&paramsOmitted]);
-            response = self.v1_private_delete_user_order_id(&[__ws_arg_24]).await;
+            response = self.v1_private_delete_user_order_id(&[__ws_arg_24]).await.into_opt_dict();
         }
         //
         //     {
@@ -4453,7 +4453,7 @@ impl Extended {
         let mut orderId: Value = (if (clientOrderId.is_none()) { id } else { Value::Null });
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), orderId);
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);

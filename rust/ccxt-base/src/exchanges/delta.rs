@@ -3493,13 +3493,13 @@ impl Delta {
         //
         let mut id: Option<String> = self.safe_string_k(item.clone(), "uuid", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
-        let mut account: Value = Value::Null;
+        let mut account: Option<String> = None;
         let mut metaData: crate::value::Dict = self.safe_dict_k(item.clone(), "meta_data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut referenceId: Option<String> = self.safe_string_k(&metaData, "transaction_id", &[]).as_str().map(str::to_owned);
-        let mut referenceAccount: Value = Value::Null;
+        let mut referenceAccount: Option<String> = None;
         let mut type_var: Value = self.safe_string_k(item.clone(), "transaction_type", &[]);
         if (type_var.as_str() == Some("deposit")) || (type_var.as_str() == Some("commission_rebate")) || (type_var.as_str() == Some("referral_bonus")) || (type_var.as_str() == Some("pnl")) || (type_var.as_str() == Some("withdrawal_cancellation")) || (type_var.as_str() == Some("promo_credit")) {
             direction = Some("in".to_string());
@@ -3521,9 +3521,9 @@ impl Delta {
         m.insert("info".to_string(), item);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("account".to_string(), account);
+        m.insert("account".to_string(), Value::from(account.as_deref()));
         m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("referenceAccount".to_string(), referenceAccount);
+        m.insert("referenceAccount".to_string(), Value::from(referenceAccount.as_deref()));
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));

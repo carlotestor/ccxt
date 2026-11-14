@@ -657,18 +657,18 @@ impl Btcmarkets {
         if (code != Value::Null) {
             currency = Some(self.currency(code));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (method.as_str() == Some("privateGetTransfers")) {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_transfers(&[__ws_arg_0]).await;
+            response = self.private_get_transfers(&[__ws_arg_0]).await.into_opt_list();
         }  else if (method.as_str() == Some("privateGetDeposits")) {
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_deposits(&[__ws_arg_1]).await;
+            response = self.private_get_deposits(&[__ws_arg_1]).await.into_opt_list();
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_withdrawals(&[__ws_arg_2]).await;
+            response = self.private_get_withdrawals(&[__ws_arg_2]).await.into_opt_list();
         }
-        return self.parse_transactions(response, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
 
     Value::Null
 }
@@ -941,9 +941,9 @@ impl Btcmarkets {
         let mut minAmount: Option<f64> = self.safe_number_k(market.clone(), "minOrderAmount", &[]).as_f64();
         let mut maxAmount: Option<f64> = self.safe_number_k(market.clone(), "maxOrderAmount", &[]).as_f64();
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut minPrice: Value = Value::Null;
+        let mut minPrice: Option<f64> = None;
         if (quote.as_deref() == Some("AUD")) {
-            minPrice = Value::from(pricePrecision);
+            minPrice = pricePrecision.clone();
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -994,7 +994,7 @@ impl Btcmarkets {
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minPrice);
+        m.insert("min".to_string(), Value::from(minPrice));
         m.insert("max".to_string(), Value::Null);
     m
 }));
