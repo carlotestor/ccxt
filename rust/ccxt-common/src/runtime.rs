@@ -16,6 +16,9 @@ use std::sync::Arc;
 
 // ── numeric / arithmetic ─────────────────────────────────────────────────────
 
+/// `as_f64` for the typed `in_array` needles (same numeric reading as `is_equal`).
+pub(crate) fn value_as_f64(v: &Value) -> Option<f64> { as_f64(v) }
+
 fn as_f64(v: &Value) -> Option<f64> {
     match v {
         Value::Int(n)   => Some(*n as f64),
