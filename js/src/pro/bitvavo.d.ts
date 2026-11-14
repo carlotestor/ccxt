@@ -5,7 +5,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitvavo extends bitvavoRest {
     describe(): Dict;
     watchPublic(name: string, symbol: string, params?: Dict): Promise<any>;
-    watchPublicMultiple(methodName: string, channelName: string, symbols: string[], params?: Dict): Promise<any>;
+    watchPublicMultiple(methodName: string, channelName: string, symbols: string[], params?: Dict): Promise<Ticker[]>;
     /**
      * @method
      * @name bitvavo#watchTicker

@@ -6,7 +6,7 @@ export default class lighter extends lighterRest {
     describe(): Dict;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
     subscribePublic(messageHash: string, params?: Dict): Promise<any>;
-    subscribePublicMultiple(messageHashes: string[], params?: Dict): Promise<any>;
+    subscribePublicMultiple(messageHashes: string[], params?: Dict): Promise<Ticker>;
     unsubscribe(messageHash: string, params?: Dict): Promise<any>;
     subscribePrivate(messageHash: string, params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;

@@ -73,7 +73,7 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    watchMultiHelper(methodName: string, channelName: string, isFuturesChannel: boolean, symbols?: Strings, params?: Dict): Promise<any>;
+    watchMultiHelper(methodName: string, channelName: string, isFuturesChannel: boolean, symbols?: Strings, params?: Dict): Promise<Ticker>;
     handleBidAsk(client: Client, message: Dict): void;
     parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
     /**

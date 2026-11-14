@@ -374,7 +374,7 @@ export default class mexc extends Exchange {
     parseOrderStatus(status: Str): Str;
     parseOrderTimeInForce(status: Str): Str;
     getTifFromRawOrderType(orderType?: Str): Str;
-    fetchAccountHelper(type: Str, params: Dict): Promise<Dict | undefined>;
+    fetchAccountHelper(type: Str, params: Dict): Promise<NullableDict>;
     /**
      * @method
      * @name mexc#fetchAccounts
