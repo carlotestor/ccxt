@@ -2595,7 +2595,7 @@ class polymarket extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($sVal, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey): string {
         return $this->sign_hash($this->hash_message($message), $privateKey);
     }
 
