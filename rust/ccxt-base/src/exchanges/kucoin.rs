@@ -13537,7 +13537,7 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         let mut parsed: crate::value::Dict = self.parse_leverage(&data, Some(&market)).into_dict();
-        return self.extend(parsed.clone(), &[Value::Map({
+        return self.extend(parsed, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
     m

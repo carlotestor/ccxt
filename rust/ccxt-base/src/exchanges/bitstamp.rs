@@ -4504,11 +4504,11 @@ impl Bitstamp {
         //
         //    { status: 'ok' }
         //
-        let mut transfer: Value = self.parse_transfer(&response, Some(&currency));
-        if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
-        if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
-        if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
-        return transfer;
+        let mut transfer: crate::value::Dict = self.parse_transfer(&response, Some(&currency)).into_dict();
+        std::sync::Arc::make_mut(&mut transfer).insert("amount".into(), amount);
+        std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);
+        std::sync::Arc::make_mut(&mut transfer).insert("toAccount".into(), toAccount);
+        return Value::Dict(transfer);
         Value::Null
         }).await?))
     }

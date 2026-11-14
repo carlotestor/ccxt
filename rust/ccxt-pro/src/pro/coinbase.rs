@@ -357,18 +357,18 @@ impl Coinbase {
             productIds = Value::from(vec![self.safe_string_k(&market, "id", &[])]);
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("product_ids".to_string(), productIds.clone());
                 m.insert("channel".to_string(), name.clone());
             m
-        });
+        }).into_dict();
         if isPrivate {
             let __ws_arg_0 = self.create_ws_auth(name, productIds);
-            subscribe = self.extend(subscribe, &[__ws_arg_0]);
+            subscribe = self.extend(subscribe, &[__ws_arg_0]).into_dict();
         }
-        return self.watch(url.as_deref(), &messageHash[..], subscribe, &messageHash[..], Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], &subscribe, &messageHash[..], Value::Null).await;
 
     Value::Null
 }

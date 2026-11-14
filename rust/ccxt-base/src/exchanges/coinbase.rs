@@ -6730,10 +6730,10 @@ if _try_result.is_err() {
         //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
         //     }
         //
-        let mut transfer: Value = self.parse_transfer(&response, Some(&currency));
-        if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
-        if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("ok".into())); }
-        return transfer;
+        let mut transfer: crate::value::Dict = self.parse_transfer(&response, Some(&currency)).into_dict();
+        std::sync::Arc::make_mut(&mut transfer).insert("amount".into(), amount);
+        std::sync::Arc::make_mut(&mut transfer).insert("status".into(), Value::Str("ok".into()));
+        return Value::Dict(transfer);
         Value::Null
         }).await?))
     }

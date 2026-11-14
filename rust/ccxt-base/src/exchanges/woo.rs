@@ -4703,18 +4703,18 @@ impl Woo {
         data.insert("timestamp".into(), self.safe_integer_k(&response, "timestamp", &[]));
         data.insert("token".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         data.insert("status".into(), Value::Str("ok".into()));
-        let mut transfer: Value = self.parse_transfer(Value::Map(data), Some(&currency));
+        let mut transfer: crate::value::Dict = self.parse_transfer(Value::Map(data), Some(&currency)).into_dict();
         let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fillResponseFromRequest {
-            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
-            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
-            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
+            std::sync::Arc::make_mut(&mut transfer).insert("amount".into(), amount);
+            std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);
+            std::sync::Arc::make_mut(&mut transfer).insert("toAccount".into(), toAccount);
         }
-        return transfer;
+        return Value::Dict(transfer);
         Value::Null
         }).await?))
     }

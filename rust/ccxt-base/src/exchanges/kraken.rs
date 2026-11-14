@@ -5023,7 +5023,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //       }
         //   }
         //
-        let mut transfer: Value = self.parse_transfer(&response, Some(&currency));
+        let mut transfer: crate::value::Dict = self.parse_transfer(&response, Some(&currency)).into_dict();
         return self.extend(transfer, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);
