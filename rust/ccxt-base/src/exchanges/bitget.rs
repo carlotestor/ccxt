@@ -6114,7 +6114,7 @@ if _try_result.is_err() {
         let mut pricePrecision: Value = Value::Null;
         let mut amountPrecision: Value = Value::Null;
         let mut linear: Option<bool> = None;
-        let mut inverse: Value = Value::Null;
+        let mut inverse: Option<bool> = None;
         let mut expiry: Option<i64> = None;
         let mut expiryDatetime: Option<String> = None;
         let mut symbolType: Option<String> = self.safe_string_k(market.clone(), "symbolType", &[]).as_str().map(str::to_owned);
@@ -6162,8 +6162,8 @@ if _try_result.is_err() {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")).into()), "-").into()), expiryString);
             }
             contract = true;
-            inverse = (Value::Bool(base == settle));
-            linear = Some(!(inverse.as_bool() == Some(true)));
+            inverse = Some(base == settle);
+            linear = Some(!(inverse == Some(true)));
             let mut priceDecimals: Value = self.safe_integer_k(market.clone(), "pricePlace", &[]);
             let mut amountDecimals: Value = self.safe_integer_k(market.clone(), "volumePlace", &[]);
             let mut priceStep: Option<String> = self.safe_string_k_opt(market.clone(), "priceEndStep", &[]);
@@ -6216,7 +6216,7 @@ if _try_result.is_err() {
         m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
-        m.insert("inverse".to_string(), inverse);
+        m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
         m.insert("contractSize".to_string(), Value::from(contractSize));
@@ -6443,7 +6443,7 @@ if _try_result.is_err() {
         let mut pricePrecision: Option<f64> = None;
         let mut amountPrecision: Option<f64> = None;
         let mut linear: Option<bool> = None;
-        let mut inverse: Value = Value::Null;
+        let mut inverse: Option<bool> = None;
         let mut expiry: Option<i64> = None;
         let mut expiryDatetime: Option<String> = None;
         let mut symbolType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -6489,8 +6489,8 @@ if _try_result.is_err() {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")).into()), "-").into()), expiryString);
             }
             contract = true;
-            inverse = (Value::Bool(base == settle));
-            linear = Some(!(inverse.as_bool() == Some(true)));
+            inverse = Some(base == settle);
+            linear = Some(!(inverse == Some(true)));
             marginModes = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cross".to_string(), Value::Bool(true));
@@ -6531,7 +6531,7 @@ if _try_result.is_err() {
         m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
-        m.insert("inverse".to_string(), inverse);
+        m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
         m.insert("contractSize".to_string(), Value::from(contractSize));
@@ -10324,10 +10324,10 @@ if _try_result.is_err() {
         let mut hedged: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsMarketType.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         // backward compatibility for `oneWayMode`
-        let mut oneWayMode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsMarketType.clone(), Value::Str("oneWayMode".into()), &[]).as_array().cloned().unwrap_or_default(); oneWayMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (oneWayMode != Value::Null) {
-            hedged = Some(!is_true(&oneWayMode));
+        let mut oneWayMode: Option<bool> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsMarketType.clone(), Value::Str("oneWayMode".into()), &[]).as_array().cloned().unwrap_or_default(); oneWayMode = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (oneWayMode.is_some()) {
+            hedged = Some(!(oneWayMode == Some(true)));
         }
         let mut isMarketOrder: bool = type_var.as_str().map(str::to_owned).as_deref() == Some("market");
         let mut triggerPrice: Option<f64> = self.safe_number2(paramsMarketType.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
@@ -14141,18 +14141,18 @@ if _try_result.is_err() {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut productType: Value = Value::Null;
+        let mut productType: Option<String> = None;
         let mut uta: Option<bool> = None;
         let mut response: Option<crate::value::Dict> = None;
         let mut result: Value = Value::Null;
         let mut paramsProductType: crate::value::Dict = Default::default();
-        { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[params]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[params]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("fetchFundingRateHistory"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (uta == Some(true)) {
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());
             }
-            request.insert("category".into(), productType.clone());
+            request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_111 = self.extend(Value::Map(request.clone()), &[&paramsProductType]);
             response = self.public_uta_get_v3_market_history_fund_rate(&[__ws_arg_111]).await.into_opt_dict();
             //
@@ -14186,7 +14186,7 @@ if _try_result.is_err() {
             if (limit != Value::Null) {
                 request.insert("pageSize".into(), limit.clone());
             }
-            request.insert("productType".into(), productType);
+            request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_112 = self.extend(Value::Map(request), &[&paramsProductType]);
             response = self.public_mix_get_v2_mix_market_history_fund_rate(&[__ws_arg_112]).await.into_opt_dict();
             //

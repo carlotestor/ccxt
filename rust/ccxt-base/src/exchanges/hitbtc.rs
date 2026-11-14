@@ -1456,15 +1456,15 @@ impl Hitbtc {
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             let mut type_var: String = "spot".to_string();
             let mut contractSize: Option<f64> = None;
-            let mut linear: Value = Value::Null;
+            let mut linear: Option<bool> = None;
             let mut inverse: Option<bool> = None;
             if matches!(&contract, Value::Bool(true)) {
                 contractSize = Some(1_f64);
                 settleId = feeCurrencyId.take();
                 let mut settleCode: Option<String> = self.safe_currency_code(Value::from(settleId.as_deref()), None);
                 settle = settleCode.clone().map(Value::from).unwrap_or(Value::Null);
-                linear = (Value::Bool(quote == settleCode));
-                inverse = Some(!(linear.as_bool() == Some(true)));
+                linear = Some(quote == settleCode);
+                inverse = Some(!(linear == Some(true)));
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle);
                 if matches!(&future, Value::Bool(true)) {
                     symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle).into()), "-").into()), self.safe_string_k(&market, "expiry", &[Value::Str("".into())]));
@@ -1495,7 +1495,7 @@ impl Hitbtc {
                     m.insert("option".to_string(), Value::Bool(option));
                     m.insert("active".to_string(), Value::Bool(true));
                     m.insert("contract".to_string(), contract);
-                    m.insert("linear".to_string(), linear);
+                    m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
                     m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("taker".to_string(), self.safe_number_k(&market, "take_rate", &[]));
                     m.insert("maker".to_string(), self.safe_number_k(&market, "make_rate", &[]));

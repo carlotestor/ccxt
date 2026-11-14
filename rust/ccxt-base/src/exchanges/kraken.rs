@@ -3178,9 +3178,9 @@ impl Kraken {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price2".into(), Value::from(self.price_to_precision(symbol.clone(), price))); }
             }
         }  else if isTrailingAmountOrder || isTrailingPercentOrder {
-            let mut trailingPercentString: Value = Value::Null;
+            let mut trailingPercentString: Option<String> = None;
             if (trailingPercent.is_some()) {
-                trailingPercentString = (if (trailingPercent.as_deref().unwrap_or_default().ends_with("%")) { (Value::Str(format!("{}{}", "+", trailingPercent.as_deref().unwrap_or("null")).into())) } else { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", "+", trailingPercent.as_deref().unwrap_or("null")).into()), "%").into())) });
+                trailingPercentString = (if (trailingPercent.as_deref().unwrap_or_default().ends_with("%")) { Some(format!("{}{}", "+", trailingPercent.as_deref().unwrap_or("null"))) } else { Some(format!("{}{}", Value::Str(format!("{}{}", "+", trailingPercent.as_deref().unwrap_or("null")).into()), "%")) });
             }
             let mut trailingAmountString: Option<String> = (if (trailingAmount.is_some()) { Some(format!("{}{}", "+", trailingAmount.as_deref().unwrap_or("null"))) } else { None }); // must use + for this
             let mut offset: String = self.safe_string_k(&paramsOmitted2, "offset", &[Value::Str("-".into())]).as_str().unwrap_or("-").to_string(); // can use + or - for this
@@ -3191,7 +3191,7 @@ impl Kraken {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordertype".into(), Value::Str("trailing-stop-limit".into())); }
                 if (trailingLimitPercent.is_some()) {
                     let mut trailingLimitPercentString: String = (if (trailingLimitPercent.as_deref().unwrap_or_default().ends_with("%")) { format!("{}{}", offset, trailingLimitPercent.as_deref().unwrap_or("null")) } else { format!("{}{}", Value::Str(format!("{}{}", offset, trailingLimitPercent.as_deref().unwrap_or("null")).into()), "%") });
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), trailingPercentString.clone()); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), Value::from(trailingPercentString.as_deref())); }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price2".into(), Value::from(trailingLimitPercentString)); }
                 }  else if (trailingLimitAmount.is_some()) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), trailingAmountString.clone().map(Value::from).unwrap_or(Value::Null)); }
@@ -3200,7 +3200,7 @@ impl Kraken {
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordertype".into(), Value::Str("trailing-stop".into())); }
                 if (trailingPercent.is_some()) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), trailingPercentString); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), trailingPercentString.map(Value::from).unwrap_or(Value::Null)); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), trailingAmountString.map(Value::from).unwrap_or(Value::Null)); }
                 }

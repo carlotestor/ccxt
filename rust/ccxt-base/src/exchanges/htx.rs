@@ -4045,7 +4045,7 @@ impl Htx {
             let mut spot: bool = !(matches!(&contract, Value::Bool(true)));
             let mut swap: Value = Value::Bool(false);
             let mut future: Value = Value::Bool(false);
-            let mut linear: Value = Value::Null;
+            let mut linear: Option<bool> = None;
             let mut inverse: Option<bool> = None;
             // check if parsed market is contract
             if matches!(&contract, Value::Bool(true)) {
@@ -4059,8 +4059,8 @@ impl Htx {
                 let mut business_type: Option<String> = self.safe_string_k(&market, "business_type", &[]).as_str().map(str::to_owned);
                 future = Value::Bool(delivery_date.is_some());
                 swap = Value::Bool(!(future.as_bool() == Some(true)));
-                linear = Value::Bool(business_type.is_some());
-                inverse = Some(!(linear.as_bool() == Some(true)));
+                linear = Some(business_type.is_some());
+                inverse = Some(!(linear == Some(true)));
                 if swap.as_bool() == Some(true) {
                     marketType = Some("swap".to_string());
                     let mut parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
@@ -4114,7 +4114,7 @@ impl Htx {
             if matches!(&contract, Value::Bool(true)) {
                 if (inverse == Some(true)) {
                     symbol.push_str(&format!("{}{}", ":", base.as_deref().unwrap_or("null")));
-                }  else if (linear.as_bool() == Some(true)) {
+                }  else if (linear == Some(true)) {
                     symbol.push_str(&format!("{}{}", ":", quote.as_deref().unwrap_or("null")));
                 }
                 if future.as_bool() == Some(true) {
@@ -4127,7 +4127,7 @@ impl Htx {
             let mut maxAmount: Option<f64> = self.safe_number_k(&market, "max-order-amt", &[]).as_f64();
             let mut minAmount: Option<f64> = self.safe_number_k(&market, "min-order-amt", &[]).as_f64();
             if matches!(&contract, Value::Bool(true)) {
-                if (linear.as_bool() == Some(true)) {
+                if (linear == Some(true)) {
                     minAmount = contractSize;
                 }  else if (inverse == Some(true)) {
                     minCost = contractSize;
@@ -4201,7 +4201,7 @@ impl Htx {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contract".to_string(), contract);
-                    m.insert("linear".to_string(), linear);
+                    m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
                     m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("taker".to_string(), Value::from(taker));
                     m.insert("maker".to_string(), Value::from(maker));

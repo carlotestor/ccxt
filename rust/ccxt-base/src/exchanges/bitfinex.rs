@@ -3948,7 +3948,7 @@ impl Bitfinex {
         let mut transactionLength: i64 = transaction.len() as i64;
         let mut timestamp: Option<i64> = None;
         let mut updated: Option<i64> = None;
-        let mut code: Value = Value::Null;
+        let mut code: Option<String> = None;
         let mut amount: Value = Value::Null;
         let mut id: Value = Value::Null;
         let mut status: Value = Value::Null;
@@ -3963,7 +3963,7 @@ impl Bitfinex {
             let mut data: crate::value::List = self.safe_list(transaction.clone(), Value::Int(4), &[Value::from(vec![])]).into_list();
             timestamp = self.safe_integer(transaction.clone(), Value::Int(0), &[]).as_i64();
             if (currency.is_some()) {
-                code = self.safe_string_k(&currency, "code", &[]);
+                code = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
             }
             feeCost = self.safe_string(&data, Value::Int(8), &[]).as_str().map(str::to_owned);
             if (feeCost.is_some()) {
@@ -3980,13 +3980,13 @@ impl Bitfinex {
             tag = self.safe_string(&data, Value::Int(3), &[]).as_str().map(str::to_owned);
             type_var = Some("withdrawal".to_string());
             let mut networkId: Option<String> = self.safe_string_opt(&data, Value::Int(2), &[]);
-            network = self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), code.clone()]); // withdraw returns in lowercase
+            network = self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), Value::from(code.as_deref())]); // withdraw returns in lowercase
         }  else if (transactionLength == 22) {
             id = self.safe_string(transaction.clone(), Value::Int(0), &[]);
             let mut currencyId: Option<String> = self.safe_string(transaction.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-            code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null);
+            code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
             let mut networkId: Option<String> = self.safe_string_opt(transaction.clone(), Value::Int(2), &[]);
-            network = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
+            network = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]);
             timestamp = self.safe_integer(transaction.clone(), Value::Int(5), &[]).as_i64();
             updated = self.safe_integer(transaction.clone(), Value::Int(6), &[]).as_i64();
             status = self.parse_transaction_status((self.safe_string(transaction.clone(), Value::Int(9), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
@@ -4013,7 +4013,7 @@ impl Bitfinex {
         m.insert("id".to_string(), id);
         m.insert("txid".to_string(), txid.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), code.clone());
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("status".to_string(), status);
@@ -4030,7 +4030,7 @@ impl Bitfinex {
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code);
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("rate".to_string(), Value::Null);
     m

@@ -7688,16 +7688,16 @@ impl Bingx {
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) && (positionSide.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMargin() requires a positionSide parameter for Coin-M markets")));
         }
-        let mut amountString: Value = Value::Null;
+        let mut amountString: Option<String> = None;
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
-            amountString = Value::from(self.currency_to_precision(Value::from((market).settle.as_deref()), amount.clone(), &[]));
+            amountString = self.currency_to_precision(Value::from((market).settle.as_deref()), amount.clone(), &[]);
         }  else {
-            amountString = Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount));
+            amountString = self.amount_to_precision(Value::from((market).symbol.clone()), amount);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), amountString.clone());
+                m.insert("amount".to_string(), Value::from(amountString.as_deref()));
                 m.insert("type".to_string(), Value::from(type_var));
             m
         });
@@ -7725,7 +7725,7 @@ impl Bingx {
 })]);
             responseData = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("amount".to_string(), amountString);
+                    m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), Value::from(type_var));
                 m
             }), &[__ws_arg_61]);

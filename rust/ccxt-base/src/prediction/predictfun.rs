@@ -1528,9 +1528,9 @@ impl Predictfun {
         let mut topicSlug: Option<String> = self.safe_string_k(rawMarket.clone(), "categorySlug", &[]).as_str().map(str::to_owned);
         // the same handle parseEvent () derives for the enclosing event - stamping it here is what
         // lets every outcome-addressed structure (order, ticker, trade, position) report an event
-        let mut eventHandle: Value = Value::Null;
+        let mut eventHandle: Option<String> = None;
         if (topicSlug.is_some()) {
-            eventHandle = self.shorten_slug(topicSlug.clone().map(Value::from).unwrap_or(Value::Null));
+            eventHandle = self.shorten_slug(topicSlug.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut title: Option<String> = self.safe_string_k(rawMarket.clone(), "title", &[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut topicMarkets: crate::value::List = rawTopic.get("markets").cloned().unwrap_or_default().into_list();
@@ -1589,7 +1589,7 @@ impl Predictfun {
                     m.insert("outcomeId".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("outcome".to_string(), Value::from(outcomeHandle));
                     m.insert("market".to_string(), marketSymbol.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("event".to_string(), eventHandle.clone());
+                    m.insert("event".to_string(), Value::from(eventHandle.as_deref()));
                     m.insert("label".to_string(), label.map(Value::from).unwrap_or(Value::Null));
                     m.insert("price".to_string(), Value::Null);
                     m.insert("active".to_string(), Value::Bool(active));
