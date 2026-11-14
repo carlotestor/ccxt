@@ -1916,7 +1916,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
             let mut tfKeys: crate::value::List = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
-            let mut supported: Value = Value::Str(tfKeys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into());
+            let mut supported: String = tfKeys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ");
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOHLCV() does not support the ").into()), timeframe).into()), " timeframe (supported: ").into()), supported).into()), ")")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

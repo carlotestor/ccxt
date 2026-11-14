@@ -1293,8 +1293,8 @@ impl Bitfinex {
             }
         }
         }
-        let mut payload: Value = Value::Str(stringArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":").into());
-        let mut localChecksum: Value = self.crc32(&[payload, Value::Bool(true)]);
+        let mut payload: String = stringArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":");
+        let mut localChecksum: Value = self.crc32(&[Value::from(payload), Value::Bool(true)]);
         let mut responseChecksum: Value = self.safe_integer(message, Value::Int(2), &[]);
         if (responseChecksum.as_f64() != localChecksum.as_f64()) {
             __ch.remove_subscription(messageHash.as_str());

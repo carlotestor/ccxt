@@ -1809,8 +1809,8 @@ impl Kraken {
                 }
                 }
             }
-            let mut payload: Value = Value::Str(payloadArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("").into());
-            let mut localChecksum: Value = self.crc32(&[payload, Value::Bool(false)]);
+            let mut payload: String = payloadArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("");
+            let mut localChecksum: Value = self.crc32(&[Value::from(payload), Value::Bool(false)]);
             if (localChecksum.as_f64() != c.as_f64()) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.clone().map(Value::from).unwrap_or(Value::Null)))));
                 __ch.remove_subscription(messageHash.as_deref());

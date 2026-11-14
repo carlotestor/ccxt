@@ -3677,9 +3677,9 @@ impl Polymarket {
                 m.insert("marginMode".to_string(), marginMode);
             m
         });
-        let mut leverageInt: Value = Value::from(self.parse_to_int(Value::from(leverage)));
+        let mut leverageInt: Option<i64> = self.parse_to_int(Value::from(leverage));
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        return crate::types::IntoRaw::into_raw(self.set_leverage(leverageInt.as_i64().unwrap_or_default(), symbol.as_str(), __ws_arg_15).await);
+        return crate::types::IntoRaw::into_raw(self.set_leverage((Value::from(leverageInt)).as_i64().unwrap_or_default(), symbol.as_str(), __ws_arg_15).await);
         Value::Null
         }).await?))
     }

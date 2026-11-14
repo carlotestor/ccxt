@@ -2365,15 +2365,15 @@ impl Hyperliquid {
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut paramsValue: Value = Value::from(&paramsAddress);
+        let mut paramsValue: crate::value::Dict = Value::from(&paramsAddress).into_dict();
         if (clientOrderId.is_some()) {
-            paramsValue = self.omit(&paramsAddress, Value::Str("clientOrderId".into()), &[]);
+            paramsValue = self.omit(&paramsAddress, Value::Str("clientOrderId".into()), &[]).into_dict();
             request.insert("oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
             let mut isCloid: bool = ((id.len() as i64) as f64) >= ((34i64) as f64);
             request.insert("oid".into(), (if isCloid { id.clone() } else { self.parse_to_numeric(id.clone()) }));
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsValue]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut response: Value = self.public_post_info(&[__ws_arg_10]).await;
         let mut orderStatus: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -716,8 +716,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
         }
         }
-        let mut joined: Value = Value::Str(parts.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("_").into());
-        return (if let Some(__s) = joined.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut joined: String = parts.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("_");
+        return Value::from(joined.to_uppercase());
 
     Value::Null
 }

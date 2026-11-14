@@ -1607,8 +1607,8 @@ impl Bitget {
                     }
                 }
                 }
-                let mut payload: Value = Value::Str(payloadArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":").into());
-                let mut calculatedChecksum: Value = self.crc32(&[payload, Value::Bool(true)]);
+                let mut payload: String = payloadArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":");
+                let mut calculatedChecksum: Value = self.crc32(&[Value::from(payload), Value::Bool(true)]);
                 if (calculatedChecksum.as_f64() != responseChecksum.as_f64()) {
                     self.spawn(&[Value::Str("handle_check_sum_error".into()).clone(), client.clone(), symbol.clone(), Value::from(messageHash.clone())]);
                     return;
