@@ -214,10 +214,9 @@ mod side_tests {
         snap.insert("bids".to_string(), Value::Arr(std::sync::Arc::new(vec![level(10.0, 1.0), level(9.0, 2.0)])));
         snap.insert("asks".to_string(), Value::Arr(std::sync::Arc::new(vec![level(11.0, 1.0)])));
         let book = new_book(BOOK_PLAIN, Value::Map(snap), Value::Null);
-        let boxed: Value = book.book_field("bids");
         let mut side = Side::of(book.book_field("bids"));
-        for v in [Side::of(boxed.clone()), Side::of(Value::Null), Side::of(Value::Int(3)), Side::of(Value::Str("x".into()))] {
-            let raw = Value::from(v.clone());
+        let sides = || [book.book_field("bids"), Value::Null, Value::Int(3), Value::Str("x".into())];
+        for (v, raw) in sides().into_iter().map(Side::of).zip(sides()) {
             assert_eq!(v.length(), crate::runtime::get_array_length(&raw));
             for i in [Value::Int(0), Value::Int(1), Value::Int(2), Value::Int(-1), Value::Str("0".into()), Value::Null] {
                 assert_eq!(v.level(&i), crate::value::get_value(&raw, &i), "level {:?}", i);
