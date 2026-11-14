@@ -1962,38 +1962,38 @@ impl Gemini {
 })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&volume, "timestamp", &[]).as_i64();
         let mut symbol: Value = Value::Null;
-        let mut marketId: Value = self.safe_string_lower_k(ticker.clone(), "pair", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone(), market, &[]);
-        let mut baseId: Value = Value::Null;
-        let mut quoteId: Value = Value::Null;
+        let mut marketId: Option<String> = self.safe_string_lower_k(ticker.clone(), "pair", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), market, &[]);
+        let mut baseId: Option<String> = None;
+        let mut quoteId: Option<String> = None;
         let mut base: Option<String> = None;
         let mut quote: Option<String> = None;
-        if (marketId != Value::Null) && (false) {
-            let mut idLength: Value = (match (&(Value::Int(marketId.len() as i64)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            if (idLength.as_f64() == Some(7.0)) {
-                baseId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                quoteId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(7); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        if (marketId.is_some()) && (false) {
+            let mut idLength: i64 = (((marketId.as_deref().unwrap_or_default().chars().count() as i64)) - 0);
+            if (idLength == 7) {
+                baseId = (if let Some(__s) = marketId.as_deref() { Some(__s.chars().skip(0).take(4).collect::<String>()) } else { None });
+                quoteId = (if let Some(__s) = marketId.as_deref() { Some(__s.chars().skip(4).take(3).collect::<String>()) } else { None });
             }  else {
-                baseId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                quoteId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+                baseId = (if let Some(__s) = marketId.as_deref() { Some(__s.chars().skip(0).take(3).collect::<String>()) } else { None });
+                quoteId = (if let Some(__s) = marketId.as_deref() { Some(__s.chars().skip(3).take(3).collect::<String>()) } else { None });
             }
-            base = self.safe_currency_code(baseId.clone(), None);
-            quote = self.safe_currency_code(quoteId.clone(), None);
+            base = self.safe_currency_code(Value::from(baseId.as_deref()), None);
+            quote = self.safe_currency_code(Value::from(quoteId.as_deref()), None);
             if (base.is_some()) && (quote.is_some()) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into());
             }
         }
         if (symbol == Value::Null) && (true) {
             symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
-            baseId = self.safe_string_upper_k(&marketResolved, "baseId", &[]);
-            quoteId = self.safe_string_upper_k(&marketResolved, "quoteId", &[]);
+            baseId = self.safe_string_upper_k(&marketResolved, "baseId", &[]).as_str().map(str::to_owned);
+            quoteId = self.safe_string_upper_k(&marketResolved, "quoteId", &[]).as_str().map(str::to_owned);
         }
         let mut price: Option<String> = self.safe_string_k(ticker.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[price.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "percentChange24h", &[]).as_str().map(str::to_owned);
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "open", &[]).as_str().map(str::to_owned);
-        let mut baseVolume: Option<String> = self.safe_string(&volume, baseId, &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Option<String> = self.safe_string(&volume, quoteId, &[]).as_str().map(str::to_owned);
+        let mut baseVolume: Option<String> = self.safe_string(&volume, baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut quoteVolume: Option<String> = self.safe_string(&volume, quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);

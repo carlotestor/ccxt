@@ -738,12 +738,12 @@ impl Hyperliquid {
         }
         if !(matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut symbolParts: crate::value::List = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut baseName: Option<String> = self.safe_string_opt(&symbolParts, Value::Int(0), &[]);
+            let mut baseName: Option<String> = self.safe_string(&symbolParts, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut spotCurrencyMapping: crate::value::Dict = self.safe_dict_k(self.options.clone(), "spotCurrencyMapping", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            if (matches!(&baseName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if spotCurrencyMapping.contains_key(__k.as_ref()))) {
+            if (matches!(baseName.as_deref(), Some(__k) if spotCurrencyMapping.contains_key(__k))) {
                 let mut unifiedBaseName: Option<String> = self.safe_string(&spotCurrencyMapping, baseName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut quote: Option<String> = self.safe_string(&symbolParts, Value::Int(1), &[]).as_str().map(str::to_owned);
                 let mut newSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
@@ -1131,7 +1131,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut collateralToken: Value = self.safe_string_k(&meta, "collateralToken", &[]);
+            let mut collateralToken: Option<String> = self.safe_string_k(&meta, "collateralToken", &[]).as_str().map(str::to_owned);
             let mut universe: crate::value::List = self.safe_list_k(&meta, "universe", &[Value::from(vec![])]).into_list();
             let mut assetCtxs: crate::value::List = self.safe_list(&response, Value::Int(1), &[Value::from(vec![])]).into_list();
             let mut result: Vec<Value> = Vec::new();
@@ -1149,7 +1149,7 @@ impl Hyperliquid {
 })]);
                 let mut data: crate::value::Dict = self.extend(__ws_arg_4, &[__ws_arg_5]).into_dict();
                 std::sync::Arc::make_mut(&mut data).insert("baseId".into(), self.sum(&[Value::Int(j), Value::from(offset)]));
-                std::sync::Arc::make_mut(&mut data).insert("collateralToken".into(), collateralToken.clone());
+                std::sync::Arc::make_mut(&mut data).insert("collateralToken".into(), collateralToken.clone().map(Value::from).unwrap_or(Value::Null));
                 std::sync::Arc::make_mut(&mut data).insert("hip3".into(), Value::Bool(true));
                 std::sync::Arc::make_mut(&mut data).insert("dex".into(), dexName.clone());
                 let mut cachedCurrencies: crate::value::Dict = self.safe_dict_k(self.options.clone(), "cachedCurrenciesById", &[Value::Map({
@@ -1157,9 +1157,9 @@ impl Hyperliquid {
     m
 })]).into_dict();
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
-                if (matches!(&collateralToken, Value::Str(__k) if cachedCurrencies.contains_key(__k.as_ref()))) {
+                if (matches!(collateralToken.as_deref(), Some(__k) if cachedCurrencies.contains_key(__k))) {
                     let mut name: Option<String> = self.safe_string_k(&data, "name", &[]).as_str().map(str::to_owned);
-                    let mut collateralTokenCode: Option<String> = self.safe_string_opt(&cachedCurrencies, collateralToken.clone(), &[]);
+                    let mut collateralTokenCode: Option<String> = self.safe_string_opt(&cachedCurrencies, collateralToken.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     std::sync::Arc::make_mut(&mut data).insert("collateralTokenName".into(), collateralTokenCode.clone().map(Value::from).unwrap_or(Value::Null));
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     let mut safeCode: Option<String> = self.safe_currency_code(name.clone().map(Value::from).unwrap_or(Value::Null), None);

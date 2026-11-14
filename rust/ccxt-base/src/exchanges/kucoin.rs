@@ -5930,17 +5930,17 @@ impl Kucoin {
 
     pub fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut depositAddress: Value = depositAddress.into();
-        let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
+        let mut address: Option<String> = self.safe_string_k(depositAddress.clone(), "address", &[]).as_str().map(str::to_owned);
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        if (address != Value::Null) {
-            address = address.as_str().map(|__s| Value::Str(__s.replace("bitcoincash:", "").into())).unwrap_or_else(|| address.clone());
+        if (address.is_some()) {
+            address = (if let Some(__s) = address.as_deref() { Some(__s.replace("bitcoincash:", "")) } else { None });
         }
         let mut code: Option<String> = None;
         if (currency.is_some()) {
             code = self.safe_currency_code(crate::value::KeyRead::key_read(&currency, "id"), None);
             if (code.as_deref() != Some("NIM")) {
                 // contains spaces
-                self.check_address(&[address.clone()]);
+                self.check_address(&[Value::from(address.as_deref())]);
             }
         }
         let mut chainId: Option<String> = self.safe_string_k(depositAddress.clone(), "chainId", &[]).as_str().map(str::to_owned);
@@ -5949,7 +5949,7 @@ impl Kucoin {
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[chainId.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)])));
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(depositAddress, "memo", &[]));
     m
 });

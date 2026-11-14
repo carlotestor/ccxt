@@ -3604,8 +3604,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut id: Option<String> = self.safe_string_k_opt(&spotMarket, "id", &[]);
-            let mut marginMarket: crate::value::Dict = self.safe_dict(&marginMarkets, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+            let mut id: Option<String> = self.safe_string_k(&spotMarket, "id", &[]).as_str().map(str::to_owned);
+            let mut marginMarket: crate::value::Dict = self.safe_dict(&marginMarkets, Value::from(id.as_deref()), &[]).into_dict();
             let mut market: Value = self.deep_extend(marginMarket, &[&spotMarket]);
             let mut idParts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut baseId: Option<String> = self.safe_string(&idParts, Value::Int(0), &[]).as_str().map(str::to_owned);

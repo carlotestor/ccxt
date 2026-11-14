@@ -1287,12 +1287,12 @@ impl Extended {
         //       "availableForTradeFactors": []
         //     }
         //
-        let mut currencyId: Value = self.safe_string_k(currency.clone(), "symbol", &[]);
-        if (currencyId != Value::Null) && (currencyId.as_str().unwrap_or("").contains("SPOT")) {
-            currencyId = currencyId.as_str().map(|__s| Value::Str(__s.replace("SPOT", "").into())).unwrap_or_else(|| currencyId.clone());
+        let mut currencyId: Option<String> = self.safe_string_k(currency.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        if (currencyId.is_some()) && (currencyId.as_deref().unwrap_or_default().contains("SPOT")) {
+            currencyId = (if let Some(__s) = currencyId.as_deref() { Some(__s.replace("SPOT", "")) } else { None });
         }
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), None);
-        if (currencyId.as_str() == Some("USD")) {
+        let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
+        if (currencyId.as_deref() == Some("USD")) {
             code = Some("USDC".to_string());
         }
         let mut name: Option<String> = self.safe_string_k(currency.clone(), "name", &[]).as_str().map(str::to_owned);
@@ -1300,7 +1300,7 @@ impl Extended {
         let mut isActive: Option<bool> = self.safe_bool_k(currency.clone(), "isActive", &[]).as_bool();
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), currencyId);
+        m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("numericId".to_string(), self.safe_integer_k(currency.clone(), "id", &[]));
         m.insert("name".to_string(), name.map(Value::from).unwrap_or(Value::Null));

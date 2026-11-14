@@ -1359,7 +1359,7 @@ impl Krakenfutures {
                 // rejected". Derive unified status from `reason` instead of
                 // mapping every removal to canceled. Preserve reason on info
                 // so consumers can tell a user cancel from liquidation, etc.
-                let mut reason: Option<String> = match __pro_message.get("reason").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+                let mut reason: Option<String> = (match __pro_message.get("reason").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut status: String = "canceled".to_string();
                 if (reason.as_deref() == Some("full_fill")) {
                     status = "closed".to_string();
@@ -1384,7 +1384,7 @@ impl Krakenfutures {
                         })]);
                         let mut info: crate::value::Dict = self.extend(__ws_arg_0, &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
-                                m.insert("reason".to_string(), reason.clone().map(Value::from).unwrap_or(Value::Null));
+                                m.insert("reason".to_string(), Value::from(reason.as_deref()));
                             m
                         })]).into_dict();
                         add_element_to_object(&mut orders, &i, self.extend(currentOrder.clone(), &[Value::Map({
