@@ -7469,10 +7469,6 @@ export class RustTranspilerBuilder {
                     `${indent}${lhs} = Value::Bool(${expr});`],
 
 
-            // (Auto-clone in `Value::Array(vec![...])` is done by the
-            // paren-balanced `cloneInArrayLiterals` walker below; running a
-            // regex here doesn't see nested parens correctly.)
-
 
 
 
@@ -10639,65 +10635,6 @@ export class RustTranspilerBuilder {
 
 
     /**
-     * Walks `Value::Array(vec![...])` literals and clones simple identifier
-     * args (paren-balanced — handles nested calls in element positions).
-     */
-    cloneInArrayLiterals(content: string): string {
-        // The AST transpiler emits `Value::from(vec![...])` (the
-        // `From<Vec<Value>>` impl; older builds emitted the `Value::List`
-        // fn alias). Match either spelling.
-        const markers = ['Value::Array(vec![', 'Value::List(vec![', 'Value::from(vec!['];
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            // Find the nearest marker at or after `i`.
-            let idx = -1; let marker = '';
-            for (const mk of markers) {
-                const ix = content.indexOf(mk, i);
-                if (ix >= 0 && (idx === -1 || ix < idx)) { idx = ix; marker = mk; }
-            }
-            if (idx < 0) { out += content.slice(i); break; }
-            out += content.slice(i, idx);
-            // find matching `])` (the vec!'s closing bracket)
-            let depth = 1;
-            let j = idx + marker.length;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '[' || c === '(' || c === '{') depth++;
-                    else if (c === ']' || c === ')' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(idx); break; }
-            // content[j] is the `]` closing the vec!, expect `)` after
-            const rawInside = content.slice(idx + marker.length, j);
-            // Recurse first so nested `Value::List(vec![…])` args have
-            // their own inner identifiers cloned before we split the
-            // outer arg list.
-            const recurInside = this.cloneInArrayLiterals(rawInside);
-            const args = this.splitArgs(recurInside) ?? [];
-            const cloned = args.map(a => {
-                const t = a.trim();
-                return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self'
-                    ? `${t}.clone()` : a;
-            }).join(', ');
-            // Preserve original spelling (List vs Array).
-            out += `${marker.replace(/\(vec!\[$/, '')}(vec![${cloned}])`;
-            // skip past `]` then trailing `)` of `vec!(...)`
-            i = j + 1;
-            if (content[i] === ')') i++; // outer `)` of Value::List/Array(...)
-        }
-        return out;
-    }
-
-    /**
      * rust-05: brace-balanced block index of `content` — string/char/comment
      * aware (a `{` in a comment or panic message must not skew the nesting),
      * `parent` linking each `{` to its enclosing block.
@@ -12030,7 +11967,6 @@ ${arms.join('\n')}
             content = content.replace(/\bself\.super_(\w+)\(/g, 'self.parent.$1(');
         }
         content = this.autoCloneCallArgs(content);
-        content = this.cloneInArrayLiterals(content);
         content = this.rewriteValueFieldAccess(content);
         // Must run AFTER rewriteValueFieldAccess so `precise.decimals = X`
         // (now `get_value(&precise, ...) = X`) is rewritten to set_value.
@@ -13097,7 +13033,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Auto-clone simple identifier args inside `Value::Array(vec![...])`
         // literals (paren-balanced).
-        basePart = this.cloneInArrayLiterals(basePart);
 
         // Convert `<localVar>.<field>` (Value property access) to get_value.
         // String-aware: skips contents of `"..."` literals.
@@ -13536,7 +13471,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // catch_unwind keeps the catch body, so a test can assert that a call throws
                 content = this.rewriteTryCatchAsync(content);
                 content = this.autoCloneCallArgs(content);
-                content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
@@ -13942,7 +13876,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
                 content = this.wrapBoolValueArgs(content);
                 content = this.autoCloneCallArgs(content);
-                content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
@@ -14326,7 +14259,6 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapBoolValueArgs(content);
         content = this.rewriteTryCatchAsync(content);
         content = this.autoCloneCallArgs(content);
-        content = this.cloneInArrayLiterals(content);
         // `symbol in exchange.markets` → `in_op(get_value(exchange,
         // "markets"), symbol)` deep-clones the whole markets map. In
         // `test.ticker.rs` that guard runs once per ticker, so for a 3k-
@@ -14717,7 +14649,6 @@ impl std::ops::DerefMut for ${coreName} {
             // are already formed and can be flattened into the vec.
             content = this.rewriteExchangeMethodCalls(content);
             content = this.autoCloneCallArgs(content);
-            content = this.cloneInArrayLiterals(content);
             content = this.rewriteValueFieldAccess(content);
             content = this.rewriteGetValueAssignments(content);
             content = this.stripMutSelfFieldClones(content);
