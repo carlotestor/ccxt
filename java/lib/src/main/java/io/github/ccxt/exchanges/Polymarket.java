@@ -2770,7 +2770,7 @@ public class Polymarket extends PolymarketApi
                 put( "ts", ts );
             }};
             Object encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-            Object signature = this.signMessage(encoded, this.privateKey);
+            String signature = this.signMessage(encoded, this.privateKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", new HashMap<String, Object>() {{
                     put( "type", "withdraw" );
@@ -3071,7 +3071,7 @@ public class Polymarket extends PolymarketApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public Object signHash(Object hash, Object privateKey)
+    public String signHash(Object hash, Object privateKey)
     {
         Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = signature.get("r");
@@ -3080,7 +3080,7 @@ public class Polymarket extends PolymarketApi
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)sVal).length() >= 64 ? ((String)sVal).substring(((String)sVal).length() - 64) : String.format("%" + (64 - ((String)sVal).length()) + "s", "").replace(' ', '0') + ((String)sVal))) + v);
     }
 
-    public Object signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, Object privateKey)
     {
         return this.signHash(this.hashMessage(message), privateKey);
     }
@@ -3103,7 +3103,7 @@ public class Polymarket extends PolymarketApi
             // key over a timestamped nonce - unpredictable without the wallet
             // secret and unique per provisioning, the paradex stark-key idiom
             String nonceMessage = ((("polymarket-perps-proxy:" + String.valueOf(this.milliseconds())) + ":") + String.valueOf(this.randNumber(9)));
-            Object seedSignature = this.signMessage(nonceMessage, this.privateKey);
+            String seedSignature = this.signMessage(nonceMessage, this.privateKey);
             Object proxyPrivateKey = this.hash(this.encode(seedSignature), keccak(), "hex");
             String proxyAddress = this.ethGetAddressFromPrivateKey(proxyPrivateKey);
             String owner = this.ethGetAddressFromPrivateKey(this.privateKey);
@@ -3139,7 +3139,7 @@ public class Polymarket extends PolymarketApi
                 put( "ts", ts );
             }};
             Object encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-            Object signature = this.signMessage(encoded, this.privateKey);
+            String signature = this.signMessage(encoded, this.privateKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", new HashMap<String, Object>() {{
                     put( "type", "createProxy" );
@@ -3246,7 +3246,7 @@ public class Polymarket extends PolymarketApi
             }};
             Object encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
             String proxyPrivateKey = this.safeString(credentials, "privateKey");
-            Object signature = this.signMessage(encoded, proxyPrivateKey);
+            String signature = this.signMessage(encoded, proxyPrivateKey);
             Map<String, Object> envelope = new HashMap<String, Object>() {{
                 put( "op", bodyOp );
                 put( "sig", signature );
