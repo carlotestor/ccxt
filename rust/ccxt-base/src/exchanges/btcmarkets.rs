@@ -834,9 +834,9 @@ impl Btcmarkets {
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "creationTime", &[]));
         let mut lastUpdate: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "lastUpdate", &[]));
-        let mut type_var: Value = self.parse_transaction_type((self.safe_string_lower_k(transaction.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        if (type_var.as_str() == Some("withdraw")) {
-            type_var = Value::Str("withdrawal".into());
+        let mut type_var: Option<String> = self.parse_transaction_type((self.safe_string_lower_k(transaction.clone(), "type", &[])).as_str());
+        if (type_var.as_deref() == Some("withdraw")) {
+            type_var = Some("withdrawal".to_string());
         }
         let mut cryptoPaymentDetail: crate::value::Dict = self.safe_dict_k(transaction.clone(), "paymentDetail", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -877,7 +877,7 @@ impl Btcmarkets {
         m.insert("tag".to_string(), tag.clone());
         m.insert("tagTo".to_string(), tag);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));

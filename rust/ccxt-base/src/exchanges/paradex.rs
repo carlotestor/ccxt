@@ -2780,10 +2780,10 @@ impl Paradex {
                 takeProfitPrice = triggerPrice.clone();
             }
         }
-        let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "instruction", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(order.clone(), "instruction", &[])).as_str());
         let mut postOnly: Option<bool> = None;
-        if (timeInForce != Value::Null) {
-            postOnly = Some(timeInForce.as_str() == Some("PO"));
+        if (timeInForce.is_some()) {
+            postOnly = Some(timeInForce.as_deref() == Some("PO"));
         }
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "last_updated_at", &[]).as_i64();
         let mut flags: Option<crate::value::List> = self.safe_list_k(order.clone(), "flags", &[]).into_opt_list();
@@ -2802,7 +2802,7 @@ impl Paradex {
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("reduceOnly".to_string(), reduceOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));

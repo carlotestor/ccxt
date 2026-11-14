@@ -2700,11 +2700,11 @@ impl Limitless {
         let mut mkt: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), market).into_dict();
         let mut outcomeSymbol: Option<String> = self.safe_string_k(&mkt, "outcome", &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut side: Value = self.parse_order_side(rawSide.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut side: Option<String> = self.parse_order_side(rawSide.as_deref());
         let mut price: Option<String> = self.safe_string_k(rawOrder.clone(), "price", &[]).as_str().map(str::to_owned);
         // todo check
         let mut amountKey: String = "makerAmount".to_string();
-        if (side.as_str() == Some("buy")) {
+        if (side.as_deref() == Some("buy")) {
             amountKey = "takerAmount".to_string();
         }
         let mut amount: Option<String> = self.safe_string(rawOrder.clone(), Value::from(amountKey), &[]).as_str().map(str::to_owned);
@@ -2730,7 +2730,7 @@ impl Limitless {
             filled = self.safe_string_k(&totals, "contractsGross", &[]).as_str().map(str::to_owned);
             let mut feeCurrency: Option<String> = Some("USDC".to_string());
             let mut feeCost: Option<String> = self.safe_string_k(&totals, "usdFee", &[]).as_str().map(str::to_owned);
-            if (side.as_str() == Some("buy")) {
+            if (side.as_deref() == Some("buy")) {
                 feeCurrency = outcomeSymbol.clone();
                 feeCost = self.safe_string_k(&totals, "contractsFee", &[]).as_str().map(str::to_owned);
             }
@@ -2757,7 +2757,7 @@ impl Limitless {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_order_time_in_force(timeInForce.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);

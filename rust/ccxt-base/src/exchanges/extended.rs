@@ -3190,7 +3190,7 @@ impl Extended {
                 m
             }));
         }
-        let mut transactionType: Value = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut transactionType: Option<String> = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "type", &[])).as_str());
         let mut network: Option<String> = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[])]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3205,7 +3205,7 @@ impl Extended {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
-        m.insert("type".to_string(), transactionType.clone());
+        m.insert("type".to_string(), Value::from(transactionType.as_deref()));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_k(transaction, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
@@ -3213,7 +3213,7 @@ impl Extended {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("comment".to_string(), Value::Null);
-        m.insert("internal".to_string(), (Value::Bool(transactionType.as_str() == Some("transfer"))));
+        m.insert("internal".to_string(), (Value::Bool(transactionType.as_deref() == Some("transfer"))));
     m
 });
 

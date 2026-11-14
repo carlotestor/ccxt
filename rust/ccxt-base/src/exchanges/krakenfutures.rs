@@ -3428,9 +3428,9 @@ impl Krakenfutures {
             id = self.safe_string2(details.clone(), Value::Str("orderId".into()), Value::Str("uid".into()), &[]).as_str().map(str::to_owned);
         }
         let mut type_var: Option<String> = self.safe_string_lower2(details.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]).as_str().map(str::to_owned);
-        let mut parsedType: Value = self.parse_order_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut parsedType: Option<String> = self.parse_order_type(type_var.as_deref());
         let mut timeInForce: String = "gtc".to_string();
-        if (type_var.as_deref() == Some("ioc")) || (parsedType.as_str() == Some("market")) {
+        if (type_var.as_deref() == Some("ioc")) || (parsedType.as_deref() == Some("market")) {
             timeInForce = "ioc".to_string();
         }
         let mut ts: Option<i64> = self.safe_integer_k(details.clone(), "timestamp", &[Value::from(timestamp)]).as_i64();
@@ -3452,7 +3452,7 @@ impl Krakenfutures {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(details.clone(), "lastUpdateTimestamp", &[Value::from(lastUpdateTimestamp)]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), parsedType);
+        m.insert("type".to_string(), parsedType.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::from(timeInForce));
         m.insert("postOnly".to_string(), Value::Bool(type_var.as_deref() == Some("post")));
         m.insert("reduceOnly".to_string(), self.safe_bool2(details.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]));

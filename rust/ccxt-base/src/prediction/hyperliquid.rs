@@ -2449,8 +2449,8 @@ impl Hyperliquid {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
         let mut tifRaw: Option<String> = self.safe_string_k(&entry, "tif", &[]).as_str().map(str::to_owned);
-        let mut tif: Value = self.parse_time_in_force(tifRaw.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut postOnly: Value = (Value::Bool(tif.as_str() == Some("PO")));
+        let mut tif: Option<String> = self.parse_time_in_force(tifRaw.as_deref());
+        let mut postOnly: bool = tif.as_deref() == Some("PO");
         let mut isTrigger: bool = self.safe_bool_k(&entry, "isTrigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut triggerPrice: Option<f64> = (if isTrigger { self.safe_number_k(&entry, "triggerPx", &[]).as_f64() } else { None });
         return self.safe_prediction_order(Value::Map({
@@ -2467,8 +2467,8 @@ impl Hyperliquid {
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("type".to_string(), self.parse_order_type((self.safe_string_k(&entry, "orderType", &[Value::Str("limit".into())])).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), tif);
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("timeInForce".to_string(), tif.map(Value::from).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), Value::Bool(postOnly));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&entry, "reduceOnly", &[Value::Bool(false)]));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), self.safe_number_k(&entry, "limitPx", &[]));

@@ -2116,12 +2116,12 @@ impl Bigone {
         if immediateOrCancel {
             timeInForce = Some("IOC".to_string());
         }
-        let mut type_var: Value = self.parse_type((self.safe_string_k(order.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_type((self.safe_string_k(order.clone(), "type", &[])).as_str());
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = None;
         let mut filled: Option<String> = None;
         let mut cost: Option<String> = None;
-        if (type_var.as_str() == Some("market")) && (side.as_deref() == Some("buy")) {
+        if (type_var.as_deref() == Some("market")) && (side.as_deref() == Some("buy")) {
             cost = self.safe_string_k(order.clone(), "filled_amount", &[]).as_str().map(str::to_owned);
         }  else {
             amount = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
@@ -2136,7 +2136,7 @@ impl Bigone {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(order.clone(), "updated_at", &[]))));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "post_only", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));

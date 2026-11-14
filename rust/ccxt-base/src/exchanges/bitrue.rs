@@ -2593,7 +2593,7 @@ impl Bitrue {
         //         "clientOrderId":4949299210
         //     }
         //
-        let mut status: Value = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("orderStatus".into()), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("orderStatus".into()), &[])).as_str());
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "executedQty", &[]).as_str().map(str::to_owned);
@@ -2604,7 +2604,7 @@ impl Bitrue {
         }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("transactTime"))) {
             timestamp = self.safe_integer_k(order.clone(), "transactTime", &[]).as_i64();
         }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime"))) {
-            if (status.as_str() == Some("open")) {
+            if (status.as_deref() == Some("open")) {
                 if crate::precise::Precise::stringGt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                     lastTradeTimestamp = self.safe_integer_k(order.clone(), "updateTime", &[]).as_i64();
                 }  else {
@@ -2650,7 +2650,7 @@ impl Bitrue {
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Arr(fills));
     m

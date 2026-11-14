@@ -5571,11 +5571,11 @@ impl Weex {
         let mut leverage: Value = leverage.into();
         let mut marketId: Option<String> = self.safe_string_k(leverage.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marginType: Option<String> = self.safe_string_k(leverage.clone(), "marginType", &[]).as_str().map(str::to_owned);
-        let mut marginMode: Value = self.parse_margin_type(marginType.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = self.parse_margin_type(marginType.as_deref());
         let mut crossLeverage: Option<f64> = self.safe_number_k(leverage.clone(), "crossLeverage", &[]).as_f64();
         let mut longLeverage: Option<f64> = self.safe_number_k(leverage.clone(), "isolatedLongLeverage", &[]).as_f64();
         let mut shortLeverage: Option<f64> = self.safe_number_k(leverage.clone(), "isolatedShortLeverage", &[]).as_f64();
-        if (marginMode.as_str() == Some("cross")) {
+        if (marginMode.as_deref() == Some("cross")) {
             longLeverage = crossLeverage;
             shortLeverage = crossLeverage;
         }
@@ -5583,7 +5583,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("swap".into())]));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("longLeverage".to_string(), Value::from(longLeverage));
         m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
     m

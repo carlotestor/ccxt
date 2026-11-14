@@ -3010,7 +3010,7 @@ impl Bithumb {
         }  else if (sideProperty.as_deref() == Some("ask")) {
             side = Some("sell".to_string());
         }
-        let mut status: Value = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("order_status".into()), Value::Str("state".into()), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("order_status".into()), Value::Str("state".into()), &[])).as_str());
         let mut price: Option<String> = self.safe_string2(order.clone(), Value::Str("order_price".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string2(order.clone(), Value::Str("order_type".into()), Value::Str("ord_type".into()), &[]).as_str().map(str::to_owned);
         let mut progressCount: Option<String> = self.safe_string_k(order.clone(), "progress_count", &[]).as_str().map(str::to_owned);
@@ -3024,9 +3024,9 @@ impl Bithumb {
         let mut amount: Value = self.fix_comma_number(self.safe_string_n(order.clone(), Value::from(vec![Value::Str("order_qty".into()), Value::Str("units".into()), Value::Str("volume".into())]), &[])).map(Value::from).unwrap_or(Value::Null);
         let mut remaining: Value = self.fix_comma_number(self.safe_string2(order.clone(), Value::Str("units_remaining".into()), Value::Str("remaining_volume".into()), &[])).map(Value::from).unwrap_or(Value::Null);
         if (remaining == Value::Null) {
-            if (status.as_str() == Some("closed")) {
+            if (status.as_deref() == Some("closed")) {
                 remaining = Value::Str("0".into());
-            }  else if (status.as_str() != Some("canceled")) {
+            }  else if (status.as_deref() != Some("canceled")) {
                 remaining = amount.clone();
             }
         }
@@ -3086,7 +3086,7 @@ impl Bithumb {
         m.insert("average".to_string(), self.safe_number_k(order, "avg_trade_price", &[]));
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), remaining);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Arr(rawTrades));
     m

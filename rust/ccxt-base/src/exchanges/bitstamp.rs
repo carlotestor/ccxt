@@ -4082,8 +4082,8 @@ impl Bitstamp {
         //         },
         //     ]
         //
-        let mut type_var: Value = self.parse_ledger_entry_type((self.safe_string_k(item.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        if (type_var.as_str() == Some("trade")) {
+        let mut type_var: Option<String> = self.parse_ledger_entry_type((self.safe_string_k(item.clone(), "type", &[])).as_str());
+        if (type_var.as_deref() == Some("trade")) {
             let mut parsedTrade: indexmap::IndexMap<String, Value> = self.parse_trade(item.clone(), None).as_map().cloned().unwrap_or_default();
             let mut market: Value = Value::Null;
             let mut keys: Vec<Value> = Value::Array(item.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
@@ -4114,7 +4114,7 @@ impl Bitstamp {
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), parsedTrade.get("order").cloned().unwrap_or(Value::Null));
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("currency".to_string(), self.safe_string_k(market, "base", &[]));
         m.insert("amount".to_string(), parsedTrade.get("amount").cloned().unwrap_or(Value::Null));
         m.insert("before".to_string(), Value::Null);
@@ -4149,7 +4149,7 @@ impl Bitstamp {
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), parsedTransaction.get("txid").cloned().unwrap_or(Value::Null));
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), parsedTransaction.get("currency").cloned().unwrap_or(Value::Null));
         m.insert("amount".to_string(), parsedTransaction.get("amount").cloned().unwrap_or(Value::Null));
         m.insert("before".to_string(), Value::Null);

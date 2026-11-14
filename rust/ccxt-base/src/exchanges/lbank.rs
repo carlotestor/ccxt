@@ -3550,7 +3550,7 @@ impl Lbank {
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("coin".into()), Value::Str("coid".into()), &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
-        let mut status: Value = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), type_var.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), type_var.as_deref());
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCost: Option<f64> = self.safe_number_k(transaction.clone(), "fee", &[]).as_f64();
         if (feeCost.is_some()) {
@@ -3578,10 +3578,10 @@ impl Lbank {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status.clone());
+        m.insert("status".to_string(), Value::from(status.as_deref()));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
-        m.insert("internal".to_string(), (Value::Bool(status.as_str() == Some("transfer"))));
+        m.insert("internal".to_string(), (Value::Bool(status.as_deref() == Some("transfer"))));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 });

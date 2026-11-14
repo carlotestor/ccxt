@@ -2079,9 +2079,9 @@ impl Phemex {
         if (lastTradeTimestamp == Some(0)) {
             lastTradeTimestamp = None.clone();
         }
-        let mut timeInForce: Value = self.parent.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut timeInForce: Option<String> = self.parent.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str());
         let mut stopPrice: Option<String> = self.safe_string_k(order.clone(), "stopPx", &[]).as_str().map(str::to_owned);
-        let mut postOnly: Value = (Value::Bool(timeInForce.as_str() == Some("PO")));
+        let mut postOnly: bool = timeInForce.as_deref() == Some("PO");
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
@@ -2092,8 +2092,8 @@ impl Phemex {
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), Value::Bool(postOnly));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
         m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));

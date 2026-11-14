@@ -3668,13 +3668,13 @@ impl Btse {
         // is spelled timeInForce there (observed live), so both fall back
         let mut rawStatus: Option<String> = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("orderState".into()), &[]).as_str().map(str::to_owned);
         let mut rawType: Option<String> = self.safe_string2(order.clone(), Value::Str("orderType".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut orderType: Value = self.parse_order_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        if (orderType.as_str() == Some("market")) && (status.as_str() == Some("open")) {
+        let mut status: Option<String> = self.parse_order_status(rawStatus.as_deref());
+        let mut orderType: Option<String> = self.parse_order_type(rawType.as_deref());
+        if (orderType.as_deref() == Some("market")) && (status.as_deref() == Some("open")) {
             // market orders never rest on the book, the exchange reports the
             // partially filled code on them when a residual quote dust amount
             // cannot fill, observed live, such orders are finished
-            status = Value::Str("closed".into());
+            status = Some("closed".to_string());
         }
         let mut rawTimeInForce: Option<String> = self.safe_string2(order.clone(), Value::Str("time_in_force".into()), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
@@ -3686,9 +3686,9 @@ impl Btse {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), orderType);
+        m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_time_in_force(rawTimeInForce.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "postOnly", &[]));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));

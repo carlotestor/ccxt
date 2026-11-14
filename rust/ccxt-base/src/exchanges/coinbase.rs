@@ -1993,10 +1993,10 @@ impl Coinbase {
         }
         let mut amountString: Option<String> = self.safe_string_k(&amountAndCurrencyObject, "amount", &[]).as_str().map(str::to_owned);
         let mut amountStringAbs: Option<String> = crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        if (status == Value::Null) {
+        let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
+        if (status.is_none()) {
             let mut committed: bool = self.safe_bool_k(transaction.clone(), "committed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            status = (if committed { Value::Str("ok".into()) } else { Value::Str("pending".into()) });
+            status = (if committed { Some("ok".to_string()) } else { Some("pending".to_string()) });
         }
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(&amountAndCurrencyObject, "currency", &[]).as_str().map(str::to_owned);
@@ -2032,7 +2032,7 @@ impl Coinbase {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amountStringAbs.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(self.parse8601(self.safe_string_k(transaction, "updated_at", &[]))));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

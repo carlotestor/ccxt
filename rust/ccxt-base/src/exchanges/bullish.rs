@@ -1351,7 +1351,7 @@ impl Bullish {
         let mut maxCostLimit: Option<String> = self.safe_string_k(market.clone(), "maxCostLimit", &[]).as_str().map(str::to_owned);
         let mut settleId: Option<String> = self.safe_string_k(market.clone(), "settlementAssetSymbol", &[]).as_str().map(str::to_owned);
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut type_var: Value = self.parse_market_type((self.safe_string_k(market.clone(), "marketType", &[])).as_str(), Some("spot")).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_market_type((self.safe_string_k(market.clone(), "marketType", &[])).as_str(), Some("spot"));
         let mut spot: bool = false;
         let mut swap: bool = false;
         let mut future: bool = false;
@@ -1364,7 +1364,7 @@ impl Bullish {
         let mut optionType: Option<String> = None;
         let mut strike: Value = Value::Null;
         let mut margin: Value = Value::Bool(false);
-        if (type_var.as_str() == Some("spot")) {
+        if (type_var.as_deref() == Some("spot")) {
             spot = true;
             contract = false;
             margin = self.safe_bool_k(market.clone(), "marginTradingEnabled", &[]);
@@ -1373,7 +1373,7 @@ impl Bullish {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             linear = Value::Bool(settle == quote);
             inverse = Some(!(linear.as_bool() == Some(true)));
-            if (type_var.as_str() == Some("swap")) {
+            if (type_var.as_deref() == Some("swap")) {
                 swap = true;
             }  else {
                 expiryDatetime = self.safe_string_k(market.clone(), "expiryDatetime", &[]).as_str().map(str::to_owned);
@@ -1381,9 +1381,9 @@ impl Bullish {
                 let mut datePart: Option<String> = self.safe_string_opt(&idParts, Value::Int(2), &[]);
                 let mut dateYmd: Value = datePart.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                 symbol.push_str(&format!("{}{}", "-", dateYmd));
-                if (type_var.as_str() == Some("future")) {
+                if (type_var.as_deref() == Some("future")) {
                     future = true;
-                }  else if (type_var.as_str() == Some("option")) {
+                }  else if (type_var.as_deref() == Some("option")) {
                     option = true;
                     optionType = self.safe_string_lower_k(market.clone(), "optionType", &[]).as_str().map(str::to_owned);
                     strike = self.parse_to_numeric(self.safe_string_k(market.clone(), "optionStrikePrice", &[]));
@@ -1405,7 +1405,7 @@ impl Bullish {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(spot));
         m.insert("margin".to_string(), margin);
         m.insert("swap".to_string(), Value::Bool(swap));
@@ -2825,11 +2825,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "quantityFilled", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        if (status.as_str() == Some("closed")) {
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
+        if (status.as_deref() == Some("closed")) {
             let mut statusReason: Option<String> = self.safe_string_k(order.clone(), "statusReason", &[]).as_str().map(str::to_owned);
             if (statusReason.as_deref() == Some("User cancelled")) {
-                status = Value::Str("canceled".into());
+                status = Some("canceled".to_string());
             }
         }
         let mut timeInForce: Option<String> = self.safe_string_k(order.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
@@ -2852,7 +2852,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));

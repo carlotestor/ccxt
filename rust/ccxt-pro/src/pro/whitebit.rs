@@ -1087,10 +1087,10 @@ impl Whitebit {
         let mut cost: Option<String> = self.safe_string_k(order.clone(), "deal_money", &[]).as_str().map(str::to_owned);
         let mut stopPrice: Option<String> = self.safe_string_k(order.clone(), "activation_price", &[]).as_str().map(str::to_owned);
         let mut rawType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = self.parse_ws_order_type(rawType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_ws_order_type(rawType.map(Value::from).unwrap_or(Value::Null));
         let mut amount: Option<String> = None;
         let mut remaining: Option<String> = None;
-        if (type_var.as_str() == Some("market")) {
+        if (type_var.as_deref() == Some("market")) {
             amount = self.safe_string_k(order.clone(), "deal_stock", &[]).as_str().map(str::to_owned);
             remaining = Some("0".to_string());
         }  else {
@@ -1134,7 +1134,7 @@ impl Whitebit {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), Value::from(side));
