@@ -2145,16 +2145,16 @@ impl Limitless {
                                         let mut i: i64 = 0;
                     let mut __for_first_1317: bool = true;
                     while { if !__for_first_1317 { i += 1; } __for_first_1317 = false; i < rawHistoryLength } {
-                    let mut series: Value = self.safe_dict(rawHistory.clone(), Value::Int(i), &[Value::Map({
+                    let mut series: crate::value::Dict = self.safe_dict(rawHistory.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                    let mut title: String = self.safe_string_upper_k(series.clone(), "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+})]).into_dict();
+                    let mut title: String = self.safe_string_upper_k(&series, "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     if (false) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOHLCV() missing title")));
                     }
                     if (outcomeLabel.is_some()) && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), (outcomeLabel.clone().map(Value::from).unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
-                        selectedSeries = series;
+                        selectedSeries = Value::Dict(series);
                         break;
                     }
                 }

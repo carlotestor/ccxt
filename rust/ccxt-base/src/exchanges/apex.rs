@@ -2150,12 +2150,12 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_227: bool = true;
             while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < numAssets } {
-            let mut asset: Value = self.safe_dict(&assets, Value::Int(i), &[Value::Map({
+            let mut asset: crate::value::Dict = self.safe_dict(&assets, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            if (self.safe_string_k(asset.clone(), "token", &[Value::Str("".into())]).as_str() == code.as_str()) {
-                currency = asset;
+})]).into_dict();
+            if (self.safe_string_k(&asset, "token", &[Value::Str("".into())]).as_str() == code.as_str()) {
+                currency = Value::Dict(asset);
             }
         }
         }

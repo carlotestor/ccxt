@@ -11212,16 +11212,16 @@ if _try_result.is_err() {
         //         "data": null
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut order: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if isContractTriggerEndpoint {
-            let mut orderInfo: crate::value::List = self.safe_list_k(data.clone(), "successList", &[Value::from(vec![])]).into_list();
+            let mut orderInfo: crate::value::List = self.safe_list_k(&data, "successList", &[Value::from(vec![])]).into_list();
             order = self.safe_dict(&orderInfo, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11230,7 +11230,7 @@ if _try_result.is_err() {
             if isStockOrUta && (trigger == Some(true)) {
                 order = response;
             }  else {
-                order = data;
+                order = Value::Dict(data);
             }
         }
         return self.parse_order(order, Some(&market));

@@ -3288,14 +3288,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_495: bool = true;
                     while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < (safeResponse.len() as i64) } {
-                    let mut entry: Value = self.safe_dict(&safeResponse, Value::Int(i), &[Value::Map({
+                    let mut entry: crate::value::Dict = self.safe_dict(&safeResponse, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                    let mut networkId: Option<String> = self.safe_string_k(entry.clone(), "network", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+                    let mut networkId: Option<String> = self.safe_string_k(&entry, "network", &[]).as_str().map(str::to_owned);
                     let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
                     if ((networkCode.as_deref() == network.as_str())) {
-                        data = entry;
+                        data = Value::Dict(entry);
                         break;
                     }
                 }
