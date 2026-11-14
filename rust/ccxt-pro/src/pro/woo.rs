@@ -2317,11 +2317,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut fundingRate: crate::value::Dict = self.parse_funding_rate(data, None).into_dict();
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(data), None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&fundingRate, "symbol", &[]);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&fundingRate)); }

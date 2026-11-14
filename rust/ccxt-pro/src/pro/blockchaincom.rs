@@ -1126,10 +1126,10 @@ impl Blockchaincom {
             let mut snapshot: crate::value::Dict = self.parse_order_book(message, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else if (event == "updated") {
-            let mut asks: Value = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-            let mut bids: Value = (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-            self.handle_deltas(orderbook.book_field("asks"), asks);
-            self.handle_deltas(orderbook.book_field("bids"), bids);
+            let mut asks: crate::value::List = __pro_message.get("asks").cloned().unwrap_or_default().into_list();
+            let mut bids: crate::value::List = __pro_message.get("bids").cloned().unwrap_or_default().into_list();
+            self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
+            self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }  else {

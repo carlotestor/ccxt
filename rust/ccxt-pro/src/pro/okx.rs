@@ -2321,10 +2321,10 @@ impl Okx {
         //         "seqId": 123457
         //     }
         //
-        let mut asks: Value = (match message.get("asks") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut bids: Value = (match message.get("bids") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        self.handle_deltas(orderbook.book_field("asks"), asks);
-        self.handle_deltas(orderbook.book_field("bids"), bids);
+        let mut asks: crate::value::List = message.get("asks").cloned().unwrap_or_default().into_list();
+        let mut bids: crate::value::List = message.get("bids").cloned().unwrap_or_default().into_list();
+        self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
+        self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
         let mut marketId: Option<String> = (match message.get("instId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut seqId: Option<i64> = (match message.get("seqId") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();

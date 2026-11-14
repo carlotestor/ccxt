@@ -5466,11 +5466,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut result: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut order: crate::value::Dict = self.parse_order(result, None).into_dict();
+        let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut order: crate::value::Dict = self.parse_order(Value::Dict(result), None).into_dict();
         client.resolve(Value::Dict(order), messageHash.as_deref());
 }
 

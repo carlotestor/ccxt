@@ -800,11 +800,8 @@ impl Bitstamp {
         let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut fundingRate: crate::value::Dict = self.parse_funding_rate(data, Some(&market)).into_dict();
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(data), Some(&market)).into_dict();
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
         client.resolve(Value::Dict(fundingRate), &(Value::Str(format!("{}{}", "fundingRate:", symbol).into())));
 }

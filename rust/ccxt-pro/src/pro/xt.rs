@@ -1425,11 +1425,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut position: crate::value::Dict = self.parse_position(data, None).into_dict();
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut position: crate::value::Dict = self.parse_position(Value::Dict(data), None).into_dict();
         cache.append(Value::from(&position));
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("position::contract".into())).as_array().cloned().unwrap_or_default();
         {
@@ -2236,16 +2233,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //    }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut parsedTrade: crate::value::Dict = self.parse_trade(data, None).into_dict();
+        let mut parsedTrade: crate::value::Dict = self.parse_trade(Value::Dict(data), None).into_dict();
         let mut tradeSymbol: Option<String> = crate::value::KeyRead::key_read(&&parsedTrade, "symbol").as_str().map(str::to_owned);
         if (tradeSymbol.is_none()) {
             return;

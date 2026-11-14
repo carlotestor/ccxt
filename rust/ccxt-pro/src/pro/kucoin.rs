@@ -4184,11 +4184,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut currentPosition: Value = self.get_current_position(symbol.clone().map(Value::from).unwrap_or(Value::Null));
         let mut messageHash: String = format!("{}{}", "position:", symbol.as_deref().unwrap_or("null"));
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut newPosition: Value = self.parse_position(data, None);
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut newPosition: Value = self.parse_position(Value::Dict(data), None);
         let mut keys: Vec<Value> = object_keys(&newPosition).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;

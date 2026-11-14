@@ -1743,7 +1743,7 @@ impl Cex {
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut market: crate::types::Market = self.safe_market(Value::from(symbol.as_str()), None, &[]);
         let mut messageHash: String = format!("{}{}", "ohlcv:", symbol);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
@@ -1756,7 +1756,7 @@ impl Cex {
             stored = Some(ArrayCacheByTimestamp::new(limit));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &(Value::Str("unknown".into())), stored.clone());
         }
-        let mut sorted: Vec<Value> = self.sort_by(data, Value::Int(0), &[]).as_array().cloned().unwrap_or_default();
+        let mut sorted: Vec<Value> = self.sort_by(Value::Arr(data), Value::Int(0), &[]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_220: bool = true;

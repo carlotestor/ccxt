@@ -2888,11 +2888,8 @@ impl Bybit {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("reqId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut order: crate::value::Dict = self.parse_order(data, None).into_dict();
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut order: crate::value::Dict = self.parse_order(Value::Dict(data), None).into_dict();
         client.resolve(Value::Dict(order), messageHash.as_deref());
 }
 
