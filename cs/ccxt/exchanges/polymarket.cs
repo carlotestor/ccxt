@@ -2854,7 +2854,7 @@ public partial class polymarket : Exchange
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((sVal as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
-    public virtual string signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), privateKey);
     }
