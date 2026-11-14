@@ -3265,12 +3265,12 @@ impl Lbank {
 })]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("fetchDepositAddressDefault".into())]).as_str().unwrap_or("fetchDepositAddressDefault").to_string();
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("method".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("method".into()), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("fetchDepositAddressSupplement")) {
-            response = self.fetch_deposit_address_supplement(code.as_str().unwrap_or_default(), &[paramsOmitted.clone()]).await;
+            response = self.fetch_deposit_address_supplement(code.as_str().unwrap_or_default(), &[Value::from(&paramsOmitted)]).await;
         }  else {
-            response = self.fetch_deposit_address_default(code.as_str().unwrap_or_default(), &[paramsOmitted]).await;
+            response = self.fetch_deposit_address_default(code.as_str().unwrap_or_default(), &[Value::Dict(paramsOmitted)]).await;
         }
         return response;
         Value::Null
@@ -4000,11 +4000,11 @@ impl Lbank {
 })]).into_dict();
             let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("fetchPrivateDepositWithdrawFees".into())]).as_str().unwrap_or("fetchPrivateDepositWithdrawFees").to_string();
             let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
-            let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("method".into()), &[]);
+            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::Str("method".into()), &[]).into_dict();
             if (method.as_deref() == Some("fetchPublicDepositWithdrawFees")) {
-                return self.fetch_public_deposit_withdraw_fees(&[codes.clone(), paramsOmitted.clone()]).await;
+                return self.fetch_public_deposit_withdraw_fees(&[codes.clone(), Value::from(&paramsOmitted)]).await;
             }
-            return self.fetch_private_deposit_withdraw_fees(&[codes.clone(), paramsOmitted]).await;
+            return self.fetch_private_deposit_withdraw_fees(&[codes.clone(), Value::Dict(paramsOmitted)]).await;
         }
         return self.fetch_public_deposit_withdraw_fees(&[codes, params]).await;
         Value::Null

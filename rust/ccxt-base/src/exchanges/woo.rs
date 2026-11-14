@@ -2944,7 +2944,7 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2955,10 +2955,10 @@ impl Woo {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            response = self.v3_private_delete_trade_algo_orders(&[paramsOmitted.clone()]).await.into_opt_dict();
+            response = self.v3_private_delete_trade_algo_orders(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
         }  else {
             // cancels both regular and algo orders
-            let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v3_private_delete_trade_all_orders(&[__ws_arg_9]).await.into_opt_dict();
         }
         //
@@ -3922,14 +3922,14 @@ impl Woo {
             request.insert("startTime".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64(); // unified in milliseconds
-        let mut paramsOmitted: Value = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_private_get_trade_transaction_history(&[__ws_arg_20]).await.into_dict();
         //
         //     {
@@ -3965,7 +3965,7 @@ impl Woo {
             m
         })]).into_dict();
         let mut trades: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, market.as_ref(), &[since, limit, paramsOmitted]);
+        return self.parse_trades(&trades, market.as_ref(), &[since, limit, Value::Dict(paramsOmitted)]);
         Value::Null
         }).await?))
     }
@@ -4759,11 +4759,11 @@ impl Woo {
             request.insert("startTime".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64(); // unified in milliseconds
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_private_get_asset_transfer_history(&[__ws_arg_28]).await.into_dict();
         //
         //     {
@@ -4801,7 +4801,7 @@ impl Woo {
             m
         })]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
-        return self.parse_transfers(&rows, currency.as_ref(), &[since, limit, paramsOmitted]);
+        return self.parse_transfers(&rows, currency.as_ref(), &[since, limit, Value::Dict(paramsOmitted)]);
         Value::Null
         }).await?))
     }

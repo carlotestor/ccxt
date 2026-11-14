@@ -1007,7 +1007,7 @@ impl Onetrading {
     m
 }));
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("method".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("method".into()), &[]).into_dict();
         if (method.is_none()) {
             let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchTradingFees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1016,9 +1016,9 @@ impl Onetrading {
             method = self.safe_string_k(&options, "method", &[Value::Str("fetchPrivateTradingFees".into())]).as_str().map(str::to_owned);
         }
         if (method.as_deref() == Some("fetchPrivateTradingFees")) {
-            return self.fetch_private_trading_fees(&[paramsOmitted.clone()]).await;
+            return self.fetch_private_trading_fees(&[Value::from(&paramsOmitted)]).await;
         }  else if (method.as_deref() == Some("fetchPublicTradingFees")) {
-            return self.fetch_public_trading_fees(&[paramsOmitted]).await;
+            return self.fetch_public_trading_fees(&[Value::Dict(paramsOmitted)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTradingFees() does not support ").into()), method.as_deref().unwrap_or("null")).into()), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")));
         }

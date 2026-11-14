@@ -3178,10 +3178,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (clientOrderId.is_none()) {
             clientOrderId = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", self.nonce()).into()), Value::Str("000".into())).into()), Value::Str(format!("{}", Value::Int(self.request_id())).into())));
         }
-        let mut paramsOmitted3: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
+        let mut paramsOmitted3: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into())]), &[]).into_dict();
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
-        let mut subAccountId: Option<String> = self.get_sub_account_id(paramsOmitted3.clone());
-        let mut isReduceOnly: bool = self.safe_bool_k(paramsOmitted3.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut subAccountId: Option<String> = self.get_sub_account_id(&paramsOmitted3);
+        let mut isReduceOnly: bool = self.safe_bool_k(&paramsOmitted3, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut orderRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub_account_id".to_string(), subAccountId.map(Value::from).unwrap_or(Value::Null));
@@ -3198,8 +3198,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("reduce_only".to_string(), Value::Bool(isReduceOnly));
             m
         });
-        let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsOmitted3.clone(), "timeInForce", &[Value::Str("GOOD_TILL_TIME".into())]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[paramsOmitted3.clone()]);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(&paramsOmitted3, "timeInForce", &[Value::Str("GOOD_TILL_TIME".into())]).as_str().map(str::to_owned);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[Value::from(&paramsOmitted3)]);
         if postOnly {
             orderRequest.insert("post_only".into(), Value::Bool(true));
         }
@@ -3223,7 +3223,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 timeInForce = Some("IMMEDIATE_OR_CANCEL".to_string());
             }
         }
-        let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted3, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted3, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
         // Trigger & SL & TP
         let triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable: Vec<Value> = self.handle_trigger_prices_and_params(symbol, &paramsOmitted2, &[]).as_array().cloned().unwrap_or_default();
         let mut triggerPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(0).cloned().unwrap_or(Value::Null);

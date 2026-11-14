@@ -2073,7 +2073,7 @@ impl Deribit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut code: Option<String> = self.safe_string_k(params.clone(), "code", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("code".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("code".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2083,9 +2083,9 @@ impl Deribit {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (code.is_none()) {
-            response = self.private_get_get_account_summaries(&[paramsOmitted.clone()]).await.into_opt_dict();
+            response = self.private_get_get_account_summaries(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
         }  else {
-            let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_get_account_summary(&[__ws_arg_1]).await.into_opt_dict();
         }
         //

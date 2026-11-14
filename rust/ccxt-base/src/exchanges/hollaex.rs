@@ -2183,8 +2183,8 @@ impl Hollaex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut network: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
-        let mut response: crate::value::Dict = self.private_get_user(&[paramsOmitted]).await.into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
+        let mut response: crate::value::Dict = self.private_get_user(&[Value::Dict(paramsOmitted)]).await.into_dict();
         //
         //     {
         //         "id":620,

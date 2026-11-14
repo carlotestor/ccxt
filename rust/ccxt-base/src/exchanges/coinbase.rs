@@ -1163,10 +1163,10 @@ impl Coinbase {
 }));
         let mut defaultMethod: String = self.safe_string_k(self.options.clone(), "fetchTime", &[Value::Str("v2PublicGetTime".into())]).as_str().unwrap_or("v2PublicGetTime").to_string();
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("method".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("method".into()), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("v2PublicGetTime")) {
-            response = self.v2_public_get_time(&[paramsOmitted.clone()]).await.into_opt_dict();
+            response = self.v2_public_get_time(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
             //
             //     {
             //         "data": {
@@ -1180,7 +1180,7 @@ impl Coinbase {
     m
 })]).into_opt_dict();
         }  else {
-            response = self.v3_public_get_brokerage_time(&[paramsOmitted]).await.into_opt_dict();
+            response = self.v3_public_get_brokerage_time(&[Value::Dict(paramsOmitted)]).await.into_opt_dict();
         }
         return self.safe_timestamp2(&response, Value::Str("epoch".into()), Value::Str("epochSeconds".into()), &[]);
         Value::Null
@@ -5944,12 +5944,12 @@ if _try_result.is_err() {
             m
         });
         let mut accountId: Option<String> = self.safe_string2(Value::from(&paramsWithdrawTag), Value::Str("account_id".into()), Value::Str("accountId".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("account_id".into()), Value::Str("accountId".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("account_id".into()), Value::Str("accountId".into())]), &[]).into_dict();
         if (accountId.is_none()) {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw() requires an account_id (or accountId) parameter OR a currency code argument")));
             }
-            let mut foundAccountId: Value = self.find_account_id(code.as_str(), &[paramsOmitted.clone()]).await;
+            let mut foundAccountId: Value = self.find_account_id(code.as_str(), &[Value::from(&paramsOmitted)]).await;
             if (foundAccountId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() could not find account id for ").into()), code)));
             }
@@ -5960,7 +5960,7 @@ if _try_result.is_err() {
         if (tagWithdrawTag.is_some()) {
             request.insert("destination_tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_54 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_54 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v2_private_post_accounts_account_id_transactions(&[__ws_arg_54]).await.into_dict();
         //
         //     {

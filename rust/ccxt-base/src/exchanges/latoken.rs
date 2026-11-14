@@ -1197,8 +1197,8 @@ impl Latoken {
         }
         let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[Value::from(defaultType)]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
-        let mut response: Value = self.private_get_auth_account(&[paramsOmitted]).await;
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("type".into()), &[]).into_dict();
+        let mut response: Value = self.private_get_auth_account(&[Value::Dict(paramsOmitted)]).await;
         //
         //     [
         //         {
@@ -1665,11 +1665,11 @@ impl Latoken {
 })]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("fetchPrivateTradingFee".into())]).as_str().unwrap_or("fetchPrivateTradingFee").to_string();
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("method".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("method".into()), &[]).into_dict();
         if (method.as_deref() == Some("fetchPrivateTradingFee")) {
-            return self.fetch_private_trading_fee(symbol.as_str().unwrap_or_default(), &[paramsOmitted.clone()]).await;
+            return self.fetch_private_trading_fee(symbol.as_str().unwrap_or_default(), &[Value::from(&paramsOmitted)]).await;
         }  else if (method.as_deref() == Some("fetchPublicTradingFee")) {
-            return self.fetch_public_trading_fee(symbol.as_str().unwrap_or_default(), &[paramsOmitted]).await;
+            return self.fetch_public_trading_fee(symbol.as_str().unwrap_or_default(), &[Value::Dict(paramsOmitted)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " not support this method")));
         }

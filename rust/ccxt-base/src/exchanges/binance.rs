@@ -6970,15 +6970,15 @@ impl Binance {
 }));
         let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchTime".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[Value::from(defaultType)]).as_str().map(str::to_owned);
-        let mut query: Value = self.omit(params.clone(), Value::Str("type".into()), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), Value::Str("type".into()), &[]).into_dict();
         let mut subType: Value = self.handle_sub_type_and_params(Value::Str("fetchTime".into()), None, &[params]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut response: Option<crate::value::Dict> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
-            response = self.fapi_public_get_time(&[query.clone()]).await.into_opt_dict();
+            response = self.fapi_public_get_time(&[Value::from(&query)]).await.into_opt_dict();
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
-            response = self.dapi_public_get_time(&[query.clone()]).await.into_opt_dict();
+            response = self.dapi_public_get_time(&[Value::from(&query)]).await.into_opt_dict();
         }  else {
-            response = self.public_get_time(&[query]).await.into_opt_dict();
+            response = self.public_get_time(&[Value::Dict(query)]).await.into_opt_dict();
         }
         return self.safe_integer_k(&response, "serverTime", &[]);
         Value::Null
@@ -15514,12 +15514,12 @@ impl Binance {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchFundingRates".into()), None, &[params, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut query: Value = self.omit(&paramsSubType, Value::Str("type".into()), &[]);
+        let mut query: crate::value::Dict = self.omit(&paramsSubType, Value::Str("type".into()), &[]).into_dict();
         let mut response: Option<crate::value::List> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            response = self.fapi_public_get_premium_index(&[query.clone()]).await.into_opt_list();
+            response = self.fapi_public_get_premium_index(&[Value::from(&query)]).await.into_opt_list();
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            response = self.dapi_public_get_premium_index(&[query]).await.into_opt_list();
+            response = self.dapi_public_get_premium_index(&[Value::Dict(query)]).await.into_opt_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchFundingRates() supports linear and inverse contracts only")));
         }

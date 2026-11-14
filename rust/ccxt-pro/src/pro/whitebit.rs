@@ -470,9 +470,9 @@ impl Whitebit {
         let mut method: String = "depth_subscribe".to_string();
         let mut defaultPriceInterval: String = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchOrderBook")).cloned().unwrap_or(Value::Null), Value::Str("priceInterval".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut priceInterval: Option<String> = self.safe_string_k(params.clone(), "priceInterval", &[Value::from(defaultPriceInterval)]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("priceInterval".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("priceInterval".into()), &[]).into_dict();
         let mut reqParams: Value = Value::from(vec![Value::from((market).id.as_deref()), Value::from(limitValue), priceInterval.map(Value::from).unwrap_or(Value::Null), Value::Bool(true)]);
-        let mut orderbook: Value = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, paramsOmitted]).await;
+        let mut orderbook: Value = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, Value::Dict(paramsOmitted)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))

@@ -660,16 +660,16 @@ impl Predictfun {
         }
         let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut queriesLength: i64 = queries.len() as i64;
-        let mut paramsValue: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
+        let mut paramsValue: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]).into_dict();
         // keys dropped before the client-side pass; the categories listing also drops its limit
         let mut postOmitKeys: Vec<Value> = vec![Value::Str("tags".into())];
-        let mut userLimit: Option<i64> = self.safe_integer_k(paramsValue.clone(), "limit", &[]).as_i64();
+        let mut userLimit: Option<i64> = self.safe_integer_k(&paramsValue, "limit", &[]).as_i64();
         let mut fetchCap: Option<i64> = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]).as_i64();
         if (userLimit.is_some()) {
             fetchCap = userLimit;
         }
-        let mut slug: Option<String> = self.safe_string2(paramsValue.clone(), Value::Str("slug".into()), Value::Str("eventId".into()), &[]).as_str().map(str::to_owned);
-        let mut rest: crate::value::Dict = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("marketVariant".into())]), &[]).into_dict();
+        let mut slug: Option<String> = self.safe_string2(&paramsValue, Value::Str("slug".into()), Value::Str("eventId".into()), &[]).as_str().map(str::to_owned);
+        let mut rest: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("marketVariant".into())]), &[]).into_dict();
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
@@ -687,18 +687,18 @@ impl Predictfun {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
             // the venue's semantic matches and cost one request per page
-            rawTopics = self.fetch_raw_topics_by_queries(Value::from(&queries), &[paramsValue.clone()]).await;
+            rawTopics = self.fetch_raw_topics_by_queries(Value::from(&queries), &[Value::from(&paramsValue)]).await;
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tags: Value = self.safe_list_k(paramsValue.clone(), "tags", &[Value::from(vec![])]);
+            let mut tags: Value = self.safe_list_k(&paramsValue, "tags", &[Value::from(vec![])]);
             if ((tags.len() as i64) as f64) > ((0i64) as f64) {
                 request.insert("tagIds".into(), join(&tags, &Value::Str(",".into())));
             }
             postOmitKeys.push(Value::Str("limit".into()));
-            let mut paramsCategories: crate::value::Dict = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("tags".into())]), &[]).into_dict();
+            let mut paramsCategories: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("limit".into()), Value::Str("tags".into())]), &[]).into_dict();
             let mut extendedRequest: crate::value::Dict = self.extend(Value::Map(request), &[&paramsCategories]).into_dict();
             let mut rawTopicsResponse: Value = self.predictfun_get_v1_categories(&[Value::from(&extendedRequest)]).await;
             //
@@ -912,10 +912,10 @@ impl Predictfun {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let mut postParams: Value = self.omit(paramsValue.clone(), Value::from(postOmitKeys), &[]);
+        let mut postParams: Value = self.omit(&paramsValue, Value::from(postOmitKeys), &[]);
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
-        let mut rawStatus: Option<String> = self.safe_string_k(paramsValue, "status", &[]).as_str().map(str::to_owned);
+        let mut rawStatus: Option<String> = self.safe_string_k(&paramsValue, "status", &[]).as_str().map(str::to_owned);
         if (rawStatus.as_deref() == Some("OPEN")) {
             postParams = self.extend(postParams, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

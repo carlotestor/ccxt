@@ -11345,11 +11345,11 @@ impl Kucoin {
     m
 })]).into_dict();
         let mut type_var: Option<String> = self.safe_string(&accountsByType, requestedType.clone(), &[requestedType.clone()]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(&paramsMarketType, Value::Str("type".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::Str("type".into()), &[]).into_dict();
         if (type_var.as_deref() == Some("contract")) {
-            return self.fetch_contract_balance(&[paramsOmitted.clone()]).await;
+            return self.fetch_contract_balance(&[Value::from(&paramsOmitted)]).await;
         }
-        let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[paramsOmitted]).as_array().cloned().unwrap_or_default();
+        let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut hf: Option<bool> = hfparamsHfVariable.get(0).and_then(Value::as_bool);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (hf == Some(true)) && (type_var.as_deref() != Some("main")) {

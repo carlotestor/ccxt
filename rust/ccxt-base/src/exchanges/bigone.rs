@@ -2051,12 +2051,12 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[Value::Str("".into())]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("type".into()), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("funding")) || (type_var.as_deref() == Some("fund")) {
-            response = self.private_get_fund_accounts(&[paramsOmitted.clone()]).await.into_opt_dict();
+            response = self.private_get_fund_accounts(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
         }  else {
-            response = self.private_get_accounts(&[paramsOmitted]).await.into_opt_dict();
+            response = self.private_get_accounts(&[Value::Dict(paramsOmitted)]).await.into_opt_dict();
         }
         return self.parse_balance(&response);
         Value::Null

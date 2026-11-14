@@ -13239,7 +13239,7 @@ impl Bybit {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionsHistory".into()), market.as_ref(), &[params, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: Value = self.omit(&paramsSubType, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsSubType, Value::Str("until".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("category".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
@@ -13257,7 +13257,7 @@ impl Bybit {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_80 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
+        let __ws_arg_80 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v5_position_closed_pnl(&[__ws_arg_80]).await.into_dict();
         //
         //    {
@@ -13298,7 +13298,7 @@ impl Bybit {
         if (rawPositions != Value::Null) {
             rawPositionsList = rawPositions;
         }
-        let mut positions: crate::value::List = self.parse_positions(rawPositionsList, &[symbols, paramsOmitted]).into_list();
+        let mut positions: crate::value::List = self.parse_positions(rawPositionsList, &[symbols, Value::Dict(paramsOmitted)]).into_list();
         return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))

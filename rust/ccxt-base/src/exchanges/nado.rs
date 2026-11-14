@@ -1214,8 +1214,8 @@ impl Nado {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        let mut request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[paramsOmitted]).await.into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[Value::Dict(paramsOmitted)]).await.into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
             response = self.trigger_private_post_execute(&[Value::from(&request)]).await.into_opt_dict();
@@ -1341,8 +1341,8 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        let mut request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[paramsOmitted]).await.into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[Value::Dict(paramsOmitted)]).await.into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
             response = self.trigger_private_post_execute(&[Value::from(&request)]).await.into_opt_dict();

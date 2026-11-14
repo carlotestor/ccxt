@@ -4527,8 +4527,8 @@ impl Modetrade {
         //         "success":true
         //     }
         //
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("side".into()), &[]); // request-side filter, not a unified transaction field
-        return self.parse_transactions(rows, currency.as_ref(), &[since, limit, paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("side".into()), &[]).into_dict(); // request-side filter, not a unified transaction field
+        return self.parse_transactions(rows, currency.as_ref(), &[since, limit, Value::Dict(paramsOmitted)]);
         Value::Null
         }).await?))
     }

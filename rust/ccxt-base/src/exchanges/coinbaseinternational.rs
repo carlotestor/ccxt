@@ -4558,14 +4558,14 @@ impl Coinbaseinternational {
             return Value::Null;
         }
         let mut forceRefresh: bool = self.safe_bool_k(&paramsResolved, "forceRefresh", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(&paramsResolved, Value::Str("forceRefresh".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsResolved, Value::Str("forceRefresh".into()), &[]).into_dict();
         let mut now: i64 = self.milliseconds();
         let mut token: Option<String> = self.get_v2_access_token();
         let mut tokenExpires: Option<i64> = self.safe_integer_k(self.options.clone(), "v2TokenExpires", &[]).as_i64();
         if !forceRefresh && (token.is_some()) && (token.as_deref() != Some("")) && (tokenExpires.is_some()) && (Some(now) < tokenExpires) {
             return token.map(Value::from).unwrap_or(Value::Null);
         }
-        let mut response: crate::value::Dict = self.public_post_auth(&[paramsOmitted]).await.into_dict();
+        let mut response: crate::value::Dict = self.public_post_auth(&[Value::Dict(paramsOmitted)]).await.into_dict();
         //
         //     {
         //         "jsonrpc": "2.0",

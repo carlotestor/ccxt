@@ -1020,13 +1020,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut levels: Option<String> = self.safe_string_k(params.clone(), "levels", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("levels".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("levels".into()), &[]).into_dict();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut name: String = format!("{}{}", "depth_update@", marketId);
         if (levels.is_some()) {
             name = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "depth@", marketId).into()), ",").into()), levels.as_deref().unwrap_or("null"));
         }
-        let mut orderbook: Value = self.subscribe(Value::from(name), "public", "watchOrderBook", Some(&market), &[Value::Null, paramsOmitted]).await;
+        let mut orderbook: Value = self.subscribe(Value::from(name), "public", "watchOrderBook", Some(&market), &[Value::Null, Value::Dict(paramsOmitted)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1061,14 +1061,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut levels: Option<String> = self.safe_string_k(params.clone(), "levels", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("levels".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("levels".into()), &[]).into_dict();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut name: String = format!("{}{}", "depth_update@", marketId);
         if (levels.is_some()) {
             name = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "depth@", marketId).into()), ",").into()), levels.as_deref().unwrap_or("null"));
         }
         let mut messageHash: String = format!("{}{}", "unsubscribe::", name);
-        return self.un_subscribe(messageHash.as_str(), name.as_str(), "public", "unWatchOrderBook", "orderbook", Some(&market), &[Value::from(vec![symbol]), paramsOmitted]).await;
+        return self.un_subscribe(messageHash.as_str(), name.as_str(), "public", "unWatchOrderBook", "orderbook", Some(&market), &[Value::from(vec![symbol]), Value::Dict(paramsOmitted)]).await;
         Value::Null
         }).await?))
     }
