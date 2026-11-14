@@ -2253,7 +2253,7 @@ impl Coinsph {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "origClientOrderId"], &[]).into_dict();
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_openapi_v1_order(&[__ws_arg_13]).await.into_dict();
         return self.parse_order(&response, None);
@@ -2389,7 +2389,7 @@ impl Coinsph {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "origClientOrderId"], &[]).into_dict();
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_delete_openapi_v1_order(&[__ws_arg_16]).await.into_dict();
         return self.parse_order(&response, None);

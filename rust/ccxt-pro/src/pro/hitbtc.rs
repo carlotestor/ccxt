@@ -659,7 +659,7 @@ impl Hitbtc {
         let mut name: Option<String> = self.safe_string2(params.clone(), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut depthValue: String = self.safe_string_k(params.clone(), "depth", &[Value::Str("20".into())]).as_str().unwrap_or("20").to_string(); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
         let mut speedValue: String = self.safe_string_k(params.clone(), "speed", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("depth".into()), Value::Str("speed".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["method", "defaultMethod", "depth", "speed"], &[]).into_dict();
         if (name.as_deref() == Some("orderbook/{depth}/{speed}")) {
             name = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook/D", depthValue).into()), "/").into()), speedValue).into()), "ms"));
         }  else if (name.as_deref() == Some("orderbook/{depth}/{speed}/batch")) {
@@ -860,7 +860,7 @@ impl Hitbtc {
         m.insert("speed".to_string(), Value::from(speedValue));
     m
 }));
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMethod, &["method", "defaultMethod", "speed"], &[]).into_dict();
         let mut marketIds: Vec<Value> = Vec::new();
         if (symbolsNormalized.is_none()) {
             marketIds.push(Value::Str("*".into()));
@@ -1064,7 +1064,7 @@ impl Hitbtc {
         m.insert("speed".to_string(), Value::from(speedValue));
     m
 }));
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["method", "defaultMethod", "speed"], &[]).into_dict();
         let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

@@ -613,14 +613,13 @@ impl Kraken {
         let mut isCreateOrder: bool = method.as_str() == Some("createOrderWs");
         let mut paramsCreate: Value = Value::from(&paramsPostOnly);
         if isCreateOrder {
-            paramsCreate = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into())]), &[]);
+            paramsCreate = self.omit(&paramsPostOnly, &["reduceOnly", "timeInForce"], &[]);
         }
         let mut paramsPreset: Value = paramsCreate.clone();
         if isCreateOrder && (isPresetStopLoss || isPresetTakeProfit) {
-            paramsPreset = self.omit(paramsCreate, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
+            paramsPreset = self.omit(paramsCreate, &["stopLoss", "takeProfit"], &[]);
         }
-        let mut paramsOmitted: Value = self.omit(paramsPreset, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("cost".into()), Value::Str("offset".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()),
-            Value::Str("trailingLimitAmount".into()), Value::Str("trailingLimitPercent".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(paramsPreset, &["clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"], &[]);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".into(), Value::Map(orderParams.clone())); }
         return Value::from(vec![request, paramsOmitted]);
 

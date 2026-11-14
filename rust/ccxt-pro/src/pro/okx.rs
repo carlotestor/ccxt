@@ -1566,7 +1566,7 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut accessType: String = "private".to_string();
         if isTrigger {
             accessType = "business".to_string();
@@ -2543,7 +2543,7 @@ impl Okx {
 }));
         self.check_required_credentials(&[]);
         let mut access: String = self.safe_string_k(params.clone(), "access", &[Value::Str("private".into())]).as_str().unwrap_or("private").to_string();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("access".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["access"], &[]).into_dict();
         let mut url: Option<String> = self.get_url(Value::Str("users".into()), &[Value::from(access)]);
         let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
@@ -2802,7 +2802,7 @@ impl Okx {
         let mut typeOption: Option<String> = typeOptionparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsType: crate::value::Dict = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsType), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsType, &["trigger", "stop"], &[]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3061,7 +3061,7 @@ impl Okx {
         let mut typeOption: Option<String> = typeOptionparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsType: crate::value::Dict = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsType), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsType, &["stop", "trigger"], &[]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3536,7 +3536,7 @@ impl Okx {
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
         let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "clOrdId"], &[]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         let mut arg: indexmap::IndexMap<String, Value> = ({

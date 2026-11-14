@@ -477,10 +477,10 @@ impl Woo {
                 m.insert("unsubMessageHashes".to_string(), Value::from(vec![Value::from(unsubHash.clone())]));
             m
         });
-        let mut symbolsAndTimeframes: Value = self.safe_list_k(params.clone(), "symbolsAndTimeframes", &[]);
-        let mut paramsOmitted: crate::value::Dict = (if (symbolsAndTimeframes != Value::Null) { self.omit(params.clone(), Value::Str("symbolsAndTimeframes".into()), &[]) } else { params }).into_dict();
-        if (symbolsAndTimeframes != Value::Null) {
-            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
+        let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k(params.clone(), "symbolsAndTimeframes", &[]).into_opt_list();
+        let mut paramsOmitted: crate::value::Dict = (if (symbolsAndTimeframes.is_some()) { self.omit(params.clone(), Value::Str("symbolsAndTimeframes".into()), &[]) } else { params }).into_dict();
+        if (symbolsAndTimeframes.is_some()) {
+            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes.map_or(Value::Null, Value::Arr));
         }
         let __ws_arg_1 = self.extend(Value::Map(message), &[&paramsOmitted]);
         return self.watch(url.as_str(), &unsubHash[..], __ws_arg_1, &unsubHash[..], Value::Map(subscription)).await;
@@ -1645,7 +1645,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if trigger {
             topic = "algoexecutionreportv2".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
@@ -1703,7 +1703,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if trigger {
             topic = "algoexecutionreportv2".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {

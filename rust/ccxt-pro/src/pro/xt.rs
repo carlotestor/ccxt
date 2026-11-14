@@ -667,9 +667,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("topic".to_string(), topic);
             m
         });
-        let mut symbolsAndTimeframes: Value = self.safe_list_k(subscriptionParams.clone(), "symbolsAndTimeframes", &[]);
-        if (symbolsAndTimeframes != Value::Null) {
-            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
+        let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k(subscriptionParams.clone(), "symbolsAndTimeframes", &[]).into_opt_list();
+        if (symbolsAndTimeframes.is_some()) {
+            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes.map_or(Value::Null, Value::Arr));
         }
         let mut subscriptionParamsOmitted: crate::value::Dict = self.omit(subscriptionParams, Value::Str("symbolsAndTimeframes".into()), &[]).into_dict();
         let __ws_arg_0 = self.extend(request, &[&paramsMarketType]);

@@ -2905,7 +2905,7 @@ impl Bitfinex {
         if (clientOrderId.is_some()) {
             request.insert("cid".into(), Value::from(clientOrderId));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -3207,7 +3207,7 @@ impl Bitfinex {
                 m
             }));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (cid.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("cid".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (cid.is_some()) { self.omit(params.clone(), &["cid", "clientOrderId"], &[]) } else { params }).into_dict();
         let __ws_arg_8 = self.extend(request.map_or(Value::Null, Value::Dict), &[&paramsOmitted]);
         let mut response: crate::value::List = self.private_post_auth_w_order_cancel(&[__ws_arg_8]).await.into_list();
         let mut order: Option<crate::value::List> = self.safe_list(&response, Value::Int(4), &[]).into_opt_list();
@@ -5637,7 +5637,7 @@ impl Bitfinex {
         if (leverage.is_some()) {
             request.insert("lev".into(), Value::from(leverage));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into()), Value::Str("leverage".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"], &[]).into_dict();
         let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.private_post_auth_w_order_update(&[__ws_arg_35]).await.into_list();
         //

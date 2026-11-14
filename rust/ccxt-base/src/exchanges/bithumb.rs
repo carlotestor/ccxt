@@ -2761,7 +2761,7 @@ impl Bithumb {
 })]);
             }  else {
                 let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
-                let mut paramsClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { paramsOmitted.clone() }).into_dict();
+                let mut paramsClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(paramsOmitted.clone(), &["clientOrderId"], &[]) } else { paramsOmitted.clone() }).into_dict();
                 if (clientOrderId.is_some()) {
                     request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
                 }  else {
@@ -3214,7 +3214,7 @@ impl Bithumb {
         }  else {
             clientOrderIds = self.safe_list2(paramsOmitted.clone(), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[]);
         }
-        let mut paramsRequest: crate::value::Dict = (if (clientOrderIds != Value::Null) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clientOrderIds".into())]), &[]) } else { paramsOmitted }).into_dict();
+        let mut paramsRequest: crate::value::Dict = (if (clientOrderIds != Value::Null) { self.omit(paramsOmitted.clone(), &["clientOrderIds"], &[]) } else { paramsOmitted }).into_dict();
         if (clientOrderIds != Value::Null) {
             request.insert("client_order_ids".into(), clientOrderIds);
         }
@@ -3407,7 +3407,7 @@ impl Bithumb {
         let mut useClientOrderId: bool = ((!(twap) && (generation == Some(2))) && (clientOrderId.is_some()));
         let mut paramsRequest: Value = paramsOmitted.clone();
         if useClientOrderId {
-            paramsRequest = self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
+            paramsRequest = self.omit(paramsOmitted, &["clientOrderId"], &[]);
         }
         if twap {
             request.insert("algo_order_id".into(), id.clone());
@@ -3505,10 +3505,10 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut clientOrderIds: Value = self.safe_list2(Value::from(&paramsGeneration), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[]);
-        let mut paramsRequest: crate::value::Dict = (if (clientOrderIds != Value::Null) { self.omit(&paramsGeneration, Value::from(vec![Value::Str("clientOrderIds".into())]), &[]).into_dict() } else { paramsGeneration });
-        if (clientOrderIds != Value::Null) {
-            request.insert("client_order_ids".into(), clientOrderIds);
+        let mut clientOrderIds: Option<crate::value::List> = self.safe_list2(Value::from(&paramsGeneration), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[]).into_opt_list();
+        let mut paramsRequest: crate::value::Dict = (if (clientOrderIds.is_some()) { self.omit(&paramsGeneration, &["clientOrderIds"], &[]).into_dict() } else { paramsGeneration });
+        if (clientOrderIds.is_some()) {
+            request.insert("client_order_ids".into(), clientOrderIds.map_or(Value::Null, Value::Arr));
         }  else {
             request.insert("order_ids".into(), ids);
         }
@@ -3615,7 +3615,7 @@ impl Bithumb {
         let mut requiresDestination: bool = (code.as_str() == Some("XRP")) || (code.as_str() == Some("XMR")) || (code.as_str() == Some("EOS")) || (code.as_str() == Some("STEEM")) || (code.as_str() == Some("TON"));
         let mut paramsDestination: Value = paramsNetwork.clone();
         if requiresDestination {
-            paramsDestination = self.omit(paramsNetwork.clone(), Value::from(vec![Value::Str("destination".into()), Value::Str("secondary_address".into())]), &[]);
+            paramsDestination = self.omit(paramsNetwork.clone(), &["destination", "secondary_address"], &[]);
         }
         if requiresDestination {
             let mut destination: Option<String> = self.safe_string2(paramsNetwork, Value::Str("destination".into()), Value::Str("secondary_address".into()), &[]).as_str().map(str::to_owned);
@@ -3628,7 +3628,7 @@ impl Bithumb {
             }
         }
         let mut receiverType: Option<String> = self.safe_string2(paramsDestination.clone(), Value::Str("receiver_type".into()), Value::Str("cust_type_cd".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsReceiverType: crate::value::Dict = self.omit(paramsDestination, Value::from(vec![Value::Str("receiver_type".into()), Value::Str("cust_type_cd".into())]), &[]).into_dict();
+        let mut paramsReceiverType: crate::value::Dict = self.omit(paramsDestination, &["receiver_type", "cust_type_cd"], &[]).into_dict();
         if (generation == Some(2)) {
             if (code.as_str() == Some("KRW")) {
                 let mut twoFactorType: Option<String> = self.safe_string_k(&paramsReceiverType, "two_factor_type", &[]).as_str().map(str::to_owned);

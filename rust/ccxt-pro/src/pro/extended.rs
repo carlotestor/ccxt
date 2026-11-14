@@ -1303,7 +1303,7 @@ impl Extended {
                 candleType = Some("trades".to_string());
             }
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("candleType".into()), Value::Str("price".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["candleType", "price"], &[]).into_dict();
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbolValue).into()), ":").into()), timeframe).into()), ":").into()), candleType.as_deref().unwrap_or("null"));
         let __ws_arg_2 = self.extend(Value::Map({

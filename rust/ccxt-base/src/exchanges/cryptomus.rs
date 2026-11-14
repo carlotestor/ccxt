@@ -1022,10 +1022,10 @@ impl Cryptomus {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[]);
+        let mut data: Option<crate::value::List> = self.safe_list_k(&response, "data", &[]).into_opt_list();
         let mut dataList: Value = Value::from(vec![]);
-        if (data != Value::Null) {
-            dataList = data;
+        if (data.is_some()) {
+            dataList = data.map_or(Value::Null, Value::Arr);
         }
         return self.parse_trades(dataList, Some(&market), &[since, limit]);
         Value::Null

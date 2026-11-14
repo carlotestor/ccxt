@@ -2268,7 +2268,7 @@ impl Hyperliquid {
                 startTime = Value::Int(0);
             }
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["until"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("candleSnapshot".into()));
@@ -3530,7 +3530,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("slippage".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("slippage".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("timeInForce".into())]), &[]);
+        let mut params2: Value = self.omit(params, &["slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"], &[]);
         let mut nonce: i64 = self.incrementing_nonce();
         let mut orderReq: Vec<Value> = Vec::new();
         let mut grouping: String = "na".to_string();
@@ -3556,7 +3556,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]).into_opt_dict();
             let mut hasStopLoss: bool = stopLoss.is_some();
             let mut hasTakeProfit: bool = takeProfit.is_some();
-            orderParams = self.omit(orderParams, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
+            orderParams = self.omit(orderParams, &["stopLoss", "takeProfit"], &[]);
             let mut mainOrderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), type_var.as_deref(), side.as_deref(), amount.clone().map(Value::from).unwrap_or(Value::Null), price.as_deref(), &[orderParams.clone()]).into_dict();
             if hasStopLoss || hasTakeProfit {
                 // grouping opposed orders for sl/tp
@@ -3576,7 +3576,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " only support grouping normalTpsl and positionTpsl.")));
                 }
-                orderParams = self.omit(orderParams, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("grouping".into())]), &[]);
+                orderParams = self.omit(orderParams, &["stopLoss", "takeProfit", "grouping"], &[]);
                 let mut triggerOrderSide: String = "".to_string();
                 if (side.as_deref() == Some("BUY")) {
                     triggerOrderSide = "sell".to_string();
@@ -3868,7 +3868,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut fast: bool = self.safe_bool_k(params.clone(), "fast", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("fast".into())]), &[]);
+        let mut params2: Value = self.omit(params, &["clientOrderId", "client_id", "fast"], &[]);
         let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4053,7 +4053,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
+        let mut params2: Value = self.omit(params, &["clientOrderId", "client_id"], &[]);
         let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4122,7 +4122,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("slippage".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("slippage".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("timeInForce".into())]), &[]);
+        let mut params2: Value = self.omit(params, &["slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"], &[]);
         let mut modifies: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4161,7 +4161,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut takeProfitPrice: Option<String> = self.safe_string_k(orderParams.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
             let mut isTrigger: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
             let mut reduceOnly: bool = self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            orderParams = self.omit(orderParams, Value::from(vec![Value::Str("slippage".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into())]), &[]);
+            orderParams = self.omit(orderParams, &["slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"], &[]);
             let mut px: Value = Value::from(self.number_to_string(price.map(Value::from).unwrap_or(Value::Null)));
             if isMarket {
                 px = (if isBuy { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage)) } else { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage)) });
@@ -5041,7 +5041,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
         let mut status: Option<String> = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("ccxtStatus".into()), &[]).as_str().map(str::to_owned);
-        let mut orderOmitted: Value = self.omit(order, Value::from(vec![Value::Str("ccxtStatus".into())]), &[]);
+        let mut orderOmitted: Value = self.omit(order, &["ccxtStatus"], &[]);
         let mut side: Option<String> = self.safe_string_k(&entry, "side", &[]).as_str().map(str::to_owned);
         if (side.is_some()) {
             side = (if (side.as_deref() == Some("A")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
@@ -5733,7 +5733,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut asset: Option<i64> = self.parse_to_int(Value::from((market).base_id.as_deref()));
         let mut isCross: bool = marginMode.as_str().unwrap_or_default().to_string() == "cross";
         let mut nonce: i64 = self.incrementing_nonce();
-        let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("leverage".into())]), &[]);
+        let mut params2: Value = self.omit(params, &["leverage"], &[]);
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".into()));
@@ -6535,7 +6535,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut until: Option<i64> = self.safe_integer_k(params2.clone(), "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
-            params2 = self.omit(params2, Value::from(vec![Value::Str("until".into())]), &[]);
+            params2 = self.omit(params2, &["until"], &[]);
         }
         let __ws_arg_32 = self.extend(Value::Map(request), &[params2]);
         let mut response: crate::value::Dict = self.public_post_info(&[__ws_arg_32]).await.into_dict();
@@ -6659,7 +6659,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDeposits requires since while until is set")));
             }
             request.insert("endTime".into(), Value::from(until));
-            params2 = self.omit(params2, Value::from(vec![Value::Str("until".into())]), &[]);
+            params2 = self.omit(params2, &["until"], &[]);
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[params2.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_33]).await;
@@ -6758,7 +6758,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut until: Option<i64> = self.safe_integer_k(params2.clone(), "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
-            params2 = self.omit(params2, Value::from(vec![Value::Str("until".into())]), &[]);
+            params2 = self.omit(params2, &["until"], &[]);
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[params2.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_34]).await;

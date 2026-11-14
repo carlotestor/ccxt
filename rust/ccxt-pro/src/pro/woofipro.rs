@@ -1208,7 +1208,7 @@ impl Woofipro {
         if trigger {
             topic = "algoexecutionreport".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut messageHash: String = topic.clone();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
@@ -1501,9 +1501,9 @@ impl Woofipro {
                 if (fee != Value::Null) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fee".into(), fee);
                 }
-                let mut fees: Value = self.safe_list_k(&order, "fees", &[]);
-                if (fees != Value::Null) {
-                    std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees);
+                let mut fees: Option<crate::value::List> = self.safe_list_k(&order, "fees", &[]).into_opt_list();
+                if (fees.is_some()) {
+                    std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees.map_or(Value::Null, Value::Arr));
                 }
                 std::sync::Arc::make_mut(&mut parsed).insert("trades".into(), self.safe_list_k(&order, "trades", &[Value::from(vec![])]));
                 std::sync::Arc::make_mut(&mut parsed).insert("timestamp".into(), self.safe_integer_k(&order, "timestamp", &[]));

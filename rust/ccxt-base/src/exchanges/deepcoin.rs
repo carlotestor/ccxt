@@ -3561,7 +3561,7 @@ impl Deepcoin {
             if (takeProfitPrice.is_some()) {
                 request.insert("tpTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone(), Value::from(takeProfitPrice))) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
             }
-            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["stopLossPrice", "takeProfitPrice"], &[]).into_dict();
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_deepcoin_trade_replace_order_sltp(&[__ws_arg_28]).await.into_opt_dict();
         }  else {

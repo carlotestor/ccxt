@@ -471,7 +471,7 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]).into_dict();
+        let mut rest: crate::value::Dict = self.omit(params.clone(), &["limit"], &[]).into_dict();
         let mut userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
         let mut rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[Value::Dict(rest), Value::from(userLimit)]).await.as_array().cloned().unwrap_or_default();
         let mut markets: Vec<Value> = Vec::new();
@@ -778,14 +778,14 @@ impl Sxbet {
             append_to_array(&mut queries, tags.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("leagueId".into()), Value::Str("sportId".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), &["eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"], &[]).into_dict();
         let mut rawMarkets: Value = Value::Null;
         if (eventId.is_some()) {
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("sportXeventId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
     m
-}), &[rest.clone()]);
+}), &[&rest]);
             rawMarkets = self.fetch_raw_markets_paged(&[__ws_arg_1, Value::Null]).await;
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
             // returning every fixture) — enforce the scope client-side
@@ -795,19 +795,19 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
         m.insert("leagueId".to_string(), leagueId.map(Value::from).unwrap_or(Value::Null));
     m
-}), &[rest.clone()]);
+}), &[&rest]);
             rawMarkets = self.fetch_raw_markets_paged(&[__ws_arg_2, Value::Null]).await;
         }  else if (sportId.is_some()) {
             let __ws_arg_3 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("sportId".to_string(), sportId.map(Value::from).unwrap_or(Value::Null));
     m
-}), &[rest.clone()]);
+}), &[&rest]);
             rawMarkets = self.fetch_raw_markets_paged(&[__ws_arg_3, Value::Null]).await;
         }  else {
             // no server-side scope left, only query/tags — full scan honoring the fetchMarkets
             // bound, then filter client-side (the venue's /search covers team names only)
-            rawMarkets = self.fetch_raw_markets_paged(&[rest, Value::Null]).await;
+            rawMarkets = self.fetch_raw_markets_paged(&[Value::Dict(rest), Value::Null]).await;
         }
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
@@ -872,7 +872,7 @@ impl Sxbet {
         }
         self.populate_outcomes();
         self.set_events(Value::from(result.clone()));
-        let mut postParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("leagueId".into()), Value::Str("sportId".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into())]), &[]).into_dict();
+        let mut postParams: crate::value::Dict = self.omit(params, &["leagueId", "sportId", "query", "queries", "tags"], &[]).into_dict();
         return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), Value::from(vec![])]);
         Value::Null
         }).await?))
@@ -1358,7 +1358,7 @@ impl Sxbet {
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut rest: crate::value::Dict = self.omit(&paramsSpender, Value::from(vec![Value::Str("amount".into()), Value::Str("tokenAddress".into()), Value::Str("deadline".into()), Value::Str("rpcUrl".into())]), &[]).into_dict();
+        let mut rest: crate::value::Dict = self.omit(&paramsSpender, &["amount", "tokenAddress", "deadline", "rpcUrl"], &[]).into_dict();
         let __ws_arg_5 = self.extend(Value::Map(request), &[&rest]);
         let mut response: Value = self.sxbet_private_post_user_transfer_to_proxy(&[__ws_arg_5]).await;
         let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -1565,7 +1565,7 @@ impl Sxbet {
             std::sync::Arc::make_mut(&mut orderItem).insert("externalUserId".into(), externalUserId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut waitForOutcome: bool = self.safe_bool_k(&paramsTimeInForce, "waitForOutcome", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-        let mut rest: crate::value::Dict = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("salt".into()), Value::Str("expiry".into()), Value::Str("clientOrderId".into()), Value::Str("waitForOutcome".into()), Value::Str("useBetCredits".into()), Value::Str("externalUserId".into())]), &[]).into_dict();
+        let mut rest: crate::value::Dict = self.omit(&paramsTimeInForce, &["salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), Value::from(vec![Value::Dict(orderItem)]));
@@ -1859,7 +1859,7 @@ impl Sxbet {
 }));
         self.check_required_credentials(&[]);
         let mut eventId: Option<String> = self.safe_string2(params.clone(), Value::Str("eventId".into()), Value::Str("sportXeventId".into()), &[]).as_str().map(str::to_owned);
-        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("eventId".into()), Value::Str("sportXeventId".into())]), &[]).into_dict();
+        let mut rest: crate::value::Dict = self.omit(params, &["eventId", "sportXeventId"], &[]).into_dict();
         let mut isEventScoped: bool = eventId.is_some();
         let mut response: Option<crate::value::Dict> = None;
         if isEventScoped {
@@ -2473,7 +2473,7 @@ impl Sxbet {
                 m.insert("status".to_string(), self.safe_string_k(params.clone(), "status", &[Value::Str("MATCHED,LOCKED".into())]));
             m
         });
-        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("status".into())]), &[]).into_dict();
+        let mut rest: crate::value::Dict = self.omit(params, &["status"], &[]).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&rest]);
         let mut response: crate::value::Dict = self.sxbet_private_get_positions_v3(&[__ws_arg_15]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({

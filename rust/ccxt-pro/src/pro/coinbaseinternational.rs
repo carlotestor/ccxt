@@ -2709,11 +2709,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 request.insert("label".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", brokerId.as_deref().unwrap_or("null"), "-").into()), self.uuid22(&[])).into()));
             }
         }
-        let mut paramsRequest: Value = self.omit(&paramsResolved, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("timeInForce".into()), Value::Str("tif".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
+        let mut paramsRequest: crate::value::Dict = self.omit(&paramsResolved, &["clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"], &[]).into_dict();
         if (self.parent.is_native_deribit_credentials().as_bool() == Some(true)) {
-            paramsRequest = self.omit(paramsRequest, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
+            paramsRequest = self.omit(Value::Dict(paramsRequest), &["reduceOnly", "reduce_only"], &[]).into_dict();
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[paramsRequest]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str(format!("{}{}", "private/", side).into()), &[__ws_arg_6, Value::Bool(true)]).await;
         let mut order: Value = self.safe_dict_k(result.clone(), "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2777,7 +2777,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (triggerPrice.is_some()) {
             request.insert("trigger_price".into(), Value::from(triggerPrice));
         }
-        let mut paramsRequest: crate::value::Dict = self.omit(&paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).into_dict();
+        let mut paramsRequest: crate::value::Dict = self.omit(&paramsResolved, &["triggerPrice", "stopPrice", "stop_price"], &[]).into_dict();
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str("private/edit".into()), &[__ws_arg_7, Value::Bool(true)]).await;
         let mut order: Value = self.safe_dict_k(result.clone(), "order", &[Value::Map({

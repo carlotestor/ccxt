@@ -446,9 +446,9 @@ impl Bingx {
                 m.insert("topic".to_string(), topic);
             m
         });
-        let mut symbolsAndTimeframes: Value = self.safe_list_k(&query, "symbolsAndTimeframes", &[]);
-        if (symbolsAndTimeframes != Value::Null) {
-            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
+        let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k(&query, "symbolsAndTimeframes", &[]).into_opt_list();
+        if (symbolsAndTimeframes.is_some()) {
+            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes.map_or(Value::Null, Value::Arr));
             query = self.omit(&query, Value::Str("symbolsAndTimeframes".into()), &[]).into_dict();
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[&query]);

@@ -3139,7 +3139,7 @@ pub trait ExchangeBase:
 }
 
     fn safe_balance(&self, mut balance: Value) -> Value {
-        let mut balances: indexmap::IndexMap<String, Value> = self.omit(balance.clone(), Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]), &[]).as_map().cloned().unwrap_or_default();
+        let mut balances: indexmap::IndexMap<String, Value> = self.omit(balance.clone(), &["info", "timestamp", "datetime", "free", "used", "total"], &[]).as_map().cloned().unwrap_or_default();
         let mut codes: Vec<Value> = Value::Array(balances.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut freeBalance: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4799,7 +4799,7 @@ pub trait ExchangeBase:
     fn handle_network_code_and_params(&self, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
         let mut networkCodeInParams: Option<String> = self.safe_string2(params.clone(), Value::Str("networkCode".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (networkCodeInParams.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("networkCode".into()), Value::Str("network".into())]), &[]) } else { params });
+        let mut paramsOmitted: Value = (if (networkCodeInParams.is_some()) { self.omit(params.clone(), &["networkCode", "network"], &[]) } else { params });
         return Value::from(vec![networkCodeInParams.map(Value::from).unwrap_or(Value::Null), paramsOmitted]);
 
     Value::Null
@@ -6744,7 +6744,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // type from param
         let mut type_var: Option<String> = self.safe_string2(params.clone(), Value::Str("defaultType".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
         if (type_var.is_some()) {
-            let mut paramsOmitted: Value = self.omit(params.clone(), Value::from(vec![Value::Str("defaultType".into()), Value::Str("type".into())]), &[]);
+            let mut paramsOmitted: Value = self.omit(params.clone(), &["defaultType", "type"], &[]);
             return Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null), paramsOmitted]);
         }
         // type from market
@@ -6786,7 +6786,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (subTypeInParams.as_deref() == Some("linear")) || (subTypeInParams.as_deref() == Some("inverse")) {
                 subType = subTypeInParams.map(Value::from).unwrap_or(Value::Null);
             }
-            let mut paramsOmitted: Value = self.omit(params.clone(), Value::from(vec![Value::Str("subType".into()), Value::Str("defaultSubType".into())]), &[]);
+            let mut paramsOmitted: Value = self.omit(params.clone(), &["subType", "defaultSubType"], &[]);
             return Value::from(vec![subType.clone(), paramsOmitted]);
         }  else {
             // at first, check from market object
@@ -7183,7 +7183,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("stopLoss".into(), Value::Map(stopLossRequest)); }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("takeProfitType".into()), Value::Str("takeProfitPriceType".into()), Value::Str("takeProfitLimitPrice".into()), Value::Str("takeProfitAmount".into()), Value::Str("stopLossType".into()), Value::Str("stopLossPriceType".into()), Value::Str("stopLossLimitPrice".into()), Value::Str("stopLossAmount".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(params, &["takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"], &[]);
         return paramsOmitted;
 
     Value::Null
@@ -8452,7 +8452,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn handle_trigger_and_params(&self, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut paramsOmitted: Value = (if (isTrigger == Some(true)) { self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]) } else { params });
+        let mut paramsOmitted: Value = (if (isTrigger == Some(true)) { self.omit(params.clone(), &["trigger", "stop"], &[]) } else { params });
         return Value::from(vec![isTrigger.map_or(Value::Null, Value::Bool), paramsOmitted]);
 
     Value::Null
@@ -9751,7 +9751,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(self.parse_to_int((match (&(Value::from(until)), &(multiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                 Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))); }
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params });
+        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), &["until", "till"], &[]) } else { params });
         return Value::from(vec![request, paramsOmitted]);
 
     Value::Null

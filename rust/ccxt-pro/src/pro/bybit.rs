@@ -614,7 +614,7 @@ impl Bybit {
 
     pub fn clean_params(&self, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("type".into()), Value::Str("subType".into()), Value::Str("settle".into()), Value::Str("defaultSettle".into()), Value::Str("unifiedMargin".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(params, &["type", "subType", "settle", "defaultSettle", "unifiedMargin"], &[]);
         return paramsOmitted;
 
     Value::Null
