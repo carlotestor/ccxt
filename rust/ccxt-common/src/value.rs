@@ -681,6 +681,16 @@ fn live_lookup_get() -> Option<LiveLookupFn> {
     LIVE_LOOKUP.get().copied()
 }
 
+/// Keys the live-test harness drops from a `__live_id` snapshot so their reads
+/// resolve through `LIVE_LOOKUP` off the Core. `get_value` consults the lookup
+/// only for a missing or null snapshot key, so a field the Core holds as a typed
+/// container (`symbols` is a `List`, empty rather than null before `loadMarkets`)
+/// must not be copied into the snapshot, or the empty copy shadows the live value.
+pub const LIVE_SNAPSHOT_STRIPPED_KEYS: &[&str] = &[
+    "api", "urls", "fees", "timeframes", "exceptions",
+    "features", "precision", "limits", "has", "symbols",
+];
+
 // Companion to `LiveLookupFn` but for writing: routes `exchange.setMarkets(...)`
 // on a `__live_id` snapshot to the registered *live* Core, so the Core's
 // `PredictionExchange::set_markets` override (outcome aliasing + populateOutcomes)
@@ -2838,5 +2848,56 @@ mod into_opt_string_tests {
         let out = Value::Str(Cow::Owned(s)).into_opt_string().unwrap();
         assert_eq!(out.as_ptr(), at);
         assert_eq!(out, "BTC/USDT");
+    }
+}
+
+#[cfg(test)]
+mod live_snapshot_symbols_tests {
+    // ral-40j: a live-test snapshot must read `symbols` off the Core after
+    // `set_markets`; the empty typed list copied by `to_value()` shadowed it
+    // (89 venues failed loadMarkets `symbolsLength > 0` on PR 31136).
+    use super::*;
+    use crate::exchange::{BaseCore, Exchange};
+    use crate::exchange_generated::ExchangeBase;
+
+    thread_local! {
+        static CORE_SYMBOLS: std::cell::RefCell<Value> = std::cell::RefCell::new(Value::Null);
+    }
+    fn lookup(_id: &str, key: &str) -> Option<Value> {
+        if key == "symbols" { Some(CORE_SYMBOLS.with(|c| c.borrow().clone())) } else { None }
+    }
+    fn market(symbol: &str, id: &str) -> Value {
+        let (base, quote) = symbol.split_once('/').unwrap();
+        let mut m = HashMap::new();
+        for (k, v) in [("id", id), ("symbol", symbol), ("base", base), ("quote", quote), ("baseId", base), ("quoteId", quote), ("type", "spot")] {
+            m.insert(k.to_string(), Value::Str(v.to_string().into()));
+        }
+        m.insert("spot".to_string(), Value::Bool(true));
+        Value::Map(m)
+    }
+
+    #[test]
+    fn symbols_non_empty_after_set_markets_and_readable_through_live_snapshot() {
+        set_live_lookup(lookup);
+        let mut core = BaseCore::new(Exchange::new(None));
+        // before loadMarkets the typed field is an empty list, not null
+        let pristine = core.to_value();
+        assert!(matches!(get_value(&pristine, &Value::Str("symbols".into())), Value::Arr(ref a) if a.is_empty()));
+        // the harness snapshot: `__live_id` + the stripped keys removed
+        let mut snap = match pristine { Value::Dict(m) => (*m).clone(), _ => unreachable!() };
+        for k in LIVE_SNAPSHOT_STRIPPED_KEYS { snap.shift_remove(*k); }
+        snap.insert("__live_id".to_string(), Value::Str("venue".into()));
+        let snap = Value::Dict(Arc::new(snap));
+        core.set_markets(Value::List(vec![market("BTC/USDT", "btcusdt"), market("ETH/USDT", "ethusdt")]), &[]);
+        assert_eq!(core.symbols.len(), 2, "set_markets fills the typed symbols list");
+        CORE_SYMBOLS.with(|c| *c.borrow_mut() = Value::Arr(core.symbols.clone()));
+        assert_eq!(get_value(&snap, &Value::Str("symbols".into())).len(), 2, "the live snapshot reads the Core's symbols");
+        // a snapshot that kept the pre-load copy would still answer the empty list
+        let mut stale = match core_snapshot_with_symbols() { Value::Dict(m) => (*m).clone(), _ => unreachable!() };
+        stale.insert("__live_id".to_string(), Value::Str("venue".into()));
+        assert_eq!(get_value(&Value::Dict(Arc::new(stale)), &Value::Str("symbols".into())).len(), 0);
+    }
+    fn core_snapshot_with_symbols() -> Value {
+        BaseCore::new(Exchange::new(None)).to_value()
     }
 }
