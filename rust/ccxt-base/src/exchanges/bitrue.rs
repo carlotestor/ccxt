@@ -4122,11 +4122,11 @@ impl Bitrue {
                     }));
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
                 }  else {
-                    let mut query: Option<crate::value::Dict> = self.extend(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("recvWindow".to_string(), Value::from(recvWindow));
-    m
-}), &[&paramsOmitted]).into_opt_dict();
+                    let mut query: crate::value::Dict = self.extend(Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("recvWindow".to_string(), Value::from(recvWindow));
+                        m
+                    }), &[&paramsOmitted]).into_dict();
                     requestBody = json_stringify(&query);
                     signMessage = Value::Str(format!("{}{}", signMessage, requestBody).into());
                     let mut signature: String = self.hmac(self.encode(signMessage), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);

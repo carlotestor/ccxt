@@ -4431,7 +4431,7 @@ impl Nado {
             pathSuffix = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         }
         let mut url: String = format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), pathSuffix);
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4440,8 +4440,8 @@ impl Nado {
             headersValue.insert("Accept-Encoding".into(), Value::Str("gzip, br, deflate".into()));
         }
         if (method.as_str() == Some("GET")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), pathSuffix).into()), "?").into()), self.urlencode(query.clone(), &[]));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), pathSuffix).into()), "?").into()), self.urlencode(&query, &[]));
             }
         }  else {
             headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));

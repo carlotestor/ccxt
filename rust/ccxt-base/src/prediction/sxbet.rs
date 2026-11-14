@@ -4077,7 +4077,7 @@ impl Sxbet {
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "sxbet")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4095,16 +4095,16 @@ impl Sxbet {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let mut sendAsQuery: bool = method.as_str() == Some("GET");
         if (method.as_str() == Some("DELETE")) {
-            sendAsQuery = !(matches!(&query, Value::Dict(__d) if __d.contains_key("orders")));
+            sendAsQuery = !(query.contains_key("orders"));
         }
         let mut bodyValue: Option<String> = None;
         if sendAsQuery {
-            let mut querystring: String = self.urlencode(query.clone(), &[]);
+            let mut querystring: String = self.urlencode(&query, &[]);
             if (querystring != "") {
                 url.push_str(&format!("{}{}", "?", querystring));
             }
         }  else {
-            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 bodyValue = json_stringify(&query).as_str().map(str::to_owned);
             }
         }

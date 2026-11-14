@@ -3617,8 +3617,8 @@ impl Dydx {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathWithParams);
-        let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut paramsSorted: Value = self.keysort(paramsOmitted, &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
+        let mut paramsSorted: Value = self.keysort(Value::Dict(paramsOmitted), &[]);
         if (method.as_str() == Some("GET")) {
             if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathWithParams).into()), "?").into()), self.urlencode(paramsSorted.clone(), &[]));
