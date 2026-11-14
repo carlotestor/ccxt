@@ -2109,7 +2109,7 @@ impl Gate {
             self.myTrades = cachedTrades.clone();
         }
         let mut parsed: Value = self.parse_trades(Value::Arr(result), None, &[]);
-        let mut marketIds: Value = Value::Map({
+        let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2121,11 +2121,11 @@ impl Gate {
             cachedTrades.append(trade.clone());
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+                marketIds.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
             }
         }
         }
-        let mut keys: Vec<Value> = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(marketIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_329: bool = true;
@@ -2322,7 +2322,7 @@ impl Gate {
         }
         let mut market: Option<crate::types::Market> = None;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut payload: Value = Value::from(vec![Value::Str(format!("{}{}", "!", "all").into())]);
+        let mut payload: crate::value::List = std::sync::Arc::new(vec![Value::Str(format!("{}{}", "!", "all").into())]);
         if !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
             market = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         }
@@ -2359,7 +2359,7 @@ impl Gate {
         if (fetchPositionsSnapshot == Some(true)) && (awaitPositionsSnapshot == Some(true)) && (cache.is_none()) {
             return crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchPositionsSnapshot").into()))).await;
         }
-        let mut positions: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), payload, Some(channel.as_str()), Value::Dict(query), &[Value::Bool(true)]).await;
+        let mut positions: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), Value::Dict(query), &[Value::Bool(true)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
@@ -2689,7 +2689,7 @@ impl Gate {
             }
         }
         }
-        let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(marketIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_335: bool = true;
@@ -3321,7 +3321,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("/ws/futures/".to_string(), Value::Str("swap".into()));
             m
         });
-        let mut keys: Vec<Value> = Value::Array(findBy.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(findBy.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_340: bool = true;

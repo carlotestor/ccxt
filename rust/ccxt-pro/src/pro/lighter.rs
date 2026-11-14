@@ -687,7 +687,7 @@ impl Lighter {
 }) }).as_map().cloned().unwrap_or_default();
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (channel.as_deref() == Some("market_stats:all")) {
-            let mut marketIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+            let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_468: bool = true;

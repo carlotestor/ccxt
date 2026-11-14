@@ -1721,7 +1721,7 @@ impl Btse {
             }
         }
         }
-        let mut codes: Vec<Value> = Value::Array(totals.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut codes: Vec<Value> = Value::Array(totals.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_482: bool = true;

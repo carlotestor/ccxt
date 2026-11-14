@@ -692,7 +692,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
         }
         }
-        let mut replacementKeys: Vec<Value> = Value::Array(replacements.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut replacementKeys: Vec<Value> = Value::Array(replacements.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_200: bool = true;

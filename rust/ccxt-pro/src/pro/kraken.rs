@@ -2046,7 +2046,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.myTrades = Some(ArrayCache::new(limit));
             }
             let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-            let mut symbols: Value = Value::Map({
+            let mut symbols: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -2061,12 +2061,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut parsed: crate::value::Dict = self.parse_ws_trade(&trade, None).into_dict();
                 stored.append(Value::from(&parsed));
                 let mut symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
-                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+                symbols.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
             }
             }
             let mut name: String = "myTrades".to_string();
             client.resolve(Value::from(&self.myTrades), name.as_str());
-            let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_425: bool = true;
@@ -2222,7 +2222,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
             let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
-            let mut symbols: Value = Value::Map({
+            let mut symbols: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -2258,13 +2258,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 stored.append(newOrder);
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                    symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 }
             }
             }
             let mut name: String = "orders".to_string();
             client.resolve(Value::from(&self.orders), name.as_str());
-            let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_427: bool = true;

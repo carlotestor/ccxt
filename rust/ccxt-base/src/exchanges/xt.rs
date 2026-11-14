@@ -5095,22 +5095,22 @@ impl Xt {
         //         }
         //     }
         //
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut resultDict: Option<crate::value::Dict> = self.safe_dict_k(&response, "result", &[]).into_opt_dict();
         if (resultDict.is_some()) {
-            orders = self.safe_list_k(&resultDict, "items", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&resultDict, "items", &[Value::from(vec![])]).into_list();
         }  else {
-            orders = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         }
         if trailing {
             // the track endpoints do not support a server-side state filter
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
-            let mut parsedOrders: crate::value::List = self.parse_orders(orders.clone(), market.as_ref(), &[]).into_list();
+            let mut parsedOrders: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[]).into_list();
             let mut filteredOrders: crate::value::List = self.filter_by(Value::Arr(parsedOrders), Value::Str("status".into()), status, &[]).into_list();
             return self.filter_by_since_limit(&filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         }
-        return self.parse_orders(orders, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
 
     Value::Null
 }

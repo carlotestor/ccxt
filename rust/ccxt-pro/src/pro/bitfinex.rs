@@ -1432,7 +1432,7 @@ impl Bitfinex {
             updatedTypes.insert(balanceType.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
         }
         }
-        let mut updatesKeys: Vec<Value> = Value::Array(updatedTypes.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut updatesKeys: Vec<Value> = Value::Array(updatedTypes.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_106: bool = true;
@@ -1731,7 +1731,7 @@ impl Bitfinex {
         }
         let mut name: String = "orders".to_string();
         client.resolve(Value::from(&self.orders), name.as_str());
-        let mut keys: Vec<Value> = Value::Array(symbolIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(symbolIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_109: bool = true;

@@ -3447,7 +3447,7 @@ impl Blofin {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).as_map().cloned().unwrap_or_default();
-                let mut networkKeys: Vec<Value> = Value::Array(networks.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+                let mut networkKeys: Vec<Value> = Value::Array(networks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 let mut networkKeysLength: i64 = networkKeys.len() as i64;
                 if (networkKeysLength == 1) {
                     networkCode = self.safe_string(&networkKeys, Value::Int(0), &[]).as_str().map(str::to_owned);

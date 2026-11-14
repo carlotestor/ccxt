@@ -2061,15 +2061,15 @@ impl Bitteam {
         //     ]
         //
         let mut tickers: Vec<Value> = Vec::new();
-        let mut rawTickers: Value = Value::from(vec![]);
+        let mut rawTickers: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            rawTickers = response;
+            rawTickers = response.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_441: bool = true;
             while { if !__for_first_441 { i += 1; } __for_first_441 = false; i < (rawTickers.len() as i64) } {
-            let mut rawTicker: crate::value::Dict = rawTickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut rawTicker: crate::value::Dict = rawTickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut ticker: crate::value::Dict = self.parse_ticker(&rawTicker, None).into_dict();
             tickers.push(Value::Dict(ticker));
         }
@@ -2871,7 +2871,7 @@ impl Bitteam {
     m
 })]).into_dict();
         let mut balanceByCurrencies: indexmap::IndexMap<String, Value> = self.omit(&result, &["free", "used", "total"], &[]).as_map().cloned().unwrap_or_default();
-        let mut rawCurrencyIds: Vec<Value> = Value::Array(balanceByCurrencies.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut rawCurrencyIds: Vec<Value> = Value::Array(balanceByCurrencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_442: bool = true;

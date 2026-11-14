@@ -6273,7 +6273,7 @@ impl Htx {
                         }
                     }
                     }
-                    let mut subCodes: Vec<Value> = Value::Array(subResult.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+                    let mut subCodes: Vec<Value> = Value::Array(subResult.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_777: bool = true;

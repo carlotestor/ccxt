@@ -2653,12 +2653,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = self.safe_value_k(&response, "result", &[Value::from(vec![])]);
         let mut listId: Option<String> = self.safe_string_k(result.clone(), "list_id", &[]).as_str().map(str::to_owned);
         if (listId.is_some()) {
-            let mut ocoOrders: Value = Value::from(vec![Value::Map({
+            let mut ocoOrders: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order_id".to_string(), listId.map(Value::from).unwrap_or(Value::Null));
     m
 })]);
-            return self.parse_orders(ocoOrders, None, &[]);
+            return self.parse_orders(&ocoOrders, None, &[]);
         }
         return self.parse_orders(result, None, &[]);
         Value::Null

@@ -5058,12 +5058,12 @@ impl Woo {
         if (access.as_deref() == Some("public")) {
             let mut publicUrl: String = format!("{}{}", Value::Str(format!("{}{}", urlPrefix, "public/").into()), pathWithParams);
             url = publicUrl.clone();
-            if ((Value::Array(paramsSorted.keys().map(|__k| Value::Str(__k.clone().into())).collect()).len() as i64) as f64) > ((0i64) as f64) {
+            if ((Value::Array(paramsSorted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", publicUrl, "?").into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
             }
         }  else if (access.as_deref() == Some("pub")) {
             url = format!("{}{}", urlPrefix, pathWithParams);
-            if ((Value::Array(paramsSorted.keys().map(|__k| Value::Str(__k.clone().into())).collect()).len() as i64) as f64) > ((0i64) as f64) {
+            if ((Value::Array(paramsSorted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), "?").into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
             }
         }  else {

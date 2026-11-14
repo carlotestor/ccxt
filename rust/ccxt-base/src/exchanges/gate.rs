@@ -9409,11 +9409,11 @@ if _try_result.is_err() {
         //         }
         //     ]
         //
-        let mut responseList: Value = Value::from(vec![]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (response != Value::Null) {
-            responseList = self.to_array(response);
+            responseList = self.to_array(response).into_list();
         }
-        return self.parse_positions(responseList, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.parse_positions(&responseList, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -11698,11 +11698,11 @@ if _try_result.is_err() {
         //        ...
         //    ]
         //
-        let mut responseList: Value = Value::from(vec![]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (response != Value::Null) {
-            responseList = self.to_array(response);
+            responseList = self.to_array(response).into_list();
         }
-        return self.parse_positions(responseList, &[symbols, Value::Dict(paramsValue)]);
+        return self.parse_positions(&responseList, &[symbols, Value::Dict(paramsValue)]);
         Value::Null
         }).await?))
     }

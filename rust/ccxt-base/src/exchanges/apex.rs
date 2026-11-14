@@ -981,7 +981,7 @@ impl Apex {
             }
         }
         }
-        let mut networkKeys: Vec<Value> = Value::Array(networks.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut networkKeys: Vec<Value> = Value::Array(networks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut networksLength: i64 = networkKeys.len() as i64;
         let mut emptyChains: bool = networksLength == 0; // non-functional coins
         let mut valueForEmpty: Option<bool> = (if emptyChains { Some(false) } else { None });

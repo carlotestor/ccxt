@@ -2628,7 +2628,7 @@ impl Bitget {
         if isTrigger {
             messageHash = "triggerOrder".to_string();
         }
-        let mut marketSymbols: Value = Value::Map({
+        let mut marketSymbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2643,11 +2643,11 @@ impl Bitget {
             stored.append(Value::from(&parsed));
             let mut symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
             if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut marketSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+                marketSymbols.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
             }
         }
         }
-        let mut keys: Vec<Value> = Value::Array(marketSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(marketSymbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_121: bool = true;

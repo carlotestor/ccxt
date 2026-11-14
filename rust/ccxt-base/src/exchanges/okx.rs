@@ -4367,7 +4367,7 @@ impl Okx {
             }
             }
             let mut promisesResult: Value = promise_all(&Value::from(promises)).await;
-            let mut markets: Value = Value::from(vec![]);
+            let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1004: bool = true;
@@ -4377,10 +4377,10 @@ impl Okx {
     m
 })]).into_dict();
                 let mut options: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
-                markets = self.array_concat(markets, &options);
+                markets = self.array_concat(Value::Arr(markets), &options).into_list();
             }
             }
-            return self.parse_markets(markets);
+            return self.parse_markets(&markets);
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_instruments(&[__ws_arg_11]).await.into_dict();

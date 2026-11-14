@@ -1277,7 +1277,7 @@ impl Polymarket {
             self.orders = Some(ArrayCacheBySymbolById::new(limit));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1293,12 +1293,12 @@ impl Polymarket {
             stored.append(Value::from(&parsed));
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
         client.resolve(Value::from(&stored), "orders");
-        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbolKeys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_655: bool = true;
@@ -1404,7 +1404,7 @@ impl Polymarket {
             self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1420,12 +1420,12 @@ impl Polymarket {
             stored.append(Value::from(&parsed));
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
         client.resolve(Value::from(&stored), "myTrades");
-        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbolKeys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_657: bool = true;

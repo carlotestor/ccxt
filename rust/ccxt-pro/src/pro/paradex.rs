@@ -1892,7 +1892,7 @@ if _try_result.is_err() {
         let mut url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut marketIds: Vec<Value> = Vec::new();
-        let mut subscribeHashes: Value = Value::from(vec![]);
+        let mut subscribeHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut subMessageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1901,7 +1901,7 @@ if _try_result.is_err() {
             let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             marketIds.push(marketId.clone());
-            if let Value::Arr(__a) = &mut subscribeHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), marketId).into())); };
+            std::sync::Arc::make_mut(&mut subscribeHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), marketId).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), symbol).into()));
         }
         }
@@ -1932,7 +1932,7 @@ if _try_result.is_err() {
             if ((match (&(get_value(&keys, &Value::Int(i))), &(Value::Str(format!("{}{}", channel, ".").into()))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
                 Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
                 (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s),
-                Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64() == Some(0.0)) && !self.in_array(keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), subscribeHashes.clone()) {
+                Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64() == Some(0.0)) && !self.in_array(keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &subscribeHashes) {
                 remaining = (remaining + 1);
             }
         }
@@ -1967,7 +1967,7 @@ if _try_result.is_err() {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ticker".into()));
-                m.insert("subscribeHashes".to_string(), subscribeHashes);
+                m.insert("subscribeHashes".to_string(), Value::Arr(subscribeHashes));
                 m.insert("subMessageHashes".to_string(), Value::from(subMessageHashes));
                 m.insert("symbols".to_string(), tickerSymbols);
             m

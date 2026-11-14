@@ -3738,7 +3738,7 @@ impl Polymarket {
         let mut appDomainData: Value = self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into())]), Value::from(vec![Value::from(&domainTypeHash), Value::from(&nameHash), Value::from(&versionHash),
             self.convert_to_big_int(Value::from(self.number_to_string(Value::from(chainIdValue)))), exchangeAddress]));
         let mut appDomainSep: String = format!("{}{}", Value::Str("0x".into()), self.hash(appDomainData, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
-        let mut typedDataSignStruct: Value = Value::from(vec![Value::Map({
+        let mut typedDataSignStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("contents".into()));
         m.insert("type".to_string(), Value::Str("Order".into()));
@@ -3782,7 +3782,7 @@ impl Polymarket {
         });
         let mut innerEncoded: Value = self.eth_encode_structured_data(Value::Map(orderDomain), Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("TypedDataSign".to_string(), typedDataSignStruct);
+                m.insert("TypedDataSign".to_string(), Value::Arr(typedDataSignStruct));
                 m.insert("Order".to_string(), orderStruct);
             m
         }), Value::Map(innerValue));

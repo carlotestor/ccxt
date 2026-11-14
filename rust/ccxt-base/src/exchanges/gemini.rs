@@ -1501,16 +1501,16 @@ impl Gemini {
 })]).into_dict();
         let mut brokenPairs: crate::value::List = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]).into_list();
         let mut marketIds: Vec<Value> = Vec::new();
-        let mut allMarketIds: Value = Value::from(vec![]);
+        let mut allMarketIds: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&marketIdsRaw, Value::Arr(_))) {
-            allMarketIds = marketIdsRaw;
+            allMarketIds = marketIdsRaw.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_713: bool = true;
             while { if !__for_first_713 { i += 1; } __for_first_713 = false; i < (allMarketIds.len() as i64) } {
-            if !self.in_array(allMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)) {
-                marketIds.push(allMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            if !self.in_array(allMarketIds.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)) {
+                marketIds.push(allMarketIds.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }
@@ -3268,11 +3268,11 @@ impl Gemini {
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        let mut candles: Value = Value::from(vec![]);
+        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            candles = response;
+            candles = response.into_list();
         }
-        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }

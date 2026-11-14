@@ -1480,11 +1480,11 @@ impl Poloniex {
         //         ]
         //     ]
         //
-        let mut candles: Value = Value::from(vec![]);
+        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            candles = response;
+            candles = response.into_list();
         }
-        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4545,15 +4545,15 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut entries: Value = Value::from(vec![]);
+        let mut entries: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            entries = response;
+            entries = response.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_1094: bool = true;
             while { if !__for_first_1094 { i += 1; } __for_first_1094 = false; i < (entries.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(entries.clone(), Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&entries, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
