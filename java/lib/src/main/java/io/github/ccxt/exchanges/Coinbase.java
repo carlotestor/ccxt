@@ -1628,10 +1628,23 @@ public class Coinbase extends CoinbaseApi
         String datetime = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("created_at", "trade_time", "time")));
         String side = this.safeStringLower2(trade, "resource", "side");
         String takerOrMaker = this.safeStringLower(trade, "liquidity_indicator");
+        String orderId = this.safeString(trade, "order_id");
+        String entryId = this.safeString(trade, "entry_id");
+        if ((java.util.Objects.equals(orderId, null)) && (java.util.Objects.equals(entryId, null)) && (java.util.Objects.equals(this.safeString(trade, "resource"), null)))
+        {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if (java.util.Objects.equals(side, "buy"))
+            {
+                side = "sell";
+            } else if (java.util.Objects.equals(side, "sell"))
+            {
+                side = "buy";
+            }
+        }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", trade);
         mapLiteral4.put("id", this.safeString2(trade, "id", "trade_id"));
-        mapLiteral4.put("order", this.safeString(trade, "order_id"));
+        mapLiteral4.put("order", orderId);
         mapLiteral4.put("timestamp", this.parse8601(datetime));
         mapLiteral4.put("datetime", datetime);
         mapLiteral4.put("symbol", symbol);

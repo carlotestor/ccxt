@@ -418,6 +418,9 @@ public class Okx extends OkxApi
                         put( "public/delta-hedge-currencies", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "public/corporate-actions", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "rubik/stat/trading-data/support-coin", new HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
