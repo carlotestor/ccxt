@@ -244,8 +244,8 @@ impl Okx {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
@@ -1217,7 +1217,7 @@ impl Okx {
         let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&arg, "instId", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut channel: Option<String> = self.safe_string_k(&arg, "channel", &[]).as_str().map(str::to_owned);
         if (channel.as_deref() == Some("tickers")) {
             // of the five feeds routed here, only the plain one carries bidPx/askPx —
@@ -1225,7 +1225,7 @@ impl Okx {
             self.handle_bid_ask(client.clone(), message);
         }
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-        let mut newTickers: Value = Value::Map({
+        let mut newTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1234,13 +1234,13 @@ impl Okx {
             let mut __for_first_532: bool = true;
             while { if !__for_first_532 { i += 1; } __for_first_532 = false; i < (data.len() as i64) } {
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(data.get(i as usize).cloned().unwrap_or(Value::Null), None).as_map().cloned().unwrap_or_default();
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker.clone())); }
-            if let Value::Dict(__d) = &mut newTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker)); }
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker.clone())); }
+            newTickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
         }
         }
         if (channel.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), "::").into()), symbol);
-            client.resolve(newTickers, messageHash.as_str());
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), "::").into()), symbol.as_deref().unwrap_or("null"));
+            client.resolve(Value::Map(newTickers), messageHash.as_str());
         }
 }
 
@@ -3899,8 +3899,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("mass-cancel".to_string(), Value::Str("handle_cancel_all_orders".into()).clone());
                 m
             }).into_dict();
-            let mut method: Value = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method != Value::Null) {
+            let mut method: Option<String> = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }  else {
@@ -3933,8 +3933,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("balance_and_position".to_string(), Value::Str("handle_balance_and_position".into()).clone());
                 m
             }).into_dict();
-            let mut method: Value = self.safe_value(&methods, channel.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method == Value::Null) {
+            let mut method: Option<String> = self.safe_value(&methods, channel.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_none()) {
                 if (Value::Int(channel.as_deref().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
                     self.handle_ohlcv(client.clone(), message.clone());
                 }

@@ -231,8 +231,8 @@ impl Lighter {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
             "cancel_order_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_order_ws", args.to_vec()); crate::Value::Null },
@@ -583,7 +583,7 @@ impl Lighter {
         });
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::from(symbolValue)]);
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_3]).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_3]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1167,8 +1167,8 @@ impl Lighter {
         });
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("trade".into()), &[Value::from((market).symbol.clone())]);
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_9]).await;
-        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_9]).await.into();
+        return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1438,12 +1438,12 @@ impl Lighter {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        let mut trades: Value = self.subscribe_public(messageHash.as_str().unwrap_or_default(), &[__ws_arg_11]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(messageHash.as_str().unwrap_or_default(), &[__ws_arg_11]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

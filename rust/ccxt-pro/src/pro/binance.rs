@@ -268,8 +268,8 @@ impl Binance {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
@@ -3985,10 +3985,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut channelName: Option<String> = None;
         let mut resolvedMessageHashes: Vec<Value> = Vec::new();
         let mut rawTickers: Value = Value::from(vec![]);
-        let mut newTickers: indexmap::IndexMap<String, Value> = {
+        let mut newTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         if (matches!(&message, Value::Arr(_))) {
             rawTickers = message.clone();
         }  else {
@@ -4021,20 +4021,20 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
             let mut tickerMarketType: Value = (if (tickerMarketById != Value::Null) { self.safe_value_k(tickerMarketById, "type", &[]) } else { Value::from(tickerFallbackType) });
             let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(&ticker, tickerMarketType).into_dict();
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&parsedTicker, "symbol");
-            if (symbol != Value::Null) {
-                newTickers.insert(crate::runtime::stringify_param(&symbol), Value::from(&parsedTicker));
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsedTicker, "symbol").as_str().map(str::to_owned);
+            if (symbol.is_some()) {
+                newTickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker));
             }
             if isBidAsk {
-                if (symbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&parsedTicker)); }
+                if (symbol.is_some()) {
+                    if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
                 }
             }  else {
-                if (symbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&parsedTicker)); }
+                if (symbol.is_some()) {
+                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
                 }
             }
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix.as_deref().unwrap_or("null"), ":").into()), channelName.as_deref().unwrap_or("null")).into()), "@").into()), symbol);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix.as_deref().unwrap_or("null"), ":").into()), channelName.as_deref().unwrap_or("null")).into()), "@").into()), symbol.as_deref().unwrap_or("null"));
             resolvedMessageHashes.push(Value::from(messageHash.clone()));
             client.resolve(Value::Dict(parsedTicker), messageHash.as_str());
         }

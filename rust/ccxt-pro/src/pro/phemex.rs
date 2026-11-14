@@ -215,8 +215,8 @@ impl Phemex {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "custom_handle_delta" => { self.custom_handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
@@ -1015,12 +1015,12 @@ impl Phemex {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1074,7 +1074,7 @@ impl Phemex {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1132,12 +1132,12 @@ impl Phemex {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1469,12 +1469,12 @@ impl Phemex {
                 messageHash = format!("{}{}", "trades:", type_var);
             }
         }
-        let mut trades: Value = self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsType)]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsType)]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1681,12 +1681,12 @@ impl Phemex {
                 messageHash = format!("{}{}", "orders:", type_var);
             }
         }
-        let mut orders: Value = self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsType)]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsType)]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
