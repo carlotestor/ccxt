@@ -244,6 +244,11 @@ impl Value {
     pub fn into_opt_list(self) -> Option<List> {
         if let Value::Arr(a) = self { Some(a) } else { None }
     }
+    /// The string an optional string local holds, moved out of the box: `Some` for a `Str` (an owned string moves,
+    /// a borrowed literal is copied once), `None` for anything else, exactly as `as_str()` reads it.
+    pub fn into_opt_string(self) -> Option<String> {
+        if let Value::Str(s) = self { Some(s.into_owned()) } else { None }
+    }
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
     }
@@ -2691,5 +2696,33 @@ mod list_alias_parity_tests {
             same(&typed, &boxed);
         }
         assert_eq!(Value::Arr(src(0).into_list()), src(0));
+    }
+}
+
+#[cfg(test)]
+mod into_opt_string_tests {
+    use super::*;
+
+    #[test]
+    fn into_opt_string_matches_the_borrowed_string_read() {
+        let cases = vec![
+            Value::Null, Value::Bool(true), Value::Bool(false), Value::Int(0), Value::Int(7), Value::Float(1.5),
+            Value::Str("".into()), Value::Str("lit".into()), Value::Str(Cow::Owned("owned".to_string())),
+            Value::Map(HashMap::new()), Value::List(vec![Value::Str("x".into())]),
+        ];
+        for v in cases {
+            let borrowed = v.as_str().map(str::to_owned);
+            assert_eq!(v.clone().into_opt_string(), borrowed, "{:?}", v);
+            assert_eq!(Value::from(v.clone().into_opt_string()), Value::from(v.as_str()), "{:?}", v);
+        }
+    }
+
+    #[test]
+    fn into_opt_string_moves_an_owned_string() {
+        let s = String::from("BTC/USDT");
+        let at = s.as_ptr();
+        let out = Value::Str(Cow::Owned(s)).into_opt_string().unwrap();
+        assert_eq!(out.as_ptr(), at);
+        assert_eq!(out, "BTC/USDT");
     }
 }
