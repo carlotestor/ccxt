@@ -1704,7 +1704,7 @@ impl Gemini {
         if swap {
             type_var = "swap".to_string();
         }
-        let mut isSpot: Value = Value::Bool(!(swap));
+        let mut isSpot: Value = Value::Bool(!swap);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId);
@@ -1718,7 +1718,7 @@ impl Gemini {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), isSpot);
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(swap.clone()));
+        m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), status);

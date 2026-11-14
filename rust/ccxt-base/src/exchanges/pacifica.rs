@@ -1338,8 +1338,8 @@ if _try_result.is_err() {
         let mut id: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_asset", &[Value::from(id.as_deref())]).as_str().map(str::to_owned);
         let mut instrumentType: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
-        let mut isSpot: Value = (Value::Bool(instrumentType.as_deref() == Some("spot")));
-        let mut isSwap: bool = !(matches!(&isSpot, Value::Bool(true)));
+        let mut isSpot: bool = instrumentType.as_deref() == Some("spot");
+        let mut isSwap: bool = !isSpot;
         let mut quoteId: Value = Value::Str("USDC".into());
         let mut settleId: Value = Value::Null;
         let mut type_var: String = "spot".to_string();
@@ -1353,11 +1353,11 @@ if _try_result.is_err() {
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseMarket() missing id")));
         }
-        if matches!(&isSpot, Value::Bool(true)) {
+        if isSpot {
             let mut idParts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
             quoteId = self.safe_string(&idParts, Value::Int(1), &[quoteId.clone()]);
         }
-        let mut isolatedOnly: bool = self.safe_bool_k_opt(market.clone(), "isolated_only", &[Value::Bool(false)]).unwrap_or(false);
+        let mut isolatedOnly: bool = self.safe_bool_k(market.clone(), "isolated_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isSwap {
             settleId = quoteId.clone();
             type_var = "swap".to_string();
@@ -1366,7 +1366,7 @@ if _try_result.is_err() {
             contractSize = Some(1_f64);
             minLeverage = Some(1);
             maxLeverage = self.safe_integer_k(market.clone(), "max_leverage", &[]).as_i64();
-            crossMargin = Some(!(isolatedOnly));
+            crossMargin = Some(!isolatedOnly);
             isolatedMargin = Some(true);
         }
         let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.as_deref()), None);
@@ -1399,7 +1399,7 @@ if _try_result.is_err() {
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("spot".to_string(), isSpot);
+        m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
         m.insert("future".to_string(), Value::Bool(false));

@@ -1526,7 +1526,7 @@ impl Phemex {
             // "1.0"
             contractSize = self.parse_number(contractSizeString, &[]);
         }
-        let mut isLinear: Value = Value::Bool(!(inverse));
+        let mut isLinear: Value = Value::Bool(!inverse);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2379,12 +2379,12 @@ impl Phemex {
         let mut marketSettle: Option<String> = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
         let mut isStableSettled: bool = (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC"));
         let mut usesSpecialFromToEndpoint: bool = (((market).linear == Some(true)) || isStableSettled) && ((since != Value::Null) || (until.is_some()));
-        let mut maxLimit: Value = Value::Int(1000);
+        let mut maxLimit: i64 = 1000;
         if usesSpecialFromToEndpoint {
-            maxLimit = Value::Int(2000);
+            maxLimit = 2000;
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { maxLimit.clone() } else { crate::runtime::Math::min(&limit, &maxLimit) });
-        request.insert("limit".into(), limitResolved);
+        let mut limitResolved: Option<i64> = (if (limit == Value::Null) { Some(maxLimit) } else { (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None }) });
+        request.insert("limit".into(), Value::from(limitResolved));
         let mut sinceSeconds: Value = Value::Null;
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) || isStableSettled {
@@ -2399,16 +2399,14 @@ impl Phemex {
                     }  else {
                         // when since is defined 'to' is mandatory
                         let mut now: i64 = self.seconds();
-                        let mut to: Option<i64> = self.parse_to_int((match (&(Value::from(self.parse_to_int(fromSeconds))), &(((match (&(maxLimit), &(Value::from(candleDuration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                            Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
+                        let mut to: Option<i64> = self.parse_to_int((match (&(Value::from(self.parse_to_int(fromSeconds))), &((Value::Int((maxLimit * candleDuration))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
                             (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                         request.insert("to".into(), (if (to > Some(now)) { Value::from(now) } else { Value::from(to) }));
                     }
                 }  else if (until.is_some()) {
                     // when 'to' is defined since is mandatory
                     let mut untilSeconds: Option<f64> = (if let Some(__x) = ((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })) { Some(f64::round(__x)) } else { None });
-                    sinceSeconds = (match (&(Value::from(untilSeconds)), &(((match (&(maxLimit), &(Value::from(candleDuration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                        Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                    sinceSeconds = Value::from((if let Some(__l) = untilSeconds { Some(__l - (((maxLimit * candleDuration)) as f64)) } else { None }));
                     request.insert("from".into(), sinceSeconds.clone());
                     request.insert("to".into(), Value::from(untilSeconds));
                 }

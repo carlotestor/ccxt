@@ -1930,7 +1930,7 @@ impl Blofin {
         if (since != Value::Null) {
             let mut durationInMilliseconds: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
             request.insert("before".into(), crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)));
-            request.insert("after".into(), self.sum(&[since.clone(), Value::Int((durationInMilliseconds * limitResolved))]));
+            request.insert("after".into(), Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((durationInMilliseconds * limitResolved)))) } else { None })));
         }
         let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
         if (until.is_some()) {

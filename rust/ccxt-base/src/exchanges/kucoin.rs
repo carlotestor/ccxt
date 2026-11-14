@@ -5605,7 +5605,7 @@ impl Kucoin {
             sinceResolved = (match (&(Value::from(now)), &((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                 _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
-        let mut endAt: Option<i64> = (if (since != Value::Null) { self.parse_to_int(self.sum(&[since.clone(), Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))])) } else { Some(now) });
+        let mut endAt: Option<i64> = (if (since != Value::Null) { self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None }))) } else { Some(now) });
         if (since != Value::Null) {
             request.insert("startAt".into(), Value::from(self.parse_to_int(((match ((since).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null))));
         }  else if (limit != Value::Null) {
@@ -5700,14 +5700,14 @@ impl Kucoin {
             sinceResolved = (match (&(Value::from(now)), &((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                 _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
-        let mut endAt: Value = Value::from(now);
+        let mut endAt: Option<i64> = Some(now);
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
-            endAt = self.sum(&[since, Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))]);
+            endAt = (if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None });
         }  else if (limit != Value::Null) {
             request.insert("from".into(), sinceResolved.clone());
         }
-        request.insert("to".into(), endAt);
+        request.insert("to".into(), Value::from(endAt));
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.futures_public_get_kline_query(&[__ws_arg_14]).await.into_dict();
         //

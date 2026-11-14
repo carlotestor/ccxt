@@ -1483,7 +1483,7 @@ impl Delta {
             let mut callOptions: bool = type_var.as_deref() == Some("call_options");
             let mut putOptions: bool = type_var.as_deref() == Some("put_options");
             let mut moveOptions: bool = type_var.as_deref() == Some("move_options");
-            let mut spot: Value = (Value::Bool(type_var.as_deref() == Some("spot")));
+            let mut spot: bool = type_var.as_deref() == Some("spot");
             let mut swap: bool = type_var.as_deref() == Some("perpetual_futures");
             let mut future: bool = type_var.as_deref() == Some("futures");
             let mut option: Value = (Value::Bool(((callOptions || putOptions) || moveOptions)));
@@ -1492,13 +1492,13 @@ impl Delta {
             let mut expiry: Option<i64> = self.parse8601(expiryDatetime.map(Value::from).unwrap_or(Value::Null));
             let mut contractSize: Option<f64> = self.safe_number_k(&market, "contract_value", &[]).as_f64();
             let mut amountPrecision: Option<f64> = None;
-            if matches!(&spot, Value::Bool(true)) {
+            if spot {
                 amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&productSpecs, "underlying_precision", &[])]), &[]).as_f64(); // seems inverse of 'impact_size'
             }  else {
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = Some(1_f64);
             }
-            let mut linear: Value = (Value::Bool(settle == quote));
+            let mut linear: bool = settle == quote;
             let mut optionType: Option<String> = None;
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             if swap || future || matches!(&option, Value::Bool(true)) {
@@ -1537,18 +1537,18 @@ impl Delta {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), spot.clone());
+        m.insert("spot".to_string(), Value::Bool(spot));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(future));
         m.insert("option".to_string(), option);
         m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("live"))));
-        m.insert("contract".to_string(), Value::Bool(!(matches!(&spot, Value::Bool(true)))));
-        m.insert("linear".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { linear.clone() }));
-        m.insert("inverse".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::Bool(!(matches!(&linear, Value::Bool(true)))) }));
+        m.insert("contract".to_string(), Value::Bool(!spot));
+        m.insert("linear".to_string(), (if spot { Value::Null } else { Value::Bool(linear) }));
+        m.insert("inverse".to_string(), (if spot { Value::Null } else { Value::Bool(!linear) }));
         m.insert("taker".to_string(), self.safe_number_k(&market, "taker_commission_rate", &[]));
         m.insert("maker".to_string(), self.safe_number_k(&market, "maker_commission_rate", &[]));
-        m.insert("contractSize".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::from(contractSize) }));
+        m.insert("contractSize".to_string(), (if spot { Value::Null } else { Value::from(contractSize) }));
         m.insert("expiry".to_string(), Value::from(expiry));
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
         m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));

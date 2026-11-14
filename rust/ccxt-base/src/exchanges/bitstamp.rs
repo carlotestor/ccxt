@@ -2021,7 +2021,7 @@ impl Bitstamp {
                     subType = Some("inverse".to_string());
                 }
             }
-            let mut isSpot: Value = (Value::Bool(type_var.as_deref() == Some("spot")));
+            let mut isSpot: bool = type_var.as_deref() == Some("spot");
             let mut settle: Option<String> = (if ((settleId.is_some()) && (settleId.as_deref() != Some(""))) { self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None) } else { None });
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2035,15 +2035,15 @@ impl Bitstamp {
                     m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("subType".to_string(), subType.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("spot".to_string(), isSpot.clone());
+                    m.insert("spot".to_string(), Value::Bool(isSpot));
                     m.insert("margin".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
-                    m.insert("swap".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
+                    m.insert("swap".to_string(), Value::Bool(!isSpot));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), (Value::Bool(self.safe_string_k(&market, "trading", &[]).as_str() == Some("Enabled"))));
-                    m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
-                    m.insert("linear".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(true) }));
-                    m.insert("inverse".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(false) }));
+                    m.insert("contract".to_string(), Value::Bool(!isSpot));
+                    m.insert("linear".to_string(), (if isSpot { Value::Null } else { Value::Bool(true) }));
+                    m.insert("inverse".to_string(), (if isSpot { Value::Null } else { Value::Bool(false) }));
                     m.insert("contractSize".to_string(), Value::Null);
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);

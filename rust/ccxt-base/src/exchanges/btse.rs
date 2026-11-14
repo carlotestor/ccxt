@@ -1337,12 +1337,12 @@ impl Btse {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut maxLimit: Value = Value::Int(300);
+        let mut maxLimit: i64 = 300;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
@@ -1353,10 +1353,10 @@ impl Btse {
             m
         });
         if (limit != Value::Null) {
-            request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit));
+            request.insert("limit".into(), Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None })));
         }  else {
             // the endpoint returns only 10 candles when the limit is omitted
-            request.insert("limit".into(), maxLimit.clone());
+            request.insert("limit".into(), Value::from(maxLimit));
         }
         if (since != Value::Null) {
             // the endpoint accepts timestamps in seconds
@@ -1370,10 +1370,8 @@ impl Btse {
                 // check if the requested time range is too large for one request
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-                let mut maxDelta: Value = (match (&((match (&(Value::from(duration)), &(maxLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-                    // parseTimeframe returns seconds, the difference below is in milliseconds
-                if ((match (&(until), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) < maxDelta.as_f64().unwrap_or(f64::NAN) {
+                let mut maxDelta: i64 = (((duration * maxLimit)) * 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
+                if ((match (&(until), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) < (maxDelta as f64) {
                     request.insert("end".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                 }
             }  else {

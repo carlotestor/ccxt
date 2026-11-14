@@ -1166,7 +1166,7 @@ impl Revolutx {
             request.insert("until".into(), Value::from(until));
         }
         if (since != Value::Null) && (until.is_none()) {
-            request.insert("until".into(), self.sum(&[since.clone(), Value::Int((limitValue * duration))]));
+            request.insert("until".into(), Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((limitValue * duration)))) } else { None })));
         }  else if (since == Value::Null) && (until.is_some()) {
             request.insert("since".into(), Value::from((if let Some(__l) = until { Some(__l - ((limitValue * duration))) } else { None })));
         }

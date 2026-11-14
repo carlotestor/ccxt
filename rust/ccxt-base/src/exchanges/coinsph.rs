@@ -1761,7 +1761,7 @@ impl Coinsph {
             if (until.is_some()) {
                 request.insert("endTime".into(), Value::from(until));
             }  else {
-                let mut endTimeByLimit: Value = self.sum(&[since.clone(), Value::Int(((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))]);
+                let mut endTimeByLimit: Value = Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + (((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1)))))) } else { None }));
                 let mut now: Value = Value::Int(self.milliseconds());
                 request.insert("endTime".into(), crate::runtime::Math::min(&endTimeByLimit, &now));
             }

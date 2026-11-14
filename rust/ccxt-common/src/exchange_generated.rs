@@ -9517,7 +9517,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (response == Value::Null) {
                     panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " fetchPaginatedCallCursor() returned empty response")));
                 }
-                let mut responseLength: Value = Value::Int(response.len() as i64);
+                let mut responseLength: i64 = response.len() as i64;
                 if self.verbose.as_bool() == Some(true) {
                     let mut cursorString: Value = Value::Str("".into());
                     if (cursorValue != Value::Null) {
@@ -9527,22 +9527,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         " method ").into()), method).into()), " response length ").into()), Value::Str(format!("{}", responseLength).into())).into()), " cursor ").into()), cursorString);
                     self.log(Value::from(cursorMessage));
                 }
-                if (responseLength.as_f64() == Some(0.0)) {
+                if (responseLength == 0) {
                     shouldBreak = true;
                     break;
                 }
                 result = self.array_concat(result, response.clone());
-                let mut last: crate::value::Dict = self.safe_dict(response.clone(), (match (&(responseLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
+                let mut last: crate::value::Dict = self.safe_dict(response.clone(), Value::Int((responseLength - 1)), &[]).into_dict();
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = Value::Null; // search for the cursor
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_164: bool = true;
-                    while { if !__for_first_164 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_164 = false; j.as_f64().unwrap_or(f64::NAN) < responseLength.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_164 { j += 1; } __for_first_164 = false; j < responseLength } {
                     if (cursorValue == Value::Null) {
-                        let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
-                            &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                        let mut index: Value = Value::Int((((responseLength - j)) - 1));
                         let mut entry: crate::value::Dict = self.safe_dict(response.clone(), index, &[]).into_dict();
                         let mut info: crate::value::Dict = self.safe_dict_k(&entry, "info", &[]).into_dict();
                         if (cursorReceived != Value::Null) {

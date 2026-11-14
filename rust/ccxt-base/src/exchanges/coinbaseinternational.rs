@@ -1335,7 +1335,7 @@ impl Coinbaseinternational {
         let mut settleId: Value = self.safe_string_k(market.clone(), "settlement_currency", &[quoteId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut kind: String = self.safe_string_k(market.clone(), "kind", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut settlementPeriod: Option<String> = self.safe_string_k(market.clone(), "settlement_period", &[]).as_str().map(str::to_owned);
-        let mut isSpot: Value = (Value::Bool(kind == "spot"));
+        let mut isSpot: bool = kind == "spot";
         let mut isPerpetual: bool = settlementPeriod.as_deref() == Some("perpetual");
         let mut isFuture: bool = (!(isPerpetual) && (kind.contains("future")));
         let mut isOption: Value = (Value::Bool(kind.contains("option")));
@@ -1345,7 +1345,7 @@ impl Coinbaseinternational {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone(), None);
         let mut type_var: String = "swap".to_string();
-        if matches!(&isSpot, Value::Bool(true)) {
+        if isSpot {
             type_var = "spot".to_string();
         }  else if isFuture {
             type_var = "future".to_string();
@@ -1355,14 +1355,14 @@ impl Coinbaseinternational {
         let mut symbol: Option<String> = instrumentName.clone();
         if !isComboMarket && (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
-            if !(matches!(&isSpot, Value::Bool(true))) && (settle.is_some()) {
+            if !isSpot && (settle.is_some()) {
                 symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")));
             }
         }
-        let mut linear: Option<bool> = (if matches!(&isSpot, Value::Bool(true)) { None } else { Some(settle == quote) });
-        let mut inverse: Option<bool> = (if matches!(&isSpot, Value::Bool(true)) { None } else { Some(settle != quote) });
-        let mut marketSettle: Option<String> = (if matches!(&isSpot, Value::Bool(true)) { None } else { settle });
-        let mut marketSettleId: Value = (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { settleId });
+        let mut linear: Option<bool> = (if isSpot { None } else { Some(settle == quote) });
+        let mut inverse: Option<bool> = (if isSpot { None } else { Some(settle != quote) });
+        let mut marketSettle: Option<String> = (if isSpot { None } else { settle });
+        let mut marketSettleId: Value = (if isSpot { Value::Null } else { settleId });
         let mut minTradeAmount: Option<f64> = self.safe_number_k(market.clone(), "min_trade_amount", &[]).as_f64();
         let mut tickSize: Option<f64> = self.safe_number_k(market.clone(), "tick_size", &[]).as_f64();
         let mut isFutureOrOption: bool = isFuture || matches!(&isOption, Value::Bool(true));
@@ -1394,18 +1394,18 @@ impl Coinbaseinternational {
                 m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("settleId".to_string(), marketSettleId);
                 m.insert("type".to_string(), Value::from(type_var));
-                m.insert("spot".to_string(), isSpot.clone());
+                m.insert("spot".to_string(), Value::Bool(isSpot));
                 m.insert("margin".to_string(), Value::Bool(false));
                 m.insert("swap".to_string(), Value::Bool(isPerpetual));
                 m.insert("future".to_string(), Value::Bool(isFuture));
                 m.insert("option".to_string(), isOption);
                 m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
-                m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
+                m.insert("contract".to_string(), Value::Bool(!isSpot));
                 m.insert("linear".to_string(), linear.map_or(Value::Null, Value::Bool));
                 m.insert("inverse".to_string(), inverse.map_or(Value::Null, Value::Bool));
                 m.insert("taker".to_string(), self.safe_number_k(market.clone(), "taker_commission", &[]));
                 m.insert("maker".to_string(), self.safe_number_k(market.clone(), "maker_commission", &[]));
-                m.insert("contractSize".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { self.safe_number_k(market.clone(), "contract_size", &[]) }));
+                m.insert("contractSize".to_string(), (if isSpot { Value::Null } else { self.safe_number_k(market.clone(), "contract_size", &[]) }));
                 m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
                 m.insert("strike".to_string(), Value::from(strike));

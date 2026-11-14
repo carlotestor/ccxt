@@ -1707,9 +1707,9 @@ impl Toobit {
             m
         })]).into_dict();
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        let mut isContract: Value = (Value::Bool(self.safe_string_k(market.clone(), "contractMultiplier", &[]) != Value::Null));
+        let mut isContract: bool = (self.safe_string_k(market.clone(), "contractMultiplier", &[]) != Value::Null);
         let mut inverse: Option<bool> = self.safe_bool2(market.clone(), Value::Str("isInverse".into()), Value::Str("inverse".into()), &[]).as_bool();
-        if matches!(&isContract, Value::Bool(true)) {
+        if isContract {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
         }
         return self.safe_market_structure(&[Value::Map({
@@ -1722,16 +1722,16 @@ impl Toobit {
         m.insert("baseId".to_string(), Value::from(baseId));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Str("swap".into()) } else { Value::Str("spot".into()) }));
-        m.insert("spot".to_string(), Value::Bool(!(matches!(&isContract, Value::Bool(true)))));
+        m.insert("type".to_string(), (if isContract { Value::Str("swap".into()) } else { Value::Str("spot".into()) }));
+        m.insert("spot".to_string(), Value::Bool(!isContract));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), isContract.clone());
+        m.insert("swap".to_string(), Value::Bool(isContract));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("contract".to_string(), isContract.clone());
-        m.insert("linear".to_string(), (if matches!(&isContract, Value::Bool(true)) { (Value::Bool(inverse != Some(true))) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if matches!(&isContract, Value::Bool(true)) { inverse.map_or(Value::Null, Value::Bool) } else { Value::Null }));
+        m.insert("contract".to_string(), Value::Bool(isContract));
+        m.insert("linear".to_string(), (if isContract { (Value::Bool(inverse != Some(true))) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if isContract { inverse.map_or(Value::Null, Value::Bool) } else { Value::Null }));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractMultiplier", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -2055,7 +2055,7 @@ impl Toobit {
             // mark and index klines walk backwards from `to` and ignore a lone `from`
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             if (limit == Value::Null) {
-                request.insert("to".into(), self.sum(&[since.clone(), Value::Int((((duration * 2000)) * 1000))])); // exchange default limit
+                request.insert("to".into(), Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((((duration * 2000)) * 1000)))) } else { None }))); // exchange default limit
             }  else {
                 request.insert("to".into(), self.sum(&[since.clone(), (match (&((match (&(Value::from(duration)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));

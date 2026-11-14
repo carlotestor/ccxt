@@ -2698,7 +2698,7 @@ impl Bingx {
             m
         });
         request.insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-        let mut requestLimit: Value = (if (limit == Value::Null) { Value::Int(500) } else { crate::runtime::Math::min(&limit, &Value::from(maxLimit)) });
+        let mut requestLimit: Value = (if (limit == Value::Null) { Value::Int(500) } else { Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None })) });
         if (since != Value::Null) {
             request.insert("startTime".into(), crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)));
         }
@@ -2876,7 +2876,7 @@ impl Bingx {
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut maxLimit: i64 = (if (marketType.as_deref() == Some("spot")) { 500 } else { 1000 });
         if (limit != Value::Null) {
-            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::from(maxLimit)));
+            request.insert("limit".into(), Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None })));
         }
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
@@ -7059,19 +7059,19 @@ impl Bingx {
         if (toAccount.is_some()) {
             request.insert("toAccount".into(), toId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut maxLimit: Value = Value::Int(100);
+        let mut maxLimit: i64 = 100;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code, since.clone(), limit.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code, since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["fromAccount", "toAccount"], &[]).into_dict();
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            request.insert("pageSize".into(), crate::runtime::Math::min(&limit, &maxLimit));
+            request.insert("pageSize".into(), Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None })));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();

@@ -9207,7 +9207,7 @@ impl Binance {
             if ((market).inverse == Some(true)) {
                 if since.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                     let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-                    let mut endTime: Value = self.sum(&[since.clone(), Value::from((if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = limitValue { Some(__l * duration) } else { None })) { Some(__l * 1000) } else { None })) { Some(__l - 1) } else { None }))]);
+                    let mut endTime: Value = Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = limitValue { Some(__l * duration) } else { None })) { Some(__l * 1000) } else { None })) { Some(__l - 1) } else { None }))) { Some((__m0 + __m1)) } else { None }));
                     let mut now: Value = Value::Int(self.milliseconds());
                     request.insert("endTime".into(), crate::runtime::Math::min(&now, &endTime));
                 }
@@ -9634,7 +9634,7 @@ impl Binance {
             let mut isFutureOrSwap: bool = ((market).swap) || ((market).future);
             let mut isHistoricalEndpoint: bool = (method.is_some()) && (method.as_deref().unwrap_or_default().contains("GetHistoricalTrades"));
             let mut maxLimitForContractHistorical: i64 = (if isHistoricalEndpoint { 500 } else { 1000 });
-            request.insert("limit".into(), (if (isFutureOrSwap) { crate::runtime::Math::min(&limit, &Value::from(maxLimitForContractHistorical)) } else { limit.clone() })); // default = 500, maximum = 1000
+            request.insert("limit".into(), (if (isFutureOrSwap) { Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimitForContractHistorical)) } else { None })) } else { limit.clone() })); // default = 500, maximum = 1000
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["until", "fetchTradesMethod"], &[]).into_dict();
         if (method.is_none()) {
@@ -12158,15 +12158,15 @@ impl Binance {
             request.insert("startTime".into(), since.clone());
         }
         // max 100
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit != Value::Null) && stock.as_bool() == Some(true) {
-            limitResolved = crate::runtime::Math::min(&limit, &Value::Int(100));
+            limitResolved = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, 100)) } else { None });
         }
         if (limit != Value::Null) {
             if stock.as_bool() == Some(true) {
-                request.insert("size".into(), limitResolved.clone());
+                request.insert("size".into(), Value::from(limitResolved));
             }  else {
-                request.insert("limit".into(), limitResolved.clone());
+                request.insert("limit".into(), Value::from(limitResolved));
             }
         }
         if (until.is_some()) {
@@ -12242,7 +12242,7 @@ impl Binance {
                 response = self.private_get_all_orders(&[__ws_arg_81]).await.into_opt_list();
             }
         }
-        return self.parse_orders(&response, market.as_ref(), &[since, limitResolved]);
+        return self.parse_orders(&response, market.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -13340,19 +13340,19 @@ impl Binance {
         }
         let mut isContractLimit: bool = (type_var.as_deref() == Some("option")) || self.safe_bool_k(&market, "contract", &[Value::Bool(false)]).as_bool() == Some(true);
         // above 1000, returns error
-        let mut limitContract: Value = limit.clone();
+        let mut limitContract: Option<i64> = limit.as_i64();
         if (limit != Value::Null) && isContractLimit {
-            limitContract = crate::runtime::Math::min(&limit, &Value::Int(1000));
+            limitContract = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, 1000)) } else { None });
         }
-        let mut limitResolved: Value = limitContract;
+        let mut limitResolved: Option<i64> = limitContract;
         if (limit != Value::Null) && stock {
-            limitResolved = crate::runtime::Math::min(&limit, &Value::Int(100));
+            limitResolved = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, 100)) } else { None });
         }
         if (limit != Value::Null) {
             if stock {
-                request.insert("size".into(), limitResolved.clone());
+                request.insert("size".into(), Value::from(limitResolved));
             }  else {
-                request.insert("limit".into(), limitResolved.clone());
+                request.insert("limit".into(), Value::from(limitResolved));
             }
         }
         let mut response: Value = Value::Null;
@@ -13567,7 +13567,7 @@ impl Binance {
                 responseList = self.to_array(response).into_list();
             }
         }
-        return self.parse_trades(&responseList, market.as_ref(), &[since, limitResolved]);
+        return self.parse_trades(&responseList, market.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -18500,10 +18500,9 @@ if _try_result.is_err() {
         });
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
-            let mut endTime: Value = (match (&(self.sum(&[since.clone(), Value::Int((limitResolved * 86400000))])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // required when startTime is further than 93 days in the past
+            let mut endTime: Option<i64> = (if let Some(__l) = ((if let Some(__m0) = since.as_i64() { Some((__m0 + ((limitResolved * 86400000)))) } else { None })) { Some(__l - 1) } else { None }); // required when startTime is further than 93 days in the past
             let mut now: i64 = self.milliseconds();
-            request.insert("endTime".into(), crate::runtime::Math::min(&endTime, &Value::from(now))); // cannot have an endTime later than current time
+            request.insert("endTime".into(), Value::from((if let Some(__m0) = endTime { Some(i64::min(__m0, now)) } else { None }))); // cannot have an endTime later than current time
         }
         let __ws_arg_194 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.sapi_get_margin_interest_rate_history(&[__ws_arg_194]).await.into_list();
@@ -19129,7 +19128,7 @@ if _try_result.is_err() {
             // exchange default
             let mut limitDefault: i64 = limit.as_i64().unwrap_or(30);
             let mut duration: i64 = self.parse_timeframe(timeframe);
-            request.insert("endTime".into(), self.sum(&[since.clone(), Value::Int((((duration * limitDefault)) * 1000))]));
+            request.insert("endTime".into(), Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((((duration * limitDefault)) * 1000)))) } else { None })));
         }
         let mut response: Option<crate::value::List> = None;
         if ((market).inverse == Some(true)) {

@@ -1957,7 +1957,7 @@ impl Bigone {
         if (since != Value::Null) {
             // const start = this.parseToInt (since / 1000);
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-            let mut endByLimit: Option<i64> = self.parse_to_int(self.sum(&[since.clone(), Value::Int((((limitResolved * duration)) * 1000))]));
+            let mut endByLimit: Option<i64> = self.parse_to_int(Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((((limitResolved * duration)) * 1000)))) } else { None })));
             if (until.is_some()) {
                 request.insert("time".into(), self.iso8601(Value::from((if let (Some(__m0), Some(__m1)) = (endByLimit, ((if let Some(__l) = until { Some(__l + 1) } else { None }))) { Some(i64::min(__m0, __m1)) } else { None }))));
             }  else {

@@ -1155,13 +1155,13 @@ impl Extended {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), Value::Bool(isSpot.clone()));
+        m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(!(isSpot)));
+        m.insert("swap".to_string(), Value::Bool(!isSpot));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("contract".to_string(), Value::Bool(!(isSpot)));
+        m.insert("contract".to_string(), Value::Bool(!isSpot));
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number_k(self.fees.clone(), "taker", &[]));
@@ -4060,7 +4060,7 @@ impl Extended {
         if (cancelId.is_some()) {
             request.insert("cancelId".into(), cancelId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut settlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data((isBuy), amountString.clone().map(Value::from).unwrap_or(Value::Null), priceString.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
+        let mut settlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(isBuy, amountString.clone().map(Value::from).unwrap_or(Value::Null), priceString.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
         request.insert("settlement".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signature".to_string(), Value::Map({
@@ -4089,7 +4089,7 @@ impl Extended {
                 let mut stopLossTriggerPriceType: Option<String> = self.safe_string_k(&stopLoss, "triggerPriceType", &[]).as_str().map(str::to_owned);
                 let mut stopLossExecutionPrice: Option<String> = self.safe_string_k(&stopLoss, "price", &[]).as_str().map(str::to_owned);
                 let mut stopLossType: Option<String> = self.safe_string_k(&stopLoss, "type", &[]).as_str().map(str::to_owned);
-                let mut stopLossSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!(isBuy), amountString.clone().map(Value::from).unwrap_or(Value::Null), stopLossExecutionPrice.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
+                let mut stopLossSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!isBuy, amountString.clone().map(Value::from).unwrap_or(Value::Null), stopLossExecutionPrice.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
                 let mut requestStopLoss: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol.clone(), stopLossTrigger.map(Value::from).unwrap_or(Value::Null))));
@@ -4121,7 +4121,7 @@ impl Extended {
                 let mut takeProfitTriggerPriceType: Option<String> = self.safe_string_k(&takeProfit, "triggerPriceType", &[]).as_str().map(str::to_owned);
                 let mut takeProfitExecutionPrice: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
                 let mut takeProfitType: Option<String> = self.safe_string_k(&takeProfit, "type", &[]).as_str().map(str::to_owned);
-                let mut takeProfitSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!(isBuy), amountString.clone().map(Value::from).unwrap_or(Value::Null), takeProfitExecutionPrice.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams)]).as_map().cloned().unwrap_or_default();
+                let mut takeProfitSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!isBuy, amountString.clone().map(Value::from).unwrap_or(Value::Null), takeProfitExecutionPrice.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams)]).as_map().cloned().unwrap_or_default();
                 let mut requestTakeProfit: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol.clone(), takeProfitTrigger.map(Value::from).unwrap_or(Value::Null))));

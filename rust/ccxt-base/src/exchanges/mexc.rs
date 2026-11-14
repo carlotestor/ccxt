@@ -2688,8 +2688,8 @@ impl Mexc {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("0"))));
                     m.insert("contract".to_string(), Value::Bool(true));
-                    m.insert("linear".to_string(), Value::Bool(isLinear.clone()));
-                    m.insert("inverse".to_string(), Value::Bool(!(isLinear)));
+                    m.insert("linear".to_string(), Value::Bool(isLinear));
+                    m.insert("inverse".to_string(), Value::Bool(!isLinear));
                     m.insert("taker".to_string(), self.safe_number_k(&market, "takerFeeRate", &[]));
                     m.insert("maker".to_string(), self.safe_number_k(&market, "makerFeeRate", &[]));
                     m.insert("contractSize".to_string(), self.safe_number_k(&market, "contractSize", &[]));
@@ -3171,7 +3171,7 @@ impl Mexc {
                 let mut spotWindow: i64 = (500 * duration); // maxLimit is 500 for spot
                 let mut now: i64 = self.milliseconds();
                 let mut latestStart: i64 = (now - spotWindow);
-                request.insert("endTime".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(latestStart))) { self.sum(&[since.clone(), Value::from(spotWindow)]) } else { Value::from(now) }));
+                request.insert("endTime".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(latestStart))) { Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + spotWindow)) } else { None })) } else { Value::from(now) }));
             }
             if omitUntil && (until.is_some()) {
                 if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {

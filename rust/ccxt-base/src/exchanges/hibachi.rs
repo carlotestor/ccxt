@@ -1523,13 +1523,13 @@ impl Hibachi {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut nonceValue: i64 = self.incrementing_nonce();
-        let mut nonce: Value = Value::from(self.parse_to_int(Value::from(nonceValue)));
+        let mut nonce: Option<i64> = self.parse_to_int(Value::from(nonceValue));
         let mut requestOrders: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_735: bool = true;
-            while { if !__for_first_735 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_735 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), i.clone(), &[]).into_dict();
+            while { if !__for_first_735 { i += 1; } __for_first_735 = false; i < (orders.len() as i64) } {
+            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut type_var: Option<String> = self.safe_string_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
@@ -1539,8 +1539,7 @@ impl Hibachi {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut orderRequest: crate::value::Dict = self.create_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-                _ => Value::Null }), symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(orderParams)]).into_dict();
+            let mut orderRequest: crate::value::Dict = self.create_order_request(Value::from((if let Some(__l) = nonce { Some(__l + i) } else { None })), symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(orderParams)]).into_dict();
             std::sync::Arc::make_mut(&mut orderRequest).insert("action".into(), Value::Str("place".into()));
             requestOrders.push(Value::Dict(orderRequest));
         }
@@ -1688,13 +1687,13 @@ impl Hibachi {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut nonceValue: i64 = self.incrementing_nonce();
-        let mut nonce: Value = Value::from(self.parse_to_int(Value::from(nonceValue)));
+        let mut nonce: Option<i64> = self.parse_to_int(Value::from(nonceValue));
         let mut requestOrders: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_737: bool = true;
-            while { if !__for_first_737 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_737 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), i.clone(), &[]).into_dict();
+            while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (orders.len() as i64) } {
+            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut id: Option<String> = self.safe_string_k(&rawOrder, "id", &[]).as_str().map(str::to_owned);
             let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut type_var: Option<String> = self.safe_string_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
@@ -1705,8 +1704,7 @@ impl Hibachi {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut orderRequest: crate::value::Dict = self.edit_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-                _ => Value::Null }), id.as_deref(), symbol.as_deref(), type_var.as_deref(), side.as_deref(), &[Value::from(amount), Value::from(price), Value::Dict(orderParams)]).into_dict();
+            let mut orderRequest: crate::value::Dict = self.edit_order_request(Value::from((if let Some(__l) = nonce { Some(__l + i) } else { None })), id.as_deref(), symbol.as_deref(), type_var.as_deref(), side.as_deref(), &[Value::from(amount), Value::from(price), Value::Dict(orderParams)]).into_dict();
             std::sync::Arc::make_mut(&mut orderRequest).insert("action".into(), Value::Str("modify".into()));
             requestOrders.push(Value::Dict(orderRequest));
         }

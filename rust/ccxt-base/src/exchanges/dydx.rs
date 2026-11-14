@@ -1306,7 +1306,7 @@ impl Dydx {
             // the indexer returns the newest candles in the range, so the range ends where the limit does
             let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
             let mut count: i64 = i64::min(limit.as_i64().unwrap_or(1000), 1000);
-            request.insert("toISO".into(), self.iso8601(self.sum(&[since.clone(), Value::Int((duration * count))])));
+            request.insert("toISO".into(), self.iso8601(Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((duration * count)))) } else { None }))));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.indexer_get_candles_perpetual_markets_market(&[__ws_arg_2]).await.into_dict();

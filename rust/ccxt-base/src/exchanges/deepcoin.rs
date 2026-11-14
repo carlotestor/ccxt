@@ -1325,9 +1325,9 @@ impl Deepcoin {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut price: Option<String> = self.safe_string_k(&paramsPaginate, "price", &[]).as_str().map(str::to_owned);
-        let mut maxLimit: Value = Value::Int(300);
+        let mut maxLimit: i64 = 300;
         if (market).swap && (price.is_none()) {
-            maxLimit = Value::Int(1000);
+            maxLimit = 1000;
         }
         if paginate {
             let mut paramsExtended: crate::value::Dict = self.extend(&paramsPaginate, &[Value::Map({
@@ -1335,7 +1335,7 @@ impl Deepcoin {
                     m.insert("calculateUntil".to_string(), Value::Bool(true));
                 m
             })]).into_dict();
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::Dict(paramsExtended), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::Dict(paramsExtended), Value::from(maxLimit)]).await;
         }
         let mut bar: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1345,7 +1345,7 @@ impl Deepcoin {
             m
         });
         if (limit != Value::Null) {
-            request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit));
+            request.insert("limit".into(), Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None })));
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
@@ -1359,10 +1359,9 @@ impl Deepcoin {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
                 let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-                let mut numberOfCandles: Value = (if (limit == Value::Null) { maxLimit } else { limit.clone() });
-                let mut endTime: Option<i64> = self.parse_to_int((match (&(since), &((match (&(((match (&(Value::from(duration)), &(numberOfCandles)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                let mut numberOfCandles: i64 = limit.as_i64().unwrap_or(maxLimit);
+                let mut endTime: Option<i64> = self.parse_to_int((match (&(since), &(Value::Int((((duration * numberOfCandles)) * 1000)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
+                    Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                 if (until.is_some()) {
                     endTime = (if let (Some(__m0), Some(__m1)) = (endTime, until) { Some(i64::min(__m0, __m1)) } else { None });
                 }

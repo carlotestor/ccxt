@@ -1605,7 +1605,7 @@ impl Onetrading {
             request.insert("from".into(), self.iso8601(Value::Int((now - ((limitResolved * duration))))));
         }  else {
             request.insert("from".into(), self.iso8601(since.clone()));
-            request.insert("to".into(), self.iso8601(self.sum(&[since.clone(), Value::Int((limitResolved * duration))])));
+            request.insert("to".into(), self.iso8601(Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((limitResolved * duration)))) } else { None }))));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_candlesticks_instrument_code(&[__ws_arg_2]).await.into_dict();

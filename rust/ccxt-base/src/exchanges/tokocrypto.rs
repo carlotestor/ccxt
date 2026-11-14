@@ -1950,18 +1950,18 @@ impl Tokocrypto {
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         let mut defaultLimit: i64 = 500;
-        let mut maxLimit: Value = Value::Int(1500);
+        let mut maxLimit: i64 = 1500;
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["price", "until"], &[]).into_dict();
-        let mut limitValue: Value = Value::from(defaultLimit);
+        let mut limitValue: Option<i64> = Some(defaultLimit);
         if (limit != Value::Null) {
-            limitValue = crate::runtime::Math::min(&limit, &maxLimit);
+            limitValue = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("limit".to_string(), limitValue.clone());
+                m.insert("limit".to_string(), Value::from(limitValue));
             m
         });
         if (price.as_deref() == Some("index")) {
@@ -2032,7 +2032,7 @@ impl Tokocrypto {
                 data = self.safe_list_k(&dataDict, "list", &[Value::from(vec![])]).into_list();
             }
         }
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limitValue]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitValue)]);
         Value::Null
         }).await?))
     }

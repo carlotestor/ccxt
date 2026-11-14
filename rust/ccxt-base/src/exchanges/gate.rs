@@ -3949,8 +3949,8 @@ if _try_result.is_err() {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), Value::Bool(isLinear.clone()));
-        m.insert("inverse".to_string(), Value::Bool(!(isLinear)));
+        m.insert("linear".to_string(), Value::Bool(isLinear));
+        m.insert("inverse".to_string(), Value::Bool(!isLinear));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0005".into()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0002".into()), &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -5263,7 +5263,7 @@ if _try_result.is_err() {
             // gateeu returns an empty book for a spot limit above 100
             let mut maxSpotLimit: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)]));
             let mut maxLimit: Option<i64> = (if (market).spot { maxSpotLimit } else { Some(300) });
-            std::sync::Arc::make_mut(&mut request).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::from(maxLimit)));
+            std::sync::Arc::make_mut(&mut request).insert("limit".into(), Value::from((if let (Some(__m0), Some(__m1)) = (limit.as_i64(), maxLimit) { Some(i64::min(__m0, __m1)) } else { None })));
         }
         std::sync::Arc::make_mut(&mut request).insert("with_id".into(), Value::Bool(true));
         let mut response: Option<crate::value::Dict> = None;
@@ -6027,7 +6027,7 @@ if _try_result.is_err() {
         let mut paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         std::sync::Arc::make_mut(&mut request).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
         let mut maxLimit: i64 = (if (market).contract { 1999 } else { 1000 });
-        let mut limitValue: Value = (if (limit == Value::Null) { Value::from(maxLimit) } else { crate::runtime::Math::min(&limit, &Value::from(maxLimit)) });
+        let mut limitValue: Option<i64> = (if (limit == Value::Null) { Some(maxLimit) } else { (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None }) });
         let mut untilMs: Option<i64> = self.safe_integer_k(&paramsRequest, "until", &[]).as_i64();
         let mut until: Value = Value::Null;
         if (untilMs.is_some()) {
@@ -6038,9 +6038,8 @@ if _try_result.is_err() {
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             let mut fromTimestamp: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             std::sync::Arc::make_mut(&mut request).insert("from".into(), Value::from(fromTimestamp));
-            let mut distance: Value = (match (&(((match (&(limitValue), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))),
-                &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut toTimestamp: Value = self.sum(&[Value::from(fromTimestamp), distance]);
+            let mut distance: Option<i64> = (if let Some(__l) = ((if let Some(__l) = limitValue { Some(__l - 1) } else { None })) { Some(__l * duration) } else { None });
+            let mut toTimestamp: Value = Value::from((if let (Some(__m0), Some(__m1)) = (fromTimestamp, distance) { Some((__m0 + __m1)) } else { None }));
             let mut currentTimestamp: Value = Value::Int(self.seconds());
             let mut to: Value = crate::runtime::Math::min(&toTimestamp, &currentTimestamp);
             if (until != Value::Null) {
@@ -6052,7 +6051,7 @@ if _try_result.is_err() {
             if (until != Value::Null) {
                 std::sync::Arc::make_mut(&mut request).insert("to".into(), until);
             }
-            std::sync::Arc::make_mut(&mut request).insert("limit".into(), limitValue.clone());
+            std::sync::Arc::make_mut(&mut request).insert("limit".into(), Value::from(limitValue));
         }
         let mut response: Value = Value::from(vec![]);
         if (market).contract {
@@ -6076,7 +6075,7 @@ if _try_result.is_err() {
             let __ws_arg_31 = self.extend(request, &[paramsOmitted]);
             response = self.public_spot_get_candlesticks(&[__ws_arg_31]).await;
         }
-        return self.parse_ohlc_vs(self.to_array(response), Some(&market), &[timeframe, since, limitValue]);
+        return self.parse_ohlc_vs(self.to_array(response), Some(&market), &[timeframe, since, Value::from(limitValue)]);
         Value::Null
         }).await?))
     }

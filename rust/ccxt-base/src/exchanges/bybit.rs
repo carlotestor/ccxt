@@ -4849,7 +4849,7 @@ impl Bybit {
             let mut strike: String = self.safe_string(&splitId, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut optionLetter: String = self.safe_string(&splitId, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut isActive: bool = status.as_deref() == Some("Trading");
-            let mut isInverse: Value = Value::Bool(base == settle);
+            let mut isInverse: bool = base == settle;
             let mut loadExpiredOptions: Option<bool> = self.handle_option(Value::Str("fetchMarkets".into()), Value::Str("loadExpiredOptions".into()), &[]).as_bool();
             if isActive || (loadAllOptions == Some(true)) || (loadExpiredOptions == Some(true)) {
                 result.push(self.safe_market_structure(&[Value::Map({
@@ -4872,8 +4872,8 @@ impl Bybit {
         m.insert("option".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(isActive));
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), Value::Bool(!(matches!(&isInverse, Value::Bool(true)))));
-        m.insert("inverse".to_string(), isInverse);
+        m.insert("linear".to_string(), Value::Bool(!isInverse));
+        m.insert("inverse".to_string(), Value::Bool(isInverse));
         m.insert("taker".to_string(), self.safe_number_k(&market, "takerFee", &[self.parse_number(Value::Str("0.0006".into()), &[])]));
         m.insert("maker".to_string(), self.safe_number_k(&market, "makerFee", &[self.parse_number(Value::Str("0.0001".into()), &[])]));
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
@@ -5733,7 +5733,7 @@ impl Bybit {
                     fundingInterval = (if let Some(__l) = ((if let Some(__l) = fundingTimeFrameMins { Some(__l * 60) } else { None })) { Some(__l * 1000) } else { None });
                 }
                 if (limit == Value::Null) {
-                    request.insert("endTime".into(), self.sum(&[since.clone(), Value::from((if let Some(__r) = fundingInterval { Some(200 * __r) } else { None }))]));
+                    request.insert("endTime".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__r) = fundingInterval { Some(200 * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })));
                 }  else {
                     request.insert("endTime".into(), self.sum(&[since.clone(), (match (&(limit), &(Value::from(fundingInterval))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
                 }
@@ -10044,10 +10044,10 @@ impl Bybit {
         let mut positions: Value = self.add_pagination_cursor_to_result(&response);
         let mut results: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_518: bool = true;
-            while { if !__for_first_518 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_518 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
-            let mut rawPosition: Value = get_value(&positions, &i);
+            while { if !__for_first_518 { i += 1; } __for_first_518 = false; i < (positions.len() as i64) } {
+            let mut rawPosition: Value = get_value(&positions, &Value::Int(i));
             if (in_op(&rawPosition, &Value::Str("data".into()))) && (in_op(&rawPosition, &Value::Str("is_valid".into()))) {
                 // futures only
                 rawPosition = self.safe_dict_k(rawPosition, "data", &[]);
