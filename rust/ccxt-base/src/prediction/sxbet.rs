@@ -2201,19 +2201,19 @@ impl Sxbet {
             m
         })]).into_dict();
         let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
-        let mut trades: Value = Value::from(vec![]);
+        let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rawTradesLength: i64 = rawTrades.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1510: bool = true;
             while { if !__for_first_1510 { i += 1; } __for_first_1510 = false; i < rawTradesLength } {
-            if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(self.parse_sxbet_v3_public_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null))); }
+            std::sync::Arc::make_mut(&mut trades).push(self.parse_sxbet_v3_public_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
         // the venue serves the tape newest-first - the unified contract is ascending by timestamp
-        trades = self.sort_by(trades, Value::Str("timestamp".into()), &[]);
+        trades = self.sort_by(Value::Arr(trades), Value::Str("timestamp".into()), &[]).into_list();
         let mut sym: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        return self.filter_by_value_since_limit(trades, Value::Str("outcome".into()), &[sym.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_value_since_limit(Value::Arr(trades), Value::Str("outcome".into()), &[sym.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2267,18 +2267,18 @@ impl Sxbet {
             m
         })]).into_dict();
         let mut rawFills: crate::value::List = self.safe_list_k(&data, "fills", &[Value::from(vec![])]).into_list();
-        let mut trades: Value = Value::from(vec![]);
+        let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rawFillsLength: i64 = rawFills.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1511: bool = true;
             while { if !__for_first_1511 { i += 1; } __for_first_1511 = false; i < rawFillsLength } {
-            if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(self.parse_sxbet_v3_fill(rawFills.get(i as usize).cloned().unwrap_or(Value::Null), None)); }
+            std::sync::Arc::make_mut(&mut trades).push(self.parse_sxbet_v3_fill(rawFills.get(i as usize).cloned().unwrap_or(Value::Null), None));
         }
         }
-        trades = self.sort_by(trades, Value::Str("timestamp".into()), &[]);
+        trades = self.sort_by(Value::Arr(trades), Value::Str("timestamp".into()), &[]).into_list();
         let mut sym: Option<String> = (if (outcomeObj != Value::Null) { self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned) } else { None });
-        return self.filter_by_value_since_limit(trades, Value::Str("outcome".into()), &[sym.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_value_since_limit(Value::Arr(trades), Value::Str("outcome".into()), &[sym.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

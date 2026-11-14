@@ -2353,19 +2353,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // instead — and an outcome object rebuilt from cached markets may still hold a legacy
         // `symbol` key, which would silently drop every parsed row
         let mut rows: crate::value::List = self.to_array(trades).into_list();
-        let mut results: Value = Value::from(vec![]);
+        let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_214: bool = true;
             while { if !__for_first_214 { i += 1; } __for_first_214 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
             let mut trade: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
-            if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(Value::Dict(trade)); }
+            std::sync::Arc::make_mut(&mut results).push(Value::Dict(trade));
         }
         }
-        results = self.sort_by2(results, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        results = self.sort_by2(Value::Arr(results), Value::Str("timestamp".into()), Value::Str("id".into()), &[]).into_list();
         let mut outcomeHandle: Option<String> = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        return self.filter_by_value_since_limit(results, Value::Str("outcome".into()), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
+        return self.filter_by_value_since_limit(Value::Arr(results), Value::Str("outcome".into()), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
 
     Value::Null
 }
@@ -2392,19 +2392,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         let mut rows: crate::value::List = self.to_array(orders).into_list();
-        let mut results: Value = Value::from(vec![]);
+        let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_215: bool = true;
             while { if !__for_first_215 { i += 1; } __for_first_215 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
             let mut order: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
-            if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(Value::Dict(order)); }
+            std::sync::Arc::make_mut(&mut results).push(Value::Dict(order));
         }
         }
-        results = self.sort_by(results, Value::Str("timestamp".into()), &[]);
+        results = self.sort_by(Value::Arr(results), Value::Str("timestamp".into()), &[]).into_list();
         let mut outcomeHandle: Option<String> = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        return self.filter_by_outcome_since_limit(results, &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_outcome_since_limit(Value::Arr(results), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit]);
 
     Value::Null
 }

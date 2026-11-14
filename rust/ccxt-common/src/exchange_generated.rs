@@ -3008,8 +3008,8 @@ pub trait ExchangeBase:
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             { let __t = self.map_to_safe_map(self.deep_extend(self.currencies.clone(), &[currencies.clone()])); self.currencies = __t; }
         }  else {
-            let mut baseCurrencies: Value = Value::from(vec![]);
-            let mut quoteCurrencies: Value = Value::from(vec![]);
+            let mut baseCurrencies: crate::value::List = std::sync::Arc::new(Vec::new());
+            let mut quoteCurrencies: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_88: bool = true;
@@ -3029,7 +3029,7 @@ pub trait ExchangeBase:
                             m.insert("precision".to_string(), self.safe_value2(&marketPrecision, Value::Str("base".into()), Value::Str("amount".into()), &[defaultCurrencyPrecision.clone()]));
                         m
                     }));
-                    if let Value::Arr(__a) = &mut baseCurrencies { std::sync::Arc::make_mut(__a).push(currency.clone()); }
+                    std::sync::Arc::make_mut(&mut baseCurrencies).push(currency);
                 }
                 if (matches!(&market, Value::Dict(__d) if __d.contains_key("quote"))) {
                     let mut currency: Value = self.safe_currency_structure(Value::Map({
@@ -3040,15 +3040,15 @@ pub trait ExchangeBase:
                             m.insert("precision".to_string(), self.safe_value2(&marketPrecision, Value::Str("quote".into()), Value::Str("price".into()), &[defaultCurrencyPrecision]));
                         m
                     }));
-                    if let Value::Arr(__a) = &mut quoteCurrencies { std::sync::Arc::make_mut(__a).push(currency); }
+                    std::sync::Arc::make_mut(&mut quoteCurrencies).push(currency);
                 }
             }
             }
-            baseCurrencies = self.sort_by(baseCurrencies, Value::Str("code".into()), &[Value::Bool(false), Value::Str("".into())]);
-            quoteCurrencies = self.sort_by(quoteCurrencies, Value::Str("code".into()), &[Value::Bool(false), Value::Str("".into())]);
-            { let __t = self.map_to_safe_map(self.index_by(baseCurrencies.clone(), Value::Str("code".into()))); self.baseCurrencies = __t; }
-            { let __t = self.map_to_safe_map(self.index_by(quoteCurrencies.clone(), Value::Str("code".into()))); self.quoteCurrencies = __t; }
-            let mut groupedCurrencies: crate::value::Dict = self.group_by(self.array_concat(baseCurrencies, quoteCurrencies), Value::Str("code".into()), &[]).into_dict();
+            baseCurrencies = self.sort_by(Value::Arr(baseCurrencies), Value::Str("code".into()), &[Value::Bool(false), Value::Str("".into())]).into_list();
+            quoteCurrencies = self.sort_by(Value::Arr(quoteCurrencies), Value::Str("code".into()), &[Value::Bool(false), Value::Str("".into())]).into_list();
+            { let __t = self.map_to_safe_map(self.index_by(Value::Arr(baseCurrencies.clone()), Value::Str("code".into()))); self.baseCurrencies = __t; }
+            { let __t = self.map_to_safe_map(self.index_by(Value::Arr(quoteCurrencies.clone()), Value::Str("code".into()))); self.quoteCurrencies = __t; }
+            let mut groupedCurrencies: crate::value::Dict = self.group_by(self.array_concat(Value::Arr(baseCurrencies), Value::Arr(quoteCurrencies)), Value::Str("code".into()), &[]).into_dict();
             let mut codes: Vec<Value> = Value::Array(groupedCurrencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             let mut resultingCurrencies: Vec<Value> = Vec::new();
             {
@@ -3547,7 +3547,7 @@ pub trait ExchangeBase:
         if (orders == Value::Null) {
             return Value::from(vec![]);
         }
-        let mut results: Value = Value::from(vec![]);
+        let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&orders, Value::Arr(_))) {
             {
                                 let mut i: i64 = 0;
@@ -3555,15 +3555,15 @@ pub trait ExchangeBase:
                 while { if !__for_first_98 { i += 1; } __for_first_98 = false; i < (orders.len() as i64) } {
                 let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_order(self, orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), market); // don't inline this call
                 let mut order: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
-                if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(Value::Dict(order)); }
+                std::sync::Arc::make_mut(&mut results).push(Value::Dict(order));
             }
             }
         }  else {
             return self.parse_orders(self.add_key_in_array_items(orders, Value::Str("id".into())), market, &[since.clone(), limit.clone(), params]);
         }
-        results = self.sort_by(results, Value::Str("timestamp".into()), &[]);
+        results = self.sort_by(Value::Arr(results), Value::Str("timestamp".into()), &[]).into_list();
         let mut symbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(results, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&results, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -5431,7 +5431,7 @@ pub trait ExchangeBase:
     m
 }));
         let mut tradesArray: crate::value::List = self.to_array(trades).into_list();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_125: bool = true;
@@ -5443,12 +5443,12 @@ pub trait ExchangeBase:
                 parsed = <Self as crate::exchange_generated::ExchangeBase>::parse_trade(self, tradesArray.get(i as usize).cloned().unwrap_or(Value::Null), market);
             }
             let mut trade: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Dict(trade)); }
+            std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
         }
         }
-        result = self.sort_by2(result, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]).into_list();
         let mut symbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -5488,18 +5488,18 @@ pub trait ExchangeBase:
     m
 }));
         let mut transactionsArray: crate::value::List = self.to_array(transactions).into_list();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_126: bool = true;
             while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < (transactionsArray.len() as i64) } {
             let mut transaction: crate::value::Dict = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transaction(self, transactionsArray.get(i as usize).cloned().unwrap_or(Value::Null), currency), &[params.clone()]).into_dict();
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Dict(transaction)); }
+            std::sync::Arc::make_mut(&mut result).push(Value::Dict(transaction));
         }
         }
-        result = self.sort_by(result, Value::Str("timestamp".into()), &[]);
+        result = self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]).into_list();
         let mut code: Value = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code") } else { Value::Null });
-        return self.filter_by_currency_since_limit(result, &[code, since, limit]);
+        return self.filter_by_currency_since_limit(Value::Arr(result), &[code, since, limit]);
 
     Value::Null
 }
@@ -5513,18 +5513,18 @@ pub trait ExchangeBase:
     m
 }));
         let mut transfersArray: crate::value::List = self.to_array(transfers).into_list();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_127: bool = true;
             while { if !__for_first_127 { i += 1; } __for_first_127 = false; i < (transfersArray.len() as i64) } {
             let mut transfer: crate::value::Dict = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transfer(self, transfersArray.get(i as usize).cloned().unwrap_or(Value::Null), currency), &[params.clone()]).into_dict();
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Dict(transfer)); }
+            std::sync::Arc::make_mut(&mut result).push(Value::Dict(transfer));
         }
         }
-        result = self.sort_by(result, Value::Str("timestamp".into()), &[]);
+        result = self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]).into_list();
         let mut code: Value = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code") } else { Value::Null });
-        return self.filter_by_currency_since_limit(result, &[code, since, limit]);
+        return self.filter_by_currency_since_limit(Value::Arr(result), &[code, since, limit]);
 
     Value::Null
 }
@@ -5537,7 +5537,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut arrayData: crate::value::List = self.to_array(data).into_list();
         {
                         let mut i: i64 = 0;
@@ -5549,17 +5549,17 @@ pub trait ExchangeBase:
                                         let mut j: i64 = 0;
                     let mut __for_first_128: bool = true;
                     while { if !__for_first_128 { j += 1; } __for_first_128 = false; (j as f64) < get_array_length(&itemOrItems).as_f64().unwrap_or(f64::NAN) } {
-                    if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.extend(get_value(&itemOrItems, &Value::Int(j)), &[params.clone()])); }
+                    std::sync::Arc::make_mut(&mut result).push(self.extend(get_value(&itemOrItems, &Value::Int(j)), &[params.clone()]));
                 }
                 }
             }  else {
-                if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.extend(itemOrItems, &[params.clone()])); }
+                std::sync::Arc::make_mut(&mut result).push(self.extend(itemOrItems, &[params.clone()]));
             }
         }
         }
-        result = self.sort_by(result, Value::Str("timestamp".into()), &[]);
+        result = self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]).into_list();
         let mut code: Value = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code") } else { Value::Null });
-        return self.filter_by_currency_since_limit(result, &[code, since, limit]);
+        return self.filter_by_currency_since_limit(Value::Arr(result), &[code, since, limit]);
 
     Value::Null
 }
