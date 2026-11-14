@@ -2160,7 +2160,7 @@ impl Paradex {
 })]), Value::Str("funding_period_hours".into()), &[]).as_str().map(str::to_owned);
         // zero hours is not an interval, and a caller annualising a rate divides by it
         let mut interval: Option<String> = None;
-        if (hours.is_some()) && crate::precise::Precise::stringGt(&hours.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (hours.is_some()) && crate::precise::Precise::stringGt(&hours, &Value::Str("0".into())).as_bool() == Some(true) {
             interval = Some(format!("{}{}", hours.as_deref().unwrap_or("null"), "h"));
         }
         return Value::Map({
@@ -4021,7 +4021,7 @@ impl Paradex {
             let mut position: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut status: Option<String> = self.safe_string_k(&position, "status", &[]).as_str().map(str::to_owned);
             let mut size: Option<String> = self.safe_string_k(&position, "size", &[]).as_str().map(str::to_owned);
-            if (status.as_deref() != Some("CLOSED")) && !(crate::precise::Precise::stringEq(&size.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if (status.as_deref() != Some("CLOSED")) && !(crate::precise::Precise::stringEq(&size, &Value::Str("0".into())).as_bool() == Some(true)) {
                 openPositions.push(Value::Dict(position));
             }
         }

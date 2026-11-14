@@ -694,7 +694,7 @@ impl Bit2c {
             while { if !__for_first_331 { i += 1; } __for_first_331 = false; i < (rawBids.len() as i64) } {
             let mut bidRow: crate::value::List = rawBids.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let mut bidAmount: Option<String> = self.safe_string(&bidRow, Value::Int(1), &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&bidAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&bidAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                 bids.push(Value::Arr(bidRow));
             }
         }
@@ -705,7 +705,7 @@ impl Bit2c {
             while { if !__for_first_332 { i += 1; } __for_first_332 = false; i < (rawAsks.len() as i64) } {
             let mut askRow: crate::value::List = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let mut askAmount: Option<String> = self.safe_string(&askRow, Value::Int(1), &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&askAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&askAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                 asks.push(Value::Arr(askRow));
             }
         }

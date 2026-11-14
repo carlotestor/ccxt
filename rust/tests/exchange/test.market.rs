@@ -193,7 +193,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         // if not spot, any of the below should be true
         assert!(ccxt::runtime::is_true(&(((contract.as_bool() == Some(true)) && ((future.as_bool() == Some(true)) || (swap.as_bool() == Some(true)) || (option.as_bool() == Some(true)) || is_true(&(isIndex)))))));
     }
-    let mut contractSize: Value = exchange.safe_string(&market, Value::Str("contractSize".into()), &[]);
+    let mut contractSize: Option<String> = exchange.safe_string(&market, Value::Str("contractSize".into()), &[]).as_str().map(str::to_owned);
     // contract fields
     if (contract.as_bool() == Some(true)) && !isInactiveMarket {
         if isQuanto {
@@ -206,7 +206,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
             assert!(ccxt::runtime::is_true(&((linear.as_bool() != inverse.as_bool()))));
         }
         // contract size should be defined
-        assert!(ccxt::runtime::is_true(&(((in_op(&skippedProperties, &Value::Str("contractSize".into()))) || (contractSize != Value::Null)))));
+        assert!(ccxt::runtime::is_true(&(((in_op(&skippedProperties, &Value::Str("contractSize".into()))) || (contractSize.is_some())))));
         // contract size should be above zero
         assert!(ccxt::runtime::is_true(&(Value::Bool((in_op(&skippedProperties, &Value::Str("contractSize".into()))) || is_true(&ccxt::precise::Precise::stringGt(&contractSize, &Value::Str("0".into())))))));
         // settle should be defined
@@ -215,7 +215,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         // linear & inverse needs to be undefined
         assert!(ccxt::runtime::is_true(&(((linear == Value::Null) && (inverse == Value::Null) && (quanto == Value::Null)))));
         // contract size should be undefined
-        assert!(ccxt::runtime::is_true(&((contractSize == Value::Null))));
+        assert!(ccxt::runtime::is_true(&((contractSize.is_none()))));
         // settle should be undefined
         assert!(ccxt::runtime::is_true(&(((market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null) == Value::Null) && (market.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null) == Value::Null)))));
     }

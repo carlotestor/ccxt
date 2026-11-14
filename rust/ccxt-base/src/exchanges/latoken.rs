@@ -1336,7 +1336,7 @@ impl Latoken {
             while { if !__for_first_914 { i += 1; } __for_first_914 = false; i < (rawAsks.len() as i64) } {
             let mut askEntry: crate::value::Dict = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut askQuantity: Option<String> = self.safe_string_k(&askEntry, "quantity", &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&askQuantity.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 asks.push(Value::Dict(askEntry));
             }
         }
@@ -1347,7 +1347,7 @@ impl Latoken {
             while { if !__for_first_915 { i += 1; } __for_first_915 = false; i < (rawBids.len() as i64) } {
             let mut bidEntry: crate::value::Dict = rawBids.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut bidQuantity: Option<String> = self.safe_string_k(&bidEntry, "quantity", &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&bidQuantity.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 bids.push(Value::Dict(bidEntry));
             }
         }

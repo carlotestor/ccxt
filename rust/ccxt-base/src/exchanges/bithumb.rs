@@ -1495,10 +1495,10 @@ impl Bithumb {
         let mut high: Option<String> = self.safe_string2(ticker.clone(), Value::Str("max_price".into()), Value::Str("high_price".into()), &[]).as_str().map(str::to_owned);
         let mut low: Option<String> = self.safe_string2(ticker.clone(), Value::Str("min_price".into()), Value::Str("low_price".into()), &[]).as_str().map(str::to_owned);
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
-        if (close.is_some()) && (high.is_some()) && crate::precise::Precise::stringGt(&close.clone().map(Value::from).unwrap_or(Value::Null), &high.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+        if (close.is_some()) && (high.is_some()) && crate::precise::Precise::stringGt(&close, &high).as_bool() == Some(true) {
             high = close.clone();
         }
-        if (close.is_some()) && (low.is_some()) && crate::precise::Precise::stringLt(&close.clone().map(Value::from).unwrap_or(Value::Null), &low.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+        if (close.is_some()) && (low.is_some()) && crate::precise::Precise::stringLt(&close, &low).as_bool() == Some(true) {
             low = close.clone();
         }
         return self.safe_ticker(Value::Map({
@@ -3013,7 +3013,7 @@ impl Bithumb {
         let mut type_var: Option<String> = self.safe_string2(order.clone(), Value::Str("order_type".into()), Value::Str("ord_type".into()), &[]).as_str().map(str::to_owned);
         let mut progressCount: Option<String> = self.safe_string_k(order.clone(), "progress_count", &[]).as_str().map(str::to_owned);
         if (type_var.is_none()) && (price.is_some()) && (progressCount.is_none()) {
-            if crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true) {
                 type_var = Some("market".to_string());
             }  else {
                 type_var = Some("limit".to_string());

@@ -833,7 +833,7 @@ impl Btcturk {
         let mut change: Option<String> = self.safe_string_k(ticker.clone(), "daily", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "dailyPercent", &[]).as_str().map(str::to_owned);
         let mut average: Option<String> = self.safe_string_k(ticker.clone(), "average", &[]).as_str().map(str::to_owned);
-        if (open.is_some()) && (last.is_some()) && !(crate::precise::Precise::stringEq(&open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (open.is_some()) && (last.is_some()) && !(crate::precise::Precise::stringEq(&open, &Value::Str("0".into())).as_bool() == Some(true)) {
             // The reported daily fields can disagree with last - open.
             // Let safeTicker derive the unified change, percentage and average from these prices.
             change = None.clone();

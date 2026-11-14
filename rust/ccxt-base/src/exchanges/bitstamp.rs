@@ -2576,7 +2576,7 @@ impl Bitstamp {
         let mut symbol: Option<String> = None;
         let mut side: Option<String> = None;
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
+        let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
         let mut costString: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
         let mut rawMarketId: Option<String> = None;
@@ -2610,7 +2610,7 @@ impl Bitstamp {
             priceId = self.safe_string_k(marketResolved.clone(), "id", &[]).as_str().map(str::to_owned);
         }
         priceString = self.safe_string(trade.clone(), priceId.map(Value::from).unwrap_or(Value::Null), &[priceString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        amountString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "baseId", &[]), &[amountString.clone()]);
+        amountString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "baseId", &[]), &[amountString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         costString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "quoteId", &[]), &[costString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         // this endpoint is not aligned with "markets" endpoint
         let mut baseIdLower: String = self.safe_string_lower_k(marketResolved.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2619,8 +2619,8 @@ impl Bitstamp {
         if (priceString.is_none()) {
             priceString = self.safe_string(trade.clone(), Value::from(dashedIdLower), &[]).as_str().map(str::to_owned);
         }
-        if (amountString == Value::Null) {
-            amountString = self.safe_string(trade.clone(), Value::from(baseIdLower), &[]);
+        if (amountString.is_none()) {
+            amountString = self.safe_string(trade.clone(), Value::from(baseIdLower), &[]).as_str().map(str::to_owned);
         }
         if (costString.is_none()) {
             costString = self.safe_string(trade.clone(), Value::from(quoteIdLower), &[]).as_str().map(str::to_owned);
@@ -2640,11 +2640,11 @@ impl Bitstamp {
         }
         // if it is a private trade
         if (matches!(&trade, Value::Dict(__d) if __d.contains_key("id"))) {
-            if (amountString != Value::Null) {
+            if (amountString.is_some()) {
                 let mut isAmountNeg: Value = crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into()));
                 if isAmountNeg.as_bool() == Some(true) {
                     side = Some("sell".to_string());
-                    amountString = crate::precise::Precise::stringNeg(&amountString);
+                    amountString = crate::precise::Precise::stringNeg(&amountString).as_str().map(str::to_owned);
                 }  else {
                     side = Some("buy".to_string());
                 }
@@ -2683,7 +2683,7 @@ impl Bitstamp {
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amountString);
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m

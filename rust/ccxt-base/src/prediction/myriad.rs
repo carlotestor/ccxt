@@ -1505,15 +1505,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut marketPrice: i64 = (if (sideInt == 0) { 1 } else { 0 });
         let mut priceValue: Value = (if (price != Value::Null) { price } else { Value::from(marketPrice) });
-        let mut priceWei: Value = self.to_orderbook_wei(priceValue.as_f64()).map(Value::from).unwrap_or(Value::Null);
+        let mut priceWei: Option<String> = self.to_orderbook_wei(priceValue.as_f64());
         if crate::precise::Precise::stringLt(&priceWei, &Value::Str("1".into())).as_bool() == Some(true) {
-            priceWei = Value::Str("1".into());
+            priceWei = Some("1".to_string());
         }
         // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
         if crate::precise::Precise::stringGt(&priceWei, &Value::Str("1000000000000000000".into())).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() price must be a fraction between 0 and 1")));
         }
-        let mut amountWei: Value = self.to_orderbook_wei(amount.as_f64()).map(Value::from).unwrap_or(Value::Null);
+        let mut amountWei: Option<String> = self.to_orderbook_wei(amount.as_f64());
         // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
         if crate::precise::Precise::stringLt(&amountWei, &Value::Str("1".into())).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() amount is too small (rounds to zero shares)")));
@@ -1527,8 +1527,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("marketId".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("outcomeId".to_string(), self.parse_to_numeric(Value::from(outcomeId)));
                 m.insert("side".to_string(), self.parse_to_numeric(Value::from(sideInt)));
-                m.insert("amount".to_string(), amountWei);
-                m.insert("price".to_string(), priceWei);
+                m.insert("amount".to_string(), amountWei.map(Value::from).unwrap_or(Value::Null));
+                m.insert("price".to_string(), priceWei.map(Value::from).unwrap_or(Value::Null));
                 m.insert("minFillAmount".to_string(), Value::from(minFillAmount));
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiration".to_string(), Value::from(expiration));
@@ -2153,7 +2153,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountStr: Option<String> = self.safe_string_k(trade.clone(), "shares", &[]).as_str().map(str::to_owned);
         let mut costStr: Option<String> = self.safe_string_k(trade.clone(), "value", &[]).as_str().map(str::to_owned);
         let mut priceStr: Option<String> = None;
-        if (amountStr.is_some()) && (costStr.is_some()) && !(crate::precise::Precise::stringEq(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (amountStr.is_some()) && (costStr.is_some()) && !(crate::precise::Precise::stringEq(&amountStr, &Value::Str("0".into())).as_bool() == Some(true)) {
             priceStr = crate::precise::Precise::stringDiv(&costStr, &amountStr).as_str().map(str::to_owned);
         }
         return self.safe_prediction_order(Value::Map({
@@ -4193,7 +4193,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountStr: Option<String> = self.safe_string_k(trade.clone(), "shares", &[]).as_str().map(str::to_owned);
         let mut costStr: Option<String> = self.safe_string_k(trade.clone(), "value", &[]).as_str().map(str::to_owned);
         let mut priceStr: Option<String> = None;
-        if (amountStr.is_some()) && (costStr.is_some()) && !(crate::precise::Precise::stringEq(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (amountStr.is_some()) && (costStr.is_some()) && !(crate::precise::Precise::stringEq(&amountStr, &Value::Str("0".into())).as_bool() == Some(true)) {
             priceStr = crate::precise::Precise::stringDiv(&costStr, &amountStr).as_str().map(str::to_owned);
         }
         return self.safe_prediction_trade(Value::Map({

@@ -3002,11 +3002,11 @@ impl Predictfun {
         // what the shares cost, which is also the collateral committed to the position
         let mut collateral: Option<String> = crate::precise::Precise::stringMul(&entryPrice, &contracts).as_str().map(str::to_owned);
         let mut markPrice: Option<String> = None;
-        if (notional.is_some()) && (contracts.is_some()) && crate::precise::Precise::stringGt(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (notional.is_some()) && (contracts.is_some()) && crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
             markPrice = crate::precise::Precise::stringDiv(&notional, &contracts).as_str().map(str::to_owned);
         }
         let mut percentage: Option<String> = None;
-        if (pnl.is_some()) && (collateral.is_some()) && crate::precise::Precise::stringGt(&collateral.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (pnl.is_some()) && (collateral.is_some()) && crate::precise::Precise::stringGt(&collateral, &Value::Str("0".into())).as_bool() == Some(true) {
             percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&pnl, &collateral), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         // a settled outcome reports WON or LOST, an open one leaves the field null - and the
@@ -4870,7 +4870,7 @@ impl Predictfun {
         }  else if (eventType.as_deref() == Some("orderTransactionSuccess")) {
             // a settled fill closes the order only once nothing is left of it
             status = Some("open".to_string());
-            if (amount.is_some()) && (filled.is_some()) && !(crate::precise::Precise::stringLt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+            if (amount.is_some()) && (filled.is_some()) && !(crate::precise::Precise::stringLt(&filled, &amount).as_bool() == Some(true)) {
                 status = Some("closed".to_string());
             }
         }

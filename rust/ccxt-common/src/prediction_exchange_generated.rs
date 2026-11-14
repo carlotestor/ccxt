@@ -2060,7 +2060,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (amount.is_none()) && (filled.is_some()) && (remaining.is_some()) {
             amount = crate::precise::Precise::stringAdd(&filled, &remaining).as_str().map(str::to_owned);
         }
-        if (average.is_none()) && (filled.is_some()) && (cost.is_some()) && crate::precise::Precise::stringGt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (average.is_none()) && (filled.is_some()) && (cost.is_some()) && crate::precise::Precise::stringGt(&filled, &Value::Str("0".into())).as_bool() == Some(true) {
             average = crate::precise::Precise::stringDiv(&cost, &filled).as_str().map(str::to_owned);
         }
         if (cost.is_none()) && (filled.is_some()) {
@@ -2186,7 +2186,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (change.is_none()) && (open.is_some()) && (close.is_some()) {
             change = crate::precise::Precise::stringSub(&close, &open).as_str().map(str::to_owned);
         }
-        if (percentage.is_none()) && (change.is_some()) && (open.is_some()) && crate::precise::Precise::stringGt(&open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (percentage.is_none()) && (change.is_some()) && (open.is_some()) && crate::precise::Precise::stringGt(&open, &Value::Str("0".into())).as_bool() == Some(true) {
             percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&change, &open), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         if (average.is_none()) && (open.is_some()) && (close.is_some()) {

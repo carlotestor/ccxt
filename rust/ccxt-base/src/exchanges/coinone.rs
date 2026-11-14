@@ -1639,7 +1639,7 @@ impl Coinone {
         // https://github.com/ccxt/ccxt/pull/7067
         if (status.as_deref() == Some("live")) {
             if (remainingString.is_some()) && (amountString.is_some()) {
-                let mut isLessThan: Value = crate::precise::Precise::stringLt(&remainingString.clone().map(Value::from).unwrap_or(Value::Null), &amountString.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut isLessThan: Value = crate::precise::Precise::stringLt(&remainingString, &amountString);
                 if isLessThan.as_bool() == Some(true) {
                     status = Some("canceled".to_string());
                 }

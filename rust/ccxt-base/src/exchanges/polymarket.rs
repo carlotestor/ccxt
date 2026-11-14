@@ -2775,7 +2775,7 @@ impl Polymarket {
         let mut size: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if (size.is_some()) {
-            let mut isLong: Value = crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into()));
+            let mut isLong: Value = crate::precise::Precise::stringGt(&size, &Value::Str("0".into()));
             side = (if isLong.as_bool() == Some(true) { Some("long".to_string()) } else { Some("short".to_string()) });
         }
         let mut isCross: Option<bool> = self.safe_bool_k(position.clone(), "cross", &[]).as_bool();
