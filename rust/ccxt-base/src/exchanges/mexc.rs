@@ -7379,11 +7379,11 @@ impl Mexc {
         let mut fromId: Option<String> = self.safe_string(Value::Map(accounts.clone()), fromAccount.clone(), &[fromAccount.clone()]).as_str().map(str::to_owned);
         let mut toId: Option<String> = self.safe_string(Value::Map(accounts.clone()), toAccount.clone(), &[toAccount.clone()]).as_str().map(str::to_owned);
         if (fromId.is_none()) {
-            let mut keys: Value = Value::Array(accounts.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+            let mut keys: Value = Value::Array(accounts.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fromAccount must be one of ").into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
         if (toId.is_none()) {
-            let mut keys: Value = Value::Array(accounts.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+            let mut keys: Value = Value::Array(accounts.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " toAccount must be one of ").into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

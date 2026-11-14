@@ -5405,7 +5405,7 @@ impl Woofipro {
         let mut requestHeaders: Value = Value::Null;
         if (access.as_deref() == Some("public")) {
             url.push_str(&pathWithParams.to_string());
-            if ((Value::Array(requestParams.keys().map(|__k| Value::Str(__k.clone().into())).collect()).len() as i64) as f64) > ((0i64) as f64) {
+            if ((Value::Array(requestParams.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map(requestParams.clone()), &[])));
             }
         }  else {
@@ -5449,7 +5449,7 @@ impl Woofipro {
                 auth = Value::Str(format!("{}{}", auth, requestBody).into());
                 if let Value::Dict(__d) = &mut authHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/json".into())); }
             }  else {
-                if ((Value::Array(requestParams.keys().map(|__k| Value::Str(__k.clone().into())).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                if ((Value::Array(requestParams.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map(requestParams.clone()), &[])));
                     auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(Value::Map(requestParams), &[])).into())).into());
                 }

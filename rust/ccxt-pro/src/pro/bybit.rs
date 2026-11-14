@@ -2291,7 +2291,7 @@ impl Bybit {
             self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2337,11 +2337,11 @@ impl Bybit {
             if (symbol == Value::Null) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+            symbols.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
             trades.append(parsed);
         }
         }
-        let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_196: bool = true;
@@ -2994,7 +2994,7 @@ impl Bybit {
         if !isSpot {
             rawOrders = self.safe_value_k(rawOrders.clone(), "result", &[rawOrders.clone()]);
         }
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3012,11 +3012,11 @@ impl Bybit {
             if (symbol == Value::Null) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+            symbols.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
             orders.append(Value::Dict(parsed));
         }
         }
-        let mut symbolsArray: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbolsArray: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_203: bool = true;
@@ -3724,7 +3724,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.handle_order_book(client.clone(), message.clone());
             return;
         }
-        let mut keys: Vec<Value> = Value::Array(methods.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(methods.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_212: bool = true;

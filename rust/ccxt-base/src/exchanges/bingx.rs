@@ -8210,7 +8210,7 @@ impl Bingx {
         let mut params: Value = params.into();
         let mut copied: Value = self.clone_value(params.clone());
         let mut sortedParams: indexmap::IndexMap<String, Value> = self.keysort(params, &[]).as_map().cloned().unwrap_or_default();
-        let mut rawKeys: Vec<Value> = Value::Array(sortedParams.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut rawKeys: Vec<Value> = Value::Array(sortedParams.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut rawKeysLength: f64 = ((rawKeys.len() as i64) as f64);
         {
                         let mut i: i64 = 0;

@@ -995,7 +995,7 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut keys: Vec<Value> = Value::Array(tickers.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut parsedTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1371,7 +1371,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-        let mut marketIds: Vec<Value> = Value::Array(ordersDict.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut marketIds: Vec<Value> = Value::Array(ordersDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut exchangeOrders: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -1825,7 +1825,7 @@ impl Indodax {
         let mut transactions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut currency: Option<crate::types::Currency> = None;
         if (code == Value::Null) {
-            let mut withdrawKeys: Vec<Value> = Value::Array(withdraw.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+            let mut withdrawKeys: Vec<Value> = Value::Array(withdraw.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_842: bool = true;
@@ -1834,7 +1834,7 @@ impl Indodax {
                 transactions = self.array_concat(Value::Arr(transactions), withdraw.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_list();
             }
             }
-            let mut depositKeys: Vec<Value> = Value::Array(deposit.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+            let mut depositKeys: Vec<Value> = Value::Array(deposit.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_843: bool = true;

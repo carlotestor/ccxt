@@ -2871,7 +2871,7 @@ impl Bitteam {
     m
 })]).into_dict();
         let mut balanceByCurrencies: indexmap::IndexMap<String, Value> = self.omit(&result, &["free", "used", "total"], &[]).as_map().cloned().unwrap_or_default();
-        let mut rawCurrencyIds: Vec<Value> = Value::Array(balanceByCurrencies.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut rawCurrencyIds: Vec<Value> = Value::Array(balanceByCurrencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_442: bool = true;

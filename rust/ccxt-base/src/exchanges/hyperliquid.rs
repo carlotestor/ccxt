@@ -4793,7 +4793,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // Hyperliquid returns the full status history for each order,
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
-        let mut deduplicatedByOid: Value = Value::Map({
+        let mut deduplicatedByOid: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4809,19 +4809,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut entry: crate::value::Dict = self.safe_dict_k(&rawOrder, "order", &[Value::from(&rawOrder)]).into_dict();
             let mut oid: Option<String> = self.safe_string_k_opt(&entry, "oid", &[]);
             if (oid.is_some()) {
-                if !(matches!((&deduplicatedByOid, &oid.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), Value::from(&rawOrder)); }
+                if !(matches!(&oid.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if deduplicatedByOid.contains_key(__k.as_ref()))) {
+                    deduplicatedByOid.insert(oid.as_deref().unwrap_or("null").to_string(), Value::from(&rawOrder));
                 }  else {
-                    let mut existingTimestamp: Option<i64> = self.safe_integer((if let (Some(__m), Some(__k)) = (deduplicatedByOid.as_map(), oid.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]).as_i64();
+                    let mut existingTimestamp: Option<i64> = self.safe_integer(deduplicatedByOid.get(oid.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]).as_i64();
                     let mut currentTimestamp: Option<i64> = self.safe_integer_k(&rawOrder, "statusTimestamp", &[]).as_i64();
                     if (currentTimestamp.is_some()) && ((existingTimestamp.is_none()) || (currentTimestamp.is_some() && existingTimestamp.is_some() && currentTimestamp > existingTimestamp)) {
-                        if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), Value::Dict(rawOrder)); }
+                        deduplicatedByOid.insert(oid.as_deref().unwrap_or("null").to_string(), Value::Dict(rawOrder));
                     }
                 }
             }
         }
         }
-        let mut deduplicated: crate::value::List = Value::Array(deduplicatedByOid.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        let mut deduplicated: crate::value::List = Value::Array(deduplicatedByOid.values().cloned().collect()).into_list();
         return self.parse_orders(&deduplicated, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
