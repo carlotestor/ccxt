@@ -5918,11 +5918,11 @@ if _try_result.is_err() {
         //         "leverage": "2"
         //     }
         //
-        let mut result: Value = Value::Map({
+        let mut result: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
-        });
+        }).into_dict();
         let mut isolated: bool = (marginMode.as_deref() == Some("margin")) && (type_var.as_deref() == Some("spot"));
         let mut data: Value = response;
         if (matches!(&data, Value::Dict(__d) if __d.contains_key("balances"))) {
@@ -5963,15 +5963,15 @@ if _try_result.is_err() {
 })]).into_dict();
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "currency", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "currency", &[]), None);
-                result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
-                result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
+                result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base)).into_dict();
+                result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote)).into_dict();
             }  else {
                 let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(entry.clone(), "currency", &[]), None);
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(entry)); }
+                std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(entry));
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Dict(result));
         Value::Null
         }).await?))
     }

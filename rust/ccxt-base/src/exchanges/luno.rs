@@ -1110,7 +1110,7 @@ impl Luno {
     pub fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let mut response: Value = response.into();
         let mut wallets: crate::value::List = self.safe_list_k(response.clone(), "balance", &[Value::from(vec![])]).into_list();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
                 m.insert("timestamp".to_string(), Value::Null);
@@ -1129,24 +1129,24 @@ impl Luno {
             let mut balance: Option<String> = self.safe_string_k(&wallet, "balance", &[]).as_str().map(str::to_owned);
             let mut reservedUnconfirmed: Option<String> = crate::precise::Precise::stringAdd(&reserved, &unconfirmed).as_str().map(str::to_owned);
             let mut balanceUnconfirmed: Option<String> = crate::precise::Precise::stringAdd(&balance, &unconfirmed).as_str().map(str::to_owned);
-            if (code != Value::Null) && (matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let __ws_arg_0 = self.safe_string((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("used".into()), &[]);
-                let __ws_arg_1 = self.safe_string((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("total".into()), &[]);
-                { let __be_tmp = self.extend((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[Value::Map({
+            if (code != Value::Null) && (matches!(&code, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+                let __ws_arg_0 = self.safe_string(result.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]);
+                let __ws_arg_1 = self.safe_string(result.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]);
+                { let __be_tmp = self.extend(result.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("used".to_string(), crate::precise::Precise::stringAdd(&__ws_arg_0, &reservedUnconfirmed));
         m.insert("total".to_string(), crate::precise::Precise::stringAdd(&__ws_arg_1, &balanceUnconfirmed));
     m
-})]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+})]); result.insert(crate::runtime::stringify_param(&code), __be_tmp); }
             }  else if (code != Value::Null) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("used".into(), reservedUnconfirmed.map(Value::from).unwrap_or(Value::Null));
                 account.insert("total".into(), balanceUnconfirmed.map(Value::from).unwrap_or(Value::Null));
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }

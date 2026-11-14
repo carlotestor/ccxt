@@ -1583,12 +1583,9 @@ impl Binance {
     m
 }));
         let mut paginate: bool = false;
-        let mut paramsPaginate: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchOpenOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
+        let mut paramsPaginate: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginate, Value::Str("fetchOpenOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequest: Option<i64> = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut pageKey: String = "ccxtPageKey".to_string();
@@ -1689,12 +1686,9 @@ impl Binance {
     m
 }));
         let mut paginate: bool = false;
-        let mut paramsPaginate: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
+        let mut paramsPaginate: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginate, Value::Str("fetchOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequest: Option<i64> = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut pageKey: String = "ccxtPageKey".to_string();
@@ -2025,12 +2019,9 @@ impl Binance {
     m
 }));
         let mut paginate: bool = false;
-        let mut paramsPaginate: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchMyTrades".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
+        let mut paramsPaginate: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginate, Value::Str("fetchMyTrades".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequest: Option<i64> = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut pageKey: String = "ccxtPageKey".to_string();

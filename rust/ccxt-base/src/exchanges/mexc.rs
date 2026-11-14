@@ -5454,11 +5454,11 @@ impl Mexc {
         }  else {
             wallet = self.safe_list_k(response.clone(), "balances", &[Value::from(vec![])]);
         }
-        let mut result: Value = Value::Map({
+        let mut result: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
-        });
+        }).into_dict();
         if isMarginType {
             {
                                 let mut i: i64 = 0;
@@ -5476,14 +5476,14 @@ impl Mexc {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
+                    result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base)).into_dict();
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
+                    result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote)).into_dict();
                 }
             }
             }
-            return self.safe_balance(result.clone());
+            return self.safe_balance(Value::from(&result));
         }  else if isSwapType {
             {
                                 let mut i: i64 = 0;
@@ -5496,11 +5496,11 @@ impl Mexc {
                 std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&entry, "availableBalance", &[]));
                 std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&entry, "frozenBalance", &[]));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
             }
             }
-            return self.safe_balance(result.clone());
+            return self.safe_balance(Value::from(&result));
         }  else {
             {
                                 let mut i: i64 = 0;
@@ -5513,11 +5513,11 @@ impl Mexc {
                 std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&entry, "free", &[]));
                 std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&entry, "locked", &[]));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
             }
             }
-            return self.safe_balance(result);
+            return self.safe_balance(Value::Dict(result));
         }
 
     Value::Null

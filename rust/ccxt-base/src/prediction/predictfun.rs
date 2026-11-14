@@ -972,7 +972,7 @@ impl Predictfun {
             m
         });
         // market rows whose category row did not come back, bucketed by the slug they carry
-        let mut orphanMarkets: Value = Value::Map({
+        let mut orphanMarkets: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1071,15 +1071,15 @@ impl Predictfun {
                 let mut rawMarket: Value = rawMarkets.get(mi as usize).cloned().unwrap_or(Value::Null);
                 let mut marketSlug: Option<String> = self.safe_string_k_opt(rawMarket.clone(), "categorySlug", &[]);
                 if (marketSlug.is_some()) {
-                    if (matches!((&orphanMarkets, &marketSlug.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if (matches!(&marketSlug.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if orphanMarkets.contains_key(__k.as_ref()))) {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
-                        let mut bucket: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), marketSlug.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                        let mut bucket: Value = orphanMarkets.get(marketSlug.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                         if let Value::Arr(__a) = &mut bucket { std::sync::Arc::make_mut(__a).push(rawMarket.clone()); };
-                        crate::set_value(&mut orphanMarkets, &marketSlug.clone().map(Value::from).unwrap_or(Value::Null), bucket.clone());
-                        if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(marketSlug.as_deref().unwrap_or("null").to_string(), bucket); }
+                        if let Some(__k) = marketSlug.as_deref() { orphanMarkets.insert(__k.to_string(), bucket.clone()); }
+                        orphanMarkets.insert(marketSlug.as_deref().unwrap_or("null").to_string(), bucket);
                     }  else {
-                        if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(marketSlug.as_deref().unwrap_or("null").to_string(), Value::from(vec![rawMarket])); }
+                        orphanMarkets.insert(marketSlug.as_deref().unwrap_or("null").to_string(), Value::from(vec![rawMarket]));
                         orphanSlugs.push(marketSlug.map(Value::from).unwrap_or(Value::Null));
                     }
                 }
@@ -1097,7 +1097,7 @@ impl Predictfun {
             let mut orphanSlug: Value = orphanSlugs.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(matches!(&orphanSlug, Value::Str(__k) if seenSlugs.contains_key(__k.as_ref()))) {
                 seenSlugs.insert(crate::runtime::stringify_param(&orphanSlug), Value::Bool(true));
-                let mut markets: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), orphanSlug.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut markets: Value = orphanMarkets.get(orphanSlug.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 let mut first: crate::value::Dict = self.safe_dict(markets.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -1018,7 +1018,7 @@ impl Bitvavo {
         }
         let mut name: String = "candles".to_string();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut marketIdsByInterval: Value = Value::Map({
+        let mut marketIdsByInterval: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1030,17 +1030,17 @@ impl Bitvavo {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolAndTimeframe, Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut timeframeString: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Value = self.safe_string(self.timeframes.clone(), Value::from(timeframeString.clone()), &[Value::from(timeframeString)]);
-            if !(matches!((&marketIdsByInterval, &interval), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut marketIdsByInterval { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&interval), Value::from(vec![])); }
+            if !(matches!(&interval, Value::Str(__k) if marketIdsByInterval.contains_key(__k.as_ref()))) {
+                marketIdsByInterval.insert(crate::runtime::stringify_param(&interval), Value::from(vec![]));
             }
-            let mut intervalIds: Value = (if let (Some(__m), Some(__k)) = (marketIdsByInterval.as_map(), interval.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut intervalIds: Value = marketIdsByInterval.get(interval.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut intervalIds { std::sync::Arc::make_mut(__a).push(Value::from((market).id.as_deref())); };
-            crate::set_value(&mut marketIdsByInterval, &interval, intervalIds);
+            if let Some(__k) = interval.as_str() { marketIdsByInterval.insert(__k.to_string(), intervalIds); }
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "multi:", name).into()), "@").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "_").into()), interval).into()));
         }
         }
         let mut channels: Vec<Value> = Vec::new();
-        let mut intervals: Vec<Value> = object_keys(&marketIdsByInterval).as_array().cloned().unwrap_or_default();
+        let mut intervals: Vec<Value> = Value::Array(marketIdsByInterval.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_150: bool = true;
@@ -1050,7 +1050,7 @@ impl Bitvavo {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::from(name.clone()));
                     m.insert("interval".to_string(), Value::from(vec![interval.clone()]));
-                    m.insert("markets".to_string(), (if let (Some(__m), Some(__k)) = (marketIdsByInterval.as_map(), interval.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+                    m.insert("markets".to_string(), marketIdsByInterval.get(interval.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
                 m
             }));
         }
@@ -1129,7 +1129,7 @@ impl Bitvavo {
         }
         let mut name: String = "candles".to_string();
         let mut subMessageHashes: Vec<Value> = Vec::new();
-        let mut marketIdsByInterval: Value = Value::Map({
+        let mut marketIdsByInterval: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1141,19 +1141,19 @@ impl Bitvavo {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolAndTimeframe, Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut timeframeString: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Value = self.safe_string(self.timeframes.clone(), Value::from(timeframeString.clone()), &[Value::from(timeframeString)]);
-            if !(matches!((&marketIdsByInterval, &interval), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut marketIdsByInterval { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&interval), Value::from(vec![])); }
+            if !(matches!(&interval, Value::Str(__k) if marketIdsByInterval.contains_key(__k.as_ref()))) {
+                marketIdsByInterval.insert(crate::runtime::stringify_param(&interval), Value::from(vec![]));
             }
-            let mut intervalIds: Value = (if let (Some(__m), Some(__k)) = (marketIdsByInterval.as_map(), interval.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut intervalIds: Value = marketIdsByInterval.get(interval.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut intervalIds { std::sync::Arc::make_mut(__a).push(Value::from((market).id.as_deref())); };
-            crate::set_value(&mut marketIdsByInterval, &interval, intervalIds);
+            if let Some(__k) = interval.as_str() { marketIdsByInterval.insert(__k.to_string(), intervalIds); }
             // both the single-symbol and the multi-symbol watch hashes must be released
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "@").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "_").into()), interval).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "multi:", name).into()), "@").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "_").into()), interval).into()));
         }
         }
         let mut channels: Vec<Value> = Vec::new();
-        let mut intervals: Vec<Value> = object_keys(&marketIdsByInterval).as_array().cloned().unwrap_or_default();
+        let mut intervals: Vec<Value> = Value::Array(marketIdsByInterval.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_152: bool = true;
@@ -1163,7 +1163,7 @@ impl Bitvavo {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::from(name.clone()));
                     m.insert("interval".to_string(), Value::from(vec![interval.clone()]));
-                    m.insert("markets".to_string(), (if let (Some(__m), Some(__k)) = (marketIdsByInterval.as_map(), interval.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+                    m.insert("markets".to_string(), marketIdsByInterval.get(interval.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
                 m
             }));
         }

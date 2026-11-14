@@ -5276,12 +5276,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }));
         let mut type_var: Option<String> = None;
-        let mut paramsMarketType: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(method.clone(), market, &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut subType: Value = self.handle_sub_type_and_params(method, market, &[paramsMarketType]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(method.clone(), market, &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut subType: Value = self.handle_sub_type_and_params(method, market, &[Value::from(&paramsMarketType)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         if self.parent.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
             type_var = Some("linear".to_string());
         }  else if self.parent.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {

@@ -7952,11 +7952,11 @@ impl Binance {
         let mut type_var: Value = type_var.into();
         let mut marginMode: Value = marginMode.into();
         let isPortfolioMargin: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let mut result: Value = Value::Map({
+        let mut result: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
-        });
+        }).into_dict();
         let mut timestamp: Option<i64> = None;
         let mut isolated: bool = marginMode.as_str() == Some("isolated");
         let mut cross: bool = (type_var.as_str() == Some("margin")) || (marginMode.as_str() == Some("cross"));
@@ -7990,7 +7990,7 @@ impl Binance {
                     accountPapi.insert("total".into(), crate::precise::Precise::stringAdd(&totalUsed, &totalWalletBalance));
                 }
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountPapi)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountPapi));
                 }
             }
             }
@@ -8013,7 +8013,7 @@ impl Binance {
                     accountSpot.insert("debt".into(), crate::precise::Precise::stringAdd(&debt, &interest));
                 }
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountSpot)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountSpot));
                 }
             }
             }
@@ -8035,10 +8035,10 @@ impl Binance {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
+                    result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base)).into_dict();
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
+                    result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote)).into_dict();
                 }
             }
             }
@@ -8056,7 +8056,7 @@ impl Binance {
                 accountSavings.insert("total".into(), usedAndTotal.clone().map(Value::from).unwrap_or(Value::Null));
                 accountSavings.insert("used".into(), usedAndTotal.map(Value::from).unwrap_or(Value::Null));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountSavings)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountSavings));
                 }
             }
             }
@@ -8075,7 +8075,7 @@ impl Binance {
                 let mut locked: Option<String> = self.safe_string_k(&entry, "locked", &[]).as_str().map(str::to_owned);
                 accountFunding.insert("used".into(), crate::precise::Precise::stringAdd(&frozen, &crate::precise::Precise::stringAdd(&locked, &withdrawing)));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountFunding)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountFunding));
                 }
             }
             }
@@ -8101,14 +8101,14 @@ impl Binance {
                 accountFutures.insert("used".into(), self.safe_string_k(&balance, "initialMargin", &[]));
                 accountFutures.insert("total".into(), self.safe_string2(&balance, Value::Str("marginBalance".into()), Value::Str("balance".into()), &[]));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountFutures)); }
+                    std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(accountFutures));
                 }
             }
             }
         }
-        add_element_to_object(&mut result, &Value::Str("timestamp".into()), Value::from(timestamp));
-        add_element_to_object(&mut result, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
-        return self.safe_balance(result);
+        std::sync::Arc::make_mut(&mut result).insert("timestamp".into(), Value::from(timestamp));
+        std::sync::Arc::make_mut(&mut result).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        return self.safe_balance(Value::Dict(result));
 
     Value::Null
 }
