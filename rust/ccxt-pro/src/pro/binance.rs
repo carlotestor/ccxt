@@ -3972,21 +3972,21 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut channelName: Option<String> = None;
         let mut resolvedMessageHashes: Vec<Value> = Vec::new();
-        let mut rawTickers: Value = Value::from(vec![]);
+        let mut rawTickers: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut newTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (matches!(&message, Value::Arr(_))) {
-            rawTickers = message.clone();
+            rawTickers = message.into_list();
         }  else {
-            if let Value::Arr(__a) = &mut rawTickers { std::sync::Arc::make_mut(__a).push(message); };
+            std::sync::Arc::make_mut(&mut rawTickers).push(message);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_71: bool = true;
             while { if !__for_first_71 { i += 1; } __for_first_71 = false; i < (rawTickers.len() as i64) } {
-            let mut ticker: crate::value::Dict = self.safe_dict(rawTickers.clone(), Value::Int(i), &[]).into_dict();
+            let mut ticker: crate::value::Dict = self.safe_dict(&rawTickers, Value::Int(i), &[]).into_dict();
             let mut event: Option<String> = self.safe_string_k(&ticker, "e", &[]).as_str().map(str::to_owned);
             if isBidAsk {
                 event = Some("bookTicker".to_string()); // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here

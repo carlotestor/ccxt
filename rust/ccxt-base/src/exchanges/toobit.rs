@@ -2076,13 +2076,13 @@ impl Toobit {
             let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsPrice]);
             response = self.common_get_quote_v1_klines(&[__ws_arg_4]).await;
         }
-        let mut candles: Value = Value::from(vec![]);
+        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            candles = response.clone();
+            candles = response.into_list();
         }  else {
-            candles = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+            candles = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3317,9 +3317,9 @@ impl Toobit {
             response = self.private_get_api_v1_futures_history_orders(&[Value::Dict(requestUntil)]).await;
         }
         let mut ordersList: Vec<Value> = Vec::new();
-        let mut responseList: Value = Value::from(vec![]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            responseList = response;
+            responseList = response.into_list();
         }
         {
                         let mut i: i64 = 0;
@@ -3327,7 +3327,7 @@ impl Toobit {
             while { if !__for_first_1135 { i += 1; } __for_first_1135 = false; i < (responseList.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("result".to_string(), responseList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                    m.insert("result".to_string(), responseList.get(i as usize).cloned().unwrap_or(Value::Null));
                 m
             }));
         }

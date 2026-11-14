@@ -1808,10 +1808,10 @@ impl Bithumb {
             m
         });
         let mut response: Value = Value::Null;
-        let mut data: Value = Value::Map({
+        let mut data: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (generation == Some(2)) {
             request.insert("markets".into(), self.get_gen2_market_id((market).raw.clone()));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
@@ -1851,7 +1851,7 @@ impl Bithumb {
             data = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }  else {
             request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
             request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
@@ -1879,9 +1879,9 @@ impl Bithumb {
             data = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }
-        return self.parse_ticker(data, Some(&market));
+        return self.parse_ticker(&data, Some(&market));
         Value::Null
         }).await?))
     }

@@ -897,17 +897,17 @@ impl Polymarket {
         // as a single object, so both shapes are handled here
         //
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            rows = data.clone();
+            rows = data.into_list();
         }  else {
-            if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
+            std::sync::Arc::make_mut(&mut rows).push(data);
         }
         let mut rowsLength: i64 = rows.len() as i64;
         if (rowsLength == 0) {
             return;
         }
-        let mut first: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -924,7 +924,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_652: bool = true;
             while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < rowsLength } {
-            let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
+            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1262,11 +1262,11 @@ impl Polymarket {
         //     }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            rows = data.clone();
+            rows = data.into_list();
         }  else {
-            if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
+            std::sync::Arc::make_mut(&mut rows).push(data);
         }
         let mut rowsLength: i64 = rows.len() as i64;
         if (rowsLength == 0) {
@@ -1285,7 +1285,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_654: bool = true;
             while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < rowsLength } {
-            let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
+            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1389,11 +1389,11 @@ impl Polymarket {
         //     }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            rows = data.clone();
+            rows = data.into_list();
         }  else {
-            if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
+            std::sync::Arc::make_mut(&mut rows).push(data);
         }
         let mut rowsLength: i64 = rows.len() as i64;
         if (rowsLength == 0) {
@@ -1412,7 +1412,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_656: bool = true;
             while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < rowsLength } {
-            let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
+            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();

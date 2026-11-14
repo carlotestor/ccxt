@@ -582,14 +582,14 @@ impl Bitfinex {
         //   ]
         //
         let mut data: Value = self.safe_list(message, Value::Int(1), &[Value::from(vec![])]);
-        let mut ohlcvs: Value = Value::from(vec![]);
+        let mut ohlcvs: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut first: Option<crate::value::List> = self.safe_list(data.clone(), Value::Int(0), &[]).into_opt_list();
         if (first.is_some()) {
             // snapshot
-            ohlcvs = data.clone();
+            ohlcvs = data.into_list();
         }  else {
             // update
-            ohlcvs = Value::from(vec![data]);
+            ohlcvs = std::sync::Arc::new(vec![data]);
         }
         let mut channel: String = (match subscription.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut key: String = (match subscription.get("key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
@@ -612,7 +612,7 @@ impl Bitfinex {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_100: bool = true;
             while { if !__for_first_100 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_100 = false; i.as_f64().unwrap_or(f64::NAN) < ohlcvsLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut parsed: crate::value::List = self.parse_ohlcv(self.safe_list(ohlcvs.clone(), (match (&((match (&(ohlcvsLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            let mut parsed: crate::value::List = self.parse_ohlcv(self.safe_list(&ohlcvs, (match (&((match (&(ohlcvsLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }

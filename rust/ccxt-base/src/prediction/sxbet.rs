@@ -2891,7 +2891,7 @@ impl Sxbet {
             let mut marketHash: Value = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]);
             if (self.safe_bool(Value::Map(seenHashes.clone()), marketHash.clone(), &[]) == Value::Null) {
                 seenHashes.insert(crate::runtime::stringify_param(&marketHash), Value::Bool(true));
-                std::sync::Arc::make_mut(&mut hashesOrder).push(marketHash.clone());
+                std::sync::Arc::make_mut(&mut hashesOrder).push(marketHash);
             }
         }
         }
