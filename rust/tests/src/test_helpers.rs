@@ -549,7 +549,7 @@ pub trait ExchangeOps {
     fn safe_list(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
     fn is_empty_string(&self, value: Value) -> Value;
     fn json(&self, v: Value) -> Value;
-    fn in_array(&self, needle: Value, haystack: Value) -> Value;
+    fn in_array(&self, needle: Value, haystack: Value) -> bool;
     fn deep_extend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn deepExtend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn index_by(&self, arr: Value, key: Value) -> Value;
@@ -557,7 +557,7 @@ pub trait ExchangeOps {
     fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
     fn number_to_string(&self, n: Value) -> Option<String>;
     fn base16_to_binary(&self, s: Value, optional_args: &[Value]) -> ccxt::value::Bytes;
-    fn precision_from_string(&self, s: Value) -> Value;
+    fn precision_from_string(&self, s: Value) -> i64;
     fn parse_precision(&self, optional_args: &[Value]) -> Value;
     fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn parse_to_int(&self, n: Value) -> Option<i64>;
@@ -601,7 +601,7 @@ impl ExchangeOps for Value {
     fn safe_list(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_list(d, key, o)) }
     fn is_empty_string(&self, value: Value) -> Value { with_base(|e| e.is_empty_string(value)) }
     fn json(&self, v: Value) -> Value { with_base(|e| e.json(v)) }
-    fn in_array(&self, needle: Value, haystack: Value) -> Value { with_base(|e| e.in_array(needle, haystack)) }
+    fn in_array(&self, needle: Value, haystack: Value) -> bool { with_base(|e| e.in_array(needle, haystack)) }
     fn deep_extend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn deepExtend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| e.index_by(arr, key)) }
@@ -609,7 +609,7 @@ impl ExchangeOps for Value {
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
     fn number_to_string(&self, n: Value) -> Option<String> { with_base(|e| e.number_to_string(n)) }
     fn base16_to_binary(&self, s: Value, o: &[Value]) -> ccxt::value::Bytes { with_base(|e| e.base16_to_binary(s, o)) }
-    fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }
+    fn precision_from_string(&self, s: Value) -> i64 { with_base(|e| e.precision_from_string(s)) }
     fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
     fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }
     fn parse_to_int(&self, n: Value) -> Option<i64> { with_base(|e| e.parse_to_int(n)) }
