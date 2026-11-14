@@ -7473,25 +7473,6 @@ export class RustTranspilerBuilder {
             // paren-balanced `cloneInArrayLiterals` walker below; running a
             // regex here doesn't see nested parens correctly.)
 
-            // Auto-clone simple identifier args inside `&[...]` slice
-            // literals in CALL-ARGUMENT position. Allow Value::X inside the
-            // bracket so calls like `&[id, Value::Null, marketType]` work.
-            //   foo(x, &[market, Value::Null, params])
-            //     → foo(x, &[market.clone(), Value::Null, params.clone()])
-            [/([,(])\s*&\[([a-zA-Z_][a-zA-Z0-9_:, .]*?)\]/g,
-                (_: string, prefix: string, inside: string) => {
-                    if (inside.includes('(') || inside.includes(')')) {
-                        // Skip slices that contain nested call expressions;
-                        // those need paren-balanced parsing we don't have here.
-                        return `${prefix} &[${inside}]`;
-                    }
-                    const parts = inside.split(',').map(s => s.trim());
-                    const out = parts.map(p =>
-                        /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(p) && p !== 'self'
-                            ? `${p}.clone()` : p
-                    ).join(', ');
-                    return `${prefix} &[${out}]`;
-                }],
 
 
 
@@ -10658,47 +10639,6 @@ export class RustTranspilerBuilder {
 
 
     /**
-     * Paren-balanced walker over `&[...]` slice literals in call-arg
-     * position. Clones bare identifiers among the slice elements.
-     */
-    cloneInRefSlices(content: string): string {
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            // Look for `, &[` or `( &[` start markers.
-            const re = /[,(]\s*&\[/g;
-            re.lastIndex = i;
-            const m = re.exec(content);
-            if (!m) { out += content.slice(i); break; }
-            const matchStart = m.index;
-            const prefix = m[0][0]; // `,` or `(`
-            out += content.slice(i, matchStart);
-            out += prefix === '(' ? '(&[' : ', &[';
-            // Find the matching `]` (balance brackets/parens/braces).
-            const j = balancedCloseIndex(content, m.index + m[0].length);
-            if (j >= content.length) { out += content.slice(matchStart); break; }
-            const inside = content.slice(m.index + m[0].length, j);
-            // Recurse so nested slices get processed too.
-            const insideRec = this.cloneInRefSlices(inside);
-            const parts = this.splitArgs(insideRec) ?? [];
-            const boolPrefix = /^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\(/;
-            const cloned = parts.map(p => {
-                const t = p.trim();
-                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self') {
-                    return `${t}.clone()`;
-                }
-                if (boolPrefix.test(t)) {
-                    return `Value::Bool(${t})`;
-                }
-                return p;
-            }).join(', ');
-            out += cloned + ']';
-            i = j + 1;
-        }
-        return out;
-    }
-
-    /**
      * Walks `Value::Array(vec![...])` literals and clones simple identifier
      * args (paren-balanced — handles nested calls in element positions).
      */
@@ -12085,7 +12025,6 @@ ${arms.join('\n')}
         // unwind past the parent method and leave its last_request_*
         // unset).
         content = this.rewriteTryCatchAsync(content);
-        content = this.cloneInRefSlices(content);
         // `self.super_X(...)` → `self.parent.X(...)`.
         if (parentCore) {
             content = content.replace(/\bself\.super_(\w+)\(/g, 'self.parent.$1(');
@@ -13150,9 +13089,6 @@ impl std::ops::DerefMut for ${coreName} {
 
 
 
-        // Re-apply `&[...]` auto-clone using paren-balanced walker so it
-        // handles slices that contain `Value::Str(...)` etc.
-        basePart = this.cloneInRefSlices(basePart);
 
         // Clone bare identifier args in `ternary(cond, a, b)` calls.
 
@@ -14774,7 +14710,6 @@ impl std::ops::DerefMut for ${coreName} {
             // `try { createOrder } catch { capture last_request_body }`),
             // so transpile it properly instead of dropping the catch.
             content = this.rewriteTryCatchAsync(content);
-            content = this.cloneInRefSlices(content);
             // Go-style interface dispatch: retype `exchange.<live_method>(args)`
             // → `crate::live_dispatch::dispatch(&exchange, "<method>", vec![args])`.
             // Mirrors what runExchangeTestPipeline does for the per-test
