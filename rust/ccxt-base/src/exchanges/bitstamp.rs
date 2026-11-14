@@ -4666,7 +4666,7 @@ impl Bitstamp {
                     if (matches!(&value, Value::Arr(_))) {
                         errors = self.array_concat(Value::Arr(errors), value.clone()).into_list();
                     }  else {
-                        std::sync::Arc::make_mut(&mut errors).push(value.clone());
+                        std::sync::Arc::make_mut(&mut errors).push(value);
                     }
                 }
                 }

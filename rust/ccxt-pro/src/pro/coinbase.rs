@@ -520,7 +520,7 @@ impl Coinbase {
         }
         let mut productIds: Vec<Value> = Vec::new();
         let mut watchMessageHashes: Vec<Value> = Vec::new();
-        let mut unWatchMessageHashes: Value = Value::from(vec![]);
+        let mut unWatchMessageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_opt_list();
         {
                         let mut i: i64 = 0;
@@ -531,7 +531,7 @@ impl Coinbase {
             let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
             productIds.push(marketId.map(Value::from).unwrap_or(Value::Null));
             watchMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "::").into()), symbol.as_deref().unwrap_or("null")).into()));
-            if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", name).into()), "::").into()), symbol.as_deref().unwrap_or("null")).into())); };
+            std::sync::Arc::make_mut(&mut unWatchMessageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", name).into()), "::").into()), symbol.as_deref().unwrap_or("null")).into()));
         }
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -548,7 +548,7 @@ impl Coinbase {
         }
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("messageHashes".to_string(), unWatchMessageHashes.clone());
+                m.insert("messageHashes".to_string(), Value::Arr(unWatchMessageHashes.clone()));
                 m.insert("subMessageHashes".to_string(), Value::from(watchMessageHashes));
                 m.insert("topic".to_string(), topic);
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
@@ -556,7 +556,7 @@ impl Coinbase {
             m
         });
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".into(), Value::Map(subscription.clone())); }
-        let mut res: Value = self.watch_multiple(url.as_deref(), unWatchMessageHashes.clone(), &message, unWatchMessageHashes.clone(), Value::Map(subscription)).await;
+        let mut res: Value = self.watch_multiple(url.as_deref(), &unWatchMessageHashes, &message, &unWatchMessageHashes, Value::Map(subscription)).await;
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".into(), Value::Bool(false)); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".into(), Value::Null); }
         return res;

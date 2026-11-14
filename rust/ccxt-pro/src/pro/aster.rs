@@ -2013,8 +2013,8 @@ impl Aster {
         let mut parsed: crate::value::List = self.parse_ws_ohlcv(kline.map_or(Value::Null, Value::Dict), None).into_list();
         stored.append(Value::Arr(parsed));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbol.as_deref().unwrap_or("null")).into()), ":").into()), timeframe.as_deref().unwrap_or("null"));
-        let mut resolveData: Value = Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
-        client.resolve(resolveData, messageHash.as_str());
+        let mut resolveData: crate::value::List = std::sync::Arc::new(vec![symbol.map(Value::from).unwrap_or(Value::Null), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
+        client.resolve(Value::Arr(resolveData), messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {

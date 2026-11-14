@@ -13293,11 +13293,11 @@ impl Bybit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
         let mut rawPositions: Option<crate::value::List> = self.safe_list_k(&result, "list", &[]).into_opt_list();
-        let mut rawPositionsList: Value = Value::from(vec![]);
+        let mut rawPositionsList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (rawPositions.is_some()) {
-            rawPositionsList = rawPositions.map_or(Value::Null, Value::Arr);
+            rawPositionsList = rawPositions.unwrap_or_default();
         }
-        let mut positions: crate::value::List = self.parse_positions(rawPositionsList, &[symbols, Value::Dict(paramsOmitted)]).into_list();
+        let mut positions: crate::value::List = self.parse_positions(&rawPositionsList, &[symbols, Value::Dict(paramsOmitted)]).into_list();
         return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))

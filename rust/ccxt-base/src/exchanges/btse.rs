@@ -5054,17 +5054,17 @@ impl Btse {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), legacyMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            rows = response.clone();
+            rows = response.into_list();
         }  else {
-            rows = Value::from(vec![response]);
+            rows = std::sync::Arc::new(vec![response]);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_492: bool = true;
             while { if !__for_first_492 { i += 1; } __for_first_492 = false; i < (rows.len() as i64) } {
-            let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
+            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[]).into_dict();
             let mut status: Option<String> = self.safe_string_k(&row, "status", &[]).as_str().map(str::to_owned);
             if (status.is_some()) {
                 let mut message: Value = self.safe_string_k(&row, "message", &[]);

@@ -13561,16 +13561,16 @@ impl Binance {
         //             }
         //         ]
         //     }
-        let mut responseList: Value = Value::from(vec![]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (response != Value::Null) {
             if stock {
                 let mut rows: Value = self.safe_list_k(response.clone(), "rows", &[Value::from(vec![])]);
-                responseList = rows;
+                responseList = rows.into_list();
             }  else {
-                responseList = self.to_array(response);
+                responseList = self.to_array(response).into_list();
             }
         }
-        return self.parse_trades(responseList, market.as_ref(), &[since, limitResolved]);
+        return self.parse_trades(&responseList, market.as_ref(), &[since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -17237,11 +17237,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchLeverages() supports linear and inverse contracts only")));
         }
-        let mut leverages: Value = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]);
+        let mut leverages: crate::value::List = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]).into_list();
         if (matches!(&response, Value::Arr(_))) {
-            leverages = response;
+            leverages = response.into_list();
         }
-        return self.parse_leverages(leverages, &[symbols, Value::Str("symbol".into())]);
+        return self.parse_leverages(&leverages, &[symbols, Value::Str("symbol".into())]);
         Value::Null
         }).await?))
     }
@@ -19467,15 +19467,15 @@ if _try_result.is_err() {
         //         },
         //     ]
         //
-        let mut liquidationsList: Value = Value::from(vec![]);
+        let mut liquidationsList: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rows: Option<crate::value::List> = self.safe_list_k(response.clone(), "rows", &[]).into_opt_list();
         if (rows.is_some()) {
-            liquidationsList = rows.map_or(Value::Null, Value::Arr);
+            liquidationsList = rows.unwrap_or_default();
         }  else if (matches!(&response, Value::Arr(_))) {
             // linear and inverse return the bare array, margin wraps it in 'rows'
-            liquidationsList = response;
+            liquidationsList = response.into_list();
         }
-        return self.parse_liquidations(liquidationsList, market.as_ref(), &[since, limit]);
+        return self.parse_liquidations(&liquidationsList, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -19824,11 +19824,11 @@ if _try_result.is_err() {
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchMarginModes () supports linear and inverse subTypes only")));
         }
-        let mut assets: Value = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]);
+        let mut assets: crate::value::List = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]).into_list();
         if (matches!(&response, Value::Arr(_))) {
-            assets = response;
+            assets = response.into_list();
         }
-        return self.parse_margin_modes(assets, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into()), Value::Str("swap".into())]);
+        return self.parse_margin_modes(&assets, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
     }

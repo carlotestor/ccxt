@@ -1809,8 +1809,8 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orders: Value = Value::from(vec![Value::Dict(result)]);
-        return self.parse_orders(orders, market.as_ref(), &[]);
+        let mut orders: crate::value::List = std::sync::Arc::new(vec![Value::Dict(result)]);
+        return self.parse_orders(&orders, market.as_ref(), &[]);
         Value::Null
         }).await?))
     }

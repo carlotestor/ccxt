@@ -1559,19 +1559,19 @@ impl Gate {
             marketType = "contract".to_string();
         }
         let mut result: Value = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut results: Value = Value::from(vec![]);
+        let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&result, Value::Arr(_))) {
-            results = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+            results = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         }  else {
             let mut rawTicker: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
-            results = Value::from(vec![Value::Dict(rawTicker)]);
+            results = std::sync::Arc::new(vec![Value::Dict(rawTicker)]);
         }
         let mut isTicker: bool = objectName.as_str() == Some("ticker"); // whether ticker or bid-ask
         {
                         let mut i: i64 = 0;
             let mut __for_first_322: bool = true;
             while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < (results.len() as i64) } {
-            let mut rawTicker: Value = results.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawTicker: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(rawTicker.clone(), "s", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::from(marketType.clone())]);
             let mut parsedItem: crate::value::Dict = self.parse_ticker(rawTicker, Some(&market)).into_dict();
@@ -1768,13 +1768,13 @@ impl Gate {
         // }
         //
         let mut rawResult: Value = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&rawResult, Value::Arr(_))) {
-            result = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+            result = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         }  else {
-            result = Value::from(vec![rawResult]);
+            result = std::sync::Arc::new(vec![rawResult]);
         }
-        let mut parsedTrades: Value = self.parse_trades(result, None, &[]);
+        let mut parsedTrades: Value = self.parse_trades(&result, None, &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_325: bool = true;
@@ -1948,11 +1948,11 @@ impl Gate {
             marketType = "spot".to_string();
         }
         let mut rawResult: Value = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&rawResult, Value::Arr(_))) {
-            result = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+            result = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         }  else {
-            result = Value::from(vec![rawResult]);
+            result = std::sync::Arc::new(vec![rawResult]);
         }
         let mut marketIds: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1962,7 +1962,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_326: bool = true;
             while { if !__for_first_326 { i += 1; } __for_first_326 = false; i < (result.len() as i64) } {
-            let mut ohlcv: crate::value::Dict = result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut ohlcv: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut subscription: Value = self.safe_string_k(&ohlcv, "n", &[Value::Str("".into())]);
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = subscription.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut timeframeId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -2061,10 +2061,10 @@ impl Gate {
         }
         let mut isInverse: bool = subType.as_deref() == Some("inverse");
         let mut url: Option<String> = self.get_url_by_market_type(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(isInverse)]).as_str().map(str::to_owned);
-        let mut payload: Value = Value::from(vec![marketId]);
+        let mut payload: crate::value::List = std::sync::Arc::new(vec![marketId]);
         // uid required for non spot markets
         let mut requiresUid: bool = type_var.as_deref() != Some("spot");
-        let mut trades: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), payload, Some(channel.as_str()), Value::Dict(paramsSubType), &[Value::Bool(requiresUid)]).await;
+        let mut trades: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), Value::Dict(paramsSubType), &[Value::Bool(requiresUid)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
@@ -2577,12 +2577,12 @@ impl Gate {
         if (isTrigger.as_bool() == Some(true)) {
             messageHash = "triggerOrders".to_string();
         }
-        let mut payload: Value = Value::from(vec![Value::Str(format!("{}{}", "!", "all").into())]);
+        let mut payload: crate::value::List = std::sync::Arc::new(vec![Value::Str(format!("{}{}", "!", "all").into())]);
         if (market.is_some()) {
             messageHash.push_str(&format!("{}{}", ":", crate::value::KeyRead::key_read(&&market, "id")));
             let mut mid: Option<String> = crate::value::KeyRead::key_read(&&market, "id").as_str().map(str::to_owned);
             if (mid.is_some()) {
-                payload = Value::from(vec![mid.map(Value::from).unwrap_or(Value::Null)]);
+                payload = std::sync::Arc::new(vec![mid.map(Value::from).unwrap_or(Value::Null)]);
             }
         }
         let mut subType: Option<String> = None;
@@ -2591,7 +2591,7 @@ impl Gate {
         let mut url: Option<String> = self.get_url_by_market_type(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(isInverse)]).as_str().map(str::to_owned);
         // uid required for non spot markets
         let mut requiresUid: bool = type_var.as_deref() != Some("spot");
-        let mut orders: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), payload, Some(channel.as_str()), query, &[Value::Bool(requiresUid)]).await;
+        let mut orders: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), query, &[Value::Bool(requiresUid)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());

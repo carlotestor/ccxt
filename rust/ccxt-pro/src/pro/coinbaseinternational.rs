@@ -1892,8 +1892,8 @@ impl Coinbaseinternational {
         })]).into_dict();
         let mut parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(data), Some(&market)).into_list();
         stored.append(Value::Arr(parsed));
-        let mut resolved: Value = Value::from(vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
-        client.resolve(resolved, messageHash.as_str());
+        let mut resolved: crate::value::List = std::sync::Arc::new(vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
+        client.resolve(Value::Arr(resolved), messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {

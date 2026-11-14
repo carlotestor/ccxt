@@ -2098,7 +2098,7 @@ impl Hitbtc {
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_trades(&[__ws_arg_5]).await.into_dict();
-        let mut trades: Value = Value::from(vec![]);
+        let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -2108,10 +2108,10 @@ impl Hitbtc {
             let mut marketInner: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut rawTrades: crate::value::List = self.safe_list(&response, marketId.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
             let mut parsed: crate::value::List = self.parse_trades(&rawTrades, Some(&marketInner), &[]).into_list();
-            trades = self.array_concat(trades, &parsed);
+            trades = self.array_concat(Value::Arr(trades), &parsed).into_list();
         }
         }
-        return trades;
+        return Value::Arr(trades);
         Value::Null
         }).await?))
     }

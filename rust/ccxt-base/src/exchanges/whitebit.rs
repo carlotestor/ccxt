@@ -4924,11 +4924,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut records: Value = self.safe_list_k(&response, "records", &[Value::from(vec![])]);
-        let mut recordsList: Value = Value::from(vec![]);
+        let mut recordsList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (records != Value::Null) {
-            recordsList = records;
+            recordsList = records.into_list();
         }
-        return self.parse_transactions(recordsList, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&recordsList, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -5421,11 +5421,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //    }
         //
         let mut records: Option<crate::value::List> = self.safe_list_k(&response, "records", &[]).into_opt_list();
-        let mut recordsList: Value = Value::from(vec![]);
+        let mut recordsList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (records.is_some()) {
-            recordsList = records.map_or(Value::Null, Value::Arr);
+            recordsList = records.unwrap_or_default();
         }
-        return self.parse_transactions(recordsList, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&recordsList, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

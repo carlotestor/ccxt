@@ -551,13 +551,13 @@ impl Deribit {
         if (interval == "raw") {
             self.authenticate(&[]).await;
         }
-        let mut channels: Value = Value::from(vec![]);
+        let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_288: bool = true;
             while { if !__for_first_288 { i += 1; } __for_first_288 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval).into())); };
+            std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval).into()));
         }
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -566,14 +566,14 @@ impl Deribit {
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), channels.clone());
+        m.insert("channels".to_string(), Value::Arr(channels.clone()));
     m
 }));
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        let mut newTickers: Value = self.watch_multiple(url.as_deref(), channels.clone(), request.clone(), channels.clone(), request.clone()).await;
+        let mut newTickers: Value = self.watch_multiple(url.as_deref(), &channels, request.clone(), &channels, request.clone()).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -660,13 +660,13 @@ impl Deribit {
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut channels: Value = Value::from(vec![]);
+        let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_289: bool = true;
             while { if !__for_first_289 { i += 1; } __for_first_289 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("quote.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())); };
+            std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str("quote.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
         }
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -675,14 +675,14 @@ impl Deribit {
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), channels.clone());
+        m.insert("channels".to_string(), Value::Arr(channels.clone()));
     m
 }));
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
-        let mut newTickers: Value = self.watch_multiple(url.as_deref(), channels.clone(), &request, channels.clone(), &request).await;
+        let mut newTickers: Value = self.watch_multiple(url.as_deref(), &channels, &request, &channels, &request).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

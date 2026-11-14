@@ -3512,7 +3512,7 @@ impl Kraken {
         }
         }
         batches.push(batch);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut j: i64 = 0;
             let mut __for_first_857: bool = true;
@@ -3556,10 +3556,10 @@ impl Kraken {
             }
             let mut trades: crate::value::List = self.parse_trades(rawTrades, None, &[since.clone(), limit.clone()]).into_list();
             let mut tradesFilteredBySymbol: Value = self.filter_by_symbol(Value::Arr(trades), &[Value::from(symbolResolved.as_deref())]);
-            result = self.array_concat(result, tradesFilteredBySymbol);
+            result = self.array_concat(Value::Arr(result), tradesFilteredBySymbol).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }

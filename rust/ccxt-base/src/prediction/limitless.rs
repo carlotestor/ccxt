@@ -659,7 +659,7 @@ impl Limitless {
                     let mut slug: Option<String> = self.safe_string_k(raw.clone(), "slug", &[]).as_str().map(str::to_owned);
                     if ((slug.is_some()) && (slug.as_deref() != Some(""))) && !(matches!(slug.as_deref(), Some(__k) if seen.contains_key(__k))) {
                         seen.insert(slug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                        std::sync::Arc::make_mut(&mut allRaw).push(raw.clone());
+                        std::sync::Arc::make_mut(&mut allRaw).push(raw);
                     }
                 }
                 }
@@ -2883,8 +2883,8 @@ impl Limitless {
     m
 }));
         let mut response: Value = self.limitless_private_get_profiles_me(&[params]).await;
-        let mut responseList: Value = Value::from(vec![response]);
-        return self.parse_accounts(responseList, &[]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(vec![response]);
+        return self.parse_accounts(&responseList, &[]);
         Value::Null
         }).await?))
     }

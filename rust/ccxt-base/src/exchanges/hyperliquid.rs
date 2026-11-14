@@ -1056,7 +1056,7 @@ impl Hyperliquid {
             add_element_to_object(&mut perpDexesOffset, &self.safe_string_k(&dex, "name", &[Value::Str("".into())]), offset.clone());
         }
         }
-        let mut fetchDexesList: Value = Value::from(vec![]);
+        let mut fetchDexesList: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1070,7 +1070,7 @@ impl Hyperliquid {
         let mut userProvidedDexesLength: i64 = dexesProvided.len() as i64;
         if userProvidedDexesLength > 0 {
             if userProvidedDexesLength > 0 {
-                fetchDexesList = dexesProvided;
+                fetchDexesList = dexesProvided.into_list();
             }
         }  else {
             let mut fetchDexesLength: Value = get_array_length(&fetchDexes);
@@ -1095,7 +1095,7 @@ impl Hyperliquid {
                     continue;
                 }
                 let mut dexName: Option<String> = self.safe_string_k_opt(&dex, "name", &[]);
-                if let Value::Arr(__a) = &mut fetchDexesList { std::sync::Arc::make_mut(__a).push(dexName.map(Value::from).unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut fetchDexesList).push(dexName.map(Value::from).unwrap_or(Value::Null));
             }
             }
         }
@@ -1107,7 +1107,7 @@ impl Hyperliquid {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
-                    m.insert("dex".to_string(), self.safe_string(fetchDexesList.clone(), Value::Int(i), &[]));
+                    m.insert("dex".to_string(), self.safe_string(&fetchDexesList, Value::Int(i), &[]));
                 m
             });
             let __ws_arg_3 = self.extend(Value::Map(request), &[params.clone()]);
@@ -1124,7 +1124,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_803: bool = true;
             while { if !__for_first_803 { i += 1; } __for_first_803 = false; i < (promises.len() as i64) } {
-            let mut dexName: Value = fetchDexesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut dexName: Value = fetchDexesList.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut offset: Option<i64> = self.safe_integer(perpDexesOffset.clone(), dexName.clone(), &[]).as_i64();
             let mut response: crate::value::List = self.safe_list(promises.clone(), Value::Int(i), &[]).into_list();
             let mut meta: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({

@@ -1355,7 +1355,7 @@ impl Coinsph {
         //     }
         //
         let mut markets: crate::value::List = self.safe_list_k(&response, "symbols", &[Value::from(vec![])]).into_list();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_576: bool = true;
@@ -1382,7 +1382,7 @@ impl Coinsph {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Map({
+            std::sync::Arc::make_mut(&mut result).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
@@ -1446,11 +1446,11 @@ impl Coinsph {
                     m.insert("created".to_string(), Value::Null);
                     m.insert("info".to_string(), Value::from(&market));
                 m
-            })); }
+            }));
         }
         }
-        self.set_markets(result.clone(), &[]);
-        return result;
+        self.set_markets(Value::Arr(result.clone()), &[]);
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }

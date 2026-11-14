@@ -1170,10 +1170,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
             client.resolve(Value::from(&ticker), &(Value::Str(format!("{}{}", "ticker:", symbol).into())));
             // watchTickers
-            let mut allTickers: indexmap::IndexMap<String, Value> = {
+            let mut allTickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
-            };
+            });
             allTickers.insert(crate::runtime::stringify_param(&symbol), Value::Dict(ticker));
             client.resolve(Value::Map(allTickers), "tickers");
         }  else {
@@ -1880,7 +1880,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut isFuturesMethod: bool = self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut url: Value = self.negotiate(false, &[Value::Bool(isFuturesMethod)]).await;
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut subscriptionHashes: Vec<Value> = Vec::new();
         let mut channelName: String = "/market/match:".to_string();
         if isFuturesMethod {
@@ -1892,25 +1892,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_453: bool = true;
             while { if !__for_first_453 { i += 1; } __for_first_453 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", "unsubscribe:trades:", symbol.as_deref().unwrap_or("null")).into())); };
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "unsubscribe:trades:", symbol.as_deref().unwrap_or("null")).into()));
             subscriptionHashes.push(Value::Str(format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
         // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-        if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(topic.clone())); };
+        std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(topic.clone()));
         subscriptionHashes.push(Value::from(topic.clone()));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("messageHashes".to_string(), messageHashes.clone());
+                m.insert("messageHashes".to_string(), Value::Arr(messageHashes.clone()));
                 m.insert("subMessageHashes".to_string(), Value::from(subscriptionHashes));
                 m.insert("topic".to_string(), Value::Str("trades".into()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("symbols".to_string(), symbolsNormalized.map_or(Value::Null, Value::Arr));
             m
         });
-        return self.un_subscribe_multiple(url, messageHashes.clone(), topic.as_str(), messageHashes, &[params, Value::Map(subscription)]).await;
+        return self.un_subscribe_multiple(url, Value::Arr(messageHashes.clone()), topic.as_str(), Value::Arr(messageHashes), &[params, Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -2390,32 +2390,32 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method, ":").into()), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut subscriptionHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_455: bool = true;
             while { if !__for_first_455 { i += 1; } __for_first_455 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", "unsubscribe:orderbook:", symbol.as_deref().unwrap_or("null")).into())); };
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "unsubscribe:orderbook:", symbol.as_deref().unwrap_or("null")).into()));
             subscriptionHashes.push(Value::Str(format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
         // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-        if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(topic.clone())); };
+        std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(topic.clone()));
         subscriptionHashes.push(Value::from(topic.clone()));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("messageHashes".to_string(), messageHashes.clone());
+                m.insert("messageHashes".to_string(), Value::Arr(messageHashes.clone()));
                 m.insert("symbols".to_string(), symbolsNormalized.map_or(Value::Null, Value::Arr));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
                 m.insert("subMessageHashes".to_string(), Value::from(subscriptionHashes));
             m
         });
-        return self.un_subscribe_multiple(url, messageHashes.clone(), topic.as_str(), messageHashes, &[Value::Dict(paramsMethod), Value::Map(subscription)]).await;
+        return self.un_subscribe_multiple(url, Value::Arr(messageHashes.clone()), topic.as_str(), Value::Arr(messageHashes), &[Value::Dict(paramsMethod), Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }

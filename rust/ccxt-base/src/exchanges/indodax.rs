@@ -1372,7 +1372,7 @@ impl Indodax {
     m
 })]).as_map().cloned().unwrap_or_default();
         let mut marketIds: Vec<Value> = Value::Array(ordersDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-        let mut exchangeOrders: Value = Value::from(vec![]);
+        let mut exchangeOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_841: bool = true;
@@ -1381,10 +1381,10 @@ impl Indodax {
             let mut marketOrders: Value = ordersDict.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             market = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
             let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[since.clone(), limit.clone()]).into_list();
-            exchangeOrders = self.array_concat(exchangeOrders, &parsedOrders);
+            exchangeOrders = self.array_concat(Value::Arr(exchangeOrders), &parsedOrders).into_list();
         }
         }
-        return exchangeOrders;
+        return Value::Arr(exchangeOrders);
         Value::Null
         }).await?))
     }
