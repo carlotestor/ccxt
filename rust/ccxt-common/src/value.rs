@@ -2753,4 +2753,24 @@ mod self_write_read_parity_tests {
             assert_eq!(Value::Dict(Arc::new(typed)), boxed);
         }
     }
+
+    // ral-xf: `m[k].push(v)` on a literal map (`if let Some(__k) = k.as_str() { if let Value::Arr(__a) =
+    // m.entry(..).or_insert_with(empty) { push } }`) against append_to_object_array, and a `symbol` key read / write
+    // against get_value / add_element_to_object (no __book_id in a literal), for a present list, a missing key, a
+    // wrong-kind (Int) value and Null / Int keys.
+    #[test]
+    fn typed_entry_push_and_symbol_key_match_runtime() {
+        use crate::runtime::append_to_object_array as boxed_push;
+        let keys = [Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("n".into()), Value::Str("symbol".into()), Value::Null, Value::Int(1)];
+        for k in keys {
+            let mut typed = literal();
+            typed.insert("BTC".to_string(), Value::from(vec![Value::Int(1)]));
+            let mut boxed = Value::Dict(Arc::new(literal()));
+            boxed_write(&mut boxed, &Value::Str("BTC".into()), Value::from(vec![Value::Int(1)]));
+            if let Some(__k) = k.as_str() { if let Value::Arr(__a) = typed.entry(__k.to_string()).or_insert_with(|| Value::Array(Vec::new())) { Arc::make_mut(__a).push(Value::Int(2)); } }
+            boxed_push(&mut boxed, &k, Value::Int(2));
+            assert_eq!(typed.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), boxed_read(&boxed, &k));
+            assert_eq!(Value::Dict(Arc::new(typed)), boxed);
+        }
+    }
 }
