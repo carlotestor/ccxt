@@ -1629,23 +1629,23 @@ impl Bitvavo {
                 m.insert("channels".to_string(), channels);
             m
         });
-        let mut unsubHashes: Value = Value::from(vec![]);
+        let mut unsubHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_158: bool = true;
             while { if !__for_first_158 { i += 1; } __for_first_158 = false; i < (subMessageHashes.len() as i64) } {
-            if let Value::Arr(__a) = &mut unsubHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.safe_string(subMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())])).into())); };
+            std::sync::Arc::make_mut(&mut unsubHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.safe_string(subMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())])).into()));
         }
         }
         let mut subscription: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), topic);
                 m.insert("subMessageHashes".to_string(), subMessageHashes);
-                m.insert("unsubHashes".to_string(), unsubHashes.clone());
+                m.insert("unsubHashes".to_string(), Value::Arr(unsubHashes.clone()));
             m
         }), &[subscriptionArgs]).into_dict();
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        return self.watch_multiple(url.as_deref(), unsubHashes.clone(), &message, unsubHashes.clone(), &subscription).await;
+        return self.watch_multiple(url.as_deref(), &unsubHashes, &message, &unsubHashes, &subscription).await;
 
     Value::Null
 }
