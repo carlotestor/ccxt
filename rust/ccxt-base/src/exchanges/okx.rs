@@ -3794,7 +3794,7 @@ impl Okx {
         let mut expiry: String = self.safe_string(&optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut strike: String = self.safe_string(&optionParts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut optionType: String = self.safe_string(&optionParts, Value::Int(4), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut datetime: Option<String> = (if (expiry == "") { None } else { self.convert_expire_date(Value::from(expiry.clone())).as_str().map(str::to_owned) });
+        let mut datetime: Option<String> = (if (expiry == "") { None } else { self.convert_expire_date(Some(expiry.as_str())).as_str().map(str::to_owned) });
         let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

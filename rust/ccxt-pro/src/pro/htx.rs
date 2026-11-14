@@ -1486,8 +1486,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut messageHash: Value = Value::Null;
         let mut channel: Value = Value::Null;
-        let mut orderType: Value = self.safe_string_k(self.options.clone(), "orderType", &[Value::Str("orders".into())]); // orders or matchOrders
-        orderType = self.safe_string_k(params.clone(), "orderType", &[orderType.clone()]);
+        let mut orderType: Option<String> = self.safe_string_k(self.options.clone(), "orderType", &[Value::Str("orders".into())]).as_str().map(str::to_owned); // orders or matchOrders
+        orderType = self.safe_string_k(params.clone(), "orderType", &[orderType.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("orderType".into()), &[]).into_dict();
         let mut marketCode: Option<String> = None;
         if (market.is_some()) {
@@ -1497,37 +1497,37 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (market.is_some()) {
             baseId = crate::value::KeyRead::key_read(&market, "baseId");
         }
-        let mut prefix: Value = orderType;
-        messageHash = prefix.clone();
+        let mut prefix: Option<String> = orderType;
+        messageHash = prefix.clone().map(Value::from).unwrap_or(Value::Null);
         if (subType.as_str() == Some("linear")) {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             let mut marginMode: Option<String> = self.safe_string_k(&paramsOmitted, "margin", &[Value::Str("cross".into())]).as_str().map(str::to_owned);
-            let mut marginPrefix: Value = prefix.clone();
+            let mut marginPrefix: Option<String> = prefix.clone();
             if (marginMode.as_deref() == Some("cross")) {
-                marginPrefix = Value::Str(format!("{}{}", prefix, "_cross").into());
+                marginPrefix = Some(format!("{}{}", prefix.as_deref().unwrap_or("null"), "_cross"));
             }
-            messageHash = marginPrefix.clone();
+            messageHash = marginPrefix.clone().map(Value::from).unwrap_or(Value::Null);
             if (marketCode.is_some()) {
-                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginPrefix, ".").into()), marketCode.as_deref().unwrap_or("null")).into());
+                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginPrefix.as_deref().unwrap_or("null"), ".").into()), marketCode.as_deref().unwrap_or("null")).into());
                 channel = messageHash.clone();
             }  else {
-                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginPrefix, ".").into()), "*").into());
+                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginPrefix.as_deref().unwrap_or("null"), ".").into()), "*").into());
             }
         }  else if (type_var.as_str() == Some("future")) {
             // inverse futures Example: BCH/USD:BCH-220408
             if (baseId != Value::Null) {
-                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, ".").into()), (if let Some(__s) = baseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
+                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix.as_deref().unwrap_or("null"), ".").into()), (if let Some(__s) = baseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
                 messageHash = channel.clone();
             }  else {
-                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, ".").into()), "*").into());
+                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix.as_deref().unwrap_or("null"), ".").into()), "*").into());
             }
         }  else {
             // inverse swaps: Example: BTC/USD:BTC
             if (marketCode.is_some()) {
-                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, ".").into()), marketCode.as_deref().unwrap_or("null")).into());
+                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix.as_deref().unwrap_or("null"), ".").into()), marketCode.as_deref().unwrap_or("null")).into());
                 messageHash = channel.clone();
             }  else {
-                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, ".").into()), "*").into());
+                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix.as_deref().unwrap_or("null"), ".").into()), "*").into());
             }
         }
         return Value::from(vec![channel, messageHash]);

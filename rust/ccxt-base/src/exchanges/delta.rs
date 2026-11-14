@@ -835,7 +835,7 @@ impl Delta {
         let mut expiry: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(rawExpiry.chars().skip(4).collect::<String>()), Value::from(rawExpiry.chars().skip(2).take(2).collect::<String>())).into()), Value::from(rawExpiry.chars().skip(0).take(2).collect::<String>()));
         let mut settle: String = quote.clone();
         let mut strike: String = self.safe_string(optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut datetime: Option<String> = self.convert_expire_date(Value::from(expiry.clone())).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.convert_expire_date(Some(expiry.as_str())).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         let mut optionTypeUnified: String = "put".to_string();
         if (optionType == "C") {

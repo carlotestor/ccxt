@@ -2106,24 +2106,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[Value::Str("spot".into())]);
+        let mut type_var: String = self.safe_string_k(params.clone(), "type", &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let mut listenKeyOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "listenKey", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut listenKey: Option<String> = self.safe_string(&listenKeyOptions, type_var.clone(), &[]).as_str().map(str::to_owned);
+        let mut listenKey: Option<String> = self.safe_string(&listenKeyOptions, Value::from(type_var.clone()), &[]).as_str().map(str::to_owned);
         if (listenKey.is_none()) {
             return Value::Null;
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            if (type_var.as_str() == Some("spot")) {
+            if (type_var == "spot") {
                 self.parent.sapi_private_put_v3_listen_key(&[]).await; // extend the expiry
             }  else {
                 self.parent.fapi_private_put_v3_listen_key(&[]).await; // extend the expiry
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
-            let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), type_var.clone(), &[Value::Str("".into())]),
+            let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), Value::from(type_var.clone()), &[Value::Str("".into())]),
                 Value::Str("/".into())).into()), listenKey.map(Value::from).unwrap_or(Value::Null));
             let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
             let mut messageHashes: Vec<Value> = client.future_keys();
@@ -2135,8 +2135,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 client.reject(error.clone(), messageHash.as_deref());
             }
             }
-            if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("listenKey".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&type_var), Value::Null); } }
-            if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("lastAuthenticatedTime".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&type_var), Value::Int(0)); } }
+            if let Value::Dict(__bf03d0) = &mut self.options { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("listenKey".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(type_var.to_string(), Value::Null); } }
+            if let Value::Dict(__bf03d0) = &mut self.options { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("lastAuthenticatedTime".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(type_var.to_string(), Value::Int(0)); } }
             return Value::Null;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -2326,13 +2326,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < (B.len() as i64) } {
             let mut entry: Value = B.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "a", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(entry.clone(), "f", &[]));
             account.insert("used".into(), self.safe_string_k(entry.clone(), "l", &[]));
             account.insert("total".into(), self.safe_string(entry, Value::from(wallet.clone()), &[]));
-            if (code != Value::Null) {
-                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
+            if (code.is_some()) {
+                if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
             }
         }
         }

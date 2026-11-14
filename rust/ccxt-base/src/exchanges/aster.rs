@@ -5407,7 +5407,7 @@ impl Aster {
                 while { if !__for_first_239 { i += 1; } __for_first_239 = false; i < (entries.len() as i64) } {
                 let mut entry: crate::value::Dict = self.safe_dict(&entries, Value::Int(i), &[]).into_dict();
                 let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
-                let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]);
+                let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]).as_str().map(str::to_owned);
                 let mut brackets: crate::value::List = self.safe_list_k(&entry, "brackets", &[Value::from(vec![])]).into_list();
                 let mut result: Value = Value::from(vec![]);
                 {
@@ -5420,7 +5420,7 @@ impl Aster {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::from(vec![floorValue.map(Value::from).unwrap_or(Value::Null), maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null)])); }
                 }
                 }
-                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("leverageBrackets".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&symbol), result); } }
+                if let Value::Dict(__bf03d0) = &mut self.options { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("leverageBrackets".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(symbol.as_deref().unwrap_or("null").to_string(), result); } }
             }
             }
         }

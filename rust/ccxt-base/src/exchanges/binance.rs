@@ -6619,7 +6619,7 @@ impl Binance {
         let mut strike: Option<i64> = self.safe_integer(optionParts.clone(), Value::Int(2), &[]).as_i64();
         let mut strikeAsString: String = self.safe_string(optionParts.clone(), Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut optionType: String = self.safe_string(optionParts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut datetime: Option<String> = self.convert_expire_date(Value::from(expiry.clone())).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.convert_expire_date(Some(expiry.as_str())).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -16227,7 +16227,7 @@ impl Binance {
                 while { if !__for_first_305 { i += 1; } __for_first_305 = false; i < (entries.len() as i64) } {
                 let mut entry: crate::value::Dict = self.safe_dict(&entries, Value::Int(i), &[]).into_dict();
                 let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
-                let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]);
+                let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]).as_str().map(str::to_owned);
                 let mut brackets: crate::value::List = self.safe_list_k(&entry, "brackets", &[Value::from(vec![])]).into_list();
                 let mut result: Value = Value::from(vec![]);
                 {
@@ -16240,7 +16240,7 @@ impl Binance {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::from(vec![floorValue.map(Value::from).unwrap_or(Value::Null), maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null)])); }
                 }
                 }
-                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("leverageBrackets".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&symbol), result); } }
+                if let Value::Dict(__bf03d0) = &mut self.options { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("leverageBrackets".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(symbol.as_deref().unwrap_or("null").to_string(), result); } }
             }
             }
         }

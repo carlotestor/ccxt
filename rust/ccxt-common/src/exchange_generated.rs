@@ -10044,66 +10044,69 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn convert_expire_date(&self, mut date: Value) -> Value {
+    fn convert_expire_date(&self, date: Option<&str>) -> Value {
+        let mut date: Value = date.into();
         if (date == Value::Null) {
             return Value::Null;
         }
         // parse YYMMDD to datetime string
-        let mut year: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut month: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut day: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut year: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None });
+        let mut month: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None });
+        let mut day: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(4).take(2).collect::<String>()) } else { None });
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
-        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "20", year).into()), "-").into()), month).into()), "-").into()), day).into()), "T00:00:00.000Z");
+        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "20", year.as_deref().unwrap_or("null")).into()), "-").into()), month.as_deref().unwrap_or("null")).into()), "-").into()), day.as_deref().unwrap_or("null")).into()), "T00:00:00.000Z");
         return Value::from(reconstructedDate);
 
     Value::Null
 }
 
-    fn convert_expire_date_to_market_id_date(&self, mut date: Value) -> Value {
+    fn convert_expire_date_to_market_id_date(&self, date: Option<&str>) -> Value {
+        let mut date: Value = date.into();
         if (date == Value::Null) {
             return Value::Null;
         }
         // parse 240119 to 19JAN24
-        let mut year: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut monthRaw: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut year: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None });
+        let mut monthRaw: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None });
         let mut month: Value = Value::Null;
-        let mut day: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        if (monthRaw.as_str() == Some("01")) {
+        let mut day: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(4).take(2).collect::<String>()) } else { None });
+        if (monthRaw.as_deref() == Some("01")) {
             month = Value::Str("JAN".into());
-        }  else if (monthRaw.as_str() == Some("02")) {
+        }  else if (monthRaw.as_deref() == Some("02")) {
             month = Value::Str("FEB".into());
-        }  else if (monthRaw.as_str() == Some("03")) {
+        }  else if (monthRaw.as_deref() == Some("03")) {
             month = Value::Str("MAR".into());
-        }  else if (monthRaw.as_str() == Some("04")) {
+        }  else if (monthRaw.as_deref() == Some("04")) {
             month = Value::Str("APR".into());
-        }  else if (monthRaw.as_str() == Some("05")) {
+        }  else if (monthRaw.as_deref() == Some("05")) {
             month = Value::Str("MAY".into());
-        }  else if (monthRaw.as_str() == Some("06")) {
+        }  else if (monthRaw.as_deref() == Some("06")) {
             month = Value::Str("JUN".into());
-        }  else if (monthRaw.as_str() == Some("07")) {
+        }  else if (monthRaw.as_deref() == Some("07")) {
             month = Value::Str("JUL".into());
-        }  else if (monthRaw.as_str() == Some("08")) {
+        }  else if (monthRaw.as_deref() == Some("08")) {
             month = Value::Str("AUG".into());
-        }  else if (monthRaw.as_str() == Some("09")) {
+        }  else if (monthRaw.as_deref() == Some("09")) {
             month = Value::Str("SEP".into());
-        }  else if (monthRaw.as_str() == Some("10")) {
+        }  else if (monthRaw.as_deref() == Some("10")) {
             month = Value::Str("OCT".into());
-        }  else if (monthRaw.as_str() == Some("11")) {
+        }  else if (monthRaw.as_deref() == Some("11")) {
             month = Value::Str("NOV".into());
-        }  else if (monthRaw.as_str() == Some("12")) {
+        }  else if (monthRaw.as_deref() == Some("12")) {
             month = Value::Str("DEC".into());
         }
         if (month == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " invalid expiry date ").into()), date)));
         }
-        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day, month).into()), year);
+        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day.as_deref().unwrap_or("null"), month).into()), year.as_deref().unwrap_or("null"));
         return Value::from(reconstructedDate);
 
     Value::Null
 }
 
-    fn convert_market_id_expire_date(&self, mut date: Value) -> Value {
+    fn convert_market_id_expire_date(&self, date: Option<&str>) -> Value {
+        let mut date: Value = date.into();
         if (date == Value::Null) {
             return Value::Null;
         }
@@ -10125,18 +10128,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
-        let mut datePadded: Value = date.clone();
+        let mut datePadded: Option<String> = date.as_str().map(str::to_owned);
         if (Value::Int(date.len() as i64).as_f64() == Some(6.0)) {
-            datePadded = Value::Str(format!("{}{}", "0", date).into());
+            datePadded = Some(format!("{}{}", "0", date));
         }
-        let mut year: Value = datePadded.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut monthName: Value = datePadded.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(5); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut month: Option<String> = self.safe_string(&monthMappping, monthName, &[]).as_str().map(str::to_owned);
-        let mut day: Value = datePadded.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(5); let __j = __l.min(7); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut year: Option<String> = (if let Some(__s) = datePadded.as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None });
+        let mut monthName: Option<String> = (if let Some(__s) = datePadded.as_deref() { Some(__s.chars().skip(2).take(3).collect::<String>()) } else { None });
+        let mut month: Option<String> = self.safe_string(&monthMappping, monthName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut day: Option<String> = (if let Some(__s) = datePadded.as_deref() { Some(__s.chars().skip(5).take(2).collect::<String>()) } else { None });
         if (month.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " invalid expiry date ").into()), date)));
         }
-        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day, month.as_deref().unwrap_or("null")).into()), year);
+        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day.as_deref().unwrap_or("null"), month.as_deref().unwrap_or("null")).into()), year.as_deref().unwrap_or("null"));
         return Value::from(reconstructedDate);
 
     Value::Null
@@ -13301,9 +13304,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "close_all_positions" => crate::types::IntoRaw::into_raw(self.close_all_positions(args.get(0).cloned().unwrap_or_default()).await),
             "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
             "common_currency_code" => self.common_currency_code(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "convert_expire_date" => self.convert_expire_date(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "convert_expire_date_to_market_id_date" => self.convert_expire_date_to_market_id_date(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "convert_market_id_expire_date" => self.convert_market_id_expire_date(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "convert_expire_date" => self.convert_expire_date(args.get(0).and_then(crate::Value::as_str)),
+            "convert_expire_date_to_market_id_date" => self.convert_expire_date_to_market_id_date(args.get(0).and_then(crate::Value::as_str)),
+            "convert_market_id_expire_date" => self.convert_market_id_expire_date(args.get(0).and_then(crate::Value::as_str)),
             "convert_ohlcv_to_trading_view" => self.convert_ohlcv_to_trading_view(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "convert_trading_view_to_ohlcv" => self.convert_trading_view_to_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "convert_type_to_account" => self.convert_type_to_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),

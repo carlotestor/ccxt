@@ -5218,13 +5218,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 while { if !__for_first_76 { i += 1; } __for_first_76 = false; i < (B.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut entry: Value = B.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "a", &[]).as_str().map(str::to_owned);
-                let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(entry.clone(), "f", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(entry.clone(), "l", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(entry, Value::from(wallet.clone()), &[])); }
-                if (code != Value::Null) {
-                    if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), account); } }
+                if (code.is_some()) {
+                    if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), account); } }
                 }
             }
             }
@@ -7824,11 +7824,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             while { if !__for_first_86 { i += 1; } __for_first_86 = false; i < (B.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&B, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "a", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) {
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+            if (code.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("total".into(), self.safe_string_k(&entry, "b", &[]));
-                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
+                if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
             }
         }
         }

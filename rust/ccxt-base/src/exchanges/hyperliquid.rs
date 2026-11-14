@@ -886,15 +886,15 @@ impl Hyperliquid {
     pub fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
         // const id = i;
-        let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "index", &[]);
+        let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "index", &[]).as_str().map(str::to_owned);
         let mut name: Value = self.safe_string_k(rawCurrency.clone(), "name", &[]);
-        let mut code: Value = self.safe_currency_code(name.clone(), None).map(Value::from).unwrap_or(Value::Null);
+        let mut code: Option<String> = self.safe_currency_code(name.clone(), None);
         if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cachedCurrenciesById".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(id.as_deref().unwrap_or("null").to_string(), name.clone()); } }
         let mut result: Value = self.safe_currency_structure(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                 m.insert("name".to_string(), name.clone());
-                m.insert("code".to_string(), code.clone());
+                m.insert("code".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("precision".to_string(), self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "weiDecimals", &[])]));
                 m.insert("info".to_string(), rawCurrency.clone());
                 m.insert("active".to_string(), Value::Null);
@@ -936,8 +936,8 @@ impl Hyperliquid {
                 }
                 }
                 let mut baseCode: Value = self.safe_currency_code(Value::from(nameWithoutU), None).map(Value::from).unwrap_or(Value::Null);
-                if (code != Value::Null) {
-                    if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("spotCurrencyMapping".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), baseCode); } }
+                if (code.is_some()) {
+                    if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("spotCurrencyMapping".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), baseCode); } }
                 }
             }
         }
@@ -1158,15 +1158,15 @@ impl Hyperliquid {
 })]).into_dict();
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if (matches!(&collateralToken, Value::Str(__k) if cachedCurrencies.contains_key(__k.as_ref()))) {
-                    let mut name: Value = self.safe_string_k(&data, "name", &[]);
+                    let mut name: Option<String> = self.safe_string_k(&data, "name", &[]).as_str().map(str::to_owned);
                     let mut collateralTokenCode: Option<String> = self.safe_string_opt(&cachedCurrencies, collateralToken.clone(), &[]);
                     std::sync::Arc::make_mut(&mut data).insert("collateralTokenName".into(), collateralTokenCode.clone().map(Value::from).unwrap_or(Value::Null));
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
-                    let mut safeCode: Option<String> = self.safe_currency_code(name.clone(), None);
-                    let mut hip3Code: Value = (if (safeCode.is_none()) { name.clone() } else { (if let Some(__s) = safeCode.as_deref() { Some(__s.replace(":", "-")) } else { None }).map(Value::from).unwrap_or(Value::Null) });
+                    let mut safeCode: Option<String> = self.safe_currency_code(name.clone().map(Value::from).unwrap_or(Value::Null), None);
+                    let mut hip3Code: Value = (if (safeCode.is_none()) { name.clone().map(Value::from).unwrap_or(Value::Null) } else { (if let Some(__s) = safeCode.as_deref() { Some(__s.replace(":", "-")) } else { None }).map(Value::from).unwrap_or(Value::Null) });
                     if let Value::Dict(__bf03d0) = &mut self.options {
                         let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("hip3TokensByName".to_string()).or_insert(Value::Null);
-                        if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&name), Value::Map({
+                        if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(name.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("quote".to_string(), collateralTokenCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), hip3Code);
