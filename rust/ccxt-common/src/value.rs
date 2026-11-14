@@ -2858,13 +2858,12 @@ mod live_snapshot_symbols_tests {
     // (89 venues failed loadMarkets `symbolsLength > 0` on PR 31136).
     use super::*;
     use crate::exchange::{BaseCore, Exchange};
-    use crate::exchange_generated::ExchangeBase;
 
     thread_local! {
-        static CORE_SYMBOLS: std::cell::RefCell<Value> = std::cell::RefCell::new(Value::Null);
+        static CORE_SYMBOLS: std::cell::RefCell<List> = std::cell::RefCell::new(Arc::new(Vec::new()));
     }
     fn lookup(_id: &str, key: &str) -> Option<Value> {
-        if key == "symbols" { Some(CORE_SYMBOLS.with(|c| c.borrow().clone())) } else { None }
+        if key == "symbols" { Some(CORE_SYMBOLS.with(|c| Value::Arr(Arc::clone(&c.borrow())))) } else { None }
     }
     fn market(symbol: &str, id: &str) -> Value {
         let (base, quote) = symbol.split_once('/').unwrap();
@@ -2875,29 +2874,31 @@ mod live_snapshot_symbols_tests {
         m.insert("spot".to_string(), Value::Bool(true));
         Value::Map(m)
     }
+    // the harness snapshot of a Core: `__live_id`, minus `strip`
+    fn snapshot(core: &BaseCore, strip: &[&str]) -> Value {
+        let mut snap = core.to_value();
+        if let Value::Dict(m) = &mut snap {
+            let m = Arc::make_mut(m);
+            for k in strip { m.shift_remove(*k); }
+            m.insert("__live_id".to_string(), Value::Str("venue".into()));
+        }
+        snap
+    }
 
     #[test]
     fn symbols_non_empty_after_set_markets_and_readable_through_live_snapshot() {
+        use crate::exchange_generated::ExchangeBase;
         set_live_lookup(lookup);
         let mut core = BaseCore::new(Exchange::new(None));
-        // before loadMarkets the typed field is an empty list, not null
-        let pristine = core.to_value();
-        assert!(matches!(get_value(&pristine, &Value::Str("symbols".into())), Value::Arr(ref a) if a.is_empty()));
-        // the harness snapshot: `__live_id` + the stripped keys removed
-        let mut snap = match pristine { Value::Dict(m) => (*m).clone(), _ => unreachable!() };
-        for k in LIVE_SNAPSHOT_STRIPPED_KEYS { snap.shift_remove(*k); }
-        snap.insert("__live_id".to_string(), Value::Str("venue".into()));
-        let snap = Value::Dict(Arc::new(snap));
+        let live = snapshot(&core, LIVE_SNAPSHOT_STRIPPED_KEYS);
+        // the pre-load copy: the typed field is an empty list, not null
+        let stale = snapshot(&core, &[]);
+        assert!(matches!(get_value(&stale, &Value::Str("symbols".into())), Value::Arr(ref a) if a.is_empty()));
         core.set_markets(Value::List(vec![market("BTC/USDT", "btcusdt"), market("ETH/USDT", "ethusdt")]), &[]);
         assert_eq!(core.symbols.len(), 2, "set_markets fills the typed symbols list");
-        CORE_SYMBOLS.with(|c| *c.borrow_mut() = Value::Arr(core.symbols.clone()));
-        assert_eq!(get_value(&snap, &Value::Str("symbols".into())).len(), 2, "the live snapshot reads the Core's symbols");
-        // a snapshot that kept the pre-load copy would still answer the empty list
-        let mut stale = match core_snapshot_with_symbols() { Value::Dict(m) => (*m).clone(), _ => unreachable!() };
-        stale.insert("__live_id".to_string(), Value::Str("venue".into()));
-        assert_eq!(get_value(&Value::Dict(Arc::new(stale)), &Value::Str("symbols".into())).len(), 0);
-    }
-    fn core_snapshot_with_symbols() -> Value {
-        BaseCore::new(Exchange::new(None)).to_value()
+        CORE_SYMBOLS.with(|c| *c.borrow_mut() = Arc::clone(&core.symbols));
+        assert_eq!(get_value(&live, &Value::Str("symbols".into())).len(), 2, "the live snapshot reads the Core's symbols");
+        // a snapshot that kept the pre-load copy still answers the empty list
+        assert_eq!(get_value(&stale, &Value::Str("symbols".into())).len(), 0);
     }
 }
