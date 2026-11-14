@@ -95,7 +95,7 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
     }
 
-    public function subscribe_public_multiple(array $messageHashes, $params = array()) {
+    public function subscribe_public_multiple(array $messageHashes, $params = array()): PromiseInterface {
         return Async\async(self::do_subscribe_public_multiple(...))($messageHashes, $params);
     }
 

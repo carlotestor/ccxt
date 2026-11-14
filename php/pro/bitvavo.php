@@ -104,7 +104,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function watch_public_multiple(string $methodName, string $channelName, array $symbols, $params = array()) {
+    public function watch_public_multiple(string $methodName, string $channelName, array $symbols, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_public_multiple(...))($methodName, $channelName, $symbols, $params);
     }
 

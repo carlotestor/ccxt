@@ -3829,7 +3829,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $orderType, $orderType);
     }
 
-    public function fetch_account_helper(?string $type, array $params) {
+    public function fetch_account_helper(?string $type, array $params): ?array {
         if ($type === 'spot') {
             return $this->spotPrivateGetAccount($params);
             //

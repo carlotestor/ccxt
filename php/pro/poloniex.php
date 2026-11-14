@@ -230,7 +230,7 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function trade_request(string $name, $params = array()) {
+    public function trade_request(string $name, $params = array()): PromiseInterface {
         return Async\async(self::do_trade_request(...))($name, $params);
     }
 

@@ -3954,7 +3954,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $orderType, $orderType);
     }
 
-    public function fetch_account_helper(?string $type, array $params) {
+    public function fetch_account_helper(?string $type, array $params): PromiseInterface {
         return Async\async(self::do_fetch_account_helper(...))($type, $params);
     }
 
