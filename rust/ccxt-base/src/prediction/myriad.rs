@@ -3033,11 +3033,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (decimals == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fromWeiWithDecimals() missing decimals")));
         }
-        let mut decimalsCount: Value = Value::from(self.parse_to_int(decimals));
+        let mut decimalsCount: Option<i64> = self.parse_to_int(decimals);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1356: bool = true;
-            while { if !__for_first_1356 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1356 = false; i.as_f64().unwrap_or(f64::NAN) < decimalsCount.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1356 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1356 = false; matches!(decimalsCount, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
             scale = format!("{}{}", scale, "0");
         }
         }

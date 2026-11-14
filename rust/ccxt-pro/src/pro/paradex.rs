@@ -3100,13 +3100,13 @@ if _try_result.is_err() {
         let mut digits: String = "0123456789abcdef".to_string();
         let mut result: Option<i64> = Some(0);
         let mut factor: Option<i64> = Some(1);
-        let mut count: Value = Value::from(self.parse_to_int(length));
+        let mut count: Option<i64> = self.parse_to_int(length);
         let mut start: Option<i64> = self.parse_to_int(offset);
         let mut position: Value = Value::from((if let Some(__l) = start { Some(__l * 2) } else { None }));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_612: bool = true;
-            while { if !__for_first_612 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_612 = false; i.as_f64().unwrap_or(f64::NAN) < count.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_612 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_612 = false; matches!(count, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
             // plain variables as slice bounds, php gets end - start unparenthesized
             let mut middle: Value = (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut next: Value = (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -3224,12 +3224,12 @@ if _try_result.is_err() {
         // Every caller guards on the count it needs, so an empty list and a short one read alike
         let mut result: Vec<Value> = Vec::new();
         let mut end: Option<i64> = self.parse_to_int(frameLength);
-        let mut total: Value = Value::from(self.parse_to_int(count));
+        let mut total: Option<i64> = self.parse_to_int(count);
         let mut position: Option<i64> = self.parse_to_int(offset);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_614: bool = true;
-            while { if !__for_first_614 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_614 = false; i.as_f64().unwrap_or(f64::NAN) < total.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_614 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_614 = false; matches!(total, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
             if (position.is_some() && end.is_some() && position >= end) {
                 return Value::from(result);
             }
@@ -3343,26 +3343,25 @@ if _try_result.is_err() {
         }
         let mut levels: Value = Value::from(vec![]);
         let mut sides: crate::value::List = std::sync::Arc::new(vec![Value::Str("BUY".into()), Value::Str("SELL".into())]);
-        let mut frameEnd: Value = Value::from(self.parse_to_int(frameLength.clone()));
+        let mut frameEnd: Option<i64> = self.parse_to_int(frameLength.clone());
         let mut position: Option<i64> = self.parse_to_int(self.sum(&[blockLength, Value::Int(8)]));
         {
                         let mut i: i64 = 0;
             let mut __for_first_616: bool = true;
             while { if !__for_first_616 { i += 1; } __for_first_616 = false; i < (sides.len() as i64) } {
-            if Value::from((if let Some(__l) = position { Some(__l + 4) } else { None })).as_f64().unwrap_or(f64::NAN) > frameEnd.as_f64().unwrap_or(f64::NAN) {
+            if matches!((((if let Some(__l) = position { Some(__l + 4) } else { None })), frameEnd), (Some(__l), Some(__r)) if (__l as f64) > (__r as f64)) {
                 return Value::Null;
             }
             let mut entryLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::from(position), Value::Int(2)));
-            let mut numInGroup: Value = Value::from(self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::from((if let Some(__l) = position { Some(__l + 2) } else { None })), Value::Int(2))));
+            let mut numInGroup: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::from((if let Some(__l) = position { Some(__l + 2) } else { None })), Value::Int(2)));
             position = self.parse_to_int(Value::from((if let Some(__l) = position { Some(__l + 4) } else { None })));
-            if ((entryLength.is_some() && entryLength < Some(16))) || (Value::from(self.parse_to_int(self.sum(&[Value::from(position), (match (&(numInGroup), &(Value::from(entryLength))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]))).as_f64().unwrap_or(f64::NAN) > frameEnd.as_f64().unwrap_or(f64::NAN)) {
+            if ((entryLength.is_some() && entryLength < Some(16))) || (matches!(frameEnd, Some(__p) if Value::from(self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (position, ((if let (Some(__l), Some(__r)) = (numInGroup, entryLength) { Some(__l * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })))).as_f64().unwrap_or(f64::NAN) > (__p as f64))) {
                 return Value::Null;
             }
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_615: bool = true;
-                while { if !__for_first_615 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_615 = false; j.as_f64().unwrap_or(f64::NAN) < numInGroup.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_615 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_615 = false; matches!(numInGroup, Some(__p) if j.as_f64().unwrap_or(f64::NAN) < (__p as f64)) } {
                 if let Value::Arr(__a) = &mut levels { std::sync::Arc::make_mut(__a).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), sides.get(i as usize).cloned().unwrap_or(Value::Null));

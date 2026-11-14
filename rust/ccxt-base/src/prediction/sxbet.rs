@@ -1790,13 +1790,13 @@ impl Sxbet {
         // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
         // chunk larger batches instead of letting the whole request 400
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "cancelOrdersBatchSize", &[Value::Int(100)]);
-        let mut chunkCount: Value = Value::from(self.parse_to_int((match ((self.sum(&[Value::from(idsLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+        let mut chunkCount: Option<i64> = self.parse_to_int((match ((self.sum(&[Value::from(idsLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut c: i64 = 0;
             let mut __for_first_1508: bool = true;
-            while { if !__for_first_1508 { c += 1; } __for_first_1508 = false; (c as f64) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1508 { c += 1; } __for_first_1508 = false; matches!(chunkCount, Some(__b) if (c as f64) < (__b as f64)) } {
             let mut chunkIndex: Option<i64> = self.parse_to_int(Value::Int(c));
             let mut chunkWidth: Option<i64> = self.parse_to_int(chunkSize.clone());
             let mut start: Option<i64> = (if let (Some(__l), Some(__r)) = (chunkIndex, chunkWidth) { Some(__l * __r) } else { None });
@@ -2917,12 +2917,12 @@ impl Sxbet {
             return self.parse_sxbet_tickers_by_hash(outcomesList.clone(), Value::Map(rowsByHash.clone()));
         }
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "bestOddsBatchSize", &[Value::Int(100)]);
-        let mut chunkCount: Value = Value::from(self.parse_to_int((match ((self.sum(&[Value::from(hashesLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+        let mut chunkCount: Option<i64> = self.parse_to_int((match ((self.sum(&[Value::from(hashesLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         {
                         let mut c: i64 = 0;
             let mut __for_first_1519: bool = true;
-            while { if !__for_first_1519 { c += 1; } __for_first_1519 = false; (c as f64) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1519 { c += 1; } __for_first_1519 = false; matches!(chunkCount, Some(__b) if (c as f64) < (__b as f64)) } {
             let mut chunkIndex: Option<i64> = self.parse_to_int(Value::Int(c));
             let mut chunkWidth: Option<i64> = self.parse_to_int(chunkSize.clone());
             let mut start: Option<i64> = (if let (Some(__l), Some(__r)) = (chunkIndex, chunkWidth) { Some(__l * __r) } else { None });

@@ -1190,20 +1190,20 @@ impl Lighter {
     pub fn pow(&self, n: &str, mut m: Value) -> Value {
         let mut n: Value = n.into();
         let mut r: Option<String> = crate::precise::Precise::stringMul(&n, &Value::Str("1".into())).as_str().map(str::to_owned);
-        let mut c: Value = Value::from(self.parse_to_int(m));
-        if c.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
+        let mut c: Option<i64> = self.parse_to_int(m);
+        if (c.is_some() && c < Some(0)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " pow() requires m > 0.")));
         }
-        if (c.as_f64() == Some(0.0)) {
+        if (c == Some(0)) {
             return Value::Str("1".into());
         }
-        if c.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
+        if c > Some(100) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " pow() requires m < 100.")));
         }
         {
                         let mut i: Value = Value::Int(1);
             let mut __for_first_929: bool = true;
-            while { if !__for_first_929 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_929 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_929 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_929 = false; matches!(c, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
             r = crate::precise::Precise::stringMul(&r.map(Value::from).unwrap_or(Value::Null), &n).as_str().map(str::to_owned);
         }
         }

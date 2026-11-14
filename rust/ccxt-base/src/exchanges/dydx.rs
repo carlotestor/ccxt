@@ -2038,11 +2038,11 @@ impl Dydx {
     pub fn pow(&self, n: &str, mut m: Value) -> Value {
         let mut n: Value = n.into();
         let mut r: Option<String> = crate::precise::Precise::stringMul(&n, &Value::Str("1".into())).as_str().map(str::to_owned);
-        let mut c: Value = Value::from(self.parse_to_int(m));
+        let mut c: Option<i64> = self.parse_to_int(m);
         {
                         let mut i: Value = Value::Int(1);
             let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_659 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_659 = false; matches!(c, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
             r = crate::precise::Precise::stringMul(&r.map(Value::from).unwrap_or(Value::Null), &n).as_str().map(str::to_owned);
         }
         }
