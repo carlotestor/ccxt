@@ -2645,3 +2645,51 @@ mod value_len_tests {
         assert_eq!(book_cache_len(id), 1);
     }
 }
+
+#[cfg(test)]
+mod list_alias_parity_tests {
+    // Typed list-alias forms (ral-tf / ral-uf printers) against the `Value` forms they replace; each source is built twice.
+    use super::*;
+    // the runtime push the boxed form printed, called under a local name (no generated call site)
+    use crate::runtime::append_to_array as boxed_push;
+
+    fn rows() -> Vec<Value> { vec![Value::Int(1), Value::Str("a".into()), Value::Null] }
+    fn opt(k: u8) -> Option<List> { match k { 0 => Some(Arc::new(rows())), 1 => Some(Arc::new(Vec::new())), _ => None } }
+    fn src(k: u8) -> Value {
+        match k { 0 => Value::from(rows()), 1 => Value::from(vec![]), 2 => Value::Null, 3 => Value::Str("x".into()), _ => Value::Dict(Arc::new(HashMap::new())) }
+    }
+    fn same(typed: &List, boxed: &Value) {
+        assert_eq!(&Value::Arr(Arc::new(typed.to_vec())), boxed);
+        assert_eq!(typed.len(), boxed.len());
+        for i in 0..4 { assert_eq!(typed.read(&Value::Int(i)), boxed.read(&Value::Int(i))); }
+    }
+
+    #[test]
+    fn opt_list_guarded_move_matches_value_alias() {
+        for k in 0..3u8 {
+            let mut boxed: Value = Value::from(vec![]);
+            if opt(k).is_some() { boxed = opt(k).map_or(Value::Null, Value::Arr); }
+            let mut typed: List = Arc::new(Vec::new());
+            if opt(k).is_some() { typed = opt(k).unwrap_or_default(); }
+            same(&typed, &boxed);
+        }
+    }
+
+    #[test]
+    fn opt_list_none_boxes_to_exactly_null() {
+        assert!(matches!(opt(2).map_or(Value::Null, Value::Arr), Value::Null));
+        assert_eq!(opt(0).map_or(Value::Null, Value::Arr), Value::from(rows()));
+    }
+
+    #[test]
+    fn array_guarded_and_defaulted_into_list_match_value_alias() {
+        for k in 0..5u8 {
+            let guarded = matches!(src(k), Value::Arr(_));
+            let mut boxed: Value = Value::from(vec![]);
+            let mut typed: List = Arc::new(Vec::new());
+            if guarded { boxed = src(k); typed = src(k).into_list(); } else { boxed_push(&mut boxed, src(k)); Arc::make_mut(&mut typed).push(src(k)); }
+            same(&typed, &boxed);
+        }
+        assert_eq!(Value::Arr(src(0).into_list()), src(0));
+    }
+}
