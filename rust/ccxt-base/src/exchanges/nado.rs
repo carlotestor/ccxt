@@ -1779,11 +1779,11 @@ impl Nado {
             ordersRequest.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let ordersRequestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("max_time".into()), Value::Map(ordersRequest), &paramsSubaccount, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut ordersRequestUntil: Value = ordersRequestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut ordersRequestUntil: crate::value::Dict = ordersRequestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = ordersRequestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orders".to_string(), ordersRequestUntil);
+                m.insert("orders".to_string(), Value::Dict(ordersRequestUntil));
             m
         });
         let mut response: crate::value::Dict = self.archive_post(&[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await.into_dict();
@@ -1946,11 +1946,11 @@ impl Nado {
             matchesRequest.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let matchesRequestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("max_time".into()), Value::Map(matchesRequest), &paramsSubaccount, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut matchesRequestUntil: Value = matchesRequestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut matchesRequestUntil: crate::value::Dict = matchesRequestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = matchesRequestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("matches".to_string(), matchesRequestUntil);
+                m.insert("matches".to_string(), Value::Dict(matchesRequestUntil));
             m
         });
         let mut response: crate::value::Dict = self.archive_post(&[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await.into_dict();
@@ -2169,11 +2169,11 @@ impl Nado {
             eventsRequest.insert("product_ids".into(), Value::from(vec![Value::from(self.parse_to_int(crate::value::KeyRead::key_read(&&currency, "id")))]));
         }
         let eventsRequestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("max_time".into()), Value::Map(eventsRequest), &paramsSubaccount, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut eventsRequestUntil: Value = eventsRequestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut eventsRequestUntil: crate::value::Dict = eventsRequestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = eventsRequestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("events".to_string(), eventsRequestUntil);
+                m.insert("events".to_string(), Value::Dict(eventsRequestUntil));
             m
         });
         let mut response: crate::value::Dict = self.archive_post(&[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await.into_dict();

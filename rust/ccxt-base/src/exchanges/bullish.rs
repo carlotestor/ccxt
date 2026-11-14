@@ -2019,9 +2019,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("createdAtDatetime[lte]".into()), Value::Map(request.clone()), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut untilParam: Option<i64> = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
+        let mut untilParam: Option<i64> = self.safe_integer_k(&requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
         let mut until: Option<i64> = None;
         if (untilParam.is_some()) {
             until = untilParam;
@@ -2930,9 +2930,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("createdAtDatetime[lte]".into()), Value::Map(request.clone()), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut until: Option<i64> = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
         if (until.is_some()) {
             request.insert("createdAtDatetime[lte]".into(), self.iso8601(Value::from(until)));
         }
@@ -3752,9 +3752,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut now: i64 = self.milliseconds();
         let mut startTimestamp: Value = since.clone();
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("createdAtDatetime[lte]".into()), Value::Map(request.clone()), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut until: Option<i64> = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
         // current endpoint requires both since and until parameters
         if (since == Value::Null) {
             startTimestamp = Value::Int((now - ((((((((1000 * 60)) * 60)) * 24)) * 90)))); // Only the last 90 days of data is available for querying

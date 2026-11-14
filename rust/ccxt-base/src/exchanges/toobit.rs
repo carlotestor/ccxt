@@ -3247,17 +3247,17 @@ impl Toobit {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id")); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut marketType: Value = self.handle_market_type_and_params(Value::Str("fetchOrders".into()), market.as_ref(), &[Value::from(&paramsUntil)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::from(vec![]);
         if (marketType.as_str() == Some("spot")) {
-            response = self.private_get_api_v1_spot_trade_orders(&[requestUntil]).await;
+            response = self.private_get_api_v1_spot_trade_orders(&[Value::Dict(requestUntil)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrders() is not supported for ").into()), marketType).into()), " markets")));
         }
@@ -3307,14 +3307,14 @@ impl Toobit {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut marketType: Value = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsUntil)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::from(vec![]);
         if (marketType.as_str() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrders() is not supported for ").into()), marketType).into()), " markets")));
         }  else {
-            response = self.private_get_api_v1_futures_history_orders(&[requestUntil]).await;
+            response = self.private_get_api_v1_futures_history_orders(&[Value::Dict(requestUntil)]).await;
         }
         let mut ordersList: Vec<Value> = Vec::new();
         let mut responseList: Value = Value::from(vec![]);
