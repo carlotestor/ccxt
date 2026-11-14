@@ -12076,23 +12076,6 @@ ${arms.join('\n')}
         // conflict at the call site.
         content = this.hoistSelfArgFromMutCall(content);
 
-        // Clone bare-identifier args passed to known cache / order-book
-        // methods on local variables (`candles.get_limit(symbol, limit)`,
-        // `cache.append(liquidation)`, …). The base `autoCloneCallArgs`
-        // pass only catches well-known prefixes — these are
-        // local-receiver method calls so it doesn't fire.
-        content = this.cloneIdentArgsToCalls(
-            content,
-            /\b([a-zA-Z_]\w*)\.(append|store|store_array|reset|update|get_limit|limit|reusable_future)\(/g,
-        );
-
-        // Same for WS-class factories: `ArrayCacheBySymbolById::new(limit)`
-        // moves `limit`; subsequent reuse needs `.clone()`.
-        content = this.cloneIdentArgsToCalls(
-            content,
-            /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(/g,
-        );
-
         // Wrap `error.clone()` in a `Value::from(...)` when it appears
         // inside a Value-slice arg to `client.reject(...)`. The TS
         // sites pass `new ExchangeError(...)` directly; in Rust the
@@ -13923,32 +13906,6 @@ impl std::ops::DerefMut for ${coreName} {
                     '$1::new(Value::Null)',
                 );
 
-                // Auto-clone args passed to known cache / order-book methods.
-                // The base `autoCloneCallArgs` pass only matches well-known
-                // helper prefixes (`self.X`, `exchange.X`, `assert`, …) — it
-                // doesn't recognise method calls on arbitrary Value-typed
-                // locals like `timestampCache.append(ohlcv1)`, which means the
-                // raw arg is moved and the next reference fails to borrow-
-                // check. Append `.clone()` to bare-identifier arguments only;
-                // expression args (`Value::Null`, `Value::Map({...})`, etc.)
-                // are not at risk of being moved-from beyond the call site.
-                const cloneIdent = (s: string) =>
-                    /^[a-zA-Z_]\w*$/.test(s.trim()) ? `${s.trim()}.clone()` : s;
-                content = this.cloneIdentArgsToCalls(
-                    content,
-                    /\b([a-zA-Z_]\w*)\.(append|store|store_array|reset|update|get_limit)\(/g,
-                );
-
-                // Same idea for the WS factory constructors:
-                //   `OrderBook::new(snapshot, depth)`
-                //   `ArrayCacheBySymbolById::new(maxSize)`
-                // — clone bare-identifier args so the test can rebuild the
-                // book/cache later with the same snapshot.
-                content = this.cloneIdentArgsToCalls(
-                    content,
-                    /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(/g,
-                );
-
                 // Side-extraction rewrite. TS uses reference semantics:
                 //   const bids = book['bids'];
                 //   bids.store(p, s);  // mutates book.bids in place
@@ -13993,50 +13950,6 @@ impl std::ops::DerefMut for ${coreName} {
         }
 
         this.writeBaseTestsWsModFile(outDir, written);
-    }
-
-    /**
-     * Walk through every call site whose opening `(` is matched by
-     * `headRe`, balance-parse the arg list (so nested `Value::Int(5)`
-     * etc. count), then append `.clone()` to each bare-identifier arg.
-     * Expression args (`Value::Null`, literals, …) are left untouched.
-     * Used by `transpileBaseTestsWs` to fix the move-once borrow
-     * pattern in transpiled cache / order-book test bodies.
-     */
-    cloneIdentArgsToCalls(content: string, headRe: RegExp): string {
-        let out = '';
-        let i = 0;
-        const re = new RegExp(headRe.source, headRe.flags.includes('g') ? headRe.flags : headRe.flags + 'g');
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const headEnd = m.index + m[0].length;
-            out += content.slice(i, headEnd);
-            // Balance-parse to find the matching closing `)`.
-            let depth = 1, j = headEnd, inStr = false, esc = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (esc) { esc = false; j++; continue; }
-                if (c === '\\') { esc = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                    if (depth === 0) break;
-                }
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(headEnd); i = content.length; break; }
-            const argsRaw = content.slice(headEnd, j);
-            const args = this.splitArgs(argsRaw) ?? [];
-            const rewritten = args
-                .map(a => /^[a-zA-Z_]\w*$/.test(a.trim()) ? `${a.trim()}.clone()` : a)
-                .join(', ');
-            out += rewritten + ')';
-            i = j + 1;
-            re.lastIndex = i;
-        }
-        out += content.slice(i);
-        return out;
     }
 
     /**
