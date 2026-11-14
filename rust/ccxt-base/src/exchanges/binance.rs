@@ -11574,12 +11574,12 @@ impl Binance {
         }  else {
             request.insert(clientOrderIdRequest, clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut postOnly: Value = Value::Null;
+        let mut postOnly: Option<bool> = None;
         if !(isPortfolioMargin.as_bool() == Some(true)) {
-            postOnly = Value::Bool(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
+            postOnly = Some(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
             if (market).spot || (marketType.as_deref() == Some("margin")) {
                 // only supported for spot/margin api (all margin markets are spot markets)
-                if postOnly.as_bool() == Some(true) {
+                if (postOnly == Some(true)) {
                     uppercaseType = Some("LIMIT_MAKER".to_string());
                 }
                 if (marginMode.as_deref() == Some("isolated")) {
@@ -11587,8 +11587,8 @@ impl Binance {
                 }
             }
         }  else {
-            postOnly = Value::Bool(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
-            if postOnly.as_bool() == Some(true) {
+            postOnly = Some(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
+            if (postOnly == Some(true)) {
                 if !(market).contract {
                     uppercaseType = Some("LIMIT_MAKER".to_string());
                 }  else {
@@ -11771,7 +11771,7 @@ impl Binance {
         if timeInForceIsRequired && (self.safe_string_k(&paramsPapi, "timeInForce", &[]) == Value::Null) && (self.safe_string(Value::Map(request.clone()), Value::Str("timeInForce".into()), &[]) == Value::Null) {
             request.insert("timeInForce".into(), self.handle_option(Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[])); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if !(isPortfolioMargin.as_bool() == Some(true)) && (market).contract && postOnly.as_bool() == Some(true) {
+        if !(isPortfolioMargin.as_bool() == Some(true)) && (market).contract && (postOnly == Some(true)) {
             request.insert("timeInForce".into(), Value::Str("GTX".into()));
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
