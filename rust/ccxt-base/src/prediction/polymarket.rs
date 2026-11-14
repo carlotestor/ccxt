@@ -4369,12 +4369,12 @@ impl Polymarket {
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
             // encoder capitalizes booleans ("False") under the C# base
             let mut hasArrayParam: bool = false;
-            let mut queryKeys: Value = object_keys(&query);
+            let mut queryKeys: crate::value::List = object_keys(&query).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1449: bool = true;
                 while { if !__for_first_1449 { i += 1; } __for_first_1449 = false; i < (queryKeys.len() as i64) } {
-                if (matches!(&get_value(&query, &queryKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)), Value::Arr(_))) {
+                if (matches!(&get_value(&query, &queryKeys.get(i as usize).cloned().unwrap_or(Value::Null)), Value::Arr(_))) {
                     hasArrayParam = true;
                 }
             }
@@ -4391,7 +4391,7 @@ impl Polymarket {
         }  else if isArrayBody {
             bodyValue = json_stringify(&params);
         }  else {
-            let mut queryKeys: Value = object_keys(&query);
+            let mut queryKeys: crate::value::List = object_keys(&query).into_list();
             let mut queryKeysLength: i64 = queryKeys.len() as i64;
             if queryKeysLength > 0 {
                 bodyValue = json_stringify(&query);
