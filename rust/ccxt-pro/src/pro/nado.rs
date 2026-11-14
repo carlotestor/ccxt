@@ -2904,12 +2904,12 @@ impl Nado {
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             }
         }  else if (messageHash.as_str() == Some("ticker")) {
-            let mut symbols: crate::value::List = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+            let mut symbols: Value = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_516: bool = true;
                 while { if !__for_first_516 { i += 1; } __for_first_516 = false; i < (symbols.len() as i64) } {
-                let mut tickerSymbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut tickerSymbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &tickerSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             }
             }
@@ -2919,12 +2919,12 @@ impl Nado {
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             }
         }  else if (messageHash.as_str() == Some("bidask")) {
-            let mut symbols: crate::value::List = Value::Array(self.bidsasks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+            let mut symbols: Value = Value::Array(self.bidsasks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_517: bool = true;
                 while { if !__for_first_517 { i += 1; } __for_first_517 = false; i < (symbols.len() as i64) } {
-                let mut bidaskSymbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut bidaskSymbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &bidaskSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             }
             }
