@@ -2510,9 +2510,9 @@ impl Krakenfutures {
         let mut orderEvents: crate::value::List = self.safe_list_k(&cancelStatus, "orderEvents", &[Value::from(vec![])]).into_list();
         let mut orders: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_875: bool = true;
-            while { if !__for_first_875 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_875 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderEvents.len() as i64) as f64) } {
+            while { if !__for_first_875 { i += 1; } __for_first_875 = false; i < (orderEvents.len() as i64) } {
             let mut orderEvent: crate::value::Dict = self.safe_dict(&orderEvents, Value::Int(0), &[]).into_dict();
             let mut order: crate::value::Dict = self.safe_dict_k(&orderEvent, "order", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

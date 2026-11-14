@@ -560,9 +560,9 @@ impl Paradex {
         self.wait_for_pending_unsubscribe(url.as_str().unwrap_or_default(), channels.clone()).await;
         let mut channelsLength: i64 = channels.len() as i64;
         {
-                        let mut attempt: Value = Value::Int(0);
+                        let mut attempt: i64 = 0;
             let mut __for_first_582: bool = true;
-            while { if !__for_first_582 { if let Value::Int(n) = &mut attempt { *n += 1; } } __for_first_582 = false; attempt.as_f64().unwrap_or(f64::NAN) < (channelsLength as f64) } {
+            while { if !__for_first_582 { attempt += 1; } __for_first_582 = false; attempt < channelsLength } {
             let mut pending: Vec<Value> = self.unsubscribed_channels(url.clone(), channels.clone()).as_array().cloned().unwrap_or_default();
             let mut pendingLength: i64 = pending.len() as i64;
             if pendingLength < 2 {
@@ -3104,9 +3104,9 @@ if _try_result.is_err() {
         let mut start: Option<i64> = self.parse_to_int(offset);
         let mut position: Value = Value::from((if let Some(__l) = start { Some(__l * 2) } else { None }));
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_612: bool = true;
-            while { if !__for_first_612 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_612 = false; matches!(count, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_612 { i += 1; } __for_first_612 = false; matches!(count, Some(__b) if (i as f64) < (__b as f64)) } {
             // plain variables as slice bounds, php gets end - start unparenthesized
             let mut middle: Value = (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut next: Value = (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -3227,9 +3227,9 @@ if _try_result.is_err() {
         let mut total: Option<i64> = self.parse_to_int(count);
         let mut position: Option<i64> = self.parse_to_int(offset);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_614: bool = true;
-            while { if !__for_first_614 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_614 = false; matches!(total, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_614 { i += 1; } __for_first_614 = false; matches!(total, Some(__b) if (i as f64) < (__b as f64)) } {
             if (position.is_some() && end.is_some() && position >= end) {
                 return Value::from(result);
             }

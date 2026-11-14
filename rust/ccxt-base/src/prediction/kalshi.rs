@@ -3616,9 +3616,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut cursor: Option<String> = None;
             {
-                                let mut page: Value = Value::Int(0);
+                                let mut page: i64 = 0;
                 let mut __for_first_1296: bool = true;
-                while { if !__for_first_1296 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1296 = false; page.as_f64().unwrap_or(f64::NAN) < maxPages.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1296 { page += 1; } __for_first_1296 = false; (page as f64) < maxPages.as_f64().unwrap_or(f64::NAN) } {
                 let mut reqLimit: Option<i64> = pageLimit;
                 if hasLimit && (limitValue.is_some()) {
                     let mut collectedSoFar: i64 = rawEvents.len() as i64;

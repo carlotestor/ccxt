@@ -1242,9 +1242,9 @@ impl Sxbet {
         if !deployed {
             self.sxbet_private_post_user_deploy_proxy(&[]).await;
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1503: bool = true;
-                while { if !__for_first_1503 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1503 = false; i.as_f64().unwrap_or(f64::NAN) < ((30i64) as f64) } {
+                while { if !__for_first_1503 { i += 1; } __for_first_1503 = false; (i as f64) < ((30i64) as f64) } {
                 self.sleep(Value::Int(2000)).await;
                 let mut state: Value = self.fetch_sxbet_proxy().await;
                 if matches!(self.safe_bool_k(state, "deployed", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -1883,9 +1883,9 @@ impl Sxbet {
     m
 })]), Value::Str("hasMore".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         {
-                        let mut guard: Value = Value::Int(0);
+                        let mut guard: i64 = 0;
             let mut __for_first_1509: bool = true;
-            while { if !__for_first_1509 { if let Value::Int(n) = &mut guard { *n += 1; } } __for_first_1509 = false; guard.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64) } {
+            while { if !__for_first_1509 { guard += 1; } __for_first_1509 = false; (guard as f64) < ((50i64) as f64) } {
             if !hasMore {
                 break;
             }
