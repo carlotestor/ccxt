@@ -2445,21 +2445,21 @@ impl Coinbase {
         //    }
         //
         let mut promises: Value = promise_all(&Value::from(spotUnresolvedPromises)).await;
-        let mut unresolvedContractPromises: Value = Value::from(vec![]);
+        let mut unresolvedContractPromises: crate::value::List = std::sync::Arc::new(Vec::new());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let __ws_arg_10 = self.extend(paramsUsePrivate, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("product_type".to_string(), Value::Str("FUTURE".into()));
     m
 })]);
-            unresolvedContractPromises = Value::from(vec![self.v3_public_get_brokerage_market_products(&[__ws_arg_10]).await]);
+            unresolvedContractPromises = std::sync::Arc::new(vec![self.v3_public_get_brokerage_market_products(&[__ws_arg_10]).await]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            unresolvedContractPromises = Value::from(vec![]); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
+            unresolvedContractPromises = std::sync::Arc::new(Vec::new()); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
         let mut contractPromises: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            contractPromises = promise_all(&unresolvedContractPromises).await; // some users don't have access to contracts
+            contractPromises = promise_all(&Value::Arr(unresolvedContractPromises)).await; // some users don't have access to contracts
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
             contractPromises = Value::from(vec![]);
@@ -2945,8 +2945,8 @@ if _try_result.is_err() {
         let mut expires: i64 = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut now: i64 = self.milliseconds();
         if (timestamp.is_none()) || (((if let Some(__r) = timestamp { Some(now - __r) } else { None })) > Some(expires)) {
-            let mut promises: Value = Value::from(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await]);
-            let mut promisesResult: Value = promise_all(&promises).await;
+            let mut promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await]);
+            let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
             let mut fiatResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3016,8 +3016,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promises: Value = Value::from(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await, self.v2_public_get_exchange_rates(&[params]).await]);
-        let mut promisesResult: Value = promise_all(&promises).await;
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await, self.v2_public_get_exchange_rates(&[params]).await]);
+        let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
         let mut fiatResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

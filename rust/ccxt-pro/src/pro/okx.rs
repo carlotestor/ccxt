@@ -3002,7 +3002,7 @@ impl Okx {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut newPositions: Vec<Value> = vec![];
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_549: bool = true;
@@ -3015,9 +3015,9 @@ impl Okx {
                 let mut shortPosition: Value = self.clone_value(Value::from(&position));
                 add_element_to_object(&mut shortPosition, &Value::Str("side".into()), Value::Str("short".into()));
                 cache.append(shortPosition.clone());
-                newPositions.push(shortPosition);
+                std::sync::Arc::make_mut(&mut newPositions).push(shortPosition);
             }
-            newPositions.push(Value::from(&position));
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }
         }
@@ -3025,7 +3025,7 @@ impl Okx {
         if (symbol.is_some()) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", channel, "::").into()), symbol.as_deref().unwrap_or("null"));
         }
-        client.resolve(Value::Array(newPositions), messageHash.as_str());
+        client.resolve(Value::Arr(newPositions), messageHash.as_str());
 }
 
 /*

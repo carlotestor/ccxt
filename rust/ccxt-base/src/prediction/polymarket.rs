@@ -1225,7 +1225,7 @@ impl Polymarket {
                 remainingPages.push(p.clone());
             }
             }
-            let mut restPromises: Value = Value::from(vec![]);
+            let mut restPromises: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut pi: i64 = 0;
                 let mut __for_first_1407: bool = true;
@@ -1237,10 +1237,10 @@ impl Polymarket {
                 });
                 let __ws_arg_1 = self.extend(pageRequest, &[Value::Map(baseRequest.clone())]);
                 pageRequest = self.extend(__ws_arg_1, &[&rest]);
-                if let Value::Arr(__a) = &mut restPromises { std::sync::Arc::make_mut(__a).push(self.gamma_public_get_public_search(&[pageRequest]).await); }
+                std::sync::Arc::make_mut(&mut restPromises).push(self.gamma_public_get_public_search(&[pageRequest]).await);
             }
             }
-            let mut restResponses: Vec<Value> = promise_all(&restPromises).await.as_array().cloned().unwrap_or_default();
+            let mut restResponses: Vec<Value> = promise_all(&Value::Arr(restPromises)).await.as_array().cloned().unwrap_or_default();
             let mut allEvents: Vec<Value> = Vec::new();
             {
                                 let mut fi: i64 = 0;
@@ -1856,7 +1856,7 @@ impl Polymarket {
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
         let mut tokenId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
-        let mut promises: Value = Value::from(vec![self.clob_public_get_midpoint(&[Value::Map({
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.clob_public_get_midpoint(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
     m
@@ -1869,7 +1869,7 @@ impl Polymarket {
         m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
     m
 })]).await]);
-        let midpointResponsebookResponselastTradeResponseVariable: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
+        let midpointResponsebookResponselastTradeResponseVariable: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
         let mut midpointResponse: Value = midpointResponsebookResponselastTradeResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut bookResponse: Value = midpointResponsebookResponselastTradeResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut lastTradeResponse: Value = midpointResponsebookResponselastTradeResponseVariable.get(2).cloned().unwrap_or(Value::Null);
@@ -1962,8 +1962,8 @@ impl Polymarket {
                 }));
             }
             }
-            let mut promises: Value = Value::from(vec![self.clob_public_post_books(&[Value::from(bookParams.clone())]).await, self.clob_public_post_midpoints(&[Value::from(bookParams.clone())]).await, self.clob_public_post_last_trades_prices(&[Value::from(bookParams)]).await]);
-            let mut responses: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
+            let mut promises: crate::value::List = std::sync::Arc::new(vec![self.clob_public_post_books(&[Value::from(bookParams.clone())]).await, self.clob_public_post_midpoints(&[Value::from(bookParams.clone())]).await, self.clob_public_post_last_trades_prices(&[Value::from(bookParams)]).await]);
+            let mut responses: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
             let mut booksResponse: Value = responses.get(0).cloned().unwrap_or(Value::Null);
             let mut midpoints: Value = responses.get(1).cloned().unwrap_or(Value::Null);
             let mut lastTradesResponse: Value = responses.get(2).cloned().unwrap_or(Value::Null);

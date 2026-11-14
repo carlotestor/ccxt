@@ -2452,7 +2452,7 @@ impl Gate {
         let mut type_var: Value = self.get_market_type_by_url(client.url());
         let mut data: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&type_var);
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_332: bool = true;
@@ -2469,23 +2469,23 @@ impl Gate {
                 let mut prevLongPosition: Option<crate::value::Dict> = self.safe_dict(Value::from(&cache), Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "long").into()), &[]).into_opt_dict();
                 if (prevLongPosition.is_some()) {
                     std::sync::Arc::make_mut(&mut position).insert("side".into(), crate::value::KeyRead::key_read(&&prevLongPosition, "side"));
-                    if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+                    std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
                     cache.append(Value::from(&position));
                 }
                 let mut prevShortPosition: Option<crate::value::Dict> = self.safe_dict(Value::from(&cache), Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "short").into()), &[]).into_opt_dict();
                 if (prevShortPosition.is_some()) {
                     std::sync::Arc::make_mut(&mut position).insert("side".into(), crate::value::KeyRead::key_read(&&prevShortPosition, "side"));
-                    if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+                    std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
                     cache.append(Value::from(&position));
                 }
                 // if no prev position is found, default to long
                 if (prevLongPosition.is_none()) && (prevShortPosition.is_none()) {
                     std::sync::Arc::make_mut(&mut position).insert("side".into(), Value::Str("long".into()));
-                    if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+                    std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
                     cache.append(Value::from(&position));
                 }
             }  else {
-                if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+                std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
                 cache.append(Value::Dict(position));
             }
         }
@@ -2499,13 +2499,13 @@ impl Gate {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut positions: crate::value::List = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let mut positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_deref());
             }
         }
         }
-        client.resolve(newPositions, &(Value::Str(format!("{}{}", type_var, ":positions").into())));
+        client.resolve(Value::Arr(newPositions), &(Value::Str(format!("{}{}", type_var, ":positions").into())));
 }
 
 /*
@@ -2850,7 +2850,7 @@ impl Gate {
         //    }
         //
         let mut rawLiquidations: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
-        let mut newLiquidations: Value = Value::from(vec![]);
+        let mut newLiquidations: crate::value::List = std::sync::Arc::new(Vec::new());
         if (self.liquidations.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.liquidations = Some(ArrayCache::new(limit));
@@ -2868,7 +2868,7 @@ impl Gate {
             client.resolve(&symbolLiquidations, &(Value::Str(format!("{}{}", "myLiquidations::", symbol.as_deref().unwrap_or("null")).into())));
         }
         }
-        client.resolve(newLiquidations, "myLiquidations");
+        client.resolve(Value::Arr(newLiquidations), "myLiquidations");
 }
 
     pub fn parse_ws_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Value {
