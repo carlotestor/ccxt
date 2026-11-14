@@ -3907,7 +3907,7 @@ if _try_result.is_err() {
         }
         let mut totalAmount: Option<String> = self.safe_string2(order.clone(), Value::Str("initial_amount".into()), Value::Str("a".into()), &[]).as_str().map(str::to_owned);
         let mut filledAmount: Option<String> = self.safe_string2(order.clone(), Value::Str("filled_amount".into()), Value::Str("f".into()), &[]).as_str().map(str::to_owned);
-        let mut remaining: Option<String> = crate::precise::Precise::stringSub(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &filledAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut remaining: Option<String> = crate::precise::Precise::stringSub(&totalAmount, &filledAmount).as_str().map(str::to_owned);
         let mut average: Option<String> = self.safe_string2(order.clone(), Value::Str("average_filled_price".into()), Value::Str("p".into()), &[]).as_str().map(str::to_owned);
         let mut eventType: Option<String> = self.safe_string_k(order.clone(), "event_type", &[]).as_str().map(str::to_owned);
         let mut isFillEvent: bool = self.in_array(&eventType, Value::from(vec![Value::Str("fulfill_market".into()), Value::Str("fulfill_limit".into())]));
@@ -4490,7 +4490,7 @@ if _try_result.is_err() {
         let mut markPrice: Option<String> = self.safe_string_k(interest.clone(), "mark", &[]).as_str().map(str::to_owned);
         let mut openInterest: Option<String> = self.safe_string_k(interest.clone(), "open_interest", &[]).as_str().map(str::to_owned);
         if (openInterest.is_some()) && (markPrice.is_some()) {
-            interestValue = crate::precise::Precise::stringMul(&openInterest.clone().map(Value::from).unwrap_or(Value::Null), &markPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            interestValue = crate::precise::Precise::stringMul(&openInterest, &markPrice).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(interest.clone(), "timestamp", &[]).as_i64();
         return self.safe_open_interest(Value::Map({
@@ -4598,7 +4598,7 @@ if _try_result.is_err() {
         let mut amount: Option<String> = change.clone();
         if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
-            amount = crate::precise::Precise::stringAbs(&amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }  else {
             direction = Some("in".to_string());
         }
@@ -4615,7 +4615,7 @@ if _try_result.is_err() {
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("before".to_string(), self.parse_number(crate::precise::Precise::stringSub(&balance.clone().map(Value::from).unwrap_or(Value::Null), &change.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("before".to_string(), self.parse_number(crate::precise::Precise::stringSub(&balance, &change), &[]));
         m.insert("after".to_string(), self.parse_number(balance.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
@@ -4776,7 +4776,7 @@ if _try_result.is_err() {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string(&types, eventType.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("amount".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&amount.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("amount".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&amount), &[]));
         m.insert("currency".to_string(), self.safe_currency_code(Value::Str("USDC".into()), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), Value::Null);
         m.insert("updated".to_string(), Value::Null);

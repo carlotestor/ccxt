@@ -2735,7 +2735,7 @@ impl Bitteam {
         let mut takerOrMaker: Option<String> = self.safe_string_k(trade.clone(), "isCurrentSide", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<String> = self.safe_string_k(trade.clone(), "timestamp", &[]).as_str().map(str::to_owned);
         if (takerOrMaker.is_some()) {
-            timestamp = crate::precise::Precise::stringMul(&timestamp.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
+            timestamp = crate::precise::Precise::stringMul(&timestamp, &Value::Str("1000".into())).as_str().map(str::to_owned);
         }
         // the exchange returns the side of the taker
         let mut side: Option<String> = self.safe_string2(trade.clone(), Value::Str("side".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);

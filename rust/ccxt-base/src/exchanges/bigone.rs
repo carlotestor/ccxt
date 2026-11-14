@@ -2274,7 +2274,7 @@ impl Bigone {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
-                        let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
+                        let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString));
                         let mut costRequest: Value = (if (cost.is_some()) { Value::from(cost) } else { quoteAmount });
                         request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.clone(), costRequest)));
                     }

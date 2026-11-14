@@ -793,7 +793,7 @@ impl Bitget {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::from(marketType)]);
         let mut close: Option<String> = self.safe_string2(&ticker, Value::Str("lastPr".into()), Value::Str("lastPrice".into()), &[]).as_str().map(str::to_owned);
         let mut changeCoefficient: Option<String> = self.safe_string2(&ticker, Value::Str("price24hPcnt".into()), Value::Str("change24h".into()), &[]).as_str().map(str::to_owned);
-        let mut changePercentage: Option<String> = crate::precise::Precise::stringMul(&changeCoefficient.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        let mut changePercentage: Option<String> = crate::precise::Precise::stringMul(&changeCoefficient, &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -2021,7 +2021,7 @@ impl Bitget {
             let mut feeCost: Option<String> = self.safe_string2(&first, Value::Str("totalFee".into()), Value::Str("fee".into()), &[]).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), crate::precise::Precise::stringAbs(&feeCost.map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("cost".to_string(), crate::precise::Precise::stringAbs(&feeCost));
                     m.insert("currency".to_string(), feeCurrencyCode.map(Value::from).unwrap_or(Value::Null));
                 m
             }));
@@ -2319,7 +2319,7 @@ impl Bitget {
         }
         let mut timestamp: Option<i64> = self.safe_integer_n(position.clone(), Value::from(vec![Value::Str("updatedTime".into()), Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("createdTime".into())]), &[]).as_i64();
         let mut percentageDecimal: Option<String> = self.safe_string2(position.clone(), Value::Str("unrealizedPLR".into()), Value::Str("profitRate".into()), &[]).as_str().map(str::to_owned);
-        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&percentageDecimal.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&percentageDecimal, &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut contractSize: Value = Value::Null;
         if (market.is_some()) {
             contractSize = crate::value::KeyRead::key_read(&market, "contractSize");
@@ -2852,7 +2852,7 @@ impl Bitget {
             let mut feeCurrency: Option<String> = self.safe_string_k(&fee, "feeCoin", &[]).as_str().map(str::to_owned);
             feeObject = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&feeAmount.map(Value::from).unwrap_or(Value::Null)), &[]));
+                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&feeAmount), &[]));
                     m.insert("currency".to_string(), self.safe_currency_code(feeCurrency.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
                 m
             }));
@@ -2909,11 +2909,11 @@ impl Bitget {
             if (cost.is_none()) {
                 let mut priceAvgString: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "priceAvg", &[]));
                 if (priceAvgString.is_some()) && (totalFilled.is_some()) {
-                    cost = crate::precise::Precise::stringMul(&totalFilled.clone().map(Value::from).unwrap_or(Value::Null), &priceAvgString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    cost = crate::precise::Precise::stringMul(&totalFilled, &priceAvgString).as_str().map(str::to_owned);
                 }
             }
         }
-        remaining = crate::precise::Precise::stringSub(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &totalFilled.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        remaining = crate::precise::Precise::stringSub(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &totalFilled).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -3397,7 +3397,7 @@ impl Bitget {
                     let mut borrow: Option<String> = self.safe_string_k(&entry, "borrow", &[]).as_str().map(str::to_owned);
                     let mut debts: Option<String> = self.safe_string_k(&entry, "debts", &[]).as_str().map(str::to_owned);
                     if (borrow.is_some()) || (debts.is_some()) {
-                        add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow.map(Value::from).unwrap_or(Value::Null), &debts.map(Value::from).unwrap_or(Value::Null)));
+                        add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow, &debts));
                     }
                     add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(&entry, "available", &[]));
                     add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(&entry, "locked", &[]));
@@ -3417,7 +3417,7 @@ impl Bitget {
                 let mut borrow: Option<String> = self.safe_string_k(rawBalance.clone(), "borrow", &[]).as_str().map(str::to_owned);
                 if (borrow.is_some()) {
                     let mut interest: Option<String> = self.safe_string_k(rawBalance.clone(), "interest", &[]).as_str().map(str::to_owned);
-                    add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow.map(Value::from).unwrap_or(Value::Null), &interest.map(Value::from).unwrap_or(Value::Null)));
+                    add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow, &interest));
                 }
                 let mut freeQuery: String = "available".to_string();
                 if (matches!(&rawBalance, Value::Dict(__d) if __d.contains_key("maxTransferOut"))) {

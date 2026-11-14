@@ -848,7 +848,7 @@ impl Krakenfutures {
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entry_price", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "pnl", &[]));
         m.insert("percentage".to_string(), self.safe_number_k(position.clone(), "return_on_equity", &[]));
-        m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&balanceString.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&balanceString), &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1314,20 +1314,20 @@ impl Krakenfutures {
                     let mut __for_first_434: bool = true;
                     while { if !__for_first_434 { i += 1; } __for_first_434 = false; i < (trades.len() as i64) } {
                     let mut currentTrade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-                    totalCost = crate::precise::Precise::stringAdd(&totalCost.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "cost")))).as_str().map(str::to_owned);
-                    totalAmount = crate::precise::Precise::stringAdd(&totalAmount.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "amount")))).as_str().map(str::to_owned);
+                    totalCost = crate::precise::Precise::stringAdd(&totalCost, &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "cost")))).as_str().map(str::to_owned);
+                    totalAmount = crate::precise::Precise::stringAdd(&totalAmount, &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "amount")))).as_str().map(str::to_owned);
                 }
                 }
                 if crate::precise::Precise::stringGt(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                    add_element_to_object(&mut previousOrder, &Value::Str("average".into()), crate::precise::Precise::stringDiv(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &totalAmount.map(Value::from).unwrap_or(Value::Null)));
+                    add_element_to_object(&mut previousOrder, &Value::Str("average".into()), crate::precise::Precise::stringDiv(&totalCost, &totalAmount));
                 }
                 add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), totalCost.map(Value::from).unwrap_or(Value::Null));
                 let mut filledString: Option<String> = self.number_to_string(trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
                 let mut stringOrderFilled: String = self.safe_string_k(previousOrder.clone(), "filled", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-                let mut totalFilled: Option<String> = crate::precise::Precise::stringAdd(&Value::from(stringOrderFilled), &filledString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut totalFilled: Option<String> = crate::precise::Precise::stringAdd(&stringOrderFilled, &filledString).as_str().map(str::to_owned);
                 add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), totalFilled.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut prevAmountString: Option<String> = self.safe_string_k(previousOrder.clone(), "amount", &[]).as_str().map(str::to_owned);
-                let mut remaining: Option<String> = crate::precise::Precise::stringSub(&prevAmountString.map(Value::from).unwrap_or(Value::Null), &totalFilled.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut remaining: Option<String> = crate::precise::Precise::stringSub(&prevAmountString, &totalFilled).as_str().map(str::to_owned);
                 add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), remaining.map(Value::from).unwrap_or(Value::Null));
                 if (previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut previousOrder, &Value::Str("fee".into()), Value::Map({
@@ -1343,8 +1343,8 @@ impl Krakenfutures {
                     m
                 })]).as_map().cloned().unwrap_or_default();
                 if (previousFee.get("cost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
-                    let mut stringOrderCost: Value = Value::from(self.number_to_string(previousFee.get("cost").cloned().unwrap_or(Value::Null)));
-                    let mut stringTradeCost: Value = Value::from(self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[])));
+                    let mut stringOrderCost: Option<String> = self.number_to_string(previousFee.get("cost").cloned().unwrap_or(Value::Null));
+                    let mut stringTradeCost: Option<String> = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]));
                     add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                 }
                 // update the newUpdates count

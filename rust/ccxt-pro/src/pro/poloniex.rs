@@ -638,7 +638,7 @@ impl Poloniex {
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
-                    let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
             }  else {
@@ -1660,22 +1660,22 @@ impl Poloniex {
                         })]).as_map().cloned().unwrap_or_default();
                         let mut cost: Option<String> = self.number_to_string(previousOrderTrade.get("cost").cloned().unwrap_or(Value::Null));
                         let mut amount: Option<String> = self.number_to_string(previousOrderTrade.get("amount").cloned().unwrap_or(Value::Null));
-                        totalCost = crate::precise::Precise::stringAdd(&totalCost.map(Value::from).unwrap_or(Value::Null), &cost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        totalAmount = crate::precise::Precise::stringAdd(&totalAmount.map(Value::from).unwrap_or(Value::Null), &amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        totalCost = crate::precise::Precise::stringAdd(&totalCost, &cost).as_str().map(str::to_owned);
+                        totalAmount = crate::precise::Precise::stringAdd(&totalAmount, &amount).as_str().map(str::to_owned);
                     }
                     }
                     if crate::precise::Precise::stringGt(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                        add_element_to_object(&mut previousOrder, &Value::Str("average".into()), self.parse_number(crate::precise::Precise::stringDiv(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &totalAmount.map(Value::from).unwrap_or(Value::Null)), &[]));
+                        add_element_to_object(&mut previousOrder, &Value::Str("average".into()), self.parse_number(crate::precise::Precise::stringDiv(&totalCost, &totalAmount), &[]));
                     }
                     add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), self.parse_number(totalCost.map(Value::from).unwrap_or(Value::Null), &[]));
                     if (previousOrder.as_map().and_then(|__m| __m.get("filled")).cloned().unwrap_or(Value::Null) != Value::Null) {
                         let mut tradeAmount: Option<String> = self.number_to_string(trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
                         let mut previousOrderFilled: Option<String> = self.number_to_string(previousOrder.as_map().and_then(|__m| __m.get("filled")).cloned().unwrap_or(Value::Null));
-                        previousOrderFilled = crate::precise::Precise::stringAdd(&previousOrderFilled.map(Value::from).unwrap_or(Value::Null), &tradeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        previousOrderFilled = crate::precise::Precise::stringAdd(&previousOrderFilled, &tradeAmount).as_str().map(str::to_owned);
                         add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), previousOrderFilled.clone().map(Value::from).unwrap_or(Value::Null));
                         if (previousOrder.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null) != Value::Null) {
                             let mut previousOrderAmount: Option<String> = self.number_to_string(previousOrder.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
-                            add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), self.parse_number(crate::precise::Precise::stringSub(&previousOrderAmount.map(Value::from).unwrap_or(Value::Null), &previousOrderFilled.map(Value::from).unwrap_or(Value::Null)), &[]));
+                            add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), self.parse_number(crate::precise::Precise::stringSub(&previousOrderAmount, &previousOrderFilled), &[]));
                         }
                     }
                     if (previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null) == Value::Null) {
@@ -1688,8 +1688,8 @@ impl Poloniex {
 }));
                     }
                     if (crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost") != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
-                        let mut stringOrderCost: Value = Value::from(self.number_to_string(crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost")));
-                        let mut stringTradeCost: Value = Value::from(self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[])));
+                        let mut stringOrderCost: Option<String> = self.number_to_string(crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost"));
+                        let mut stringTradeCost: Option<String> = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]));
                         add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                     }
                     let mut rawState: Option<String> = self.safe_string_k(&order, "state", &[]).as_str().map(str::to_owned);

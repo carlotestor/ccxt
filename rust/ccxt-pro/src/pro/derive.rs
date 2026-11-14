@@ -1616,7 +1616,7 @@ impl Derive {
         let mut newSize: String = self.safe_string_k(entry.clone(), "new_balance", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut isShort: Value = crate::precise::Precise::stringLt(&Value::from(newSize.clone()), &Value::Str("0".into()));
         let mut side: String = (if isShort.as_bool() == Some(true) { "short".to_string() } else { "long".to_string() });
-        let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&Value::from(newSize)).as_str().map(str::to_owned);
+        let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&newSize).as_str().map(str::to_owned);
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&subaccountIdKey);
         let mut symbolPositions: crate::value::Dict = self.safe_dict(cache.hashmap(), Value::from(symbol.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();

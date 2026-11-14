@@ -2211,7 +2211,7 @@ impl Bitfinex {
             let mut order: crate::value::List = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let mut price: Option<f64> = self.safe_number(&order, Value::from(priceIndex), &[]).as_f64();
             let mut signedAmount: Option<String> = self.safe_string(&order, Value::Int(2), &[]).as_str().map(str::to_owned);
-            let mut amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount).as_str().map(str::to_owned);
             let mut side: Value = Value::Str("asks".into());
             if crate::precise::Precise::stringGt(&signedAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Value::Str("bids".into());
@@ -2485,7 +2485,7 @@ impl Bitfinex {
             let mut maker: Option<i64> = self.safe_integer(&tradeList, Value::Int(8), &[]).as_i64();
             takerOrMaker = (if (maker == Some(1)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
             let mut feeCostString: Option<String> = self.safe_string(&tradeList, Value::Int(9), &[]).as_str().map(str::to_owned);
-            feeCostString = crate::precise::Precise::stringNeg(&feeCostString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeCostString = crate::precise::Precise::stringNeg(&feeCostString).as_str().map(str::to_owned);
             let mut feeCurrencyId: Option<String> = self.safe_string(&tradeList, Value::Int(10), &[]).as_str().map(str::to_owned);
             let mut feeCurrency: Option<String> = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
             fee = Some(crate::value::Dict::new({
@@ -2733,7 +2733,7 @@ impl Bitfinex {
         let mut timestamp: Option<i64> = self.safe_integer(&orderList, Value::Int(5), &[]).as_i64();
         let mut remaining: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string(&orderList, Value::Int(6), &[])).as_str().map(str::to_owned);
         let mut signedAmount: Option<String> = self.safe_string(&orderList, Value::Int(7), &[]).as_str().map(str::to_owned);
-        let mut amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount).as_str().map(str::to_owned);
         let mut side: String = "buy".to_string();
         if crate::precise::Precise::stringLt(&signedAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             side = "sell".to_string();
@@ -3991,7 +3991,7 @@ impl Bitfinex {
             updated = self.safe_integer(transaction.clone(), Value::Int(6), &[]).as_i64();
             status = self.parse_transaction_status((self.safe_string(transaction.clone(), Value::Int(9), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
             let mut signedAmount: Option<String> = self.safe_string(transaction.clone(), Value::Int(12), &[]).as_str().map(str::to_owned);
-            amount = crate::precise::Precise::stringAbs(&signedAmount.clone().map(Value::from).unwrap_or(Value::Null));
+            amount = crate::precise::Precise::stringAbs(&signedAmount);
             if (signedAmount.is_some()) {
                 if crate::precise::Precise::stringLt(&signedAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                     type_var = Some("withdrawal".to_string());
@@ -4495,7 +4495,7 @@ impl Bitfinex {
         m.insert("maintenanceMargin".to_string(), self.safe_number(&positionList, Value::Int(18), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("collateral".to_string(), self.safe_number(&positionList, Value::Int(17), &[]));
-        m.insert("initialMargin".to_string(), self.parse_number(crate::precise::Precise::stringMul(&tradeAmount.map(Value::from).unwrap_or(Value::Null), &tradePrice.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(crate::precise::Precise::stringMul(&tradeAmount, &tradePrice), &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number(&positionList, Value::Int(9), &[]));
         m.insert("marginRatio".to_string(), Value::Null);
@@ -5348,7 +5348,7 @@ impl Bitfinex {
         let mut marketId: Option<String> = self.safe_string(&entry, Value::Int(4), &[]).as_str().map(str::to_owned);
         let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string(&entry, Value::Int(5), &[])).as_str().map(str::to_owned);
         let mut contractSize: Option<String> = self.safe_string_k(&market, "contractSize", &[]).as_str().map(str::to_owned);
-        let mut baseValue: Option<String> = crate::precise::Precise::stringMul(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &contractSize.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut baseValue: Option<String> = crate::precise::Precise::stringMul(&contracts, &contractSize).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string(&entry, Value::Int(11), &[]).as_str().map(str::to_owned);
         let mut sideFlag: Option<i64> = self.safe_integer(&entry, Value::Int(8), &[]).as_i64();
         let mut side: String = "sell".to_string();
@@ -5364,7 +5364,7 @@ impl Bitfinex {
         m.insert("price".to_string(), self.parse_number(price.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("side".to_string(), Value::from(side));
         m.insert("baseValue".to_string(), self.parse_number(baseValue.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&baseValue.map(Value::from).unwrap_or(Value::Null), &price.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&baseValue, &price), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
     m

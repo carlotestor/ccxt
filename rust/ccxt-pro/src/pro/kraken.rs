@@ -990,7 +990,7 @@ impl Kraken {
         let mut quoteVolume: Option<String> = None;
         let mut baseVolume: Option<String> = self.safe_string_k(&ticker, "volume", &[]).as_str().map(str::to_owned);
         if (baseVolume.is_some()) && (vwap.is_some()) {
-            quoteVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            quoteVolume = crate::precise::Precise::stringMul(&baseVolume, &vwap).as_str().map(str::to_owned);
         }
         let mut last: Option<String> = self.safe_string_k(&ticker, "last", &[]).as_str().map(str::to_owned);
         let mut result: Value = self.safe_ticker(Value::Map({

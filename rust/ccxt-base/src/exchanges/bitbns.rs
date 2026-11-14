@@ -1421,7 +1421,7 @@ impl Bitbns {
         let mut factor: Option<String> = self.safe_string_k(trade.clone(), "factor", &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = None;
         if (factor.is_some()) {
-            amountString = crate::precise::Precise::stringDiv(&amountString.map(Value::from).unwrap_or(Value::Null), &factor.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountString = crate::precise::Precise::stringDiv(&amountString, &factor).as_str().map(str::to_owned);
         }  else {
             amountString = self.safe_string_k(trade.clone(), "base_volume", &[]).as_str().map(str::to_owned);
             costString = self.safe_string_k(trade.clone(), "quote_volume", &[]).as_str().map(str::to_owned);

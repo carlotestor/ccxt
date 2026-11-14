@@ -3360,7 +3360,7 @@ impl Bybit {
             // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
             let mut totalPositionIm: String = self.safe_string_k(balance.clone(), "totalPositionIM", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             let mut totalOrderIm: String = self.safe_string_k(balance.clone(), "totalOrderIM", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-            account.insert("used".into(), crate::precise::Precise::stringAdd(&Value::from(totalPositionIm), &Value::from(totalOrderIm)));
+            account.insert("used".into(), crate::precise::Precise::stringAdd(&totalPositionIm, &totalOrderIm));
         }
         // on the unified rows the free amount and the margin are both measured
         // against the equity, which includes the unrealized pnl, so the equity

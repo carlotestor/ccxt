@@ -1014,7 +1014,7 @@ impl Coinbaseexchange {
         let mut feeCost: Option<String> = None;
         let mut cost: Option<String> = self.safe_string_k(parsed.clone(), "cost", &[]).as_str().map(str::to_owned);
         if (cost.is_some()) && (feeRate.is_some()) {
-            feeCost = crate::precise::Precise::stringMul(&cost.map(Value::from).unwrap_or(Value::Null), &feeRate.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeCost = crate::precise::Precise::stringMul(&cost, &feeRate.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         add_element_to_object(&mut parsed, &Value::Str("fee".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1176,12 +1176,12 @@ impl Coinbaseexchange {
                         }
                         }
                         if !(crate::precise::Precise::stringEq(&Value::from(totalAmount.clone()), &Value::Str("0".into())).as_bool() == Some(true)) {
-                            add_element_to_object(&mut previousOrder, &Value::Str("average".into()), self.parse_number(crate::precise::Precise::stringDiv(&Value::from(totalCost.clone()), &Value::from(totalAmount)), &[]));
+                            add_element_to_object(&mut previousOrder, &Value::Str("average".into()), self.parse_number(crate::precise::Precise::stringDiv(&totalCost, &totalAmount), &[]));
                         }
                         add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), self.parse_number(Value::from(totalCost), &[]));
                         let mut previousOrderFilled: Option<String> = self.safe_string_k(previousOrder.clone(), "filled", &[]).as_str().map(str::to_owned);
                         if (previousOrderFilled.is_some()) {
-                            add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), self.parse_number(crate::precise::Precise::stringAdd(&previousOrderFilled.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(trade.clone(), "amount", &[])), &[]));
+                            add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), self.parse_number(crate::precise::Precise::stringAdd(&previousOrderFilled, &self.safe_string_k(trade.clone(), "amount", &[])), &[]));
                             if (self.safe_string_k(previousOrder.clone(), "amount", &[]) != Value::Null) {
                                 { let __be_tmp = self.parse_number(crate::precise::Precise::stringSub(&self.safe_string_k(previousOrder.clone(), "amount", &[]), &self.safe_string_k(previousOrder.clone(), "filled", &[])), &[]); add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), __be_tmp); };
                             }
@@ -1248,11 +1248,11 @@ impl Coinbaseexchange {
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = None;
         if (amount.is_some()) && (remaining.is_some()) {
-            filled = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &remaining.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            filled = crate::precise::Precise::stringSub(&amount, &remaining).as_str().map(str::to_owned);
         }  else if (type_var.as_deref() == Some("received")) {
             filled = Some("0".to_string());
             if (amount.is_some()) {
-                remaining = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                remaining = crate::precise::Precise::stringSub(&amount, &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
         return self.safe_order(Value::Map({

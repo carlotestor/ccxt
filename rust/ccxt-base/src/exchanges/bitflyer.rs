@@ -1705,7 +1705,7 @@ impl Bitflyer {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAdd(&feeCost.map(Value::from).unwrap_or(Value::Null), &additionalFee.map(Value::from).unwrap_or(Value::Null)), &[]));
+                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAdd(&feeCost, &additionalFee), &[]));
                 m
             }));
         }  else {

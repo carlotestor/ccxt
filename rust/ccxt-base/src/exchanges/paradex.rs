@@ -2007,7 +2007,7 @@ impl Paradex {
         //
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "price_change_rate_24h", &[]).as_str().map(str::to_owned);
         if (percentage.is_some()) {
-            percentage = crate::precise::Precise::stringMul(&percentage.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last_traded_price", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);

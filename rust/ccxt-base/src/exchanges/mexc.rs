@@ -3483,7 +3483,7 @@ impl Mexc {
             let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
             if isSwap && (contractSize.is_some()) {
                 // volume24 counts contracts, amount24 is in the settle currency
-                let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &contractSize.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &contractSize).as_str().map(str::to_owned);
                 if ((marketResolved).inverse == Some(true)) {
                     baseVolume = quoteVolume.clone();
                     quoteVolume = contractVolume.clone();
@@ -3785,7 +3785,7 @@ impl Mexc {
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
-                    let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     request.insert("quoteOrderQty".into(), Value::from(self.cost_to_precision(Value::from(symbol.clone()), quoteAmount.map(Value::from).unwrap_or(Value::Null))));
                 }
             }
@@ -5128,7 +5128,7 @@ impl Mexc {
         if (feeCurrency.is_some()) {
             let mut takerFee: Option<String> = self.safe_string_k(order.clone(), "takerFee", &[]).as_str().map(str::to_owned);
             let mut makerFee: Option<String> = self.safe_string_k(order.clone(), "makerFee", &[]).as_str().map(str::to_owned);
-            let mut feeSum: Option<String> = crate::precise::Precise::stringAdd(&takerFee.map(Value::from).unwrap_or(Value::Null), &makerFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut feeSum: Option<String> = crate::precise::Precise::stringAdd(&takerFee, &makerFee).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
@@ -5533,7 +5533,7 @@ impl Mexc {
         account.insert("total".into(), (match entry.get("totalAsset") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         let mut debt: Option<String> = (match entry.get("borrowed") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut interest: Option<String> = (match entry.get("interest") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        account.insert("debt".into(), crate::precise::Precise::stringAdd(&debt.map(Value::from).unwrap_or(Value::Null), &interest.map(Value::from).unwrap_or(Value::Null)));
+        account.insert("debt".into(), crate::precise::Precise::stringAdd(&debt, &interest));
         return Value::Map(account);
 
     Value::Null
@@ -6400,11 +6400,11 @@ impl Mexc {
 })]);
         }
         while crate::precise::Precise::stringLt(&floor, &maxVol.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
-            let mut cap: Option<String> = crate::precise::Precise::stringAdd(&floor, &riskIncrVol.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            let mut maxLev: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRate.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            let mut cap: Option<String> = crate::precise::Precise::stringAdd(&floor, &riskIncrVol).as_str().map(str::to_owned);
+            let mut maxLev: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRate), &[]).as_f64();
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap.clone().map(Value::from).unwrap_or(Value::Null), &riskIncrVol.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
+                    m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap, &riskIncrVol), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("contract".into())]));
                     m.insert("currency".to_string(), self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
                     m.insert("minNotional".to_string(), self.parse_number(floor.clone(), &[]));
@@ -6414,8 +6414,8 @@ impl Mexc {
                     m.insert("info".to_string(), info.clone());
                 m
             }));
-            initialMarginRate = crate::precise::Precise::stringAdd(&initialMarginRate.map(Value::from).unwrap_or(Value::Null), &riskIncrImr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            maintenanceMarginRate = crate::precise::Precise::stringAdd(&maintenanceMarginRate.map(Value::from).unwrap_or(Value::Null), &riskIncrMmr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            initialMarginRate = crate::precise::Precise::stringAdd(&initialMarginRate, &riskIncrImr).as_str().map(str::to_owned);
+            maintenanceMarginRate = crate::precise::Precise::stringAdd(&maintenanceMarginRate, &riskIncrMmr).as_str().map(str::to_owned);
             floor = cap.map(Value::from).unwrap_or(Value::Null);
         }
         return Value::from(tiers);
@@ -6845,7 +6845,7 @@ impl Mexc {
         }
         if (type_var == "withdrawal") {
             // mexc withdrawal amount includes the fee
-            amountString = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &feeCostString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountString = crate::precise::Precise::stringSub(&amountString, &feeCostString).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7124,7 +7124,7 @@ impl Mexc {
             collateralString = initialMargin.clone();
             marginString = collateralString.clone();
             if (unrealizedPnl.is_some()) {
-                collateralString = crate::precise::Precise::stringAdd(&collateralString.map(Value::from).unwrap_or(Value::Null), &unrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                collateralString = crate::precise::Precise::stringAdd(&collateralString.map(Value::from).unwrap_or(Value::Null), &unrealizedPnl).as_str().map(str::to_owned);
             }
         }
         let mut leverage: Option<f64> = self.safe_number_k(position.clone(), "leverage", &[]).as_f64();

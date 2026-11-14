@@ -2811,7 +2811,7 @@ impl Weex {
         let mut interval: Option<String> = None;
         let mut collectCycle: Option<String> = self.safe_string_k(contract.clone(), "collectCycle", &[]).as_str().map(str::to_owned);
         if (collectCycle.is_some()) {
-            interval = Some(format!("{}{}", crate::precise::Precise::stringDiv(&collectCycle.map(Value::from).unwrap_or(Value::Null), &Value::Str("60".into())), Value::Str("h".into())));
+            interval = Some(format!("{}{}", crate::precise::Precise::stringDiv(&collectCycle, &Value::Str("60".into())), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4768,8 +4768,8 @@ impl Weex {
         let mut timestamp: Option<i64> = self.safe_integer2(item.clone(), Value::Str("cTime".into()), Value::Str("time".into()), &[]).as_i64();
         let mut amountRaw: Option<String> = self.safe_string2(item.clone(), Value::Str("deltaAmount".into()), Value::Str("income".into()), &[]).as_str().map(str::to_owned);
         let mut after: Option<String> = self.safe_string2(item.clone(), Value::Str("afterAmount".into()), Value::Str("balance".into()), &[]).as_str().map(str::to_owned);
-        let mut before: Option<String> = crate::precise::Precise::stringSub(&after.clone().map(Value::from).unwrap_or(Value::Null), &amountRaw.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+        let mut before: Option<String> = crate::precise::Precise::stringSub(&after, &amountRaw).as_str().map(str::to_owned);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]).as_f64();
         let mut direction: String = "in".to_string();
         if (amountRaw.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseLedgerEntry() missing amountRaw")));
@@ -5149,12 +5149,12 @@ impl Weex {
         }
         let mut notional: Option<String> = self.safe_string_k(position.clone(), "openValue", &[]).as_str().map(str::to_owned);
         let mut size: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
-        let mut entryPrice: Option<String> = crate::precise::Precise::stringDiv(&notional.clone().map(Value::from).unwrap_or(Value::Null), &size.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut entryPrice: Option<String> = crate::precise::Precise::stringDiv(&notional, &size).as_str().map(str::to_owned);
         let mut unrealizePnl: Option<String> = self.safe_string_k(position.clone(), "unrealizePnl", &[]).as_str().map(str::to_owned);
         let mut isolatedMargin: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("isolatedMargin".into()), Value::Str("marginSize".into()), &[]));
         let mut collateralString: Option<String> = None;
         if (marginMode == "isolated") && (isolatedMargin.is_some()) {
-            collateralString = (if (unrealizePnl.is_some()) { crate::precise::Precise::stringAdd(&isolatedMargin.clone().map(Value::from).unwrap_or(Value::Null), &unrealizePnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) } else { isolatedMargin.clone() });
+            collateralString = (if (unrealizePnl.is_some()) { crate::precise::Precise::stringAdd(&isolatedMargin, &unrealizePnl).as_str().map(str::to_owned) } else { isolatedMargin.clone() });
         }
         let mut initialMarginString: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("marginSize".into()), Value::Str("isolatedMargin".into()), &[]));
         let mut marginString: Option<String> = None;

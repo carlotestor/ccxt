@@ -1126,7 +1126,7 @@ impl Cex {
         }
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("sell")) {
-            amount = crate::precise::Precise::stringDiv(&amount.map(Value::from).unwrap_or(Value::Null), &price.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned); // due to rounding errors amount in not exact to trade
+            amount = crate::precise::Precise::stringDiv(&amount, &price).as_str().map(str::to_owned); // due to rounding errors amount in not exact to trade
         }
         let mut parsedTrade: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

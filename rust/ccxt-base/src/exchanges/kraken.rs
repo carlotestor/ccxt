@@ -1176,14 +1176,14 @@ impl Kraken {
             let mut firstMakerFeeRate: Option<String> = self.safe_string(&firstMakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut maker: Option<f64> = None;
             if (firstMakerFeeRate.is_some()) {
-                maker = self.parse_number(crate::precise::Precise::stringDiv(&firstMakerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
+                maker = self.parse_number(crate::precise::Precise::stringDiv(&firstMakerFeeRate, &Value::Str("100".into())), &[]).as_f64();
             }
             let mut takerFees: crate::value::List = self.safe_list_k(&market, "fees", &[Value::from(vec![])]).into_list();
             let mut firstTakerFee: crate::value::List = self.safe_list(&takerFees, Value::Int(0), &[Value::from(vec![])]).into_list();
             let mut firstTakerFeeRate: Option<String> = self.safe_string(&firstTakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut taker: Option<f64> = None;
             if (firstTakerFeeRate.is_some()) {
-                taker = self.parse_number(crate::precise::Precise::stringDiv(&firstTakerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
+                taker = self.parse_number(crate::precise::Precise::stringDiv(&firstTakerFeeRate, &Value::Str("100".into())), &[]).as_f64();
             }
             let mut leverageBuy: crate::value::List = self.safe_list_k(&market, "leverage_buy", &[Value::from(vec![])]).into_list();
             let mut leverageBuyLength: i64 = leverageBuy.len() as i64;
@@ -1710,7 +1710,7 @@ impl Kraken {
         let mut baseVolume: Option<String> = self.safe_string(&v, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut p: crate::value::List = self.safe_list_k(ticker.clone(), "p", &[Value::from(vec![])]).into_list();
         let mut vwap: Option<String> = self.safe_string(&p, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &vwap).as_str().map(str::to_owned);
         let mut c: crate::value::List = self.safe_list_k(ticker.clone(), "c", &[Value::from(vec![])]).into_list();
         let mut last: Option<String> = self.safe_string(&c, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut high: crate::value::List = self.safe_list_k(ticker.clone(), "h", &[Value::from(vec![])]).into_list();
@@ -1986,7 +1986,7 @@ impl Kraken {
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
         if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
-            amount = crate::precise::Precise::stringAbs(&amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }  else {
             direction = Some("in".to_string());
         }
@@ -2064,8 +2064,8 @@ impl Kraken {
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until", "till"], &[]) } else { params }).into_dict();
         if (until.is_some()) {
-            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())))));
+            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into())).as_str().map(str::to_owned);
+            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())))));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_ledgers(&[__ws_arg_5]).await.into_dict();
@@ -3655,8 +3655,8 @@ impl Kraken {
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until", "till"], &[]) } else { params }).into_dict();
         if (until.is_some()) {
-            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())))));
+            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into())).as_str().map(str::to_owned);
+            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())))));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_trades_history(&[__ws_arg_14]).await.into_dict();
@@ -4330,13 +4330,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (since != Value::Null) {
             let mut sinceString: Option<String> = self.number_to_string(since.clone());
-            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())));
+            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString, &Value::Str("1000".into())));
         }
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until", "till"], &[]) } else { params }).into_dict();
         if (until.is_some()) {
-            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())));
+            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into())).as_str().map(str::to_owned);
+            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())));
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_deposit_status(&[__ws_arg_21]).await.into_dict();
@@ -4444,13 +4444,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (since != Value::Null) {
             let mut sinceString: Option<String> = self.number_to_string(since.clone());
-            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())));
+            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString, &Value::Str("1000".into())));
         }
         let mut until: Option<String> = self.safe_string2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until", "till"], &[]).into_dict() } else { paramsPaginate });
         if (until.is_some()) {
-            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())));
+            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into())).as_str().map(str::to_owned);
+            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_withdraw_status(&[__ws_arg_22]).await.into_dict();

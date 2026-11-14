@@ -2026,11 +2026,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeAmount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
                 if (tradeAmount.is_some()) {
-                    filled = crate::precise::Precise::stringAdd(&filled.map(Value::from).unwrap_or(Value::Null), &tradeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    filled = crate::precise::Precise::stringAdd(&filled, &tradeAmount).as_str().map(str::to_owned);
                 }
                 let mut tradeCost: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
                 if (tradeCost.is_some()) {
-                    cost = crate::precise::Precise::stringAdd(&cost.map(Value::from).unwrap_or(Value::Null), &tradeCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    cost = crate::precise::Precise::stringAdd(&cost, &tradeCost).as_str().map(str::to_owned);
                 }
                 if (side.is_none()) {
                     side = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -2052,21 +2052,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // fill any totals the venue left undefined (linear, contract size 1)
         if (filled.is_none()) && (amount.is_some()) && (remaining.is_some()) {
-            filled = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &remaining.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            filled = crate::precise::Precise::stringSub(&amount, &remaining).as_str().map(str::to_owned);
         }
         if (remaining.is_none()) && (amount.is_some()) && (filled.is_some()) {
-            remaining = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            remaining = crate::precise::Precise::stringSub(&amount, &filled).as_str().map(str::to_owned);
         }
         if (amount.is_none()) && (filled.is_some()) && (remaining.is_some()) {
-            amount = crate::precise::Precise::stringAdd(&filled.clone().map(Value::from).unwrap_or(Value::Null), &remaining.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringAdd(&filled, &remaining).as_str().map(str::to_owned);
         }
         if (average.is_none()) && (filled.is_some()) && (cost.is_some()) && crate::precise::Precise::stringGt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            average = crate::precise::Precise::stringDiv(&cost.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            average = crate::precise::Precise::stringDiv(&cost, &filled).as_str().map(str::to_owned);
         }
         if (cost.is_none()) && (filled.is_some()) {
             let mut multiplyPrice: Option<String> = (if (average.is_some()) { average.clone() } else { price.clone() });
             if (multiplyPrice.is_some()) {
-                cost = crate::precise::Precise::stringMul(&filled.clone().map(Value::from).unwrap_or(Value::Null), &multiplyPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                cost = crate::precise::Precise::stringMul(&filled, &multiplyPrice).as_str().map(str::to_owned);
             }
         }
         let mut fee: Value = self.safe_dict_k(outcomeOrder.clone(), "fee", &[]);
@@ -2139,7 +2139,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
         if (cost.is_none()) && (price.is_some()) && (amount.is_some()) {
-            cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            cost = crate::precise::Precise::stringMul(&price, &amount).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.safe_string_k(trade.clone(), "datetime", &[]).as_str().map(str::to_owned);
@@ -2184,13 +2184,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut percentage: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "percentage", &[]));
         let mut average: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "average", &[]));
         if (change.is_none()) && (open.is_some()) && (close.is_some()) {
-            change = crate::precise::Precise::stringSub(&close.clone().map(Value::from).unwrap_or(Value::Null), &open.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            change = crate::precise::Precise::stringSub(&close, &open).as_str().map(str::to_owned);
         }
         if (percentage.is_none()) && (change.is_some()) && (open.is_some()) && crate::precise::Precise::stringGt(&open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&change.clone().map(Value::from).unwrap_or(Value::Null), &open.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("100".into())).as_str().map(str::to_owned);
+            percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&change, &open), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         if (average.is_none()) && (open.is_some()) && (close.is_some()) {
-            average = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&open.clone().map(Value::from).unwrap_or(Value::Null), &close.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())).as_str().map(str::to_owned);
+            average = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&open, &close), &Value::Str("2".into())).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.safe_string_k(ticker.clone(), "datetime", &[]).as_str().map(str::to_owned);

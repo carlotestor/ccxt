@@ -1533,7 +1533,7 @@ impl Hitbtc {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(crate::precise::Precise::stringMul(&lotString.map(Value::from).unwrap_or(Value::Null), &stepString.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("min".to_string(), self.parse_number(crate::precise::Precise::stringMul(&lotString, &stepString), &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));

@@ -2392,14 +2392,14 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("t".into()), Value::Str("a".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "T", &[]).as_i64();
         let mut price: Option<String> = self.safe_string2(trade.clone(), Value::Str("L".into()), Value::Str("p".into()), &[]).as_str().map(str::to_owned);
-        let mut amount: Value = self.safe_string_k(trade.clone(), "q", &[]);
+        let mut amount: Option<String> = self.safe_string_k(trade.clone(), "q", &[]).as_str().map(str::to_owned);
         if isTradeExecution {
-            amount = self.safe_string_k(trade.clone(), "l", &[amount.clone()]);
+            amount = self.safe_string_k(trade.clone(), "l", &[amount.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         }
         let mut cost: Option<String> = self.safe_string_k(trade.clone(), "Y", &[]).as_str().map(str::to_owned);
         if (cost.is_none()) {
-            if (price.is_some()) && (amount != Value::Null) {
-                cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount).as_str().map(str::to_owned);
+            if (price.is_some()) && (amount.is_some()) {
+                cost = crate::precise::Precise::stringMul(&price, &amount).as_str().map(str::to_owned);
             }
         }
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
@@ -2446,7 +2446,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -3835,9 +3835,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             baseVolume = quoteVolume.clone();
             let mut weightedAverage: Option<String> = self.safe_string_k(message.clone(), "w", &[]).as_str().map(str::to_owned);
             if (weightedAverage.is_none()) {
-                quoteVolume = crate::precise::Precise::stringMul(&contracts.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
+                quoteVolume = crate::precise::Precise::stringMul(&contracts, &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
             }  else {
-                quoteVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &weightedAverage.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                quoteVolume = crate::precise::Precise::stringMul(&baseVolume, &weightedAverage).as_str().map(str::to_owned);
             }
         }
         return self.safe_ticker(Value::Map({
@@ -5185,7 +5185,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 if !matches!(&previousValue, Value::Str(_)) {
                     previousValue = Value::from(self.number_to_string(previousValue));
                 }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringAdd(&previousValue, &delta.clone().map(Value::from).unwrap_or(Value::Null))); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringAdd(&previousValue, &delta)); }
             }  else {
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), delta.map(Value::from).unwrap_or(Value::Null)); }
             }
@@ -6485,7 +6485,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut stockFilled: Option<String> = self.safe_string_k(order.clone(), "fq", &[]).as_str().map(str::to_owned);
             let mut stockRemaining: Option<String> = None;
             if (stockAmount.is_some()) && (stockFilled.is_some()) {
-                stockRemaining = crate::precise::Precise::stringSub(&stockAmount.clone().map(Value::from).unwrap_or(Value::Null), &stockFilled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                stockRemaining = crate::precise::Precise::stringSub(&stockAmount, &stockFilled).as_str().map(str::to_owned);
             }
             let mut stockTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "T", &[]).as_i64();
             let mut stockLastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "U", &[Value::from(stockTimestamp)]).as_i64();
@@ -6880,7 +6880,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if crate::precise::Precise::stringLt(&Value::from(rawQty.clone()), &Value::Str("0".into())).as_bool() == Some(true) {
                 side = "SELL".to_string();
             }
-            let mut absQty: Option<String> = crate::precise::Precise::stringAbs(&Value::from(rawQty)).as_str().map(str::to_owned);
+            let mut absQty: Option<String> = crate::precise::Precise::stringAbs(&rawQty).as_str().map(str::to_owned);
             let mut executionType: String = "NEW".to_string();
             if ((fills.len() as i64) as f64) > ((0i64) as f64) {
                 executionType = "TRADE".to_string();
@@ -7250,7 +7250,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut contracts: Option<String> = self.safe_string_k(position.clone(), "c", &[]).as_str().map(str::to_owned);
-        let mut contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&contracts.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&contracts).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if (contracts.is_some()) {
             if crate::precise::Precise::stringLt(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {

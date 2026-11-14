@@ -7485,7 +7485,7 @@ if _try_result.is_err() {
         let mut feeCostString: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut feeCostAbsString: Option<String> = None;
         if (feeCostString.is_some()) {
-            feeCostAbsString = crate::precise::Precise::stringAbs(&feeCostString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeCostAbsString = crate::precise::Precise::stringAbs(&feeCostString).as_str().map(str::to_owned);
         }
         let mut fee: Option<crate::value::Dict> = None;
         let mut amountString: Option<String> = self.safe_string_k(transaction.clone(), "size", &[]).as_str().map(str::to_owned);
@@ -7496,7 +7496,7 @@ if _try_result.is_err() {
                     m.insert("cost".to_string(), self.parse_number(feeCostAbsString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
                 m
             }));
-            amountString = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &feeCostAbsString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountString = crate::precise::Precise::stringSub(&amountString, &feeCostAbsString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
         return Value::Map({
@@ -7885,7 +7885,7 @@ if _try_result.is_err() {
         }
         // both fields are ratios, and a ticker reports (change/open) * 100
         let mut changeRatio: Option<String> = self.safe_string2(ticker.clone(), Value::Str("price24hPcnt".into()), Value::Str("change24h".into()), &[]).as_str().map(str::to_owned);
-        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&changeRatio.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&changeRatio, &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]));
@@ -8504,7 +8504,7 @@ if _try_result.is_err() {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), currencyCode.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("cost".to_string(), (if deduction { feeCostString.clone().map(Value::from).unwrap_or(Value::Null) } else { crate::precise::Precise::stringNeg(&feeCostString.clone().map(Value::from).unwrap_or(Value::Null)) }));
+                    m.insert("cost".to_string(), (if deduction { feeCostString.clone().map(Value::from).unwrap_or(Value::Null) } else { crate::precise::Precise::stringNeg(&feeCostString) }));
                 m
             }));
         }
@@ -9543,7 +9543,7 @@ if _try_result.is_err() {
                 let mut interest: Option<String> = self.safe_string_k(&entry, "interest", &[]).as_str().map(str::to_owned);
                 account.insert("free".into(), self.safe_string_k(&entry, "transferable", &[]));
                 account.insert("total".into(), self.safe_string_k(&entry, "totalAmount", &[]));
-                account.insert("debt".into(), crate::precise::Precise::stringAdd(&borrow.map(Value::from).unwrap_or(Value::Null), &interest.map(Value::from).unwrap_or(Value::Null)));
+                account.insert("debt".into(), crate::precise::Precise::stringAdd(&borrow, &interest));
             }  else {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 let mut spotAccountFree: Option<String> = self.safe_string_k(&entry, "available", &[]).as_str().map(str::to_owned);
@@ -9555,7 +9555,7 @@ if _try_result.is_err() {
                     account.insert("free".into(), spotAccountFree.map(Value::from).unwrap_or(Value::Null));
                     let mut frozen: Option<String> = self.safe_string_k(&entry, "frozen", &[]).as_str().map(str::to_owned);
                     let mut locked: Option<String> = self.safe_string_k(&entry, "locked", &[]).as_str().map(str::to_owned);
-                    account.insert("used".into(), crate::precise::Precise::stringAdd(&frozen.map(Value::from).unwrap_or(Value::Null), &locked.map(Value::from).unwrap_or(Value::Null)));
+                    account.insert("used".into(), crate::precise::Precise::stringAdd(&frozen, &locked));
                 }
             }
             if (code.is_some()) {
@@ -9838,7 +9838,7 @@ if _try_result.is_err() {
             // swap
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&feeCostString.map(Value::from).unwrap_or(Value::Null)), &[]));
+                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&feeCostString), &[]));
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
                 m
             }));
@@ -9854,7 +9854,7 @@ if _try_result.is_err() {
             let mut utaFee: Option<String> = self.safe_string_k(&feeResult, "fee", &[]).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&utaFee.map(Value::from).unwrap_or(Value::Null)), &[]));
+                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&utaFee), &[]));
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
                 m
             }));
@@ -9876,7 +9876,7 @@ if _try_result.is_err() {
                 }
                 }
                 let mut totalFee: Option<String> = self.safe_string_k(feeObject.clone(), "totalFee", &[]).as_str().map(str::to_owned);
-                let mut feeCost: Option<String> = crate::precise::Precise::stringNeg(&totalFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut feeCost: Option<String> = crate::precise::Precise::stringNeg(&totalFee).as_str().map(str::to_owned);
                 let mut feeCoinCode: Option<String> = self.safe_string_k(feeObject, "feeCoinCode", &[]).as_str().map(str::to_owned);
                 fee = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
@@ -10512,7 +10512,7 @@ if _try_result.is_err() {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
-                        let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                         quantity = self.cost_to_precision(symbol.clone(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
@@ -10899,7 +10899,7 @@ if _try_result.is_err() {
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
                     let mut finalCost: Option<String> = cost.clone();
                     if (cost.is_none()) {
-                        finalCost = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        finalCost = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     }
                     request.insert("size".into(), Value::from(self.price_to_precision(symbol.clone(), finalCost.map(Value::from).unwrap_or(Value::Null))));
                 }
@@ -13019,13 +13019,13 @@ if _try_result.is_err() {
         let mut feeCostString: Option<String> = self.safe_string2(item.clone(), Value::Str("fees".into()), Value::Str("fee".into()), &[]).as_str().map(str::to_owned);
         let mut feeCost: Option<f64> = None;
         if (feeCostString.is_some()) {
-            feeCost = self.parse_number(crate::precise::Precise::stringAbs(&feeCostString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64(); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
+            feeCost = self.parse_number(crate::precise::Precise::stringAbs(&feeCostString), &[]).as_f64(); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
         }
         let mut amountRaw: String = self.safe_string2(item.clone(), Value::Str("size".into()), Value::Str("amount".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&Value::from(amountRaw.clone())), &[]).as_f64();
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]).as_f64();
         let mut before: Option<f64> = None;
         if (balanceString.is_some()) && (amountRaw != "") {
-            before = self.parse_number(crate::precise::Precise::stringSub(&balanceString.map(Value::from).unwrap_or(Value::Null), &Value::from(amountRaw.clone())), &[]).as_f64(); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+            before = self.parse_number(crate::precise::Precise::stringSub(&balanceString, &amountRaw), &[]).as_f64(); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
         }
         let mut direction: String = "in".to_string();
         if amountRaw.contains("-") {
@@ -14001,7 +14001,7 @@ if _try_result.is_err() {
         let mut collateralString: Option<String> = self.safe_string2(position.clone(), Value::Str("marginSize".into()), Value::Str("positionBalance".into()), &[]).as_str().map(str::to_owned);
         let mut rawCollateral: Option<String> = self.omit_zero(collateralString.map(Value::from).unwrap_or(Value::Null));
         if (marginMode.as_deref() == Some("isolated")) {
-            collateral = (if (unrealizedPnl.is_some()) { crate::precise::Precise::stringAdd(&rawCollateral.clone().map(Value::from).unwrap_or(Value::Null), &unrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) } else { rawCollateral.clone() });
+            collateral = (if (unrealizedPnl.is_some()) { crate::precise::Precise::stringAdd(&rawCollateral, &unrealizedPnl).as_str().map(str::to_owned) } else { rawCollateral.clone() });
             initialMargin = rawCollateral.clone();
             marginString = rawCollateral.clone();
         }  else if (marginMode.as_deref() == Some("crossed")) {
@@ -14022,17 +14022,17 @@ if _try_result.is_err() {
         let mut baseAmount: Option<String> = self.safe_string2(position.clone(), Value::Str("total".into()), Value::Str("openTotalPos".into()), &[]).as_str().map(str::to_owned);
         let mut entryPrice: Option<String> = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("openPriceAvg".into()), Value::Str("openAvgPrice".into()), Value::Str("avgPrice".into())]), &[]).as_str().map(str::to_owned);
         let mut maintenanceMarginPercentage: Option<String> = self.safe_string2(position.clone(), Value::Str("keepMarginRate".into()), Value::Str("mmr".into()), &[]).as_str().map(str::to_owned);
-        let mut openNotional: Option<String> = crate::precise::Precise::stringMul(&entryPrice.clone().map(Value::from).unwrap_or(Value::Null), &baseAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut openNotional: Option<String> = crate::precise::Precise::stringMul(&entryPrice, &baseAmount).as_str().map(str::to_owned);
         if (initialMargin.is_none()) {
-            initialMargin = crate::precise::Precise::stringDiv(&openNotional.map(Value::from).unwrap_or(Value::Null), &leverage.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            initialMargin = crate::precise::Precise::stringDiv(&openNotional, &leverage).as_str().map(str::to_owned);
         }
-        let mut contracts: Value = self.parse_number(crate::precise::Precise::stringDiv(&baseAmount.clone().map(Value::from).unwrap_or(Value::Null), &contractSize.map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut contracts: Value = self.parse_number(crate::precise::Precise::stringDiv(&baseAmount, &contractSize), &[]);
         if (contracts == Value::Null) {
             contracts = self.safe_number_k(position.clone(), "closeTotalPos", &[]);
         }
         let mut markPrice: Option<String> = self.safe_string_k(position.clone(), "markPrice", &[]).as_str().map(str::to_owned);
-        let mut notional: Option<String> = crate::precise::Precise::stringMul(&baseAmount.clone().map(Value::from).unwrap_or(Value::Null), &markPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut initialMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut notional: Option<String> = crate::precise::Precise::stringMul(&baseAmount, &markPrice).as_str().map(str::to_owned);
+        let mut initialMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &notional).as_str().map(str::to_owned);
         let mut liquidationPriceString: Option<String> = self.safe_string_k(position.clone(), "liquidationPrice", &[]).as_str().map(str::to_owned);
         let mut rawLiquidationPrice: Option<String> = self.omit_zero(liquidationPriceString.map(Value::from).unwrap_or(Value::Null));
         let mut liquidationPrice: Option<f64> = None;
@@ -14040,29 +14040,29 @@ if _try_result.is_err() {
             liquidationPrice = self.parse_number(rawLiquidationPrice.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut calcTakerFeeRate: String = self.safe_string_k(&marketResolved, "taker", &[Value::Str("0.0006".into())]).as_str().unwrap_or("0.0006").to_string();
-        let mut calcTakerFeeMult: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(calcTakerFeeRate.clone())).as_str().map(str::to_owned);
+        let mut calcTakerFeeMult: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &calcTakerFeeRate).as_str().map(str::to_owned);
         if (liquidationPrice.is_none()) && (marginMode.as_deref() == Some("isolated")) && crate::precise::Precise::stringGt(&baseAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            let mut signedMargin: Option<String> = crate::precise::Precise::stringDiv(&rawCollateral.map(Value::from).unwrap_or(Value::Null), &baseAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut signedMargin: Option<String> = crate::precise::Precise::stringDiv(&rawCollateral, &baseAmount).as_str().map(str::to_owned);
             let mut signedMmp: Option<String> = maintenanceMarginPercentage.clone();
             if (side.as_deref() == Some("short")) {
-                signedMargin = crate::precise::Precise::stringNeg(&signedMargin.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                signedMmp = crate::precise::Precise::stringNeg(&signedMmp.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                signedMargin = crate::precise::Precise::stringNeg(&signedMargin).as_str().map(str::to_owned);
+                signedMmp = crate::precise::Precise::stringNeg(&signedMmp).as_str().map(str::to_owned);
             }
-            let mut mmrMinusOne: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &signedMmp.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            let mut numerator: Option<String> = crate::precise::Precise::stringSub(&entryPrice.clone().map(Value::from).unwrap_or(Value::Null), &signedMargin.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut mmrMinusOne: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &signedMmp).as_str().map(str::to_owned);
+            let mut numerator: Option<String> = crate::precise::Precise::stringSub(&entryPrice, &signedMargin).as_str().map(str::to_owned);
             if (side.as_deref() == Some("long")) {
-                mmrMinusOne = crate::precise::Precise::stringMul(&mmrMinusOne.map(Value::from).unwrap_or(Value::Null), &calcTakerFeeMult.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                mmrMinusOne = crate::precise::Precise::stringMul(&mmrMinusOne, &calcTakerFeeMult).as_str().map(str::to_owned);
             }  else {
-                numerator = crate::precise::Precise::stringMul(&numerator.map(Value::from).unwrap_or(Value::Null), &calcTakerFeeMult.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                numerator = crate::precise::Precise::stringMul(&numerator, &calcTakerFeeMult).as_str().map(str::to_owned);
             }
-            let mut derivedLiq: Option<String> = crate::precise::Precise::stringDiv(&numerator.map(Value::from).unwrap_or(Value::Null), &mmrMinusOne.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut derivedLiq: Option<String> = crate::precise::Precise::stringDiv(&numerator, &mmrMinusOne).as_str().map(str::to_owned);
             if (derivedLiq.is_some()) && crate::precise::Precise::stringGt(&derivedLiq.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 liquidationPrice = self.parse_number(derivedLiq.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }
         }
-        let mut feeToClose: Option<String> = crate::precise::Precise::stringMul(&notional.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(calcTakerFeeRate)).as_str().map(str::to_owned);
-        let mut maintenanceMargin: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&maintenanceMarginPercentage.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null)), &feeToClose.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null), &initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(4)), &Value::Str("100".into())).as_str().map(str::to_owned);
+        let mut feeToClose: Option<String> = crate::precise::Precise::stringMul(&notional, &calcTakerFeeRate).as_str().map(str::to_owned);
+        let mut maintenanceMargin: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&maintenanceMarginPercentage, &notional), &feeToClose).as_str().map(str::to_owned);
+        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnl, &initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(4)), &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -16090,7 +16090,7 @@ if _try_result.is_err() {
         let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "liqEndTime", &[]).as_i64();
         let mut liquidationFee: Option<String> = self.safe_string2(liquidation.clone(), Value::Str("LiqFee".into()), Value::Str("liqFee".into()), &[]).as_str().map(str::to_owned);
         let mut totalDebt: Option<String> = self.safe_string_k(liquidation.clone(), "totalDebt", &[]).as_str().map(str::to_owned);
-        let mut quoteValueString: Option<String> = crate::precise::Precise::stringAdd(&liquidationFee.map(Value::from).unwrap_or(Value::Null), &totalDebt.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut quoteValueString: Option<String> = crate::precise::Precise::stringAdd(&liquidationFee, &totalDebt).as_str().map(str::to_owned);
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation);

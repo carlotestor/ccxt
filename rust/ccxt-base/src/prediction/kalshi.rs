@@ -1062,10 +1062,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // coefficient; compute the real per-contract formula here so fee estimates are accurate
         let mut priceStr: Option<String> = self.number_to_string(price);
         let mut amountStr: Option<String> = self.number_to_string(amount);
-        let mut oneMinusP: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut feeCost: Option<String> = crate::precise::Precise::stringMul(&Value::Str("0.07".into()), &amountStr.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        feeCost = crate::precise::Precise::stringMul(&feeCost.map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        feeCost = crate::precise::Precise::stringMul(&feeCost.map(Value::from).unwrap_or(Value::Null), &oneMinusP.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut oneMinusP: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr).as_str().map(str::to_owned);
+        let mut feeCost: Option<String> = crate::precise::Precise::stringMul(&Value::Str("0.07".into()), &amountStr).as_str().map(str::to_owned);
+        feeCost = crate::precise::Precise::stringMul(&feeCost, &priceStr).as_str().map(str::to_owned);
+        feeCost = crate::precise::Precise::stringMul(&feeCost, &oneMinusP).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), takerOrMaker);

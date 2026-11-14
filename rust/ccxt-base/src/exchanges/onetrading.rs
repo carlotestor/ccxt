@@ -1178,13 +1178,13 @@ impl Onetrading {
 })]).into_dict();
         let mut spotMakerFee: Option<String> = self.safe_string_k(&spotFees, "maker_fee", &[]).as_str().map(str::to_owned);
         let mut spotTakerFee: Option<String> = self.safe_string_k(&spotFees, "taker_fee", &[]).as_str().map(str::to_owned);
-        spotMakerFee = crate::precise::Precise::stringDiv(&spotMakerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-        spotTakerFee = crate::precise::Precise::stringDiv(&spotTakerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        spotMakerFee = crate::precise::Precise::stringDiv(&spotMakerFee, &Value::Str("100".into())).as_str().map(str::to_owned);
+        spotTakerFee = crate::precise::Precise::stringDiv(&spotTakerFee, &Value::Str("100".into())).as_str().map(str::to_owned);
         // const feeTiers = this.safeValue (response, 'fee_tiers');
         let mut futuresMakerFee: Option<String> = self.safe_string_k(&futuresFees, "maker_fee", &[]).as_str().map(str::to_owned);
         let mut futuresTakerFee: Option<String> = self.safe_string_k(&futuresFees, "taker_fee", &[]).as_str().map(str::to_owned);
-        futuresMakerFee = crate::precise::Precise::stringDiv(&futuresMakerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-        futuresTakerFee = crate::precise::Precise::stringDiv(&futuresTakerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        futuresMakerFee = crate::precise::Precise::stringDiv(&futuresMakerFee, &Value::Str("100".into())).as_str().map(str::to_owned);
+        futuresTakerFee = crate::precise::Precise::stringDiv(&futuresTakerFee, &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1229,8 +1229,8 @@ impl Onetrading {
             let mut volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
             let mut taker: Option<String> = self.safe_string_k(&tier, "taker_fee", &[]).as_str().map(str::to_owned);
             let mut maker: Option<String> = self.safe_string_k(&tier, "maker_fee", &[]).as_str().map(str::to_owned);
-            maker = crate::precise::Precise::stringDiv(&maker.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-            taker = crate::precise::Precise::stringDiv(&taker.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            maker = crate::precise::Precise::stringDiv(&maker, &Value::Str("100".into())).as_str().map(str::to_owned);
+            taker = crate::precise::Precise::stringDiv(&taker, &Value::Str("100".into())).as_str().map(str::to_owned);
             makerFees.push(Value::from(vec![Value::from(volume), self.parse_number(maker.map(Value::from).unwrap_or(Value::Null), &[])]));
             takerFees.push(Value::from(vec![Value::from(volume), self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[])]));
         }

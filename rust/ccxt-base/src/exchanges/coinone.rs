@@ -1349,9 +1349,9 @@ impl Coinone {
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCostString.is_some()) {
-            feeCostString = crate::precise::Precise::stringAbs(&feeCostString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeCostString = crate::precise::Precise::stringAbs(&feeCostString).as_str().map(str::to_owned);
             let mut feeRateString: Option<String> = self.safe_string_k(trade.clone(), "feeRate", &[]).as_str().map(str::to_owned);
-            feeRateString = crate::precise::Precise::stringAbs(&feeRateString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeRateString = crate::precise::Precise::stringAbs(&feeRateString).as_str().map(str::to_owned);
             let mut feeCurrencyCode: Value = Value::Null;
             if (side.as_deref() == Some("sell")) {
                 feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "quote");

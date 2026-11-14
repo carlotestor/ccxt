@@ -949,7 +949,7 @@ impl Upbit {
         let mut state: Option<String> = self.safe_string_k(&marketInfo, "state", &[]).as_str().map(str::to_owned);
         let mut bidFee: Option<String> = self.safe_string_k(response.clone(), "bid_fee", &[]).as_str().map(str::to_owned);
         let mut askFee: Option<String> = self.safe_string_k(response.clone(), "ask_fee", &[]).as_str().map(str::to_owned);
-        let mut fee: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&bidFee.map(Value::from).unwrap_or(Value::Null), &askFee.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+        let mut fee: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&bidFee, &askFee), &[]).as_f64();
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -1718,10 +1718,10 @@ impl Upbit {
         //
         let mut askFee: Option<String> = self.safe_string_k(response.clone(), "ask_fee", &[]).as_str().map(str::to_owned);
         let mut bidFee: Option<String> = self.safe_string_k(response.clone(), "bid_fee", &[]).as_str().map(str::to_owned);
-        let mut taker: Option<String> = crate::precise::Precise::stringMax(&askFee.map(Value::from).unwrap_or(Value::Null), &bidFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut taker: Option<String> = crate::precise::Precise::stringMax(&askFee, &bidFee).as_str().map(str::to_owned);
         let mut makerAskFee: Option<String> = self.safe_string_k(response.clone(), "maker_ask_fee", &[]).as_str().map(str::to_owned);
         let mut makerBidFee: Option<String> = self.safe_string_k(response.clone(), "maker_bid_fee", &[]).as_str().map(str::to_owned);
-        let mut maker: Option<String> = crate::precise::Precise::stringMax(&makerAskFee.map(Value::from).unwrap_or(Value::Null), &makerBidFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut maker: Option<String> = crate::precise::Precise::stringMax(&makerAskFee, &makerBidFee).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
@@ -1906,7 +1906,7 @@ impl Upbit {
             }
             let mut amountString: Option<String> = self.number_to_string(amount.clone());
             let mut priceString: Option<String> = self.number_to_string(price);
-            let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
             quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
         }  else {
             if (amount == Value::Null) {
@@ -2653,12 +2653,12 @@ impl Upbit {
                     })]).into_dict();
                     let mut tradeFeeCost: Option<String> = self.safe_string_k(&tradeFee, "cost", &[]).as_str().map(str::to_owned);
                     if (tradeFeeCost.is_some()) {
-                        feeCost = crate::precise::Precise::stringAdd(&feeCost.map(Value::from).unwrap_or(Value::Null), &tradeFeeCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        feeCost = crate::precise::Precise::stringAdd(&feeCost, &tradeFeeCost).as_str().map(str::to_owned);
                     }
                 }
             }
             }
-            average = crate::precise::Precise::stringDiv(&cost.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            average = crate::precise::Precise::stringDiv(&cost.clone().map(Value::from).unwrap_or(Value::Null), &filled).as_str().map(str::to_owned);
         }
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({

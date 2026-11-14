@@ -1628,7 +1628,7 @@ impl Digifinex {
             let mut free: Option<String> = self.safe_string2(&balance, Value::Str("free".into()), Value::Str("avail_balance".into()), &[]).as_str().map(str::to_owned);
             let mut total: Option<String> = self.safe_string2(&balance, Value::Str("total".into()), Value::Str("equity".into()), &[]).as_str().map(str::to_owned);
             account.insert("free".into(), free.clone().map(Value::from).unwrap_or(Value::Null));
-            account.insert("used".into(), crate::precise::Precise::stringSub(&total.clone().map(Value::from).unwrap_or(Value::Null), &free.map(Value::from).unwrap_or(Value::Null)));
+            account.insert("used".into(), crate::precise::Precise::stringSub(&total, &free));
             account.insert("total".into(), total.map(Value::from).unwrap_or(Value::Null));
             if (code.is_some()) {
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
@@ -2113,7 +2113,7 @@ impl Digifinex {
         let mut percentage: Option<String> = self.safe_string2(ticker.clone(), Value::Str("change".into()), Value::Str("price_change_percent".into()), &[]).as_str().map(str::to_owned);
         if (marketResolved).swap {
             // swap endpoints return a raw ratio, spot already returns a percent
-            percentage = crate::precise::Precise::stringMul(&percentage.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2916,7 +2916,7 @@ impl Digifinex {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
-                        let mut costRequest: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+                        let mut costRequest: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&amountString, &priceString), &[]).as_f64();
                         quantity = self.cost_to_precision(symbol.clone(), Value::from(costRequest));
                     }
                 }  else {
@@ -4764,8 +4764,8 @@ impl Digifinex {
         let mut marketId: Option<String> = self.safe_string_k(info.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(info.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut leverageString: Option<String> = self.safe_string_k(info.clone(), "leverage_ratio", &[]).as_str().map(str::to_owned);
-        let mut amountInvested: Option<String> = crate::precise::Precise::stringDiv(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &leverageString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut amountBorrowed: Option<String> = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &amountInvested.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut amountInvested: Option<String> = crate::precise::Precise::stringDiv(&amountString, &leverageString).as_str().map(str::to_owned);
+        let mut amountBorrowed: Option<String> = crate::precise::Precise::stringSub(&amountString, &amountInvested).as_str().map(str::to_owned);
         let mut currency: Value = (if (market.is_none()) { Value::Null } else { crate::value::KeyRead::key_read(&market, "base") });
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         return Value::Map({
@@ -5048,7 +5048,7 @@ impl Digifinex {
         let mut nextTimestamp: Option<i64> = self.safe_integer_k(contract.clone(), "next_funding_time", &[]).as_i64();
         let mut fundingTimeString: Option<String> = self.safe_string_k(contract.clone(), "funding_time", &[]).as_str().map(str::to_owned);
         let mut nextFundingTimeString: Option<String> = self.safe_string_k(contract.clone(), "next_funding_time", &[]).as_str().map(str::to_owned);
-        let mut millisecondsInterval: Option<String> = crate::precise::Precise::stringSub(&nextFundingTimeString.map(Value::from).unwrap_or(Value::Null), &fundingTimeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut millisecondsInterval: Option<String> = crate::precise::Precise::stringSub(&nextFundingTimeString, &fundingTimeString).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
@@ -5585,13 +5585,13 @@ impl Digifinex {
             let mut isolatedMargin: Option<String> = self.safe_string_k(position.clone(), "posi_balance", &[]).as_str().map(str::to_owned);
             if (isolatedMargin.is_some()) {
                 marginString = isolatedMargin.clone();
-                collateralString = (if (unrealizedPnl.is_some()) { crate::precise::Precise::stringAdd(&isolatedMargin.clone().map(Value::from).unwrap_or(Value::Null), &unrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) } else { isolatedMargin.clone() });
+                collateralString = (if (unrealizedPnl.is_some()) { crate::precise::Precise::stringAdd(&isolatedMargin, &unrealizedPnl).as_str().map(str::to_owned) } else { isolatedMargin.clone() });
             }
         }
         let mut maintenanceMarginString: Option<String> = self.safe_string_k(position.clone(), "maintain_margin", &[]).as_str().map(str::to_owned);
         let mut forceCloseFee: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "force_close_fee", &[]));
         if (maintenanceMarginString.is_some()) && (forceCloseFee.is_some()) {
-            maintenanceMarginString = crate::precise::Precise::stringAdd(&maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &forceCloseFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            maintenanceMarginString = crate::precise::Precise::stringAdd(&maintenanceMarginString, &forceCloseFee).as_str().map(str::to_owned);
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
