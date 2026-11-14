@@ -3439,8 +3439,8 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        order.insert("trades".into(), trades);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        order.insert("trades".into(), Value::Arr(trades));
         return self.parse_order(Value::Map(order), Some(&market));
         Value::Null
         }).await?))
@@ -3902,8 +3902,8 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        order.insert("trades".into(), trades);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        order.insert("trades".into(), Value::Arr(trades));
         return self.parse_order(Value::Map(order), Some(&market));
         Value::Null
         }).await?))

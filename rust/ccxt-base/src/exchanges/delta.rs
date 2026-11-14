@@ -1231,15 +1231,15 @@ impl Delta {
             let mut __for_first_614: bool = true;
             while { if !__for_first_614 { i += 1; } __for_first_614 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut item: Value = self.safe_dict(input.clone(), key.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut item: crate::value::Dict = self.safe_dict(input.clone(), key.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut numericIdString: Option<String> = self.safe_string_k(item.clone(), "numericId", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut numericIdString: Option<String> = self.safe_string_k(&item, "numericId", &[]).as_str().map(str::to_owned);
             if (numericIdString.is_none()) {
                 continue;
             }
-            result.insert(numericIdString.as_deref().unwrap_or("null").to_string(), item);
+            result.insert(numericIdString.as_deref().unwrap_or("null").to_string(), Value::Dict(item));
         }
         }
         return Value::Map(result);

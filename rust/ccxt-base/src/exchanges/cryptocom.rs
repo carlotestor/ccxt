@@ -4448,12 +4448,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut masterAccount: Value = self.safe_dict_k(&result, "master_account", &[Value::Map({
+        let mut masterAccount: crate::value::Dict = self.safe_dict_k(&result, "master_account", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut accounts: Value = self.safe_list_k(&result, "sub_account_list", &[Value::from(vec![])]);
-        if let Value::Arr(__a) = &mut accounts { std::sync::Arc::make_mut(__a).push(masterAccount); }
+        if let Value::Arr(__a) = &mut accounts { std::sync::Arc::make_mut(__a).push(Value::Dict(masterAccount)); }
         return self.parse_accounts(accounts, &[params]);
         Value::Null
         }).await?))

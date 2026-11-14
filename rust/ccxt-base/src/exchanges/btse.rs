@@ -3945,13 +3945,13 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_490: bool = true;
             while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (rawRows.len() as i64) } {
-            let mut entry: Value = self.safe_dict(&rawRows, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&rawRows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut type_var: Value = self.safe_string_k(entry.clone(), "type", &[Value::Str("".into())]);
+})]).into_dict();
+            let mut type_var: Value = self.safe_string_k(&entry, "type", &[Value::Str("".into())]);
             if (matches!((&allowed, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                rows.push(entry);
+                rows.push(Value::Dict(entry));
             }
         }
         }

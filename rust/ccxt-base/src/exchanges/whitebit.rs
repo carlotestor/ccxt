@@ -2311,9 +2311,9 @@ impl Whitebit {
                     m.insert("withdraw".to_string(), Value::Map(withdrawLimitsResult));
                 m
             });
-            let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[]);
-            if (currencyNetworks != Value::Null) {
-                limits.insert("networks".into(), currencyNetworks);
+            let mut currencyNetworks: Option<crate::value::Dict> = self.safe_dict_k(currency.clone(), "networks", &[]).into_opt_dict();
+            if (currencyNetworks.is_some()) {
+                limits.insert("networks".into(), currencyNetworks.map_or(Value::Null, Value::Dict));
             }
             result.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();

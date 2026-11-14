@@ -5050,16 +5050,16 @@ impl Derive {
             }
         }
         }
-        let mut usdcAccount: Value = self.safe_dict(Value::Map(result.clone()), Value::Str("USDC".into()), &[]);
-        if (usdcAccount != Value::Null) {
-            let mut totalUsdc: Option<String> = self.safe_string_k(usdcAccount.clone(), "total", &[]).as_str().map(str::to_owned);
+        let mut usdcAccount: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), Value::Str("USDC".into()), &[]).into_opt_dict();
+        if (usdcAccount.is_some()) {
+            let mut totalUsdc: Option<String> = self.safe_string_k(&usdcAccount, "total", &[]).as_str().map(str::to_owned);
             let mut used: Option<String> = usedUsd;
             if crate::precise::Precise::stringGt(&used.clone().map(Value::from).unwrap_or(Value::Null), &totalUsdc.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
                 used = totalUsdc.clone();
             }
-            if let Value::Dict(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringSub(&totalUsdc.map(Value::from).unwrap_or(Value::Null), &used.map(Value::from).unwrap_or(Value::Null))); }
-            result.insert("USDC".into(), usdcAccount);
+            if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null)); }
+            if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringSub(&totalUsdc.map(Value::from).unwrap_or(Value::Null), &used.map(Value::from).unwrap_or(Value::Null))); }
+            result.insert("USDC".into(), usdcAccount.map_or(Value::Null, Value::Dict));
         }
         return self.safe_balance(Value::Map(result));
 

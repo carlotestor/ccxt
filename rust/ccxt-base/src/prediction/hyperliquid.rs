@@ -679,16 +679,16 @@ impl Hyperliquid {
                         let mut qi: i64 = 0;
             let mut __for_first_1232: bool = true;
             while { if !__for_first_1232 { qi += 1; } __for_first_1232 = false; qi < (questionsList.len() as i64) } {
-            let mut question: Value = self.safe_dict(&questionsList, Value::Int(qi), &[Value::Map({
+            let mut question: crate::value::Dict = self.safe_dict(&questionsList, Value::Int(qi), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut fallbackOutcome: Value = self.safe_integer_k(question.clone(), "fallbackOutcome", &[]);
+})]).into_dict();
+            let mut fallbackOutcome: Value = self.safe_integer_k(&question, "fallbackOutcome", &[]);
             if (fallbackOutcome != Value::Null) {
                 let mut fallbackKey: Value = Value::Str(format!("{}", fallbackOutcome).into());
-                outcomesToQuestions.insert(crate::runtime::stringify_param(&fallbackKey), question.clone());
+                outcomesToQuestions.insert(crate::runtime::stringify_param(&fallbackKey), Value::from(&question));
             }
-            let mut namedOutcomes: crate::value::List = self.safe_list_k(question.clone(), "namedOutcomes", &[Value::from(vec![])]).into_list();
+            let mut namedOutcomes: crate::value::List = self.safe_list_k(&question, "namedOutcomes", &[Value::from(vec![])]).into_list();
             {
                                 let mut ni: i64 = 0;
                 let mut __for_first_1231: bool = true;
@@ -696,7 +696,7 @@ impl Hyperliquid {
                 let mut namedOutcomeId: Value = self.safe_integer(&namedOutcomes, Value::Int(ni), &[]);
                 if (namedOutcomeId != Value::Null) {
                     let mut namedKey: Value = Value::Str(format!("{}", namedOutcomeId).into());
-                    outcomesToQuestions.insert(crate::runtime::stringify_param(&namedKey), question.clone());
+                    outcomesToQuestions.insert(crate::runtime::stringify_param(&namedKey), Value::from(&question));
                 }
             }
             }

@@ -1048,14 +1048,14 @@ impl Predictfun {
                                 let mut ci: i64 = 0;
                 let mut __for_first_1460: bool = true;
                 while { if !__for_first_1460 { ci += 1; } __for_first_1460 = false; (ci as f64) < categoriesLength } {
-                let mut category: Value = self.safe_dict(&categories, Value::Int(ci), &[]);
-                let mut categorySlug: Option<String> = self.safe_string_k(category.clone(), "slug", &[]).as_str().map(str::to_owned);
+                let mut category: Option<crate::value::Dict> = self.safe_dict(&categories, Value::Int(ci), &[]).into_opt_dict();
+                let mut categorySlug: Option<String> = self.safe_string_k(&category, "slug", &[]).as_str().map(str::to_owned);
                 if (categorySlug.is_none()) {
                     // nothing to key a duplicate on, keep the row rather than drop it
-                    result.push(category.clone());
+                    result.push(category.clone().map_or(Value::Null, Value::Dict));
                 }  else if !(matches!(categorySlug.as_deref(), Some(__k) if seenSlugs.contains_key(__k))) {
                     seenSlugs.insert(categorySlug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                    result.push(category);
+                    result.push(category.map_or(Value::Null, Value::Dict));
                 }
             }
             }

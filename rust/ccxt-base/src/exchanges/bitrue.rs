@@ -2351,18 +2351,18 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_415: bool = true;
             while { if !__for_first_415 { i += 1; } __for_first_415 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut ticker: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             // skip entries without a symbol: an undefined market id would become a null
             // dictionary key here, which crashes fetchTickers in the C# build
-            let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
             if (marketId.is_none()) {
                 continue;
             }
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            tickers.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&market, "id"))), ticker);
+            tickers.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&market, "id"))), Value::Dict(ticker));
         }
         }
         return self.parse_tickers(Value::Map(tickers), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

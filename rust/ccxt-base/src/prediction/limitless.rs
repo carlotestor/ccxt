@@ -730,8 +730,8 @@ impl Limitless {
                                                 let mut i: i64 = 0;
                         let mut __for_first_1303: bool = true;
                         while { if !__for_first_1303 { i += 1; } __for_first_1303 = false; (i as f64) < pageMarketsLength } {
-                        let mut raw: Value = self.safe_dict(&page_markets, Value::Int(i), &[]);
-                        std::sync::Arc::make_mut(&mut allRaw).push(raw.clone());
+                        let mut raw: Option<crate::value::Dict> = self.safe_dict(&page_markets, Value::Int(i), &[]).into_opt_dict();
+                        std::sync::Arc::make_mut(&mut allRaw).push(raw.map_or(Value::Null, Value::Dict));
                     }
                     }
                     let mut allRawCount: i64 = allRaw.len() as i64;
@@ -2518,13 +2518,13 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1322: bool = true;
             while { if !__for_first_1322 { i += 1; } __for_first_1322 = false; i < (results.len() as i64) } {
-            let mut item: Value = self.safe_dict(&results, Value::Int(i), &[Value::Map({
+            let mut item: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut itemStatus: Option<String> = self.safe_string_k(item.clone(), "status", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut itemStatus: Option<String> = self.safe_string_k(&item, "status", &[]).as_str().map(str::to_owned);
             if (itemStatus.as_deref() == Some("found")) {
-                found.push(item);
+                found.push(Value::Dict(item));
             }
         }
         }
@@ -3584,13 +3584,13 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1324: bool = true;
             while { if !__for_first_1324 { i += 1; } __for_first_1324 = false; i < (data.len() as i64) } {
-            let mut item: Value = self.safe_dict(&data, Value::Int(i), &[]);
-            let mut strategy: Option<String> = self.safe_string_lower_k(item.clone(), "strategy", &[]).as_str().map(str::to_owned);
+            let mut item: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
+            let mut strategy: Option<String> = self.safe_string_lower_k(&item, "strategy", &[]).as_str().map(str::to_owned);
             if (strategy.is_some()) {
                 let mut buyIndex: i64 = (if let (Some(__h), Some(__n)) = (strategy.as_deref(), Some("buy")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
                 let mut sellIndex: i64 = (if let (Some(__h), Some(__n)) = (strategy.as_deref(), Some("sell")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
                 if (buyIndex >= 0) || (sellIndex >= 0) {
-                    trades.push(item);
+                    trades.push(item.map_or(Value::Null, Value::Dict));
                 }
             }
         }

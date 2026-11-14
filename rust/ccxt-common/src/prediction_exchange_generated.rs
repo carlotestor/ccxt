@@ -2043,9 +2043,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         lastTradeTimestamp = tradeTimestamp;
                     }
                 }
-                let mut tradeFee: Value = self.safe_dict_k(trade, "fee", &[]);
-                if (tradeFee != Value::Null) {
-                    feeList.push(tradeFee);
+                let mut tradeFee: Option<crate::value::Dict> = self.safe_dict_k(trade, "fee", &[]).into_opt_dict();
+                if (tradeFee.is_some()) {
+                    feeList.push(tradeFee.map_or(Value::Null, Value::Dict));
                 }
             }
             }

@@ -1765,18 +1765,18 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_1143: bool = true;
             while { if !__for_first_1143 { i += 1; } __for_first_1143 = false; i < (fetchMarketResponse.len() as i64) } {
-            let mut item: Value = self.safe_dict(fetchMarketResponse.clone(), Value::Int(i), &[]);
+            let mut item: Option<crate::value::Dict> = self.safe_dict(fetchMarketResponse.clone(), Value::Int(i), &[]).into_opt_dict();
             let mut element: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            element.insert("maker".into(), self.safe_number_k(item.clone(), "maker", &[]));
-            element.insert("taker".into(), self.safe_number_k(item.clone(), "taker", &[]));
-            element.insert("symbol".into(), self.safe_string_k(item.clone(), "symbol", &[]));
+            element.insert("maker".into(), self.safe_number_k(&item, "maker", &[]));
+            element.insert("taker".into(), self.safe_number_k(&item, "taker", &[]));
+            element.insert("symbol".into(), self.safe_string_k(&item, "symbol", &[]));
             element.insert("percentage".into(), Value::Bool(true));
             element.insert("tierBased".into(), Value::Bool(false));
-            element.insert("info".into(), item.clone());
-            let mut feeSymbol: Option<String> = self.safe_string_k(item, "symbol", &[]).as_str().map(str::to_owned);
+            element.insert("info".into(), item.clone().map_or(Value::Null, Value::Dict));
+            let mut feeSymbol: Option<String> = self.safe_string_k(&item, "symbol", &[]).as_str().map(str::to_owned);
             if (feeSymbol.is_some()) {
                 response.insert(feeSymbol.as_deref().unwrap_or("null").to_string(), Value::Map(element));
             }

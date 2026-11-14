@@ -1671,10 +1671,10 @@ impl Bithumb {
                             let mut __for_first_398: bool = true;
                             while { if !__for_first_398 { j += 1; } __for_first_398 = false; j < (ids.len() as i64) } {
                             let mut id: Option<String> = ids.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                            let mut ticker: Value = self.safe_dict(response.clone(), Value::from(id.as_deref()), &[]);
-                            if (ticker != Value::Null) {
-                                { let __be_tmp = self.safe_string_k(ticker.clone(), "market", &[id.map(Value::from).unwrap_or(Value::Null)]); add_element_to_object(&mut ticker, &Value::Str("market".into()), __be_tmp); };
-                                if let Value::Arr(__a) = &mut tickers { std::sync::Arc::make_mut(__a).push(ticker); };
+                            let mut ticker: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::from(id.as_deref()), &[]).into_opt_dict();
+                            if (ticker.is_some()) {
+                                { let __be_tmp = self.safe_string_k(&ticker, "market", &[id.map(Value::from).unwrap_or(Value::Null)]); if let Some(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("market".into(), __be_tmp); }; }
+                                if let Value::Arr(__a) = &mut tickers { std::sync::Arc::make_mut(__a).push(ticker.map_or(Value::Null, Value::Dict)); };
                             }
                         }
                         }

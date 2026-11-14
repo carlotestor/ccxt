@@ -1788,14 +1788,11 @@ impl Lighter {
             }
             }
         }  else {
-            let mut stats: Value = (match __pro_message.get("stats").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+            let mut stats: crate::value::Dict = __pro_message.get("stats").cloned().unwrap_or_default().into_dict();
             let mut account: crate::value::Dict = self.account().into_dict();
-            std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(stats.clone(), "available_balance", &[]));
-            std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(stats.clone(), "collateral", &[]));
-            std::sync::Arc::make_mut(&mut account).insert("info".into(), stats);
+            std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&stats, "available_balance", &[]));
+            std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&stats, "collateral", &[]));
+            std::sync::Arc::make_mut(&mut account).insert("info".into(), Value::Dict(stats));
             balance.insert("USDC".into(), Value::Dict(account));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();

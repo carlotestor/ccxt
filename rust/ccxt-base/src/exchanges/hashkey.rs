@@ -3760,11 +3760,11 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut responseOrder: Value = self.safe_dict_k(&responseEntry, "order", &[Value::Map({
+            let mut responseOrder: crate::value::Dict = self.safe_dict_k(&responseEntry, "order", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            responseOrders.push(responseOrder);
+            })]).into_dict();
+            responseOrders.push(Value::Dict(responseOrder));
         }
         }
         return self.parse_orders(Value::from(responseOrders), None, &[]);

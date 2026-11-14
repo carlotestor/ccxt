@@ -4162,16 +4162,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1369: bool = true;
             while { if !__for_first_1369 { i += 1; } __for_first_1369 = false; i < (rows.len() as i64) } {
-            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
-            let mut action: Option<String> = self.safe_string_k(row.clone(), "action", &[]).as_str().map(str::to_owned);
+            let mut row: Option<crate::value::Dict> = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut action: Option<String> = self.safe_string_k(&row, "action", &[]).as_str().map(str::to_owned);
             if (action.as_deref() != Some("buy")) && (action.as_deref() != Some("sell")) {
                 continue;
             }
-            let mut rowOutcomeId: Option<String> = self.safe_string_k(row.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
+            let mut rowOutcomeId: Option<String> = self.safe_string_k(&row, "outcomeId", &[]).as_str().map(str::to_owned);
             if (outcomeId.is_some()) && (rowOutcomeId != outcomeId) {
                 continue;
             }
-            trades.push(row);
+            trades.push(row.map_or(Value::Null, Value::Dict));
         }
         }
         return self.parse_prediction_trades(Value::from(trades), &[outcomeObj, since, limit]);

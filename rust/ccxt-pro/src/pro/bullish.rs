@@ -848,11 +848,8 @@ impl Bullish {
         let mut type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_deref() == Some("update")) {
-            let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            std::sync::Arc::make_mut(&mut rawOrders).push(data); // update is a single order
+            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            std::sync::Arc::make_mut(&mut rawOrders).push(Value::Dict(data)); // update is a single order
         }  else {
             rawOrders = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list(); // snapshot is a list of orders
         }
@@ -992,11 +989,8 @@ impl Bullish {
         let mut type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawTrades: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_deref() == Some("update")) {
-            let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            std::sync::Arc::make_mut(&mut rawTrades).push(data); // update is a single trade
+            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            std::sync::Arc::make_mut(&mut rawTrades).push(Value::Dict(data)); // update is a single trade
         }  else {
             rawTrades = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list(); // snapshot is a list of trades
         }
@@ -1228,11 +1222,8 @@ impl Bullish {
         let mut messageType: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         if (messageType.as_deref() == Some("update")) {
-            let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            std::sync::Arc::make_mut(&mut rawPositions).push(data);
+            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            std::sync::Arc::make_mut(&mut rawPositions).push(Value::Dict(data));
         }  else {
             rawPositions = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         }

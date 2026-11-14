@@ -12682,17 +12682,17 @@ impl Bybit {
         let mut first: crate::value::Dict = self.safe_dict(result.clone(), Value::Int(0), &[]).into_dict();
         let mut total: i64 = result.len() as i64;
         let mut lastIndex: Value = Value::Int((total - 1));
-        let mut last: Value = self.safe_dict(result.clone(), lastIndex.clone(), &[Value::Map({
+        let mut last: crate::value::Dict = self.safe_dict(result.clone(), lastIndex.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut cursorValue: Option<String> = self.safe_string_k(&first, "nextPageCursor", &[]).as_str().map(str::to_owned);
-        if let Value::Dict(__d) = &mut last { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Map({
+        std::sync::Arc::make_mut(&mut last).insert("info".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("nextPageCursor".to_string(), cursorValue.map(Value::from).unwrap_or(Value::Null));
     m
-})); }
-        add_element_to_object(&mut result, &lastIndex, last);
+}));
+        add_element_to_object(&mut result, &lastIndex, Value::Dict(last));
         return self.to_array(result);
 
     Value::Null

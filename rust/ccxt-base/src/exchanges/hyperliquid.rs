@@ -1402,13 +1402,13 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_805: bool = true;
             while { if !__for_first_805 { i += 1; } __for_first_805 = false; i < (tokens.len() as i64) } {
-            let mut token: Value = self.safe_dict(&tokens, Value::Int(i), &[Value::Map({
+            let mut token: crate::value::Dict = self.safe_dict(&tokens, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut tokenIndex: Option<String> = self.safe_string_k(token.clone(), "index", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut tokenIndex: Option<String> = self.safe_string_k(&token, "index", &[]).as_str().map(str::to_owned);
             if (tokenIndex.is_some()) {
-                tokensByIndex.insert(tokenIndex.as_deref().unwrap_or("null").to_string(), token);
+                tokensByIndex.insert(tokenIndex.as_deref().unwrap_or("null").to_string(), Value::Dict(token));
             }
         }
         }
@@ -5385,17 +5385,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_824: bool = true;
                 while { if !__for_first_824 { i += 1; } __for_first_824 = false; i < (response.len() as i64) } {
-                let mut fill: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-                let mut liquidation: crate::value::Dict = self.safe_dict_k(fill.clone(), "liquidation", &[Value::Map({
+                let mut fill: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
+                let mut liquidation: crate::value::Dict = self.safe_dict_k(&fill, "liquidation", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 // liquidator fills carry the liquidated counterparty here
                 if (self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str() == user.as_deref()) {
-                    fills.push(fill);
+                    fills.push(Value::Dict(fill));
                 }
             }
             }
@@ -7107,16 +7107,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_829: bool = true;
             while { if !__for_first_829 { i += 1; } __for_first_829 = false; i < (data.len() as i64) } {
-            let mut record: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut record: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut delta: indexmap::IndexMap<String, Value> = self.safe_dict_k(record.clone(), "delta", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-            if let Value::Dict(__d) = &mut record { std::sync::Arc::make_mut(__d).insert("type".into(), delta.get("type").cloned().unwrap_or(Value::Null)); }
-            records.push(record);
+})]).into_dict();
+            let mut delta: indexmap::IndexMap<String, Value> = self.safe_dict_k(&record, "delta", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).as_map().cloned().unwrap_or_default();
+            std::sync::Arc::make_mut(&mut record).insert("type".into(), delta.get("type").cloned().unwrap_or(Value::Null));
+            records.push(Value::Dict(record));
         }
         }
         return Value::from(records);

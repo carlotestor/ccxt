@@ -2150,18 +2150,18 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1107: bool = true;
             while { if !__for_first_1107 { i += 1; } __for_first_1107 = false; i < (response.len() as i64) } {
-            let mut ack: Value = self.safe_dict(&response, Value::Int(i), &[Value::Map({
+            let mut ack: crate::value::Dict = self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut marketInner: Value = ordersMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut echo: crate::value::Dict = self.safe_dict(&ordersEntries, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut status: Option<String> = self.safe_string_k(ack.clone(), "status", &[]).as_str().map(str::to_owned);
-            let __ws_arg_4 = self.safe_integer_k(ack.clone(), "oid", &[]);
-            let __ws_arg_5 = self.safe_string2(ack.clone(), Value::Str("coid".into()), Value::Str("c".into()), &[]);
+            let mut status: Option<String> = self.safe_string_k(&ack, "status", &[]).as_str().map(str::to_owned);
+            let __ws_arg_4 = self.safe_integer_k(&ack, "oid", &[]);
+            let __ws_arg_5 = self.safe_string2(&ack, Value::Str("coid".into()), Value::Str("c".into()), &[]);
             let mut merged: crate::value::Dict = self.extend(echo, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("oid".to_string(), __ws_arg_4);
@@ -2174,7 +2174,7 @@ impl Polymarket {
                 std::sync::Arc::make_mut(&mut merged).insert("status".into(), Value::Null);
             }
             let mut parsed: crate::value::Dict = self.parse_order(&merged, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketInner).as_ref()).into_dict();
-            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), ack);
+            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), Value::Dict(ack));
             results.push(Value::Dict(parsed));
         }
         }
@@ -2287,22 +2287,22 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1109: bool = true;
             while { if !__for_first_1109 { i += 1; } __for_first_1109 = false; i < (response.len() as i64) } {
-            let mut ack: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            let mut ack: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut status: Option<String> = self.safe_string_k(ack.clone(), "status", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut status: Option<String> = self.safe_string_k(&ack, "status", &[]).as_str().map(str::to_owned);
             let mut unified: String = (if (status.as_deref() == Some("err")) { "rejected".to_string() } else { "canceled".to_string() });
             let mut merged: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("oid".to_string(), self.safe_integer_k(ack.clone(), "oid", &[]));
-                    m.insert("coid".to_string(), self.safe_string_k(ack.clone(), "coid", &[]));
-                    m.insert("uts".to_string(), self.safe_integer_k(ack.clone(), "ts", &[]));
+                    m.insert("oid".to_string(), self.safe_integer_k(&ack, "oid", &[]));
+                    m.insert("coid".to_string(), self.safe_string_k(&ack, "coid", &[]));
+                    m.insert("uts".to_string(), self.safe_integer_k(&ack, "ts", &[]));
                     m.insert("status".to_string(), Value::from(unified));
                 m
             });
             let mut parsed: crate::value::Dict = self.parse_order(Value::Map(merged), None).into_dict();
-            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), ack);
+            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), Value::Dict(ack));
             results.push(Value::Dict(parsed));
         }
         }
@@ -2459,27 +2459,27 @@ impl Polymarket {
         //         }
         //     ]
         //
-        let mut first: Value = self.safe_dict(&response, Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut status: Option<String> = self.safe_string_k(first.clone(), "status", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut status: Option<String> = self.safe_string_k(&first, "status", &[]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("err")) {
             let mut merged: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("oid".to_string(), self.safe_integer_k(first.clone(), "oid", &[]));
-                    m.insert("coid".to_string(), self.safe_string_k(first.clone(), "coid", &[]));
+                    m.insert("oid".to_string(), self.safe_integer_k(&first, "oid", &[]));
+                    m.insert("coid".to_string(), self.safe_string_k(&first, "coid", &[]));
                     m.insert("status".to_string(), Value::Str("rejected".into()));
                 m
             });
             let mut rejected: indexmap::IndexMap<String, Value> = self.parse_order(Value::Map(merged), Some(&market)).as_map().cloned().unwrap_or_default();
-            rejected.insert("info".into(), first.clone());
+            rejected.insert("info".into(), Value::from(&first));
             return Value::Map(rejected);
         }
-        let mut order: crate::value::Dict = self.safe_dict_k(first, "order", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut order: crate::value::Dict = self.safe_dict_k(&first, "order", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return self.parse_order(&order, Some(&market));
         Value::Null
         }).await?))

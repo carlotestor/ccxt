@@ -1756,11 +1756,11 @@ impl Krakenfutures {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
-                let mut rawTrade: Value = self.safe_dict_k(&executionContainer, "execution", &[Value::Map({
+                let mut rawTrade: crate::value::Dict = self.safe_dict_k(&executionContainer, "execution", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                std::sync::Arc::make_mut(&mut rawTrades).push(rawTrade);
+                })]).into_dict();
+                std::sync::Arc::make_mut(&mut rawTrades).push(Value::Dict(rawTrade));
             }
             }
         }  else {
@@ -2515,11 +2515,11 @@ impl Krakenfutures {
             let mut __for_first_875: bool = true;
             while { if !__for_first_875 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_875 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderEvents.len() as i64) as f64) } {
             let mut orderEvent: crate::value::Dict = self.safe_dict(&orderEvents, Value::Int(0), &[]).into_dict();
-            let mut order: Value = self.safe_dict_k(&orderEvent, "order", &[Value::Map({
+            let mut order: crate::value::Dict = self.safe_dict_k(&orderEvent, "order", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            orders.push(order);
+            })]).into_dict();
+            orders.push(Value::Dict(order));
         }
         }
         return self.parse_orders(Value::from(orders), None, &[]);
@@ -2740,24 +2740,24 @@ impl Krakenfutures {
             let mut orderPlaced: Option<crate::value::Dict> = self.safe_dict2(&event, Value::Str("OrderPlaced".into()), Value::Str("OrderTriggerActivated".into()), &[]).into_opt_dict();
             let mut orderUpdated: Option<crate::value::Dict> = self.safe_dict_k(&event, "OrderUpdated", &[]).into_opt_dict();
             if (orderPlaced.is_some()) {
-                let mut innerOrder: Value = self.safe_dict_k(&orderPlaced, "order", &[Value::Map({
+                let mut innerOrder: crate::value::Dict = self.safe_dict_k(&orderPlaced, "order", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut filled: Option<String> = self.safe_string_k(innerOrder.clone(), "filled", &[]).as_str().map(str::to_owned);
+                })]).into_dict();
+                let mut filled: Option<String> = self.safe_string_k(&innerOrder, "filled", &[]).as_str().map(str::to_owned);
                 if (filled.as_deref() != Some("0")) {
-                    if let Value::Dict(__d) = &mut innerOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("closed".into())); }; // status not available in the response
-                    closedOrders.push(innerOrder);
+                    std::sync::Arc::make_mut(&mut innerOrder).insert("status".into(), Value::Str("closed".into())); // status not available in the response
+                    closedOrders.push(Value::Dict(innerOrder));
                 }
             }  else if (orderUpdated.is_some()) {
                 let mut reason: Option<String> = self.safe_string_k(&orderUpdated, "reason", &[]).as_str().map(str::to_owned);
                 if (reason.as_deref() == Some("full_fill")) {
-                    let mut newOrder: Value = self.safe_dict_k(&orderUpdated, "newOrder", &[Value::Map({
+                    let mut newOrder: crate::value::Dict = self.safe_dict_k(&orderUpdated, "newOrder", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
-                    })]);
-                    if let Value::Dict(__d) = &mut newOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("closed".into())); }
-                    closedOrders.push(newOrder);
+                    })]).into_dict();
+                    std::sync::Arc::make_mut(&mut newOrder).insert("status".into(), Value::Str("closed".into()));
+                    closedOrders.push(Value::Dict(newOrder));
                 }
             }
         }
@@ -2833,33 +2833,33 @@ impl Krakenfutures {
             let mut isCancelledTriggerOrder: bool = event.contains_key("OrderTriggerCancelled");
             let mut orderPlaced: Option<crate::value::Dict> = self.safe_dict2(&event, Value::Str("OrderPlaced".into()), Value::Str("OrderTriggerCancelled".into()), &[]).into_opt_dict();
             if (orderPlaced.is_some()) {
-                let mut innerOrder: Value = self.safe_dict_k(&orderPlaced, "order", &[Value::Map({
+                let mut innerOrder: crate::value::Dict = self.safe_dict_k(&orderPlaced, "order", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut filled: Option<String> = self.safe_string_k(innerOrder.clone(), "filled", &[]).as_str().map(str::to_owned);
+                })]).into_dict();
+                let mut filled: Option<String> = self.safe_string_k(&innerOrder, "filled", &[]).as_str().map(str::to_owned);
                 if (filled.as_deref() == Some("0")) || isCancelledTriggerOrder {
-                    if let Value::Dict(__d) = &mut innerOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("canceled".into())); }; // status not available in the response
-                    canceledAndRejected.push(innerOrder.clone());
+                    std::sync::Arc::make_mut(&mut innerOrder).insert("status".into(), Value::Str("canceled".into())); // status not available in the response
+                    canceledAndRejected.push(Value::Dict(innerOrder));
                 }
             }
             let mut orderCanceled: Option<crate::value::Dict> = self.safe_dict_k(&event, "OrderCancelled", &[]).into_opt_dict();
             if (orderCanceled.is_some()) {
-                let mut innerOrder: Value = self.safe_dict_k(&orderCanceled, "order", &[Value::Map({
+                let mut innerOrder: crate::value::Dict = self.safe_dict_k(&orderCanceled, "order", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                if let Value::Dict(__d) = &mut innerOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("canceled".into())); }; // status not available in the response
-                canceledAndRejected.push(innerOrder.clone());
+                })]).into_dict();
+                std::sync::Arc::make_mut(&mut innerOrder).insert("status".into(), Value::Str("canceled".into())); // status not available in the response
+                canceledAndRejected.push(Value::Dict(innerOrder));
             }
             let mut orderRejected: Option<crate::value::Dict> = self.safe_dict_k(&event, "OrderRejected", &[]).into_opt_dict();
             if (orderRejected.is_some()) {
-                let mut innerOrder: Value = self.safe_dict_k(&orderRejected, "order", &[Value::Map({
+                let mut innerOrder: crate::value::Dict = self.safe_dict_k(&orderRejected, "order", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                if let Value::Dict(__d) = &mut innerOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("rejected".into())); }; // status not available in the response
-                canceledAndRejected.push(innerOrder);
+                })]).into_dict();
+                std::sync::Arc::make_mut(&mut innerOrder).insert("status".into(), Value::Str("rejected".into())); // status not available in the response
+                canceledAndRejected.push(Value::Dict(innerOrder));
             }
         }
         }
@@ -4484,9 +4484,9 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut update: Value = self.safe_dict_k(&event, "PositionUpdate", &[]);
-            if (update != Value::Null) {
-                updates.push(update);
+            let mut update: Option<crate::value::Dict> = self.safe_dict_k(&event, "PositionUpdate", &[]).into_opt_dict();
+            if (update.is_some()) {
+                updates.push(update.map_or(Value::Null, Value::Dict));
             }
         }
         }
