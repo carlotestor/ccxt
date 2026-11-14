@@ -2346,13 +2346,13 @@ impl Mexc {
             while { if !__for_first_947 { j += 1; } __for_first_947 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string2(&chain, Value::Str("netWork".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
-            let mut network: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (network != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&network), Value::Map({
+            let mut network: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (network.is_some()) {
+                networks.insert(network.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&chain));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), network.clone());
+        m.insert("network".to_string(), Value::from(network.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(&chain, "depositEnable", &[Value::Bool(false)]));
         m.insert("withdraw".to_string(), self.safe_bool_k(&chain, "withdrawEnable", &[Value::Bool(false)]));

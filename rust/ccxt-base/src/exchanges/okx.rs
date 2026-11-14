@@ -4558,12 +4558,12 @@ impl Okx {
             let mut idParts: Value = Value::Array(networkId.split("-").map(Value::from).collect());
             let mut parts: Value = self.array_slice(idParts, Value::Int(1), &[]);
             let mut chainPart: String = parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default();
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[Value::from(chainPart), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(chainPart), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(networkId));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(&chain, "canDep", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(&chain, "canWd", &[]));

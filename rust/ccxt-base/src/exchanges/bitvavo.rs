@@ -1034,13 +1034,13 @@ impl Bitvavo {
             let mut __for_first_453: bool = true;
             while { if !__for_first_453 { j += 1; } __for_first_453 = false; j < (networksArray.len() as i64) } {
             let mut networkId: Value = networksArray.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), networkId);
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), active.clone());
         m.insert("deposit".to_string(), Value::Bool(deposit));
         m.insert("withdraw".to_string(), Value::Bool(withdrawal));

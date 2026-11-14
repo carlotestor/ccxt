@@ -7214,14 +7214,14 @@ impl Binance {
             while { if !__for_first_271 { j += 1; } __for_first_271 = false; j < (networkList.len() as i64) } {
             let mut networkItem: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut network: Option<String> = self.safe_string_k(&networkItem, "network", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+            let mut networkCode: Option<String> = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             isETF = network.as_deref() == Some("ETF"); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
             // const name = this.safeString (networkItem, 'name');
             let mut withdrawFee: Option<f64> = self.safe_number_k(&networkItem, "withdrawFee", &[]).as_f64();
             let mut depositEnable: Option<bool> = self.safe_bool_k(&networkItem, "depositEnable", &[]).as_bool();
             let mut withdrawEnable: Option<bool> = self.safe_bool_k(&networkItem, "withdrawEnable", &[]).as_bool();
-            if (networkCode != Value::Null) {
-                fees.insert(crate::runtime::stringify_param(&networkCode), Value::from(withdrawFee));
+            if (networkCode.is_some()) {
+                fees.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::from(withdrawFee));
             }
             let mut isDefault: bool = self.safe_bool_k(&networkItem, "isDefault", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if isDefault || (fee.is_none()) {
@@ -7236,12 +7236,12 @@ impl Binance {
             if (withdrawPrecision.is_none()) && (isFiat == Some(true)) {
                 withdrawPrecision = self.safe_string_k(self.options.clone(), "defaultFiatWithdrawPrecision", &[]).as_str().map(str::to_owned);
             }
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&networkItem));
         m.insert("id".to_string(), network.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), depositEnable.map_or(Value::Null, Value::Bool));
         m.insert("withdraw".to_string(), withdrawEnable.map_or(Value::Null, Value::Bool));
