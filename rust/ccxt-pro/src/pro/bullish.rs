@@ -1259,9 +1259,9 @@ impl Bullish {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut symbolPositions: Value = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
-            if !(self.is_empty(symbolPositions.clone()).as_bool() == Some(true)) {
-                client.resolve(symbolPositions, messageHash.as_deref());
+            let mut symbolPositions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            if !(self.is_empty(&symbolPositions).as_bool() == Some(true)) {
+                client.resolve(Value::Arr(symbolPositions), messageHash.as_deref());
             }
         }
         }

@@ -921,8 +921,8 @@ if _try_result.is_err() {
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
         let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], &request).await.into();
-        let mut result: Value = self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
-        return self.sort_by(result, Value::Str("timestamp".into()), &[]);
+        let mut result: crate::value::List = self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]).into_list();
+        return self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]);
         Value::Null
         }).await?))
     }

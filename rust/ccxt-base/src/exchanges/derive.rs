@@ -2227,8 +2227,8 @@ impl Derive {
         })]).into_dict();
         let mut expiries: crate::value::List = self.safe_list_k(&result, "expiries", &[Value::from(vec![])]).into_list();
         let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(expiries), None).into_list();
-        let mut sorted: Value = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_since_limit(&sorted, since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -2295,9 +2295,9 @@ impl Derive {
         })]).into_dict();
         let mut settlements: crate::value::List = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]).into_list();
         let mut parsed: crate::value::List = self.parse_settlements(Value::Arr(settlements), market.as_ref()).into_list();
-        let mut sorted: Value = self.sort_by(Value::Arr(parsed), Value::Str("timestamp".into()), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::Arr(parsed), Value::Str("timestamp".into()), &[]).into_list();
         let mut symbolResolved: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol") } else { Value::Null });
-        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -5474,8 +5474,8 @@ impl Derive {
         })]).into_dict();
         let mut events: crate::value::List = self.safe_list_k(&result, "events", &[Value::from(vec![])]).into_list();
         let mut interests: crate::value::List = self.parse_borrow_interests(&events, None).into_list();
-        let mut sorted: Value = self.sort_by(Value::Arr(interests), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_currency_since_limit(sorted, &[code, since, limit]);
+        let mut sorted: crate::value::List = self.sort_by(Value::Arr(interests), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[code, since, limit]);
         Value::Null
         }).await?))
     }

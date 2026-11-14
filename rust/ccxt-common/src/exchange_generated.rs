@@ -8087,8 +8087,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn filter_by_symbols_since_limit(&self, array: impl Rows, symbols: impl Into<crate::Value>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
         let mut symbols: Value = symbols.into();
         let mut tail = get_arg(optional_args, 0, Value::Bool(false));
-        let mut result: Value = self.filter_by_array(array, Value::Str("symbol".into()), symbols, &[Value::Bool(false)]);
-        return self.filter_by_since_limit(result, since, limit, &[Value::Str("timestamp".into()), tail]);
+        let mut result: crate::value::List = self.filter_by_array(array, Value::Str("symbol".into()), symbols, &[Value::Bool(false)]).into_list();
+        return self.filter_by_since_limit(&result, since, limit, &[Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
