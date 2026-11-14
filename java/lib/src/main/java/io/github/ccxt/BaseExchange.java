@@ -5194,7 +5194,7 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public List<Object> filterByLimit(List<Object> array, Long limit, Object key, Object fromStart)
+    public List<Object> filterByLimit(Object array, Long limit, Object key, Object fromStart)
     {
         if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null))
         {
@@ -5205,7 +5205,7 @@ public Map<String, Object> describe()
                 if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"))))
                 {
                     Double first = this.safeFloat((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"));
-                    Double last = this.safeFloat((array == null || ((int) ((((Number) arrayLength).longValue()) - 1L)) < 0 || ((int) ((((Number) arrayLength).longValue()) - 1L)) >= array.size() ? null : array.get(((int) ((((Number) arrayLength).longValue()) - 1L)))), java.util.Objects.requireNonNullElse(key, "timestamp"));
+                    Double last = this.safeFloat(Helpers.GetValue(array, ((((Number) arrayLength).longValue()) - 1L)), java.util.Objects.requireNonNullElse(key, "timestamp"));
                     if (!java.util.Objects.equals(first, null) && !java.util.Objects.equals(last, null))
                     {
                         ascending = ((last == null && first == null) || last != null && (first == null || last >= first)); // true if array is sorted in ascending order based on 'timestamp'
@@ -7364,19 +7364,19 @@ public Map<String, Object> describe()
         return fee;
     }
 
-    public Object findNearestCeiling(List<Object> arr, Object providedValue)
+    public Object findNearestCeiling(Object arr, Object providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
         Integer length = ((List<?>)arr).size();
         for (var i = 0; (length != null && i < length); i++)
         {
-            Object current = (arr == null || i < 0 || i >= arr.size() ? null : arr.get(i));
+            Object current = (arr == null || i < 0 || i >= ((List<?>)arr).size() ? null : ((List<?>)arr).get(i));
             if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(providedValue, current))
             {
                 return current;
             }
         }
-        return (arr == null || ((int) (((long) length) - 1L)) < 0 || ((int) (((long) length) - 1L)) >= arr.size() ? null : arr.get(((int) (((long) length) - 1L))));
+        return Helpers.GetValue(arr, (((long) length) - 1L));
     }
 
     public Object addKeyInArrayItems(Object obj, Object keyName)
@@ -11956,7 +11956,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object sortCursorPaginatedResult(List<Object> result)
+    public Object sortCursorPaginatedResult(Object result)
     {
         Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
         if (!java.util.Objects.equals(first, null))
