@@ -500,7 +500,8 @@ impl Hyperliquid {
  * @param {object} [question] linked question object from outcomeMeta
  * @returns {string} the parent market outcome
  */
-    pub fn build_outcome_parent_symbol(&self, mut desc: Value, mut outcomeId: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn build_outcome_parent_symbol(&self, desc: impl Into<crate::Value>, mut outcomeId: Value, optional_args: &[Value]) -> Option<String> {
+        let mut desc: Value = desc.into();
         let mut name = get_arg(optional_args, 0, Value::Str("".into()));
         let mut question = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -727,7 +728,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut market: crate::value::Dict = self.parse_outcome_market(Value::Dict(outcomeInfo), outcomeId, &[Value::Dict(linkedQuestion)]).into_dict();
+            let mut market: crate::value::Dict = self.parse_outcome_market(&outcomeInfo, outcomeId, &[Value::Dict(linkedQuestion)]).into_dict();
             markets.push(Value::from(&market));
             // Build outcomes dictionary from market outcomes
             let mut marketOutcomes: crate::value::List = self.safe_list_k(&market, "outcomes", &[Value::from(vec![])]).into_list();
@@ -766,7 +767,8 @@ impl Hyperliquid {
  * @param {object} [question] linked question object from outcomeMeta questions array
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-    pub fn parse_outcome_market(&self, mut outcomeInfo: Value, mut outcomeId: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_outcome_market(&self, outcomeInfo: impl Into<crate::Value>, mut outcomeId: Value, optional_args: &[Value]) -> Value {
+        let mut outcomeInfo: Value = outcomeInfo.into();
         let mut question = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -775,7 +777,7 @@ impl Hyperliquid {
         let mut name: String = self.safe_string_k(outcomeInfo.clone(), "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sideSpecs: crate::value::List = self.safe_list_k(outcomeInfo.clone(), "sideSpecs", &[Value::from(vec![])]).into_list();
         let mut desc: crate::value::Dict = self.parse_outcome_description(description.as_str()).into_dict();
-        let mut parentSymbol: Value = self.build_outcome_parent_symbol(Value::from(&desc), outcomeId.clone(), &[Value::from(name.clone()), question]).map(Value::from).unwrap_or(Value::Null);
+        let mut parentSymbol: Value = self.build_outcome_parent_symbol(&desc, outcomeId.clone(), &[Value::from(name.clone()), question]).map(Value::from).unwrap_or(Value::Null);
         let mut yesEncoding: Value = self.outcome_encoding(outcomeId.as_f64().unwrap_or_default(), Value::Int(0));
         let mut noEncoding: Value = self.outcome_encoding(outcomeId.as_f64().unwrap_or_default(), Value::Int(1));
         let mut yesOutcomeSymbol: String = format!("{}{}", parentSymbol, Value::Str(":YES".into()));
@@ -3027,14 +3029,16 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Value {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 
     Value::Null
 }
 
-    pub fn construct_phantom_agent(&self, mut hash: Value, optional_args: &[Value]) -> Value {
+    pub fn construct_phantom_agent(&self, hash: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut hash: Value = hash.into();
         let isTestnet: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut source: String = "a".to_string();
         if isTestnet {
@@ -3067,7 +3071,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn sign_l1_action(&self, mut action: Value, mut nonce: Value, vaultAddress: Option<&str>) -> Value {
+    pub fn sign_l1_action(&self, action: impl Into<crate::Value>, mut nonce: Value, vaultAddress: Option<&str>) -> Value {
+        let mut action: Value = action.into();
         let mut vaultAddress: Value = vaultAddress.into();
         self.check_required_credentials(&[]);
         let mut hash: Value = self.action_hash(action, vaultAddress.as_str(), nonce);
@@ -3103,7 +3108,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn sign_user_signed_action(&self, mut messageTypes: Value, mut message: Value) -> Value {
+    pub fn sign_user_signed_action(&self, messageTypes: impl Into<crate::Value>, mut message: Value) -> Value {
+        let mut messageTypes: Value = messageTypes.into();
         let mut zeroAddress: Option<String> = self.safe_string_k(self.options.clone(), "zeroAddress", &[]).as_str().map(str::to_owned);
         let mut chainId: i64 = 421614;
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -3121,7 +3127,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn build_approve_builder_fee_sig(&self, mut message: Value) -> Value {
+    pub fn build_approve_builder_fee_sig(&self, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:ApproveBuilderFee".to_string(), Value::from(vec![Value::Map({

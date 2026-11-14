@@ -520,8 +520,9 @@ impl Paradex {
  * @param {string} [subscribeHash] the subscription the request opens, the request id when undefined
  * @returns {object} the reply
  */
-    pub async fn send_request(&mut self, url: &str, mut request: Value, subscribeHash: Option<&str>) -> Value {
+    pub async fn send_request(&mut self, url: &str, request: impl Into<crate::Value>, subscribeHash: Option<&str>) -> Value {
         let mut url: Value = url.into();
+        let mut request: Value = request.into();
         let mut subscribeHash: Value = subscribeHash.into();
         let mut requestHash: String = format!("{}{}", Value::Str("request:".into()), self.safe_string_k(request.clone(), "id", &[]));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -624,8 +625,10 @@ impl Paradex {
  * @param {object} [params] extra parameters merged into the request
  * @returns {boolean} true once the reply is in
  */
-    pub async fn send_unsubscribe(&mut self, url: &str, mut unsubHash: Value, mut request: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+    pub async fn send_unsubscribe(&mut self, url: &str, mut unsubHash: Value, request: impl Into<crate::Value>, subscription: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut url: Value = url.into();
+        let mut request: Value = request.into();
+        let mut subscription: Value = subscription.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -837,7 +840,7 @@ if _try_result.is_err() {
             let mut error = Value::from(crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), unsubHash).into()), Value::Str(" was not acknowledged".into()))));
             client.reject(error, &unsubHash);
             // the subscriptions are forgotten, so that the next watch subscribes them again
-            self.clean_unsubscribed(client, unsubHash, Value::Dict(unsubscription));
+            self.clean_unsubscribed(client, unsubHash, &unsubscription);
         }
 
     Value::Null
@@ -969,13 +972,14 @@ if _try_result.is_err() {
                 m
             })]).into_dict();
             if (self.safe_string_k(&subscription, "id", &[]).as_str() == requestId.as_str()) {
-                self.clean_unsubscribed(client.clone(), unsubHash, Value::Dict(subscription));
+                self.clean_unsubscribed(client.clone(), unsubHash, &subscription);
             }
         }
         }
 }
 
-    pub fn clean_unsubscribed(&mut self, mut client: Value, mut unsubHash: Value, mut subscription: Value) {
+    pub fn clean_unsubscribed(&mut self, mut client: Value, mut unsubHash: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subscribeHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subscribeHashes", &[Value::from(vec![])]).into_list();
         {
@@ -1221,7 +1225,8 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn parse_ws_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_liquidation(&self, liquidation: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut liquidation: Value = liquidation.into();
         //
         //     {
         //         "id": "1718179273230201709233240002",
@@ -1295,7 +1300,7 @@ if _try_result.is_err() {
         if (self.safe_string_k(&data, "trade_type", &[]).as_str() == Some("LIQUIDATION")) {
             // one cache per market, kept in the options next to the request id counter: this.liquidations
             // is typed as a single cache in some languages and initialized as a map in others
-            let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(data), None).into_dict();
+            let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(&data, None).into_dict();
             let mut caches: Value = self.safe_dict_k(self.options.clone(), "liquidationsBySymbol", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2249,7 +2254,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut bidAsk: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None).into_dict();
+        let mut bidAsk: crate::value::Dict = self.parse_ws_bid_ask(&data, None).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&bidAsk, "symbol");
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&bidAsk)); }
         client.resolve(Value::from(&bidAsk), &(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())));
@@ -2257,7 +2262,8 @@ if _try_result.is_err() {
         client.resolve(Value::Dict(bidAsk), "bidask");
 }
 
-    pub fn parse_ws_bid_ask(&self, mut data: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_bid_ask(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut data: Value = data.into();
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "last_updated_at", &[]).as_i64();
@@ -2695,7 +2701,7 @@ if _try_result.is_err() {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parse_ws_balance(Value::Dict(data));
+        let mut balance: Value = self.parse_ws_balance(&data);
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2719,7 +2725,8 @@ if _try_result.is_err() {
         client.resolve(self.balance.clone(), "balance");
 }
 
-    pub fn parse_ws_balance(&self, mut data: Value) -> Value {
+    pub fn parse_ws_balance(&self, data: impl Into<crate::Value>) -> Value {
+        let mut data: Value = data.into();
         // the account channel carries margin, not token holdings: the account value (collateral with
         // unrealized pnl) is the total, the free collateral what can still back a new position, and the
         // initial margin the part the open positions hold, free + used = total as the venue computes them
@@ -2950,7 +2957,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut fundingRate: crate::value::Dict = self.parse_funding_rate_ws(Value::Dict(data), None).into_dict();
+        let mut fundingRate: crate::value::Dict = self.parse_funding_rate_ws(&data, None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&fundingRate, "symbol", &[]);
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&fundingRate)); }
         // watchFundingRates waits on the bare channel without symbols and on funding_data.<symbol> with them,
@@ -2960,7 +2967,8 @@ if _try_result.is_err() {
         client.resolve(Value::Dict(fundingRate), &(Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())));
 }
 
-    pub fn parse_funding_rate_ws(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_funding_rate_ws(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut contract: Value = contract.into();
         //
         //     {
         //         "market": "TRUMP-USD-PERP",
@@ -3162,7 +3170,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn sbe_read_enum(&self, mut frameHex: Value, mut offset: Value, mut values: Value) -> Option<String> {
+    pub fn sbe_read_enum(&self, mut frameHex: Value, mut offset: Value, values: impl Into<crate::Value>) -> Option<String> {
+        let mut values: Value = values.into();
         let mut value: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
         return self.safe_string(values, Value::from(self.number_to_string(Value::from(value))), &[]).as_str().map(str::to_owned);
 }
@@ -3859,7 +3868,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.handle_stream_message(client, message);
 }
 
-    pub fn handle_stream_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_stream_message(&mut self, mut client: Value, message: impl Into<crate::Value>) {
+        let mut message: Value = message.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() != Some(true)) {

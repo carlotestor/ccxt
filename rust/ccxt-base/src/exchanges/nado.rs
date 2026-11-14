@@ -4229,7 +4229,8 @@ impl Nado {
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str().map(str::to_owned);
 }
 
-    pub fn sign_order(&self, mut order: Value, productId: Option<i64>, chainId: Option<&str>) -> Option<String> {
+    pub fn sign_order(&self, order: impl Into<crate::Value>, productId: Option<i64>, chainId: Option<&str>) -> Option<String> {
+        let mut order: Value = order.into();
         let mut productId: Value = productId.into();
         let mut chainId: Value = chainId.into();
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -4279,7 +4280,8 @@ impl Nado {
         return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
-    pub fn sign_cancellation(&self, mut cancellation: Value, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
+    pub fn sign_cancellation(&self, cancellation: impl Into<crate::Value>, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
+        let mut cancellation: Value = cancellation.into();
         let mut chainId: Value = chainId.into();
         let mut endpointAddress: Value = endpointAddress.into();
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -4319,7 +4321,8 @@ impl Nado {
         return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
-    pub fn sign_cancellation_products(&self, mut cancellation: Value, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
+    pub fn sign_cancellation_products(&self, cancellation: impl Into<crate::Value>, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
+        let mut cancellation: Value = cancellation.into();
         let mut chainId: Value = chainId.into();
         let mut endpointAddress: Value = endpointAddress.into();
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -4354,7 +4357,8 @@ impl Nado {
         return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
-    pub fn sign_fetch_trigger_orders(&self, mut tx: Value, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
+    pub fn sign_fetch_trigger_orders(&self, tx: impl Into<crate::Value>, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
+        let mut tx: Value = tx.into();
         let mut chainId: Value = chainId.into();
         let mut endpointAddress: Value = endpointAddress.into();
         let mut domain: indexmap::IndexMap<String, Value> = ({

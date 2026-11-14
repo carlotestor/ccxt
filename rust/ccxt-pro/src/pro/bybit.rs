@@ -2686,11 +2686,11 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_201: bool = true;
                 while { if !__for_first_201 { i += 1; } __for_first_201 = false; i < (rawLiquidations.len() as i64) } {
-                let mut rawLiquidation: Option<crate::value::Dict> = self.safe_dict(&rawLiquidations, Value::Int(i), &[]).into_opt_dict();
+                let mut rawLiquidation: crate::value::Dict = self.safe_dict(&rawLiquidations, Value::Int(i), &[]).into_dict();
                 let mut marketId: Option<String> = self.safe_string_k(&rawLiquidation, "s", &[]).as_str().map(str::to_owned);
                 let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("".into()), Value::Str("contract".into())]);
                 let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-                let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(rawLiquidation.map_or(Value::Null, Value::Dict), Some(&market)).into_dict();
+                let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(&rawLiquidation, Some(&market)).into_dict();
                 if (self.liquidations.is_none()) {
                     let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64();
                     self.liquidations = Some(ArrayCache::new(Value::from(limit)));
@@ -2706,7 +2706,7 @@ impl Bybit {
             let mut marketId: Option<String> = self.safe_string_k(&rawLiquidation, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("".into()), Value::Str("contract".into())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(rawLiquidation), Some(&market)).into_dict();
+            let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(&rawLiquidation, Some(&market)).into_dict();
             if (self.liquidations.is_none()) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
                 self.liquidations = Some(ArrayCache::new(limit));
@@ -2718,7 +2718,8 @@ impl Bybit {
         }
 }
 
-    pub fn parse_ws_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_liquidation(&self, liquidation: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut liquidation: Value = liquidation.into();
         //
         //     {
         //         "price": "0.03803",
@@ -2808,8 +2809,8 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::from(vec![Value::Str("user.openapi.perp.order".into())]));
             m
         });
-        let mut topics: Option<crate::value::List> = self.safe_list(&topicsByMarket, self.get_private_type(url.clone()), &[]).into_opt_list();
-        let mut orders: Value = self.watch_topics(url.as_str().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics.map_or(Value::Null, Value::Arr), &[params]).await;
+        let mut topics: crate::value::List = self.safe_list(&topicsByMarket, self.get_private_type(url.clone()), &[]).into_list();
+        let mut orders: Value = self.watch_topics(url.as_str().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2858,8 +2859,8 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::from(vec![Value::Str("user.openapi.perp.order".into())]));
             m
         });
-        let mut topics: Option<crate::value::List> = self.safe_list(&topicsByMarket, self.get_private_type(url.clone()), &[]).into_opt_list();
-        return self.un_watch_topics(url.as_str().unwrap_or_default(), "orders", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), topics.map_or(Value::Null, Value::Arr), &[params]).await;
+        let mut topics: crate::value::List = self.safe_list(&topicsByMarket, self.get_private_type(url.clone()), &[]).into_list();
+        return self.un_watch_topics(url.as_str().unwrap_or_default(), "orders", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), &topics, &[params]).await;
         Value::Null
         }).await?))
     }
@@ -3386,8 +3387,9 @@ impl Bybit {
         }
 }
 
-    pub async fn watch_topics(&mut self, url: &str, mut messageHashes: Value, mut topics: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_topics(&mut self, url: &str, mut messageHashes: Value, topics: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut url: Value = url.into();
+        let mut topics: Value = topics.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3471,9 +3473,10 @@ impl Bybit {
     Value::Null
 }
 
-    pub async fn un_watch_topics(&mut self, url: &str, topic: &str, mut symbols: Value, mut messageHashes: Value, mut subMessageHashes: Value, mut topics: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_topics(&mut self, url: &str, topic: &str, mut symbols: Value, mut messageHashes: Value, mut subMessageHashes: Value, topics: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut url: Value = url.into();
         let mut topic: Value = topic.into();
+        let mut topics: Value = topics.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

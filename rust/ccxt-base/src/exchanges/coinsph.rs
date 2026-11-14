@@ -2684,7 +2684,7 @@ impl Coinsph {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(tradingFee), Some(&market));
+        return self.parse_trading_fee(&tradingFee, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2746,7 +2746,8 @@ impl Coinsph {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         //
         //     {
         //         "symbol": "ETHUSDT",

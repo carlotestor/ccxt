@@ -1625,7 +1625,8 @@ impl Derive {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of raw instrument entries
  */
-    pub async fn get_markets_paginated(&mut self, mut request: Value, optional_args: &[Value]) -> Value {
+    pub async fn get_markets_paginated(&mut self, request: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut request: Value = request.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5004,13 +5005,14 @@ impl Derive {
         //         ]
         //     }
         //
-        let mut result: Option<crate::value::List> = self.safe_list_k(&response, "result", &[]).into_opt_list();
-        return self.parse_balance_list(result.map_or(Value::Null, Value::Arr));
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[]).into_list();
+        return self.parse_balance_list(&result);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());

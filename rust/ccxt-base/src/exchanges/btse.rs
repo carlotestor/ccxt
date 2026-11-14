@@ -1616,7 +1616,7 @@ impl Btse {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params, Value::Str("spot".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("spot")) {
             let mut walletResponse: crate::value::Dict = self.private_get_public_api_wallet_v1_user_assets(&[Value::from(&paramsMarketType)]).await.into_dict();
             //
@@ -1637,7 +1637,7 @@ impl Btse {
             //         "time": 1624989977940
             //     }
             //
-            response = self.safe_list_k(&walletResponse, "data", &[Value::from(vec![])]);
+            response = self.safe_list_k(&walletResponse, "data", &[Value::from(vec![])]).into_opt_list();
         }  else {
             let walletparamsWalletVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("fetchBalance".into()), Value::Str("wallet".into()), &[Value::Str("CROSS@".into())]).as_array().cloned().unwrap_or_default();
             let mut wallet: Option<String> = walletparamsWalletVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1648,14 +1648,15 @@ impl Btse {
                 m
             });
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsWallet]);
-            response = self.private_get_futures_api_v23_user_wallet(&[__ws_arg_3]).await;
+            response = self.private_get_futures_api_v23_user_wallet(&[__ws_arg_3]).await.into_opt_list();
         }
-        return self.parse_balance_list(response);
+        return self.parse_balance_list(&response);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());

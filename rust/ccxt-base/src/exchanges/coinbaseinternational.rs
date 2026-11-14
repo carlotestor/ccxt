@@ -2500,16 +2500,17 @@ impl Coinbaseinternational {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             let mut summaries: Option<crate::value::List> = self.safe_list_k(&result, "summaries", &[]).into_opt_list();
             if (summaries.is_some()) {
-                return self.parse_balance_list(summaries.map_or(Value::Null, Value::Arr));
+                return self.parse_balance_list(&summaries);
             }
             return self.parse_balance_list(self.safe_dict_k(&result, "summaries", &[Value::from(vec![])]));
         }
-        return self.parse_balance_list(Value::Dict(result));
+        return self.parse_balance_list(&result);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());

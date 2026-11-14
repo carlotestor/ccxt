@@ -503,9 +503,10 @@ impl Hitbtc {
  * @param {object} [params] extra parameters specific to the hitbtc api
  * @returns {boolean} true once the exchange acknowledges the unsubscribe
  */
-    pub async fn un_subscribe_public(&mut self, name: &str, messageHashPrefix: &str, mut symbols: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_public(&mut self, name: &str, messageHashPrefix: &str, mut symbols: Value, subscription: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut name: Value = name.into();
         let mut messageHashPrefix: Value = messageHashPrefix.into();
+        let mut subscription: Value = subscription.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1690,7 +1691,8 @@ impl Hitbtc {
     Value::Null
 }
 
-    pub fn handle_order_helper(&self, mut client: Value, mut message: Value, mut order: Value) {
+    pub fn handle_order_helper(&self, mut client: Value, mut message: Value, order: impl Into<crate::Value>) {
+        let mut order: Value = order.into();
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         if (self.orders.is_none()) {
@@ -2128,7 +2130,7 @@ impl Hitbtc {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while
@@ -2136,7 +2138,7 @@ impl Hitbtc {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parent.parse_balance_list(params);
+        let mut balance: Value = self.parent.parse_balance_list(&params);
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();

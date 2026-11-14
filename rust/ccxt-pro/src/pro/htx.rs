@@ -1833,7 +1833,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (eventType.as_deref() == Some("trade")) {
                 // when a spot order is filled we get an update message
                 // with the trade info
-                let mut parsedTrade: crate::value::Dict = self.parse_order_trade(data.clone().map_or(Value::Null, Value::Dict), Some(&market)).into_dict();
+                let mut parsedTrade: crate::value::Dict = self.parse_order_trade(&data, Some(&market)).into_dict();
                 // inject trade in existing order by faking an order object
                 let mut orderId: Option<String> = self.safe_string_k(&parsedTrade, "order", &[]).as_str().map(str::to_owned);
                 let mut trades: Value = Value::from(vec![Value::Dict(parsedTrade)]);
@@ -2143,7 +2143,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_order_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_order_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut trade: Value = trade.into();
         // spot private wrapped trade
         //
         //     {
@@ -2908,7 +2909,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_un_subscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut messageHashes: crate::value::List = __pro_message.get("messageHashes").cloned().unwrap_or_default().into_list();
@@ -3342,7 +3344,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
 }
 
-    pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value, optional_args: &[Value]) {
+    pub fn handle_my_trade(&mut self, mut client: Value, message: impl Into<crate::Value>, optional_args: &[Value]) {
+        let mut message: Value = message.into();
         let mut extendParams = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

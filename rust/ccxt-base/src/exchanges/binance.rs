@@ -7053,7 +7053,9 @@ impl Binance {
         }).await?))
     }
 
-    pub fn parse_currencies_custom(&self, mut responseCurrencies: Value, mut marginablesById: Value) -> Value {
+    pub fn parse_currencies_custom(&self, responseCurrencies: impl Into<crate::Value>, marginablesById: impl Into<crate::Value>) -> Value {
+        let mut responseCurrencies: Value = responseCurrencies.into();
+        let mut marginablesById: Value = marginablesById.into();
         let __responseCurrencies_empty = Vec::new();
         let responseCurrencies = responseCurrencies.as_array().unwrap_or(&__responseCurrencies_empty);
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -7930,7 +7932,8 @@ impl Binance {
     Value::Null
 }
 
-    pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
+    pub fn parse_balance_helper(&self, entry: impl Into<crate::Value>) -> Value {
+        let mut entry: Value = entry.into();
         let __entry_empty = indexmap::IndexMap::new();
         let entry = entry.as_map().unwrap_or(&__entry_empty);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -7944,7 +7947,8 @@ impl Binance {
     Value::Null
 }
 
-    pub fn parse_balance_custom(&self, mut response: Value, type_var: Option<&str>, marginMode: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn parse_balance_custom(&self, response: impl Into<crate::Value>, type_var: Option<&str>, marginMode: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut type_var: Value = type_var.into();
         let mut marginMode: Value = marginMode.into();
         let isPortfolioMargin: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
@@ -8031,10 +8035,10 @@ impl Binance {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
+                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
+                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
                 }
             }
             }
@@ -8923,7 +8927,8 @@ impl Binance {
         }).await?))
     }
 
-    pub fn parse_tickers_for_rolling(&self, mut response: Value, mut symbols: Value) -> Value {
+    pub fn parse_tickers_for_rolling(&self, response: impl Into<crate::Value>, mut symbols: Value) -> Value {
+        let mut response: Value = response.into();
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -15596,7 +15601,8 @@ impl Binance {
     Value::Null
 }
 
-    pub fn parse_account_positions(&self, mut account: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_account_positions(&self, account: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut account: Value = account.into();
         let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
@@ -16636,31 +16642,31 @@ impl Binance {
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsSubType, Value::Str("fetchAccountPositions".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: crate::value::Dict = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                response = self.papi_v2_get_um_account(&[Value::from(&paramsPapi)]).await;
+                response = self.papi_v2_get_um_account(&[Value::from(&paramsPapi)]).await.into_opt_dict();
             }  else {
                 let useV2paramsUseV2Variable: Vec<Value> = self.handle_option_bool_and_params(&paramsPapi, Value::Str("fetchAccountPositions".into()), Value::Str("useV2".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
                 let mut useV2: bool = useV2paramsUseV2Variable.get(0).and_then(Value::as_bool) == Some(true);
                 let mut paramsUseV2: crate::value::Dict = useV2paramsUseV2Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
                 if !useV2 {
-                    response = self.fapi_private_v3_get_account(&[Value::from(&paramsUseV2)]).await;
+                    response = self.fapi_private_v3_get_account(&[Value::from(&paramsUseV2)]).await.into_opt_dict();
                 }  else {
-                    response = self.fapi_private_v2_get_account(&[Value::Dict(paramsUseV2)]).await;
+                    response = self.fapi_private_v2_get_account(&[Value::Dict(paramsUseV2)]).await.into_opt_dict();
                 }
             }
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                response = self.papi_get_cm_account(&[Value::from(&paramsPapi)]).await;
+                response = self.papi_get_cm_account(&[Value::from(&paramsPapi)]).await.into_opt_dict();
             }  else {
-                response = self.dapi_private_get_account(&[Value::from(&paramsPapi)]).await;
+                response = self.dapi_private_get_account(&[Value::from(&paramsPapi)]).await.into_opt_dict();
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() supports linear and inverse contracts only".into()))));
         }
         let mut filterClosed: Value = self.handle_option_bool_and_params(&paramsPapi, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut result: crate::value::List = self.parse_account_positions(response, &[filterClosed]).into_list();
+        let mut result: crate::value::List = self.parse_account_positions(&response, &[filterClosed]).into_list();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
@@ -18861,7 +18867,7 @@ if _try_result.is_err() {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut isPortfolioMargin: Option<bool> = None;
         let mut paramsPapi: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("repayCrossMargin".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsPapi = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -18871,18 +18877,18 @@ if _try_result.is_err() {
                 paramsPapi = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if (method.as_deref() == Some("papiPostMarginRepayDebt")) {
                 let __ws_arg_200 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
-                response = self.papi_post_margin_repay_debt(&[__ws_arg_200]).await;
+                response = self.papi_post_margin_repay_debt(&[__ws_arg_200]).await.into_opt_dict();
             }  else {
                 let __ws_arg_201 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
-                response = self.papi_post_repay_loan(&[__ws_arg_201]).await;
+                response = self.papi_post_repay_loan(&[__ws_arg_201]).await.into_opt_dict();
             }
         }  else {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("REPAY".into()));
             let __ws_arg_202 = self.extend(Value::Map(request), &[paramsPapi]);
-            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_202]).await;
+            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_202]).await.into_opt_dict();
         }
-        return self.parse_margin_loan(response, Some(&currency));
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -18926,8 +18932,8 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_203 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_margin_borrow_repay(&[__ws_arg_203]).await;
-        return self.parse_margin_loan(response, Some(&currency));
+        let mut response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[__ws_arg_203]).await.into_dict();
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -18966,20 +18972,20 @@ if _try_result.is_err() {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("borrowCrossMargin".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: crate::value::Dict = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if isPortfolioMargin {
             let __ws_arg_204 = self.extend(Value::Map(request.clone()), &[&paramsPapi]);
-            response = self.papi_post_margin_loan(&[__ws_arg_204]).await;
+            response = self.papi_post_margin_loan(&[__ws_arg_204]).await.into_opt_dict();
         }  else {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("BORROW".into()));
             let __ws_arg_205 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_205]).await;
+            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_205]).await.into_opt_dict();
         }
-        return self.parse_margin_loan(response, Some(&currency));
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -19023,13 +19029,14 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_206 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_margin_borrow_repay(&[__ws_arg_206]).await;
-        return self.parse_margin_loan(response, Some(&currency));
+        let mut response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[__ws_arg_206]).await.into_dict();
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_margin_loan(&self, mut info: Value, currency: Option<&crate::types::Currency>) -> Value {
+    pub fn parse_margin_loan(&self, info: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+        let mut info: Value = info.into();
         //
         //     {
         //         "tranId": 108988250265,

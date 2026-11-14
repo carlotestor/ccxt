@@ -1921,8 +1921,9 @@ impl Nado {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, streamType: Option<&str>, mut stream: Value, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, streamType: Option<&str>, stream: impl Into<crate::Value>, messageHash: &str, optional_args: &[Value]) -> Value {
         let mut streamType: Value = streamType.into();
+        let mut stream: Value = stream.into();
         let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1959,7 +1960,8 @@ impl Nado {
     Value::Null
 }
 
-    pub async fn un_watch_private(&mut self, mut stream: Value, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_private(&mut self, stream: impl Into<crate::Value>, messageHash: &str, optional_args: &[Value]) -> Value {
+        let mut stream: Value = stream.into();
         let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2047,7 +2049,8 @@ impl Nado {
     Value::Null
 }
 
-    pub fn sign_stream_authentication(&self, mut tx: Value, mut chainId: Value, mut endpointAddress: Value) -> Option<String> {
+    pub fn sign_stream_authentication(&self, tx: impl Into<crate::Value>, mut chainId: Value, mut endpointAddress: Value) -> Option<String> {
+        let mut tx: Value = tx.into();
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("Nado".into()));

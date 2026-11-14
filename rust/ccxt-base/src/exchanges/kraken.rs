@@ -1568,12 +1568,13 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(result), Some(&market));
+        return self.parse_trading_fee(&result, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         let mut makerFees: crate::value::Dict = self.safe_dict_k(fee.clone(), "fees_maker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4267,8 +4268,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_transactions_by_type(&self, type_var: &str, mut transactions: Value, code: Option<&str>, since: Option<i64>, limit: Option<i64>) -> Value {
+    pub fn parse_transactions_by_type(&self, type_var: &str, transactions: impl Into<crate::Value>, code: Option<&str>, since: Option<i64>, limit: Option<i64>) -> Value {
         let mut type_var: Value = type_var.into();
+        let mut transactions: Value = transactions.into();
         let mut code: Value = code.into();
         let mut since: Value = since.into();
         let mut limit: Value = limit.into();
@@ -4355,7 +4357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //                     "status": "Success"                                                       } ] }
         //
         let mut depositResult: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions_by_type("deposit", Value::Arr(depositResult), code.as_str(), since.as_i64(), limit.as_i64());
+        return self.parse_transactions_by_type("deposit", &depositResult, code.as_str(), since.as_i64(), limit.as_i64());
         Value::Null
         }).await?))
     }
@@ -4505,7 +4507,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub fn add_pagination_cursor_to_result(&self, mut result: Value) -> Value {
+    pub fn add_pagination_cursor_to_result(&self, result: impl Into<crate::Value>) -> Value {
+        let mut result: Value = result.into();
         let __result_empty = indexmap::IndexMap::new();
         let result = result.as_map().unwrap_or(&__result_empty);
         let mut cursor: Option<String> = (match result.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

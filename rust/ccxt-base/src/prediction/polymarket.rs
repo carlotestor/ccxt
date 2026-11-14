@@ -1111,7 +1111,7 @@ impl Polymarket {
                 flatMarkets.push(ccxtMarkets.get(mi as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            let mut parsedEvent: indexmap::IndexMap<String, Value> = self.parse_event(Value::from(&rawEvent)).as_map().cloned().unwrap_or_default();
+            let mut parsedEvent: indexmap::IndexMap<String, Value> = self.parse_event(&rawEvent).as_map().cloned().unwrap_or_default();
             let mut eventSlug: Option<String> = self.safe_string_k(&rawEvent, "slug", &[]).as_str().map(str::to_owned);
             if (eventSlug.is_some()) && (eventSlug.as_deref() != Some("")) {
                 let mut eventKey: Value = self.shorten_slug(eventSlug.map(Value::from).unwrap_or(Value::Null));
@@ -3631,7 +3631,8 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn sign_clob_order(&self, mut message: Value, exchangeAddress: &str, domainVersion: &str, sigType: f64) -> Option<String> {
+    pub fn sign_clob_order(&self, message: impl Into<crate::Value>, exchangeAddress: &str, domainVersion: &str, sigType: f64) -> Option<String> {
+        let mut message: Value = message.into();
         let mut exchangeAddress: Value = exchangeAddress.into();
         let mut domainVersion: Value = domainVersion.into();
         let mut sigType: Value = sigType.into();
@@ -4146,7 +4147,8 @@ impl Polymarket {
         }).await?))
     }
 
-    pub fn parse_event(&self, mut rawEvent: Value) -> Value {
+    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> Value {
+        let mut rawEvent: Value = rawEvent.into();
         // {
         //     "id": "73113",
         //     "ticker": "ukraine-agrees-not-to-join-nato-before-2027",
@@ -4537,7 +4539,8 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Value {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 

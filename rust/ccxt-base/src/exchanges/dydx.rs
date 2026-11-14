@@ -1891,7 +1891,8 @@ impl Dydx {
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, mut privateKey: Value) -> Value {
+        let mut message: Value = message.into();
         return self.sign_hash(self.hash_message(message), (match (&(privateKey), (-64i64), (match &(Value::Null) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
             __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
             __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
@@ -1933,8 +1934,9 @@ impl Dydx {
     Value::Null
 }
 
-    pub fn sign_dydx_tx(&self, privateKey: Option<&str>, mut message: Value, memo: Option<&str>, chainId: Option<&str>, mut account: Value, mut authenticators: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn sign_dydx_tx(&self, privateKey: Option<&str>, message: impl Into<crate::Value>, memo: Option<&str>, chainId: Option<&str>, mut account: Value, mut authenticators: Value, optional_args: &[Value]) -> Option<String> {
         let mut privateKey: Value = privateKey.into();
+        let mut message: Value = message.into();
         let mut memo: Value = memo.into();
         let mut chainId: Value = chainId.into();
         let mut fee = get_arg(optional_args, 0, Value::Null);
@@ -2746,7 +2748,8 @@ impl Dydx {
         }).await?))
     }
 
-    pub async fn estimate_tx_fee(&mut self, mut message: Value, memo: Option<&str>, mut account: Value) -> Value {
+    pub async fn estimate_tx_fee(&mut self, message: impl Into<crate::Value>, memo: Option<&str>, mut account: Value) -> Value {
+        let mut message: Value = message.into();
         let mut memo: Value = memo.into();
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);

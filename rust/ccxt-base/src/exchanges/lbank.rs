@@ -4098,12 +4098,13 @@ impl Lbank {
         //    }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_public_deposit_withdraw_fees(Value::Arr(data), &[codes]);
+        return self.parse_public_deposit_withdraw_fees(&data, &[codes]);
 
     Value::Null
 }
 
-    pub fn parse_public_deposit_withdraw_fees(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_public_deposit_withdraw_fees(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let __response_empty = Vec::new();
         let response = response.as_array().unwrap_or(&__response_empty);

@@ -319,7 +319,9 @@ impl Phemex {
     Value::Null
 }
 
-    pub fn from_en(&self, mut en: Value, mut scale: Value) -> Value {
+    pub fn from_en(&self, en: impl Into<crate::Value>, scale: impl Into<crate::Value>) -> Value {
+        let mut en: Value = en.into();
+        let mut scale: Value = scale.into();
         if (en == Value::Null) {
             return Value::Null;
         }
@@ -369,7 +371,8 @@ impl Phemex {
         return requestId;
 }
 
-    pub fn parse_swap_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_swap_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         //
         //     {
         //         "close": 442800,
@@ -578,11 +581,8 @@ impl Phemex {
         //
         let mut tickers: Vec<Value> = Vec::new();
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("market24h"))) {
-            let mut ticker: Value = (match __pro_message.get("market24h").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            tickers.push(self.parse_swap_ticker(ticker, None));
+            let mut ticker: crate::value::Dict = __pro_message.get("market24h").cloned().unwrap_or_default().into_dict();
+            tickers.push(self.parse_swap_ticker(&ticker, None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) {
             let mut ticker: Value = (match __pro_message.get("spot_market24h").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1145,7 +1145,9 @@ impl Phemex {
         }).await?))
     }
 
-    pub async fn un_subscribe_public(&mut self, mut method: Value, mut subMessageHash: Value, mut marketParams: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_public(&mut self, mut method: Value, mut subMessageHash: Value, marketParams: impl Into<crate::Value>, subscription: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut marketParams: Value = marketParams.into();
+        let mut subscription: Value = subscription.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1379,7 +1381,7 @@ impl Phemex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(Value::Dict(book), symbol.as_str().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), market.clone()]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(&book, symbol.as_str().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), market.clone()]).into_dict();
             std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
@@ -1692,7 +1694,8 @@ impl Phemex {
         }).await?))
     }
 
-    pub fn handle_orders(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_orders(&mut self, mut client: Value, message: impl Into<crate::Value>) {
+        let mut message: Value = message.into();
         // spot update
         // {
         //        "closed":[
@@ -2240,7 +2243,7 @@ impl Phemex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            self.handle_orders(client.clone(), Value::Dict(orders));
+            self.handle_orders(client.clone(), &orders);
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("wallets"))) {
             let mut type_var: String = "spot".to_string();

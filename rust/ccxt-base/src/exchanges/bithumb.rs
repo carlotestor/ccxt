@@ -1153,7 +1153,8 @@ impl Bithumb {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         //
         // generation 1
         //
@@ -4238,7 +4239,8 @@ impl Bithumb {
     Value::Null
 }
 
-    pub fn urlencode_with_array_brackets(&self, mut query: Value) -> Value {
+    pub fn urlencode_with_array_brackets(&self, query: impl Into<crate::Value>) -> Value {
+        let mut query: Value = query.into();
         let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: String = "".to_string();
         {

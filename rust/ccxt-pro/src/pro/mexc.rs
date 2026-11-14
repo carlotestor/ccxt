@@ -2886,7 +2886,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
 }
 
-    pub fn handle_protobuf_message(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_protobuf_message(&mut self, mut client: Value, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         // protobuf message decoded

@@ -971,7 +971,7 @@ impl Toobit {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut parsed: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_ws_ticker(&ticker, None).into_dict();
             let mut symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
             if (symbol != Value::Null) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&parsed)); }
@@ -985,7 +985,8 @@ impl Toobit {
         client.resolve(Value::Map(newTickers), "tickers");
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         return self.parse_ticker(ticker, market);
 
     Value::Null

@@ -1823,7 +1823,8 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1876,18 +1877,18 @@ impl Hitbtc {
     m
 })]).into_dict();
         let mut account: Option<String> = (if (false) { None } else { self.safe_string(&accountsByType, Value::from(type_var.clone()), &[Value::from(type_var)]).as_str().map(str::to_owned) });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (account.as_deref() == Some("wallet")) {
-            response = self.private_get_wallet_balance(&[paramsOmitted.clone()]).await;
+            response = self.private_get_wallet_balance(&[paramsOmitted.clone()]).await.into_opt_list();
         }  else if (account.as_deref() == Some("spot")) {
-            response = self.private_get_spot_balance(&[paramsOmitted.clone()]).await;
+            response = self.private_get_spot_balance(&[paramsOmitted.clone()]).await.into_opt_list();
         }  else if (account.as_deref() == Some("derivatives")) {
-            response = self.private_get_futures_balance(&[paramsOmitted]).await;
+            response = self.private_get_futures_balance(&[paramsOmitted]).await.into_opt_list();
         }  else {
             let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".into())).into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
-        return self.parse_balance_list(response);
+        return self.parse_balance_list(&response);
         Value::Null
         }).await?))
     }
@@ -2655,7 +2656,8 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -2711,17 +2713,17 @@ impl Hitbtc {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (Value::from((market).market_type.clone()).as_str() == Some("spot")) {
             let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_spot_fee_symbol(&[__ws_arg_13]).await;
+            response = self.private_get_spot_fee_symbol(&[__ws_arg_13]).await.into_opt_dict();
         }  else if (Value::from((market).market_type.clone()).as_str() == Some("swap")) {
             let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_futures_fee_symbol(&[__ws_arg_14]).await;
+            response = self.private_get_futures_fee_symbol(&[__ws_arg_14]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() not support this market type".into()))));
         }
-        return self.parse_trading_fee(response, Some(&market));
+        return self.parse_trading_fee(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3554,7 +3556,8 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn create_order_request(&self, mut market: Value, marketType: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, market: impl Into<crate::Value>, marketType: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut market: Value = market.into();
         let mut marketType: Value = marketType.into();
         let mut type_var: Value = type_var.into();
         let mut side: Value = side.into();

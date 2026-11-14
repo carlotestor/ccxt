@@ -484,7 +484,7 @@ impl Opinion {
                 fetchedRawRows.push(Value::from(&raw));
                 let mut marketType: Option<i64> = self.safe_integer_k(&raw, "marketType", &[]).as_i64();
                 if (marketType == Some(1)) {
-                    let mut event: crate::value::Dict = self.parse_event(Value::from(&raw)).into_dict();
+                    let mut event: crate::value::Dict = self.parse_event(&raw).into_dict();
                     let mut childMarkets: crate::value::List = self.safe_list_k(&event, "markets", &[Value::from(vec![])]).into_list();
                     let mut childMarketsLength: f64 = ((childMarkets.len() as i64) as f64);
                     {
@@ -500,7 +500,7 @@ impl Opinion {
                         eventsList.push(Value::Dict(event));
                     }
                 }  else {
-                    flatMarkets.push(self.parse_opinion_market(Value::Dict(raw), None));
+                    flatMarkets.push(self.parse_opinion_market(&raw, None));
                 }
             }
             }
@@ -552,7 +552,8 @@ impl Opinion {
  * @param {string} [eventSlug] the slug of the parent event
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-    pub fn parse_opinion_market(&self, mut raw: Value, eventSlug: Option<&str>) -> Value {
+    pub fn parse_opinion_market(&self, raw: impl Into<crate::Value>, eventSlug: Option<&str>) -> Value {
+        let mut raw: Value = raw.into();
         let mut eventSlug: Value = eventSlug.into();
         // {
         //     "chainId": "56",
@@ -762,7 +763,7 @@ impl Opinion {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut single: crate::value::Dict = self.parse_event(Value::Dict(singleData)).into_dict();
+            let mut single: crate::value::Dict = self.parse_event(&singleData).into_dict();
             self.index_event_outcomes(Value::from(&single));
             return self.apply_event_fetch_params(Value::from(vec![Value::Dict(single)]), &[params.clone(), Value::from(&queries)]);
         }
@@ -889,7 +890,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut event: crate::value::Dict = self.parse_event(Value::Dict(data)).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(&data).into_dict();
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -904,7 +905,8 @@ impl Opinion {
  * @param {object} rawEvent the raw opinion categorical market object
  * @returns {object} an event structure
  */
-    pub fn parse_event(&self, mut rawEvent: Value) -> Value {
+    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> Value {
+        let mut rawEvent: Value = rawEvent.into();
         // {
         //     "chainId": "56",
         //     "childMarkets": [
@@ -1502,7 +1504,8 @@ impl Opinion {
     Value::Null
 }
 
-    pub fn sign_opinion_order(&self, mut order: Value, exchangeAddress: &str) -> Option<String> {
+    pub fn sign_opinion_order(&self, order: impl Into<crate::Value>, exchangeAddress: &str) -> Option<String> {
+        let mut order: Value = order.into();
         let mut exchangeAddress: Value = exchangeAddress.into();
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2182,7 +2185,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut market: Value = self.parse_opinion_market(Value::Dict(data), None);
+        let mut market: Value = self.parse_opinion_market(&data, None);
         if (market == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadTradeMarket() could not parse market ".into())).into()), idStr)));
         }
@@ -2464,7 +2467,8 @@ impl Opinion {
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Value {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 
@@ -2535,7 +2539,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.set_api_credentials(Value::Dict(result));
+        return self.set_api_credentials(&result);
 
     Value::Null
 }
@@ -2558,7 +2562,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.set_api_credentials(Value::Dict(result));
+        return self.set_api_credentials(&result);
 
     Value::Null
 }
@@ -2623,7 +2627,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn set_api_credentials(&mut self, mut response: Value) -> Value {
+    pub fn set_api_credentials(&mut self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
         //

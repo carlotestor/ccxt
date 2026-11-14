@@ -1934,7 +1934,8 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dict with the signable row and the body entry
  */
-    pub fn create_order_request(&self, mut market: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, mut market: Value, mut type_var: Value, mut side: Value, amount: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut amount: Value = amount.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3800,7 +3801,8 @@ impl Polymarket {
         }).await?))
     }
 
-    pub fn hash_message(&self, mut message: Value) -> Value {
+    pub fn hash_message(&self, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
 
     Value::Null
@@ -3823,7 +3825,9 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
+        let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message), privateKey);
 
     Value::Null
@@ -3975,7 +3979,9 @@ impl Polymarket {
  * @param {object} bodyOp the structured operation object transmitted to the venue
  * @returns {object} the signed request body with the op, sig, salt and ts fields
  */
-    pub async fn sign_perps_op(&mut self, mut signable: Value, mut bodyOp: Value, optional_args: &[Value]) -> Value {
+    pub async fn sign_perps_op(&mut self, signable: impl Into<crate::Value>, bodyOp: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut signable: Value = signable.into();
+        let mut bodyOp: Value = bodyOp.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

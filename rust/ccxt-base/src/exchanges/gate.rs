@@ -3727,7 +3727,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                let mut parsedMarket: Value = self.parse_contract_market(Value::Dict(contract), settleId.as_deref());
+                let mut parsedMarket: Value = self.parse_contract_market(&contract, settleId.as_deref());
                 if (parsedMarket != Value::Null) {
                     result.push(parsedMarket);
                 }
@@ -3770,7 +3770,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                let mut parsedMarket: Value = self.parse_contract_market(Value::Dict(contract), settleId.as_deref());
+                let mut parsedMarket: Value = self.parse_contract_market(&contract, settleId.as_deref());
                 if (parsedMarket != Value::Null) {
                     result.push(parsedMarket);
                 }
@@ -3783,7 +3783,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_contract_market(&self, mut market: Value, settleId: Option<&str>) -> Value {
+    pub fn parse_contract_market(&self, market: impl Into<crate::Value>, settleId: Option<&str>) -> Value {
+        let mut market: Value = market.into();
         let mut settleId: Value = settleId.into();
         //
         //  Perpetual swap
@@ -5154,22 +5155,23 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (type_var.as_deref() == Some("swap")) {
             let __ws_arg_7 = self.extend(request.clone(), &[&requestParams]);
-            response = self.private_futures_get_settle_account_book(&[__ws_arg_7]).await;
+            response = self.private_futures_get_settle_account_book(&[__ws_arg_7]).await.into_opt_list();
         }  else if (type_var.as_deref() == Some("future")) {
             let __ws_arg_8 = self.extend(request, &[&requestParams]);
-            response = self.private_delivery_get_settle_account_book(&[__ws_arg_8]).await;
+            response = self.private_delivery_get_settle_account_book(&[__ws_arg_8]).await.into_opt_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() only support swap & future market type".into()))));
         }
-        return self.parse_funding_histories(response, symbolResolved.as_str(), since.as_i64(), limit.as_i64());
+        return self.parse_funding_histories(&response, symbolResolved.as_str(), since.as_i64(), limit.as_i64());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_funding_histories(&self, mut response: Value, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>) -> Value {
+    pub fn parse_funding_histories(&self, response: impl Into<crate::Value>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>) -> Value {
+        let mut response: Value = response.into();
         let mut symbol: Value = symbol.into();
         let mut since: Value = since.into();
         let mut limit: Value = limit.into();
@@ -5178,8 +5180,8 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_696: bool = true;
             while { if !__for_first_696 { i += 1; } __for_first_696 = false; i < (response.len() as i64) } {
-            let mut entry: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::Int(i), &[]).into_opt_dict();
-            let mut funding: crate::value::Dict = self.parse_funding_history(entry.map_or(Value::Null, Value::Dict), None).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut funding: crate::value::Dict = self.parse_funding_history(&entry, None).into_dict();
             result.push(Value::Dict(funding));
         }
         }
@@ -5189,7 +5191,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_funding_history(&self, mut info: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_funding_history(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut info: Value = info.into();
         //
         //    {
         //        "time": 1646899200,
@@ -5624,7 +5627,8 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
+    pub fn parse_balance_helper(&self, entry: impl Into<crate::Value>) -> Value {
+        let mut entry: Value = entry.into();
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("used".into(), self.safe_string2(entry.clone(), Value::Str("freeze".into()), Value::Str("locked".into()), &[]));
         account.insert("free".into(), self.safe_string_k(entry.clone(), "available", &[]));
@@ -5960,8 +5964,8 @@ if _try_result.is_err() {
 })]).into_dict();
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "currency", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "currency", &[]), None);
-                result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
-                result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
+                result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
+                result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
             }  else {
                 let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(entry.clone(), "currency", &[]), None);
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(entry)); }
@@ -9677,8 +9681,8 @@ if _try_result.is_err() {
         request.insert("currency_pair".into(), Value::from((market).id.as_deref()));
         request.insert("type".into(), Value::Str("repay".into()));
         let __ws_arg_85 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_margin_post_uni_loans(&[__ws_arg_85]).await;
-        return self.parse_margin_loan(response, Some(&currency));
+        let mut response: crate::value::Dict = self.private_margin_post_uni_loans(&[__ws_arg_85]).await.into_dict();
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -9777,8 +9781,8 @@ if _try_result.is_err() {
         request.insert("currency_pair".into(), Value::from((market).id.as_deref()));
         request.insert("type".into(), Value::Str("borrow".into()));
         let __ws_arg_88 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_margin_post_uni_loans(&[__ws_arg_88]).await;
-        return self.parse_margin_loan(response, Some(&currency));
+        let mut response: crate::value::Dict = self.private_margin_post_uni_loans(&[__ws_arg_88]).await.into_dict();
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -9821,23 +9825,24 @@ if _try_result.is_err() {
         let isUnifiedAccountparamsUnifiedAccountVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("borrowCrossMargin".into()), Value::Str("unifiedAccount".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isUnifiedAccount: bool = isUnifiedAccountparamsUnifiedAccountVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUnifiedAccount: crate::value::Dict = isUnifiedAccountparamsUnifiedAccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isUnifiedAccount {
             request.insert("type".into(), Value::Str("borrow".into()));
             let __ws_arg_89 = self.extend(Value::Map(request.clone()), &[&paramsUnifiedAccount]);
-            response = self.private_unified_post_loans(&[__ws_arg_89]).await;
+            response = self.private_unified_post_loans(&[__ws_arg_89]).await.into_opt_dict();
         }  else {
             // deprecated and not present in the exchange's docs
             // returns {"label":"REQUEST_FORBIDDEN","message":"Request is forbidden"}
             let __ws_arg_90 = self.extend(Value::Map(request), &[&paramsUnifiedAccount]);
-            response = self.private_margin_post_cross_loans(&[__ws_arg_90]).await;
+            response = self.private_margin_post_cross_loans(&[__ws_arg_90]).await.into_opt_dict();
         }
-        return self.parse_margin_loan(response, Some(&currency));
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_margin_loan(&self, mut info: Value, currency: Option<&crate::types::Currency>) -> Value {
+    pub fn parse_margin_loan(&self, info: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+        let mut info: Value = info.into();
         //
         // Cross
         //

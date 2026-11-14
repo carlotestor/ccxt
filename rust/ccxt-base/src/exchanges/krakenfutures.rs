@@ -1471,7 +1471,7 @@ impl Krakenfutures {
                 continue;
             }
             let mut volume: String = self.safe_string(Value::Map(volumes.clone()), uid.map(Value::from).unwrap_or(Value::Null), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(schedule.map_or(Value::Null, Value::Dict), Some(&market), &[Value::from(volume)]));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(&schedule, Some(&market), &[Value::from(volume)]));
         }
         }
         return Value::Map(result);
@@ -1479,7 +1479,8 @@ impl Krakenfutures {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut fee: Value = fee.into();
         let mut volume = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -2880,7 +2881,8 @@ impl Krakenfutures {
         return self.safe_string(&typesMap, orderType.clone(), &[orderType.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn verify_order_action_success(&self, mut status: Value, method: &str, optional_args: &[Value]) {
+    pub fn verify_order_action_success(&self, status: impl Into<crate::Value>, method: &str, optional_args: &[Value]) {
+        let mut status: Value = status.into();
         let mut method: Value = method.into();
         let mut omit = get_arg(optional_args, 0, Value::from(vec![]));
         let mut errors: Value = Value::Map({

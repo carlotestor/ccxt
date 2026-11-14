@@ -4666,7 +4666,8 @@ impl Kucoin {
     Value::Null
 }
 
-    pub fn parse_spot_or_uta_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_spot_or_uta_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         //
         //     {
         //         "symbol": "BTC-USDT",   // symbol
@@ -5201,7 +5202,7 @@ impl Kucoin {
         let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        let mut result: Value = Value::Null;
+        let mut result: Option<crate::value::Dict> = None;
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTicker".into()), Some(&market), &[Value::from(&paramsUta)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -5246,7 +5247,7 @@ impl Kucoin {
             result = self.safe_dict(&resultList, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         }  else if (market).contract {
             let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.futures_public_get_ticker(&[__ws_arg_8]).await.into_opt_dict();
@@ -5300,11 +5301,11 @@ impl Kucoin {
             //     }
             //
             result = self.safe_dict_k(&response, "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_opt_dict();
         }
-        return self.parse_spot_or_uta_ticker(result, Some(&market));
+        return self.parse_spot_or_uta_ticker(&result, Some(&market));
         Value::Null
         }).await?))
     }
@@ -5355,7 +5356,7 @@ impl Kucoin {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            return self.parse_spot_or_uta_ticker(Value::Dict(data), Some(&market));
+            return self.parse_spot_or_uta_ticker(&data, Some(&market));
         }
         Value::Null
         }).await?))
@@ -6498,8 +6499,9 @@ impl Kucoin {
     Value::Null
 }
 
-    pub fn market_order_amount_to_precision(&self, symbol: Option<&str>, mut amount: Value) -> Value {
+    pub fn market_order_amount_to_precision(&self, symbol: Option<&str>, amount: impl Into<crate::Value>) -> Value {
         let mut symbol: Value = symbol.into();
+        let mut amount: Value = amount.into();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -11274,7 +11276,8 @@ impl Kucoin {
     Value::Null
 }
 
-    pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
+    pub fn parse_balance_helper(&self, entry: impl Into<crate::Value>) -> Value {
+        let mut entry: Value = entry.into();
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("used".into(), self.safe_string2(entry.clone(), Value::Str("holdBalance".into()), Value::Str("hold".into()), &[]));
         account.insert("free".into(), self.safe_string2(entry.clone(), Value::Str("availableBalance".into()), Value::Str("available".into()), &[]));
@@ -11480,10 +11483,10 @@ impl Kucoin {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "currency", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "currency", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
+                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
+                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
                 }
             }
             }
@@ -11747,7 +11750,7 @@ impl Kucoin {
                     let mut currencyId: Option<String> = self.safe_string_k(&currencyEntry, "currency", &[]).as_str().map(str::to_owned);
                     let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
                     if (currencyCode != Value::Null) {
-                        result = self.merge_balance_account(result, currencyCode, self.parse_balance_helper(Value::Dict(currencyEntry)));
+                        result = self.merge_balance_account(result, currencyCode, self.parse_balance_helper(&currencyEntry));
                     }
                 }
                 }
@@ -11770,7 +11773,7 @@ impl Kucoin {
                 let mut currencyId: Option<String> = self.safe_string_k(&currencyEntry, "currency", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 if (currencyCode.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(currencyCode.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(Value::Dict(currencyEntry))); }
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(currencyCode.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(&currencyEntry)); }
                 }
             }
             }
@@ -13226,7 +13229,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(data), Some(&currency));
+        return self.parse_margin_loan(&data, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -13288,7 +13291,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(data), Some(&currency));
+        return self.parse_margin_loan(&data, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -13343,7 +13346,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(data), Some(&currency));
+        return self.parse_margin_loan(&data, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -13403,12 +13406,13 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(data), Some(&currency));
+        return self.parse_margin_loan(&data, Some(&currency));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_margin_loan(&self, mut info: Value, currency: Option<&crate::types::Currency>) -> Value {
+    pub fn parse_margin_loan(&self, info: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+        let mut info: Value = info.into();
         //
         //     {
         //         "orderNo": "5da6dba0f943c0c81f5d5db5",

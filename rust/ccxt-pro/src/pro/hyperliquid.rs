@@ -420,7 +420,7 @@ impl Hyperliquid {
         }
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut ordersRequest: crate::value::Dict = self.parent.create_orders_request(orders, &[params]).into_dict();
-        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(Value::Dict(ordersRequest)).into_dict();
+        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(&ordersRequest).into_dict();
         let mut request: crate::value::Dict = self.safe_dict_k(&wrapped, "request", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -541,7 +541,7 @@ impl Hyperliquid {
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut globalParams: crate::value::Dict = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut postRequest: crate::value::Dict = self.parent.edit_orders_request(Value::from(vec![order]), &[Value::Dict(globalParams)]).into_dict();
-        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(Value::Dict(postRequest)).into_dict();
+        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(&postRequest).into_dict();
         let mut request: crate::value::Dict = self.safe_dict_k(&wrapped, "request", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -598,7 +598,7 @@ impl Hyperliquid {
         }
         let mut request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[params]).into_dict();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(Value::Dict(request)).into_dict();
+        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(&request).into_dict();
         let mut wsRequest: crate::value::Dict = self.safe_dict_k(&wrapped, "request", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1315,7 +1315,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut ticker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ctx), Some(&market)).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&ctx, Some(&market)).into_dict();
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(ticker), messageHash.as_str());
@@ -1324,7 +1324,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn parse_ws_ticker(&self, mut rawTicker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, rawTicker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut rawTicker: Value = rawTicker.into();
         return self.parse_ticker(rawTicker, market);
 
     Value::Null
@@ -2840,11 +2841,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            self.handle_unsubscription(client, Value::Dict(subscription));
+            self.handle_unsubscription(client, &subscription);
         }
 }
 
-    pub fn handle_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -2959,7 +2961,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return requestId;
 }
 
-    pub fn wrap_as_post_action(&mut self, mut request: Value) -> Value {
+    pub fn wrap_as_post_action(&mut self, request: impl Into<crate::Value>) -> Value {
+        let mut request: Value = request.into();
         let mut requestId: i64 = self.request_id();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

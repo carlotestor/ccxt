@@ -5381,7 +5381,8 @@ impl Mexc {
         }).await?))
     }
 
-    pub fn custom_parse_balance(&self, mut response: Value, marketType: Option<&str>) -> Value {
+    pub fn custom_parse_balance(&self, response: impl Into<crate::Value>, marketType: Option<&str>) -> Value {
+        let mut response: Value = response.into();
         let mut marketType: Value = marketType.into();
         //
         // spot
@@ -5475,10 +5476,10 @@ impl Mexc {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
+                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
+                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
                 }
             }
             }
@@ -5522,7 +5523,8 @@ impl Mexc {
     Value::Null
 }
 
-    pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
+    pub fn parse_balance_helper(&self, entry: impl Into<crate::Value>) -> Value {
+        let mut entry: Value = entry.into();
         let __entry_empty = indexmap::IndexMap::new();
         let entry = entry.as_map().unwrap_or(&__entry_empty);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -5571,7 +5573,7 @@ impl Mexc {
         let mut marginMode: Option<String> = self.safe_string_k(paramsMarketType.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut isMargin: bool = self.safe_bool_k(paramsMarketType.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted2: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("margin".into()), Value::Str("marginMode".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) || isMargin || (marketType.as_deref() == Some("margin")) {
             let mut parsedSymbols: Value = Value::Null;
             let mut symbol: Option<String> = self.safe_string_k(&paramsOmitted2, "symbol", &[]).as_str().map(str::to_owned);
@@ -5590,17 +5592,17 @@ impl Mexc {
             request.insert("symbols".into(), parsedSymbols);
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOmitted2, Value::from(vec![Value::Str("symbol".into()), Value::Str("symbols".into())]), &[]).into_dict();
             let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.spot_private_get_margin_isolated_account(&[__ws_arg_37]).await;
+            response = self.spot_private_get_margin_isolated_account(&[__ws_arg_37]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
-            response = self.spot_private_get_account(&[__ws_arg_38]).await;
+            response = self.spot_private_get_account(&[__ws_arg_38]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-            response = self.contract_private_get_account_assets(&[__ws_arg_39]).await;
+            response = self.contract_private_get_account_assets(&[__ws_arg_39]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() not support this method".into()))));
         }
-        return self.custom_parse_balance(response, marketType.as_deref());
+        return self.custom_parse_balance(&response, marketType.as_deref());
         Value::Null
         }).await?))
     }

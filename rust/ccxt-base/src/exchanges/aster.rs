@@ -3177,7 +3177,8 @@ impl Aster {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -3312,7 +3313,8 @@ impl Aster {
     Value::Null
 }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         let mut marketId: Option<String> = self.safe_string_k(fee.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
@@ -3358,15 +3360,15 @@ impl Aster {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.fapi_private_get_v3_commission_rate(&[__ws_arg_20]).await;
+            response = self.fapi_private_get_v3_commission_rate(&[__ws_arg_20]).await.into_opt_dict();
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_private_get_v3_commission_rate(&[__ws_arg_21]).await;
+            response = self.sapi_private_get_v3_commission_rate(&[__ws_arg_21]).await.into_opt_dict();
         }
-        return self.parse_trading_fee(response, Some(&market));
+        return self.parse_trading_fee(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -5431,12 +5433,15 @@ impl Aster {
         return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Option<String> {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Option<String> {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.keccak_message(message).as_deref().unwrap_or_default(), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 }
 
-    pub fn sign_withdraw_payload(&self, mut withdrawPayload: Value, mut network: Value) -> Option<String> {
+    pub fn sign_withdraw_payload(&self, withdrawPayload: impl Into<crate::Value>, network: impl Into<crate::Value>) -> Option<String> {
+        let mut withdrawPayload: Value = withdrawPayload.into();
+        let mut network: Value = network.into();
         let mut chainId: Option<i64> = self.safe_integer_k(withdrawPayload.clone(), "chainId", &[]).as_i64();
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5871,7 +5876,8 @@ impl Aster {
     Value::Null
 }
 
-    pub fn encode_values_with_json(&self, mut values: Value) -> Option<String> {
+    pub fn encode_values_with_json(&self, values: impl Into<crate::Value>) -> Option<String> {
+        let mut values: Value = values.into();
         let mut encodedString: Value = Value::Str("".into());
         let mut keys: Vec<Value> = Value::Array(values.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
@@ -5889,7 +5895,8 @@ impl Aster {
         return encodedString.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null).as_str().map(str::to_owned);
 }
 
-    pub fn capitalize_keys(&self, mut dict: Value) -> Value {
+    pub fn capitalize_keys(&self, dict: impl Into<crate::Value>) -> Value {
+        let mut dict: Value = dict.into();
         let mut capitalized: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

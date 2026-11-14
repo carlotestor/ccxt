@@ -2489,7 +2489,8 @@ impl Predictfun {
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {object} a dictionary with the order hash and the signature
  */
-    pub fn sign_predictfun_order(&self, mut order: Value, isNegRisk: bool, isYieldBearing: bool) -> Value {
+    pub fn sign_predictfun_order(&self, order: impl Into<crate::Value>, isNegRisk: bool, isYieldBearing: bool) -> Value {
+        let mut order: Value = order.into();
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
         let mut chainIdValue: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]).as_i64().unwrap_or(56);
@@ -4034,7 +4035,8 @@ impl Predictfun {
  * @param {object} message the raw rejection
  * @param {object} subscription the subscription that request registered, empty when it cannot be attributed
  */
-    pub fn handle_subscription_error(&self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_subscription_error(&self, mut client: Value, mut message: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -4078,7 +4080,8 @@ impl Predictfun {
  * @param {Client} client the websocket client
  * @param {object} subscription the subscription the acknowledged request id belongs to
  */
-    pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_un_subscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
@@ -4687,13 +4690,13 @@ impl Predictfun {
         // orderCancelled - the latter arrives with the same envelope and no fill
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut order: crate::value::Dict = self.parse_wallet_event_order(Value::from(&data)).into_dict();
+        let mut order: crate::value::Dict = self.parse_wallet_event_order(&data).into_dict();
         self.handle_wallet_event_order(client.clone(), Value::from(&order));
         // only a confirmed on-chain settlement is a trade: a submitted transaction has not landed
         // yet and a failed one never did, so neither belongs in myTrades
         let mut eventType: Option<String> = self.safe_string_k(&data, "type", &[]).as_str().map(str::to_owned);
         if (eventType.as_deref() == Some("orderTransactionSuccess")) {
-            self.handle_wallet_event_trade(client, Value::Dict(data), Value::Dict(order));
+            self.handle_wallet_event_trade(client, &data, Value::Dict(order));
         }
 }
 
@@ -4730,7 +4733,8 @@ impl Predictfun {
  * @param {object} event the raw event
  * @param {object} order the order the same event was parsed into
  */
-    pub fn handle_wallet_event_trade(&mut self, mut client: Value, mut event: Value, mut order: Value) {
+    pub fn handle_wallet_event_trade(&mut self, mut client: Value, event: impl Into<crate::Value>, mut order: Value) {
+        let mut event: Value = event.into();
         let mut trade: crate::value::Dict = self.parse_wallet_event_trade(event, order).into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -4753,7 +4757,8 @@ impl Predictfun {
  * @param {object} details the event's details block
  * @returns {object} the outcome object, or a stub when the market is not cached
  */
-    pub fn wallet_event_outcome(&self, mut details: Value) -> Value {
+    pub fn wallet_event_outcome(&self, details: impl Into<crate::Value>) -> Value {
+        let mut details: Value = details.into();
         let mut marketId: Option<String> = self.safe_string_k(details.clone(), "marketId", &[]).as_str().map(str::to_owned);
         let mut outcomeIndex: Option<i64> = self.safe_integer_k(details.clone(), "outcomeIndex", &[]).as_i64();
         let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId.as_deref()).as_array().cloned().unwrap_or_default();
@@ -4809,7 +4814,8 @@ impl Predictfun {
  * @param {object} event the raw event
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub fn parse_wallet_event_order(&self, mut event: Value) -> Value {
+    pub fn parse_wallet_event_order(&self, event: impl Into<crate::Value>) -> Value {
+        let mut event: Value = event.into();
         //
         //     {
         //         "type": "orderTransactionSuccess",
@@ -4846,7 +4852,7 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut outcomeObj: Value = self.wallet_event_outcome(Value::from(&details));
+        let mut outcomeObj: Value = self.wallet_event_outcome(&details);
         let mut eventType: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(&details, "quantity", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(&details, "quantityFilled", &[]).as_str().map(str::to_owned);
@@ -5046,11 +5052,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]).into_dict();
             let mut success: bool = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
             if !success {
-                self.handle_subscription_error(client.clone(), message.clone(), Value::from(&subscription));
+                self.handle_subscription_error(client.clone(), message.clone(), &subscription);
                 return;
             }
             if matches!(self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]), Value::Bool(true)) {
-                self.handle_un_subscription(client.clone(), Value::Dict(subscription));
+                self.handle_un_subscription(client.clone(), &subscription);
             }
             return;
         }

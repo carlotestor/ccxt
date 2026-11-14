@@ -573,7 +573,7 @@ impl Gate {
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("textIsRequired".into(), Value::Bool(true)); }
         let mut request: crate::value::Dict = self.parent.create_order_request(Some(symbolValue.as_str()), type_var.as_str(), side.as_str(), amount, &[price, params]).into_dict();
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
-        let mut rawOrder: Value = self.request_private(url.as_deref(), Value::Dict(request), Some(channel.as_str()), None).await;
+        let mut rawOrder: Value = self.request_private(url.as_deref(), &request, Some(channel.as_str()), None).await;
         let mut order: crate::value::Dict = self.parse_order(rawOrder, Some(&market)).into_dict();
         return Value::Dict(order);
         Value::Null
@@ -614,7 +614,7 @@ impl Gate {
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), Value::Str(".order_batch_place".into()));
         let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
-        let mut rawOrders: Value = self.request_private(url.as_deref(), Value::Arr(request), Some(channel.as_str()), None).await;
+        let mut rawOrders: Value = self.request_private(url.as_deref(), &request, Some(channel.as_str()), None).await;
         return self.parse_orders(rawOrders, Some(&market), &[]);
         Value::Null
         }).await?))
@@ -771,7 +771,7 @@ impl Gate {
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), Value::Str(".order_amend".into()));
         let mut url: Option<String> = self.get_url_by_market(market.clone()).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
-        let mut rawOrder: Value = self.request_private(url.as_deref(), Value::Dict(extendedRequest), Some(channel.as_str()), None).await;
+        let mut rawOrder: Value = self.request_private(url.as_deref(), &extendedRequest, Some(channel.as_str()), None).await;
         return self.parse_order(rawOrder, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
         Value::Null
         }).await?))
@@ -3272,7 +3272,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
 }
 
-    pub fn get_url_by_market(&self, mut market: Value) -> Value {
+    pub fn get_url_by_market(&self, market: impl Into<crate::Value>) -> Value {
+        let mut market: Value = market.into();
         if matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut settleKey: String = (if matches!((self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) { "usdt".to_string() } else { "btc".to_string() });
             return self.safe_string(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &crate::value::get_value_k(&market, "type")), Value::from(settleKey), &[Value::Str("".into())]);
@@ -3403,9 +3404,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub async fn un_subscribe_public_multiple(&mut self, url: Option<&str>, topic: &str, mut symbols: Value, mut messageHashes: Value, mut subMessageHashes: Value, mut payload: Value, channel: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_public_multiple(&mut self, url: Option<&str>, topic: &str, mut symbols: Value, mut messageHashes: Value, mut subMessageHashes: Value, payload: impl Into<crate::Value>, channel: Option<&str>, optional_args: &[Value]) -> Value {
         let mut url: Value = url.into();
         let mut topic: Value = topic.into();
+        let mut payload: Value = payload.into();
         let mut channel: Value = channel.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3464,8 +3466,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         future.resolve(Value::Bool(true), None);
 }
 
-    pub async fn request_private(&mut self, url: Option<&str>, mut reqParams: Value, channel: Option<&str>, requestId: Option<&str>) -> Value {
+    pub async fn request_private(&mut self, url: Option<&str>, reqParams: impl Into<crate::Value>, channel: Option<&str>, requestId: Option<&str>) -> Value {
         let mut url: Value = url.into();
+        let mut reqParams: Value = reqParams.into();
         let mut channel: Value = channel.into();
         let mut requestId: Value = requestId.into();
         self.check_required_credentials(&[]);
@@ -3507,10 +3510,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub async fn subscribe_private(&mut self, url: Option<&str>, messageHash: &str, mut payload: Value, channel: Option<&str>, mut params: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_private(&mut self, url: Option<&str>, messageHash: &str, payload: impl Into<crate::Value>, channel: Option<&str>, params: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut url: Value = url.into();
         let mut messageHash: Value = messageHash.into();
+        let mut payload: Value = payload.into();
         let mut channel: Value = channel.into();
+        let mut params: Value = params.into();
         let mut requiresUid = get_arg(optional_args, 0, Value::Bool(false));
         self.check_required_credentials(&[]);
         // uid is required for some subscriptions only so it's not a part of required credentials

@@ -1616,8 +1616,9 @@ impl Bitvavo {
         }
 }
 
-    pub async fn un_watch_channels(&mut self, topic: &str, mut channels: Value, mut subMessageHashes: Value, mut subscriptionArgs: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_channels(&mut self, topic: &str, mut channels: Value, mut subMessageHashes: Value, subscriptionArgs: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut topic: Value = topic.into();
+        let mut subscriptionArgs: Value = subscriptionArgs.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

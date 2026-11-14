@@ -2525,7 +2525,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_536: bool = true;
             while { if !__for_first_536 { i += 1; } __for_first_536 = false; i < (data.len() as i64) } {
-            let mut spotMarket: Value = self.parse_spot_market(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&feeTier));
+            let mut spotMarket: Value = self.parse_spot_market(data.get(i as usize).cloned().unwrap_or(Value::Null), &feeTier);
             if (spotMarket != Value::Null) {
                 result.push(spotMarket);
             }
@@ -2536,7 +2536,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_537: bool = true;
             while { if !__for_first_537 { i += 1; } __for_first_537 = false; i < (futureData.len() as i64) } {
-            let mut futureMarket: Value = self.parse_contract_market(futureData.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&expiringFeeTier));
+            let mut futureMarket: Value = self.parse_contract_market(futureData.get(i as usize).cloned().unwrap_or(Value::Null), &expiringFeeTier);
             if (futureMarket != Value::Null) {
                 result.push(futureMarket);
             }
@@ -2547,7 +2547,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_538: bool = true;
             while { if !__for_first_538 { i += 1; } __for_first_538 = false; i < (perpetualData.len() as i64) } {
-            let mut perpetualMarket: Value = self.parse_contract_market(perpetualData.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&perpetualFeeTier));
+            let mut perpetualMarket: Value = self.parse_contract_market(perpetualData.get(i as usize).cloned().unwrap_or(Value::Null), &perpetualFeeTier);
             if (perpetualMarket != Value::Null) {
                 result.push(perpetualMarket);
             }
@@ -2585,7 +2585,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_spot_market(&self, mut market: Value, mut feeTier: Value) -> Value {
+    pub fn parse_spot_market(&self, mut market: Value, feeTier: impl Into<crate::Value>) -> Value {
+        let mut feeTier: Value = feeTier.into();
         let __feeTier_empty = indexmap::IndexMap::new();
         let feeTier = feeTier.as_map().unwrap_or(&__feeTier_empty);
         //
@@ -2703,7 +2704,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_contract_market(&self, mut market: Value, mut feeTier: Value) -> Value {
+    pub fn parse_contract_market(&self, mut market: Value, feeTier: impl Into<crate::Value>) -> Value {
+        let mut feeTier: Value = feeTier.into();
         let __feeTier_empty = indexmap::IndexMap::new();
         let feeTier = feeTier.as_map().unwrap_or(&__feeTier_empty);
         // expiring
@@ -3647,7 +3649,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_custom_balance(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_custom_balance(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6411,7 +6414,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "payment_methods", &[Value::from(vec![])]).into_list();
-        return self.parse_deposit_method_ids(Value::Arr(result), &[]);
+        return self.parse_deposit_method_ids(&result, &[]);
 
     Value::Null
 }
@@ -6462,12 +6465,13 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_deposit_method_id(Value::Dict(result));
+        return self.parse_deposit_method_id(&result);
 
     Value::Null
 }
 
-    pub fn parse_deposit_method_ids(&self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_method_ids(&self, ids: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ids: Value = ids.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6489,7 +6493,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_deposit_method_id(&self, mut depositId: Value) -> Value {
+    pub fn parse_deposit_method_id(&self, depositId: impl Into<crate::Value>) -> Value {
+        let mut depositId: Value = depositId.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositId.clone());

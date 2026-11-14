@@ -3440,9 +3440,10 @@ impl Bitget {
         client.resolve(self.balance.clone(), messageHash.as_str());
 }
 
-    pub async fn watch_public(&mut self, uta: bool, messageHash: &str, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_public(&mut self, uta: bool, messageHash: &str, args: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut uta: Value = uta.into();
         let mut messageHash: Value = messageHash.into();
+        let mut args: Value = args.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3472,9 +3473,10 @@ impl Bitget {
     Value::Null
 }
 
-    pub async fn un_watch_public(&mut self, uta: bool, messageHash: &str, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_public(&mut self, uta: bool, messageHash: &str, args: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut uta: Value = uta.into();
         let mut messageHash: Value = messageHash.into();
+        let mut args: Value = args.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3504,7 +3506,8 @@ impl Bitget {
     Value::Null
 }
 
-    pub async fn un_watch_private(&mut self, mut uta: Value, mut messageHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_private(&mut self, mut uta: Value, mut messageHash: Value, args: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut args: Value = args.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3609,10 +3612,11 @@ impl Bitget {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, uta: bool, messageHash: &str, subscriptionHash: &str, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, uta: bool, messageHash: &str, subscriptionHash: &str, args: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut uta: Value = uta.into();
         let mut messageHash: Value = messageHash.into();
         let mut subscriptionHash: Value = subscriptionHash.into();
+        let mut args: Value = args.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

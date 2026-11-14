@@ -476,11 +476,8 @@ impl Coinone {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(data, None).as_map().cloned().unwrap_or_default();
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(&data, None).as_map().cloned().unwrap_or_default();
         let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
         if (symbol == Value::Null) {
             return;
@@ -490,7 +487,8 @@ impl Coinone {
         client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         //
         //     {
         //         "quote_currency": "KRW",

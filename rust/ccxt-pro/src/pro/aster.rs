@@ -2806,7 +2806,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
 }
 
-    pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order(&mut self, mut client: Value, message: impl Into<crate::Value>) {
+        let mut message: Value = message.into();
         //
         // spot
         //     {

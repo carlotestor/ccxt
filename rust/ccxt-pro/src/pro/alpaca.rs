@@ -946,7 +946,7 @@ impl Alpaca {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
-        let mut trade: Value = self.parse_my_trade(Value::Dict(rawOrder), None);
+        let mut trade: Value = self.parse_my_trade(&rawOrder, None);
         if (trade == Value::Null) {
             return;
         }
@@ -958,7 +958,8 @@ impl Alpaca {
         client.resolve(Value::from(&myTrades), messageHash.as_str());
 }
 
-    pub fn parse_my_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut trade: Value = trade.into();
         //
         //    {
         //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",

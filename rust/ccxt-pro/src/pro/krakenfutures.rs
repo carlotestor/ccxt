@@ -2197,7 +2197,8 @@ impl Krakenfutures {
  * @param {object} seenKeys the currency codes / symbols present in the current message
  * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
  */
-    pub fn prune_stale_balance_keys(&self, mut balanceObject: Value, mut seenKeys: Value) -> Value {
+    pub fn prune_stale_balance_keys(&self, mut balanceObject: Value, seenKeys: impl Into<crate::Value>) -> Value {
+        let mut seenKeys: Value = seenKeys.into();
         let __seenKeys_empty = indexmap::IndexMap::new();
         let seenKeys = seenKeys.as_map().unwrap_or(&__seenKeys_empty);
         let mut reserved: Value = Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into()), Value::Str("debt".into())]);

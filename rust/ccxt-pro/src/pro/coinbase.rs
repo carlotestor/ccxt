@@ -854,7 +854,7 @@ impl Coinbase {
                 if (channel.is_some()) {
                     let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str("::".into())).into()), symbol);
                     client.resolve(Value::from(&result), messageHash.as_str());
-                    self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::Dict(result));
+                    self.try_resolve_usdc(client.clone(), Value::from(messageHash), &result);
                 }
             }
             }
@@ -1619,7 +1619,8 @@ impl Coinbase {
         }
 }
 
-    pub fn try_resolve_usdc(&self, mut client: Value, mut messageHash: Value, mut result: Value) {
+    pub fn try_resolve_usdc(&self, mut client: Value, mut messageHash: Value, result: impl Into<crate::Value>) {
+        let mut result: Value = result.into();
         if (messageHash.as_str().unwrap_or("").ends_with("/USD")) || (messageHash.as_str().unwrap_or("").ends_with("-USD")) {
             client.resolve(result, &(Value::Str(format!("{}{}", messageHash, Value::Str("C".into())).into()))); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }

@@ -3116,10 +3116,11 @@ impl Poloniex {
         }).await?))
     }
 
-    pub fn order_request(&self, symbol: &str, type_var: &str, side: &str, mut amount: Value, mut request: Value, optional_args: &[Value]) -> Value {
+    pub fn order_request(&self, symbol: &str, type_var: &str, side: &str, mut amount: Value, request: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut symbol: Value = symbol.into();
         let mut type_var: Value = type_var.into();
         let mut side: Value = side.into();
+        let mut request: Value = request.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3673,7 +3674,8 @@ impl Poloniex {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -3801,7 +3803,7 @@ impl Poloniex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            return self.parse_balance_list(Value::Dict(data));
+            return self.parse_balance_list(&data);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3809,8 +3811,8 @@ impl Poloniex {
             m
         });
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: Value = self.private_get_accounts_balances(&[__ws_arg_28]).await;
-        return self.parse_balance_list(response);
+        let mut response: crate::value::Dict = self.private_get_accounts_balances(&[__ws_arg_28]).await.into_dict();
+        return self.parse_balance_list(&response);
         Value::Null
         }).await?))
     }

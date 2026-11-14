@@ -1099,7 +1099,7 @@ impl Limitless {
                 m.insert("markets".to_string(), Value::Arr(rows));
             m
         })]).into_dict();
-        let mut event: crate::value::Dict = self.parse_event(Value::Dict(wrapped)).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(&wrapped).into_dict();
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -1156,7 +1156,8 @@ impl Limitless {
     Value::Null
 }
 
-    pub fn parse_event(&self, mut event: Value) -> Value {
+    pub fn parse_event(&self, event: impl Into<crate::Value>) -> Value {
+        let mut event: Value = event.into();
         // {
         //    "groupId":"trump-out-as-president-before-2027-1768933068297",
         //    "title":"💎 Trump out as President before 2027?",
@@ -3079,7 +3080,8 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn sign_order_request(&self, mut signRequest: Value, marketSymbol: Option<&str>) -> Option<String> {
+    pub fn sign_order_request(&self, signRequest: impl Into<crate::Value>, marketSymbol: Option<&str>) -> Option<String> {
+        let mut signRequest: Value = signRequest.into();
         let mut marketSymbol: Value = marketSymbol.into();
         self.check_required_credentials(&[]);
         if (self.privateKey.clone() == Value::Null) {
@@ -3183,7 +3185,8 @@ if _try_result.is_err() {
         return Value::from(result.to_lowercase()).as_str().map(str::to_owned);
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Option<String> {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Option<String> {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 }

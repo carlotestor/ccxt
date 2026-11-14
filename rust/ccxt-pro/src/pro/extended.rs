@@ -1029,18 +1029,16 @@ impl Extended {
         //         "seq": 2
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut fundingRate: crate::value::Dict = self.parse_ws_funding_rate(data, None, &[message]).into_dict();
+        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut fundingRate: crate::value::Dict = self.parse_ws_funding_rate(&data, None, &[message]).into_dict();
         let mut symbol: Value = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
         let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), symbol);
         client.resolve(Value::Dict(fundingRate), messageHash.as_str());
 }
 
-    pub fn parse_ws_funding_rate(&self, mut fundingRate: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_funding_rate(&self, fundingRate: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut fundingRate: Value = fundingRate.into();
         let mut message = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);

@@ -5508,8 +5508,9 @@ impl Okx {
         }).await?))
     }
 
-    pub fn parse_balance_by_type(&self, type_var: Option<&str>, mut response: Value) -> Value {
+    pub fn parse_balance_by_type(&self, type_var: Option<&str>, response: impl Into<crate::Value>) -> Value {
         let mut type_var: Value = type_var.into();
+        let mut response: Value = response.into();
         if (type_var.as_str() == Some("funding")) {
             return self.parse_funding_balance(response.clone());
         }  else {
@@ -5591,7 +5592,8 @@ impl Okx {
     Value::Null
 }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
@@ -5667,7 +5669,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(first), Some(&market));
+        return self.parse_trading_fee(&first, Some(&market));
         Value::Null
         }).await?))
     }
@@ -5702,15 +5704,15 @@ impl Okx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("funding")) {
             let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.private_get_asset_balances(&[__ws_arg_30]).await;
+            response = self.private_get_asset_balances(&[__ws_arg_30]).await.into_opt_dict();
         }  else {
             let __ws_arg_31 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_account_balance(&[__ws_arg_31]).await;
+            response = self.private_get_account_balance(&[__ws_arg_31]).await.into_opt_dict();
         }
-        return self.parse_balance_by_type(marketType.as_deref(), response);
+        return self.parse_balance_by_type(marketType.as_deref(), &response);
         Value::Null
         }).await?))
     }
@@ -10867,7 +10869,8 @@ impl Okx {
     Value::Null
 }
 
-    pub fn parse_borrow_rate_histories(&self, mut response: Value, mut codes: Value, since: Option<i64>, limit: Option<i64>) -> Value {
+    pub fn parse_borrow_rate_histories(&self, response: impl Into<crate::Value>, mut codes: Value, since: Option<i64>, limit: Option<i64>) -> Value {
+        let mut response: Value = response.into();
         let mut since: Value = since.into();
         let mut limit: Value = limit.into();
         //
@@ -10968,7 +10971,7 @@ impl Okx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_borrow_rate_histories(Value::Arr(data), codes, since.as_i64(), limit.as_i64());
+        return self.parse_borrow_rate_histories(&data, codes, since.as_i64(), limit.as_i64());
 
     Value::Null
 }
@@ -11505,7 +11508,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(loan), Some(&currency));
+        return self.parse_margin_loan(&loan, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -11572,12 +11575,13 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(loan), Some(&currency));
+        return self.parse_margin_loan(&loan, Some(&currency));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_margin_loan(&self, mut info: Value, currency: Option<&crate::types::Currency>) -> Value {
+    pub fn parse_margin_loan(&self, info: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+        let mut info: Value = info.into();
         //
         //     {
         //         "amt": "102",
@@ -12277,7 +12281,7 @@ impl Okx {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         // rows cover every contract of the instrument family, including expired ids missing from markets
-        let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(data), None).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(&data, None).into_list();
         let mut sorted: Value = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
         return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
 
@@ -12399,7 +12403,8 @@ impl Okx {
     Value::Null
 }
 
-    pub fn parse_settlements(&self, mut settlements: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_settlements(&self, settlements: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut settlements: Value = settlements.into();
         //
         //     {
         //         "details": [
