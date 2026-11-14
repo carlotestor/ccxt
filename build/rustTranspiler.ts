@@ -14897,11 +14897,11 @@ impl std::ops::DerefMut for ${coreName} {
         const out = new Set<string>();
         try {
             const src = fs.readFileSync(`${RUST_CORE}/precise.rs`, 'utf8');
-            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{([^\n]*)\}\s*$/gm)) {
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &(?:crate::Value|\(impl PreciseArg \+ \?Sized\)), b: &(?:crate::Value|\(impl PreciseArg \+ \?Sized\))\)\s*-> crate::Value \{([^\n]*)\}\s*$/gm)) {
                 const body = m[2].trim();
                 if (/^if Self::any_null\(a, b\) \{ return crate::Value::Bool\(false\); \} Self::vbool\([^;{}]*\)$/.test(body)) out.add(m[1]);
             }
-            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{ Self::(string[A-Z][A-Za-z]*)\(a, b\) \}/g)) {
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &(?:crate::Value|\(impl PreciseArg \+ \?Sized\)), b: &(?:crate::Value|\(impl PreciseArg \+ \?Sized\))\)\s*-> crate::Value \{ Self::(string[A-Z][A-Za-z]*)\(a, b\) \}/g)) {
                 if (out.has(m[2])) out.add(m[1]);
             }
         } catch { /* precise.rs absent: keep the helper */ }
