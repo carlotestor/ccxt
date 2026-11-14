@@ -96,7 +96,7 @@ export default class kucoin extends kucoinRest {
         });
     }
 
-    async negotiate (privateChannel: boolean, isFuturesMethod: boolean = false, params: Dict = {}) {
+    async negotiate (privateChannel: boolean, isFuturesMethod: boolean = false, params: Dict = {}): Promise<string> {
         let connectId: Str = 'public';
         if (privateChannel) {
             connectId = 'private';
