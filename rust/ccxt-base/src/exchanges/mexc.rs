@@ -3158,9 +3158,9 @@ impl Mexc {
         let mut candles: Value = Value::from(vec![]);
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
         let mut omitUntil: bool = (until.is_some()) && (since == Value::Null);
-        let mut paramsUntil: Value = Value::from(&paramsPaginate);
+        let mut paramsUntil: crate::value::Dict = Value::from(&paramsPaginate).into_dict();
         if omitUntil {
-            paramsUntil = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+            paramsUntil = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         }
         if (market).spot {
             if (since != Value::Null) {
@@ -3188,7 +3188,7 @@ impl Mexc {
             if (until.is_some()) {
                 request.insert("endTime".into(), Value::from((if let Some(__l) = until { Some(__l + 1) } else { None }))); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
-            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
             let mut response: crate::value::List = self.spot_public_get_klines(&[__ws_arg_6]).await.into_list();
             //
             //     [
@@ -3222,8 +3222,8 @@ impl Mexc {
                     }
                 }
             }
-            let mut priceType: Option<String> = self.safe_string_k(paramsUntil.clone(), "price", &[Value::Str("default".into())]).as_str().map(str::to_owned);
-            let mut paramsOmitted: crate::value::Dict = self.omit(paramsUntil, Value::Str("price".into()), &[]).into_dict();
+            let mut priceType: Option<String> = self.safe_string_k(&paramsUntil, "price", &[Value::Str("default".into())]).as_str().map(str::to_owned);
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::Str("price".into()), &[]).into_dict();
             let mut response: Value = Value::Null;
             if (priceType.as_deref() == Some("default")) {
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);

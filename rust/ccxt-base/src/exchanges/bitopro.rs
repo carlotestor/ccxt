@@ -2311,9 +2311,9 @@ impl Bitopro {
             m
         });
         let mut hasNetwork: bool = paramsWithdrawTag.contains_key("network");
-        let mut paramsOmitted: Value = Value::from(&paramsWithdrawTag);
+        let mut paramsOmitted: crate::value::Dict = Value::from(&paramsWithdrawTag).into_dict();
         if hasNetwork {
-            paramsOmitted = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("network".into())]), &[]);
+            paramsOmitted = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("network".into())]), &[]).into_dict();
         }
         if hasNetwork {
             let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
@@ -2330,7 +2330,7 @@ impl Bitopro {
         if (tagWithdrawTag.is_some()) {
             request.insert("message".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_wallet_withdraw_currency(&[__ws_arg_17]).await.into_dict();
         let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

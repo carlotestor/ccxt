@@ -2772,9 +2772,9 @@ impl Bitrue {
             let mut createMarketBuyOrderRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut isMarketBuyWithPrice: bool = isMarket && (side.as_str() == Some("buy")) && createMarketBuyOrderRequiresPrice.as_bool() == Some(true);
-            let mut paramsNoCost: Value = Value::from(&paramsRequiresPrice);
+            let mut paramsNoCost: crate::value::Dict = Value::from(&paramsRequiresPrice).into_dict();
             if isMarketBuyWithPrice {
-                paramsNoCost = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
+                paramsNoCost = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]).into_dict();
             }
             if isMarketBuyWithPrice {
                 let mut cost: Option<String> = self.safe_string_k(&paramsRequiresPrice, "cost", &[]).as_str().map(str::to_owned);
@@ -2798,11 +2798,11 @@ impl Bitrue {
                 request.insert("volume".into(), self.parse_to_numeric(amount.clone()));
             }
             request.insert("positionType".into(), Value::Int(1));
-            let mut reduceOnly: Option<bool> = self.safe_bool2(paramsNoCost.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+            let mut reduceOnly: Option<bool> = self.safe_bool2(&paramsNoCost, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
             request.insert("open".into(), (if (reduceOnly == Some(true)) { Value::Str("CLOSE".into()) } else { Value::Str("OPEN".into()) }));
-            let mut leverage: String = self.safe_string_k(paramsNoCost.clone(), "leverage", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
+            let mut leverage: String = self.safe_string_k(&paramsNoCost, "leverage", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             request.insert("leverage".into(), self.parse_to_numeric(Value::from(leverage)));
-            let mut paramsSwap: crate::value::Dict = self.omit(paramsNoCost, Value::from(vec![Value::Str("leverage".into()), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
+            let mut paramsSwap: crate::value::Dict = self.omit(&paramsNoCost, Value::from(vec![Value::Str("leverage".into()), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
             if ((market).linear == Some(true)) {
                 let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsSwap]);
                 response = self.fapi_v2_private_post_order(&[__ws_arg_15]).await;

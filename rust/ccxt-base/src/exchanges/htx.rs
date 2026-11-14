@@ -9851,9 +9851,9 @@ impl Htx {
     m
 })]).into_dict();
         let mut includeFee: bool = self.safe_bool_k(&withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsFee: Value = Value::from(&paramsNetwork);
+        let mut paramsFee: crate::value::Dict = Value::from(&paramsNetwork).into_dict();
         if includeFee {
-            paramsFee = self.omit(&paramsNetwork, Value::Str("fee".into()), &[]);
+            paramsFee = self.omit(&paramsNetwork, Value::Str("fee".into()), &[]).into_dict();
         }
         if includeFee {
             let mut fee: Option<f64> = self.safe_number_k(&paramsNetwork, "fee", &[]).as_f64();
@@ -9889,7 +9889,7 @@ impl Htx {
             amountValue = self.parse_number(amountAfterFee.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         request.insert("amount".into(), Value::from(amountValue));
-        let __ws_arg_115 = self.extend(Value::Map(request), &[paramsFee]);
+        let __ws_arg_115 = self.extend(Value::Map(request), &[&paramsFee]);
         let mut response: crate::value::Dict = self.spot_private_post_v1_dw_withdraw_api_create(&[__ws_arg_115]).await.into_dict();
         return self.parse_transaction(&response, Some(&currency));
         Value::Null
@@ -10047,7 +10047,7 @@ impl Htx {
             let __ws_arg_120 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.private_post_dw_transfer_out_margin(&[__ws_arg_120]).await;
         }  else {
-            let mut query: Value = Value::from(&paramsSubType);
+            let mut query: crate::value::Dict = Value::from(&paramsSubType).into_dict();
             if (subType.as_deref() == Some("linear")) {
                 if (fromAccountIdStr.as_str() == Some("swap")) || (fromAccount.as_str() == Some("linear-swap")) {
                     fromAccountId = Value::Str("linear-swap".into());
@@ -10056,7 +10056,7 @@ impl Htx {
                 }
                 // check if cross-margin or isolated
                 let mut symbol: Option<String> = self.safe_string_k(&paramsSubType, "symbol", &[]).as_str().map(str::to_owned);
-                query = self.omit(&paramsSubType, Value::Str("symbol".into()), &[]);
+                query = self.omit(&paramsSubType, Value::Str("symbol".into()), &[]).into_dict();
                 if (symbol.is_some()) {
                     symbol = self.market_id(symbol.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     request.insert("margin-account".into(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -10066,7 +10066,7 @@ impl Htx {
             }
             request.insert("from".into(), (if fromSpot { Value::Str("spot".into()) } else { fromAccountId }));
             request.insert("to".into(), (if toSpot { Value::Str("spot".into()) } else { toAccountId }));
-            let __ws_arg_121 = self.extend(Value::Map(request), &[query]);
+            let __ws_arg_121 = self.extend(Value::Map(request), &[&query]);
             response = self.v2_private_post_account_transfer(&[__ws_arg_121]).await;
         }
         //

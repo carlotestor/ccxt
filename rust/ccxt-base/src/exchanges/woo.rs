@@ -2583,9 +2583,9 @@ impl Woo {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         }
         let mut isMarketNotConditional: bool = isMarket && !isConditional;
-        let mut paramsCost: Value = Value::from(&paramsMarginMode);
+        let mut paramsCost: crate::value::Dict = Value::from(&paramsMarginMode).into_dict();
         if isMarketNotConditional {
-            paramsCost = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]);
+            paramsCost = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]).into_dict();
         }
         if isMarketNotConditional {
             // for market buy it requires the amount of quote currency to spend
@@ -2608,7 +2608,7 @@ impl Woo {
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
-        let mut clientOrderId: Option<String> = self.safe_string_n(paramsCost.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_n(&paramsCost, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             request.insert(clientOrderIdKey, clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -2672,7 +2672,7 @@ impl Woo {
             });
             request.insert("childOrders".into(), Value::from(vec![Value::Map(outterOrder)]));
         }
-        let mut paramsRequest: crate::value::Dict = self.omit(paramsCost, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()),
+        let mut paramsRequest: crate::value::Dict = self.omit(&paramsCost, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()),
             Value::Str("takeProfit".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isConditional {
