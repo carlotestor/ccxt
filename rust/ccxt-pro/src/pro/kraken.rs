@@ -1707,7 +1707,7 @@ impl Kraken {
         let mut symbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut a: Value = self.safe_list_k(&first, "asks", &[Value::from(vec![])]);
         let mut b: Value = self.safe_list_k(&first, "bids", &[Value::from(vec![])]);
-        let mut c: Value = self.safe_integer_k(&first, "checksum", &[]);
+        let mut c: Option<i64> = self.safe_integer_k(&first, "checksum", &[]).as_i64();
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut orderbook: Option<crate::pro::order_book::Book> = None;
         if (type_var.as_deref() == Some("update")) {
@@ -1779,7 +1779,7 @@ impl Kraken {
         let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(false)]).as_bool();
         if (checksum == Some(true)) {
             let mut payloadArray: Vec<Value> = Vec::new();
-            if (c != Value::Null) {
+            if (c.is_some()) {
                 let mut checkAsks: Value = orderbook.book_field("asks");
                 let mut checkBids: Value = orderbook.book_field("bids");
                 {
@@ -1810,8 +1810,8 @@ impl Kraken {
                 }
             }
             let mut payload: Value = Value::Str(payloadArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("").into());
-            let mut localChecksum: Value = self.crc32(&[payload, Value::Bool(false)]);
-            if (localChecksum.as_f64() != c.as_f64()) {
+            let mut localChecksum: i64 = self.crc32(&[payload, Value::Bool(false)]);
+            if (Some(localChecksum) != c) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.clone().map(Value::from).unwrap_or(Value::Null)))));
                 __ch.remove_subscription(messageHash.as_deref());
                 CacheStore::forget(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null));
