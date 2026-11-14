@@ -1455,8 +1455,8 @@ impl Sxbet {
         // the request body carries the salt in 32-byte-hex form; the signed struct carries the
         // same value in uint256 form - both parse to one number server-side. assign to bare locals
         // before padStart - see the transpiler notes
-        let mut saltHexRaw: Value = Value::from(self.int_to_base16(Value::from(self.parse_to_int(Value::from(saltNumber.as_deref()))), &[]));
-        let mut saltHexPadded: Value = saltHexRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
+        let mut saltHexRaw: String = self.int_to_base16(Value::from(self.parse_to_int(Value::from(saltNumber.as_deref()))), &[]);
+        let mut saltHexPadded: String = format!("{:0>64}", saltHexRaw);
         let mut saltHex: String = format!("{}{}", Value::Str("0x".into()), saltHexPadded);
         let mut defaultExpirySeconds: i64 = self.safe_integer_k(self.options.clone(), "defaultOrderExpirySeconds", &[Value::Int(86400)]).as_i64().unwrap_or(86400);
         let mut expiry: Option<i64> = self.safe_integer_k(params.clone(), "expiry", &[Value::Int(((self.seconds().as_i64().unwrap_or_default()) + defaultExpirySeconds))]).as_i64();

@@ -3294,9 +3294,9 @@ impl Tokocrypto {
                 tag = None.clone();
             }
         }
-        let mut txid: Value = self.safe_string_k(transaction.clone(), "txId", &[]);
-        if (txid != Value::Null) && (txid.as_str().unwrap_or("").contains("Internal transfer ")) {
-            txid = txid.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(18); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txId", &[]).as_str().map(str::to_owned);
+        if (txid.is_some()) && (txid.as_deref().unwrap_or_default().contains("Internal transfer ")) {
+            txid = (if let Some(__s) = txid.as_deref() { Some(__s.chars().skip(18).collect::<String>()) } else { None });
         }
         let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("coin".into()), Value::Str("fiatCurrency".into()), &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
@@ -3343,7 +3343,7 @@ impl Tokocrypto {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("txid".to_string(), txid);
+        m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)])));

@@ -4557,10 +4557,10 @@ impl Modetrade {
         let mut hash: Value = hash.into();
         let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
-        let mut r: Value = self.safe_string_k(&signature, "r", &[Value::Str("".into())]);
-        let mut s: Value = self.safe_string_k(&signature, "s", &[Value::Str("".into())]);
+        let mut r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), Value::from(format!("{:0>64}", r))).into()), Value::from(format!("{:0>64}", s))).into()), v).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Option<String> {

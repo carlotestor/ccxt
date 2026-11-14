@@ -11920,19 +11920,19 @@ impl Okx {
             let mut unitPeriod: Value = (if (period.as_str().unwrap_or("").ends_with("utc")) { period.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0);
                 if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null) } else { period });
             let mut unit: Value = unitPeriod.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 1).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-            let mut windowDuration: Value = Value::Null;
+            let mut windowDuration: Option<i64> = None;
             if (unit.as_str() == Some("M")) {
                 // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
                 // all entries in it are requested and the caller keeps the earliest limit of them
                 let mut months: Option<i64> = self.parse_to_int(unitPeriod.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
                 let mut day: i64 = 86400000;
-                windowDuration = crate::runtime::Math::min(&Value::from((if let Some(__l) = ((if let Some(__l) = ((if let (Some(__l), Some(__r)) = (effectiveLimit, months) { Some(__l * __r) } else { None })) { Some(__l * 31) } else { None })) { Some(__l * day) } else { None })),
-                    &Value::from((if let Some(__l) = ((if let Some(__l) = ((if let Some(__r) = months { Some(maxLimit * __r) } else { None })) { Some(__l * 28) } else { None })) { Some(__l * day) } else { None })));
+                windowDuration = (if let (Some(__m0), Some(__m1)) = (((if let Some(__l) = ((if let Some(__l) = ((if let (Some(__l), Some(__r)) = (effectiveLimit, months) { Some(__l * __r) } else { None })) { Some(__l * 31) } else { None })) { Some(__l * day) } else { None })),
+                    ((if let Some(__l) = ((if let Some(__l) = ((if let Some(__r) = months { Some(maxLimit * __r) } else { None })) { Some(__l * 28) } else { None })) { Some(__l * day) } else { None }))) { Some(i64::min(__m0, __m1)) } else { None });
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::from(maxLimit)); }
             }  else {
-                windowDuration = Value::from((if let Some(__l) = ((if let Some(__l) = effectiveLimit { Some(__l * (self.parse_timeframe((if let Some(__s) = unitPeriod.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })))) } else { None })) { Some(__l * 1000) } else { None }));
+                windowDuration = (if let Some(__l) = ((if let Some(__l) = effectiveLimit { Some(__l * (self.parse_timeframe((if let Some(__s) = unitPeriod.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })))) } else { None })) { Some(__l * 1000) } else { None });
             }
-            let mut windowEnd: Value = self.sum(&[since, windowDuration]);
+            let mut windowEnd: Value = self.sum(&[since, Value::from(windowDuration)]);
             end = (if (end == Value::Null) { windowEnd.clone() } else { crate::runtime::Math::min(&end, &windowEnd) });
         }
         if (end != Value::Null) {

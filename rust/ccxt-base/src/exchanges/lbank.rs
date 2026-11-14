@@ -1874,13 +1874,13 @@ impl Lbank {
             sinceResolved = since.as_i64();
             parsedSince = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         }
-        let mut parsedLimit: Value = crate::runtime::Math::min(&Value::from((if let Some(__l) = limitResolved { Some(__l + 1) } else { None })), &Value::Int(2000)); // max 2000;
+        let mut parsedLimit: Option<i64> = (if let Some(__m0) = ((if let Some(__l) = limitResolved { Some(__l + 1) } else { None })) { Some(i64::min(__m0, 2000)) } else { None }); // max 2000;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("time".to_string(), Value::from(parsedSince));
-                m.insert("size".to_string(), parsedLimit);
+                m.insert("size".to_string(), Value::from(parsedLimit));
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);

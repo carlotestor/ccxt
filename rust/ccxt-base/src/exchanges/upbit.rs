@@ -1841,8 +1841,8 @@ impl Upbit {
             request.insert("to".into(), self.iso8601(self.sum(&[since.clone(), Value::Int((((timeframePeriod * limitResolved)) * 1000))])));
         }
         if (timeframeValue.as_deref() == Some("minutes")) {
-            let mut numMinutes: Value = (Value::Float(((timeframePeriod as f64) / 60.0))).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null);
-            request.insert("unit".into(), numMinutes);
+            let mut numMinutes: f64 = f64::round((((timeframePeriod as f64) / 60.0)));
+            request.insert("unit".into(), Value::from(numMinutes));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_get_candles_timeframe_unit(&[__ws_arg_7]).await;
         }  else {

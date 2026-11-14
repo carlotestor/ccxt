@@ -1478,9 +1478,9 @@ impl Coinone {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // unified lowercase order sides, same override rule
-        if (orderType.as_str() != Some("LIMIT")) {
+        let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase(); // unified lowercase order sides, same override rule
+        if (orderType != "LIMIT") {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
         }
         if (price == Value::Null) {
@@ -1497,8 +1497,8 @@ impl Coinone {
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), Value::from((market).quote_id.as_deref()));
                 m.insert("target_currency".to_string(), Value::from((market).base_id.as_deref()));
-                m.insert("type".to_string(), orderType);
-                m.insert("side".to_string(), orderSide);
+                m.insert("type".to_string(), Value::from(orderType));
+                m.insert("side".to_string(), Value::from(orderSide));
                 m.insert("price".to_string(), self.price_to_precision(symbol.clone(), price));
                 m.insert("qty".to_string(), self.amount_to_precision(symbol, amount));
             m

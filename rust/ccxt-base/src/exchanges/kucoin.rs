@@ -4658,8 +4658,8 @@ impl Kucoin {
 })]).into_dict();
         let mut type_var: Option<String> = self.safe_string(&accountsByType, requestedType.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (type_var.is_none()) {
-            let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" isFuturesMethod() type must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+            let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" isFuturesMethod() type must be one of ".into())).into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         return Value::Bool((type_var.as_deref() == Some("contract")) || (type_var.as_deref() == Some("future")) || (type_var.as_deref() == Some("futures")));
 
@@ -12652,10 +12652,10 @@ if _try_result.is_err() {
         //         "interestFreeBorrowLimit": "0.60000000000000000000"
         //     }
         //
-        let mut timestampId: Option<String> = self.safe_string2_opt(info.clone(), Value::Str("createdAt".into()), Value::Str("timestamp".into()), &[]);
+        let mut timestampId: Option<String> = self.safe_string2(info.clone(), Value::Str("createdAt".into()), Value::Str("timestamp".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = None;
         if (timestampId.is_some()) {
-            timestamp = self.parse_to_int(timestampId.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+            timestamp = self.parse_to_int((if let Some(__s) = timestampId.as_deref() { Some(__s.chars().skip(0).take(13).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null));
         }
         let mut currencyId: Option<String> = self.safe_string_k(info.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut rate: Option<String> = self.safe_string_n(info.clone(), Value::from(vec![Value::Str("dailyIntRate".into()), Value::Str("dayRatio".into()), Value::Str("currentRateDaily".into())]), &[]).as_str().map(str::to_owned);

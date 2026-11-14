@@ -3837,15 +3837,15 @@ impl Predictfun {
         if (rpcUrl.is_none()) || (token.is_none()) || (spender == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain ".into())).into()), chainKey.map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut amountHex: Value = Value::Str("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into());
+        let mut amountHex: String = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".to_string();
         let mut amount: Option<String> = self.safe_string_k(params, "amount", &[]).as_str().map(str::to_owned);
         if (amount.is_some()) {
             // the collateral has eighteen decimals, so the scaled amount runs past what a float
             // can hold - it has to stay a string all the way into the bigint
             let mut scaled: Option<String> = crate::precise::Precise::stringMul(&amount.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
             let mut amountInt: Option<String> = self.decimal_to_precision(scaled.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
-            let mut amountBase16: Value = Value::from(self.int_to_base16(self.convert_to_big_int(amountInt.map(Value::from).unwrap_or(Value::Null)), &[]));
-            amountHex = amountBase16.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
+            let mut amountBase16: String = self.int_to_base16(self.convert_to_big_int(amountInt.map(Value::from).unwrap_or(Value::Null)), &[]);
+            amountHex = format!("{:0>64}", amountBase16);
         }
         // approve(spender, amount) -> selector 0x095ea7b3
         let mut approveData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x095ea7b3".into()), self.pad_hex_address(spender)).into()), amountHex);

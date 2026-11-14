@@ -1307,7 +1307,7 @@ impl Extended {
         m.insert("active".to_string(), isActive.map_or(Value::Null, Value::Bool));
         m.insert("deposit".to_string(), Value::Bool(true));
         m.insert("withdraw".to_string(), Value::Bool(true));
-        m.insert("precision".to_string(), crate::runtime::Math::pow(&Value::Int(10), &Value::Int((precision * -1))));
+        m.insert("precision".to_string(), Value::Float(f64::powf(10.0, (((precision * -1)) as f64))));
         m.insert("type".to_string(), Value::Str("other".into()));
         m.insert("margin".to_string(), self.safe_bool_k(currency.clone(), "canBeUsedAsCollateral", &[]));
         m.insert("info".to_string(), currency);
@@ -3955,7 +3955,7 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
-        let mut uppercaseSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut uppercaseSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         if (market).spot && (uppercaseType != "LIMIT") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports limit orders for spot markets only".into()))));
         }
@@ -4031,14 +4031,14 @@ impl Extended {
                 m.insert("collateralPosition".to_string(), collateralPosition.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut isBuy: bool = uppercaseSide.as_str() == Some("BUY");
+        let mut isBuy: bool = uppercaseSide == "BUY";
         let mut clientOrderId: Value = self.safe_string2(paramsBuilder.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[Value::from(self.uuid(&[]))]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), clientOrderId.clone());
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), Value::from(uppercaseType));
-                m.insert("side".to_string(), uppercaseSide);
+                m.insert("side".to_string(), Value::from(uppercaseSide));
                 m.insert("qty".to_string(), amountString.clone());
                 m.insert("price".to_string(), priceString.clone());
                 m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));

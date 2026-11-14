@@ -3046,9 +3046,9 @@ impl Derive {
         let mut rawNonce: i64 = self.incrementing_nonce();
         let mut randomPart: Value = self.rand_number(Value::Int(6)); // guards against collisions of different instances with the same wallet
         let mut milliseconds: Value = Value::from(self.number_to_string(Value::from(rawNonce)));
-        let mut suffix: Value = Value::from(self.number_to_string(randomPart));
-        let mut padded: Value = suffix.as_str().map(|__s| Value::Str(format!("{:0>6}", __s).into())).unwrap_or(Value::Null);
-        return Value::Str(format!("{}{}", milliseconds, padded).into()).as_str().map(str::to_owned);
+        let mut suffix: Option<String> = self.number_to_string(randomPart);
+        let mut padded: Option<String> = (if let Some(__s) = suffix.as_deref() { Some(format!("{:0>6}", __s)) } else { None });
+        return Value::Str(format!("{}{}", milliseconds, padded.map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
 }
 
     pub fn hash_message(&self, message: &str) -> Option<String> {
@@ -3067,10 +3067,10 @@ impl Derive {
         self.check_required_credentials(&[]);
         let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
-        let mut r: Value = self.safe_string_k(&signature, "r", &[Value::Str("".into())]);
-        let mut s: Value = self.safe_string_k(&signature, "s", &[Value::Str("".into())]);
+        let mut r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), Value::from(format!("{:0>64}", r))).into()), Value::from(format!("{:0>64}", s))).into()), v).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_message(&self, message: &str, privateKey: &str) -> Option<String> {
@@ -3135,8 +3135,8 @@ impl Derive {
         let mut timeInForce: Option<String> = self.safe_string_lower2(Value::from(&paramsDeriveSubaccountId), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = self.safe_bool_k(&paramsDeriveSubaccountId, "postOnly", &[]).as_bool();
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
-        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
+        let mut orderSideIsBuy: Value = (Value::Bool(orderSide == "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         let mut signatureExpiry: Value = self.safe_integer_k(&paramsDeriveSubaccountId, "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
@@ -3169,7 +3169,7 @@ impl Derive {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("direction".to_string(), orderSide);
+                m.insert("direction".to_string(), Value::from(orderSide));
                 m.insert("order_type".to_string(), Value::from(orderType));
                 m.insert("nonce".to_string(), nonce);
                 m.insert("amount".to_string(), amountString);
@@ -3327,8 +3327,8 @@ impl Derive {
         let mut timeInForce: Option<String> = self.safe_string_lower2(Value::from(&paramsDeriveSubaccountId), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = self.safe_bool_k(&paramsDeriveSubaccountId, "postOnly", &[]).as_bool();
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
-        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
+        let mut orderSideIsBuy: Value = (Value::Bool(orderSide == "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
         let mut signatureExpiry: Value = self.safe_number_k(&paramsDeriveSubaccountId, "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
             (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
@@ -3353,7 +3353,7 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
                 m.insert("order_id_to_cancel".to_string(), id.clone());
-                m.insert("direction".to_string(), orderSide);
+                m.insert("direction".to_string(), Value::from(orderSide));
                 m.insert("order_type".to_string(), Value::from(orderType));
                 m.insert("nonce".to_string(), nonce);
                 m.insert("amount".to_string(), amountString);

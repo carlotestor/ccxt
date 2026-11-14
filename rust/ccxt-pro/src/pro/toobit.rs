@@ -559,10 +559,10 @@ impl Toobit {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
-        let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized)]).into_opt_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsNormalized)]).into_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+                m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                 m.insert("topic".to_string(), Value::Str("trade".into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
@@ -890,10 +890,10 @@ impl Toobit {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
-        let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_opt_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+                m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                 m.insert("topic".to_string(), Value::Str("realtimes".into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
@@ -1062,11 +1062,11 @@ impl Toobit {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), channel).into()));
         }
         }
-        let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized)]).into_opt_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsNormalized)]).into_list();
         let mut url: String = format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[Value::Str("".into())]), Value::Str("/quote/ws/v1".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+                m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                 m.insert("topic".to_string(), channel);
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m

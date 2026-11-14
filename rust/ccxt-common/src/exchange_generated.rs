@@ -4810,7 +4810,7 @@ pub trait ExchangeBase:
         let mut isIndexedByUnifiedNetworkCode = get_arg(optional_args, 0, Value::Bool(false));
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let mut chosenNetworkId: Value = Value::Null;
-        let mut availableNetworkIds: Value = object_keys(&indexedNetworkEntries);
+        let mut availableNetworkIds: crate::value::List = object_keys(&indexedNetworkEntries).into_list();
         let mut responseNetworksLength: i64 = availableNetworkIds.len() as i64;
         if (networkCode != Value::Null) {
             if (responseNetworksLength == 0) {
@@ -4825,7 +4825,7 @@ pub trait ExchangeBase:
                     chosenNetworkId = networkIdOrCode.clone();
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" - ".into())).into()), networkIdOrCode).into()), Value::Str(" network was not found for ".into())).into()),
-                        currencyCode).into()), Value::Str(", use one of ".into())).into()), Value::Str(availableNetworkIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+                        currencyCode).into()), Value::Str(", use one of ".into())).into()), Value::Str(availableNetworkIds.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
                 }
             }
         }  else {
@@ -4844,8 +4844,7 @@ pub trait ExchangeBase:
                 if (matches!((&indexedNetworkEntries, &defaultNetworkId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     return defaultNetworkId;
                 }
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" - can not determine the default network, please pass param[\"network\"] one from : ".into())).into()),
-                    Value::Str(availableNetworkIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" - can not determine the default network, please pass param[\"network\"] one from : ".into())).into()), Value::Str(availableNetworkIds.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
             }
         }
         return chosenNetworkId;
@@ -6508,9 +6507,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (matches!((&mapping, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return (if let (Some(__m), Some(__k)) = (mapping.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
-            let mut keys: Value = object_keys(&mapping);
+            let mut keys: crate::value::List = object_keys(&mapping).into_list();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), key).into()), Value::Str(" does not have a value in mapping".into())).into()),
-                Value::Str(", must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+                Value::Str(", must be one of ".into())).into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
 
     Value::Null

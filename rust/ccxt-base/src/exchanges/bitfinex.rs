@@ -1929,8 +1929,8 @@ impl Bitfinex {
         let mut requestedType: String = self.safe_string_k(params.clone(), "type", &[Value::Str("exchange".into())]).as_str().unwrap_or("exchange").to_string();
         let mut accountType: Option<String> = self.safe_string(&accountsByType, Value::from(requestedType.clone()), &[Value::from(requestedType.clone())]).as_str().map(str::to_owned);
         if (accountType.is_none()) {
-            let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+            let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".into())).into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut isDerivative: bool = requestedType == "derivatives";
         let mut query: Value = self.omit(params, Value::Str("type".into()), &[]);

@@ -4673,7 +4673,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Option<i64> = self.safe_integer_k(contract.clone(), "t", &[]).as_i64();
         let mut fundingTimestamp: Value = Value::Null;
         if (timestamp.is_some()) {
-            fundingTimestamp = (match (&(Value::from(self.parse_to_int((Value::from((if let Some(__l) = timestamp { Some((__l as f64) / 3600000.0) } else { None }))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)))), &(Value::Int(3600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
+            fundingTimestamp = (match (&(Value::from(self.parse_to_int(Value::from((if let Some(__x) = ((if let Some(__l) = timestamp { Some((__l as f64) / 3600000.0) } else { None })) { Some(f64::ceil(__x)) } else { None }))))), &(Value::Int(3600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
                 Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // end of the next hour
         }
         return Value::Map({

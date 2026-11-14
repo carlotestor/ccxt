@@ -3391,9 +3391,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }
             let mut sizeParts: crate::value::List = Value::Array(if let Some(__s) = size.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut sizeDec: String = self.safe_string(&sizeParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut sizeDecLength: Value = Value::Int((((sizeDec.chars().count() as i64)) + 0)); // php tr
+            let mut sizeDecLength: i64 = (((sizeDec.chars().count() as i64)) + 0); // php tr
             let mut sizeDigits: Value = (match &(if let Some(__s) = size.as_deref() { Some(__s.replace(".", "")) } else { None }).map(Value::from).unwrap_or(Value::Null) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
-            let mut denominator: Value = crate::runtime::Math::pow(&Value::Int(10), &sizeDecLength);
+            let mut denominator: Value = Value::Float(f64::powf(10.0, (sizeDecLength as f64)));
             let mut sizeInteger: Value = (match (((match (&(sizeDigits), &(sizeMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                 _ => Value::Null })).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
             let mut legOrder: indexmap::IndexMap<String, Value> = {
@@ -3408,9 +3408,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut price: Value = limitPrice.map(Value::from).unwrap_or(Value::Null);
                 let mut limitParts: crate::value::List = Value::Array(if let Some(__s) = price.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
                 let mut limitDec: String = self.safe_string(&limitParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut limitDecLength: Value = Value::Int((((limitDec.chars().count() as i64)) + 0)); // php tr
+                let mut limitDecLength: i64 = (((limitDec.chars().count() as i64)) + 0); // php tr
                 let mut priceDigits: Value = (match &price.as_str().map(|__s| Value::Str(__s.replace(".", "").into())).unwrap_or_else(|| price.clone()) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
-                denominator = crate::runtime::Math::pow(&Value::Int(10), &limitDecLength);
+                denominator = Value::Float(f64::powf(10.0, (limitDecLength as f64)));
                 let mut priceInteger: Value = (match (((match (&(priceDigits), &(priceMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null })).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
                 legOrder.insert("limitPrice".into(), Value::from(self.parse_to_int(priceInteger)));
@@ -4714,9 +4714,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn format_signature_rs(&self, value: &str) -> Value {
         let mut value: Value = value.into();
-        let mut padded: Value = value.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
-        if (padded.as_str().unwrap_or("").starts_with("0x")) {
-            return padded;
+        let mut padded: String = format!("{:0>64}", value.as_str().unwrap_or_default().to_string());
+        if (padded.starts_with("0x")) {
+            return Value::from(padded);
         }  else {
             return Value::Str(format!("{}{}", Value::Str("0x".into()), padded).into());
         }

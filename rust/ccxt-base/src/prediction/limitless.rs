@@ -2838,8 +2838,8 @@ impl Limitless {
     pub fn apply_scale(&self, amount: Option<&str>, optional_args: &[Value]) -> Value {
         let mut amount: Value = amount.into();
         let mut multiply = get_arg(optional_args, 0, Value::Bool(false));
-        let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
-        let mut scale: Option<String> = self.number_to_string(crate::runtime::Math::pow(&Value::Int(10), &decimals));
+        let mut decimals: i64 = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]).as_i64().unwrap_or(6);
+        let mut scale: Option<String> = self.number_to_string(Value::Float(f64::powf(10.0, (decimals as f64))));
         if multiply.as_bool() == Some(true) {
             return crate::precise::Precise::stringMul(&amount, &scale.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -3252,15 +3252,15 @@ if _try_result.is_err() {
         }
         let mut gasLimit: String = (match params.get("gasLimit") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("0x186a0".into()) }).as_str().unwrap_or("0x186a0").to_string();
         let mut maxUint: String = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".to_string();
-        let mut amountHex: Value = Value::from(maxUint);
+        let mut amountHex: String = maxUint;
         let mut amount: Option<String> = (match params.get("amount") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (amount.is_some()) {
             let mut decimals: i64 = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]).as_i64().unwrap_or(6);
             // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
             let mut scaled: Option<String> = crate::precise::Precise::stringDiv(&amount.map(Value::from).unwrap_or(Value::Null), &self.parse_precision(&[Value::from(self.number_to_string(Value::from(decimals)))])).as_str().map(str::to_owned);
             let mut amountInt: Option<i64> = self.parse_to_int(scaled.map(Value::from).unwrap_or(Value::Null));
-            let mut amountBase16: Value = Value::from(self.int_to_base16(Value::from(amountInt), &[]));
-            amountHex = amountBase16.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
+            let mut amountBase16: String = self.int_to_base16(Value::from(amountInt), &[]);
+            amountHex = format!("{:0>64}", amountBase16);
         }
         // approve(spender, amount) -> selector 0x095ea7b3
         let mut approveData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x095ea7b3".into()), self.pad_hex_address(spender)).into()), amountHex);

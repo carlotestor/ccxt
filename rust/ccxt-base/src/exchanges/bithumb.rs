@@ -4356,8 +4356,8 @@ impl Bithumb {
 }), &[query]);
                 let mut encodedBody: String = self.urlencode(__ws_arg_49, &[]);
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                let mut bodyParts: Value = Value::Array(encodedBody.split("%20").map(Value::from).collect());
-                requestBody = Value::Str(bodyParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("+")).unwrap_or_default().into());
+                let mut bodyParts: crate::value::List = Value::Array(encodedBody.split("%20").map(Value::from).collect()).into_list();
+                requestBody = Value::Str(bodyParts.iter().map(Value::to_string).collect::<Vec<String>>().join("+").into());
                 let mut nonce: Option<String> = self.number_to_string(self.nonce());
                 let mut authPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, Value::Str("\\".into())).into()), requestBody).into()), Value::Str("\\".into())).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)); // eslint-disable-line quotes
                 let mut signature: String = self.hmac(self.encode(Value::from(authPayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);

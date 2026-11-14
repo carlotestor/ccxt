@@ -2532,11 +2532,11 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("side".to_string(), orderSide.clone());
+                m.insert("side".to_string(), Value::from(orderSide.clone()));
             m
         });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
@@ -2632,7 +2632,7 @@ impl Woo {
             request.insert("algoType".into(), Value::Str("BRACKET".into()));
             let mut childOrders: Vec<Value> = Vec::new();
             let mut closeSide: String = "BUY".to_string();
-            if (orderSide.as_str() == Some("BUY")) {
+            if (orderSide == "BUY") {
                 closeSide = "SELL".to_string();
             }
             if hasStopLoss {

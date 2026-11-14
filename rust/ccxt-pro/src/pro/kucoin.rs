@@ -1819,7 +1819,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).into_list();
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(&[Value::Arr(symbolsNormalized.clone())]);
         let mut isFuturesMethod: bool = self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_opt_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_list();
         let mut url: Value = self.negotiate(false, &[Value::Bool(isFuturesMethod)]).await;
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subscriptionHashes: Vec<Value> = Vec::new();
@@ -1827,7 +1827,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isFuturesMethod {
             channelName = "/contractMarket/execution:".to_string();
         }
-        let mut topic: String = format!("{}{}", channelName, Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+        let mut topic: String = format!("{}{}", channelName, Value::Str(marketIds.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         {
                         let mut i: i64 = 0;
             let mut __for_first_452: bool = true;

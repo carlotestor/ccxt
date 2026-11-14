@@ -1916,8 +1916,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (periodMin.is_none()) {
             // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
-            let mut tfKeys: Value = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-            let mut supported: Value = Value::Str(tfKeys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into());
+            let mut tfKeys: crate::value::List = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+            let mut supported: Value = Value::Str(tfKeys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into());
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() does not support the ".into())).into()), timeframe).into()), Value::Str(" timeframe (supported: ".into())).into()), supported).into()), Value::Str(")".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3933,8 +3933,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut pathForSigning: String = format!("{}{}", Value::Str(format!("{}{}", versionPrefix, Value::Str("/".into())).into()), implodedPath);
             let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), pathForSigning).into());
             // RSA-PSS SHA-256 signature with the private key PEM
-            let mut keyParts: Value = Value::Array(if let Some(__s) = self.privateKey.as_str() { __s.split("\\n").map(Value::from).collect() } else { Vec::new() });
-            let mut cleanPrivateKey: Value = Value::Str(keyParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into());
+            let mut keyParts: crate::value::List = Value::Array(if let Some(__s) = self.privateKey.as_str() { __s.split("\\n").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut cleanPrivateKey: Value = Value::Str(keyParts.iter().map(Value::to_string).collect::<Vec<String>>().join("\n").into());
             let mut signature: String = rsa(payload, cleanPrivateKey, Value::Str("sha256".into()));
             headersValue = self.extend(headersValue.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

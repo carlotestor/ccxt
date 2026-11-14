@@ -2769,11 +2769,11 @@ impl Btse {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut typeValue: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
-        let mut upperSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut upperSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("orderSide".to_string(), upperSide.clone());
+                m.insert("orderSide".to_string(), Value::from(upperSide.clone()));
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
@@ -2808,7 +2808,7 @@ impl Btse {
         // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
-        let mut needsQuoteSize: bool = (matches!(&isMarketOrder, Value::Bool(true)) || (typeValue == "TRAILING")) && (upperSide.as_str() == Some("BUY"));
+        let mut needsQuoteSize: bool = (matches!(&isMarketOrder, Value::Bool(true)) || (typeValue == "TRAILING")) && (upperSide == "BUY");
         if needsQuoteSize {
             let mut quoteAmount: Value = Value::Null;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);

@@ -2609,7 +2609,7 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut maxLimit: Value = Value::Int(2000);
+        let mut maxLimit: i64 = 2000;
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
@@ -2627,11 +2627,11 @@ impl Backpack {
             request.insert("endTime".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // convert milliseconds to seconds
         }
         let mut defaultLimit: i64 = 100;
-        let mut limitResolved: Value = limit;
-        if (limitResolved != Value::Null) {
-            limitResolved = crate::runtime::Math::min(&limitResolved, &maxLimit);
+        let mut limitResolved: Option<i64> = limit.as_i64();
+        if (limitResolved.is_some()) {
+            limitResolved = (if let Some(__m0) = limitResolved { Some(i64::min(__m0, maxLimit)) } else { None });
         }
-        let mut windowLimit: Value = (if (limitResolved == Value::Null) { Value::from(defaultLimit) } else { limitResolved.clone() });
+        let mut windowLimit: Option<i64> = (if (limitResolved.is_none()) { Some(defaultLimit) } else { limitResolved });
         let mut now: Value = Value::Int(self.milliseconds());
         let mut startTime: Value = since.clone();
         let mut untilValue: Value = until;
@@ -2639,13 +2639,13 @@ impl Backpack {
             if (untilValue == Value::Null) {
                 untilValue = now.clone();
             }
-            startTime = (match (&(untilValue), &(((match (&(windowLimit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            startTime = (match (&(untilValue), &((Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
         request.insert("startTime".into(), Value::from(self.parse_to_int((match ((startTime).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         // set until value
         if (untilValue == Value::Null) {
-            let mut windowEnd: Value = self.sum(&[startTime, (match (&(windowLimit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+            let mut windowEnd: Value = self.sum(&[startTime, Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))]);
             untilValue = crate::runtime::Math::min(&now, &windowEnd);
         }
         request.insert("endTime".into(), Value::from(self.parse_to_int((match ((untilValue).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
@@ -2657,7 +2657,7 @@ impl Backpack {
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_api_v1_klines(&[__ws_arg_6]).await.into_list();
         let mut ohlcvs: Value = self.to_array(&response);
-        return self.parse_ohlc_vs(ohlcvs, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

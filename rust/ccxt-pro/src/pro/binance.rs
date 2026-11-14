@@ -6484,15 +6484,15 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut event: Option<String> = self.safe_string_k(order.clone(), "e", &[]).as_str().map(str::to_owned);
         if (event.as_deref() == Some("orderReport")) {
             let mut baseAssetCode: Option<String> = self.safe_string_k(order.clone(), "b", &[]).as_str().map(str::to_owned);
-            let mut stockBaseSymbol: Value = baseAssetCode.map(Value::from).unwrap_or(Value::Null);
-            if (stockBaseSymbol != Value::Null) && (stockBaseSymbol.as_str().unwrap_or("").starts_with("EQ_")) {
-                stockBaseSymbol = stockBaseSymbol.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+            let mut stockBaseSymbol: Option<String> = baseAssetCode;
+            if (stockBaseSymbol.is_some()) && (stockBaseSymbol.as_deref().unwrap_or_default().starts_with("EQ_")) {
+                stockBaseSymbol = (if let Some(__s) = stockBaseSymbol.as_deref() { Some(__s.chars().skip(3).collect::<String>()) } else { None });
             }
-            if (stockBaseSymbol == Value::Null) {
-                stockBaseSymbol = self.safe_string_k(order.clone(), "symbol", &[]);
+            if (stockBaseSymbol.is_none()) {
+                stockBaseSymbol = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
             }
             let mut stockQuote: String = self.safe_string_k(order.clone(), "q", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
-            let mut stockSymbol: Option<String> = self.get_stock_unified_symbol(stockBaseSymbol, &[Value::from(stockQuote)]).as_str().map(str::to_owned);
+            let mut stockSymbol: Option<String> = self.get_stock_unified_symbol(stockBaseSymbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(stockQuote)]).as_str().map(str::to_owned);
             let mut stockRawStatus: Option<String> = self.safe_string_lower_k(order.clone(), "s", &[]).as_str().map(str::to_owned);
             let mut statuses: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

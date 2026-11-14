@@ -1647,9 +1647,9 @@ impl Gemini {
                 amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string(response.clone(), Value::Int(2), &[])]), &[]).as_f64(); // quantityTickDecimalPlaces
                 minSize = self.safe_number(response.clone(), Value::Int(3), &[]).as_f64(); // quantityMinimum
             }
-            let mut marketIdUpper: Value = (if let Some(__s) = marketId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-            let mut isPerp: bool = marketIdUpper.as_str().unwrap_or("").contains("PERP");
-            let mut marketIdWithoutPerp: Value = marketIdUpper.as_str().map(|__s| Value::Str(__s.replace("PERP", "").into())).unwrap_or_else(|| marketIdUpper.clone());
+            let mut marketIdUpper: Option<String> = marketId.as_str().map(str::to_uppercase);
+            let mut isPerp: bool = marketIdUpper.as_deref().unwrap_or_default().contains("PERP");
+            let mut marketIdWithoutPerp: Value = (if let Some(__s) = marketIdUpper.as_deref() { Some(__s.replace("PERP", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
             let mut conflictingMarkets: Value = self.safe_dict_k(self.options.clone(), "conflictingMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

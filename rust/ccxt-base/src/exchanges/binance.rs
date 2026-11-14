@@ -9167,19 +9167,19 @@ impl Binance {
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         let mut defaultLimit: i64 = 500;
-        let mut maxLimit: Value = Value::Int(1000);
+        let mut maxLimit: i64 = 1000;
         let mut price: Option<String> = self.safe_string_k(&paramsPaginate, "price", &[]).as_str().map(str::to_owned);
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]).into_dict();
-        let mut limitRequested: Value = limit.clone();
+        let mut limitRequested: Option<i64> = limit.as_i64();
         if (since != Value::Null) && (until.is_some()) && (limit == Value::Null) {
-            limitRequested = maxLimit.clone();
+            limitRequested = Some(maxLimit);
         }
-        let mut limitValue: Value = (if (limitRequested == Value::Null) { Value::from(defaultLimit) } else { crate::runtime::Math::min(&limitRequested, &maxLimit) });
+        let mut limitValue: Option<i64> = (if (limitRequested.is_none()) { Some(defaultLimit) } else { (if let Some(__m0) = limitRequested { Some(i64::min(__m0, maxLimit)) } else { None }) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("limit".to_string(), limitValue.clone());
+                m.insert("limit".to_string(), Value::from(limitValue));
             m
         });
         let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
@@ -9203,9 +9203,7 @@ impl Binance {
             if ((market).inverse == Some(true)) {
                 if since.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                     let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-                    let mut endTime: Value = self.sum(&[since.clone(), (match (&((match (&((match (&(limitValue), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                        Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                        _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]);
+                    let mut endTime: Value = self.sum(&[since.clone(), Value::from((if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = limitValue { Some(__l * duration) } else { None })) { Some(__l * 1000) } else { None })) { Some(__l - 1) } else { None }))]);
                     let mut now: Value = Value::Int(self.milliseconds());
                     request.insert("endTime".into(), crate::runtime::Math::min(&now, &endTime));
                 }
@@ -9252,7 +9250,7 @@ impl Binance {
             let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_get_klines(&[__ws_arg_39]).await;
         }
-        return self.parse_ohlc_vs(self.to_array(response), Some(&market), &[timeframe, since, limitValue]);
+        return self.parse_ohlc_vs(self.to_array(response), Some(&market), &[timeframe, since, Value::from(limitValue)]);
         Value::Null
         }).await?))
     }
@@ -14084,9 +14082,9 @@ impl Binance {
                 tag = None.clone();
             }
         }
-        let mut txid: Value = self.safe_string_k(transaction.clone(), "txId", &[]);
-        if (txid != Value::Null) && (txid.as_str().unwrap_or("").contains("Internal transfer ")) {
-            txid = txid.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(18); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txId", &[]).as_str().map(str::to_owned);
+        if (txid.is_some()) && (txid.as_deref().unwrap_or_default().contains("Internal transfer ")) {
+            txid = (if let Some(__s) = txid.as_deref() { Some(__s.chars().skip(18).collect::<String>()) } else { None });
         }
         let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("coin".into()), Value::Str("fiatCurrency".into()), &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
@@ -14128,7 +14126,7 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("txid".to_string(), txid);
+        m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));

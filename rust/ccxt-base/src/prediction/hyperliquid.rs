@@ -789,17 +789,15 @@ impl Hyperliquid {
             let mut expParts: Value = Value::Array(if let Some(__s) = expiry.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             let mut expPartsLength: i64 = expParts.len() as i64;
             if expPartsLength >= 1 && (Value::Int(get_value(&expParts, &Value::Int(0)).len() as i64).as_f64() == Some(8.0)) {
-                let mut ymd: Value = expParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                let mut hm: Value = Value::Str("0000".into());
+                let mut ymd: Option<String> = expParts.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+                let mut hm: Option<String> = Some("0000".to_string());
                 if expPartsLength >= 2 {
-                    hm = expParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+                    hm = expParts.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
                 }
-                let mut isoStr: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ymd.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), ymd.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), ymd.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(6); let __j = __l.min(8); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("T".into())).into()), hm.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), hm.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":00Z".into()));
+                let mut isoStr: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
+                    (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(0).take(4).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(4).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()),
+                    Value::Str("-".into())).into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(6).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("T".into())).into()),
+                    (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":00Z".into()));
                 expiryMs = self.parse8601(Value::from(isoStr.clone()));
                 expiryDatetime = Value::from(isoStr);
             }
@@ -1572,9 +1570,9 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut coin: Value = self.safe_string_k(&balance, "coin", &[Value::Str("".into())]);
+            let mut coin: String = self.safe_string_k(&balance, "coin", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
-            if (Value::Int(coin.as_str().and_then(|__s| __s.find("+")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Some(0.0)) {
+            if (((if let (Some(__h), Some(__n)) = (Some(coin.as_str()), Some("+")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) != 0) {
                 continue;
             }
             let mut totalStr: Option<String> = self.safe_string_k(&balance, "total", &[]).as_str().map(str::to_owned);
@@ -1582,7 +1580,7 @@ impl Hyperliquid {
                 continue;
             }
             // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
-            let mut tradeCoin: String = format!("{}{}", Value::Str("#".into()), coin.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+            let mut tradeCoin: String = format!("{}{}", Value::Str("#".into()), Value::from(coin.chars().skip(1).collect::<String>()));
             let mut outcomeObj: Value = self.safe_outcome(Value::from(tradeCoin.clone()), &[]);
             if (outcomes != Value::Null) {
                 let mut outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "outcome", &[]);
@@ -2917,17 +2915,15 @@ impl Hyperliquid {
             let mut parts: Value = Value::Array(if let Some(__s) = expiryRaw.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             let mut partsLength: i64 = parts.len() as i64;
             if partsLength >= 1 && (Value::Int(get_value(&parts, &Value::Int(0)).len() as i64).as_f64() == Some(8.0)) {
-                let mut ymd: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                let mut hm: Value = Value::Str("0000".into());
+                let mut ymd: Option<String> = parts.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+                let mut hm: Option<String> = Some("0000".to_string());
                 if partsLength >= 2 {
-                    hm = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+                    hm = parts.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
                 }
-                let mut isoStr: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ymd.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), ymd.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), ymd.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(6); let __j = __l.min(8); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("T".into())).into()), hm.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), hm.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
-                    let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":00Z".into()));
+                let mut isoStr: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
+                    (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(0).take(4).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(4).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()),
+                    Value::Str("-".into())).into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(6).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("T".into())).into()),
+                    (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":00Z".into()));
                 expiryMs = self.parse8601(Value::from(isoStr.clone()));
                 expiryDatetime = Value::from(isoStr);
             }
@@ -3254,11 +3250,11 @@ if _try_result.is_err() {
         if (address == Value::Null) {
             return None;
         }
-        let mut normalized: Value = address;
-        if (normalized.as_str().unwrap_or("").starts_with("0x")) || (normalized.as_str().unwrap_or("").starts_with("0X")) {
-            normalized = normalized.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut normalized: Option<String> = address.as_str().map(str::to_owned);
+        if (normalized.as_deref().unwrap_or_default().starts_with("0x")) || (normalized.as_deref().unwrap_or_default().starts_with("0X")) {
+            normalized = (if let Some(__s) = normalized.as_deref() { Some(__s.chars().skip(2).collect::<String>()) } else { None });
         }
-        return (if let Some(__s) = normalized.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
+        return normalized.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

@@ -1884,8 +1884,8 @@ impl Hitbtc {
         }  else if (account.as_deref() == Some("derivatives")) {
             response = self.private_get_futures_balance(&[paramsOmitted]).await;
         }  else {
-            let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+            let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".into())).into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         return self.parse_balance_list(response);
         Value::Null
@@ -3932,9 +3932,8 @@ impl Hitbtc {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork".into()))));
         }
         if (fromNetworkValue2 == Value::Null) || (toNetworkValue2 == Value::Null) {
-            let mut keys: Value = Value::Array(networks.keys().cloned().map(Value::from).collect());
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ".into())).into()),
-                Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+            let mut keys: crate::value::List = Value::Array(networks.keys().cloned().map(Value::from).collect()).into_list();
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ".into())).into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

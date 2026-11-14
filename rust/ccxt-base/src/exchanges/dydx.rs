@@ -1878,12 +1878,12 @@ impl Dydx {
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
             __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }),
             Value::Str("secp256k1".into()), Value::Null);
-        let mut r: Value = self.safe_string_k(&signature, "r", &[Value::Str("".into())]);
-        let mut s: Value = self.safe_string_k(&signature, "s", &[Value::Str("".into())]);
+        let mut r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("r".to_string(), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null));
-        m.insert("s".to_string(), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null));
+        m.insert("r".to_string(), Value::from(format!("{:0>64}", r)));
+        m.insert("s".to_string(), Value::from(format!("{:0>64}", s)));
         m.insert("v".to_string(), self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]));
     m
 });

@@ -1347,9 +1347,9 @@ impl Deepcoin {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit));
         }
-        let mut until: Value = self.safe_integer_k(&paramsPaginate, "until", &[]);
-        if (until != Value::Null) {
-            request.insert("after".into(), until.clone());
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
+        if (until.is_some()) {
+            request.insert("after".into(), Value::from(until));
         }
         let mut calculateUntil: bool = self.safe_bool_k(&paramsPaginate, "calculateUntil", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut keysToOmit: Value = (if calculateUntil { Value::from(vec![Value::Str("price".into()), Value::Str("until".into()), Value::Str("calculateUntil".into())]) } else { Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]) });
@@ -1360,14 +1360,14 @@ impl Deepcoin {
                 // we calculate until (after) for correct pagination
                 let mut duration: i64 = self.parse_timeframe(timeframe.clone());
                 let mut numberOfCandles: Value = (if (limit == Value::Null) { maxLimit } else { limit.clone() });
-                let mut endTime: Value = Value::from(self.parse_to_int((match (&(since), &((match (&(((match (&(Value::from(duration)), &(numberOfCandles)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                let mut endTime: Option<i64> = self.parse_to_int((match (&(since), &((match (&(((match (&(Value::from(duration)), &(numberOfCandles)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
-                if (until != Value::Null) {
-                    endTime = crate::runtime::Math::min(&endTime, &until);
+                    _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                if (until.is_some()) {
+                    endTime = (if let (Some(__m0), Some(__m1)) = (endTime, until) { Some(i64::min(__m0, __m1)) } else { None });
                 }
-                let mut now: Value = Value::Int(self.milliseconds());
-                request.insert("after".into(), crate::runtime::Math::min(&endTime, &now));
+                let mut now: i64 = self.milliseconds();
+                request.insert("after".into(), Value::from((if let Some(__m0) = endTime { Some(i64::min(__m0, now)) } else { None })));
             }
         }
         let mut response: Option<crate::value::Dict> = None;

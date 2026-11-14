@@ -1438,10 +1438,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parsed: crate::value::Dict = self.parse_prediction_order(&wrapper, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
         // the POST /orders response is minimal (hash + status), so backfill the known request values
         // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-        let mut sideStr: Value = (if (side == Value::Null) { Value::Null } else { (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) });
+        let mut sideStr: Option<String> = (if (side == Value::Null) { None } else { side.as_str().map(str::to_owned).as_deref().map(str::to_lowercase) });
         let mut typeStr: Option<String> = (if (type_var == Value::Null) { Some("limit".to_string()) } else { type_var.as_str().map(str::to_owned).as_deref().map(str::to_lowercase) });
         if (self.safe_string_k(&parsed, "side", &[]) == Value::Null) {
-            std::sync::Arc::make_mut(&mut parsed).insert("side".into(), sideStr);
+            std::sync::Arc::make_mut(&mut parsed).insert("side".into(), sideStr.map(Value::from).unwrap_or(Value::Null));
         }
         if (self.safe_string_k(&parsed, "type", &[]) == Value::Null) {
             std::sync::Arc::make_mut(&mut parsed).insert("type".into(), typeStr.map(Value::from).unwrap_or(Value::Null));
@@ -1492,8 +1492,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeId: i64 = self.safe_integer_k(&info, "outcomeId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut trader: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
         let mut typeStr: Option<String> = (if (type_var == Value::Null) { Some("limit".to_string()) } else { type_var.as_str().map(str::to_owned).as_deref().map(str::to_lowercase) });
-        let mut sideStr: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        let mut sideInt: i64 = (if (sideStr.as_str() == Some("buy")) { 0 } else { 1 });
+        let mut sideStr: Option<String> = side.as_str().map(str::to_owned).as_deref().map(str::to_lowercase);
+        let mut sideInt: i64 = (if (sideStr.as_deref() == Some("buy")) { 0 } else { 1 });
         let mut isMarket: bool = typeStr.as_deref() == Some("market");
         let mut defaultTif: String = "GTC".to_string();
         if isMarket {
@@ -5369,12 +5369,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ts: Value = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
-        let mut deltaStr: Value = (match __pro_message.get("delta").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("0".into()) });
-        let mut firstChar: Value = deltaStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(1); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        if (firstChar.as_str() == Some("+")) {
-            deltaStr = deltaStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut deltaStr: String = (match __pro_message.get("delta").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("0".into()) }).as_str().unwrap_or("0").to_string();
+        let mut firstChar: String = deltaStr.chars().skip(0).take(1).collect::<String>();
+        if (firstChar == "+") {
+            deltaStr = deltaStr.chars().skip(1).collect::<String>();
         }
-        let mut deltaShares: Option<String> = crate::precise::Precise::stringDiv(&deltaStr, &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
+        let mut deltaShares: Option<String> = crate::precise::Precise::stringDiv(&Value::from(deltaStr), &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
         let mut contracts: Option<f64> = None;
         let mut posId: Value = Value::Null;
         if (networkId.is_some()) && (marketId.is_some()) && (outcomeId.is_some()) {

@@ -1375,8 +1375,8 @@ impl Coinmate {
         })]).into_dict();
         let mut method: Option<String> = self.safe_string(&methods, code.clone(), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
-            let mut allowedCurrencies: Value = Value::Array(methods.keys().cloned().map(Value::from).collect());
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only allows withdrawing the following currencies: ".into())).into()), Value::Str(allowedCurrencies.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+            let mut allowedCurrencies: crate::value::List = Value::Array(methods.keys().cloned().map(Value::from).collect()).into_list();
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only allows withdrawing the following currencies: ".into())).into()), Value::Str(allowedCurrencies.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
