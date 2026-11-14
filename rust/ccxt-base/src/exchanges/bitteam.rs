@@ -774,7 +774,7 @@ impl Bitteam {
 
     pub fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
         let mut market: Value = market.into();
-        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "name", &[]);
+        let mut id: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
         let mut numericId: Option<i64> = self.safe_integer_k(market.clone(), "id", &[]).as_i64();
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -1004,7 +1004,7 @@ impl Bitteam {
         //         },
         //     }
         //
-        statusesResponse = self.index_by(statusesResponse.clone(), Value::Str("unified_cryptoasset_id".into()));
+        statusesResponse = self.index_by(statusesResponse, Value::Str("unified_cryptoasset_id".into()));
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_statuses".into(), statusesResponse); }
         let mut result: crate::value::Dict = self.parse_currencies(&currencies).into_dict();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).shift_remove("_temp_currencies_statuses"); }
@@ -1023,7 +1023,7 @@ impl Bitteam {
         let mut numericId: Option<i64> = self.safe_integer_k(currency.clone(), "id", &[]).as_i64();
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut active: bool = self.safe_bool_k(currency.clone(), "active", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "precision", &[])]), &[]);
+        let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "precision", &[])]), &[]).as_f64();
         let mut txLimits: crate::value::Dict = self.safe_dict_k(currency.clone(), "txLimits", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1062,7 +1062,7 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut networkPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "decimals", &[])]), &[]);
+        let mut networkPrecision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "decimals", &[])]), &[]).as_f64();
         let mut typeRaw: Option<String> = self.safe_string_k(currency.clone(), "type", &[]).as_str().map(str::to_owned);
         {
                         let mut j: i64 = 0;
@@ -1080,7 +1080,7 @@ impl Bitteam {
         m.insert("withdraw".to_string(), withdraw.map_or(Value::Null, Value::Bool));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("fee".to_string(), Value::from(networkFee));
-        m.insert("precision".to_string(), networkPrecision.clone());
+        m.insert("precision".to_string(), Value::from(networkPrecision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1120,7 +1120,7 @@ impl Bitteam {
         m.insert("deposit".to_string(), deposit.map_or(Value::Null, Value::Bool));
         m.insert("withdraw".to_string(), withdraw.map_or(Value::Null, Value::Bool));
         m.insert("fee".to_string(), fee);
-        m.insert("precision".to_string(), precision);
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1805,11 +1805,11 @@ impl Bitteam {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orders: Value = Value::from(vec![result]);
+        })]).into_dict();
+        let mut orders: Value = Value::from(vec![Value::Dict(result)]);
         return self.parse_orders(orders, market.as_ref(), &[]);
         Value::Null
         }).await?))
@@ -2062,7 +2062,7 @@ impl Bitteam {
         let mut tickers: Vec<Value> = Vec::new();
         let mut rawTickers: Value = Value::from(vec![]);
         if (matches!(&response, Value::Arr(_))) {
-            rawTickers = response.clone();
+            rawTickers = response;
         }
         {
                         let mut i: i64 = 0;
@@ -2726,7 +2726,7 @@ impl Bitteam {
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "pair", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("trade_id".into()), &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string2(trade.clone(), Value::Str("quantity".into()), Value::Str("base_volume".into()), &[]).as_str().map(str::to_owned);
@@ -2734,7 +2734,7 @@ impl Bitteam {
         let mut takerOrMaker: Option<String> = self.safe_string_k(trade.clone(), "isCurrentSide", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<String> = self.safe_string_k(trade.clone(), "timestamp", &[]).as_str().map(str::to_owned);
         if (takerOrMaker.is_some()) {
-            timestamp = crate::precise::Precise::stringMul(&timestamp.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
+            timestamp = crate::precise::Precise::stringMul(&timestamp.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
         }
         // the exchange returns the side of the taker
         let mut side: Option<String> = self.safe_string2(trade.clone(), Value::Str("side".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
@@ -2773,7 +2773,7 @@ impl Bitteam {
         m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(intTs));
         m.insert("datetime".to_string(), self.iso8601(Value::from(intTs)));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
@@ -3218,7 +3218,7 @@ impl Bitteam {
             if (code.as_f64() == Some(404.0)) {
                 if (url.as_str().unwrap_or("").contains("/ccxt/order/")) && (method.as_str() == Some("GET")) {
                     let mut parts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("/order/").map(Value::from).collect() } else { Vec::new() });
-                    let mut orderId: String = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    let mut orderId: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".into())).into()), orderId).into()), Value::Str(" not found".into()))));
                 }
                 if url.as_str().unwrap_or("").contains("/cmc/orderbook/") {

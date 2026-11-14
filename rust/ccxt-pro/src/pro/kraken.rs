@@ -596,16 +596,16 @@ impl Kraken {
                 orderParams.insert("trigger_price_type".into(), Value::from(priceType.clone()));
                 if !isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder) {
                     if isTrailingAmountOrder {
-                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingAmountString.clone().map(Value::from).unwrap_or(Value::Null)));
+                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingAmountString.map(Value::from).unwrap_or(Value::Null)));
                     }  else {
-                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingPercentString.clone().map(Value::from).unwrap_or(Value::Null)));
+                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingPercentString.map(Value::from).unwrap_or(Value::Null)));
                     }
                 }  else {
                     orderParams.insert("limit_price_type".into(), Value::from(priceType));
                     if isTrailingLimitAmountOrder {
-                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingLimitAmountString.clone().map(Value::from).unwrap_or(Value::Null)));
+                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingLimitAmountString.map(Value::from).unwrap_or(Value::Null)));
                     }  else {
-                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingLimitPercentString.clone().map(Value::from).unwrap_or(Value::Null)));
+                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingLimitPercentString.map(Value::from).unwrap_or(Value::Null)));
                     }
                 }
             }
@@ -1095,13 +1095,13 @@ impl Kraken {
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
         let mut interval: Option<i64> = self.safe_integer_k(&first, "interval", &[]).as_i64();
         let mut timeframe: Value = Value::from(self.find_timeframe(Value::from(interval), &[]));
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, symbol.clone()]);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, Value::from(symbol.as_deref())]);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         if (stored.is_none()) {
@@ -1154,9 +1154,9 @@ impl Kraken {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
-        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
-        return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut symbolValue: Value = Value::from(self.symbol(symbol));
+        let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return crate::value::KeyRead::read(&&tickers, &symbolValue);
         Value::Null
         }).await?))
     }
@@ -1433,7 +1433,7 @@ impl Kraken {
             m
         });
         if (limit != Value::Null) {
-            if self.in_array(limit.clone(), Value::from(vec![Value::Int(10), Value::Int(25), Value::Int(100), Value::Int(500), Value::Int(1000)])).as_bool() == Some(true) {
+            if self.in_array(limit.clone(), Value::from(vec![Value::Int(10), Value::Int(25), Value::Int(100), Value::Int(500), Value::Int(1000)])) {
                 requiredParams.insert("depth".into(), limit.clone()); // default 10, valid options 10, 25, 100, 500, 1000
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only".into()))));
@@ -1495,8 +1495,8 @@ impl Kraken {
                 m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), (&messageHash).as_deref(), request, (&messageHash).as_deref(), Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut ohlcv: Value = self.watch(url.as_deref(), (&messageHash).as_deref(), &request, (&messageHash).as_deref(), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
@@ -1546,9 +1546,9 @@ impl Kraken {
                 m.insert("req_id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(unsubscribe), &[params]);
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(unsubscribe), &[params]).into_dict();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2").as_str().map(str::to_owned);
-        return self.watch(url.as_deref(), &unsubMessageHash[..], request, &unsubMessageHash[..], Value::Null).await;
+        return self.watch(url.as_deref(), &unsubMessageHash[..], &request, &unsubMessageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1780,8 +1780,8 @@ impl Kraken {
         }
         orderbook.limit();
         // checksum temporarily disabled because the exchange checksum was not reliable
-        let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(false)]);
-        if (checksum.as_bool() == Some(true)) {
+        let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(false)]).as_bool();
+        if (checksum == Some(true)) {
             let mut payloadArray: Vec<Value> = Vec::new();
             if (c != Value::Null) {
                 let mut checkAsks: Value = orderbook.book_field("asks");
@@ -1866,7 +1866,7 @@ impl Kraken {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut authenticated: Value = Value::Str("authenticated".into());
         let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), authenticated.clone(), &[]);
-        let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
+        let mut now: i64 = self.seconds();
         let mut start: Option<i64> = self.safe_integer_k(subscription.clone(), "start", &[]).as_i64();
         let mut expires: i64 = self.safe_integer_k(subscription.clone(), "expires", &[Value::Int(-1)]).as_i64().unwrap_or(-1);
         let mut expired: bool = (start.is_some()) && (expires >= 0) && ((start.is_some() && start <= Some(((now - expires)))));
@@ -1947,7 +1947,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: String = name.as_str().unwrap_or_default().to_string();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = Some(self.symbol(symbol.clone()));
+            symbolResolved = Some(self.symbol(symbol));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2").as_str().map(str::to_owned);
@@ -2441,8 +2441,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -2668,7 +2668,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("orders".to_string(), Value::Str("handle_orders".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(methods.clone(), channel.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut method: Value = self.safe_value(methods, channel.map(Value::from).unwrap_or(Value::Null), &[]);
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }

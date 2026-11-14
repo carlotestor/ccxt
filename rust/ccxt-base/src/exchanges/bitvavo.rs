@@ -1017,7 +1017,7 @@ impl Bitvavo {
         let mut fiatCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("fiatCurrencies".into()), &[Value::from(vec![])]);
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut isFiat: Value = self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), fiatCurrencies);
+        let mut isFiat: bool = self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), fiatCurrencies);
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1073,7 +1073,7 @@ impl Bitvavo {
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("fee".to_string(), Value::from(withdrawFee));
         m.insert("precision".to_string(), Value::Null);
-        m.insert("type".to_string(), (if isFiat.as_bool() == Some(true) { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
+        m.insert("type".to_string(), (if isFiat { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1159,7 +1159,7 @@ impl Bitvavo {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("-".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
@@ -1343,7 +1343,7 @@ impl Bitvavo {
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("fillId".into()), &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("-".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut taker: Option<bool> = self.safe_bool_k(trade.clone(), "taker", &[]).as_bool();
         let mut takerOrMaker: Option<String> = None;
         if (taker.is_some()) {
@@ -1583,11 +1583,11 @@ impl Bitvavo {
         });
         if (since != Value::Null) {
             // https://github.com/ccxt/ccxt/issues/9227
-            let mut duration: Value = Value::Int(self.parse_timeframe(timeframe));
+            let mut duration: i64 = self.parse_timeframe(timeframe);
             request.insert("start".into(), since.clone());
             let mut sinceLimit: Value = (if (limit == Value::Null) { Value::Int(1440) } else { crate::runtime::Math::min(&limit, &Value::Int(1440)) });
-            request.insert("end".into(), self.sum(&[since.clone(), (match (&((match (&(sinceLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            request.insert("end".into(), self.sum(&[since.clone(), (match (&((match (&(sinceLimit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1440))); // default 1440, max 1440
@@ -2078,18 +2078,18 @@ impl Bitvavo {
             paramsCost = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("cost".into())]), &[]);
         }
         if isMarketOrder {
-            let mut cost: Value = Value::Null;
+            let mut cost: Option<f64> = None;
             if (price != Value::Null) {
                 let mut priceString: Option<String> = self.number_to_string(price.clone());
                 let mut amountString: Option<String> = self.number_to_string(amount.clone());
                 let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]);
+                cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }  else {
-                cost = self.safe_number_k(paramsOmitted, "cost", &[]);
+                cost = self.safe_number_k(paramsOmitted, "cost", &[]).as_f64();
             }
-            if (cost != Value::Null) {
+            if (cost.is_some()) {
                 let mut precision: Option<f64> = self.safe_number_k(&self.currency(Value::from((market).quote.clone())), "precision", &[]).as_f64();
-                request.insert("amountQuote".into(), self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), Value::from(precision), &[self.precisionMode.clone()]));
+                request.insert("amountQuote".into(), self.decimal_to_precision(Value::from(cost), Value::Int(crate::runtime::TRUNCATE), Value::from(precision), &[self.precisionMode.clone()]));
             }  else {
                 request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }
@@ -2424,11 +2424,11 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let codGroupIdparamsCodGroupIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelAllOrdersAfter".into()), Value::Str("codGroupId".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
-        let mut codGroupId: Value = codGroupIdparamsCodGroupIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut codGroupId: Option<i64> = codGroupIdparamsCodGroupIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsCodGroupId: crate::value::Dict = codGroupIdparamsCodGroupIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("codGroupId".to_string(), codGroupId);
+                m.insert("codGroupId".to_string(), Value::from(codGroupId));
                 m.insert("expiryAfterSeconds".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { Value::from(self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) } else { Value::Int(0) }));
             m
         });
@@ -2674,7 +2674,7 @@ impl Bitvavo {
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "created", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "orderType", &[]).as_str().map(str::to_owned);
@@ -2700,7 +2700,7 @@ impl Bitvavo {
                 m
             }));
         }
-        let mut rawTrades: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
+        let mut rawTrades: crate::value::List = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]).into_list();
         let mut timeInForce: Option<String> = self.safe_string_k(order.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "postOnly", &[]).as_bool();
         return self.safe_order(Value::Map({
@@ -2711,7 +2711,7 @@ impl Bitvavo {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
@@ -2725,7 +2725,7 @@ impl Bitvavo {
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
-        m.insert("trades".to_string(), rawTrades);
+        m.insert("trades".to_string(), Value::Arr(rawTrades));
     m
 }), Some(&marketResolved));
 

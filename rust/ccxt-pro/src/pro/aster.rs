@@ -1454,7 +1454,7 @@ impl Aster {
         }  else {
             defaultType = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
         }
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, defaultType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, defaultType.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "S", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Option<String> = None;
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "i", &[]).as_str().map(str::to_owned);
@@ -2034,13 +2034,13 @@ impl Aster {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut lastAuthenticatedTime: Value = self.safe_integer(&lastAuthenticatedTimeOptions, type_var.clone(), &[Value::Int(0)]);
+        let mut lastAuthenticatedTime: i64 = self.safe_integer(&lastAuthenticatedTimeOptions, type_var.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut listenKeyRefreshRateOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
         let mut listenKeyRefreshRate: Value = self.safe_integer(&listenKeyRefreshRateOptions, type_var.clone(), &[Value::Int(3600000)]); // 1 hour
-        if (match (&(time), &(lastAuthenticatedTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
+        if (match (&(time), &(Value::from(lastAuthenticatedTime))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > listenKeyRefreshRate.as_f64().unwrap_or(f64::NAN) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
@@ -2390,11 +2390,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }
             }
         }
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
-        let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (cache.is_none()) {
+        if (fetchPositionsSnapshot == Some(true)) && (awaitPositionsSnapshot == Some(true)) && (cache.is_none()) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
@@ -2412,8 +2411,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (self.positions.is_some()) {
             return;
         }
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
-        if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]).as_bool();
+        if (fetchPositionsSnapshot == Some(true)) {
             let mut messageHash: String = "fetchPositionsSnapshot".to_string();
             if !(__ch.has_future(messageHash.as_str())) {
                 client.future(messageHash.as_str());
@@ -2426,14 +2425,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Null).await);
+        let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_33: bool = true;
             while { if !__for_first_33 { i += 1; } __for_first_33 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.get(i as usize).map(crate::Value::from).unwrap_or_default();
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 cache.append(position);
@@ -2762,7 +2761,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                 let mut orderFee: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                                 if (self.safe_string_k(&orderFee, "currency", &[]).as_str() == self.safe_string_k(tradeFee.clone(), "currency", &[]).as_str()) {
                                     let mut feeCost: Value = self.sum(&[tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&orderFee, "cost")]);
-                                    let mut feeCostString: Value = self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost.clone(), &[]);
+                                    let mut feeCostString: Value = self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]);
                                     add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".into())), &Value::Int(i)), &Value::Str("cost".into()), (if (feeCostString == Value::Null) { Value::Null } else { (match &feeCostString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null),
                                         Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }) }));
                                     insertNewFeeCurrency = false;
@@ -3004,7 +3003,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("ORDER_TRADE_UPDATE".to_string(), Value::Str("handle_order_update".into()).clone());
             m
         });
-        let mut method: Value = (if (event.is_none()) { Value::Null } else { self.safe_value(&methods, event.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
+        let mut method: Value = (if (event.is_none()) { Value::Null } else { self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, messageInner]);
         }

@@ -1921,7 +1921,7 @@ public partial class polymarket : PredictionExchange
         List<object> filteredTrades = new List<object>() {};
         for (int i = 0; i < (rawTrades?.Count ?? 0); i++)
         {
-            object trade = rawTrades[i];
+            IDictionary<string, object> trade = ((IDictionary<string, object>)rawTrades[i]);
             string? tradeAsset = this.safeString(trade, "asset");
             if ((tradeAsset == tokenId))
             {
@@ -2344,7 +2344,7 @@ public partial class polymarket : PredictionExchange
             { "datetime", this.iso8601(ts) },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "outcome", (mkt != null && mkt.ContainsKey("outcome") ? mkt["outcome"] : null) },
+            { "outcome", this.safeString(mkt, "outcome") },
             { "outcomeId", this.safeString(mkt, "outcomeId") },
             { "label", this.safeString(mkt, "label") },
             { "market", this.safeString(mkt, "market") },

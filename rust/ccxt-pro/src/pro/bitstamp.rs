@@ -510,10 +510,10 @@ impl Bitstamp {
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "microtimestamp", &[]));
-        let mut bids: Value = self.safe_list_k(delta.clone(), "bids", &[Value::from(vec![])]);
-        let mut asks: Value = self.safe_list_k(delta, "asks", &[Value::from(vec![])]);
-        self.handle_bid_asks(orderbook.book_field("bids"), bids);
-        self.handle_bid_asks(orderbook.book_field("asks"), asks);
+        let mut bids: crate::value::List = self.safe_list_k(delta.clone(), "bids", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k(delta, "asks", &[Value::from(vec![])]).into_list();
+        self.handle_bid_asks(orderbook.book_field("bids"), Value::Arr(bids));
+        self.handle_bid_asks(orderbook.book_field("asks"), Value::Arr(asks));
 }
 
     pub fn handle_bid_asks(&self, mut bookSide: Value, mut bidAsks: Value) {
@@ -597,12 +597,12 @@ impl Bitstamp {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -804,9 +804,9 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut fundingRate: Value = self.parse_funding_rate(data, Some(&market));
-        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
-        client.resolve(fundingRate, &(Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), symbol).into())));
+        let mut fundingRate: crate::value::Dict = self.parse_funding_rate(data, Some(&market)).into_dict();
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
+        client.resolve(Value::Dict(fundingRate), &(Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), symbol).into())));
 }
 
 /*
@@ -849,12 +849,12 @@ impl Bitstamp {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut orders: Value = self.subscribe_private(&mut subscription, Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("_".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), &[params]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private(&mut subscription, Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("_".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1016,7 +1016,7 @@ impl Bitstamp {
     m
 }) });
         let mut subscription: Value = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
-        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_string_k(subscription, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -1119,7 +1119,7 @@ impl Bitstamp {
     m
 }) }).as_map().cloned().unwrap_or_default();
         let mut subscription: Value = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
-        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_string_k(subscription, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -1299,7 +1299,7 @@ impl Bitstamp {
         }
         let mut subHash: Option<String> = self.safe_string_k(subscription.clone(), "subHash", &[]).as_str().map(str::to_owned);
         let mut topic: Option<String> = self.safe_string_k(subscription.clone(), "topic", &[]).as_str().map(str::to_owned);
-        let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::from(vec![])]);
+        let mut symbols: crate::value::List = self.safe_list_k(subscription.clone(), "symbols", &[Value::from(vec![])]).into_list();
         // the base cleanCache only prunes trades/orderbooks per symbol and
         // would wipe the whole orders/myTrades cache - rebuild those without
         // the unsubscribed symbols instead, so the markets that are still
@@ -1307,15 +1307,15 @@ impl Bitstamp {
         if (topic.as_deref() == Some("orders")) && (self.orders.is_some()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut freshOrdersCache: crate::pro::cache::Cache = ArrayCacheBySymbolById::new(limit.clone());
-            self.prune_cached_by_symbols(Value::from(&freshOrdersCache), Value::from(&self.orders), symbols.clone());
+            self.prune_cached_by_symbols(Value::from(&freshOrdersCache), Value::from(&self.orders), Value::from(&symbols));
             self.orders = Some(freshOrdersCache);
         }  else if (topic.as_deref() == Some("myTrades")) && (self.myTrades.is_some()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut freshTradesCache: crate::pro::cache::Cache = ArrayCacheBySymbolById::new(limit);
-            self.prune_cached_by_symbols(Value::from(&freshTradesCache), Value::from(&self.myTrades), symbols);
+            self.prune_cached_by_symbols(Value::from(&freshTradesCache), Value::from(&self.myTrades), Value::Arr(symbols));
             self.myTrades = Some(freshTradesCache);
         }  else {
-            self.clean_cache(subscription.clone());
+            self.clean_cache(subscription);
         }
         self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), Value::from(unsubHash), &[]);
 }
@@ -1337,7 +1337,7 @@ impl Bitstamp {
             while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (entries.len() as i64) } {
             let mut entry: Value = entries.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entrySymbol: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            if !(self.in_array(entrySymbol.map(Value::from).unwrap_or(Value::Null), symbols.clone()).as_bool() == Some(true)) {
+            if !self.in_array(entrySymbol.map(Value::from).unwrap_or(Value::Null), symbols.clone()) {
                 newCache.append(entry);
             }
         }
@@ -1523,7 +1523,7 @@ impl Bitstamp {
                 if (sessionToken.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".into()))));
                 }
-                let mut userId: Option<String> = self.safe_string_k_opt(&response, "user_id", &[]);
+                let mut userId: Option<String> = self.safe_string_k(&response, "user_id", &[]).as_str().map(str::to_owned);
                 let mut validity: Value = self.safe_integer_product_k(&response, "valid_sec", Value::Int(1000), &[]);
                 { let __be_tmp = self.sum(&[time, validity]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), __be_tmp); } }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".into(), userId.map(Value::from).unwrap_or(Value::Null)); }

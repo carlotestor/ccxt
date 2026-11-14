@@ -416,10 +416,10 @@ impl Weex {
 
     pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
-        let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
+        let mut requestId: i64 = ((self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
         self.unlock_id(&[]);
-        return requestId.as_i64().unwrap_or_default();
+        return requestId;
 }
 
     pub async fn subscribe_public(&mut self, mut messageHashes: Value, mut channels: Value, optional_args: &[Value]) -> Value {
@@ -583,9 +583,9 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
-        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
-        return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut symbolValue: Value = Value::from(self.symbol(symbol));
+        let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return crate::value::KeyRead::read(&&tickers, &symbolValue);
         Value::Null
         }).await?))
     }
@@ -769,11 +769,11 @@ impl Weex {
             return;
         }
         let mut tickers: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
-        let mut data: Value = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(data, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).as_map().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(Value::Dict(data), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).as_map().cloned().unwrap_or_default();
         let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), symbol);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::Map(ticker)); }
@@ -1388,11 +1388,11 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_690: bool = true;
             while { if !__for_first_690 { i += 1; } __for_first_690 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut parsed: crate::value::List = self.parse_ws_ohlcv(entry, None).into_list();
+            })]).into_dict();
+            let mut parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(entry), None).into_list();
             stored.append(Value::Arr(parsed));
         }
         }
@@ -2007,11 +2007,11 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_695: bool = true;
             while { if !__for_first_695 { i += 1; } __for_first_695 = false; i < (data.len() as i64) } {
-            let mut trade: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut trade: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut parsed: crate::value::Dict = self.parse_ws_my_trade(trade, None).into_dict();
+            })]).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_ws_my_trade(Value::Dict(trade), None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
@@ -2696,10 +2696,9 @@ impl Weex {
         }
         let mut channel: String = "positions".to_string();
         self.set_positions_cache(client.as_value(), &[params.clone()]);
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
-        let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
-        if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (self.positions.is_none()) {
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        if (fetchPositionsSnapshot == Some(true)) && (awaitPositionsSnapshot == Some(true)) && (self.positions.is_none()) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
@@ -2718,8 +2717,8 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
-        if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]).as_bool();
+        if (fetchPositionsSnapshot == Some(true)) {
             let mut messageHash: String = "fetchPositionsSnapshot".to_string();
             if !(__ch.has_future(messageHash.as_str())) {
                 client.future(messageHash.as_str());
@@ -2732,14 +2731,14 @@ impl Weex {
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut params: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, params).await);
+        let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolById::new(Value::Null));
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_700: bool = true;
             while { if !__for_first_700 { i += 1; } __for_first_700 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.get(i as usize).map(crate::Value::from).unwrap_or_default();
             cache.append(position);
         }
         }
@@ -2842,13 +2841,13 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_701: bool = true;
             while { if !__for_first_701 { i += 1; } __for_first_701 = false; i < (data.len() as i64) } {
-            let mut rawPosition: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut rawPosition: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut position: Value = self.parse_ws_position(rawPosition, None);
-            cache.append(position.clone());
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position); }
+            })]).into_dict();
+            let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), None).into_dict();
+            cache.append(Value::from(&position));
+            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::Dict(position)); }
         }
         }
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
@@ -2896,13 +2895,13 @@ impl Weex {
         //
         //     { "type": "ping", "time": "1776172740000" } - private
         //
-        let mut response: Value = Value::Map({
+        let mut response: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Int(self.request_id()));
                 m.insert("method".to_string(), Value::Str("PONG".into()));
             m
         });
-        client.send(&[response]);
+        client.send(&[Value::Map(response)]);
 
     Value::Null
 }

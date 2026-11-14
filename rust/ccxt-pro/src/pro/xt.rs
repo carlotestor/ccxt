@@ -1224,12 +1224,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&apiUrls, "contract", &[Value::Str("".into())]), Value::Str("/".into())).into()), Value::Str("user".into()));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
         self.set_positions_cache(client.as_value());
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
-        let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) && self.is_empty(Value::from(&cache)).as_bool() == Some(true) {
+        if (fetchPositionsSnapshot == Some(true)) && (awaitPositionsSnapshot == Some(true)) && self.is_empty(Value::from(&cache)).as_bool() == Some(true) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, symbols.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
@@ -1332,16 +1330,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("fundingRate".to_string(), self.safe_string_k(&data, "r", &[]));
                 m
             });
-            let mut fundingRate: Value = self.parse_funding_rate(Value::Map(raw), None);
+            let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Map(raw), None).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&data, "t", &[]).as_i64();
-            if let Value::Dict(__rda) = &mut fundingRate { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
-            if let Value::Dict(__rda) = &mut fundingRate { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(Value::from(timestamp))); }
-            let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
+            std::sync::Arc::make_mut(&mut fundingRate).insert("timestamp".into(), Value::from(timestamp));
+            std::sync::Arc::make_mut(&mut fundingRate).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+            let mut symbol: Value = crate::value::KeyRead::key_read(&&fundingRate, "symbol");
+            if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
             let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (event.is_some()) {
                 let mut messageHash: String = format!("{}{}", event.map(Value::from).unwrap_or(Value::Null), Value::Str("::contract".into()));
-                client.resolve(fundingRate, messageHash.as_str());
+                client.resolve(Value::Dict(fundingRate), messageHash.as_str());
             }
         }
         return message;
@@ -1354,8 +1352,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[]);
-        if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[]).as_bool();
+        if (fetchPositionsSnapshot == Some(true)) {
             let mut messageHash: String = "fetchPositionsSnapshot".to_string();
             if !(__ch.has_future(messageHash.as_str())) {
                 client.future(messageHash.as_str());
@@ -1366,14 +1364,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut positions: Vec<Value> = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Null).await).as_array().cloned().unwrap_or_default();
+        let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_732: bool = true;
             while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.get(i as usize).map(crate::Value::from).unwrap_or_default();
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 cache.append(position);
@@ -1621,8 +1619,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_734: bool = true;
             while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (data.len() as i64) } {
-            let mut tickerData: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut ticker: crate::value::Dict = self.parse_ticker(tickerData, None).into_dict();
+            let mut tickerData: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(tickerData), None).into_dict();
             let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
             if (symbol != Value::Null) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
@@ -1703,7 +1701,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 tradeType = "spot".to_string();
             }
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(tradeType.clone())]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut parsed: crate::value::List = self.parse_ohlcv(Value::Dict(data), Some(&market)).into_list();
             CacheShelves::ensure(&mut self.ohlcvs, &symbol);
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
@@ -1767,7 +1765,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 tradeType = "spot".to_string();
             }
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(tradeType.clone())]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (tradesArray.is_none()) {
@@ -1970,7 +1968,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp.map(Value::from).unwrap_or(Value::Null)));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "i", &[Value::Str("orderId".into())]));
         m.insert("type".to_string(), self.parent.parse_order_status((self.safe_string_k(trade.clone(), "st", &[Value::Str("state".into())])).as_str()).map(Value::from).unwrap_or(Value::Null));

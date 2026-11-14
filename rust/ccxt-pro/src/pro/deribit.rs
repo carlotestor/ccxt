@@ -347,9 +347,9 @@ impl Deribit {
 }
 
     pub fn request_id(&mut self) -> i64 {
-        let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId.as_i64().unwrap_or_default();
+        let mut requestId: i64 = ((self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
+        return requestId;
 }
 
 /*
@@ -395,8 +395,8 @@ impl Deribit {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], request.clone(), &messageHash[..], request).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], &request).await;
         Value::Null
         }).await?))
     }
@@ -455,9 +455,9 @@ impl Deribit {
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
         let mut currencyId: Option<String> = self.safe_string_k(data.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut balance: Value = self.parse_balance(data);
+        let mut balance: crate::value::Dict = self.parse_balance(data).into_dict();
         if (currencyCode.is_some()) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(currencyCode.as_deref().unwrap_or("null").to_string(), balance.clone()); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Dict(balance)); }
         }
         let mut messageHash: String = "balance".to_string();
         client.resolve(self.balance.clone(), messageHash.as_str());
@@ -681,8 +681,8 @@ impl Deribit {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut newTickers: Value = self.watch_multiple(url.as_deref(), channels.clone(), request.clone(), channels.clone(), request.clone()).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        let mut newTickers: Value = self.watch_multiple(url.as_deref(), channels.clone(), &request, channels.clone(), &request).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -720,11 +720,11 @@ impl Deribit {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(data, None).into_dict();
+        })]).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         let mut messageHash: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
@@ -905,7 +905,7 @@ impl Deribit {
         if (symbol != Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { None });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol)) } else { None });
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("interval".into()), &[]).into_dict();
@@ -1124,7 +1124,7 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut descriptor: String = "".to_string();
         let mut partsLength: i64 = parts.len() as i64;
@@ -1142,10 +1142,10 @@ impl Deribit {
             { let __cv = self.counted_order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
-        self.handle_deltas(storedOrderBook.book_field("asks"), asks);
-        self.handle_deltas(storedOrderBook.book_field("bids"), bids);
+        let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
+        let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+        self.handle_deltas(storedOrderBook.book_field("asks"), Value::Arr(asks));
+        self.handle_deltas(storedOrderBook.book_field("bids"), Value::Arr(bids));
         storedOrderBook.set_book_meta("nonce", Value::from(timestamp));
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
         storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
@@ -1234,7 +1234,7 @@ impl Deribit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[params.clone()]).await;
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { None });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol)) } else { None });
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut currency: String = self.safe_string_k(params.clone(), "currency", &[Value::Str("any".into())]).as_str().unwrap_or("any").to_string();
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
@@ -1358,7 +1358,7 @@ impl Deribit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
+        let mut symbolValue: Value = Value::from(self.symbol(symbol));
         let mut ohlcvs: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await);
         return get_value(&(if let (Some(__m), Some(__k)) = (ohlcvs.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe);
         Value::Null
@@ -1439,23 +1439,23 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframes: Value = self.safe_dict_k(&wsOptions, "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(&wsOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut unifiedTimeframe: Option<String> = self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        })]).into_dict();
+        let mut unifiedTimeframe: Option<String> = self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         if (self.ohlcvs.shelf(&symbol).lookup(&unifiedTimeframe).is_none()) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, ArrayCacheByTimestamp::new(limit));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&unifiedTimeframe);
-        let mut ohlcv: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut ohlcv: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         // data contains a single OHLCV candle
-        let mut parsed: crate::value::List = self.parse_ws_ohlcv(ohlcv, Some(&market)).into_list();
+        let mut parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(ohlcv), Some(&market)).into_list();
         stored.append(Value::Arr(parsed));
         CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, stored.clone());
         let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);

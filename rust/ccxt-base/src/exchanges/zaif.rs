@@ -773,7 +773,7 @@ impl Zaif {
         //     "ask": 1e-07
         // }
         //
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         let mut vwap: Option<String> = self.safe_string_k(ticker.clone(), "vwap", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
         let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
@@ -863,7 +863,7 @@ impl Zaif {
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "currency_pair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1087,7 +1087,7 @@ impl Zaif {
         side = (if (side.as_deref() == Some("bid")) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "timestamp", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "currency_pair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("order_id".into()), &[]).as_str().map(str::to_owned);
@@ -1158,11 +1158,11 @@ impl Zaif {
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_active_orders(&[__ws_arg_5]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "return", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), market.as_ref(), &[since, limit]);
+        })]).into_dict();
+        return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1211,11 +1211,11 @@ impl Zaif {
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_trade_history(&[__ws_arg_6]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "return", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), market.as_ref(), &[since, limit]);
+        })]).into_dict();
+        return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

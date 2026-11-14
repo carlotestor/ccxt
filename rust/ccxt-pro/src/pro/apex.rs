@@ -450,8 +450,8 @@ impl Apex {
         //     }
         //
         let mut trades: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut parts: crate::value::List = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(if let Some(__s) = topic.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -497,7 +497,7 @@ impl Apex {
         let mut id: Option<String> = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("i".into()), Value::Str("id".into()), Value::Str("v".into())]), &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string2(trade.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("t".into()), Value::Str("T".into()), Value::Str("createdAt".into())]), &[]).as_i64();
         let mut side: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("S".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string2(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
@@ -508,7 +508,7 @@ impl Apex {
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -713,20 +713,20 @@ impl Apex {
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "s", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut timestamp: Option<i64> = self.safe_integer_product_k(message, "ts", Value::Float(0.001), &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         if isSnapshot {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            let mut asks: Value = self.safe_list_k(&data, "a", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(&data, "b", &[Value::from(vec![])]);
-            self.handle_deltas(orderbook.book_field("asks"), asks);
-            self.handle_deltas(orderbook.book_field("bids"), bids);
+            let mut asks: crate::value::List = self.safe_list_k(&data, "a", &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list_k(&data, "b", &[Value::from(vec![])]).into_list();
+            self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
+            self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
@@ -1017,8 +1017,8 @@ impl Apex {
         //     }
         //
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut topicParts: crate::value::List = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut topicParts: crate::value::List = Value::Array(if let Some(__s) = topic.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut topicLength: i64 = topicParts.len() as i64;
         let mut timeframeId: Option<String> = self.safe_string(&topicParts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -1087,7 +1087,7 @@ impl Apex {
         }
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = Some(self.symbol(symbol.clone()));
+            symbolResolved = Some(self.symbol(symbol));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
@@ -1189,7 +1189,7 @@ impl Apex {
         let mut messageHash: String = "orders".to_string();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = Some(self.symbol(symbol.clone()));
+            symbolResolved = Some(self.symbol(symbol));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
@@ -1403,11 +1403,11 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (lists.len() as i64) } {
-            let mut rawPosition: Value = self.safe_dict(lists.clone(), Value::Int(i), &[Value::Map({
+            let mut rawPosition: crate::value::Dict = self.safe_dict(lists.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut position: crate::value::Dict = self.parse_position(rawPosition, None).into_dict();
+            })]).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
             let mut side: Option<String> = self.safe_string_k(&position, "side", &[]).as_str().map(str::to_owned);
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
@@ -1636,7 +1636,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // unified auth acknowledgement
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("AUTH_RESP")) {
-            self.handle_authenticate(client, message.clone());
+            self.handle_authenticate(client, message);
         }
 }
 

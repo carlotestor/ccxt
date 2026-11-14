@@ -657,18 +657,18 @@ impl Btcmarkets {
         if (code != Value::Null) {
             currency = Some(self.currency(code));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (method.as_str() == Some("privateGetTransfers")) {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_transfers(&[__ws_arg_0]).await;
+            response = self.private_get_transfers(&[__ws_arg_0]).await.into_opt_list();
         }  else if (method.as_str() == Some("privateGetDeposits")) {
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_deposits(&[__ws_arg_1]).await;
+            response = self.private_get_deposits(&[__ws_arg_1]).await.into_opt_list();
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_withdrawals(&[__ws_arg_2]).await;
+            response = self.private_get_withdrawals(&[__ws_arg_2]).await.into_opt_list();
         }
-        return self.parse_transactions(response, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
 
     Value::Null
 }
@@ -862,7 +862,7 @@ impl Btcmarkets {
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
         let mut amount: Option<String> = self.safe_string_k(transaction.clone(), "amount", &[]).as_str().map(str::to_owned);
         if (fee.is_some()) && (fee.as_deref() != Some("")) {
-            amount = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &fee.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringSub(&amount.map(Value::from).unwrap_or(Value::Null), &fee.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -937,13 +937,13 @@ impl Btcmarkets {
     let mut m = indexmap::IndexMap::new();
     m
 })]), quote.clone().map(Value::from).unwrap_or(Value::Null), &[self.fees.clone()]).into_dict();
-        let mut pricePrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "priceDecimals", &[])]), &[]);
+        let mut pricePrecision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "priceDecimals", &[])]), &[]).as_f64();
         let mut minAmount: Option<f64> = self.safe_number_k(market.clone(), "minOrderAmount", &[]).as_f64();
         let mut maxAmount: Option<f64> = self.safe_number_k(market.clone(), "maxOrderAmount", &[]).as_f64();
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut minPrice: Value = Value::Null;
         if (quote.as_deref() == Some("AUD")) {
-            minPrice = pricePrecision.clone();
+            minPrice = Value::from(pricePrecision);
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -975,7 +975,7 @@ impl Btcmarkets {
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "amountDecimals", &[])]), &[]));
-        m.insert("price".to_string(), pricePrecision);
+        m.insert("price".to_string(), Value::from(pricePrecision));
     m
 }));
         m.insert("limits".to_string(), Value::Map({

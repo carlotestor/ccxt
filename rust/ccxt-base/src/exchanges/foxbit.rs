@@ -1099,8 +1099,8 @@ impl Foxbit {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "market_symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(Value::Dict(entry), Some(&market)));
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(Value::Dict(entry), Some(&market)));
         }
         }
         return Value::Map(result);
@@ -2530,7 +2530,7 @@ impl Foxbit {
     pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "market_symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Null, Value::Str("spot".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("spot".into())]).as_str().map(str::to_owned);
         let mut rolling_24h: crate::value::Dict = self.safe_dict_k(ticker.clone(), "rolling_24h", &[]).into_dict();
         let mut best: crate::value::Dict = self.safe_dict_k(ticker.clone(), "best", &[]).into_dict();
         let mut bestAsk: crate::value::Dict = self.safe_dict_k(&best, "ask", &[]).into_dict();
@@ -2610,7 +2610,7 @@ impl Foxbit {
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -2834,7 +2834,7 @@ impl Foxbit {
         let mut direction: String = "in".to_string();
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
         let mut realAmount: Value = amount.clone();
-        let mut balance: Value = self.safe_number_k(item.clone(), "balance", &[]);
+        let mut balance: Option<f64> = self.safe_number_k(item.clone(), "balance", &[]).as_f64();
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.safe_number_k(item.clone(), "fee", &[]));
@@ -2844,12 +2844,12 @@ impl Foxbit {
         if (amount == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() requires a amount argument".into()))));
         }
-        if (balance == Value::Null) {
+        if (balance.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() missing balance".into()))));
         }
         let mut before: Value = Value::Null;
-        if (amount != Value::Null) && (balance != Value::Null) {
-            before = (match (&(balance), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        if (amount != Value::Null) && (balance.is_some()) {
+            before = (match (&(Value::from(balance)), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if ((0i64) as f64) > amount.as_f64().unwrap_or(f64::NAN) {
                 direction = "out".to_string();
                 realAmount = (match &(amount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null });
@@ -2869,7 +2869,7 @@ impl Foxbit {
         m.insert("currency".to_string(), currencySymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), realAmount);
         m.insert("before".to_string(), before);
-        m.insert("after".to_string(), balance);
+        m.insert("after".to_string(), Value::from(balance));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("fee".to_string(), Value::Map(fee));
     m

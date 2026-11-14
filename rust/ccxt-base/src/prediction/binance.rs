@@ -401,14 +401,14 @@ impl Binance {
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
             let mut eventParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
-            let mut events: Value = crate::types::IntoRaw::into_raw(self.fetch_events(eventParams).await);
+            let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(eventParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut eventsLength: f64 = ((events.len() as i64) as f64);
             let mut queryMarkets: Vec<Value> = Vec::new();
             {
                                 let mut ei: i64 = 0;
                 let mut __for_first_1208: bool = true;
                 while { if !__for_first_1208 { ei += 1; } __for_first_1208 = false; (ei as f64) < eventsLength } {
-                let mut eventMarkets: Value = self.safe_list_k(events.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null), "markets", &[Value::from(vec![])]);
+                let mut eventMarkets: Value = self.safe_list_k(events.get(ei as usize).map(crate::Value::from).unwrap_or_default(), "markets", &[Value::from(vec![])]);
                 let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
                 {
                                         let mut mi: i64 = 0;
@@ -587,8 +587,8 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1212: bool = true;
             while { if !__for_first_1212 { i += 1; } __for_first_1212 = false; (i as f64) < rawTopicsLength } {
-            let mut rawTopic: Value = rawTopics.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut rawMarkets: crate::value::List = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).into_list();
+            let mut rawTopic: crate::value::Dict = rawTopics.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut rawMarkets: crate::value::List = self.safe_list_k(&rawTopic, "markets", &[Value::from(vec![])]).into_list();
             let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
             let mut hasOutcomes: bool = false;
             if rawMarketsLength > 0 {
@@ -601,9 +601,9 @@ impl Binance {
                 hasOutcomes = firstOutcomesLength > 0;
             }
             if hasOutcomes {
-                result.push(rawTopic.clone());
+                result.push(Value::from(&rawTopic));
             }  else {
-                let mut topicId: Option<String> = self.safe_string_k(rawTopic, "marketTopicId", &[]).as_str().map(str::to_owned);
+                let mut topicId: Option<String> = self.safe_string_k(&rawTopic, "marketTopicId", &[]).as_str().map(str::to_owned);
                 if (topicId.is_some()) {
                     let mut detail: Value = self.fetch_raw_topic_detail(topicId.as_deref().unwrap_or_default(), &[]).await;
                     result.push(detail);
@@ -941,7 +941,7 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), topicId.map(Value::from).unwrap_or(Value::Null));
         m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("event".to_string(), (if (slug.is_some()) { self.shorten_slug(slug.clone().map(Value::from).unwrap_or(Value::Null)) } else { Value::Null }));
+        m.insert("event".to_string(), (if (slug.is_some()) { self.shorten_slug(slug.map(Value::from).unwrap_or(Value::Null)) } else { Value::Null }));
         m.insert("title".to_string(), title.map(Value::from).unwrap_or(Value::Null));
         m.insert("description".to_string(), self.safe_string_k(rawTopic.clone(), "description", &[]));
         m.insert("markets".to_string(), Value::from(marketsList));
@@ -1009,13 +1009,13 @@ impl Binance {
         let mut resolved: bool = (status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED"));
         let mut endDate: Option<i64> = (match rawTopic.get("endDate") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut feeRateBps: String = (match rawTopic.get("feeRateBps") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("200".into()) }).as_str().unwrap_or("200").to_string();
-        let mut feeRate: Value = self.parse_number(crate::precise::Precise::stringDiv(&Value::from(feeRateBps.clone()), &Value::Str("10000".into())), &[]);
+        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&Value::from(feeRateBps.clone()), &Value::Str("10000".into())), &[]).as_f64();
         let mut decimalPrecision: String = self.safe_string_k(rawMarket.clone(), "decimalPrecision", &[Value::Str("2".into())]).as_str().unwrap_or("2").to_string();
-        let mut pricePrecision: Value = self.parse_number(self.parse_precision(&[Value::from(decimalPrecision)]), &[]);
+        let mut pricePrecision: Option<f64> = self.parse_number(self.parse_precision(&[Value::from(decimalPrecision)]), &[]).as_f64();
         let mut precision: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), Value::Float(0.01));
-                m.insert("price".to_string(), pricePrecision);
+                m.insert("price".to_string(), Value::from(pricePrecision));
             m
         });
         let mut volume: Option<f64> = self.safe_number_k(rawMarket.clone(), "tradeVolume", &[]).as_f64();
@@ -1112,7 +1112,7 @@ impl Binance {
         m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(endDate)));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
-        m.insert("taker".to_string(), feeRate);
+        m.insert("taker".to_string(), Value::from(feeRate));
         m.insert("maker".to_string(), Value::Int(0));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
@@ -1184,7 +1184,7 @@ impl Binance {
     m
 }));
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
+        let mut outcomeObj: Value = self.outcome(outcome);
         let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1215,8 +1215,7 @@ impl Binance {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        let mut marketAny: Value = crate::Value::from(market);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]), market).into_dict();
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
@@ -1232,12 +1231,12 @@ impl Binance {
             isMirrored = ((label.as_deref() == Some("NO")) || (label.as_deref() == Some("DOWN")));
         }
         let mut lastString: Option<String> = self.safe_string_k(raw.clone(), "lastTradePrice", &[]).as_str().map(str::to_owned);
-        let mut last: Value = Value::Null;
+        let mut last: Option<f64> = None;
         if (lastString.is_some()) {
             if isMirrored {
-                last = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &lastString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+                last = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &lastString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             }  else {
-                last = self.parse_number(lastString.map(Value::from).unwrap_or(Value::Null), &[]);
+                last = self.parse_number(lastString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }
         }
         return self.safe_prediction_ticker(Value::Map({
@@ -1256,8 +1255,8 @@ impl Binance {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone());
-        m.insert("last".to_string(), last);
+        m.insert("close".to_string(), Value::from(last));
+        m.insert("last".to_string(), Value::from(last));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
@@ -1328,9 +1327,9 @@ impl Binance {
                 response = self.sapi_private_get_order_book_last_trade_price(&[__ws_arg_6]).await;
                 responsesByMarketId.insert(marketId.as_deref().unwrap_or("null").to_string(), response.clone());
             }
-            let mut ticker: Value = self.parse_prediction_ticker(response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
-            let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
+            let mut ticker: crate::value::Dict = self.parse_prediction_ticker(response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
+            let mut symbolKey: Option<String> = self.safe_string_k(&ticker, "outcome", &[outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
         }
         }
         return Value::Map(result);
@@ -1499,7 +1498,7 @@ impl Binance {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
             }
             outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())).into());
-            outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
+            outcomeObjResolved = self.safe_outcome(outcomeName, None);
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "createTime", &[]).as_i64();
@@ -1590,22 +1589,20 @@ impl Binance {
         });
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchOpenOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequest: Option<i64> = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut pageKey: String = "ccxtPageKey".to_string();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOpenOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), maxEntriesPerRequest.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOpenOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), Value::from(maxEntriesPerRequest)]).await;
         }
-        let mut page: Value = (match (&(self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut page: i64 = ((self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)]).as_i64().unwrap_or(1)) - 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut offSet: Value = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[(match (&(page), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            request.insert("offset".into(), offSet);
+        let mut offSet: Option<i64> = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[Value::from((if let Some(__r) = maxEntriesPerRequest { Some(page * __r) } else { None }))]).as_i64();
+        if offSet > Some(0) {
+            request.insert("offset".into(), Value::from(offSet));
         }
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
@@ -1655,8 +1652,8 @@ impl Binance {
         //     ]
         // }
         //
-        let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-        let mut parsedOrders: Value = self.parse_prediction_orders(orders, &[outcomeObj, since.clone()]);
+        let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        let mut parsedOrders: Value = self.parse_prediction_orders(Value::Arr(orders), &[outcomeObj, since.clone()]);
         return self.filter_by_outcome_since_limit(parsedOrders, &[outcome, since, limit]);
         Value::Null
         }).await?))
@@ -1698,22 +1695,20 @@ impl Binance {
         });
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequest: Option<i64> = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut pageKey: String = "ccxtPageKey".to_string();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), maxEntriesPerRequest.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), Value::from(maxEntriesPerRequest)]).await;
         }
-        let mut page: Value = (match (&(self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut page: i64 = ((self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)]).as_i64().unwrap_or(1)) - 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut offSet: Value = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[(match (&(page), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            request.insert("offset".into(), offSet);
+        let mut offSet: Option<i64> = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[Value::from((if let Some(__r) = maxEntriesPerRequest { Some(page * __r) } else { None }))]).as_i64();
+        if offSet > Some(0) {
+            request.insert("offset".into(), Value::from(offSet));
         }
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
@@ -1770,8 +1765,8 @@ impl Binance {
         //     ]
         // }
         //
-        let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-        let mut parsedOrders: Value = self.parse_prediction_orders(orders, &[outcomeObj, since.clone()]);
+        let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        let mut parsedOrders: Value = self.parse_prediction_orders(Value::Arr(orders), &[outcomeObj, since.clone()]);
         return self.filter_by_outcome_since_limit(parsedOrders, &[outcome, since, limit]);
         Value::Null
         }).await?))
@@ -1809,7 +1804,7 @@ impl Binance {
                 let mut __for_first_1223: bool = true;
                 while { if !__for_first_1223 { i += 1; } __for_first_1223 = false; i < (outcomes.len() as i64) } {
                 let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), &[]).into_dict();
+                let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), None).into_dict();
                 let mut requestedOutcome: Option<String> = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]).as_str().map(str::to_owned);
                 requestedOutcomeSymbols.insert(requestedOutcome.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -1872,11 +1867,11 @@ impl Binance {
         //     ]
         // }
         //
-        let mut data: Value = self.safe_list_k(&response, "positions", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
         if (outcomes == Value::Null) {
-            return self.parse_prediction_positions(data.clone(), &[]);
+            return self.parse_prediction_positions(Value::from(&data), &[]);
         }
-        let mut positions: Vec<Value> = self.parse_prediction_positions(data, &[]).as_array().cloned().unwrap_or_default();
+        let mut positions: Vec<Value> = self.parse_prediction_positions(Value::Arr(data), &[]).as_array().cloned().unwrap_or_default();
         let mut filtered: Vec<Value> = Vec::new();
         let mut positionsLength: f64 = ((positions.len() as i64) as f64);
         {
@@ -1932,8 +1927,8 @@ impl Binance {
         let mut response: crate::value::Dict = self.sapi_private_get_position_filter(&[__ws_arg_11]).await.into_dict();
         //
         //
-        let mut positions: Value = self.safe_list_k(&response, "positions", &[Value::from(vec![])]);
-        let mut parsedPositions: crate::value::List = self.parse_prediction_positions(positions, &[]).into_list();
+        let mut positions: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
+        let mut parsedPositions: crate::value::List = self.parse_prediction_positions(Value::Arr(positions), &[]).into_list();
         let mut filteredPositions: Value = self.filter_by_outcome_since_limit(Value::Arr(parsedPositions), &[outcome, Value::Null, Value::Null]);
         return self.safe_dict(filteredPositions, Value::Int(0), &[]);
         Value::Null
@@ -1961,10 +1956,10 @@ impl Binance {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
             }
             outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())).into());
-            outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
+            outcomeObjResolved = self.safe_outcome(outcomeName, None);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "createdTime", &[]).as_i64();
-        let mut totalCost: Value = self.parse_number(self.safe_string_k(position.clone(), "totalCost", &[]), &[]);
+        let mut totalCost: Option<f64> = self.parse_number(self.safe_string_k(position.clone(), "totalCost", &[]), &[]).as_f64();
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_integer_k(position.clone(), "positionId", &[]));
@@ -1982,8 +1977,8 @@ impl Binance {
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), self.parse_number(self.safe_string_k(position.clone(), "value", &[]), &[]));
         m.insert("leverage".to_string(), Value::Null);
-        m.insert("collateral".to_string(), totalCost.clone());
-        m.insert("initialMargin".to_string(), totalCost);
+        m.insert("collateral".to_string(), Value::from(totalCost));
+        m.insert("initialMargin".to_string(), Value::from(totalCost));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
@@ -2036,23 +2031,21 @@ impl Binance {
         });
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchMyTrades".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequest: Option<i64> = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut pageKey: String = "ccxtPageKey".to_string();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), maxEntriesPerRequest.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), Value::from(maxEntriesPerRequest)]).await;
         }
-        let mut page: Value = (match (&(self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut page: i64 = ((self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)]).as_i64().unwrap_or(1)) - 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("FILLED".into()));
             m
         });
-        let mut offSet: Value = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[(match (&(page), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            request.insert("offset".into(), offSet);
+        let mut offSet: Option<i64> = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[Value::from((if let Some(__r) = maxEntriesPerRequest { Some(page * __r) } else { None }))]).as_i64();
+        if offSet > Some(0) {
+            request.insert("offset".into(), Value::from(offSet));
         }
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
@@ -2109,8 +2102,8 @@ impl Binance {
         //     ]
         // }
         //
-        let mut trades: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-        let mut parsedTrades: crate::value::List = self.parse_prediction_trades(trades, &[outcomeObj]).into_list();
+        let mut trades: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        let mut parsedTrades: crate::value::List = self.parse_prediction_trades(Value::Arr(trades), &[outcomeObj]).into_list();
         return self.filter_by_outcome_since_limit(Value::Arr(parsedTrades), &[outcome, since, limit]);
         Value::Null
         }).await?))
@@ -2164,7 +2157,7 @@ impl Binance {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
             }
             outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())).into());
-            outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
+            outcomeObjResolved = self.safe_outcome(outcomeName, None);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "createTime", &[]).as_i64();
         let mut filled: Option<String> = self.safe_string_k(trade.clone(), "filledShareQty", &[]).as_str().map(str::to_owned);
@@ -2291,11 +2284,11 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("price".into()), &[Value::Float(0.0001)]);
-        let mut decimals: Value = Value::Int(4);
+        let mut decimals: i64 = 4;
         if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
             decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
-        return self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), decimals, &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
+        return self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
 
     Value::Null
 }
@@ -2306,11 +2299,11 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("amount".into()), &[Value::Float(0.01)]);
-        let mut decimals: Value = Value::Int(2);
+        let mut decimals: i64 = 2;
         if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
             decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
-        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), decimals, &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
+        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
 
     Value::Null
 }
@@ -2396,7 +2389,7 @@ impl Binance {
                 let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&Value::from(feeRateBps), &Value::Str("10000".into())).as_str().map(str::to_owned);
                 let mut minPrice: Option<String> = crate::precise::Precise::stringMin(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
                 let mut fee: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&feeRate.map(Value::from).unwrap_or(Value::Null), &minPrice.map(Value::from).unwrap_or(Value::Null)), &amountStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)), &fee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)), &fee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::from(defaultTif)]).as_str().map(str::to_owned);

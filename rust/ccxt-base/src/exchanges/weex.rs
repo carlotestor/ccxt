@@ -1719,13 +1719,13 @@ impl Weex {
         }  else {
             active = self.safe_bool_k(market.clone(), "enableTrade", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         }
-        let mut amountPrecision: Value = self.safe_number_k(market.clone(), "stepSize", &[]);
-        let mut pricePrecision: Value = self.safe_number_k(market.clone(), "tickSize", &[]);
-        if (amountPrecision == Value::Null) {
+        let mut amountPrecision: Option<f64> = self.safe_number_k(market.clone(), "stepSize", &[]).as_f64();
+        let mut pricePrecision: Option<f64> = self.safe_number_k(market.clone(), "tickSize", &[]).as_f64();
+        if (amountPrecision.is_none()) {
             let mut amountPrecisionString: Option<String> = self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]).as_str().map(str::to_owned);
             let mut pricePrecisionString: Option<String> = self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]).as_str().map(str::to_owned);
-            amountPrecision = self.parse_number(amountPrecisionString.map(Value::from).unwrap_or(Value::Null), &[]);
-            pricePrecision = self.parse_number(pricePrecisionString.map(Value::from).unwrap_or(Value::Null), &[]);
+            amountPrecision = self.parse_number(amountPrecisionString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+            pricePrecision = self.parse_number(pricePrecisionString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut fees: indexmap::IndexMap<String, Value> = self.safe_dict(self.fees.clone(), (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) }), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1766,8 +1766,8 @@ impl Weex {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
-        m.insert("price".to_string(), pricePrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
+        m.insert("price".to_string(), Value::from(pricePrecision));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -2251,13 +2251,13 @@ impl Weex {
         if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) > ((15i64) as f64)) {
             request.insert("limit".into(), Value::Int(200)); // default is 15, max is 200
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_api_v3_market_depth(&[__ws_arg_3]).await;
+            response = self.public_get_api_v3_market_depth(&[__ws_arg_3]).await.into_opt_dict();
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.contract_get_capi_v3_market_depth(&[__ws_arg_4]).await;
+            response = self.contract_get_capi_v3_market_depth(&[__ws_arg_4]).await.into_opt_dict();
         }
         //
         //     {
@@ -2276,8 +2276,8 @@ impl Weex {
         //         "lastUpdateId": 14138610208
         //     }
         //
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), symbol, &[]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(response, "lastUpdateId", &[]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, symbol, &[]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&response, "lastUpdateId", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))
@@ -2419,7 +2419,7 @@ impl Weex {
             })]).into_dict();
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::Dict(paramsExtended), maxHistoricalLimit.clone()]).await;
         }
-        let mut until: Value = self.safe_integer_k(&paramsPaginate, "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         let historicalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsPaginate, Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut historical: Value = historicalparamsHistoricalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsHistorical: crate::value::Dict = historicalparamsHistoricalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2440,13 +2440,13 @@ impl Weex {
         });
         let mut priceType: Option<String> = self.safe_string_upper_k(&paramsHistorical, "price", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsHistorical, Value::from(vec![Value::Str("historical".into()), Value::Str("until".into()), Value::Str("price".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         // hardcap threshold
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Null } else { crate::runtime::Math::min(&limit, &Value::Int(1000)) });
         // the recent-klines endpoints ignore startTime and endTime and only ever return the
         // latest candles, so a request bounded by since or until has to go through the history
         // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
-        let mut useHistory: bool = historical.as_bool() == Some(true) || (since != Value::Null) || (until != Value::Null);
+        let mut useHistory: bool = historical.as_bool() == Some(true) || (since != Value::Null) || (until.is_some());
         if useHistory {
             if (priceType.is_some()) {
                 request.insert("priceType".into(), priceType.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2454,10 +2454,10 @@ impl Weex {
             let mut now: Value = Value::Int(self.milliseconds());
             let mut startTime: Value = since.clone();
             let mut endTime: Value = now.clone();
-            if (until != Value::Null) {
-                endTime = until.clone();
+            if (until.is_some()) {
+                endTime = Value::from(until);
             }
-            if (since == Value::Null) || (until == Value::Null) {
+            if (since == Value::Null) || (until.is_none()) {
                 let mut duration: Option<i64> = self.parse_to_int((match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
@@ -2467,18 +2467,18 @@ impl Weex {
                 if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
                     historyLimit = self.parse_to_int(crate::runtime::Math::min(&limit, &maxHistoricalLimit));
                 }
-                let mut timeDelta: Value = Value::from(self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (historyLimit, duration) { Some(__l * __r) } else { None }))));
-                if (since == Value::Null) && (until == Value::Null) {
+                let mut timeDelta: Option<i64> = self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (historyLimit, duration) { Some(__l * __r) } else { None })));
+                if (since == Value::Null) && (until.is_none()) {
                     endTime = now.clone();
-                    startTime = (match (&(now), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                    startTime = (match (&(now), &(Value::from(timeDelta))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 }  else if (since == Value::Null) {
-                    if (until == Value::Null) {
+                    if (until.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a since or until argument".into()))));
                     }
-                    startTime = (match (&(until), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                    startTime = Value::from((if let (Some(__l), Some(__r)) = (until, timeDelta) { Some(__l - __r) } else { None }));
                 }  else {
                     // this.sum, a bare + is string concatenation in the php port
-                    endTime = self.sum(&[since.clone(), timeDelta]);
+                    endTime = self.sum(&[since.clone(), Value::from(timeDelta)]);
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
@@ -2488,23 +2488,23 @@ impl Weex {
             request.insert("startTime".into(), startTime);
             request.insert("endTime".into(), endTime);
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.contract_get_capi_v3_market_history_klines(&[__ws_arg_6]).await;
+            response = self.contract_get_capi_v3_market_history_klines(&[__ws_arg_6]).await.into_opt_list();
         }  else {
             if (limitResolved != Value::Null) {
                 request.insert("limit".into(), limitResolved.clone());
             }
             if (priceType.as_deref() == Some("MARK")) {
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.contract_get_capi_v3_market_mark_price_klines(&[__ws_arg_7]).await;
+                response = self.contract_get_capi_v3_market_mark_price_klines(&[__ws_arg_7]).await.into_opt_list();
             }  else if (priceType.as_deref() == Some("INDEX")) {
                 let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.contract_get_capi_v3_market_index_price_klines(&[__ws_arg_8]).await;
+                response = self.contract_get_capi_v3_market_index_price_klines(&[__ws_arg_8]).await.into_opt_list();
             }  else {
                 let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.contract_get_capi_v3_market_klines(&[__ws_arg_9]).await;
+                response = self.contract_get_capi_v3_market_klines(&[__ws_arg_9]).await.into_opt_list();
             }
         }
-        return self.parse_ohlc_vs(self.to_array(response), Some(&market), &[timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -2642,7 +2642,7 @@ impl Weex {
         if (realizedPnl.is_some()) {
             tradeMarketType = "swap".to_string();
         }
-        let mut marketResolved: crate::types::Market = self.safe_market((if (market.is_none()) { tradeMarketId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null }), market.clone(), &[Value::Null, Value::from(tradeMarketType.clone())]);
+        let mut marketResolved: crate::types::Market = self.safe_market((if (market.is_none()) { tradeMarketId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null }), market, &[Value::Null, Value::from(tradeMarketType.clone())]);
         let mut isSpot: Value = Value::Null;
         if (market.is_none()) {
             isSpot = Value::Bool(tradeMarketType == "spot");
@@ -2742,7 +2742,7 @@ impl Weex {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(interest.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Null, Value::Str("swap".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("swap".into())]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(interest.clone(), "time", &[]).as_i64();
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3420,17 +3420,17 @@ impl Weex {
             }
             // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
             if hasStopLoss {
-                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 request.insert("presetStopLossPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
-                let mut stopLossPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
+                let mut stopLossPriceType: Option<String> = self.safe_string_k(&stopLoss, "triggerPriceType", &[]).as_str().map(str::to_owned);
                 if (stopLossPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("SlWorkingType".into(), self.encode_trigger_price_type(stopLossPriceType.as_deref()).map(Value::from).unwrap_or(Value::Null)); }
                 }
             }
             if hasTakeProfit {
-                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 request.insert("presetTakeProfitPrice".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
-                let mut takeProfitPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
+                let mut takeProfitPriceType: Option<String> = self.safe_string_k(&takeProfit, "triggerPriceType", &[]).as_str().map(str::to_owned);
                 if (takeProfitPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("TpWorkingType".into(), self.encode_trigger_price_type(takeProfitPriceType.as_deref()).map(Value::from).unwrap_or(Value::Null)); }
                 }
@@ -3451,7 +3451,7 @@ impl Weex {
             request.insert("clientAlgoId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             let mut orderType: Option<String> = None;
             if isStopLoss {
-                let mut stopLossPriceType: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("stopLossPriceType".into()), Value::Str("triggerPriceType".into()), &[]);
+                let mut stopLossPriceType: Option<String> = self.safe_string2(params.clone(), Value::Str("stopLossPriceType".into()), Value::Str("triggerPriceType".into()), &[]).as_str().map(str::to_owned);
                 if (stopLossPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("SlWorkingType".into(), self.encode_trigger_price_type(stopLossPriceType.as_deref()).map(Value::from).unwrap_or(Value::Null)); }
                 }
@@ -3462,7 +3462,7 @@ impl Weex {
                     orderType = Some("STOP".to_string());
                 }
             }  else if isTakeProfit {
-                let mut takeProfitPriceType: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("takeProfitPriceType".into()), Value::Str("triggerPriceType".into()), &[]);
+                let mut takeProfitPriceType: Option<String> = self.safe_string2(params.clone(), Value::Str("takeProfitPriceType".into()), Value::Str("triggerPriceType".into()), &[]).as_str().map(str::to_owned);
                 if (takeProfitPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("TpWorkingType".into(), self.encode_trigger_price_type(takeProfitPriceType.as_deref()).map(Value::from).unwrap_or(Value::Null)); }
                 }
@@ -3480,17 +3480,17 @@ impl Weex {
             }
             request.insert("newClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             if hasStopLoss {
-                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 request.insert("slTriggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
-                let mut stopLossPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
+                let mut stopLossPriceType: Option<String> = self.safe_string_k(&stopLoss, "triggerPriceType", &[]).as_str().map(str::to_owned);
                 if (stopLossPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("SlWorkingType".into(), self.encode_trigger_price_type(stopLossPriceType.as_deref()).map(Value::from).unwrap_or(Value::Null)); }
                 }
             }
             if hasTakeProfit {
-                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 request.insert("tpTriggerPrice".into(), self.price_to_precision(symbol, Value::from(takeProfitTriggerPrice)));
-                let mut takeProfitPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
+                let mut takeProfitPriceType: Option<String> = self.safe_string_k(&takeProfit, "triggerPriceType", &[]).as_str().map(str::to_owned);
                 if (takeProfitPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("TpWorkingType".into(), self.encode_trigger_price_type(takeProfitPriceType.as_deref()).map(Value::from).unwrap_or(Value::Null)); }
                 }
@@ -3641,26 +3641,26 @@ impl Weex {
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut trigger: bool = self.safe_bool_k(&paramsMarketType, "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::Str("trigger".into()), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("spot")) {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument for spot markets".into()))));
             }
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_delete_api_v3_open_orders(&[__ws_arg_19]).await;
+            response = self.private_delete_api_v3_open_orders(&[__ws_arg_19]).await.into_opt_list();
         }  else if trigger {
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.contract_private_delete_capi_v3_algo_open_orders(&[__ws_arg_20]).await;
+            response = self.contract_private_delete_capi_v3_algo_open_orders(&[__ws_arg_20]).await.into_opt_list();
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.contract_private_delete_capi_v3_all_open_orders(&[__ws_arg_21]).await;
+            response = self.contract_private_delete_capi_v3_all_open_orders(&[__ws_arg_21]).await.into_opt_list();
         }
         let mut extendedParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.parse_orders(response, market.as_ref(), &[Value::Null, Value::Null, Value::Map(extendedParams)]);
+        return self.parse_orders(&response, market.as_ref(), &[Value::Null, Value::Null, Value::Map(extendedParams)]);
         Value::Null
         }).await?))
     }
@@ -3883,7 +3883,7 @@ impl Weex {
         if (symbol != Value::Null) {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if isSpot {
             //
             //     [
@@ -3906,7 +3906,7 @@ impl Weex {
             //     ]
             //
             let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&paramsPaginate]);
-            response = self.private_get_api_v3_open_orders(&[__ws_arg_26]).await;
+            response = self.private_get_api_v3_open_orders(&[__ws_arg_26]).await.into_opt_list();
         }  else {
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
@@ -3952,7 +3952,7 @@ impl Weex {
                 //     ]
                 //
                 let __ws_arg_27 = self.extend(&requestUntil, &[&paramsOmitted]);
-                response = self.contract_private_get_capi_v3_open_algo_orders(&[__ws_arg_27]).await;
+                response = self.contract_private_get_capi_v3_open_algo_orders(&[__ws_arg_27]).await.into_opt_list();
             }  else {
                 //
                 //     [
@@ -3979,7 +3979,7 @@ impl Weex {
                 //     ]
                 //
                 let __ws_arg_28 = self.extend(requestUntil, &[&paramsUntil]);
-                response = self.contract_private_get_capi_v3_open_orders(&[__ws_arg_28]).await;
+                response = self.contract_private_get_capi_v3_open_orders(&[__ws_arg_28]).await.into_opt_list();
             }
         }
         let mut extendedParams: indexmap::IndexMap<String, Value> = ({
@@ -3987,7 +3987,7 @@ impl Weex {
                 m.insert("status".to_string(), Value::Str("open".into()));
             m
         });
-        return self.parse_orders(response, market.as_ref(), &[since, limit, Value::Map(extendedParams)]);
+        return self.parse_orders(&response, market.as_ref(), &[since, limit, Value::Map(extendedParams)]);
         Value::Null
         }).await?))
     }
@@ -4225,15 +4225,15 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if sandboxMode {
             let __ws_arg_30 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.contract_private_get_capi_v3_sim_order_history(&[__ws_arg_30]).await;
+            response = self.contract_private_get_capi_v3_sim_order_history(&[__ws_arg_30]).await.into_opt_list();
         }  else {
             let __ws_arg_31 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.contract_private_get_capi_v3_order_history(&[__ws_arg_31]).await;
+            response = self.contract_private_get_capi_v3_order_history(&[__ws_arg_31]).await.into_opt_list();
         }
-        return self.parse_orders(response, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4763,13 +4763,13 @@ impl Weex {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string2(item.clone(), Value::Str("coinName".into()), Value::Str("asset".into()), &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.safe_integer2(item.clone(), Value::Str("cTime".into()), Value::Str("time".into()), &[]).as_i64();
         let mut amountRaw: Option<String> = self.safe_string2(item.clone(), Value::Str("deltaAmount".into()), Value::Str("income".into()), &[]).as_str().map(str::to_owned);
         let mut after: Option<String> = self.safe_string2(item.clone(), Value::Str("afterAmount".into()), Value::Str("balance".into()), &[]).as_str().map(str::to_owned);
         let mut before: Option<String> = crate::precise::Precise::stringSub(&after.clone().map(Value::from).unwrap_or(Value::Null), &amountRaw.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         let mut direction: String = "in".to_string();
         if (amountRaw.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() missing amountRaw".into()))));
@@ -4797,7 +4797,7 @@ impl Weex {
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("before".to_string(), self.parse_number(before.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("after".to_string(), self.parse_number(after.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), Value::Null);
@@ -4984,13 +4984,13 @@ impl Weex {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if sandboxMode {
-            response = self.contract_private_get_capi_v3_sim_position_all_position(&[params.clone()]).await;
+            response = self.contract_private_get_capi_v3_sim_position_all_position(&[params.clone()]).await.into_opt_list();
         }  else {
-            response = self.contract_private_get_capi_v3_account_position_all_position(&[params]).await;
+            response = self.contract_private_get_capi_v3_account_position_all_position(&[params]).await.into_opt_list();
         }
-        return self.parse_positions(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.parse_positions(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

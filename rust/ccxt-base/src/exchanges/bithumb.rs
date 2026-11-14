@@ -936,9 +936,9 @@ impl Bithumb {
             m
         });
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchMarkets".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             request.insert("isDetails".into(), Value::Bool(true));
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
             let mut response: Value = self.public_get_v1_market_all(&[__ws_arg_0]).await;
@@ -1051,11 +1051,11 @@ impl Bithumb {
                 while { if !__for_first_392 { i += 1; } __for_first_392 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut quoteId: Value = quote.clone();
-                let mut response: Value = self.safe_dict(results.clone(), Value::Int(i), &[]);
-                let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+                let mut response: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
+                let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).as_map().cloned().unwrap_or_default();
                 let mut extension: crate::value::Dict = self.safe_dict(&quoteCurrencies, quote.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1191,14 +1191,14 @@ impl Bithumb {
                                 let mut i: i64 = 0;
                 let mut __for_first_393: bool = true;
                 while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (codes.len() as i64) } {
-                let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut account: crate::value::Dict = self.account().into_dict();
-                let mut currency: crate::types::Currency = self.currency(code.clone());
+                let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
                 let mut lowerCurrencyId: String = self.safe_string_lower_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string(&balances, Value::Str(format!("{}{}", Value::Str("total_".into()), lowerCurrencyId).into()), &[]));
                 std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string(&balances, Value::Str(format!("{}{}", Value::Str("in_use_".into()), lowerCurrencyId).into()), &[]));
                 std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string(&balances, Value::Str(format!("{}{}", Value::Str("available_".into()), lowerCurrencyId).into()), &[]));
-                result.insert(crate::runtime::stringify_param(&code), Value::Dict(account));
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
             }
             }
         }  else {
@@ -1248,10 +1248,10 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchBalance".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             response = self.private_get_v1_accounts(&[Value::from(&paramsGeneration)]).await;
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1295,7 +1295,7 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1305,7 +1305,7 @@ impl Bithumb {
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Null;
         let mut timestamp: Option<i64> = None;
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             request.insert("markets".into(), self.get_gen2_market_id((market).raw.clone()));
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
             response = self.public_get_v1_orderbook(&[__ws_arg_3]).await;
@@ -1490,7 +1490,7 @@ impl Bithumb {
         //
         let mut timestamp: Option<i64> = self.safe_integer2(ticker.clone(), Value::Str("date".into()), Value::Str("trade_timestamp".into()), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut close: Option<String> = self.safe_string2(ticker.clone(), Value::Str("closing_price".into()), Value::Str("trade_price".into()), &[]).as_str().map(str::to_owned);
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "opening_price", &[]).as_str().map(str::to_owned);
         let mut high: Option<String> = self.safe_string2(ticker.clone(), Value::Str("max_price".into()), Value::Str("high_price".into()), &[]).as_str().map(str::to_owned);
@@ -1556,7 +1556,7 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchTickers".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1566,7 +1566,7 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             let mut marketIds: Vec<Value> = Vec::new();
@@ -1580,7 +1580,7 @@ impl Bithumb {
                 let mut __for_first_396: bool = true;
                 while { if !__for_first_396 { i += 1; } __for_first_396 = false; (i as f64) < symbolsForMarketIdsLength } {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsForMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-                marketIds.push(self.get_gen2_market_id(market.clone()));
+                marketIds.push(self.get_gen2_market_id(market));
             }
             }
             let mut marketIdsLength: Value = Value::Int(marketIds.len() as i64);
@@ -1649,7 +1649,7 @@ impl Bithumb {
                 while { if !__for_first_400 { i += 1; } __for_first_400 = false; (i as f64) < responsesLength } {
                 let mut response: Value = self.safe_value(responses.clone(), Value::Int(i), &[]);
                 if self.is_dictionary(response.clone()).as_bool() == Some(true) && (self.safe_value_k(response.clone(), "data", &[]) != Value::Null) {
-                    response = self.safe_value_k(response.clone(), "data", &[]);
+                    response = self.safe_value_k(response, "data", &[]);
                 }
                 let mut expectedMarketId: Option<String> = None;
                 let mut requestedMarketIds: crate::value::List = self.safe_list(&marketIdsChunks, Value::Int(i), &[Value::from(vec![])]).into_list();
@@ -1743,11 +1743,11 @@ impl Bithumb {
                 let mut __for_first_404: bool = true;
                 while { if !__for_first_404 { i += 1; } __for_first_404 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut response: Value = self.safe_dict(responses.clone(), Value::Int(i), &[]);
-                let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+                let mut response: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(i), &[]).into_dict();
+                let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).as_map().cloned().unwrap_or_default();
                 let mut timestamp: Option<i64> = self.safe_integer(Value::Map(data.clone()), Value::Str("date".into()), &[]).as_i64();
                 let mut tickers: Value = self.omit(Value::Map(data.clone()), Value::Str("date".into()), &[]);
                 let mut currencyIds: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
@@ -1801,7 +1801,7 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchTicker".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1813,7 +1813,7 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             request.insert("markets".into(), self.get_gen2_market_id((market).raw.clone()));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
             response = self.public_get_v1_ticker(&[__ws_arg_7]).await;
@@ -1963,7 +1963,7 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1972,7 +1972,7 @@ impl Bithumb {
         });
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             request.insert("market".into(), self.get_gen2_market_id((market).raw.clone()));
             if (limit != Value::Null) {
                 request.insert("count".into(), limit.clone());
@@ -2229,7 +2229,7 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchTrades".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2241,7 +2241,7 @@ impl Bithumb {
         }
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             request.insert("market".into(), self.get_gen2_market_id((market).raw.clone()));
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
             response = self.public_get_v1_trades_ticks(&[__ws_arg_14]).await;
@@ -2316,9 +2316,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders is only supported for the generation 2 API".into()))));
         }
         let mut ordersCount: i64 = orders.len() as i64;
@@ -2347,11 +2347,11 @@ impl Bithumb {
             }
             let mut amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref().unwrap_or_default(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, &[price, orderParams]).into_dict();
+            })]).into_dict();
+            let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref().unwrap_or_default(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, &[price, Value::Dict(orderParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
@@ -2423,8 +2423,8 @@ impl Bithumb {
         request.insert("side".into(), sideRequest.map(Value::from).unwrap_or(Value::Null));
         let mut timeInForceRaw: Option<String> = self.safe_string2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
         let mut timeInForce: Option<String> = (if (timeInForceRaw.is_none()) { Some("GTC".to_string()) } else { timeInForceRaw.clone() });
-        let mut paramsTimeInForce: Value = (if (timeInForceRaw.is_none()) { params.clone() } else { self.omit(params, Value::Str("timeInForce".into()), &[]) });
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[paramsTimeInForce]).as_array().cloned().unwrap_or_default();
+        let mut paramsTimeInForce: crate::value::Dict = (if (timeInForceRaw.is_none()) { params.clone() } else { self.omit(params, Value::Str("timeInForce".into()), &[]) }).into_dict();
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[Value::from(&paramsTimeInForce)]).as_array().cloned().unwrap_or_default();
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isPostOnly: bool = postOnly.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO"));
@@ -2519,17 +2519,17 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: Value = Value::Null;
-        if (generation == Some(2.0)) {
+        let mut response: Option<crate::value::Dict> = None;
+        if (generation == Some(2)) {
             request = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), Value::from(&paramsGeneration)]).as_map().cloned().unwrap_or_default();
-            response = self.private_post_v2_orders(&[Value::Map(request.clone())]).await;
+            response = self.private_post_v2_orders(&[Value::Map(request.clone())]).await.into_opt_dict();
         }  else {
             request.insert("order_currency".into(), Value::from((market).base.clone()));
             request.insert("payment_currency".into(), Value::from((market).quote.clone()));
@@ -2544,23 +2544,23 @@ impl Bithumb {
                 }
                 request.insert("type".into(), typeRequest.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-                response = self.private_post_trade_place(&[__ws_arg_17]).await;
+                response = self.private_post_trade_place(&[__ws_arg_17]).await.into_opt_dict();
             }  else if (side.as_str() == Some("buy")) {
                 let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-                response = self.private_post_trade_market_buy(&[__ws_arg_18]).await;
+                response = self.private_post_trade_market_buy(&[__ws_arg_18]).await.into_opt_dict();
             }  else {
                 let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsGeneration]);
-                response = self.private_post_trade_market_sell(&[__ws_arg_19]).await;
+                response = self.private_post_trade_market_sell(&[__ws_arg_19]).await.into_opt_dict();
             }
         }
-        let mut id: Option<String> = self.safe_string_k(response.clone(), "order_id", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k(&response, "order_id", &[]).as_str().map(str::to_owned);
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() did not return an order id".into()))));
         }
-        let __ws_arg_20 = self.parse_order(response.clone(), Some(&market));
+        let __ws_arg_20 = self.parse_order(&response, Some(&market));
         return self.extend(__ws_arg_20, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
@@ -2598,9 +2598,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createMarketBuyOrderWithCost".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is only supported for the generation 2 API".into()))));
         }
         let __ws_arg_21 = self.extend(paramsGeneration, &[Value::Map({
@@ -2646,9 +2646,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createTwapOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createTwapOrder() is only supported for the generation 2 API".into()))));
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -2709,7 +2709,7 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -2723,7 +2723,7 @@ impl Bithumb {
         });
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Null;
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             if twap {
                 if (market != Value::Null) {
                     request.insert("market".into(), self.get_gen2_market_id(market.clone()));
@@ -3038,12 +3038,12 @@ impl Bithumb {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)));
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (symbol.is_none()) { crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[])) } else { crate::Value::from(market) });
+        let mut marketResolved: Value = (if (symbol.is_none()) { crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { crate::Value::from(market) });
         if (symbol.is_none()) {
             symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut id: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("order_id".into()), Value::Str("uuid".into()), Value::Str("algo_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut rawTrades: Value = self.safe_list2(order.clone(), Value::Str("contract".into()), Value::Str("trades".into()), &[Value::from(vec![])]);
+        let mut rawTrades: crate::value::List = self.safe_list2(order.clone(), Value::Str("contract".into()), Value::Str("trades".into()), &[Value::from(vec![])]).into_list();
         let mut feeCost: Option<f64> = self.safe_number_k(order.clone(), "reserved_fee", &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
@@ -3087,7 +3087,7 @@ impl Bithumb {
         m.insert("remaining".to_string(), remaining);
         m.insert("status".to_string(), status);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
-        m.insert("trades".to_string(), rawTrades);
+        m.insert("trades".to_string(), Value::Arr(rawTrades));
     m
 }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
@@ -3127,7 +3127,7 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3136,7 +3136,7 @@ impl Bithumb {
         });
         let mut market: Option<crate::types::Market> = None;
         let mut response: Option<crate::value::Dict> = None;
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let __ws_arg_26 = self.extend(&paramsGeneration, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3198,9 +3198,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders is only supported for the generation 2 API".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3391,7 +3391,7 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -3401,11 +3401,11 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]);
         let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
-        let mut useClientOrderId: bool = ((!(twap) && (generation == Some(2.0))) && (clientOrderId.is_some()));
+        let mut useClientOrderId: bool = ((!(twap) && (generation == Some(2))) && (clientOrderId.is_some()));
         let mut paramsRequest: Value = paramsOmitted.clone();
         if useClientOrderId {
             paramsRequest = self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
@@ -3419,13 +3419,13 @@ impl Bithumb {
                 request.insert("order_id".into(), id.clone());
             }
         }
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             if twap {
                 let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
-                response = self.private_delete_v1_twap(&[__ws_arg_30]).await;
+                response = self.private_delete_v1_twap(&[__ws_arg_30]).await.into_opt_dict();
             }  else {
                 let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
-                response = self.private_delete_v2_order(&[__ws_arg_31]).await;
+                response = self.private_delete_v2_order(&[__ws_arg_31]).await.into_opt_dict();
             }
         }  else {
             if (symbol == Value::Null) {
@@ -3453,9 +3453,9 @@ impl Bithumb {
             request.insert("order_currency".into(), base.map(Value::from).unwrap_or(Value::Null));
             request.insert("payment_currency".into(), quote.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsSide]);
-            response = self.private_post_trade_cancel(&[__ws_arg_32]).await;
+            response = self.private_post_trade_cancel(&[__ws_arg_32]).await.into_opt_dict();
         }
-        let __ws_arg_33 = self.parse_order(response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        let __ws_arg_33 = self.parse_order(&response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
         return self.extend(__ws_arg_33, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -3493,9 +3493,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders is only supported for the generation 2 API".into()))));
         }
         let mut market: Option<crate::types::Market> = None;
@@ -3507,13 +3507,13 @@ impl Bithumb {
             m
         });
         let mut clientOrderIds: Value = self.safe_list2(Value::from(&paramsGeneration), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[]);
-        let mut paramsRequest: Value = (if (clientOrderIds != Value::Null) { self.omit(&paramsGeneration, Value::from(vec![Value::Str("clientOrderIds".into())]), &[]) } else { Value::from(&paramsGeneration) });
+        let mut paramsRequest: crate::value::Dict = (if (clientOrderIds != Value::Null) { self.omit(&paramsGeneration, Value::from(vec![Value::Str("clientOrderIds".into())]), &[]).into_dict() } else { paramsGeneration });
         if (clientOrderIds != Value::Null) {
             request.insert("client_order_ids".into(), clientOrderIds);
         }  else {
             request.insert("order_ids".into(), ids);
         }
-        let __ws_arg_34 = self.extend(Value::Map(request), &[paramsRequest]);
+        let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut response: crate::value::Dict = self.private_post_v2_orders_cancel(&[__ws_arg_34]).await.into_dict();
         //
         //     {
@@ -3599,7 +3599,7 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("withdraw".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tagWithdrawTag: Option<String> = self.safe_string_k(&paramsGeneration, "tag", &[]).as_str().map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("tag".into()), &[]).into_dict();
@@ -3611,7 +3611,7 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut destinationRequest: Option<String> = None;
         let mut requiresDestination: bool = (code.as_str() == Some("XRP")) || (code.as_str() == Some("XMR")) || (code.as_str() == Some("EOS")) || (code.as_str() == Some("STEEM")) || (code.as_str() == Some("TON"));
         let mut paramsDestination: Value = paramsNetwork.clone();
@@ -3630,7 +3630,7 @@ impl Bithumb {
         }
         let mut receiverType: Option<String> = self.safe_string2(paramsDestination.clone(), Value::Str("receiver_type".into()), Value::Str("cust_type_cd".into()), &[]).as_str().map(str::to_owned);
         let mut paramsReceiverType: crate::value::Dict = self.omit(paramsDestination, Value::from(vec![Value::Str("receiver_type".into()), Value::Str("cust_type_cd".into())]), &[]).into_dict();
-        if (generation == Some(2.0)) {
+        if (generation == Some(2)) {
             if (code.as_str() == Some("KRW")) {
                 let mut twoFactorType: Option<String> = self.safe_string_k(&paramsReceiverType, "two_factor_type", &[]).as_str().map(str::to_owned);
                 if (twoFactorType.is_none()) {
@@ -3642,7 +3642,7 @@ impl Bithumb {
                     m
                 }); // KRW withdraw only accepts amount and two_factor_type parameters
                 let __ws_arg_38 = self.extend(Value::Map(krwRequest), &[&paramsReceiverType]);
-                response = self.private_post_v1_withdraws_krw(&[__ws_arg_38]).await;
+                response = self.private_post_v1_withdraws_krw(&[__ws_arg_38]).await.into_opt_dict();
             }  else {
                 if (network.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), code).into()), Value::Str(" withdraw() requires a network parameter".into()))));
@@ -3658,7 +3658,7 @@ impl Bithumb {
                     request.insert("receiver_type".into(), receiverType.clone().map(Value::from).unwrap_or(Value::Null));
                 }
                 let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[&paramsReceiverType]);
-                response = self.private_post_v1_withdraws_coin(&[__ws_arg_39]).await;
+                response = self.private_post_v1_withdraws_coin(&[__ws_arg_39]).await.into_opt_dict();
             }
         }  else {
             request.insert("address".into(), address);
@@ -3680,9 +3680,9 @@ impl Bithumb {
                 }
             }
             let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsReceiverType]);
-            response = self.private_post_trade_btc_withdrawal(&[__ws_arg_40]).await;
+            response = self.private_post_trade_btc_withdrawal(&[__ws_arg_40]).await.into_opt_dict();
         }
-        return self.parse_transaction(response, Some(&currency));
+        return self.parse_transaction(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -3812,9 +3812,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchWithdrawalWhitelist".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawalWhitelist() is only supported for the generation 2 API".into()))));
         }
         let mut response: Value = self.private_get_v1_withdraws_coin_addresses(&[Value::Dict(paramsGeneration)]).await;
@@ -3846,9 +3846,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchWithdrawal".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawal() is only supported for the generation 2 API".into()))));
         }
         if (code == Value::Null) {
@@ -3905,9 +3905,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawals() is only supported for the generation 2 API".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3917,21 +3917,21 @@ impl Bithumb {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         let mut currency: Option<crate::types::Currency> = None;
         if (code.as_str() == Some("KRW")) {
             currency = Some(self.currency(code.clone()));
             let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-            response = self.private_get_v1_withdraws_krw(&[__ws_arg_42]).await;
+            response = self.private_get_v1_withdraws_krw(&[__ws_arg_42]).await.into_opt_list();
         }  else {
             if (code != Value::Null) {
                 currency = Some(self.currency(code));
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             }
             let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            response = self.private_get_v1_withdraws(&[__ws_arg_43]).await;
+            response = self.private_get_v1_withdraws(&[__ws_arg_43]).await.into_opt_list();
         }
-        return self.parse_transactions(response, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3959,9 +3959,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchDeposit".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposit() is only supported for the generation 2 API".into()))));
         }
         if (code == Value::Null) {
@@ -4018,9 +4018,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits() is only supported for the generation 2 API".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4030,21 +4030,21 @@ impl Bithumb {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         let mut currency: Option<crate::types::Currency> = None;
         if (code.as_str() == Some("KRW")) {
             currency = Some(self.currency(code.clone()));
             let __ws_arg_45 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-            response = self.private_get_v1_deposits_krw(&[__ws_arg_45]).await;
+            response = self.private_get_v1_deposits_krw(&[__ws_arg_45]).await.into_opt_list();
         }  else {
             if (code != Value::Null) {
                 currency = Some(self.currency(code));
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             }
             let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            response = self.private_get_v1_deposits(&[__ws_arg_46]).await;
+            response = self.private_get_v1_deposits(&[__ws_arg_46]).await.into_opt_list();
         }
-        return self.parse_transactions(response, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4075,9 +4075,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createDepositAddress".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() is only supported for the generation 2 API".into()))));
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
@@ -4125,9 +4125,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchDepositAddress".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() is only supported for the generation 2 API".into()))));
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
@@ -4174,9 +4174,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchDepositAddresses".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (generation != Some(2.0)) {
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() is only supported for the generation 2 API".into()))));
         }
         let mut response: crate::value::List = self.private_get_v1_deposits_coin_addresses(&[Value::Dict(paramsGeneration)]).await.into_list();
@@ -4211,7 +4211,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(response.clone(), "net_type", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)])));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(response.clone(), "net_type", &[]), code.map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(response, "secondary_address", &[]));
     m
@@ -4356,8 +4356,8 @@ impl Bithumb {
 }), &[query]);
                 let mut encodedBody: String = self.urlencode(__ws_arg_49, &[]);
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                let mut bodyParts: Value = Value::Array(encodedBody.split("%20").map(Value::from).collect());
-                requestBody = Value::Str(bodyParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("+")).unwrap_or_default().into());
+                let mut bodyParts: crate::value::List = Value::Array(encodedBody.split("%20").map(Value::from).collect()).into_list();
+                requestBody = Value::Str(bodyParts.iter().map(Value::to_string).collect::<Vec<String>>().join("+").into());
                 let mut nonce: Option<String> = self.number_to_string(self.nonce());
                 let mut authPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, Value::Str("\\".into())).into()), requestBody).into()), Value::Str("\\".into())).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)); // eslint-disable-line quotes
                 let mut signature: String = self.hmac(self.encode(Value::from(authPayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);

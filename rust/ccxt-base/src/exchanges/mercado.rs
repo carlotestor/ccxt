@@ -742,7 +742,7 @@ impl Mercado {
         //         "date":1643382606
         //     }
         //
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(ticker.clone(), "date", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
@@ -888,18 +888,18 @@ impl Mercado {
             request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut to: Option<i64> = self.safe_integer_k(params.clone(), "to", &[]).as_i64();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (since != Value::Null) && (to.is_some()) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await;
+            response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await.into_opt_list();
         }  else if (since != Value::Null) {
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_coin_trades_from(&[__ws_arg_3]).await;
+            response = self.public_get_coin_trades_from(&[__ws_arg_3]).await.into_opt_list();
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_coin_trades(&[__ws_arg_4]).await;
+            response = self.public_get_coin_trades(&[__ws_arg_4]).await.into_opt_list();
         }
-        return self.parse_trades(response, Some(&market), &[since, limit]);
+        return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1007,16 +1007,16 @@ impl Mercado {
                 m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
             request.insert("limit_price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price.clone()));
             request.insert("quantity".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone()));
             if (side.as_str() == Some("buy")) {
                 let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.private_post_place_buy_order(&[__ws_arg_5]).await;
+                response = self.private_post_place_buy_order(&[__ws_arg_5]).await.into_opt_dict();
             }  else {
                 let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.private_post_place_sell_order(&[__ws_arg_6]).await;
+                response = self.private_post_place_sell_order(&[__ws_arg_6]).await.into_opt_dict();
             }
         }  else {
             if (side.as_str() == Some("buy")) {
@@ -1028,17 +1028,17 @@ impl Mercado {
                 let mut cost: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
                 request.insert("cost".into(), self.price_to_precision(Value::from((market).symbol.clone()), cost));
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.private_post_place_market_buy_order(&[__ws_arg_7]).await;
+                response = self.private_post_place_market_buy_order(&[__ws_arg_7]).await.into_opt_dict();
             }  else {
                 request.insert("quantity".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount));
                 let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-                response = self.private_post_place_market_sell_order(&[__ws_arg_8]).await;
+                response = self.private_post_place_market_sell_order(&[__ws_arg_8]).await.into_opt_dict();
             }
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), self.safe_string(self.safe_dict(self.safe_dict_k(response, "response_data", &[]), Value::Str("order".into()), &[]), Value::Str("order_id".into()), &[]));
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
+        m.insert("id".to_string(), self.safe_string(self.safe_dict_k(self.safe_dict_k(&response, "response_data", &[]), "order", &[]), Value::Str("order_id".into()), &[]));
     m
 }), Some(&market));
         Value::Null
@@ -1178,8 +1178,8 @@ impl Mercado {
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "executed_quantity", &[]).as_str().map(str::to_owned);
         let mut lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "updated_timestamp", &[]).as_i64();
-        let mut rawTrades: Value = self.safe_list_k(order.clone(), "operations", &[Value::from(vec![])]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut rawTrades: crate::value::List = self.safe_list_k(order.clone(), "operations", &[Value::from(vec![])]).into_list();
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
@@ -1188,7 +1188,7 @@ impl Mercado {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
@@ -1202,7 +1202,7 @@ impl Mercado {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
-        m.insert("trades".to_string(), rawTrades);
+        m.insert("trades".to_string(), Value::Arr(rawTrades));
     m
 }), Some(&marketResolved));
 
@@ -1436,7 +1436,7 @@ impl Mercado {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); }
             { let __be_tmp = self.sum(&[crate::value::get_value_k(&request, "from"), Value::Int((limitResolved * (self.parse_timeframe(timeframe.clone()))))]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), __be_tmp); } }
         }  else {
-            let mut to: i64 = self.seconds().as_i64().unwrap_or_default();
+            let mut to: i64 = self.seconds();
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), Value::from(to)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), Value::Int((to - ((limitResolved * (self.parse_timeframe(timeframe.clone()))))))); }
         }

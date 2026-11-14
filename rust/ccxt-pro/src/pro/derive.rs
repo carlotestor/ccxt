@@ -668,16 +668,16 @@ impl Derive {
         //
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
         let mut rawData: crate::value::Dict = self.safe_dict_k(&params, "data", &[]).into_dict();
-        let mut data: Value = self.safe_dict_k(&rawData, "instrument_ticker", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&rawData, "instrument_ticker", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut topic: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         // the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
         let mut parts: crate::value::List = Value::Array(topic.split(".").map(Value::from).collect()).into_list();
         let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut ticker: crate::value::Dict = self.parse_ticker(data.clone(), Some(&market)).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market)).into_dict();
         let mut tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (tickerSymbol.is_some()) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
@@ -690,7 +690,7 @@ impl Derive {
                     m.insert("bidVolume".to_string(), self.safe_number_k(&ticker, "bidVolume", &[]));
                     m.insert("ask".to_string(), self.safe_number_k(&ticker, "ask", &[]));
                     m.insert("askVolume".to_string(), self.safe_number_k(&ticker, "askVolume", &[]));
-                    m.insert("info".to_string(), data);
+                    m.insert("info".to_string(), Value::Dict(data));
                 m
             }), Some(&market));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), bidAsk.clone()); }
@@ -823,7 +823,7 @@ impl Derive {
         let mut parsedTopic: crate::value::List = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut marketId: Option<String> = self.safe_string(&parsedTopic, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         if (self.orderbooks.has(&symbol)) {
             CacheStore::forget(&mut self.orderbooks, &symbol);
         }
@@ -1104,7 +1104,7 @@ impl Derive {
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = Some(self.symbol(symbol.clone()));
+            symbolResolved = Some(self.symbol(symbol));
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.as_deref().unwrap_or("null")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1199,7 +1199,7 @@ impl Derive {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
-                let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
+                let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) });
                 if (order != Value::Null) {
                     let mut fee: Value = self.safe_dict_k(order.clone(), "fee", &[]);
                     if (fee != Value::Null) {
@@ -1311,7 +1311,7 @@ impl Derive {
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = Some(self.symbol(symbol.clone()));
+            symbolResolved = Some(self.symbol(symbol));
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.as_deref().unwrap_or("null")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1804,7 +1804,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
         }
-        let mut method: Value = self.safe_value(&methods, event.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut method: Value = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
@@ -1840,7 +1840,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
                     // in java the acknowledgement can arrive before the subscription record is stored
                     // so the shape serves as the routing fallback when the id scan finds nothing
-                    self.handle_auth(client, message.clone());
+                    self.handle_auth(client, message);
                 }
             }
         }

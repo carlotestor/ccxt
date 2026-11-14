@@ -691,12 +691,12 @@ impl Cex {
         //            ...
         //
         let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
-        let mut dataCurrencies: Value = self.safe_list_k(responses.get(0).cloned().unwrap_or(Value::Null), "data", &[Value::from(vec![])]);
+        let mut dataCurrencies: crate::value::List = self.safe_list_k(responses.get(0).cloned().unwrap_or(Value::Null), "data", &[Value::from(vec![])]).into_list();
         let mut dataNetworks: crate::value::Dict = self.safe_dict_k(responses.get(1).cloned().unwrap_or(Value::Null), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut currenciesIndexed: crate::value::Dict = self.index_by(dataCurrencies, Value::Str("currency".into())).into_dict();
+        let mut currenciesIndexed: crate::value::Dict = self.index_by(Value::Arr(dataCurrencies), Value::Str("currency".into())).into_dict();
         let mut data: crate::value::Dict = self.deep_extend(currenciesIndexed, &[&dataNetworks]).into_dict();
         return self.parse_currencies(self.to_array(&data));
         Value::Null
@@ -712,7 +712,7 @@ impl Cex {
         if isFiat {
             type_var = "fiat".to_string();
         }
-        let mut currencyPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
+        let mut currencyPrecision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]).as_f64();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -741,7 +741,7 @@ impl Cex {
         m.insert("withdraw".to_string(), withdraw);
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(&rawNetwork, "withdrawalFee", &[]));
-        m.insert("precision".to_string(), currencyPrecision.clone());
+        m.insert("precision".to_string(), Value::from(currencyPrecision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
@@ -774,7 +774,7 @@ impl Cex {
         m.insert("deposit".to_string(), self.safe_bool_k(rawCurrency.clone(), "walletDeposit", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency.clone(), "walletWithdrawal", &[]));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("precision".to_string(), currencyPrecision);
+        m.insert("precision".to_string(), Value::from(currencyPrecision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1063,7 +1063,7 @@ impl Cex {
     pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1393,11 +1393,11 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut fees: Value = self.safe_dict_k(&data, "tradingFee", &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict_k(&data, "tradingFee", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_trading_fees(fees, &[Value::Bool(true)]);
+        })]).into_dict();
+        return self.parse_trading_fees(Value::Dict(fees), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1927,8 +1927,8 @@ impl Cex {
         if (currency1.is_some()) && (currency2.is_some()) {
             marketId = Some(format!("{}{}", Value::Str(format!("{}{}", currency1.map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), currency2.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1954,7 +1954,7 @@ impl Cex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "lastUpdateTimestamp", &[]));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "orderType", &[]));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), Value::Null);
@@ -2283,7 +2283,7 @@ impl Cex {
         let mut direction: Option<String> = None;
         if crate::precise::Precise::stringLe(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
-            amount = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
             direction = Some("in".to_string());
         }
@@ -2489,12 +2489,12 @@ impl Cex {
         }  else {
             transfer = self.transfer_between_main_and_sub_account(code.as_str().unwrap_or_default(), amount, fromAccount.as_str().unwrap_or_default(), toAccount.as_str().unwrap_or_default(), &[params]).await;
         }
-        let mut fillResponseFromRequest: Value = self.handle_option(Value::Str("transfer".into()), Value::Str("fillResponseFromRequest".into()), &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Option<bool> = self.handle_option(Value::Str("transfer".into()), Value::Str("fillResponseFromRequest".into()), &[Value::Bool(true)]).as_bool();
         let mut filled: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (match &(fillResponseFromRequest) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        if (fillResponseFromRequest == Some(true)) {
             filled.insert("fromAccount".into(), fromAccount);
             filled.insert("toAccount".into(), toAccount);
         }
@@ -2762,7 +2762,7 @@ impl Cex {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut seconds: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
+            let mut seconds: String = format!("{}", self.seconds());
             let mut bodySigned: Value = json_stringify(&query);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", path, seconds).into()), bodySigned);
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);

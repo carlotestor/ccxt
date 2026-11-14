@@ -263,9 +263,9 @@ impl Ndax {
 }
 
     pub fn request_id(&mut self) -> i64 {
-        let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId.as_i64().unwrap_or_default();
+        let mut requestId: i64 = ((self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
+        return requestId;
 }
 
 /*
@@ -419,12 +419,12 @@ impl Ndax {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -549,12 +549,12 @@ impl Ndax {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -598,7 +598,7 @@ impl Ndax {
             let mut ohlcv: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
             let mut marketId: Option<String> = self.safe_string_opt(&ohlcv, Value::Int(8), &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+            let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketUpdates: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -758,7 +758,7 @@ impl Ndax {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Map(subscription)).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -879,22 +879,22 @@ impl Ndax {
         //         ],
         //     ]
         //
-        let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&payload, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&payload, Value::from(symbol.as_deref()), &[]).into_dict();
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates
         // after a re-subscription snapshot
-        if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) {
+        if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
+}), limit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         orderbook.reset(Value::Dict(snapshot));
         let mut messageHash: Option<String> = self.safe_string_k(subscription, "messageHash", &[]).as_str().map(str::to_owned);
         client.resolve(Value::from(&orderbook), messageHash.as_deref());

@@ -876,7 +876,7 @@ impl P2b {
         m.insert("quoteVolume".to_string(), self.safe_string_k(tickerInner.clone(), "deal", &[]));
         m.insert("info".to_string(), tickerInner);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -1094,7 +1094,7 @@ impl P2b {
     m
 }));
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -1589,19 +1589,19 @@ impl P2b {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut untilParam: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut untilParam: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let mut until: Option<i64> = self.parse_to_int(Value::Int(0));
         let mut sinceResolved: Option<i64> = self.parse_to_int(Value::Int(0));
-        if (untilParam != Value::Null) {
-            until = self.parse_to_int(untilParam.clone());
+        if (untilParam.is_some()) {
+            until = self.parse_to_int(Value::from(untilParam));
             if (since != Value::Null) {
-                if ((match (&(untilParam), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
+                if ((match (&(Value::from(untilParam)), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours".into()))));
                 }
                 sinceResolved = self.parse_to_int(since.clone());
             }  else {
-                sinceResolved = self.parse_to_int((match (&(untilParam), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                sinceResolved = self.parse_to_int(Value::from((if let Some(__l) = untilParam { Some(__l - 86400000) } else { None })));
             }
         }  else if (since != Value::Null) {
             until = self.parse_to_int((match (&(since), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
@@ -1693,7 +1693,7 @@ impl P2b {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut untilParam: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut untilParam: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
@@ -1701,15 +1701,15 @@ impl P2b {
         }
         let mut until: Option<i64> = self.parse_to_int(Value::Int(0));
         let mut sinceResolved: Option<i64> = self.parse_to_int(Value::Int(0));
-        if (untilParam != Value::Null) {
-            until = self.parse_to_int(untilParam.clone());
+        if (untilParam.is_some()) {
+            until = self.parse_to_int(Value::from(untilParam));
             if (since != Value::Null) {
-                if ((match (&(untilParam), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
+                if ((match (&(Value::from(untilParam)), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours".into()))));
                 }
                 sinceResolved = self.parse_to_int(since.clone());
             }  else {
-                sinceResolved = self.parse_to_int((match (&(untilParam), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                sinceResolved = self.parse_to_int(Value::from((if let Some(__l) = untilParam { Some(__l - 86400000) } else { None })));
             }
         }  else if (since != Value::Null) {
             until = self.parse_to_int((match (&(since), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
@@ -1774,7 +1774,7 @@ impl P2b {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]).into_list();
-            orders = self.array_concat(orders.clone(), &parsedOrders);
+            orders = self.array_concat(orders, &parsedOrders);
         }
         }
         return orders;
@@ -1884,7 +1884,7 @@ impl P2b {
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
             let __ws_arg_10 = self.incrementing_nonce();
-            paramsOmitted = self.extend(paramsOmitted.clone(), &[Value::Map({
+            paramsOmitted = self.extend(paramsOmitted, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("request".to_string(), Value::Str(format!("{}{}", Value::Str("/api/v2/".into()), path).into()));
                     m.insert("nonce".to_string(), Value::Str(format!("{}", Value::Int(__ws_arg_10)).into()));

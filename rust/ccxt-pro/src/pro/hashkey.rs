@@ -396,12 +396,12 @@ impl Hashkey {
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut topic: String = format!("{}{}", Value::Str("kline_".into()), interval.map(Value::from).unwrap_or(Value::Null));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbolValue).into()), Value::Str(":".into())).into()), timeframe);
-        let mut ohlcv: Value = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -457,11 +457,11 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_357: bool = true;
             while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (data.len() as i64) } {
-            let mut candle: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut candle: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut parsed: crate::value::List = self.parse_ws_ohlcv(candle, Some(&market)).into_list();
+            })]).into_dict();
+            let mut parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(candle), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
         }
@@ -582,12 +582,12 @@ impl Hashkey {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = "trade".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
-        let mut trades: Value = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -629,7 +629,7 @@ impl Hashkey {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
         if (data != Value::Null) {
-            data = self.sort_by(data.clone(), Value::Str("t".into()), &[]);
+            data = self.sort_by(data, Value::Str("t".into()), &[]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_358: bool = true;
@@ -673,7 +673,7 @@ impl Hashkey {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = "depth".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
-        let mut orderbook: Value = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -764,12 +764,12 @@ impl Hashkey {
         if (symbol != Value::Null) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut orders: Value = self.watch_private(messageHash.as_str()).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str()).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -910,12 +910,12 @@ impl Hashkey {
         if (symbol != Value::Null) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut trades: Value = self.watch_private(messageHash.as_str()).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str()).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

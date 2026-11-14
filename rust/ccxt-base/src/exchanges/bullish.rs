@@ -1635,10 +1635,10 @@ impl Bullish {
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (clientOrderId.is_some()) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_v1_trades_client_order_id_client_order_id(&[__ws_arg_2]).await;
+            response = self.private_get_v1_trades_client_order_id_client_order_id(&[__ws_arg_2]).await.into_opt_list();
         }  else {
             let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -1672,9 +1672,9 @@ impl Bullish {
             //     ]
             //
             let __ws_arg_3 = self.extend(Value::Map(request), &[paramsSinceAndUntil]);
-            response = self.private_get_v1_history_trades(&[__ws_arg_3]).await;
+            response = self.private_get_v1_history_trades(&[__ws_arg_3]).await.into_opt_list();
         }
-        return self.parse_trades(response, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1940,14 +1940,14 @@ impl Bullish {
     m
 }));
         let maxRetriesparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("maxRetries".into()), &[Value::Int(3)]).as_array().cloned().unwrap_or_default();
-        let mut maxRetries: Value = maxRetriesparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxRetries: Option<i64> = maxRetriesparamsMaxRetriesVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxRetries: crate::value::Dict = maxRetriesparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (method.as_str() != Some("fetchOHLCV")) && (method.as_str() != Some("fetchFundingRateHistory")) && (method.as_str() != Some("fetchTrades")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" safeDeterministicCall() does not support the ".into())).into()), method).into()), Value::Str(" method".into()))));
         }
-        let mut errors: Value = Value::from(self.parse_to_int(Value::Int(0)));
+        let mut errors: Option<i64> = self.parse_to_int(Value::Int(0));
         let mut paramsOmitted: Value = self.omit(&paramsMaxRetries, Value::Str("until".into()), &[]);
-        while errors.as_f64().unwrap_or(f64::NAN) <= maxRetries.as_f64().unwrap_or(f64::NAN) {
+        while (errors.is_some() && maxRetries.is_some() && errors <= maxRetries) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 if (method.as_str() == Some("fetchOHLCV")) {
                     return crate::types::IntoRaw::into_raw(self.fetch_ohlcv(symbol.as_str().unwrap_or_default(), timeframe.as_str(), since.as_i64(), limit.as_i64(), paramsOmitted.clone()).await);
@@ -1961,8 +1961,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if matches!(&e, Value::Str(__s) if __s.contains("[RateLimitExceeded]")) {
                     panic!("{}", e);
                 }
-                errors = Value::from(self.parse_to_int((match (&(errors), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
-                if errors.as_f64().unwrap_or(f64::NAN) > maxRetries.as_f64().unwrap_or(f64::NAN) {
+                errors = self.parse_to_int(Value::from((if let Some(__l) = errors { Some(__l + 1) } else { None })));
+                if (errors.is_some() && maxRetries.is_some() && errors > maxRetries) {
                     panic!("{}", e);
                 }
              } }
@@ -2576,15 +2576,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let timeInForceparamsTimeInForceRawVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPostOnly, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Option<String> = timeInForceparamsTimeInForceRawVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimeInForceRaw: crate::value::Dict = timeInForceparamsTimeInForceRawVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // is mandatory
-        let mut paramsTimeInForce: Value = self.extend(paramsTimeInForceRaw, &[Value::Map({
+        let mut paramsTimeInForce: crate::value::Dict = self.extend(paramsTimeInForceRaw, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timeInForce".to_string(), timeInForce.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             m
-        })]);
+        })]).into_dict();
         if !(matches!(&isMarketOrder, Value::Bool(true))) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
-        let mut triggerPrice: Option<String> = self.safe_string_k(paramsTimeInForce.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.safe_string_k(&paramsTimeInForce, "triggerPrice", &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
             if matches!(&isMarketOrder, Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support market trigger orders".into()))));
@@ -2592,7 +2592,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
             orderType = "STOP_LIMIT".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(paramsTimeInForce.clone(), Value::Str("triggerPrice".into()), &[]) } else { paramsTimeInForce }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&paramsTimeInForce, Value::Str("triggerPrice".into()), &[]).into_dict() } else { paramsTimeInForce });
         request.insert("type".into(), Value::from(orderType.to_uppercase()));
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_v2_orders(&[__ws_arg_14]).await.into_dict();
@@ -3322,7 +3322,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), self.safe_string_k(depositAddress, "address", &[]));
         m.insert("tag".to_string(), Value::Null);
     m
@@ -3891,7 +3891,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("baseVolume".to_string(), openInterest.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
