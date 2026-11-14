@@ -1289,8 +1289,8 @@ impl Exchange {
     pub fn seconds(&self) -> i64 {
         self.milliseconds() / 1000
     }
-    pub fn microseconds(&self) -> Value {
-        Value::Int(self.milliseconds() * 1000)
+    pub fn microseconds(&self) -> i64 {
+        self.milliseconds() * 1000
     }
 
     pub fn iso8601(&self, ts: Value) -> Value {
