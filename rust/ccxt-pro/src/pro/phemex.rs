@@ -2323,8 +2323,8 @@ impl Phemex {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut requestId: i64 = self.request_id();
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
@@ -2346,7 +2346,7 @@ impl Phemex {
             if !(client.has_subscription(&messageHash)) {
                 client.add_subscription(&subscriptionHash, Value::Str("handle_authenticate".into()).clone());
             }
-            future = self.watch(&url, &messageHash, &message, &messageHash, Value::Null).await;
+            future = self.watch(url.as_deref(), &messageHash, &message, &messageHash, Value::Null).await;
             client.add_subscription(&messageHash, future.clone());
         }
         return future;

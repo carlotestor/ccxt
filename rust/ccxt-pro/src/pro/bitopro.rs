@@ -790,7 +790,7 @@ impl Bitopro {
         });
         wsInnerOptions.insert("headers".into(), Value::Map(headers));
         // instantiate client
-        self.client(&[url]);
+        self.client(&url);
         wsInnerOptions.insert("headers".into(), originalHeaders);
 }
 

@@ -359,9 +359,9 @@ impl Krakenfutures {
         // Base64-decode your api_secret
         // Use the result of step 2 to hash the result of step 1 with the HMAC-SHA-512 algorithm
         // Base64-encode the result of step 3
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: String = "challenge".to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
@@ -372,7 +372,7 @@ impl Krakenfutures {
                 m
             });
             let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-            self.watch(&url, &messageHash[..], &message, &messageHash[..], Value::Null).await;
+            self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1359,7 +1359,7 @@ impl Krakenfutures {
                 // rejected". Derive unified status from `reason` instead of
                 // mapping every removal to canceled. Preserve reason on info
                 // so consumers can tell a user cancel from liquidation, etc.
-                let mut reason: Option<String> = match __pro_message.get("reason").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+                let mut reason: Option<String> = (match __pro_message.get("reason").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut status: String = "canceled".to_string();
                 if (reason.as_deref() == Some("full_fill")) {
                     status = "closed".to_string();
@@ -1384,7 +1384,7 @@ impl Krakenfutures {
                         })]);
                         let mut info: crate::value::Dict = self.extend(__ws_arg_0, &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
-                                m.insert("reason".to_string(), reason.clone().map(Value::from).unwrap_or(Value::Null));
+                                m.insert("reason".to_string(), Value::from(reason.as_deref()));
                             m
                         })]).into_dict();
                         add_element_to_object(&mut orders, &i, self.extend(currentOrder.clone(), &[Value::Map({
@@ -1886,10 +1886,10 @@ impl Krakenfutures {
         let mut qty: Option<f64> = (match __pro_message.get("qty").cloned() { Some(Value::Float(__f)) => Value::Float(__f), Some(Value::Int(__n)) => Value::Float(__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<f64>() { Ok(__f) => Value::Float(__f), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         if (side.as_deref() == Some("sell")) {
-            let mut asks: Value = orderbook.book_field("asks");
+            let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
             asks.store(price, qty);
         }  else {
-            let mut bids: Value = orderbook.book_field("bids");
+            let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
             bids.store(price, qty);
         }
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
@@ -2383,7 +2383,7 @@ impl Krakenfutures {
 }
 
     pub fn subscription_exists_for_hash(&mut self, mut url: Value, mut hash: Value) -> Value {
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         return (Value::Bool(client.has_subscription(&hash)));
 
     Value::Null

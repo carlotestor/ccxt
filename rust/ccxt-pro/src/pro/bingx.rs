@@ -1774,7 +1774,7 @@ impl Bingx {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " watchBalance() requires a websocket URL and a listen key")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         self.set_balance_cache(client.as_value(), type_var.clone(), subType.map(Value::from).unwrap_or(Value::Null), Value::from(subscriptionHash.clone()), Value::from(&paramsSubType));
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsSubType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -1894,7 +1894,7 @@ impl Bingx {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " watchPositions() requires a websocket URL and a listen key")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsSubType, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchPositionsSnapshot: bool = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -2154,7 +2154,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     continue;
                 }
                 let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), listenKey.as_deref().unwrap_or("null"));
-                let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+                let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
                 let mut messageHashes: Vec<Value> = client.future_keys();
                 {
                                         let mut j: i64 = 0;
@@ -2194,7 +2194,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             // and client.resolve () / client.reject () settle and remove the
             // entry under the same lock in every port
             let mut messageHash: String = "authenticate".to_string();
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client("authenticationFlights"));
             if (client.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket

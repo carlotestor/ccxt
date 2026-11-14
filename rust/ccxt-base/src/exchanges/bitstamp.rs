@@ -3231,38 +3231,38 @@ impl Bitstamp {
             request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["clientOrderId"], &[]) } else { params }).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut capitalizedSide: String = self.capitalize(side);
         if (type_var.as_str() == Some("market")) {
             if (capitalizedSide == "Buy") {
                 let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_buy_market_pair(&[__ws_arg_5]).await;
+                response = self.private_post_buy_market_pair(&[__ws_arg_5]).await.into_opt_dict();
             }  else {
                 let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_sell_market_pair(&[__ws_arg_6]).await;
+                response = self.private_post_sell_market_pair(&[__ws_arg_6]).await.into_opt_dict();
             }
         }  else if (type_var.as_str() == Some("instant")) {
             if (capitalizedSide == "Buy") {
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_buy_instant_pair(&[__ws_arg_7]).await;
+                response = self.private_post_buy_instant_pair(&[__ws_arg_7]).await.into_opt_dict();
             }  else {
                 let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_sell_instant_pair(&[__ws_arg_8]).await;
+                response = self.private_post_sell_instant_pair(&[__ws_arg_8]).await.into_opt_dict();
             }
         }  else {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             if (capitalizedSide == "Buy") {
                 let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_buy_pair(&[__ws_arg_9]).await;
+                response = self.private_post_buy_pair(&[__ws_arg_9]).await.into_opt_dict();
             }  else {
                 let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_post_sell_pair(&[__ws_arg_10]).await;
+                response = self.private_post_sell_pair(&[__ws_arg_10]).await.into_opt_dict();
             }
         }
-        let mut orderResponse: Value = (if (response == Value::Null) { Value::Map({
+        let mut orderResponse: Value = (if (response.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { response });
+}) } else { response.map_or(Value::Null, Value::Dict) });
         let mut order: indexmap::IndexMap<String, Value> = self.parse_order(orderResponse, Some(&market)).as_map().cloned().unwrap_or_default();
         order.insert("type".into(), type_var);
         return Value::Map(order);
@@ -4666,7 +4666,7 @@ impl Bitstamp {
                     if (matches!(&value, Value::Arr(_))) {
                         errors = self.array_concat(Value::Arr(errors), value.clone()).into_list();
                     }  else {
-                        std::sync::Arc::make_mut(&mut errors).push(value.clone());
+                        std::sync::Arc::make_mut(&mut errors).push(value);
                     }
                 }
                 }
@@ -4696,8 +4696,8 @@ impl Bitstamp {
                                 let mut i: i64 = 0;
                 let mut __for_first_439: bool = true;
                 while { if !__for_first_439 { i += 1; } __for_first_439 = false; i < (errors.len() as i64) } {
-                let mut value: Option<String> = self.safe_string_opt(&errors, Value::Int(i), &[]);
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), value.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+                let mut value: Option<String> = self.safe_string(&errors, Value::Int(i), &[]).as_str().map(str::to_owned);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(value.as_deref()), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), value.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             }
             }

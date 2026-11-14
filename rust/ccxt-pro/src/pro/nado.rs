@@ -1906,7 +1906,7 @@ impl Nado {
                 m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
             m
         });
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut clientSubscription: Value = self.safe_value((client).subscriptions.clone(), subscribeHash.clone(), &[]);
         if (clientSubscription == Value::Null) {
             client.add_subscription(&Value::Str(format!("{}{}", Value::Str("subscription:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::Map({
@@ -1930,7 +1930,7 @@ impl Nado {
     m
 }));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("subscriptions".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut clientSubscription: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (clientSubscription != Value::Null) {
             return self.watch(url.as_deref(), &messageHash, Value::Null, None::<&str>, Value::Null).await;
@@ -1983,7 +1983,7 @@ impl Nado {
                 m.insert("messageHash".to_string(), messageHash.clone());
             m
         });
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         client.add_subscription(&Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("messageHash".to_string(), messageHash);
@@ -2002,7 +2002,7 @@ impl Nado {
 }));
         self.check_required_credentials(&[]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("subscriptions".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHash: String = "authenticated".to_string();
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated != Value::Null) {
@@ -2114,7 +2114,7 @@ impl Nado {
         let __markets_empty = Vec::new();
         let markets = markets.as_array().unwrap_or(&__markets_empty);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("subscriptions".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         {
                         let mut i: i64 = 0;
             let mut __for_first_510: bool = true;
@@ -2167,7 +2167,7 @@ impl Nado {
             m
         });
         let mut unsubscribeHash: Value = Value::Str(format!("{}{}", "unsubscribe:", messageHash).into());
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         client.add_subscription(&Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.safe_string_k(&request, "id", &[Value::Str("".into())])).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("messageHash".to_string(), messageHash);
@@ -2189,7 +2189,7 @@ impl Nado {
         let __markets_empty = Vec::new();
         let markets = markets.as_array().unwrap_or(&__markets_empty);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("subscriptions".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         {
                         let mut i: i64 = 0;
             let mut __for_first_511: bool = true;
@@ -2850,14 +2850,14 @@ impl Nado {
         let mut id: String = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut unsubscription: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", "unsubscription:", id).into()), &[]).into_opt_dict();
         if (unsubscription.is_some()) {
-            let mut messageHash: Option<String> = self.safe_string_k_opt(&unsubscription, "messageHash", &[]);
-            let mut unsubscribeHash: Option<String> = self.safe_string_k_opt(&unsubscription, "unsubscribeHash", &[]);
+            let mut messageHash: Option<String> = self.safe_string_k(&unsubscription, "messageHash", &[]).as_str().map(str::to_owned);
+            let mut unsubscribeHash: Option<String> = self.safe_string_k(&unsubscription, "unsubscribeHash", &[]).as_str().map(str::to_owned);
             __ch.remove_subscription(&(Value::Str(format!("{}{}", "unsubscription:", id).into())));
             if (messageHash.is_some()) {
-                self.clean_unsubscription(client.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                self.clean_unsubscription(client.clone(), Value::from(messageHash.as_deref()), Value::from(unsubscribeHash.as_deref()), &[]);
                 self.handle_unsubscription_cache(messageHash.map(Value::from).unwrap_or(Value::Null));
             }
-            client.resolve(Value::Bool(true), &unsubscribeHash.clone().map(Value::from).unwrap_or(Value::Null));
+            client.resolve(Value::Bool(true), unsubscribeHash.as_deref());
             return;
         }
         let mut subscriptions: Vec<Value> = object_keys(&get_value(&client, &Value::Str("subscriptions".into()))).as_array().cloned().unwrap_or_default();
@@ -2871,9 +2871,9 @@ impl Nado {
             if (subscriptionId.as_deref() != Some(id.as_str())) {
                 continue;
             }
-            let mut messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
+            let mut messageHash: Option<String> = self.safe_string_k(&subscription, "messageHash", &[]).as_str().map(str::to_owned);
             if (messageHash.is_some()) {
-                self.clean_unsubscription(client.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                self.clean_unsubscription(client.clone(), Value::from(messageHash.as_deref()), unsubscribeHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 self.handle_unsubscription_cache(messageHash.map(Value::from).unwrap_or(Value::Null));
             }
             client.resolve(Value::Bool(true), unsubscribeHash.as_deref());

@@ -3972,21 +3972,21 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut channelName: Option<String> = None;
         let mut resolvedMessageHashes: Vec<Value> = Vec::new();
-        let mut rawTickers: Value = Value::from(vec![]);
+        let mut rawTickers: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut newTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (matches!(&message, Value::Arr(_))) {
-            rawTickers = message.clone();
+            rawTickers = message.into_list();
         }  else {
-            if let Value::Arr(__a) = &mut rawTickers { std::sync::Arc::make_mut(__a).push(message); };
+            std::sync::Arc::make_mut(&mut rawTickers).push(message);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_71: bool = true;
             while { if !__for_first_71 { i += 1; } __for_first_71 = false; i < (rawTickers.len() as i64) } {
-            let mut ticker: crate::value::Dict = self.safe_dict(rawTickers.clone(), Value::Int(i), &[]).into_dict();
+            let mut ticker: crate::value::Dict = self.safe_dict(&rawTickers, Value::Int(i), &[]).into_dict();
             let mut event: Option<String> = self.safe_string_k(&ticker, "e", &[]).as_str().map(str::to_owned);
             if isBidAsk {
                 event = Some("bookTicker".to_string()); // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
@@ -4098,7 +4098,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut subscriptions: Value = (client).subscriptions.clone();
         let mut subscriptionsKeys: Value = object_keys(&subscriptions);
         let mut accountType: Option<String> = self.get_account_type_from_subscriptions(subscriptionsKeys);
@@ -4223,7 +4223,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // the future covers the REST create plus the ws subscribe, including the
             // renewal timer re-entry through renewListenToken, so a concurrent caller
             // waits for the leader rather than minting a second listenToken
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "authenticate:", marketType).into()), ":listenToken");
             if (client.has_future(messageHash.as_str())) {
                 // another caller is already fetching, wait for it instead of fetching again
@@ -4409,7 +4409,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // check-and-insert and client.resolve () / client.reject () settle
             // and remove the entry under the same lock in every port
             let mut messageHash: String = format!("{}{}", "authenticate:", type_var);
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client("authenticationFlights"));
             if (client.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
@@ -4570,7 +4570,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut cachedListenKey: Option<String> = self.safe_string_k(&optionsType, "listenKey", &[]).as_str().map(str::to_owned);
                 url = self.get_private_ws_url(urlType, cachedListenKey.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             }
-            let mut client: Value = self.client(&[url]);
+            let mut client: Value = self.client(&url);
             let mut messageHashes: Vec<Value> = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
@@ -5077,7 +5077,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             })]).into_dict();
             url = self.get_private_ws_url(urlType, self.safe_string_k(&optionsType, "listenKey", &[])).map(Value::from).unwrap_or(Value::Null);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.set_balance_cache(client.as_value(), type_var.clone(), &[isPortfolioMargin.clone()]);
         self.set_positions_cache(client.as_value(), type_var.clone(), &[Value::Null, isPortfolioMargin]);
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
@@ -6080,9 +6080,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut i: i64 = 0;
             let mut __for_first_78: bool = true;
             while { if !__for_first_78 { i += 1; } __for_first_78 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.get(i as usize).map(crate::Value::from).unwrap_or_default();
-            if (self.safe_string_k(order.clone(), "status", &[]).as_str() == Some("closed")) {
-                closedOrders.push(order);
+            let mut order: Option<&crate::types::Order> = orders.get(i as usize);
+            if (self.safe_string_k(&order, "status", &[]).as_str() == Some("closed")) {
+                closedOrders.push(Value::from(order));
             }
         }
         }
@@ -6312,7 +6312,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             })]).into_dict();
             url = self.get_private_ws_url(urlType, self.safe_string_k(&optionsType, "listenKey", &[])).map(Value::from).unwrap_or(Value::Null);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.set_balance_cache(client.as_value(), type_var.clone(), &[isPortfolioMargin.clone()]);
         self.set_positions_cache(client.as_value(), type_var.clone(), &[Value::Null, isPortfolioMargin]);
         let mut message: Option<String> = None;
@@ -6999,9 +6999,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         self.authenticate(&[__ws_arg_34]).await;
         messageHash = format!("{}{}", Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":positions").into()), messageHash);
         let mut portfolioMarginAndParams: Value = self.handle_option_bool_and_params2(paramsAuth, Value::Str("watchPositions".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]);
-        let mut isPortfolioMargin: Value = portfolioMarginAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: Option<bool> = portfolioMarginAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
         let mut urlType: Option<String> = type_var.clone();
-        if isPortfolioMargin.as_bool() == Some(true) {
+        if (isPortfolioMargin == Some(true)) {
             urlType = Some("papi".to_string());
         }  else if (type_var.as_deref() == Some("option")) {
             let mut demoMode: bool = self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -7015,9 +7015,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         })]).into_dict();
         let mut url: Option<String> = self.get_private_ws_url(urlType.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&optionsType, "listenKey", &[]));
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
-        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[isPortfolioMargin.clone()]);
-        self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), isPortfolioMargin]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
+        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
+        self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
         let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&type_var);
@@ -7584,7 +7584,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             urlType = Value::Str("spot".into()); // spot-margin shares the same stream as regular spot
         }
         let mut portfolioMarginAndParams: Value = self.handle_option_bool_and_params2(&paramsSymbol, Value::Str("watchMyTrades".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]);
-        let mut isPortfolioMargin: Value = portfolioMarginAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: Option<bool> = portfolioMarginAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
         let mut url: Value = Value::Str("".into());
         if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
             let mut wsApiUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
@@ -7600,7 +7600,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             })]).into_dict();
             url = self.safe_string_k(&wsApiDict, "spot", &[Value::Str("".into())]);
         }  else {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if (isPortfolioMargin == Some(true)) {
                 urlType = Value::Str("papi".into());
             }  else if (type_var.as_str() == Some("option")) {
                 let mut demoMode: bool = self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -7615,9 +7615,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             })]).into_dict();
             url = self.get_private_ws_url(urlType, self.safe_string_k(&optionsType, "listenKey", &[])).map(Value::from).unwrap_or(Value::Null);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        self.set_balance_cache(client.as_value(), type_var.clone(), &[isPortfolioMargin.clone()]);
-        self.set_positions_cache(client.as_value(), type_var.clone(), &[Value::Null, isPortfolioMargin]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
+        self.set_balance_cache(client.as_value(), type_var.clone(), &[isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
+        self.set_positions_cache(client.as_value(), type_var.clone(), &[Value::Null, isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
         let mut message: Option<String> = None;
         let mut trades: Value = self.watch(&url, messageHash.as_str(), Value::from(message.as_deref()), &type_var, Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();

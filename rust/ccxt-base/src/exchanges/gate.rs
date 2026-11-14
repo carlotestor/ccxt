@@ -3604,8 +3604,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut id: Option<String> = self.safe_string_k_opt(&spotMarket, "id", &[]);
-            let mut marginMarket: crate::value::Dict = self.safe_dict(&marginMarkets, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+            let mut id: Option<String> = self.safe_string_k(&spotMarket, "id", &[]).as_str().map(str::to_owned);
+            let mut marginMarket: crate::value::Dict = self.safe_dict(&marginMarkets, Value::from(id.as_deref()), &[]).into_dict();
             let mut market: Value = self.deep_extend(marginMarket, &[&spotMarket]);
             let mut idParts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut baseId: Option<String> = self.safe_string(&idParts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -9213,13 +9213,13 @@ if _try_result.is_err() {
         let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut extendedRequest: crate::value::Dict = self.extend(request, &[&paramsValue]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
-            response = self.private_futures_get_settle_positions_contract(&[Value::from(&extendedRequest)]).await;
+            response = self.private_futures_get_settle_positions_contract(&[Value::from(&extendedRequest)]).await.into_opt_dict();
         }  else if (market).future {
-            response = self.private_delivery_get_settle_positions_contract(&[Value::from(&extendedRequest)]).await;
+            response = self.private_delivery_get_settle_positions_contract(&[Value::from(&extendedRequest)]).await.into_opt_dict();
         }  else if (Value::from((market).market_type.clone()).as_str() == Some("option")) {
-            response = self.private_options_get_positions_contract(&[Value::Dict(extendedRequest)]).await;
+            response = self.private_options_get_positions_contract(&[Value::Dict(extendedRequest)]).await.into_opt_dict();
         }
         //
         // swap and future
@@ -9277,10 +9277,10 @@ if _try_result.is_err() {
         //         "pending_orders": 0
         //     }
         //
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " fetchPosition() returned empty response")));
         }
-        return self.parse_position(response, Some(&market));
+        return self.parse_position(&response, Some(&market));
         Value::Null
         }).await?))
     }

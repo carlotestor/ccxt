@@ -370,7 +370,7 @@ impl Polymarket {
 }));
         let mut checkHashes = get_arg(optional_args, 2, Value::Null);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         // the base watch only sends the request when one of the hashes is not
         // subscribed yet, so a pending entry is registered under the same
         // condition - otherwise no ack would ever arrive to consume it, the
@@ -897,17 +897,17 @@ impl Polymarket {
         // as a single object, so both shapes are handled here
         //
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            rows = data.clone();
+            rows = data.into_list();
         }  else {
-            if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
+            std::sync::Arc::make_mut(&mut rows).push(data);
         }
         let mut rowsLength: i64 = rows.len() as i64;
         if (rowsLength == 0) {
             return;
         }
-        let mut first: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -924,7 +924,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_652: bool = true;
             while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < rowsLength } {
-            let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
+            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1147,7 +1147,7 @@ impl Polymarket {
 }));
         let mut credentials: Value = self.parent.load_proxy_credentials(&[]).await;
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
@@ -1262,11 +1262,11 @@ impl Polymarket {
         //     }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            rows = data.clone();
+            rows = data.into_list();
         }  else {
-            if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
+            std::sync::Arc::make_mut(&mut rows).push(data);
         }
         let mut rowsLength: i64 = rows.len() as i64;
         if (rowsLength == 0) {
@@ -1285,7 +1285,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_654: bool = true;
             while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < rowsLength } {
-            let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
+            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1389,11 +1389,11 @@ impl Polymarket {
         //     }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            rows = data.clone();
+            rows = data.into_list();
         }  else {
-            if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
+            std::sync::Arc::make_mut(&mut rows).push(data);
         }
         let mut rowsLength: i64 = rows.len() as i64;
         if (rowsLength == 0) {
@@ -1412,7 +1412,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_656: bool = true;
             while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < rowsLength } {
-            let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
+            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1464,7 +1464,7 @@ impl Polymarket {
         self.authenticate(&[]).await;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
@@ -1549,7 +1549,7 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value());
         let mut fetchBalanceSnapshot: Option<bool> = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitBalanceSnapshot: Option<bool> = self.handle_option(Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(true)]).as_bool();

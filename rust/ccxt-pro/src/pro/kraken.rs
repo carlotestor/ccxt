@@ -1857,8 +1857,8 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
-        let mut client: Value = self.client(&[url]);
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private").as_str().map(str::to_owned);
+        let mut client: Value = self.client(url.as_deref());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut authenticated: Value = Value::Str("authenticated".into());
         let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), authenticated.clone(), &[]);
@@ -2490,11 +2490,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_429: bool = true;
             while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (data.len() as i64) } {
             let mut currencyId: Option<String> = self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "asset", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut eq: Option<String> = self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "balance", &[]).as_str().map(str::to_owned);
             account.insert("total".into(), eq.map(Value::from).unwrap_or(Value::Null));
-            if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.clone()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
+            if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.clone()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
         }
         }
         { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.clone(), __be_tmp); } }

@@ -2052,7 +2052,7 @@ impl Aster {
             // client.resolve () / client.reject () settle and remove the entry
             // under the same lock in every port
             let mut messageHash: String = format!("{}{}", "authenticate:", type_var);
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client("authenticationFlights"));
             if (client.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
@@ -2125,7 +2125,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), Value::from(type_var.clone()), &[Value::Str("".into())]),
                 Value::Str("/".into())).into()), listenKey.map(Value::from).unwrap_or(Value::Null));
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
             let mut messageHashes: Vec<Value> = client.future_keys();
             {
                                 let mut i: i64 = 0;
@@ -2195,7 +2195,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         self.authenticate(&[typeMarketType.clone(), Value::Dict(paramsMarketType)]).await;
         let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone()]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value(), typeMarketType.clone());
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2373,7 +2373,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut type_var: String = "swap".to_string();
         self.authenticate(&[Value::from(type_var.clone()), params]).await;
         let mut url: Option<String> = self.get_private_url(&[Value::from(type_var.clone())]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_positions_cache(client.as_value());
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut messageHash: String = "positions".to_string();
@@ -2626,7 +2626,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "orders", "::").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
         let mut orders: Value = self.watch_multiple(url.as_deref(), Value::from(vec![Value::from(messageHash)]), Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)]), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -2686,7 +2686,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "myTrades", "::").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
         let mut trades: Value = self.watch_multiple(url.as_deref(), Value::from(vec![Value::from(messageHash)]), Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)]), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();

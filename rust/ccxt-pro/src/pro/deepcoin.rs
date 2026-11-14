@@ -472,7 +472,7 @@ impl Deepcoin {
         let mut marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(marketType), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut requestId: i64 = self.request_id();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         let mut existingSubscription: Option<crate::value::Dict> = self.safe_dict((client).subscriptions.clone(), messageHash.clone(), &[]).into_opt_dict();
         if (existingSubscription.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " no subscription for ").into()), messageHash)));
@@ -520,7 +520,7 @@ impl Deepcoin {
         // check-then-fetch (acquire vs extend) is the critical section; the flight IS the client.futures entry,
         // settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
         let mut messageHash: String = "authenticate".to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client("authenticationFlights"));
         if (client.has_future(messageHash.as_str())) {
             // a flight is already in progress - wake when the leader
             // settles it: the listenKey is then in the bucket
@@ -533,14 +533,14 @@ impl Deepcoin {
             let mut listenKeyExpiryTimestamp: Option<i64> = self.safe_integer_k(self.options.clone(), "listenKeyExpiryTimestamp", &[Value::from(time)]).as_i64();
             let mut expired: bool = ((if let Some(__r) = listenKeyExpiryTimestamp { Some(time - __r) } else { None })) > Some(60000); // 1 minute before expiry
             listenKey = self.safe_string_k(self.options.clone(), "listenKey", &[]);
-            let mut response: Value = Value::Null;
+            let mut response: Option<crate::value::Dict> = None;
             if (listenKey == Value::Null) {
-                response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await;
+                response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await.into_opt_dict();
             }  else if expired {
                 let mut method: Option<String> = self.safe_string_k(self.options.clone(), "method", &[Value::Str("privateGetDeepcoinListenkeyExtend".into())]).as_str().map(str::to_owned);
                 let mut getNewKey: bool = method.as_deref() == Some("privateGetDeepcoinListenkeyAcquire");
                 if getNewKey {
-                    response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await;
+                    response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await.into_opt_dict();
                 }  else {
                     let mut request: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
@@ -548,11 +548,11 @@ impl Deepcoin {
                         m
                     });
                     let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-                    response = self.parent.private_get_deepcoin_listenkey_extend(&[__ws_arg_3]).await;
+                    response = self.parent.private_get_deepcoin_listenkey_extend(&[__ws_arg_3]).await.into_opt_dict();
                 }
             }
-            if (response != Value::Null) {
-                let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
+            if (response.is_some()) {
+                let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
@@ -1390,8 +1390,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut bids: Value = orderbook.get("bids").cloned().unwrap_or(Value::Null);
-        let mut asks: Value = orderbook.get("asks").cloned().unwrap_or(Value::Null);
+        let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("bids").cloned().unwrap_or(Value::Null));
+        let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("asks").cloned().unwrap_or(Value::Null));
         let mut side: Option<String> = self.safe_string_k(&data, "D", &[]).as_str().map(str::to_owned);
         let mut price: Option<f64> = self.safe_number_k(&data, "P", &[]).as_f64();
         let mut volume: Option<f64> = self.safe_number_k(&data, "V", &[]).as_f64();

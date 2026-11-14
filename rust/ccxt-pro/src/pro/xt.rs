@@ -389,7 +389,7 @@ impl Xt {
         if !isContract {
             url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), "/private"));
         }
-        let mut client: Value = self.client(&[url.map(Value::from).unwrap_or(Value::Null)]);
+        let mut client: Value = self.client(url.as_deref());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut token: Option<String> = self.safe_string_k(__ch.subscriptions.clone(), "token", &[]).as_str().map(str::to_owned);
         if (token.is_none()) {
@@ -482,8 +482,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         orderbook.set_book_meta("nonce", self.safe_integer2(delta.clone(), Value::Str("i".into()), Value::Str("u".into()), &[]));
         let mut obAsks: crate::value::List = self.safe_list_k(delta.clone(), "a", &[Value::from(vec![])]).into_list();
         let mut obBids: crate::value::List = self.safe_list_k(delta, "b", &[Value::from(vec![])]).into_list();
-        let mut bids: Value = orderbook.book_field("bids");
-        let mut asks: Value = orderbook.book_field("asks");
+        let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
+        let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_730: bool = true;
@@ -1222,7 +1222,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]).into_dict();
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&apiUrls, "contract", &[Value::Str("".into())]), Value::Str("/".into())).into()), "user");
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         self.set_positions_cache(client.as_value());
         let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
@@ -1885,7 +1885,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return;
             }
             if (obAsks.is_some()) {
-                let mut asks: Value = orderbook.book_field("asks");
+                let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_736: bool = true;
@@ -1898,7 +1898,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             if (obBids.is_some()) {
-                let mut bids: Value = orderbook.book_field("bids");
+                let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_737: bool = true;

@@ -463,7 +463,7 @@ impl Backpack {
             m
         })]).into_dict();
         let mut url: String = self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         let mut kind: String = (if (bidAsk).as_bool() == Some(true) { "bidask".to_string() } else { "ticker".to_string() });
         {
                         let mut i: i64 = 0;
@@ -670,27 +670,27 @@ impl Backpack {
 
     pub async fn handle_unsubscriptions(&mut self, mut url: Value, mut messageHashes: Value, message: impl Into<crate::Value>) {
         let mut message: Value = message.into();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.watch_multiple(&url, messageHashes.clone(), message, messageHashes.clone(), Value::Null).await;
         {
                         let mut i: i64 = 0;
             let mut __for_first_39: bool = true;
             while { if !__for_first_39 { i += 1; } __for_first_39 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
-            let mut subMessageHash: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:", "").into())).unwrap_or_else(|| messageHash.clone());
-            self.clean_unsubscription(client.as_value(), subMessageHash, messageHash.clone(), &[]);
-            if messageHash.as_str().unwrap_or("").contains("ticker") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:ticker:", "").into())).unwrap_or_else(|| messageHash.clone());
+            let mut messageHash: String = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut subMessageHash: String = messageHash.replace("unsubscribe:", "");
+            self.clean_unsubscription(client.as_value(), Value::from(subMessageHash), Value::from(messageHash.as_str()), &[]);
+            if messageHash.contains("ticker") {
+                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:ticker:", ""));
                 if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("bidask") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:bidask:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("bidask") {
+                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:bidask:", ""));
                 if (matches!((&self.bidsasks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("candles") {
-                let mut splitHashes: crate::value::List = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
+            }  else if messageHash.contains("candles") {
+                let mut splitHashes: crate::value::List = Value::Array(messageHash.split(":").map(Value::from).collect()).into_list();
                 let mut symbol: Option<String> = self.safe_string(&splitHashes, Value::Int(2), &[]).as_str().map(str::to_owned);
                 let mut timeframe: Option<String> = self.safe_string(&splitHashes, Value::Int(3), &[]).as_str().map(str::to_owned);
                 if (symbol.is_some()) && (timeframe.is_some()) && (CacheShelves::has(&self.ohlcvs, &symbol)) {
@@ -698,18 +698,18 @@ impl Backpack {
                         CacheShelves::forget2(&mut self.ohlcvs, &symbol, &timeframe);
                     }
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("orderbook") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:orderbook:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("orderbook") {
+                let mut symbol: String = messageHash.replace("unsubscribe:orderbook:", "");
                 if (self.orderbooks.has(&symbol)) {
                     CacheStore::forget(&mut self.orderbooks, &symbol);
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("trades") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:trades:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("trades") {
+                let mut symbol: String = messageHash.replace("unsubscribe:trades:", "");
                 if (self.trades.has(&symbol)) {
                     CacheStore::forget(&mut self.trades, &symbol);
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("orders") {
-                if (messageHash.as_str() == Some("unsubscribe:orders")) {
+            }  else if messageHash.contains("orders") {
+                if (messageHash == "unsubscribe:orders") {
                     let mut cache: Value = Value::from(&self.orders);
                     if (self.orders.is_some()) {
                         let mut keys: Vec<Value> = object_keys(&cache).as_array().cloned().unwrap_or_default();
@@ -723,15 +723,15 @@ impl Backpack {
                         }
                     }
                 }  else {
-                    let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:orders:", "").into())).unwrap_or_else(|| messageHash.clone());
+                    let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:orders:", ""));
                     let mut cache: Value = Value::from(&self.orders);
                     if (self.orders.is_some()) && (matches!((&cache, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         remove(&mut cache, &symbol);
                     }
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("positions") {
+            }  else if messageHash.contains("positions") {
                 // the positions cache is one ArrayCacheBySymbolById: dropping it forgets every symbol
-                if (messageHash.as_str() == Some("unsubscribe:positions")) {
+                if (messageHash == "unsubscribe:positions") {
                     self.positions = None;
                 }
             }

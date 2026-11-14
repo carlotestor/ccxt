@@ -813,10 +813,10 @@ impl Onetrading {
         let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta.clone(), &[Value::Int(1), Value::Int(2)]).into_list();
         let mut type_var: Option<String> = self.safe_string(delta.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("BUY")) {
-            let mut bids: Value = orderbook.get("bids").cloned().unwrap_or(Value::Null);
+            let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("bids").cloned().unwrap_or(Value::Null));
             bids.store_array(Value::from(&bidAsk));
         }  else if (type_var.as_deref() == Some("SELL")) {
-            let mut asks: Value = orderbook.get("asks").cloned().unwrap_or(Value::Null);
+            let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("asks").cloned().unwrap_or(Value::Null));
             asks.store_array(Value::Arr(bidAsk));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOrderBook () received unknown change type ").into()), json_stringify(&delta))));
@@ -1884,7 +1884,7 @@ impl Onetrading {
     m
 }));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(Value::Str("authenticated".into()));
         let mut authenticated: Option<crate::value::Dict> = self.safe_dict((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]).into_opt_dict();

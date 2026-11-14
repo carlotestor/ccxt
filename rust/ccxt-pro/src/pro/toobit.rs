@@ -1245,7 +1245,7 @@ impl Toobit {
             subscriptionHash = spotSubHash;
         }
         let mut url: Option<String> = self.get_user_stream_url();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value(), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::from(subscriptionHash.clone()), Value::from(&paramsMarketType)]);
         client.future(Value::Str(format!("{}{}", type_var, ":fetchBalanceSnapshot").into()));
         return self.watch(url.as_deref(), messageHash.as_str(), &paramsMarketType, subscriptionHash.as_str(), Value::Null).await;
@@ -1664,7 +1664,7 @@ impl Toobit {
         }
         messageHash = format!("{}{}", Value::Str(format!("{}{}", type_var, ":positions").into()), messageHash);
         let mut url: Option<String> = self.get_user_stream_url();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_positions_cache(client.as_value(), Value::from(type_var.clone()), &[symbolsNormalized.clone()]);
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&type_var);
         if (cache.is_none()) {
@@ -1834,7 +1834,7 @@ impl Toobit {
             // client.futures is the registry: client.future () is the atomic check-and-insert and
             // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
             let mut messageHash: String = "authenticate".to_string();
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client("authenticationFlights"));
             if (client.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
@@ -1907,7 +1907,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Option<String> = self.get_user_stream_url();
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
             let mut messageHashes: Vec<Value> = client.future_keys();
             {
                                 let mut i: i64 = 0;

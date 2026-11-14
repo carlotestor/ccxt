@@ -4486,7 +4486,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         if !(client.has_subscription("connect")) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
             let mut requestId: i64 = self.request_id(url.as_str());
@@ -4651,7 +4651,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         self.connect_centrifugo(url.as_deref()).await;
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut isNewSubscription: bool = !(client.has_subscription(channel.as_str()));
         if isNewSubscription {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
@@ -5031,7 +5031,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         self.connect_centrifugo(url.as_deref()).await;
         self.load_outcomes(&[outcomes.clone()]).await;
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut seenChannels: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5309,7 +5309,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: String = "positions".to_string();
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         self.connect_centrifugo(url.as_deref()).await;
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut isNewSubscription: bool = !(client.has_subscription(channel.as_str()));
         if isNewSubscription {
             // the channel pushes only signed deltas; seed absolute share balances from REST so

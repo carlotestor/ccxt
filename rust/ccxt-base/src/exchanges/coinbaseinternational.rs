@@ -1926,7 +1926,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.handle_route_and_params("fetchTickers", &[params]);
+        let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchTickers", &[params]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1946,7 +1946,7 @@ impl Coinbaseinternational {
             if (symbol.is_none()) {
                 continue;
             }
-            let mut ticker: Value = crate::types::IntoRaw::into_raw(self.fetch_ticker(symbol.as_deref().unwrap_or_default(), paramsResolved.clone()).await);
+            let mut ticker: Value = crate::types::IntoRaw::into_raw(self.fetch_ticker(symbol.as_deref().unwrap_or_default(), Value::from(&paramsResolved)).await);
             tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
         }
         }

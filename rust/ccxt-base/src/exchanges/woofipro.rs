@@ -3567,28 +3567,28 @@ impl Woofipro {
         let mut clientOrderIdUnified: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k(&paramsOmitted, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if trigger {
             if isByClientOrder {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]).into_dict();
                 let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
-                response = self.v1_private_delete_algo_client_order(&[__ws_arg_11]).await;
+                response = self.v1_private_delete_algo_client_order(&[__ws_arg_11]).await.into_opt_dict();
             }  else {
                 request.insert("order_id".into(), id.clone());
                 let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.v1_private_delete_algo_order(&[__ws_arg_12]).await;
+                response = self.v1_private_delete_algo_order(&[__ws_arg_12]).await.into_opt_dict();
             }
         }  else {
             if isByClientOrder {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]).into_dict();
                 let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
-                response = self.v1_private_delete_client_order(&[__ws_arg_13]).await;
+                response = self.v1_private_delete_client_order(&[__ws_arg_13]).await.into_opt_dict();
             }  else {
                 request.insert("order_id".into(), id.clone());
                 let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.v1_private_delete_order(&[__ws_arg_14]).await;
+                response = self.v1_private_delete_order(&[__ws_arg_14]).await.into_opt_dict();
             }
         }
         //
@@ -3617,17 +3617,17 @@ impl Woofipro {
             extendParams.insert("id".into(), id);
         }
         if trigger {
-            let mut parsedResponse: Value = (if (response == Value::Null) { Value::Map({
+            let mut parsedResponse: Value = (if (response.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { response.clone() });
+}) } else { response.clone().map_or(Value::Null, Value::Dict) });
             let __ws_arg_15 = self.parse_order(parsedResponse, None);
             return self.extend(__ws_arg_15, &[Value::Map(extendParams.clone())]);
         }
-        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let __ws_arg_16 = self.parse_order(&data, None);
         return self.extend(__ws_arg_16, &[Value::Map(extendParams)]);
         Value::Null

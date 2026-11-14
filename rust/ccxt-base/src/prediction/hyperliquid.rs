@@ -1751,7 +1751,7 @@ impl Hyperliquid {
         if (self.exchange.outcomes.clone() == Value::Null) || (self.exchange.outcomes_by_id.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " outcomes not loaded")));
         }
-        let mut sideHint: Value = self.parse_outcome_input_side_hint(outcomeInput.as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+        let mut sideHint: Option<String> = self.parse_outcome_input_side_hint(outcomeInput.as_str().unwrap_or_default());
         let mut candidates: Vec<Value> = vec![outcomeInput.clone()];
         if (outcomeInput.as_str().unwrap_or("").starts_with("+")) {
             candidates.push(Value::Str(format!("{}{}", Value::Str("#".into()), outcomeInput.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()));
@@ -1797,11 +1797,11 @@ impl Hyperliquid {
         }
         if ((self.markets.clone() != Value::Null) && (matches!((&self.markets, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             let mut market: crate::types::Market = self.safe_market(outcomeInput.clone(), None, &[]);
-            let mut sideHintOrDefault: Value = Value::Str("YES".into());
-            if (sideHint != Value::Null) {
+            let mut sideHintOrDefault: Option<String> = Some("YES".to_string());
+            if (sideHint.is_some()) {
                 sideHintOrDefault = sideHint;
             }
-            let mut found: Value = self.find_outcome_in_market(Some(&market), sideHintOrDefault.as_str());
+            let mut found: Value = self.find_outcome_in_market(Some(&market), sideHintOrDefault.as_deref());
             if ((object_keys(&found).len() as i64) as f64) > ((0i64) as f64) {
                 return found;
             }
@@ -3314,10 +3314,10 @@ if _try_result.is_err() {
         }
         let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[Value::Str("".into())]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("err")) {
-            let mut message: Value = self.safe_string_k(response.clone(), "response", &[body.clone()]);
+            let mut message: Option<String> = self.safe_string_k(response.clone(), "response", &[body.clone()]).as_str().map(str::to_owned);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::from(feedback.as_str()));
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, Value::from(feedback.as_str()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(message.as_deref()), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         // Check for error statuses in order responses
@@ -3334,10 +3334,10 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1257: bool = true;
             while { if !__for_first_1257 { i += 1; } __for_first_1257 = false; i < (statuses.len() as i64) } {
-            let mut message: Option<String> = self.safe_string_k_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
+            let mut message: Option<String> = self.safe_string_k(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]).as_str().map(str::to_owned);
             if (message.is_some()) {
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(message.as_deref()), Value::from(feedback.as_str()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }

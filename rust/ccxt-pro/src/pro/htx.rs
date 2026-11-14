@@ -3822,7 +3822,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.check_required_credentials(&[]);
         let mut messageHash: String = "auth".to_string();
         let mut relativePath: Value = url.as_str().zip((Value::Str(format!("{}{}", "wss://", hostname.as_deref().unwrap_or("null")).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| url.clone());
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {

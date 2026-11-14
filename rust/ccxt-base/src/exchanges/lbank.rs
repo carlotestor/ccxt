@@ -2227,13 +2227,13 @@ impl Lbank {
 })]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("spotPrivatePostSupplementUserInfo".into())]).as_str().unwrap_or("spotPrivatePostSupplementUserInfo").to_string();
         let mut method: Option<String> = (match params.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(defaultMethod) }).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPrivatePostSupplementUserInfoAccount")) {
-            response = self.spot_private_post_supplement_user_info_account(&[]).await;
+            response = self.spot_private_post_supplement_user_info_account(&[]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("spotPrivatePostUserInfo")) {
-            response = self.spot_private_post_user_info(&[]).await;
+            response = self.spot_private_post_user_info(&[]).await.into_opt_dict();
         }  else {
-            response = self.spot_private_post_supplement_user_info(&[]).await;
+            response = self.spot_private_post_supplement_user_info(&[]).await.into_opt_dict();
         }
         //
         //    {
@@ -2265,10 +2265,10 @@ impl Lbank {
         //        "code": 0
         //    }
         //
-        let mut balanceResponse: Value = (if (response == Value::Null) { Value::Map({
+        let mut balanceResponse: Value = (if (response.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { response });
+}) } else { response.map_or(Value::Null, Value::Dict) });
         let mut balanceResult: Value = self.parse_balance(balanceResponse);
         if (balanceResult == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " fetchBalance() returned empty response")));

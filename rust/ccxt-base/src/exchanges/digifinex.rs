@@ -2639,14 +2639,14 @@ impl Digifinex {
         let mut marginResult: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params.clone()]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Value = marginResult.get(0).cloned().unwrap_or(Value::Null);
         let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), params]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
-            response = self.private_swap_post_trade_order_place(&[Value::from(&request)]).await;
+            response = self.private_swap_post_trade_order_place(&[Value::from(&request)]).await.into_opt_dict();
         }  else {
             if (marginMode != Value::Null) {
-                response = self.private_spot_post_margin_order_new(&[Value::from(&request)]).await;
+                response = self.private_spot_post_margin_order_new(&[Value::from(&request)]).await.into_opt_dict();
             }  else {
-                response = self.private_spot_post_spot_order_new(&[Value::Dict(request)]).await;
+                response = self.private_spot_post_spot_order_new(&[Value::Dict(request)]).await.into_opt_dict();
             }
         }
         //
@@ -2664,10 +2664,10 @@ impl Digifinex {
         //         "data": "1590873693003714560"
         //     }
         //
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " createOrder() returned empty response")));
         }
-        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(response, Some(&market)).as_map().cloned().unwrap_or_default();
+        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(&response, Some(&market)).as_map().cloned().unwrap_or_default();
         order.insert("symbol".into(), Value::from((market).symbol.clone()));
         order.insert("type".into(), type_var);
         order.insert("side".into(), side);
@@ -4599,7 +4599,7 @@ impl Digifinex {
         });
         let mut fromSwap: bool = fromAccount.as_str() == Some("swap");
         let mut toSwap: bool = toAccount.as_str() == Some("swap");
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut amountString: Option<String> = self.currency_to_precision(code, amount, &[]);
         if fromSwap || toSwap {
             if (fromId.as_deref() != Some("1")) && (toId.as_deref() != Some("1")) {
@@ -4619,7 +4619,7 @@ impl Digifinex {
             //     }
             //
             let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_swap_post_account_transfer(&[__ws_arg_34]).await;
+            response = self.private_swap_post_account_transfer(&[__ws_arg_34]).await.into_opt_dict();
         }  else {
             request.insert("currency_mark".into(), currencyId);
             request.insert("num".into(), amountString.map(Value::from).unwrap_or(Value::Null));
@@ -4631,12 +4631,12 @@ impl Digifinex {
             //     }
             //
             let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-            response = self.private_spot_post_transfer(&[__ws_arg_35]).await;
+            response = self.private_spot_post_transfer(&[__ws_arg_35]).await.into_opt_dict();
         }
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " transfer() returned empty response")));
         }
-        return self.parse_transfer(response, Some(&currency));
+        return self.parse_transfer(&response, Some(&currency));
         Value::Null
         }).await?))
     }

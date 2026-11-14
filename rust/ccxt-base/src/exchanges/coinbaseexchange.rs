@@ -2650,25 +2650,25 @@ impl Coinbaseexchange {
                 m.insert("amount".to_string(), amount);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (paramsWithdrawTag.contains_key("payment_method_id")) {
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&paramsWithdrawTag]);
-            response = self.private_post_withdrawals_payment_method(&[__ws_arg_22]).await;
+            response = self.private_post_withdrawals_payment_method(&[__ws_arg_22]).await.into_opt_dict();
         }  else if (paramsWithdrawTag.contains_key("coinbase_account_id")) {
             let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsWithdrawTag]);
-            response = self.private_post_withdrawals_coinbase_account(&[__ws_arg_23]).await;
+            response = self.private_post_withdrawals_coinbase_account(&[__ws_arg_23]).await.into_opt_dict();
         }  else {
             request.insert("crypto_address".into(), address);
             if (tagWithdrawTag.is_some()) {
                 request.insert("destination_tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-            response = self.private_post_withdrawals_crypto(&[__ws_arg_24]).await;
+            response = self.private_post_withdrawals_crypto(&[__ws_arg_24]).await.into_opt_dict();
         }
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() error: ").into()), json_stringify(&response))));
         }
-        return self.parse_transaction(response, Some(&currency));
+        return self.parse_transaction(&response, Some(&currency));
         Value::Null
         }).await?))
     }

@@ -3445,15 +3445,15 @@ impl Bitfinex {
             m
         });
         let mut market: Option<crate::types::Market> = None;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (symbol == Value::Null) {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_auth_r_orders(&[__ws_arg_12]).await;
+            response = self.private_post_auth_r_orders(&[__ws_arg_12]).await.into_opt_list();
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_auth_r_orders_symbol(&[__ws_arg_13]).await;
+            response = self.private_post_auth_r_orders_symbol(&[__ws_arg_13]).await.into_opt_list();
         }
         //
         //      [
@@ -3497,10 +3497,10 @@ impl Bitfinex {
         {
                         let mut i: i64 = 0;
             let mut __for_first_353: bool = true;
-            while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (response.len() as i64) } {
+            while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("result".to_string(), self.safe_list(response.clone(), Value::Int(i), &[]));
+                    m.insert("result".to_string(), self.safe_list(&response, Value::Int(i), &[]));
                 m
             }));
         }
@@ -3561,15 +3561,15 @@ impl Bitfinex {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Option<crate::types::Market> = None;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (symbol == Value::Null) {
             let __ws_arg_14 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_post_auth_r_orders_hist(&[__ws_arg_14]).await;
+            response = self.private_post_auth_r_orders_hist(&[__ws_arg_14]).await.into_opt_list();
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_15 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.private_post_auth_r_orders_symbol_hist(&[__ws_arg_15]).await;
+            response = self.private_post_auth_r_orders_symbol_hist(&[__ws_arg_15]).await.into_opt_list();
         }
         //
         //      [
@@ -3613,10 +3613,10 @@ impl Bitfinex {
         {
                         let mut i: i64 = 0;
             let mut __for_first_354: bool = true;
-            while { if !__for_first_354 { i += 1; } __for_first_354 = false; i < (response.len() as i64) } {
+            while { if !__for_first_354 { i += 1; } __for_first_354 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("result".to_string(), self.safe_list(response.clone(), Value::Int(i), &[]));
+                    m.insert("result".to_string(), self.safe_list(&response, Value::Int(i), &[]));
                 m
             }));
         }
@@ -3727,24 +3727,24 @@ impl Bitfinex {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 25, max 1000
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_auth_r_trades_symbol_hist(&[__ws_arg_17]).await;
+            response = self.private_post_auth_r_trades_symbol_hist(&[__ws_arg_17]).await.into_opt_list();
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_auth_r_trades_hist(&[__ws_arg_18]).await;
+            response = self.private_post_auth_r_trades_hist(&[__ws_arg_18]).await.into_opt_list();
         }
         let mut tradesList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_356: bool = true;
-            while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (response.len() as i64) } {
+            while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             tradesList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("result".to_string(), self.safe_list(response.clone(), Value::Int(i), &[]));
+                    m.insert("result".to_string(), self.safe_list(&response, Value::Int(i), &[]));
                 m
             })); // convert to array of dicts to match parseOrder signature
         }
@@ -4731,15 +4731,15 @@ impl Bitfinex {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code));
             std::sync::Arc::make_mut(&mut requestUntil).insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             let __ws_arg_24 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_post_auth_r_ledgers_currency_hist(&[__ws_arg_24]).await;
+            response = self.private_post_auth_r_ledgers_currency_hist(&[__ws_arg_24]).await.into_opt_list();
         }  else {
             let __ws_arg_25 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.private_post_auth_r_ledgers_hist(&[__ws_arg_25]).await;
+            response = self.private_post_auth_r_ledgers_hist(&[__ws_arg_25]).await.into_opt_list();
         }
         //
         //     [
@@ -4760,10 +4760,10 @@ impl Bitfinex {
         {
                         let mut i: i64 = 0;
             let mut __for_first_359: bool = true;
-            while { if !__for_first_359 { i += 1; } __for_first_359 = false; i < (response.len() as i64) } {
+            while { if !__for_first_359 { i += 1; } __for_first_359 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             ledgerObjects.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("result".to_string(), self.safe_list(response.clone(), Value::Int(i), &[]));
+                    m.insert("result".to_string(), self.safe_list(&response, Value::Int(i), &[]));
                 m
             }));
         }

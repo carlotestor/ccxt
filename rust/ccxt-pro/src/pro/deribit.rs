@@ -1668,8 +1668,8 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut time: i64 = self.milliseconds();
         let mut timeString: Option<String> = self.number_to_string(Value::from(time));
         let mut nonce: Option<String> = timeString.clone();
@@ -1698,7 +1698,7 @@ impl Deribit {
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-            future = self.watch(&url, &messageHash, __ws_arg_0, &messageHash, Value::Null).await;
+            future = self.watch(url.as_deref(), &messageHash, __ws_arg_0, &messageHash, Value::Null).await;
             client.add_subscription(&messageHash, future.clone());
         }
         return future;

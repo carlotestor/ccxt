@@ -1369,7 +1369,7 @@ impl Bitrue {
             // so every mutation of that map happens under the ws client's own
             // lock rather than through an unsynchronized map write
             let mut messageHash: String = "authenticateFlight".to_string();
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client("authenticationFlights"));
             if (client.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options

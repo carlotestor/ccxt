@@ -1979,7 +1979,7 @@ impl Luno {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         if (type_var.as_str() == Some("market")) {
             request.insert("type".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
@@ -1990,21 +1990,21 @@ impl Luno {
                 request.insert("base_volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone())));
             }
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_marketorder(&[__ws_arg_11]).await;
+            response = self.private_post_marketorder(&[__ws_arg_11]).await.into_opt_dict();
         }  else {
             request.insert("volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
             request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
             request.insert("type".into(), (if (side.as_str() == Some("buy")) { Value::Str("BID".into()) } else { Value::Str("ASK".into()) }));
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_postorder(&[__ws_arg_12]).await;
+            response = self.private_post_postorder(&[__ws_arg_12]).await.into_opt_dict();
         }
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " createOrder() returned empty response")));
         }
-        let mut orderId: Option<String> = self.safe_string_k(response.clone(), "order_id", &[]).as_str().map(str::to_owned);
+        let mut orderId: Option<String> = self.safe_string_k(&response, "order_id", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
     m
 }), Some(&market));

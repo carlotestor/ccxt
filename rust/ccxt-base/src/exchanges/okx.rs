@@ -8629,10 +8629,10 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut rawNetwork: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned); // some networks are like "Dora Vota Mainnet"
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         let mut codeValue: Value = self.safe_currency_code(code, None).map(Value::from).unwrap_or(Value::Null);
         let mut network: Option<String> = self.network_id_to_code(&[rawNetwork.map(Value::from).unwrap_or(Value::Null), codeValue.clone()]);
-        let mut responseRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(codeValue.as_str().unwrap_or_default(), paramsOmitted).await);
+        let mut responseRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(codeValue.as_str().unwrap_or_default(), Value::Dict(paramsOmitted)).await);
         let mut response: Value = responseRaw;
         if (network.is_some()) {
             let mut result: Option<crate::value::Dict> = self.safe_dict(response.clone(), network.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();

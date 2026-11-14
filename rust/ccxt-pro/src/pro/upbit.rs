@@ -302,7 +302,7 @@ impl Upbit {
         m.insert("hostname".to_string(), self.hostname.clone());
     m
 }));
-        let mut client: Value = self.client(&[Value::from(url.clone())]);
+        let mut client: Value = self.client(url.as_str());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subscriptionsKey: Value = Value::Str("upbitPublicSubscriptions".into());
         if !(__ch.has_subscription(&subscriptionsKey)) {
@@ -777,7 +777,7 @@ impl Upbit {
         m.insert("hostname".to_string(), self.hostname.clone());
     m
 })), Value::Str("/private".into()));
-        let mut client: Value = self.client(&[Value::from(url.clone())]);
+        let mut client: Value = self.client(url.as_str());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         // Track private channel subscriptions to support multiple concurrent watches
         let mut subscriptionsKey: Value = Value::Str("upbitPrivateSubscriptions".into());

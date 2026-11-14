@@ -490,8 +490,8 @@ impl Hyperliquid {
     m
 }), None);
         }
-        let mut parsedOrder: Value = orders.get(0).map(crate::Value::from).unwrap_or_default();
-        return parsedOrder;
+        let mut parsedOrder: Option<&crate::types::Order> = orders.get(0);
+        return Value::from(parsedOrder);
         Value::Null
         }).await?))
     }
@@ -2211,7 +2211,7 @@ impl Hyperliquid {
         // the swap watchBalance, so a pending unWatchBalance delays this watch
         // too - its ack tears the shared stream down and sweeps both futures
         self.wait_for_pending_unsubscribe(url.clone(), topic.as_str()).await;
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone()]);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut newPositions: Value = self.watch(&url, messageHash.as_str(), &message, topic.as_str(), Value::Null).await;
@@ -2617,7 +2617,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn wait_for_pending_unsubscribe(&mut self, mut url: Value, subHash: &str) -> Value {
         let mut subHash: Value = subHash.into();
         if (matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut client: Value = self.client(&[url.clone()]);
+            let mut client: Value = self.client(&url);
             let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
             let mut unsubHash: String = format!("{}{}", "unsubscribe:", subHash);
             if (__ch.has_subscription(unsubHash.as_str())) {
@@ -2891,7 +2891,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
-        let mut topic: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
+        let mut topic: String = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pong".to_string(), Value::Str("handle_pong".into()).clone());
@@ -2909,7 +2909,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("spotState".to_string(), Value::Str("handle_balance".into()).clone());
             m
         });
-        let mut exacMethod: Value = self.safe_value(Value::Map(methods.clone()), topic.clone(), &[]);
+        let mut exacMethod: Value = self.safe_value(Value::Map(methods.clone()), Value::from(topic.as_str()), &[]);
         if (exacMethod != Value::Null) {
             self.dispatch_ws_handler(&exacMethod, &[client.clone(), message.clone()]);
             return;
@@ -2920,10 +2920,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_412: bool = true;
             while { if !__for_first_412 { i += 1; } __for_first_412 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if (match (&(topic), &(keys.get(i as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
-                Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-                (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s),
-                Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if ((if let (Some(__h), Some(__n)) = (Some(topic.as_str()), (keys.get(i as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 let mut method: Value = methods.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;

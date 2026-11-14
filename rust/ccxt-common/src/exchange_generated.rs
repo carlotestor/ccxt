@@ -4954,10 +4954,10 @@ pub trait ExchangeBase:
                 let mut item: Value = self.safe_value(response.clone(), Value::Int(i), &[]);
                 let mut id: Option<String> = (if (marketIdKey == Value::Null) { None } else { self.safe_string(item.clone(), marketIdKey.clone(), &[]).as_str().map(str::to_owned) });
                 let mut market: crate::types::Market = self.safe_market(id.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("swap".into())]);
-                let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+                let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut contract: bool = self.safe_bool_k(&market, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-                if contract && (noSymbols || ((symbolsNormalized.is_some()) && self.in_array(symbol.clone(), symbolsNormalized.clone().map_or(Value::Null, Value::Arr)))) {
-                    tiers.insert(crate::runtime::stringify_param(&symbol), <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item, Some(&market)));
+                if contract && (noSymbols || ((symbolsNormalized.is_some()) && self.in_array(Value::from(symbol.clone()), symbolsNormalized.clone().map_or(Value::Null, Value::Arr)))) {
+                    tiers.insert(symbol.clone(), <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item, Some(&market)));
                 }
             }
             }
@@ -4970,10 +4970,10 @@ pub trait ExchangeBase:
                 let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut item: Value = self.safe_value(response.clone(), Value::from(marketId.as_deref()), &[]);
                 let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("swap".into())]);
-                let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+                let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut contract: bool = self.safe_bool_k(&market, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-                if contract && (noSymbols || ((symbolsNormalized.is_some()) && self.in_array(symbol.clone(), symbolsNormalized.clone().map_or(Value::Null, Value::Arr)))) {
-                    tiers.insert(crate::runtime::stringify_param(&symbol), <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item, Some(&market)));
+                if contract && (noSymbols || ((symbolsNormalized.is_some()) && self.in_array(Value::from(symbol.as_str()), symbolsNormalized.clone().map_or(Value::Null, Value::Arr)))) {
+                    tiers.insert(symbol, <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item, Some(&market)));
                 }
             }
             }
@@ -7604,8 +7604,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return self.safe_dict(&depositAddresses, code.clone(), &[]);
         }  else if (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddressesByNetwork")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddressesByNetwork")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut network: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
-            let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
-            let mut addressStructures: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), paramsOmitted).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
+            let mut addressStructures: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsOmitted)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (network.is_some()) {
                 return self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), network.map(Value::from).unwrap_or(Value::Null), &[]);
             }  else {
@@ -11096,9 +11096,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        let mut paramsValue: Value = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]);
+        let mut paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]).into_dict();
         if (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLossWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLossWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), paramsValue).await);
+            return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsValue)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrderWithTakeProfitAndStopLossWs() is not supported yet")));
         Value::Null
@@ -12633,9 +12633,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        let mut paramsValue: Value = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]);
+        let mut paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]).into_dict();
         if (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLoss")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLoss")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), paramsValue).await);
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsValue)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrderWithTakeProfitAndStopLoss() is not supported yet")));
         Value::Null

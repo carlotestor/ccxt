@@ -731,8 +731,8 @@ impl Kalshi {
         // maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
         // markets — then flatten those markets.
         if queriesLength > 0 {
-            let mut eventParams: Value = self.omit(params.clone(), &["limit"], &[]);
-            let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(eventParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut eventParams: crate::value::Dict = self.omit(params.clone(), &["limit"], &[]).into_dict();
+            let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(Value::Dict(eventParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut eventsLength: i64 = events.len() as i64;
             let mut queryMarkets: Vec<Value> = Vec::new();
             {
@@ -2818,10 +2818,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1283: bool = true;
             while { if !__for_first_1283 { i += 1; } __for_first_1283 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.get(i as usize).map(crate::Value::from).unwrap_or_default();
-            let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
+            let mut order: Option<&crate::types::Order> = orders.get(i as usize);
+            let mut status: Option<String> = self.safe_string_k(&order, "status", &[]).as_str().map(str::to_owned);
             if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("canceled")) {
-                result.push(order);
+                result.push(Value::from(order));
             }
         }
         }

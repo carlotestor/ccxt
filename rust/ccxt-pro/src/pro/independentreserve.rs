@@ -518,17 +518,17 @@ impl Independentreserve {
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
         if (checksum).as_bool() == Some(true) && receivedSnapshot {
-            let mut storedAsks: Value = orderbook.book_field("asks");
-            let mut storedBids: Value = orderbook.book_field("bids");
-            let mut asksLength: i64 = get_array_length(&storedAsks).as_i64().unwrap_or_default();
-            let mut bidsLength: i64 = get_array_length(&storedBids).as_i64().unwrap_or_default();
+            let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
+            let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
+            let mut asksLength: i64 = storedAsks.length().as_i64().unwrap_or_default();
+            let mut bidsLength: i64 = storedBids.length().as_i64().unwrap_or_default();
             let mut payload: String = "".to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_413: bool = true;
                 while { if !__for_first_413 { i += 1; } __for_first_413 = false; (i as f64) < ((10i64) as f64) } {
                 if i < bidsLength {
-                    payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(get_value(&storedBids, &Value::Int(i)), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(get_value(&storedBids, &Value::Int(i)), Value::Int(1), &[])));
+                    payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(storedBids.level(&Value::Int(i)), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(storedBids.level(&Value::Int(i)), Value::Int(1), &[])));
                 }
             }
             }
@@ -537,7 +537,7 @@ impl Independentreserve {
                 let mut __for_first_414: bool = true;
                 while { if !__for_first_414 { i += 1; } __for_first_414 = false; (i as f64) < ((10i64) as f64) } {
                 if i < asksLength {
-                    payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(get_value(&storedAsks, &Value::Int(i)), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(get_value(&storedAsks, &Value::Int(i)), Value::Int(1), &[])));
+                    payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(storedAsks.level(&Value::Int(i)), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(storedAsks.level(&Value::Int(i)), Value::Int(1), &[])));
                 }
             }
             }

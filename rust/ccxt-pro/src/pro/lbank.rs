@@ -362,8 +362,8 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         if (client.has_subscription(&subHash)) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 client.send(&[self.deep_extend(request, &[params])]);
@@ -1610,8 +1610,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // overwritten. the flight lives in client.futures of this exchange's own ws client under
         // a key that is not a messageHash, and settles via client.resolve / client.reject only
         self.check_required_credentials(&[]);
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut client: Value = self.client(&[url]);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
+        let mut client: Value = self.client(url.as_deref());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut now: i64 = self.milliseconds();
         let mut messageHash: String = "authenticateFlight".to_string();

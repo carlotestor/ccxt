@@ -2831,7 +2831,7 @@ impl Bitvavo {
     m
 }));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {

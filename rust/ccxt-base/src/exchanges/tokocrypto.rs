@@ -2017,22 +2017,22 @@ impl Tokocrypto {
         //         "timestamp": 1659492212507
         //     }
         //
-        let mut data: Value = Value::from(vec![]);
+        let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            data = response.clone();
+            data = response.into_list();
         }  else {
             let mut dataList: Option<crate::value::List> = self.safe_list_k(response.clone(), "data", &[]).into_opt_list();
             if (dataList.is_some()) {
-                data = dataList.map_or(Value::Null, Value::Arr);
+                data = dataList.unwrap_or_default();
             }  else {
                 let mut dataDict: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                data = self.safe_list_k(&dataDict, "list", &[Value::from(vec![])]);
+                data = self.safe_list_k(&dataDict, "list", &[Value::from(vec![])]).into_list();
             }
         }
-        return self.parse_ohlc_vs(data, Some(&market), &[timeframe, since, limitValue]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limitValue]);
         Value::Null
         }).await?))
     }

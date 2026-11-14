@@ -659,7 +659,7 @@ impl Limitless {
                     let mut slug: Option<String> = self.safe_string_k(raw.clone(), "slug", &[]).as_str().map(str::to_owned);
                     if ((slug.is_some()) && (slug.as_deref() != Some(""))) && !(matches!(slug.as_deref(), Some(__k) if seen.contains_key(__k))) {
                         seen.insert(slug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                        std::sync::Arc::make_mut(&mut allRaw).push(raw.clone());
+                        std::sync::Arc::make_mut(&mut allRaw).push(raw);
                     }
                 }
                 }

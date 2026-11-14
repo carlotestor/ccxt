@@ -2313,7 +2313,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
         self.spawn(&[Value::Str("watch_swap_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null
@@ -2386,7 +2386,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
             self.spawn(&[Value::Str("watch_swap_public".into()).clone(), channel.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null
@@ -2442,7 +2442,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str("unsubscribe:ticker".into()));
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsMarketType]);
         self.watch_multiple(&url, &messageHashes, __ws_arg_4, &messageHashes, Value::Null).await;
         self.handle_unsubscriptions(client.as_value(), Value::Arr(messageHashes));
@@ -2498,16 +2498,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "unsubscribe:bidask:", symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
         }
         }
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot").as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIPTION".into()));
                 m.insert("params".to_string(), Value::from(topics));
             m
         });
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        self.watch_multiple(&url, &messageHashes, __ws_arg_5, &messageHashes, Value::Null).await;
+        self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_5, &messageHashes, Value::Null).await;
         self.handle_unsubscriptions(client.as_value(), Value::Arr(messageHashes));
         return Value::Null;
         Value::Null
@@ -2563,7 +2563,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             self.spawn(&[Value::Str("watch_swap_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null
@@ -2614,7 +2614,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             self.spawn(&[Value::Str("watch_swap_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null
@@ -2662,7 +2662,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             self.spawn(&[Value::Str("watch_swap_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null
@@ -2674,11 +2674,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_491: bool = true;
             while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
-            let mut subMessageHash: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:", "").into())).unwrap_or_else(|| messageHash.clone());
-            self.clean_unsubscription(client.clone(), subMessageHash, messageHash.clone(), &[]);
-            if messageHash.as_str().unwrap_or("").contains("ticker") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:ticker:", "").into())).unwrap_or_else(|| messageHash.clone());
+            let mut messageHash: String = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut subMessageHash: String = messageHash.replace("unsubscribe:", "");
+            self.clean_unsubscription(client.clone(), Value::from(subMessageHash), Value::from(messageHash.as_str()), &[]);
+            if messageHash.contains("ticker") {
+                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:ticker:", ""));
                 if symbol.as_str().unwrap_or("").contains("unsubscribe") {
                     // unWatchTickers
                     let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
@@ -2692,13 +2692,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }  else if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("bidask") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:bidask:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("bidask") {
+                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:bidask:", ""));
                 if (matches!((&self.bidsasks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("candles") {
-                let mut splitHashes: crate::value::List = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
+            }  else if messageHash.contains("candles") {
+                let mut splitHashes: crate::value::List = Value::Array(messageHash.split(":").map(Value::from).collect()).into_list();
                 let mut candlesSymbol: String = self.safe_string(&splitHashes, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut splitHashesLength: i64 = splitHashes.len() as i64; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if splitHashesLength > 4 {
@@ -2707,18 +2707,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (CacheShelves::has(&self.ohlcvs, &candlesSymbol)) {
                     CacheShelves::forget(&mut self.ohlcvs, &candlesSymbol);
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("orderbook") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:orderbook:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("orderbook") {
+                let mut symbol: String = messageHash.replace("unsubscribe:orderbook:", "");
                 if (self.orderbooks.has(&symbol)) {
                     CacheStore::forget(&mut self.orderbooks, &symbol);
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("trades") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:trades:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("trades") {
+                let mut symbol: String = messageHash.replace("unsubscribe:trades:", "");
                 if (self.trades.has(&symbol)) {
                     CacheStore::forget(&mut self.trades, &symbol);
                 }
-            }  else if messageHash.as_str().unwrap_or("").contains("fundingRate") {
-                let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:fundingRate:", "").into())).unwrap_or_else(|| messageHash.clone());
+            }  else if messageHash.contains("fundingRate") {
+                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:fundingRate:", ""));
                 if (matches!((&self.fundingRates, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.fundingRates, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
@@ -2743,7 +2743,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // callers wait on the future and resume when the listenKey is ready,
         // otherwise the user-data subscriptions would be split across two connections
         let __ws_arg_6 = crate::value::get_value_k(&self.urls, "api");
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[crate::value::get_value_k(&crate::value::get_value_k(&__ws_arg_6, "ws"), "spot")]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&(crate::value::get_value_k(&crate::value::get_value_k(&__ws_arg_6, "ws"), "spot"))));
         let mut messageHash: String = "authenticate:listenKey".to_string();
         let mut isFetching: bool = self.safe_bool_k(self.options.clone(), "listenKeyFetching", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isFetching {
@@ -2802,7 +2802,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " keepAliveListenKey() has no spot websocket url")));
             }
             let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), listenKey);
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             client.reject(error, None);
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &(client).url.clone()) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }

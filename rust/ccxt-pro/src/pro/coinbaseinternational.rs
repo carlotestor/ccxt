@@ -634,7 +634,7 @@ impl Coinbaseinternational {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         let __ws_arg_2 = self.deep_extend(Value::Map(request), &[&paramsResolved]);
         self.watch_multiple(&url, &unWatchMessageHashes, __ws_arg_2, &unWatchMessageHashes, Value::Null).await;
         {
@@ -1144,8 +1144,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("watchFundingRate", &[params]);
-        let mut ticker: Value = crate::types::IntoRaw::into_raw(self.watch_ticker(symbol.as_str().unwrap_or_default(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("watchFundingRate", &[params]).into_dict();
+        let mut ticker: Value = crate::types::IntoRaw::into_raw(self.watch_ticker(symbol.as_str().unwrap_or_default(), Value::Dict(paramsResolved)).await);
         return self.parse_funding_rate(ticker.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Some(&(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) })));
         Value::Null
         }).await?))
@@ -1173,14 +1173,14 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("watchFundingRates", &[params]);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("watchFundingRates", &[params]).into_dict();
         if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchFundingRates() requires an array of symbols")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers(symbols.to_opt_str_vec(), paramsResolved).await);
+        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers(symbols.to_opt_str_vec(), Value::Dict(paramsResolved)).await);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1223,8 +1223,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("unWatchFundingRate", &[params]);
-        return crate::types::IntoRaw::into_raw(self.un_watch_ticker(symbol.as_str().unwrap_or_default(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("unWatchFundingRate", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.un_watch_ticker(symbol.as_str().unwrap_or_default(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -1251,8 +1251,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("unWatchFundingRates", &[params]);
-        return crate::types::IntoRaw::into_raw(self.un_watch_tickers(symbols.to_opt_str_vec(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("unWatchFundingRates", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.un_watch_tickers(symbols.to_opt_str_vec(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -1317,8 +1317,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("unWatchTicker", &[params]);
-        return crate::types::IntoRaw::into_raw(self.un_watch_tickers((Value::from(vec![symbol])).to_opt_str_vec(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("unWatchTicker", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.un_watch_tickers((Value::from(vec![symbol])).to_opt_str_vec(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -1450,8 +1450,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("watchMarkPrice", &[params]);
-        return crate::types::IntoRaw::into_raw(self.watch_ticker(symbol.as_str().unwrap_or_default(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("watchMarkPrice", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.watch_ticker(symbol.as_str().unwrap_or_default(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -1479,8 +1479,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("watchMarkPrices", &[params]);
-        return crate::types::IntoRaw::into_raw(self.watch_tickers(symbols.to_opt_str_vec(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("watchMarkPrices", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.watch_tickers(symbols.to_opt_str_vec(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -1507,8 +1507,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("unWatchMarkPrice", &[params]);
-        return crate::types::IntoRaw::into_raw(self.un_watch_ticker(symbol.as_str().unwrap_or_default(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("unWatchMarkPrice", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.un_watch_ticker(symbol.as_str().unwrap_or_default(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -1535,8 +1535,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("unWatchMarkPrices", &[params]);
-        return crate::types::IntoRaw::into_raw(self.un_watch_tickers(symbols.to_opt_str_vec(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("unWatchMarkPrices", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.un_watch_tickers(symbols.to_opt_str_vec(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -1712,12 +1712,12 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("watchOHLCV", &[params]);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("watchOHLCV", &[params]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolResolved: Value = Value::from(self.symbol(symbol));
-        let mut ohlcvs: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolResolved.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), paramsResolved).await);
+        let mut ohlcvs: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolResolved.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), Value::Dict(paramsResolved)).await);
         return get_value(&(if let (Some(__m), Some(__k)) = (ohlcvs.as_map(), symbolResolved.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe);
         Value::Null
         }).await?))
@@ -1809,8 +1809,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("unWatchOHLCV", &[params]);
-        return crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol, timeframe])])).to_str_vec_vec(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("unWatchOHLCV", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol, timeframe])])).to_str_vec_vec(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -1928,8 +1928,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("watchTrades", &[params]);
-        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("watchTrades", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -2013,8 +2013,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("unWatchTrades", &[params]);
-        return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("unWatchTrades", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -2121,8 +2121,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("watchOrderBook", &[params]);
-        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), limit.as_i64(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("watchOrderBook", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), limit.as_i64(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -2213,8 +2213,8 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("unWatchOrderBook", &[params]);
-        return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), paramsResolved).await);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("unWatchOrderBook", &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), Value::Dict(paramsResolved)).await);
         Value::Null
         }).await?))
     }
@@ -2356,7 +2356,7 @@ impl Coinbaseinternational {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         client.send(&[Value::Map(request)]);
         if (client.has_subscription(&channel)) {
             client.remove_subscription(&channel);
@@ -2546,7 +2546,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("authenticate", &[params]).into_dict();
         let mut url: Option<String> = self.get_ws_url(&[Value::Bool(true)]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future != Value::Null) {
@@ -3308,7 +3308,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsResolved: indexmap::IndexMap<String, Value> = self.parent.handle_route_and_params("logoutWs", &[params]).as_map().cloned().unwrap_or_default();
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_ws_url(&[Value::Bool(true)]).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));

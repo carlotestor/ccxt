@@ -531,7 +531,7 @@ impl Kucoin {
         m.insert("connectId".to_string(), connectId.clone());
     m
 }), &[]));
-            let mut client: Value = self.client(&[Value::from(result.clone())]);
+            let mut client: Value = self.client(result.as_str());
             crate::set_value(&mut client, &Value::Str("keepAlive".into()), pingInterval);
             return Value::from(result);
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -571,7 +571,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         if !(client.has_subscription(&subscriptionHash)) {
             client.add_subscription(&requestId, subscriptionHash.clone());
         }
@@ -612,7 +612,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url.clone().map(Value::from).unwrap_or(Value::Null)));
         if !(client.has_subscription(&messageHash)) {
             client.add_subscription(&requestId, messageHash.clone());
         }
@@ -650,7 +650,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         let mut url: Option<String> = self.get_uta_url().await.as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         if !(client.has_subscription(&subscribeHash)) {
             client.add_subscription(&requestId, subscribeHash.clone());
         }
@@ -679,7 +679,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut expired: bool = ((now - lastUpdate)) >= refreshInterval;
         let mut messageHash: String = "utaToken".to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         if (utaToken.is_none()) || expired {
             if (client.has_future(messageHash.as_str())) {
                 // wait the existing future if it's already being fetched by another call
@@ -741,7 +741,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         {
                         let mut i: i64 = 0;
             let mut __for_first_447: bool = true;
@@ -777,7 +777,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (subscription != Value::Null) {
             if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&requestId), requestId.clone()); }
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         {
                         let mut i: i64 = 0;
             let mut __for_first_448: bool = true;
@@ -1032,7 +1032,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url.clone().map(Value::from).unwrap_or(Value::Null)));
         let mut messageHashWithSymbols: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), join(&symbols, &Value::Str(",".into())));
         if !(client.has_subscription(messageHashWithSymbols.as_str())) {
             client.add_subscription(&requestId, Value::from(messageHashWithSymbols));
@@ -3619,7 +3619,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             url = self.negotiate(true, &[Value::Bool(isClassicFuturesMethod)]).await;
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.set_balance_cache(client.as_value(), Value::from(uniformType.as_deref()));
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -3902,7 +3902,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut messageHash: String = format!("{}{}", Value::Str("position:".into()), Value::from((market).symbol.as_str()));
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         self.set_position_cache(client.as_value(), symbol.clone());
         let mut fetchPositionSnapshot: Option<bool> = self.handle_option(Value::Str("watchPosition".into()), Value::Str("fetchPositionSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionSnapshot: Option<bool> = self.handle_option(Value::Str("watchPosition".into()), Value::Str("awaitPositionSnapshot".into()), &[Value::Bool(true)]).as_bool();
@@ -3969,7 +3969,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut url: Option<String> = self.get_uta_url().await.as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_positions_cache(client.as_value(), utaOption.map_or(Value::Null, Value::Bool));
         let mut fetchPositionSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();

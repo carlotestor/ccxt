@@ -1140,13 +1140,13 @@ impl Bitbns {
         if (trailRate.is_some()) {
             request.insert("trail_rate".into(), Value::from(self.price_to_precision(symbol, trailRate.map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.v2_post_orders(&[__ws_arg_1]).await;
+            response = self.v2_post_orders(&[__ws_arg_1]).await.into_opt_dict();
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.v1_post_place_market_order_qnty_symbol(&[__ws_arg_2]).await;
+            response = self.v1_post_place_market_order_qnty_symbol(&[__ws_arg_2]).await.into_opt_dict();
         }
         //
         //     {
@@ -1157,10 +1157,10 @@ impl Bitbns {
         //         "code":200
         //     }
         //
-        let mut parsed: Value = (if (response == Value::Null) { Value::Map({
+        let mut parsed: Value = (if (response.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { response });
+}) } else { response.map_or(Value::Null, Value::Dict) });
         return self.parse_order(parsed, Some(&market));
         Value::Null
         }).await?))
@@ -1205,17 +1205,17 @@ impl Bitbns {
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "uppercaseId"));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut tail: String = (if (isTrigger == Some(true)) { "StopLossOrder".to_string() } else { "Order".to_string() });
         let mut quoteSide: String = (if (Value::from((market).quote_id.as_deref()).as_str() == Some("USDT")) { "usdtcancel".to_string() } else { "cancel".to_string() });
         quoteSide.push_str(&tail);
         request.insert("side".into(), Value::from(quoteSide));
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        response = self.v2_post_cancel(&[__ws_arg_3]).await;
-        let mut parsed: Value = (if (response == Value::Null) { Value::Map({
+        response = self.v2_post_cancel(&[__ws_arg_3]).await.into_opt_dict();
+        let mut parsed: Value = (if (response.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { response });
+}) } else { response.map_or(Value::Null, Value::Dict) });
         return self.parse_order(parsed, Some(&market));
         Value::Null
         }).await?))

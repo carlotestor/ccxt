@@ -1177,8 +1177,8 @@ impl Polymarket {
             let mut __for_first_1101: bool = true;
             while { if !__for_first_1101 { i += 1; } __for_first_1101 = false; i < (bbos.len() as i64) } {
             let mut entry: crate::value::Dict = bbos.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut instrumentId: Option<String> = self.safe_string_k_opt(&entry, "instrument_id", &[]);
-            let mut previous: crate::value::Dict = self.safe_dict(Value::Map(merged.clone()), instrumentId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut instrumentId: Option<String> = self.safe_string_k(&entry, "instrument_id", &[]).as_str().map(str::to_owned);
+            let mut previous: crate::value::Dict = self.safe_dict(Value::Map(merged.clone()), Value::from(instrumentId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2247,7 +2247,7 @@ impl Polymarket {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderIds", "clientOrderId"], &[]).into_dict();
         let mut signable: Value = Value::Null;
         let mut bodyOp: Value = Value::Null;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (clientOrderIds != Value::Null) {
             signable = Value::from(vec![Value::Str("cancelOrdersCOID".into()), clientOrderIds.clone()]);
             bodyOp = Value::Map({
@@ -2257,7 +2257,7 @@ impl Polymarket {
                 m
             });
             let mut signed: crate::value::Dict = self.sign_perps_op(signable.clone(), bodyOp.clone(), &[Value::from(&paramsOmitted)]).await.into_dict();
-            response = self.trade_delete_trade_orders_coid(&[Value::Dict(signed)]).await;
+            response = self.trade_delete_trade_orders_coid(&[Value::Dict(signed)]).await.into_opt_list();
         }  else {
             let mut numericIds: Value = Value::from(vec![]);
             {
@@ -2275,7 +2275,7 @@ impl Polymarket {
                 m
             });
             let mut signed: crate::value::Dict = self.sign_perps_op(signable, bodyOp, &[Value::Dict(paramsOmitted)]).await.into_dict();
-            response = self.trade_delete_trade_orders(&[Value::Dict(signed)]).await;
+            response = self.trade_delete_trade_orders(&[Value::Dict(signed)]).await.into_opt_list();
         }
         //
         //     [
@@ -2286,8 +2286,8 @@ impl Polymarket {
         {
                         let mut i: i64 = 0;
             let mut __for_first_1109: bool = true;
-            while { if !__for_first_1109 { i += 1; } __for_first_1109 = false; i < (response.len() as i64) } {
-            let mut ack: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            while { if !__for_first_1109 { i += 1; } __for_first_1109 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut ack: crate::value::Dict = self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

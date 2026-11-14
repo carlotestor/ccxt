@@ -2141,7 +2141,7 @@ impl Okx {
             m
         });
         let mut url: Option<String> = self.get_url(depth, &[Value::Str("public".into())]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut resyncTopics: Vec<Value> = Vec::new();
         let mut resyncHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut resyncNeeded: bool = false;
@@ -2546,7 +2546,7 @@ impl Okx {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["access"], &[]).into_dict();
         let mut url: Option<String> = self.get_url(Value::Str("users".into()), &[Value::from(access)]);
         let mut messageHash: String = "authenticated".to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
@@ -3905,7 +3905,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }  else {
             let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
-            let mut channel: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
+            let mut channel: Option<String> = self.safe_string_k(&arg, "channel", &[]).as_str().map(str::to_owned);
             if (channel.is_none()) {
                 return;
             }
@@ -3933,9 +3933,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("balance_and_position".to_string(), Value::Str("handle_balance_and_position".into()).clone());
                 m
             }).into_dict();
-            let mut method: Option<String> = self.safe_value(&methods, channel.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut method: Option<String> = self.safe_value(&methods, Value::from(channel.as_deref()), &[]).as_str().map(str::to_owned);
             if (method.is_none()) {
-                if (Value::Int(channel.as_deref().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
+                if (((if let (Some(__h), Some(__n)) = (channel.as_deref(), Some("candle")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
                     self.handle_ohlcv(client.clone(), message.clone());
                 }
             }  else {

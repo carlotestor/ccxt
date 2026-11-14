@@ -1060,11 +1060,11 @@ impl Bitget {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: Option<String> = None;
         let mut values: Value = self.handle_option_bool_and_params(params.clone(), Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
-        let mut uta: Value = values.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut uta: Option<bool> = values.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
         let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
         let mut paramsStock: crate::value::Dict = self.omit(params, Value::Str("stock".into()), &[]).into_dict();
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && (market).spot;
-        let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
+        let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta == Some(true))));
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), Some(&market), &[isStockOrUta.clone(), Value::Dict(paramsStock)]).as_array().cloned().unwrap_or_default();
         let mut instType: Option<String> = instTypeparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInstType: crate::value::Dict = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1584,23 +1584,23 @@ impl Bitget {
             // so only validate the checksum when the exchange actually sends one
             let mut responseChecksum: Option<i64> = self.safe_integer_k(rawOrderBook.clone(), "checksum", &[]).as_i64();
             if !isSnapshot && (checksum == Some(true)) && (responseChecksum.is_some()) {
-                let mut storedAsks: Value = storedOrderBook.book_field("asks");
-                let mut storedBids: Value = storedOrderBook.book_field("bids");
-                let mut asksLength: i64 = get_array_length(&storedAsks).as_i64().unwrap_or_default();
-                let mut bidsLength: i64 = get_array_length(&storedBids).as_i64().unwrap_or_default();
+                let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(storedOrderBook.book_field("asks"));
+                let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(storedOrderBook.book_field("bids"));
+                let mut asksLength: i64 = storedAsks.length().as_i64().unwrap_or_default();
+                let mut bidsLength: i64 = storedBids.length().as_i64().unwrap_or_default();
                 let mut payloadArray: Vec<Value> = Vec::new();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_114: bool = true;
                     while { if !__for_first_114 { i += 1; } __for_first_114 = false; (i as f64) < ((25i64) as f64) } {
                     if i < bidsLength {
-                        let mut bidLevel: Value = get_value(&storedBids, &Value::Int(i));
+                        let mut bidLevel: Value = storedBids.level(&Value::Int(i));
                         let mut bidParts: Value = get_value(&bidLevel, &Value::Int(2));
                         payloadArray.push(get_value(&bidParts, &Value::Int(0)));
                         payloadArray.push(get_value(&bidParts, &Value::Int(1)));
                     }
                     if i < asksLength {
-                        let mut askLevel: Value = get_value(&storedAsks, &Value::Int(i));
+                        let mut askLevel: Value = storedAsks.level(&Value::Int(i));
                         let mut askParts: Value = get_value(&askLevel, &Value::Int(2));
                         payloadArray.push(get_value(&askParts, &Value::Int(0)));
                         payloadArray.push(get_value(&askParts, &Value::Int(1)));
@@ -1826,9 +1826,9 @@ impl Bitget {
     m
 }));
         let mut values: Value = self.handle_option_bool_and_params(params.clone(), Value::Str("watchTrades".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
-        let mut uta: Value = values.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut uta: Option<bool> = values.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
         let mut channelTopic: String = "trade".to_string();
-        if uta.as_bool() == Some(true) {
+        if (uta == Some(true)) {
             channelTopic = "publicTrade".to_string();
         }
         return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channelTopic.as_str(), "trade", "watchTrades", &[params]).await;
@@ -3582,7 +3582,7 @@ impl Bitget {
 }));
         self.check_required_credentials(&[]);
         let mut url: String = self.safe_string_k(params.clone(), "url", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);

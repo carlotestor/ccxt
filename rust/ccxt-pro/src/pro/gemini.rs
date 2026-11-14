@@ -808,10 +808,10 @@ impl Gemini {
             let mut price: Option<f64> = self.safe_number(&delta, Value::Int(1), &[]).as_f64();
             let mut size: Option<f64> = self.safe_number(&delta, Value::Int(2), &[]).as_f64();
             if (self.safe_string(&delta, Value::Int(0), &[]).as_str() == Some("buy")) {
-                let mut bids: Value = orderbook.book_field("bids");
+                let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
                 bids.store(price, size);
             }  else {
-                let mut asks: Value = orderbook.book_field("asks");
+                let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
                 asks.store(price, size);
             }
         }
@@ -1034,8 +1034,8 @@ impl Gemini {
             CacheStore::put(&mut self.orderbooks, &symbol, ob);
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut bids: Value = orderbook.book_field("bids");
-        let mut asks: Value = orderbook.book_field("asks");
+        let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
+        let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_349: bool = true;
@@ -1501,7 +1501,7 @@ impl Gemini {
                 }
             }
         }
-        self.client(&[url]);
+        self.client(&url);
         if let Value::Dict(__bf03d0) = &mut self.options {
             let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
             if let Value::Dict(__bf03d1) = __bf03e1 {

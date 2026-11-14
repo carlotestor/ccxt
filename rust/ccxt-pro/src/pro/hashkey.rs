@@ -1175,7 +1175,7 @@ impl Hashkey {
         let mut typeMarketType: Value = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params, Value::from(type_var)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut messageHash: String = format!("{}{}", "balance:", typeMarketType);
         let mut url: Option<String> = self.get_private_url(listenKey.map(Value::from).unwrap_or(Value::Null));
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value(), typeMarketType.clone(), Value::from(messageHash.clone()));
         let fetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(self.options.clone(), Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -1299,7 +1299,7 @@ impl Hashkey {
         // client.reject (), so every mutation of the futures map goes through
         // the client's own accessors
         let mut messageHash: String = "authenticateFlight".to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client("authenticationFlights"));
         if (client.has_future(messageHash.as_str())) {
             // a flight is already in progress - wake when the leader
             // settles it: the listenKey is then in the bucket
@@ -1361,7 +1361,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Option<String> = self.get_private_url(listenKey);
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             client.reject(error, None);
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &(client).url.clone()) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }

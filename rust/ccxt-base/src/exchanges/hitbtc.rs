@@ -2098,7 +2098,7 @@ impl Hitbtc {
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_trades(&[__ws_arg_5]).await.into_dict();
-        let mut trades: Value = Value::from(vec![]);
+        let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -2108,10 +2108,10 @@ impl Hitbtc {
             let mut marketInner: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut rawTrades: crate::value::List = self.safe_list(&response, marketId.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
             let mut parsed: crate::value::List = self.parse_trades(&rawTrades, Some(&marketInner), &[]).into_list();
-            trades = self.array_concat(trades, &parsed);
+            trades = self.array_concat(Value::Arr(trades), &parsed).into_list();
         }
         }
-        return trades;
+        return Value::Arr(trades);
         Value::Null
         }).await?))
     }
@@ -2752,11 +2752,11 @@ impl Hitbtc {
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), None, &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("spot")) {
-            response = self.private_get_spot_fee(&[Value::from(&query)]).await;
+            response = self.private_get_spot_fee(&[Value::from(&query)]).await.into_opt_list();
         }  else if (marketType.as_deref() == Some("swap")) {
-            response = self.private_get_futures_fee(&[Value::Dict(query)]).await;
+            response = self.private_get_futures_fee(&[Value::Dict(query)]).await.into_opt_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTradingFees() not support this market type")));
         }
@@ -2776,8 +2776,8 @@ impl Hitbtc {
         {
                         let mut i: i64 = 0;
             let mut __for_first_749: bool = true;
-            while { if !__for_first_749 { i += 1; } __for_first_749 = false; i < (response.len() as i64) } {
-            let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            while { if !__for_first_749 { i += 1; } __for_first_749 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), None).as_map().cloned().unwrap_or_default();
@@ -4260,17 +4260,17 @@ impl Hitbtc {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (marginMode.is_some()) {
             let __ws_arg_59 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_margin_account(&[__ws_arg_59]).await;
+            response = self.private_get_margin_account(&[__ws_arg_59]).await.into_opt_list();
         }  else {
             if (marketType.as_str() == Some("swap")) {
                 let __ws_arg_60 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_get_futures_account(&[__ws_arg_60]).await;
+                response = self.private_get_futures_account(&[__ws_arg_60]).await.into_opt_list();
             }  else if (marketType.as_str() == Some("margin")) {
                 let __ws_arg_61 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_get_margin_account(&[__ws_arg_61]).await;
+                response = self.private_get_margin_account(&[__ws_arg_61]).await.into_opt_list();
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchPositions() not support this market type")));
             }
@@ -4311,8 +4311,8 @@ impl Hitbtc {
         {
                         let mut i: i64 = 0;
             let mut __for_first_754: bool = true;
-            while { if !__for_first_754 { i += 1; } __for_first_754 = false; i < (response.len() as i64) } {
-            result.push(self.parse_position(self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            while { if !__for_first_754 { i += 1; } __for_first_754 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            result.push(self.parse_position(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), None));

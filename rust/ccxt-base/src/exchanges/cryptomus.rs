@@ -1210,8 +1210,8 @@ impl Cryptomus {
                 paramsMarket = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }
             if sideBuy {
-                let mut createMarketBuyOrderRequiresPrice: Value = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
+                let mut createMarketBuyOrderRequiresPrice: Option<bool> = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
+                if (createMarketBuyOrderRequiresPrice == Some(true)) {
                     if (price == Value::Null) && (costParam.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")));
                     }  else if (costParam.is_none()) {

@@ -1115,7 +1115,7 @@ impl Modetrade {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " authenticate() has no private websocket url")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), self.accountId.clone());
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         let mut messageHash: String = "authenticated".to_string();
         let mut event: String = "auth".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
@@ -1503,7 +1503,7 @@ impl Modetrade {
                 let mut __for_first_495: bool = true;
                 while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < dataListLength } {
                 let mut order: crate::value::Dict = dataList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-                let mut tradeIdStr: Option<String> = self.safe_string_k_opt(data.clone(), "tradeId", &[]);
+                let mut tradeIdStr: Option<String> = self.safe_string_k(data.clone(), "tradeId", &[]).as_str().map(str::to_owned);
                 let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
                 if (tradeId.is_some()) {
                     self.handle_my_trade(client.clone(), &order);
@@ -1513,7 +1513,7 @@ impl Modetrade {
             }
         }  else {
             // executionreport
-            let mut tradeIdStr: Option<String> = self.safe_string_k_opt(data.clone(), "tradeId", &[]);
+            let mut tradeIdStr: Option<String> = self.safe_string_k(data.clone(), "tradeId", &[]).as_str().map(str::to_owned);
             let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
             if (tradeId.is_some()) {
                 self.handle_my_trade(client.clone(), data.clone());
@@ -1658,7 +1658,7 @@ impl Modetrade {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchPositions() has no private websocket url")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), self.accountId.clone());
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
@@ -2028,9 +2028,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
         }
-        let mut topic: Option<String> = match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        let mut topic: Option<String> = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (topic.is_some()) {
-            method = self.safe_value(&methods, topic.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            method = self.safe_value(&methods, Value::from(topic.as_deref()), &[]);
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
@@ -2038,11 +2038,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut splitTopic: crate::value::List = Value::Array(if let Some(__s) = topic.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut splitLength: i64 = splitTopic.len() as i64;
             if (splitLength == 2) {
-                let mut name: Option<String> = self.safe_string_opt(&splitTopic, Value::Int(1), &[]);
+                let mut name: Option<String> = self.safe_string(&splitTopic, Value::Int(1), &[]).as_str().map(str::to_owned);
                 if (name.is_none()) {
                     return;
                 }
-                method = self.safe_value(&methods, name.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                method = self.safe_value(&methods, Value::from(name.as_deref()), &[]);
                 if (method != Value::Null) {
                     self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                     return;

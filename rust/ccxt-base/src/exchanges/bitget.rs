@@ -9302,13 +9302,13 @@ if _try_result.is_err() {
             return Value::from(vec![]);
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-        let mut candles: Value = Value::from(vec![]);
+        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            candles = response.clone();
+            candles = response.into_list();
         }  else {
-            candles = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+            candles = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

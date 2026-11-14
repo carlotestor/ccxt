@@ -916,7 +916,7 @@ impl Bithumb {
             side = Value::Str("bids".into());
         }
         let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("quantity".into())]).into_list();
-        let mut orderbookSide: Value = get_value(&orderbook, &side);
+        let mut orderbookSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(get_value(&orderbook, &side));
         orderbookSide.store_array(Value::Arr(bidAsk));
 }
 
@@ -1369,7 +1369,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         })]).into_dict();
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         return client.as_value();
 
     Value::Null

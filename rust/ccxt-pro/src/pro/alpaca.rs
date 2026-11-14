@@ -1036,7 +1036,7 @@ impl Alpaca {
 }));
         self.check_required_credentials(&[]);
         let mut messageHash: String = "authenticated".to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         let mut future: Value = Value::from(client.reusable_future(messageHash.as_str()));
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {

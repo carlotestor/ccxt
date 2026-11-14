@@ -7225,8 +7225,8 @@ impl Bingx {
     m
 }));
         let mut network: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, &["network"], &[]);
-        let mut addressStructures: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), paramsOmitted).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["network"], &[]).into_dict();
+        let mut addressStructures: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsOmitted)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (network.is_some()) {
             return self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), network.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {

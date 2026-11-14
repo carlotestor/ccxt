@@ -400,8 +400,8 @@ impl Binance {
         let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
-            let mut eventParams: Value = self.omit(params.clone(), &["limit"], &[]);
-            let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(eventParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut eventParams: crate::value::Dict = self.omit(params.clone(), &["limit"], &[]).into_dict();
+            let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(Value::Dict(eventParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut eventsLength: i64 = events.len() as i64;
             let mut queryMarkets: Vec<Value> = Vec::new();
             {

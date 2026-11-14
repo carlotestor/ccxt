@@ -2135,14 +2135,14 @@ impl Hollaex {
         //         "created_at":"2021-05-12T02:43:05.446Z"
         //     }
         //
-        let mut address: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address", &[]);
+        let mut address: Option<String> = self.safe_string_k(depositAddress.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = None;
         if (address.is_some()) {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = address.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
-            address = self.safe_string_opt(&parts, Value::Int(0), &[]);
+            address = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             tag = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
-        self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[Value::from(address.as_deref())]);
         let mut currencyId: Option<String> = self.safe_string_k(depositAddress.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut networkId: Option<String> = self.safe_string_k(depositAddress.clone(), "network", &[]).as_str().map(str::to_owned);

@@ -1970,7 +1970,7 @@ impl Apex {
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut orderSide: String = side.as_str().map(str::to_uppercase).unwrap_or_default();
-        let mut orderSize: Value = Value::from(self.amount_to_precision(symbol.clone(), amount));
+        let mut orderSize: Option<String> = self.amount_to_precision(symbol.clone(), amount);
         let mut orderPrice: Value = Value::Str("0".into());
         if (price != Value::Null) {
             orderPrice = Value::from(self.price_to_precision(symbol.clone(), price.clone()));
@@ -1982,7 +1982,8 @@ impl Apex {
         let mut taker: String = self.safe_string_k(&fees, "taker", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
         let mut maker: String = self.safe_string_k(&fees, "maker", &[Value::Str("0.0002".into())]).as_str().unwrap_or("0.0002").to_string();
         let mut pricePrecision: Value = market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
-        let mut limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &Value::from(taker.clone())), &Value::from(self.number_to_string(pricePrecision.clone()))), Value::Int(crate::runtime::TRUNCATE), pricePrecision, &[self.precisionMode.clone(), self.paddingMode.clone()]);
+        let mut limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &Value::from(orderSize.as_deref())), &Value::from(taker.clone())), &Value::from(self.number_to_string(pricePrecision.clone()))), Value::Int(crate::runtime::TRUNCATE),
+            pricePrecision, &[self.precisionMode.clone(), self.paddingMode.clone()]);
         let mut timeNow: i64 = self.milliseconds();
         let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
@@ -2023,7 +2024,7 @@ impl Apex {
                 m.insert("slotId".to_string(), finalClientOrderId.clone());
                 m.insert("nonce".to_string(), finalClientOrderId.clone());
                 m.insert("pairId".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
-                m.insert("size".to_string(), orderSize.clone());
+                m.insert("size".to_string(), Value::from(orderSize.as_deref()));
                 m.insert("price".to_string(), finalOrderPrice.clone());
                 m.insert("direction".to_string(), Value::from(orderSide.clone()));
                 m.insert("makerFeeRate".to_string(), Value::from(maker));
@@ -2039,7 +2040,7 @@ impl Apex {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), Value::from(orderSide));
                 m.insert("type".to_string(), Value::from(orderType));
-                m.insert("size".to_string(), orderSize);
+                m.insert("size".to_string(), orderSize.map(Value::from).unwrap_or(Value::Null));
                 m.insert("price".to_string(), finalOrderPrice);
                 m.insert("limitFee".to_string(), limitFee);
                 m.insert("expiration".to_string(), (match (&(Value::from(self.parse_to_int(Value::Float(((timeNow as f64) / 1000.0))))), &((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),

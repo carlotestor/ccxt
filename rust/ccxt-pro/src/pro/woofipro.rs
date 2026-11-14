@@ -1087,7 +1087,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), self.accountId.clone());
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         let mut messageHash: String = "authenticated".to_string();
         let mut event: String = "auth".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
@@ -1616,7 +1616,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), self.accountId.clone());
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
@@ -1994,9 +1994,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
         }
-        let mut topic: Option<String> = match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        let mut topic: Option<String> = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (topic.is_some()) {
-            method = self.safe_value(&methods, topic.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            method = self.safe_value(&methods, Value::from(topic.as_deref()), &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
@@ -2004,11 +2004,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut splitTopic: crate::value::List = Value::Array(if let Some(__s) = topic.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut splitLength: i64 = splitTopic.len() as i64;
             if (splitLength == 2) {
-                let mut name: Option<String> = self.safe_string_opt(&splitTopic, Value::Int(1), &[]);
+                let mut name: Option<String> = self.safe_string(&splitTopic, Value::Int(1), &[]).as_str().map(str::to_owned);
                 if (name.is_none()) {
                     return;
                 }
-                method = self.safe_value(&methods, name.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                method = self.safe_value(&methods, Value::from(name.as_deref()), &[]).as_str().map(str::to_owned);
                 if (method.is_some()) {
                     self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                     return;

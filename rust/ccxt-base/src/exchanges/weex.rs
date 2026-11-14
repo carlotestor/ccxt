@@ -3207,8 +3207,8 @@ impl Weex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = self.create_spot_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).into_dict();
-        let mut response: Value = Value::Null;
-        response = self.private_post_api_v3_order(&[Value::Dict(request)]).await;
+        let mut response: Option<crate::value::Dict> = None;
+        response = self.private_post_api_v3_order(&[Value::Dict(request)]).await.into_opt_dict();
         //
         //     {
         //         "symbol": "DOGEUSDT",
@@ -3217,10 +3217,10 @@ impl Weex {
         //         "transactTime": 1775608924724
         //     }
         //
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " parseOrder() returned empty response")));
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
 
     Value::Null
 }
@@ -3314,21 +3314,21 @@ impl Weex {
         let mut request: crate::value::Dict = self.create_contract_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).into_dict();
         let mut triggerPrice: Option<String> = self.safe_string_k(&request, "triggerPrice", &[]).as_str().map(str::to_owned);
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) {
             if sandboxMode {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode")));
             }
-            response = self.contract_private_post_capi_v3_algo_order(&[Value::from(&request)]).await;
+            response = self.contract_private_post_capi_v3_algo_order(&[Value::from(&request)]).await.into_opt_dict();
         }  else if sandboxMode {
-            response = self.contract_private_post_capi_v3_sim_order(&[Value::from(&request)]).await;
+            response = self.contract_private_post_capi_v3_sim_order(&[Value::from(&request)]).await.into_opt_dict();
         }  else {
-            response = self.contract_private_post_capi_v3_order(&[Value::Dict(request)]).await;
+            response = self.contract_private_post_capi_v3_order(&[Value::Dict(request)]).await.into_opt_dict();
         }
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " createOrder() returned empty response")));
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
 
     Value::Null
 }
@@ -3567,7 +3567,7 @@ impl Weex {
         }  else {
             request.insert("orderId".into(), id.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("spot")) {
             // by orderId
             //     {
@@ -3582,18 +3582,18 @@ impl Weex {
             //     }
             //
             let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_delete_api_v3_order(&[__ws_arg_16]).await;
+            response = self.private_delete_api_v3_order(&[__ws_arg_16]).await.into_opt_dict();
         }  else if trigger {
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.contract_private_delete_capi_v3_algo_order(&[__ws_arg_17]).await;
+            response = self.contract_private_delete_capi_v3_algo_order(&[__ws_arg_17]).await.into_opt_dict();
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.contract_private_delete_capi_v3_order(&[__ws_arg_18]).await;
+            response = self.contract_private_delete_capi_v3_order(&[__ws_arg_18]).await.into_opt_dict();
         }
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " parseOrder() returned empty response")));
         }
-        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(response, market.as_ref()).as_map().cloned().unwrap_or_default();
+        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(&response, market.as_ref()).as_map().cloned().unwrap_or_default();
         order.insert("status".into(), Value::Str("canceled".into()));
         return Value::Map(order);
         Value::Null
@@ -3793,7 +3793,7 @@ impl Weex {
         }  else {
             request.insert("orderId".into(), id.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isSpot {
             //
             //     {
@@ -3814,15 +3814,15 @@ impl Weex {
             //     }
             //
             let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_api_v3_order(&[__ws_arg_24]).await;
+            response = self.private_get_api_v3_order(&[__ws_arg_24]).await.into_opt_dict();
         }  else {
             let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.contract_private_get_capi_v3_order(&[__ws_arg_25]).await;
+            response = self.contract_private_get_capi_v3_order(&[__ws_arg_25]).await.into_opt_dict();
         }
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " parseOrder() returned empty response")));
         }
-        return self.parse_order(response, market.as_ref());
+        return self.parse_order(&response, market.as_ref());
         Value::Null
         }).await?))
     }

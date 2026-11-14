@@ -2677,12 +2677,12 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1437: bool = true;
             while { if !__for_first_1437 { i += 1; } __for_first_1437 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = trades.get(i as usize).map(crate::Value::from).unwrap_or_default();
-            let mut info: crate::value::Dict = self.safe_dict_k(trade.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-            let mut belongs: bool = (self.safe_string_k(trade.clone(), "order", &[]).as_str() == id.as_str()) || (self.safe_string_k(&info, "taker_order_id", &[]).as_str() == id.as_str());
+            let mut trade: Option<&crate::types::Trade> = trades.get(i as usize);
+            let mut info: crate::value::Dict = self.safe_dict_k(&trade, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut belongs: bool = (self.safe_string_k(&trade, "order", &[]).as_str() == id.as_str()) || (self.safe_string_k(&info, "taker_order_id", &[]).as_str() == id.as_str());
             let mut makerOrders: crate::value::List = self.safe_list_k(&info, "maker_orders", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
@@ -2695,7 +2695,7 @@ impl Polymarket {
             }
             }
             if belongs {
-                result.push(trade);
+                result.push(Value::from(trade));
             }
         }
         }
@@ -3396,7 +3396,7 @@ impl Polymarket {
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         let mut signatureType: Option<i64> = self.safe_integer2(params.clone(), Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(self.options.clone(), "signatureType", &[Value::Int(3)])]).as_i64();
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
-        let mut eoa: Value = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).map(Value::from).unwrap_or(Value::Null);
+        let mut eoa: Option<String> = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]));
         let mut funder: Value = self.eth_checksum_address(self.safe_string2(params.clone(), Value::Str("funder".into()), Value::Str("maker".into()), &[self.safe_string_k(self.options.clone(), "funder", &[self.walletAddress.clone()])])).map(Value::from).unwrap_or(Value::Null);
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
         let mut defaultSalt: i64 = self.incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
@@ -3440,7 +3440,7 @@ impl Polymarket {
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         let mut maker: Value = funder.clone();
-        let mut signer: Value = eoa;
+        let mut signer: Value = eoa.map(Value::from).unwrap_or(Value::Null);
         if (signatureType == Some(3)) {
             signer = funder;
         }

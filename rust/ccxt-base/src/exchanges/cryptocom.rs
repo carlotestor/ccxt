@@ -3476,8 +3476,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut networkParam: Option<String> = self.safe_string_upper_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, &["network"], &[]);
-        let mut depositAddressesRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), paramsOmitted).await);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["network"], &[]).into_dict();
+        let mut depositAddressesRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsOmitted)).await);
         let mut depositAddresses: Value = depositAddressesRaw;
         if (networkParam.is_some()) {
             let mut network: Option<String> = self.safe_string(self.networkAliases.clone(), networkParam.clone().map(Value::from).unwrap_or(Value::Null), &[networkParam.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);

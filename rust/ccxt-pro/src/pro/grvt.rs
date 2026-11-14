@@ -1124,7 +1124,7 @@ impl Grvt {
             });
             self.extend_exchange_options(&[Value::Map(defaultOptions)]);
             let __ws_arg_6 = crate::value::get_value_k(&self.urls, "api");
-            self.client(&[crate::value::get_value_k(&crate::value::get_value_k(&__ws_arg_6, "ws"), "privateTrading")]);
+            self.client(&(crate::value::get_value_k(&crate::value::get_value_k(&__ws_arg_6, "ws"), "privateTrading")));
         }
 
     Value::Null

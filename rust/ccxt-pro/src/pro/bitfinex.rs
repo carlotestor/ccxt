@@ -331,8 +331,8 @@ impl Bitfinex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), marketId).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -342,7 +342,7 @@ impl Bitfinex {
             m
         });
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        let mut result: Value = self.watch(&url, &messageHash, __ws_arg_0, &messageHash, Value::Map({
+        let mut result: Value = self.watch(url.as_deref(), &messageHash, __ws_arg_0, &messageHash, Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("checksum".to_string(), Value::Bool(false));
             m
@@ -379,8 +379,8 @@ impl Bitfinex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), marketId);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", channel).into()), ":").into()), marketId);
         let mut unSubTopic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe", ":").into()), topic).into()), ":").into()), symbol);
@@ -403,7 +403,7 @@ impl Bitfinex {
             m
         });
         let __ws_arg_1 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(&url, &messageHash[..], __ws_arg_1, &messageHash[..], Value::Map(subscription)).await;
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -506,8 +506,8 @@ impl Bitfinex {
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), interval.as_deref().unwrap_or("null")).into()), ":").into()), marketId);
         let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut subId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:trade:", interval.as_deref().unwrap_or("null")).into()), ":").into()), marketId); // trade here because we use the key
         let mut channelId: String = self.safe_string((client).subscriptions.clone(), Value::from(subId), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -528,7 +528,7 @@ impl Bitfinex {
             m
         });
         let __ws_arg_3 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(&url, &messageHash[..], __ws_arg_3, &messageHash[..], Value::Map(subscription)).await;
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_3, &messageHash[..], Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -582,14 +582,14 @@ impl Bitfinex {
         //   ]
         //
         let mut data: Value = self.safe_list(message, Value::Int(1), &[Value::from(vec![])]);
-        let mut ohlcvs: Value = Value::from(vec![]);
+        let mut ohlcvs: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut first: Option<crate::value::List> = self.safe_list(data.clone(), Value::Int(0), &[]).into_opt_list();
         if (first.is_some()) {
             // snapshot
-            ohlcvs = data.clone();
+            ohlcvs = data.into_list();
         }  else {
             // update
-            ohlcvs = Value::from(vec![data]);
+            ohlcvs = std::sync::Arc::new(vec![data]);
         }
         let mut channel: String = (match subscription.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut key: String = (match subscription.get("key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
@@ -612,7 +612,7 @@ impl Bitfinex {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_100: bool = true;
             while { if !__for_first_100 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_100 = false; i.as_f64().unwrap_or(f64::NAN) < ohlcvsLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut parsed: crate::value::List = self.parse_ohlcv(self.safe_list(ohlcvs.clone(), (match (&((match (&(ohlcvsLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            let mut parsed: crate::value::List = self.parse_ohlcv(self.safe_list(&ohlcvs, (match (&((match (&(ohlcvsLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
@@ -1565,8 +1565,8 @@ impl Bitfinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private").as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
@@ -1586,7 +1586,7 @@ impl Bitfinex {
                 m
             });
             let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-            self.watch(&url, &messageHash[..], &message, &messageHash[..], Value::Null).await;
+            self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
