@@ -479,6 +479,36 @@ impl Precise {
 // camelCase methods stringify their args and dispatch to the typed versions
 // above. They return `Value` so the rest of the transpiled code can chain.
 
+/// An operand of the `Precise::string*` arithmetic entry points: a `Value` (as before), or a typed string local lent
+/// as is (`&Option<String>` / `&String` / `&str`), so the transpiled code passes it without boxing or copying it.
+/// `None` is the `Value::Null` of the boxed form; a string is the `Value::Str` it would have been boxed into.
+pub trait PreciseArg {
+    /// `None` for an undefined operand.
+    fn precise_null(&self) -> bool;
+    /// The operand's text, exactly as `stringify_param` prints its boxed `Value` (`"null"` for an undefined one).
+    fn precise_text(&self) -> std::borrow::Cow<'_, str>;
+}
+impl PreciseArg for crate::Value {
+    fn precise_null(&self) -> bool { matches!(self, crate::Value::Null) }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Owned(crate::runtime::stringify_param(self)) }
+}
+impl PreciseArg for Option<String> {
+    fn precise_null(&self) -> bool { self.is_none() }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_deref().unwrap_or("null")) }
+}
+impl PreciseArg for String {
+    fn precise_null(&self) -> bool { false }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_str()) }
+}
+impl<T: PreciseArg + ?Sized> PreciseArg for &T {
+    fn precise_null(&self) -> bool { (**self).precise_null() }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { (**self).precise_text() }
+}
+impl PreciseArg for str {
+    fn precise_null(&self) -> bool { false }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self) }
+}
+
 #[allow(non_snake_case)]
 impl Precise {
     fn vstr(v: &crate::Value) -> String { crate::runtime::stringify_param(v) }
@@ -490,44 +520,44 @@ impl Precise {
     /// arithmetic identity). Bitget's `parsePosition` relies on this when
     /// `keepMarginRate` is missing (UTA response uses `mmr` instead), so
     /// `Precise.stringAdd(undefined, feeToClose)` should yield `feeToClose`.
-    pub fn stringAdd(a: &crate::Value, b: &crate::Value) -> crate::Value {
+    pub fn stringAdd(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value {
         // Mirrors TS `Precise.stringAdd`: either operand undefined → undefined.
-        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+        if a.precise_null() || b.precise_null() {
             return crate::Value::Null;
         }
-        Self::vopt(string_add(&Self::vstr(a), &Self::vstr(b)))
+        Self::vopt(string_add(&a.precise_text(), &b.precise_text()))
     }
     /// Mirrors TS `Precise.stringSub`: either operand undefined → undefined.
-    pub fn stringSub(a: &crate::Value, b: &crate::Value) -> crate::Value {
-        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+    pub fn stringSub(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value {
+        if a.precise_null() || b.precise_null() {
             return crate::Value::Null;
         }
-        Self::vopt(string_sub(&Self::vstr(a), &Self::vstr(b)))
+        Self::vopt(string_sub(&a.precise_text(), &b.precise_text()))
     }
     /// Mirrors TS `Precise.stringMul`: any undefined operand → undefined
     /// (matches the typescript `x * undefined === NaN → undefined` chain).
-    pub fn stringMul(a: &crate::Value, b: &crate::Value) -> crate::Value {
-        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+    pub fn stringMul(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value {
+        if a.precise_null() || b.precise_null() {
             return crate::Value::Null;
         }
-        Self::vopt(string_mul(&Self::vstr(a), &Self::vstr(b)))
+        Self::vopt(string_mul(&a.precise_text(), &b.precise_text()))
     }
-    pub fn stringDiv(a: &crate::Value, b: &crate::Value) -> crate::Value {
+    pub fn stringDiv(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value {
         // TS `Precise.stringDiv` defaults to precision 18 (truncating).
-        Self::vopt(string_div_prec(&Self::vstr(a), &Self::vstr(b), 18))
+        Self::vopt(string_div_prec(&a.precise_text(), &b.precise_text(), 18))
     }
     /// `Precise.stringDiv (a, b, precision)` — truncating division to a
     /// given number of decimal places.
-    pub fn stringDivPrec(a: &crate::Value, b: &crate::Value, precision: &crate::Value) -> crate::Value {
+    pub fn stringDivPrec(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized), precision: &crate::Value) -> crate::Value {
         let prec: i64 = match precision {
             crate::Value::Int(n)   => *n,
             crate::Value::Float(f) => *f as i64,
             crate::Value::Str(s)   => s.parse().unwrap_or(18),
             _ => 18,
         };
-        Self::vopt(string_div_prec(&Self::vstr(a), &Self::vstr(b), prec))
+        Self::vopt(string_div_prec(&a.precise_text(), &b.precise_text(), prec))
     }
-    pub fn stringMod(a: &crate::Value, b: &crate::Value) -> crate::Value { Self::vopt(string_mod(&Self::vstr(a), &Self::vstr(b))) }
+    pub fn stringMod(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value { Self::vopt(string_mod(&a.precise_text(), &b.precise_text())) }
     pub fn stringEq(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_eq(&Self::vstr(a), &Self::vstr(b))) }
     pub fn stringGt(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_gt(&Self::vstr(a), &Self::vstr(b))) }
     pub fn stringGe(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_ge(&Self::vstr(a), &Self::vstr(b))) }
@@ -536,23 +566,23 @@ impl Precise {
     /// TS treats the comparison operators as `false` when either operand
     /// is undefined (they short-circuit before constructing a `Precise`).
     fn any_null(a: &crate::Value, b: &crate::Value) -> bool { matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) }
-    pub fn stringAbs(a: &crate::Value)                   -> crate::Value { Self::vopt(string_abs(&Self::vstr(a))) }
-    pub fn stringNeg(a: &crate::Value)                   -> crate::Value { Self::vopt(string_neg(&Self::vstr(a))) }
-    pub fn stringMin(a: &crate::Value, b: &crate::Value) -> crate::Value {
+    pub fn stringAbs(a: &(impl PreciseArg + ?Sized))     -> crate::Value { Self::vopt(string_abs(&a.precise_text())) }
+    pub fn stringNeg(a: &(impl PreciseArg + ?Sized))     -> crate::Value { Self::vopt(string_neg(&a.precise_text())) }
+    pub fn stringMin(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value {
         // Mirrors TS `Precise.stringMin`: either operand undefined → undefined.
-        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+        if a.precise_null() || b.precise_null() {
             return crate::Value::Null;
         }
-        let (sa, sb) = (Self::vstr(a), Self::vstr(b));
+        let (sa, sb) = (a.precise_text(), b.precise_text());
         let pick = if let Some(true) = string_le(&sa, &sb) { sa } else { sb };
         crate::Value::Str(reduce_string(&pick).into())
     }
-    pub fn stringMax(a: &crate::Value, b: &crate::Value) -> crate::Value {
+    pub fn stringMax(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value {
         // Mirrors TS `Precise.stringMax`: either operand undefined → undefined.
-        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+        if a.precise_null() || b.precise_null() {
             return crate::Value::Null;
         }
-        let (sa, sb) = (Self::vstr(a), Self::vstr(b));
+        let (sa, sb) = (a.precise_text(), b.precise_text());
         let pick = if let Some(true) = string_ge(&sa, &sb) { sa } else { sb };
         crate::Value::Str(reduce_string(&pick).into())
     }
@@ -601,5 +631,45 @@ impl Precise {
             out
         };
         crate::Value::Str(reduce_string(&s).into())
+    }
+}
+
+#[cfg(test)]
+mod precise_arg_tests {
+    use super::Precise;
+    use crate::Value;
+
+    /// A typed string operand answers exactly what its boxed `Value` answered: `None` is `Value::Null`, `Some(s)` /
+    /// `String` / `&str` are `Value::Str(s)`, on every arithmetic entry point and on either side.
+    #[test]
+    fn typed_operands_match_boxed() {
+        let texts = ["0", "1", "-1.5", "0.00000001", "2.50", "-0.3", "123456789.123456789"];
+        let none: Option<String> = None;
+        for x in texts {
+            let ox: Option<String> = Some(x.to_string());
+            let sx: String = x.to_string();
+            let vx = Value::Str(x.into());
+            assert_eq!(Precise::stringAbs(&ox), Precise::stringAbs(&vx));
+            assert_eq!(Precise::stringNeg(&sx), Precise::stringNeg(&vx));
+            assert_eq!(Precise::stringAbs(x), Precise::stringAbs(&vx));
+            assert_eq!(Precise::stringAbs(&none), Precise::stringAbs(&Value::Null));
+            for y in texts {
+                let oy: Option<String> = Some(y.to_string());
+                let vy = Value::Str(y.into());
+                assert_eq!(Precise::stringAdd(&ox, &oy), Precise::stringAdd(&vx, &vy));
+                assert_eq!(Precise::stringSub(&ox, &vy), Precise::stringSub(&vx, &vy));
+                assert_eq!(Precise::stringMul(&vx, &oy), Precise::stringMul(&vx, &vy));
+                assert_eq!(Precise::stringDiv(&sx, &oy), Precise::stringDiv(&vx, &vy));
+                assert_eq!(Precise::stringDivPrec(&ox, &oy, &Value::Int(4)), Precise::stringDivPrec(&vx, &vy, &Value::Int(4)));
+                assert_eq!(Precise::stringMod(&ox, &oy), Precise::stringMod(&vx, &vy));
+                assert_eq!(Precise::stringMin(&ox, &oy), Precise::stringMin(&vx, &vy));
+                assert_eq!(Precise::stringMax(&ox, &oy), Precise::stringMax(&vx, &vy));
+                assert_eq!(Precise::stringAdd(&none, &oy), Precise::stringAdd(&Value::Null, &vy));
+                assert_eq!(Precise::stringDiv(&none, &oy), Precise::stringDiv(&Value::Null, &vy));
+                assert_eq!(Precise::stringMax(&ox, &none), Precise::stringMax(&vx, &Value::Null));
+            }
+        }
+        // a non-string Value operand keeps its own text (unchanged path)
+        assert_eq!(Precise::stringAdd(&Value::Int(2), &Some("3".to_string())), Value::Str("5".into()));
     }
 }
