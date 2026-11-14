@@ -558,14 +558,14 @@ impl Precise {
         Self::vopt(string_div_prec(&a.precise_text(), &b.precise_text(), prec))
     }
     pub fn stringMod(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value { Self::vopt(string_mod(&a.precise_text(), &b.precise_text())) }
-    pub fn stringEq(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_eq(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringGt(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_gt(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringGe(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_ge(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringLt(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_lt(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringLe(a: &crate::Value, b: &crate::Value)  -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_le(&Self::vstr(a), &Self::vstr(b))) }
+    pub fn stringEq(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_eq(&a.precise_text(), &b.precise_text())) }
+    pub fn stringGt(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_gt(&a.precise_text(), &b.precise_text())) }
+    pub fn stringGe(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_ge(&a.precise_text(), &b.precise_text())) }
+    pub fn stringLt(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_lt(&a.precise_text(), &b.precise_text())) }
+    pub fn stringLe(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value { if Self::any_null(a, b) { return crate::Value::Bool(false); } Self::vbool(string_le(&a.precise_text(), &b.precise_text())) }
     /// TS treats the comparison operators as `false` when either operand
     /// is undefined (they short-circuit before constructing a `Precise`).
-    fn any_null(a: &crate::Value, b: &crate::Value) -> bool { matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) }
+    fn any_null(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> bool { a.precise_null() || b.precise_null() }
     pub fn stringAbs(a: &(impl PreciseArg + ?Sized))     -> crate::Value { Self::vopt(string_abs(&a.precise_text())) }
     pub fn stringNeg(a: &(impl PreciseArg + ?Sized))     -> crate::Value { Self::vopt(string_neg(&a.precise_text())) }
     pub fn stringMin(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value {
@@ -586,16 +586,16 @@ impl Precise {
         let pick = if let Some(true) = string_ge(&sa, &sb) { sa } else { sb };
         crate::Value::Str(reduce_string(&pick).into())
     }
-    pub fn stringEquals(a: &crate::Value, b: &crate::Value) -> crate::Value { Self::stringEq(a, b) }
+    pub fn stringEquals(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value { Self::stringEq(a, b) }
     /// Mirrors TS `Precise.stringOr`: bitwise OR of the underlying
     /// integer representations at a common decimal scale.
     /// `stringOr("5", "3") == "7"`, `stringOr("5.5", "3") == "6.3"` etc.
     /// Either undefined operand → undefined (matches TS).
-    pub fn stringOr(a: &crate::Value, b: &crate::Value) -> crate::Value {
-        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+    pub fn stringOr(a: &(impl PreciseArg + ?Sized), b: &(impl PreciseArg + ?Sized)) -> crate::Value {
+        if a.precise_null() || b.precise_null() {
             return crate::Value::Null;
         }
-        let (sa, sb) = (Self::vstr(a), Self::vstr(b));
+        let (sa, sb) = (a.precise_text(), b.precise_text());
         // Split each into (sign, integer-string, decimal-count). Mirrors
         // the constructor in TS Precise — chop at `.`, count fractional
         // digits, drop the `.` so the integer parses as a single number.
@@ -662,10 +662,10 @@ mod precise_arg_tests {
     }
 
     /// A typed string operand answers exactly what its boxed `Value` answered: `None` is `Value::Null`, `Some(s)` /
-    /// `String` / `&str` are `Value::Str(s)`, on every arithmetic entry point and on either side.
+    /// `String` / `&str` are `Value::Str(s)`, on every arithmetic and comparator entry point and on either side.
     #[test]
     fn typed_operands_match_boxed() {
-        let bins = [bin!(Precise::stringAdd), bin!(Precise::stringSub), bin!(Precise::stringMul), bin!(Precise::stringDiv), bin!(Precise::stringMod), bin!(Precise::stringMin), bin!(Precise::stringMax)];
+        let bins = [bin!(Precise::stringAdd), bin!(Precise::stringSub), bin!(Precise::stringMul), bin!(Precise::stringDiv), bin!(Precise::stringMod), bin!(Precise::stringMin), bin!(Precise::stringMax), bin!(Precise::stringEq), bin!(Precise::stringEquals), bin!(Precise::stringGt), bin!(Precise::stringGe), bin!(Precise::stringLt), bin!(Precise::stringLe), bin!(Precise::stringOr)];
         let uns = [un!(Precise::stringAbs), un!(Precise::stringNeg)];
         let div_prec_vv: fn(&Value, &Value, &Value) -> Value = Precise::stringDivPrec;
         let div_prec_oo: fn(&Option<String>, &Option<String>, &Value) -> Value = Precise::stringDivPrec;
