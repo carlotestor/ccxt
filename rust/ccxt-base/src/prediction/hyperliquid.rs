@@ -974,13 +974,13 @@ impl Hyperliquid {
         if intPartLength <= 5 {
             digitsLeft = (5 - intPartLength);
         }
-        let mut cappedDecimals: i64 = (if (maxDecimals < digitsLeft) { maxDecimals } else { digitsLeft });
+        let mut cappedDecimals: Value = (if (maxDecimals < digitsLeft) { Value::from(maxDecimals) } else { Value::from(digitsLeft) });
         // appends max (1, cappedDecimals) - 1 zeros
         let mut zeros: String = "".to_string();
         {
                         let mut zi: Value = Value::Int(1);
             let mut __for_first_1235: bool = true;
-            while { if !__for_first_1235 { if let Value::Int(n) = &mut zi { *n += 1; } } __for_first_1235 = false; zi.as_f64().unwrap_or(f64::NAN) < (cappedDecimals as f64) } {
+            while { if !__for_first_1235 { if let Value::Int(n) = &mut zi { *n += 1; } } __for_first_1235 = false; zi.as_f64().unwrap_or(f64::NAN) < cappedDecimals.as_f64().unwrap_or(f64::NAN) } {
             zeros = format!("{}{}", zeros, "0");
         }
         }

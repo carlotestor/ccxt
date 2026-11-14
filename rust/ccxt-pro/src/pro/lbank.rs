@@ -1640,8 +1640,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
             }  else {
-                let mut expires: i64 = self.safe_integer_k(&authenticated, "expires", &[Value::Int(0)]).as_i64().unwrap_or(0);
-                if (expires as f64) < (now as f64) {
+                let mut expires: Value = self.safe_integer_k(&authenticated, "expires", &[Value::Int(0)]);
+                if expires.as_f64().unwrap_or(f64::NAN) < (now as f64) {
                     let mut request: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("subscribeKey".to_string(), crate::value::KeyRead::key_read(&&authenticated, "key"));

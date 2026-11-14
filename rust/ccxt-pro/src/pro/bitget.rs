@@ -1590,17 +1590,17 @@ impl Bitget {
                 let mut bidsLength: i64 = get_array_length(&storedBids).as_i64().unwrap_or_default();
                 let mut payloadArray: Vec<Value> = Vec::new();
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_114: bool = true;
-                    while { if !__for_first_114 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_114 = false; i.as_f64().unwrap_or(f64::NAN) < ((25i64) as f64) } {
-                    if i.as_f64().unwrap_or(f64::NAN) < (bidsLength as f64) {
-                        let mut bidLevel: Value = get_value(&storedBids, &i);
+                    while { if !__for_first_114 { i += 1; } __for_first_114 = false; (i as f64) < ((25i64) as f64) } {
+                    if i < bidsLength {
+                        let mut bidLevel: Value = get_value(&storedBids, &Value::Int(i));
                         let mut bidParts: Value = get_value(&bidLevel, &Value::Int(2));
                         payloadArray.push(get_value(&bidParts, &Value::Int(0)));
                         payloadArray.push(get_value(&bidParts, &Value::Int(1)));
                     }
-                    if i.as_f64().unwrap_or(f64::NAN) < (asksLength as f64) {
-                        let mut askLevel: Value = get_value(&storedAsks, &i);
+                    if i < asksLength {
+                        let mut askLevel: Value = get_value(&storedAsks, &Value::Int(i));
                         let mut askParts: Value = get_value(&askLevel, &Value::Int(2));
                         payloadArray.push(get_value(&askParts, &Value::Int(0)));
                         payloadArray.push(get_value(&askParts, &Value::Int(1)));

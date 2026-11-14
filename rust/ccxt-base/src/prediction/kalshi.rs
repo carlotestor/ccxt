@@ -980,12 +980,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut lastTickerIndex: i64 = (tickersLength - 1);
         let mut chunk: Value = Value::from(vec![]);
         {
-                        let mut ti: Value = Value::Int(0);
+                        let mut ti: i64 = 0;
             let mut __for_first_1264: bool = true;
-            while { if !__for_first_1264 { if let Value::Int(n) = &mut ti { *n += 1; } } __for_first_1264 = false; ti.as_f64().unwrap_or(f64::NAN) < (tickersLength as f64) } {
-            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get((ti).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
+            while { if !__for_first_1264 { ti += 1; } __for_first_1264 = false; ti < tickersLength } {
+            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get(ti as usize).cloned().unwrap_or(Value::Null)); }
             let mut chunkLength: i64 = chunk.len() as i64;
-            if (chunkLength < chunkSize) && (ti.as_f64().unwrap_or(f64::NAN) < (lastTickerIndex as f64)) {
+            if (chunkLength < chunkSize) && (ti < lastTickerIndex) {
                 continue;
             }
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1708,12 +1708,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut lastTickerIndex: i64 = (tickersLength - 1);
         let mut chunk: Value = Value::from(vec![]);
         {
-                        let mut ti: Value = Value::Int(0);
+                        let mut ti: i64 = 0;
             let mut __for_first_1270: bool = true;
-            while { if !__for_first_1270 { if let Value::Int(n) = &mut ti { *n += 1; } } __for_first_1270 = false; ti.as_f64().unwrap_or(f64::NAN) < (tickersLength as f64) } {
-            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get((ti).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
+            while { if !__for_first_1270 { ti += 1; } __for_first_1270 = false; ti < tickersLength } {
+            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get(ti as usize).cloned().unwrap_or(Value::Null)); }
             let mut chunkLength: i64 = chunk.len() as i64;
-            if (chunkLength < chunkSize) && (ti.as_f64().unwrap_or(f64::NAN) < (lastTickerIndex as f64)) {
+            if (chunkLength < chunkSize) && (ti < lastTickerIndex) {
                 continue;
             }
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3602,7 +3602,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawEvents: Vec<Value> = Vec::new();
         let mut seriesTickersLength: i64 = seriesTickers.len() as i64;
         let mut pageLimit: Option<i64> = self.parse_to_int(self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(200)]));
-        let mut maxPages: i64 = self.safe_integer_k(self.options.clone(), "maxEventPagesPerSeries", &[Value::Int(20)]).as_i64().unwrap_or(20);
+        let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxEventPagesPerSeries", &[Value::Int(20)]);
         let mut hasLimit: bool = limit != Value::Null;
         let mut limitOrZero: Value = (if hasLimit { limit } else { Value::Int(0) });
         let mut limitValue: Option<i64> = self.parse_to_int(limitOrZero);
@@ -3618,7 +3618,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut page: Value = Value::Int(0);
                 let mut __for_first_1296: bool = true;
-                while { if !__for_first_1296 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1296 = false; page.as_f64().unwrap_or(f64::NAN) < (maxPages as f64) } {
+                while { if !__for_first_1296 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1296 = false; page.as_f64().unwrap_or(f64::NAN) < maxPages.as_f64().unwrap_or(f64::NAN) } {
                 let mut reqLimit: Option<i64> = pageLimit;
                 if hasLimit && (limitValue.is_some()) {
                     let mut collectedSoFar: i64 = rawEvents.len() as i64;

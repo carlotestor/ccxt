@@ -13649,12 +13649,12 @@ impl Binance {
         //       ]
         //     }
         let mut results: crate::value::List = self.safe_list_k(&response, "userAssetDribblets", &[Value::from(vec![])]).into_list();
-        let mut rows: i64 = self.safe_integer_k(&response, "total", &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let mut rows: Value = self.safe_integer_k(&response, "total", &[Value::Int(0)]);
         let mut data: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_291: bool = true;
-            while { if !__for_first_291 { i += 1; } __for_first_291 = false; i < rows } {
+            while { if !__for_first_291 { i += 1; } __for_first_291 = false; (i as f64) < rows.as_f64().unwrap_or(f64::NAN) } {
             let mut logs: Value = self.safe_list_k(results.get(i as usize).cloned().unwrap_or(Value::Null), "userAssetDribbletDetails", &[Value::from(vec![])]);
             {
                                 let mut j: i64 = 0;
