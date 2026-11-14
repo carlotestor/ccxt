@@ -3975,24 +3975,24 @@ impl Extended {
             timeInForce = (if (uppercaseType == "MARKET") { Some("IOC".to_string()) } else { Some("GTT".to_string()) });
         }
         let mut fee: String = self.safe_string_k(params.clone(), "fee", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
-        let mut builderFeeRate: Value = Value::Null;
+        let mut builderFeeRate: Option<String> = None;
         let mut builderId: Option<String> = None;
         let mut paramsBuilder: Value = params.clone();
         let mut builderEnabled: bool = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if builderEnabled {
             if self.isSandboxModeEnabled.as_bool() == Some(true) {
-                builderFeeRate = self.safe_string2(params.clone(), Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), &[]);
+                builderFeeRate = self.safe_string2(params.clone(), Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), &[]).as_str().map(str::to_owned);
                 builderId = self.safe_string2(params.clone(), Value::Str("builderId".into()), Value::Str("defaultBuilderId".into()), &[]).as_str().map(str::to_owned);
                 paramsBuilder = self.omit(params.clone(), &["builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"], &[]);
             }  else {
-                let mut paramsBuilderFeeRate: Value = Value::Null;
-                { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("builderFeeRate".into()), &[Value::Str("0.0001".into())]).as_array().cloned().unwrap_or_default(); builderFeeRate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsBuilderFeeRate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-                { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]).as_array().cloned().unwrap_or_default(); builderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilder = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+                let mut paramsBuilderFeeRate: crate::value::Dict = Default::default();
+                { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("builderFeeRate".into()), &[Value::Str("0.0001".into())]).into_list(); builderFeeRate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilderFeeRate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+                { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(&paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]).as_array().cloned().unwrap_or_default(); builderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilder = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             }
         }
         let mut totalFee: Value = Value::from(fee.clone());
-        if (builderFeeRate != Value::Null) {
-            totalFee = crate::precise::Precise::stringAdd(&Value::from(fee.clone()), &builderFeeRate);
+        if (builderFeeRate.is_some()) {
+            totalFee = crate::precise::Precise::stringAdd(&Value::from(fee.clone()), &builderFeeRate.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut now: i64 = self.milliseconds();
         let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(paramsBuilder.clone(), "expiryEpochMillis", &[Value::Int((now + 3600000))]).as_i64();
@@ -4050,8 +4050,8 @@ impl Extended {
                 m.insert("selfTradeProtectionLevel".to_string(), Value::Str("ACCOUNT".into()));
             m
         });
-        if (builderFeeRate != Value::Null) {
-            request.insert("builderFee".into(), builderFeeRate);
+        if (builderFeeRate.is_some()) {
+            request.insert("builderFee".into(), builderFeeRate.map(Value::from).unwrap_or(Value::Null));
         }
         if (builderId.is_some()) {
             request.insert("builderId".into(), builderId.map(Value::from).unwrap_or(Value::Null));
