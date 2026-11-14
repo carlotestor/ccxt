@@ -2045,7 +2045,7 @@ impl Extended {
             }
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("candleType".into()), Value::Str("price".into()), Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["candleType", "price", "until"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
@@ -2129,7 +2129,7 @@ impl Extended {
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[Value::Int(self.milliseconds())]).as_i64();
         let mut endTime: Option<i64> = self.safe_integer_k(&paramsPaginate, "endTime", &[Value::from(until)]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["endTime", "until"], &[]).into_dict();
         let mut sinceResolved: Option<i64> = since.as_i64();
         if (endTime.is_some()) && (since == Value::Null) {
             sinceResolved = (if let Some(__l) = endTime { Some(__l - ((((((limitResolved * 60)) * 60)) * 1000))) } else { None });
@@ -2252,7 +2252,7 @@ impl Extended {
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]).as_i64();
         let mut endTime: Option<i64> = self.safe_integer_k(params.clone(), "endTime", &[Value::from(until)]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["endTime", "until"], &[]).into_dict();
         let mut sinceResolved: Option<i64> = since.as_i64();
         if (endTime.is_some()) && (since == Value::Null) {
             sinceResolved = (if let Some(__l) = endTime { Some(__l - ((((limitResolved * (self.parse_timeframe(timeframe)))) * 1000))) } else { None });
@@ -2860,8 +2860,7 @@ impl Extended {
                 m.insert("settlement".to_string(), Value::Map(settlement));
             m
         });
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("recipient".into()), Value::Str("positionId".into()), Value::Str("l2Vault".into()), Value::Str("collateralId".into()),
-            Value::Str("resolution".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, &["chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"], &[]).into_dict();
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.v1_private_post_user_withdrawal(&[__ws_arg_13]).await;
         //
@@ -3029,8 +3028,7 @@ impl Extended {
                 m.insert("settlement".to_string(), Value::Map(settlement));
             m
         });
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("fromVault".into()), Value::Str("senderPositionId".into()), Value::Str("fromL2Key".into()), Value::Str("senderPublicKey".into()), Value::Str("toVault".into()), Value::Str("receiverPositionId".into()), Value::Str("toL2Key".into()),
-            Value::Str("receiverPublicKey".into()), Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("assetId".into()), Value::Str("collateralId".into()), Value::Str("resolution".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution"], &[]).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.v1_private_post_user_transfer(&[__ws_arg_15]).await;
         //
@@ -3508,8 +3506,8 @@ impl Extended {
             m
         });
         if (symbols != Value::Null) {
-            let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
-            request.insert("market".into(), marketIds);
+            let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbols.clone()]).into_opt_list();
+            request.insert("market".into(), marketIds.map_or(Value::Null, Value::Arr));
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v1_private_get_user_positions(&[__ws_arg_19]).await.into_dict();
@@ -3616,8 +3614,8 @@ impl Extended {
             m
         });
         if (symbolsList != Value::Null) {
-            let mut marketIds: Value = self.market_ids(&[symbolsList.clone()]);
-            request.insert("market".into(), marketIds);
+            let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsList.clone()]).into_opt_list();
+            request.insert("market".into(), marketIds.map_or(Value::Null, Value::Arr));
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.v1_private_get_user_positions_history(&[__ws_arg_20]).await.into_dict();
@@ -3985,7 +3983,7 @@ impl Extended {
             if self.isSandboxModeEnabled.as_bool() == Some(true) {
                 builderFeeRate = self.safe_string2(params.clone(), Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), &[]);
                 builderId = self.safe_string2(params.clone(), Value::Str("builderId".into()), Value::Str("defaultBuilderId".into()), &[]).as_str().map(str::to_owned);
-                paramsBuilder = self.omit(params.clone(), Value::from(vec![Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), Value::Str("builderId".into()), Value::Str("defaultBuilderId".into())]), &[]);
+                paramsBuilder = self.omit(params.clone(), &["builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"], &[]);
             }  else {
                 let mut paramsBuilderFeeRate: Value = Value::Null;
                 { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("builderFeeRate".into()), &[Value::Str("0.0001".into())]).as_array().cloned().unwrap_or_default(); builderFeeRate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsBuilderFeeRate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -4184,9 +4182,7 @@ impl Extended {
                 request.insert("trigger".into(), Value::Map(trigger));
             }
         }
-        let mut paramsOmitted: Value = self.omit(paramsBuilder, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("fee".into()), Value::Str("nonce".into()),
-            Value::Str("expiryEpochMillis".into()), Value::Str("settlementExpiration".into()), Value::Str("cancelId".into()), Value::Str("previousOrderId".into()), Value::Str("brokerId".into()), Value::Str("referralCode".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerDirection".into()),
-            Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(paramsBuilder, &["clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"], &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("request".to_string(), self.extend(Value::Map(request), &[paramsOmitted]));
@@ -4426,7 +4422,7 @@ impl Extended {
         }
         let mut response: Option<crate::value::Dict> = None;
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "client_id"], &[]).into_dict();
         if (clientOrderId.is_some()) {
             let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4493,10 +4489,9 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into()), Value::Str("externalOrderIds".into()), Value::Str("external_order_ids".into())]), &[]);
+        let mut clientOrderIds: Option<crate::value::List> = self.safe_list_n(params.clone(), Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into()), Value::Str("externalOrderIds".into()), Value::Str("external_order_ids".into())]), &[]).into_opt_list();
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("externalOrderIds".into()), Value::Str("external_order_ids".into()), Value::Str("orderIds".into()),
-            Value::Str("order_ids".into()), Value::Str("markets".into()), Value::Str("cancelAll".into()), Value::Str("cancel_all".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4508,14 +4503,14 @@ impl Extended {
                 request.insert("orderIds".into(), ids);
             }
         }
-        if (clientOrderIds == Value::Null) && (clientOrderId.is_some()) {
-            clientOrderIds = Value::from(vec![clientOrderId.map(Value::from).unwrap_or(Value::Null)]);
+        if (clientOrderIds.is_none()) && (clientOrderId.is_some()) {
+            clientOrderIds = Value::from(vec![clientOrderId.map(Value::from).unwrap_or(Value::Null)]).into_opt_list();
         }
-        let mut hasClientOrderIds: bool = clientOrderIds != Value::Null;
-        if (clientOrderIds != Value::Null) {
-            let mut clientOrderIdsLength: i64 = clientOrderIds.len() as i64;
+        let mut hasClientOrderIds: bool = clientOrderIds.is_some();
+        if (clientOrderIds.is_some()) {
+            let mut clientOrderIdsLength: i64 = clientOrderIds.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if clientOrderIdsLength > 0 {
-                request.insert("externalOrderIds".into(), clientOrderIds);
+                request.insert("externalOrderIds".into(), clientOrderIds.map_or(Value::Null, Value::Arr));
             }
         }
         if !hasOrderIds && !hasClientOrderIds {
@@ -4629,7 +4624,7 @@ impl Extended {
         let mut response: Option<crate::value::Dict> = None;
         let mut order: Option<crate::value::Dict> = None;
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "client_id"], &[]).into_dict();
         if (clientOrderId.is_some()) {
             let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();

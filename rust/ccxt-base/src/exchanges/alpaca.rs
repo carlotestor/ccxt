@@ -1282,7 +1282,7 @@ impl Alpaca {
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["loc", "method"], &[]).into_dict();
         let mut symbolTrades: Value = Value::Null;
         if (method == "marketPublicGetV1beta3CryptoLocTrades") {
             if (since != Value::Null) {
@@ -1491,7 +1491,7 @@ impl Alpaca {
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
-        query = self.omit(query, Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]);
+        query = self.omit(query, &["loc", "method"], &[]);
         let mut ohlcvs: Value = Value::Null;
         if (method == "marketPublicGetV1beta3CryptoLocBars") {
             if (limit != Value::Null) {
@@ -2007,9 +2007,9 @@ impl Alpaca {
         let mut paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request.insert("time_in_force".into(), (if (defaultTIF.is_some()) { defaultTIF.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null) } else { defaultTIF.clone().map(Value::from).unwrap_or(Value::Null) }));
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTimeInForce, &["timeInForce", "triggerPrice"], &[]).into_dict();
         request.insert("client_order_id".into(), self.generate_client_order_id(&paramsOmitted).map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, &["clientOrderId"], &[])]);
         let mut order: crate::value::Dict = self.trader_private_post_v2_orders(&[__ws_arg_11]).await.into_dict();
         return self.parse_order(&order, Some(&market));
         Value::Null
@@ -2326,7 +2326,7 @@ impl Alpaca {
             request.insert("time_in_force".into(), timeInForce.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
         }
         request.insert("client_order_id".into(), self.generate_client_order_id(Value::from(&paramsTimeInForce)).map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, &["clientOrderId"], &[])]);
         let mut response: crate::value::Dict = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await.into_dict();
         return self.parse_order(&response, market.as_ref());
         Value::Null

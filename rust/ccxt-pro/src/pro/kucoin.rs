@@ -2876,7 +2876,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             orders = self.subscribe_private_uta(Value::from(vec![messageHash.clone()]), messageHash.as_str().unwrap_or_default(), channel.as_str(), symbolResolved.as_deref(), &[Value::Dict(paramsExtended)]).await;
         }  else {
             let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsUta), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUta, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUta, &["stop", "trigger"], &[]).into_dict();
             let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
             let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

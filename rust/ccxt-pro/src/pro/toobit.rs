@@ -1655,12 +1655,12 @@ impl Toobit {
         let mut messageHash: String = "".to_string();
         let mut symbolsNormalized: Value = symbols.clone();
         if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
-            let mut marketSymbols: Value = self.market_symbols(&[symbols]);
-            if (marketSymbols == Value::Null) {
+            let mut marketSymbols: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+            if (marketSymbols.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchPositions() symbols is required")));
             }
-            symbolsNormalized = marketSymbols.clone();
-            messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(marketSymbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+            symbolsNormalized = marketSymbols.clone().map_or(Value::Null, Value::Arr);
+            messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(marketSymbols.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
         messageHash = format!("{}{}", Value::Str(format!("{}{}", type_var, ":positions").into()), messageHash);
         let mut url: Option<String> = self.get_user_stream_url();

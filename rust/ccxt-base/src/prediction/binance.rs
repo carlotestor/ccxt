@@ -400,7 +400,7 @@ impl Binance {
         let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
-            let mut eventParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
+            let mut eventParams: Value = self.omit(params.clone(), &["limit"], &[]);
             let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(eventParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut eventsLength: f64 = ((events.len() as i64) as f64);
             let mut queryMarkets: Vec<Value> = Vec::new();
@@ -422,7 +422,7 @@ impl Binance {
             return Value::from(queryMarkets);
         }
         let mut maxMarkets: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(200)])]).as_i64();
-        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]).into_dict();
+        let mut rest: crate::value::Dict = self.omit(params, &["query", "queries", "limit"], &[]).into_dict();
         let mut rawTopics: Vec<Value> = self.fetch_raw_topics(Value::from(maxMarkets), &[Value::Dict(rest)]).await.as_array().cloned().unwrap_or_default();
         let mut parsedEvents: Vec<Value> = Vec::new();
         let mut flatMarkets: Vec<Value> = Vec::new();
@@ -669,7 +669,7 @@ impl Binance {
         }
         }
         let mut allQueriesLength: i64 = allQueries.len() as i64;
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["query", "queries"], &[]).into_dict();
         // keys dropped before the client-side pass; a server-side sort also drops its own keys
         let mut postOmitKeys: Vec<Value> = vec![Value::Str("tags".into()), Value::Str("l1Category".into()), Value::Str("l2Category".into())];
         let mut userLimit: Option<i64> = self.safe_integer_k(&paramsOmitted, "limit", &[]).as_i64();
@@ -677,7 +677,7 @@ impl Binance {
         if (userLimit.is_some()) {
             fetchCap = userLimit;
         }
-        let mut rest: Value = self.omit(&paramsOmitted, Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("l1Category".into()), Value::Str("l2Category".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(&paramsOmitted, &["status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"], &[]).into_dict();
         let mut eventId: Option<String> = self.safe_string_k(&paramsOmitted, "eventId", &[]).as_str().map(str::to_owned);
         let mut l1Category: Option<String> = self.safe_string_k(&paramsOmitted, "l1Category", &[]).as_str().map(str::to_owned);
         let mut l2Category: Option<String> = self.safe_string_k(&paramsOmitted, "l2Category", &[]).as_str().map(str::to_owned);
@@ -686,9 +686,9 @@ impl Binance {
         }
         let mut rawTopics: Value = Value::from(vec![]);
         if allQueriesLength > 0 {
-            rawTopics = self.fetch_events_by_query(Value::from(allQueries), Value::from(fetchCap), &[rest.clone()]).await;
+            rawTopics = self.fetch_events_by_query(Value::from(allQueries), Value::from(fetchCap), &[Value::from(&rest)]).await;
         }  else if (eventId.is_some()) {
-            let mut detail: Value = self.fetch_raw_topic_detail(eventId.as_deref().unwrap_or_default(), &[rest.clone()]).await;
+            let mut detail: Value = self.fetch_raw_topic_detail(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await;
             rawTopics = Value::from(vec![detail]);
         }  else {
             let mut listingRequest: indexmap::IndexMap<String, Value> = ({
@@ -718,7 +718,7 @@ impl Binance {
                     postOmitKeys.push(Value::Str("sortBy".into()));
                 }
             }
-            let __ws_arg_2 = self.extend(Value::Map(listingRequest), &[rest]);
+            let __ws_arg_2 = self.extend(Value::Map(listingRequest), &[&rest]);
             let mut listed: crate::value::List = self.fetch_raw_topics(Value::from(fetchCap), &[__ws_arg_2]).await.into_list();
             rawTopics = self.complete_raw_topics(Value::Arr(listed)).await;
         }
@@ -2394,7 +2394,7 @@ impl Binance {
         if (accountType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder requires accountType (SPOT, FUNDING)")));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("accountType".into()), Value::Str("cost".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["timeInForce", "accountType", "cost"], &[]).into_dict();
         let __ws_arg_14 = self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amountStr.map(Value::from).unwrap_or(Value::Null));
         let mut quoteRequest: crate::value::Dict = self.extend(Value::Map(commonRequest.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();

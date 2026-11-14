@@ -3178,7 +3178,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (clientOrderId.is_none()) {
             clientOrderId = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", self.nonce()).into()), Value::Str("000".into())).into()), Value::Str(format!("{}", Value::Int(self.request_id())).into())));
         }
-        let mut paramsOmitted3: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted3: crate::value::Dict = self.omit(params, &["clientOrderId"], &[]).into_dict();
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut subAccountId: Option<String> = self.get_sub_account_id(&paramsOmitted3);
         let mut isReduceOnly: bool = self.safe_bool_k(&paramsOmitted3, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -3223,7 +3223,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 timeInForce = Some("IMMEDIATE_OR_CANCEL".to_string());
             }
         }
-        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted3, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted3, &["reduceOnly", "postOnly", "timeInForce"], &[]).into_dict();
         // Trigger & SL & TP
         let triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable: Vec<Value> = self.handle_trigger_prices_and_params(symbol, &paramsOmitted2, &[]).as_array().cloned().unwrap_or_default();
         let mut triggerPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -3278,7 +3278,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut paramsTrigger: Value = paramsTriggerPrices.clone();
         if isTriggerOrder {
-            paramsTrigger = self.omit(paramsTriggerPrices, Value::from(vec![Value::Str("triggerDirection".into()), Value::Str("triggerPriceType".into()), Value::Str("closePosition".into())]), &[]);
+            paramsTrigger = self.omit(paramsTriggerPrices, &["triggerDirection", "triggerPriceType", "closePosition"], &[]);
         }
         let mut eipType: String = "EIP712_ORDER_TYPE".to_string();
         let mut builderFee: Option<bool> = self.safe_bool_k(paramsTrigger.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]).as_bool();
@@ -3287,7 +3287,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             orderRequest.insert("builder".into(), self.safe_string_k(self.options.clone(), "builder", &[]));
             orderRequest.insert("builder_fee".into(), self.safe_string_k(self.options.clone(), "builderRate", &[]));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTrigger, Value::from(vec![Value::Str("builderFee".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTrigger, &["builderFee"], &[]).into_dict();
         let mut signedOrderRequest: Value = self.create_signed_request(&mut orderRequest, eipType.as_str(), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4754,7 +4754,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (until.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(self.number_to_string(Value::from(self.parse_to_int((match (&(Value::from(until)), &(multiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
                 (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))))); }
-            return Value::from(vec![request.clone(), self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[])]);
+            return Value::from(vec![request.clone(), self.omit(params.clone(), &["until", "till"], &[])]);
         }
         return Value::from(vec![request, params]);
 

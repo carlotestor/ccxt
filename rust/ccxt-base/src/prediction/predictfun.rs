@@ -660,7 +660,7 @@ impl Predictfun {
         }
         let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut queriesLength: i64 = queries.len() as i64;
-        let mut paramsValue: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]).into_dict();
+        let mut paramsValue: crate::value::Dict = self.omit(params, &["query", "queries"], &[]).into_dict();
         // keys dropped before the client-side pass; the categories listing also drops its limit
         let mut postOmitKeys: Vec<Value> = vec![Value::Str("tags".into())];
         let mut userLimit: Option<i64> = self.safe_integer_k(&paramsValue, "limit", &[]).as_i64();
@@ -669,7 +669,7 @@ impl Predictfun {
             fetchCap = userLimit;
         }
         let mut slug: Option<String> = self.safe_string2(&paramsValue, Value::Str("slug".into()), Value::Str("eventId".into()), &[]).as_str().map(str::to_owned);
-        let mut rest: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("marketVariant".into())]), &[]).into_dict();
+        let mut rest: crate::value::Dict = self.omit(&paramsValue, &["status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"], &[]).into_dict();
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
@@ -698,7 +698,7 @@ impl Predictfun {
                 request.insert("tagIds".into(), join(&tags, &Value::Str(",".into())));
             }
             postOmitKeys.push(Value::Str("limit".into()));
-            let mut paramsCategories: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("limit".into()), Value::Str("tags".into())]), &[]).into_dict();
+            let mut paramsCategories: crate::value::Dict = self.omit(&paramsValue, &["limit", "tags"], &[]).into_dict();
             let mut extendedRequest: crate::value::Dict = self.extend(Value::Map(request), &[&paramsCategories]).into_dict();
             let mut rawTopicsResponse: Value = self.predictfun_get_v1_categories(&[Value::from(&extendedRequest)]).await;
             //
@@ -961,7 +961,7 @@ impl Predictfun {
             includeResolved = "true".to_string();
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("status".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("marketVariant".into())]), &[]).into_dict();
+        let mut rest: crate::value::Dict = self.omit(params, &["query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"], &[]).into_dict();
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         let mut result: Vec<Value> = Vec::new();
         // the venue answers every term separately and the same category comes back for each term
@@ -2770,8 +2770,7 @@ impl Predictfun {
         }
         // every param the method consumes itself has to come out, otherwise it survives into the
         // extend below and is posted as a top level key next to 'data'
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("isPostOnly".into()), Value::Str("timeInForce".into()), Value::Str("isFillOrKill".into()), Value::Str("feeRateBps".into()), Value::Str("isNegRisk".into()), Value::Str("isYieldBearing".into()), Value::Str("slippageBps".into()), Value::Str("salt".into()),
-            Value::Str("nonce".into()), Value::Str("expiration".into()), Value::Str("selfTradePrevention".into()), Value::Str("taker".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, &["isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker"], &[]).into_dict();
         // the JWT authorises the order, the api key only authorises the request
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

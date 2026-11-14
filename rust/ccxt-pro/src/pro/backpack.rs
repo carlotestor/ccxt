@@ -561,7 +561,7 @@ impl Backpack {
         if (symbolsResolvedLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires at least one matching market")));
         }
-        let mut payload: Value = self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into()), Value::Str("interval".into()), Value::Str("channel".into())]), &[]);
+        let mut payload: Value = self.omit(query, &["stock", "source", "interval", "channel"], &[]);
         if unwatch {
             let mut topicsLength: i64 = topics.len() as i64;
             if topicsLength > 0 {
@@ -1307,7 +1307,7 @@ impl Backpack {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", Value::from((market).symbol.clone())).into()), ":").into()), interval.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut symboltimeframecandlesVariable = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into())]), &[])]).await;
+        let mut symboltimeframecandlesVariable = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[])]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
@@ -1366,7 +1366,7 @@ impl Backpack {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:candles:", Value::from((market).symbol.clone())).into()), ":").into()), interval.as_deref().unwrap_or("null")).into()));
         }
         }
-        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into())]), &[]), Value::Bool(true)]).await;
+        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[]), Value::Bool(true)]).await;
         Value::Null
         }).await?))
     }
@@ -1529,7 +1529,7 @@ impl Backpack {
             messageHashes.push(Value::Str(format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut trades: Value = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into())]), &[])]).await;
+        let mut trades: Value = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[])]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -1586,7 +1586,7 @@ impl Backpack {
             messageHashes.push(Value::Str(format!("{}{}", "unsubscribe:trades:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
-        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into())]), &[]), Value::Bool(true)]).await;
+        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[]), Value::Bool(true)]).await;
         Value::Null
         }).await?))
     }
@@ -1773,7 +1773,7 @@ impl Backpack {
             }
         }
         }
-        let mut orderbook: Value = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into())]), &[])]).await;
+        let mut orderbook: Value = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[])]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1846,7 +1846,7 @@ impl Backpack {
             topics.push(Value::Str(format!("{}{}", Value::Str("depth.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
         }
         }
-        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into())]), &[]), Value::Bool(true)]).await;
+        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[]), Value::Bool(true)]).await;
         Value::Null
         }).await?))
     }

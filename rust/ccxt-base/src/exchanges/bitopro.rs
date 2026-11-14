@@ -1607,7 +1607,7 @@ impl Bitopro {
                 request.insert("condition".into(), condition.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), &["triggerPrice", "stopPrice"], &[]) } else { params }).into_dict();
         let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[Value::from(&paramsOmitted)]);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
@@ -2313,7 +2313,7 @@ impl Bitopro {
         let mut hasNetwork: bool = paramsWithdrawTag.contains_key("network");
         let mut paramsOmitted: Value = Value::from(&paramsWithdrawTag);
         if hasNetwork {
-            paramsOmitted = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("network".into())]), &[]);
+            paramsOmitted = self.omit(&paramsWithdrawTag, &["network"], &[]);
         }
         if hasNetwork {
             let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({

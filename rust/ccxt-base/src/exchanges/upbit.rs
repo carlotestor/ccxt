@@ -2007,7 +2007,7 @@ impl Upbit {
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() supports only limit or market types in the type argument.")));
         }
-        let mut paramsOrdType: crate::value::Dict = (if (customType.as_deref() == Some("best")) { self.omit(params.clone(), Value::from(vec![Value::Str("ordType".into()), Value::Str("ord_type".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOrdType: crate::value::Dict = (if (customType.as_deref() == Some("best")) { self.omit(params.clone(), &["ordType", "ord_type"], &[]) } else { params }).into_dict();
         if (customType.as_deref() == Some("best")) {
             request.insert("ord_type".into(), Value::Str("best".into()));
             if (side.as_str() == Some("buy")) {
@@ -2038,7 +2038,7 @@ impl Upbit {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a timeInForce parameter for best type orders")));
         }
         let mut response: Option<crate::value::Dict> = None;
-        let mut paramsRequest: crate::value::Dict = self.omit(&paramsOrdType, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), Value::Str("test".into())]), &[]).into_dict();
+        let mut paramsRequest: crate::value::Dict = self.omit(&paramsOrdType, &["timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"], &[]).into_dict();
         if test {
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);
             response = self.private_post_orders_test(&[__ws_arg_9]).await.into_opt_dict();
@@ -2172,7 +2172,7 @@ impl Upbit {
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " editOrder() supports only limit or market types in the type argument.")));
         }
-        let mut paramsOrdType: crate::value::Dict = (if (customType.as_deref() == Some("best")) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("newOrdType".into()), Value::Str("new_ord_type".into())]), &[]) } else { paramsOmitted }).into_dict();
+        let mut paramsOrdType: crate::value::Dict = (if (customType.as_deref() == Some("best")) { self.omit(paramsOmitted.clone(), &["newOrdType", "new_ord_type"], &[]) } else { paramsOmitted }).into_dict();
         if (customType.as_deref() == Some("best")) {
             request.insert("new_ord_type".into(), Value::Str("best".into()));
             if (side.as_str() == Some("buy")) {
@@ -2205,7 +2205,7 @@ impl Upbit {
         if (self.safe_string(Value::Map(request.clone()), Value::Str("new_ord_type".into()), &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires a timeInForce parameter for best type orders")));
         }
-        let mut paramsRequest: crate::value::Dict = self.omit(&paramsOrdType, Value::from(vec![Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), Value::Str("postOnly".into()), Value::Str("newClientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("new_smp_type".into())]), &[]).into_dict();
+        let mut paramsRequest: crate::value::Dict = self.omit(&paramsOrdType, &["newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"], &[]).into_dict();
         // console.log ('check the each request paramsOmitted: ', request);
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut response: crate::value::Dict = self.private_post_orders_cancel_and_new(&[__ws_arg_12]).await.into_dict();
@@ -3099,7 +3099,7 @@ impl Upbit {
             if (network.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw() requires a network argument")));
             }
-            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTag, Value::from(vec![Value::Str("network".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTag, &["network"], &[]).into_dict();
             request.insert("net_type".into(), network.map(Value::from).unwrap_or(Value::Null));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             request.insert("address".into(), address);

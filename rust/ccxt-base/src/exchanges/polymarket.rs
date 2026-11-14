@@ -1183,7 +1183,7 @@ impl Polymarket {
     m
 })]).into_dict();
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
-            merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.extend(previous.clone(), &[&entry]));
+            merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.extend(previous, &[&entry]));
         }
         }
         let mut tickers: crate::value::List = self.safe_list(responses, Value::Int(0), &[Value::from(vec![])]).into_list();
@@ -1971,7 +1971,7 @@ impl Polymarket {
         let mut tif: Option<String> = timeInForce.as_deref().map(str::to_lowercase);
         let mut reduceOnly: bool = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("c".into()), &[]).as_str().map(str::to_owned);
-        paramsOmitted = self.omit(paramsOmitted, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("reduceOnly".into()), Value::Str("clientOrderId".into())]), &[]);
+        paramsOmitted = self.omit(paramsOmitted, &["timeInForce", "reduceOnly", "clientOrderId"], &[]);
         let mut instrumentId: Option<i64> = self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut isBuy: bool = (side.as_str() == Some("buy"));
         let mut quantity: Option<String> = self.amount_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), amount);
@@ -2150,18 +2150,18 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1107: bool = true;
             while { if !__for_first_1107 { i += 1; } __for_first_1107 = false; i < (response.len() as i64) } {
-            let mut ack: Value = self.safe_dict(&response, Value::Int(i), &[Value::Map({
+            let mut ack: crate::value::Dict = self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut marketInner: Value = ordersMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut echo: crate::value::Dict = self.safe_dict(&ordersEntries, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut status: Option<String> = self.safe_string_k(ack.clone(), "status", &[]).as_str().map(str::to_owned);
-            let __ws_arg_4 = self.safe_integer_k(ack.clone(), "oid", &[]);
-            let __ws_arg_5 = self.safe_string2(ack.clone(), Value::Str("coid".into()), Value::Str("c".into()), &[]);
+            let mut status: Option<String> = self.safe_string_k(&ack, "status", &[]).as_str().map(str::to_owned);
+            let __ws_arg_4 = self.safe_integer_k(&ack, "oid", &[]);
+            let __ws_arg_5 = self.safe_string2(&ack, Value::Str("coid".into()), Value::Str("c".into()), &[]);
             let mut merged: crate::value::Dict = self.extend(echo, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("oid".to_string(), __ws_arg_4);
@@ -2174,7 +2174,7 @@ impl Polymarket {
                 std::sync::Arc::make_mut(&mut merged).insert("status".into(), Value::Null);
             }
             let mut parsed: crate::value::Dict = self.parse_order(&merged, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketInner).as_ref()).into_dict();
-            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), ack);
+            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), Value::Dict(ack));
             results.push(Value::Dict(parsed));
         }
         }
@@ -2244,7 +2244,7 @@ impl Polymarket {
                 clientOrderIds = Value::from(vec![clientOrderId.map(Value::from).unwrap_or(Value::Null)]);
             }
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderIds", "clientOrderId"], &[]).into_dict();
         let mut signable: Value = Value::Null;
         let mut bodyOp: Value = Value::Null;
         let mut response: Value = Value::Null;
@@ -2287,22 +2287,22 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1109: bool = true;
             while { if !__for_first_1109 { i += 1; } __for_first_1109 = false; i < (response.len() as i64) } {
-            let mut ack: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            let mut ack: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut status: Option<String> = self.safe_string_k(ack.clone(), "status", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut status: Option<String> = self.safe_string_k(&ack, "status", &[]).as_str().map(str::to_owned);
             let mut unified: String = (if (status.as_deref() == Some("err")) { "rejected".to_string() } else { "canceled".to_string() });
             let mut merged: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("oid".to_string(), self.safe_integer_k(ack.clone(), "oid", &[]));
-                    m.insert("coid".to_string(), self.safe_string_k(ack.clone(), "coid", &[]));
-                    m.insert("uts".to_string(), self.safe_integer_k(ack.clone(), "ts", &[]));
+                    m.insert("oid".to_string(), self.safe_integer_k(&ack, "oid", &[]));
+                    m.insert("coid".to_string(), self.safe_string_k(&ack, "coid", &[]));
+                    m.insert("uts".to_string(), self.safe_integer_k(&ack, "ts", &[]));
                     m.insert("status".to_string(), Value::from(unified));
                 m
             });
             let mut parsed: crate::value::Dict = self.parse_order(Value::Map(merged), None).into_dict();
-            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), ack);
+            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), Value::Dict(ack));
             results.push(Value::Dict(parsed));
         }
         }

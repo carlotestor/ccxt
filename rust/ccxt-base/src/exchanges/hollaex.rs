@@ -1973,7 +1973,7 @@ impl Hollaex {
     m
 }));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"], &[]).into_dict();
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_order(&[__ws_arg_10]).await.into_dict();
         return self.parse_order(&response, Some(&market));

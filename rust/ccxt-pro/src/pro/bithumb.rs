@@ -423,14 +423,14 @@ impl Bithumb {
         let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation == Some(2);
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut symbolsLength: i64 = (if (symbolsNormalized == Value::Null) { 0 } else { symbolsNormalized.len() as i64 });
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_opt_list();
+        let mut symbolsLength: i64 = (if (symbolsNormalized.is_none()) { 0 } else { symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64 });
         if isGenerationTwo && (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchTickers() requires symbols for the generation 2 API")));
         }
         let mut symbolsResolved: Value = Value::Arr(self.symbols.clone());
-        if (symbolsNormalized != Value::Null) {
-            symbolsResolved = symbolsNormalized;
+        if (symbolsNormalized.is_some()) {
+            symbolsResolved = symbolsNormalized.map_or(Value::Null, Value::Arr);
         }
         let mut symbolsLengthDefined: f64 = ((symbolsResolved.len() as i64) as f64);
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
