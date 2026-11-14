@@ -465,7 +465,7 @@ impl Revolutx {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
@@ -479,12 +479,12 @@ impl Revolutx {
             self.check_required_credentials(&[]);
             let mut timestamp: String = format!("{}", self.milliseconds());
             if (method.as_str() == Some("GET")) {
-                queryString = self.urlencode(query.clone(), &[]);
+                queryString = self.urlencode(&query, &[]);
                 if (queryString != "") {
                     url.push_str(&format!("{}{}", "?", queryString));
                 }
             }  else if (method.as_str() == Some("DELETE")) {
-                queryString = self.urlencode(query.clone(), &[]);
+                queryString = self.urlencode(&query, &[]);
                 if (queryString != "") {
                     url.push_str(&format!("{}{}", "?", queryString));
                 }
@@ -510,7 +510,7 @@ impl Revolutx {
             }
         }  else {
             if (method.as_str() == Some("GET")) {
-                queryString = self.urlencode(query.clone(), &[]);
+                queryString = self.urlencode(&query, &[]);
                 if (queryString != "") {
                     url.push_str(&format!("{}{}", "?", queryString));
                 }
@@ -868,7 +868,7 @@ impl Revolutx {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), bid.map(Value::from).unwrap_or(Value::Null));
@@ -1228,7 +1228,7 @@ impl Revolutx {
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("cost".to_string(), Value::from(cost));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::from(vec![]));
     m
@@ -1523,7 +1523,7 @@ impl Revolutx {
         m.insert("stopLossPrice".to_string(), self.parse_number(self.safe_string_k(stopLoss, "trigger_price", &[]), &[]));
         m.insert("takeProfitPrice".to_string(), self.parse_number(self.safe_string_k(takeProfit, "trigger_price", &[]), &[]));
         m.insert("timestamp".to_string(), Value::from(createdDate));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(createdDate)));
+        m.insert("datetime".to_string(), self.iso8601(createdDate));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(updatedDate));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("info".to_string(), order);
@@ -2149,7 +2149,7 @@ impl Revolutx {
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("cost".to_string(), Value::from(cost));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::from(vec![]));
     m

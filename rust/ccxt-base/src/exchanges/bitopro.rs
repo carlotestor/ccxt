@@ -1522,7 +1522,7 @@ impl Bitopro {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "updatedTimestamp", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -2098,7 +2098,7 @@ impl Bitopro {
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "total", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2426,10 +2426,10 @@ impl Bitopro {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path), &[]).into_dict();
         // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
         // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
-        let mut queryLength: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
+        let mut queryLength: f64 = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64);
         let mut requestHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2451,7 +2451,7 @@ impl Bitopro {
                 requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), Value::from(signature));
             }  else if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if queryLength > ((0i64) as f64) {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
                 }
                 let mut nonce: i64 = self.milliseconds();
                 let mut rawData: indexmap::IndexMap<String, Value> = ({
@@ -2468,7 +2468,7 @@ impl Bitopro {
             }
         }  else if (apiName.as_deref() == Some("public")) && (method.as_str() == Some("GET")) {
             if queryLength > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);

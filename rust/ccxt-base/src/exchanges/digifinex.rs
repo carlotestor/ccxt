@@ -1303,9 +1303,9 @@ impl Digifinex {
             promisesRaw.push(self.public_spot_get_trades_symbols(&[Value::Dict(query)]).await);
         }
         promisesRaw.push(self.public_swap_get_public_instruments(&[params]).await);
-        let mut promises: Value = promise_all(&Value::from(promisesRaw)).await;
-        let mut spotMarkets: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[]).into_dict();
-        let mut swapMarkets: crate::value::Dict = self.safe_dict(promises, Value::Int(1), &[]).into_dict();
+        let mut promises: crate::value::List = promise_all(&Value::from(promisesRaw)).await.into_list();
+        let mut spotMarkets: crate::value::Dict = self.safe_dict(&promises, Value::Int(0), &[]).into_dict();
+        let mut swapMarkets: crate::value::Dict = self.safe_dict(&promises, Value::Int(1), &[]).into_dict();
         //
         // spot and margin
         //
@@ -2119,7 +2119,7 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string2(ticker.clone(), Value::Str("high".into()), Value::Str("high_24h".into()), &[]));
         m.insert("low".to_string(), self.safe_string2(ticker.clone(), Value::Str("low".into()), Value::Str("low_24h".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("buy".into()), Value::Str("best_bid".into()), &[]));
@@ -2276,7 +2276,7 @@ impl Digifinex {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -4064,7 +4064,7 @@ impl Digifinex {
         m.insert("after".to_string(), Value::from(after));
         m.insert("status".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), Value::Null);
     m
 }), Some(&currencyResolved));
@@ -4464,7 +4464,7 @@ impl Digifinex {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4543,7 +4543,7 @@ impl Digifinex {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "transfer_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&data, "currency", &[]), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number2(&data, Value::Str("amount".into()), Value::Str("transfer_amount".into()), &[]));
         m.insert("fromAccount".to_string(), fromAccount.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5061,10 +5061,10 @@ impl Digifinex {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(timestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(timestamp));
         m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "next_funding_rate", &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::from(nextTimestamp));
-        m.insert("nextFundingDatetime".to_string(), self.iso8601(Value::from(nextTimestamp)));
+        m.insert("nextFundingDatetime".to_string(), self.iso8601(nextTimestamp));
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
@@ -5171,7 +5171,7 @@ impl Digifinex {
                     m.insert("symbol".to_string(), symbolInner.map(Value::from).unwrap_or(Value::Null));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -5609,7 +5609,7 @@ impl Digifinex {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.safe_number_k(position.clone(), "maint_margin_ratio", &[]));
         m.insert("positionMargin".to_string(), self.parse_number(marginString.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -5935,7 +5935,7 @@ impl Digifinex {
             let mut tier: Option<crate::value::Dict> = self.safe_dict(&brackets, Value::Int(i), &[]).into_opt_dict();
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
+                    m.insert("tier".to_string(), Value::Int((i + 1)));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[Value::Null, Value::Str("swap".into())]));
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
                     m.insert("minNotional".to_string(), Value::Null);
@@ -6071,7 +6071,7 @@ impl Digifinex {
         //         },
         //     ]
         //
-        let mut depositWithdrawFees: Value = Value::Map({
+        let mut depositWithdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -6084,15 +6084,15 @@ impl Digifinex {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&rows, Value::Int(i), &[]).into_opt_dict();
             let mut code: Value = self.safe_currency_code(self.safe_string_k(&entry, "currency", &[]), None).map(Value::from).unwrap_or(Value::Null);
             if (code != Value::Null) && ((codesValue == Value::Null) || (self.in_array(code.clone(), codesValue.clone()))) {
-                if !(matches!((&depositWithdrawFees, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if !(matches!(&code, Value::Str(__k) if depositWithdrawFees.contains_key(__k.as_ref()))) {
                     let mut feeStructure: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })).as_map().cloned().unwrap_or_default();
                     feeStructure.insert("info".into(), Value::from(vec![]));
-                    if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(feeStructure)); }
+                    depositWithdrawFees.insert(crate::runtime::stringify_param(&code), Value::Map(feeStructure));
                 }
-                let mut depositWithdrawFee: Value = (if let (Some(__m), Some(__k)) = (depositWithdrawFees.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut depositWithdrawFee: Value = depositWithdrawFees.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 let mut depositWithdrawInfo: Value = depositWithdrawFee.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut depositWithdrawInfo { std::sync::Arc::make_mut(__a).push(entry.clone().map_or(Value::Null, Value::Dict)); };
                 let mut networkId: Option<String> = self.safe_string_k(&entry, "chain", &[]).as_str().map(str::to_owned);
@@ -6126,17 +6126,17 @@ impl Digifinex {
             }
         }
         }
-        let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_657: bool = true;
             while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: crate::types::Currency = self.currency(code.clone());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); depositWithdrawFees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
         }
         }
-        return depositWithdrawFees;
+        return Value::Map(depositWithdrawFees);
 
     Value::Null
 }
@@ -6370,7 +6370,7 @@ impl Digifinex {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("swap".into())]));
         m.insert("code".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(income, "amount", &[]));
     m

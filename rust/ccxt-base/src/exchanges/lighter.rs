@@ -1219,7 +1219,7 @@ impl Lighter {
         let mut x19: crate::value::Bytes = self.base16_to_binary(Value::Str("19".into()), &[]);
         let mut newline: crate::value::Bytes = self.base16_to_binary(Value::Str("0a".into()), &[]);
         let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(Value::from(binaryMessageLength)))))]);
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[Value::from(&binaryMessage)]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[Value::from(&binaryMessage)]), Value::Str("keccak".into()), &[Value::Str("hex".into())])));
 }
 
     pub fn sign_hash(&self, hash: &str, privateKey: &str) -> Option<String> {
@@ -1229,9 +1229,9 @@ impl Lighter {
         let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         let mut r: Option<String> = crate::value::KeyRead::key_read(&&signature, "r").as_str().map(str::to_owned);
-        let mut s: Value = crate::value::KeyRead::key_read(&&signature, "s");
+        let mut s: Option<String> = crate::value::KeyRead::key_read(&&signature, "s").as_str().map(str::to_owned);
         let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), (if let Some(__s) = r.as_deref() { Some(format!("{:0>64}", __s)) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), (if let Some(__s) = r.as_deref() { Some(format!("{:0>64}", __s)) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), (if let Some(__s) = s.as_deref() { Some(format!("{:0>64}", __s)) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), v));
 }
 
     pub fn sign_l1_and_prepare_tx_info(&self, mut txInfo: Value, mut message: Value, privateKey: &str) -> Option<String> {
@@ -3523,7 +3523,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
         m.insert("clientOrderId".to_string(), Value::from(self.omit_zero(self.safe_string2(order.clone(), Value::Str("client_order_id".into()), Value::Str("client_order_index".into()), &[]))));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(order.clone(), "updated_at", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -3848,7 +3848,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(&fromAccount, "from_account_index", &[]));
@@ -4078,7 +4078,7 @@ if _try_result.is_err() {
         m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -4426,7 +4426,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "trade_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
@@ -4953,7 +4953,7 @@ if _try_result.is_err() {
         m.insert("code".to_string(), Value::Str("USDC".into()));
         m.insert("status".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 

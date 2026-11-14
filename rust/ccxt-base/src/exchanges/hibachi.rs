@@ -1000,7 +1000,7 @@ impl Hibachi {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -1107,8 +1107,8 @@ impl Hibachi {
         let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
         let mut rawPromises: crate::value::List = std::sync::Arc::new(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(Value::Map(request), &[params])]).await]);
         let pricesResponsestatsResponseVariable: Vec<Value> = promise_all(&Value::Arr(rawPromises)).await.as_array().cloned().unwrap_or_default();
-        let mut pricesResponse: Value = pricesResponsestatsResponseVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut statsResponse: Value = pricesResponsestatsResponseVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut pricesResponse: crate::value::Dict = pricesResponsestatsResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+        let mut statsResponse: crate::value::Dict = pricesResponsestatsResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -1129,8 +1129,8 @@ impl Hibachi {
         // }
         let mut ticker: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("prices".to_string(), pricesResponse);
-                m.insert("stats".to_string(), statsResponse);
+                m.insert("prices".to_string(), Value::Dict(pricesResponse));
+                m.insert("stats".to_string(), Value::Dict(statsResponse));
             m
         });
         return self.parse_ticker(Value::Map(ticker), Some(&market));
@@ -1205,7 +1205,7 @@ impl Hibachi {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
@@ -2590,8 +2590,8 @@ impl Hibachi {
             m
         });
         if (method.as_str() == Some("GET")) {
-            let mut request: Value = self.omit(params.clone(), self.extract_params(path), &[]);
-            let mut query: String = self.urlencode(request, &[]);
+            let mut request: crate::value::Dict = self.omit(params.clone(), self.extract_params(path), &[]).into_dict();
+            let mut query: String = self.urlencode(&request, &[]);
             if (((query.chars().count() as i64)) != 0) {
                 url.push_str(&format!("{}{}", "?", query));
             }
@@ -2728,7 +2728,7 @@ impl Hibachi {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), item);
     m
@@ -2772,8 +2772,8 @@ impl Hibachi {
         });
         let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
         let mut rawPromises: crate::value::List = std::sync::Arc::new(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(Value::Map(request), &[params.clone()])]).await]);
-        let mut promises: Value = promise_all(&Value::Arr(rawPromises)).await;
-        let mut responseCapitalHistory: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[]).into_dict();
+        let mut promises: crate::value::List = promise_all(&Value::Arr(rawPromises)).await.into_list();
+        let mut responseCapitalHistory: crate::value::Dict = self.safe_dict(&promises, Value::Int(0), &[]).into_dict();
         //
         // {
         //     "transactions": [
@@ -2828,7 +2828,7 @@ impl Hibachi {
         // }
         //
         let mut rowsCapitalHistory: crate::value::List = self.safe_list_k(&responseCapitalHistory, "transactions", &[Value::from(vec![])]).into_list();
-        let mut responseTradingHistory: crate::value::Dict = self.safe_dict(promises, Value::Int(1), &[]).into_dict();
+        let mut responseTradingHistory: crate::value::Dict = self.safe_dict(&promises, Value::Int(1), &[]).into_dict();
         //
         // {
         //     "tradingHistory": [
@@ -2918,7 +2918,7 @@ impl Hibachi {
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "transactionHash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Str("ARBITRUM".into()));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3091,7 +3091,7 @@ impl Hibachi {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("price".to_string(), self.safe_number_k(settlement, "indexPrice", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -3249,7 +3249,7 @@ impl Hibachi {
         m.insert("openInterestAmount".to_string(), self.safe_string_k(response.clone(), "totalQuantity", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), response);
     m
 }), Some(&market));
@@ -3317,10 +3317,10 @@ impl Hibachi {
         m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".into()), &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(&funding, "estimatedFundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(nextFundingTimestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -3395,7 +3395,7 @@ impl Hibachi {
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }

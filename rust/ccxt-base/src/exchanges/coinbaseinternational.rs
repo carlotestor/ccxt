@@ -1407,7 +1407,7 @@ impl Coinbaseinternational {
                 m.insert("maker".to_string(), self.safe_number_k(market.clone(), "maker_commission", &[]));
                 m.insert("contractSize".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { self.safe_number_k(market.clone(), "contract_size", &[]) }));
                 m.insert("expiry".to_string(), Value::from(expiry));
-                m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
+                m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
                 m.insert("strike".to_string(), Value::from(strike));
                 m.insert("optionType".to_string(), optionType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("precision".to_string(), Value::Map({
@@ -1888,10 +1888,10 @@ impl Coinbaseinternational {
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "interest_8h", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(timestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(timestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -2072,7 +2072,7 @@ impl Coinbaseinternational {
         m.insert("info".to_string(), ticker.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("bid".to_string(), self.safe_number_k(ticker.clone(), "best_bid_price", &[]));
         m.insert("bidVolume".to_string(), self.safe_number_k(ticker.clone(), "best_bid_amount", &[]));
         m.insert("ask".to_string(), self.safe_number_k(ticker.clone(), "best_ask_price", &[]));
@@ -2704,7 +2704,7 @@ impl Coinbaseinternational {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(transfer, "id", &[]));
         m.insert("timestamp".to_string(), Value::from(transactionTimestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(transactionTimestamp)));
+        m.insert("datetime".to_string(), self.iso8601(transactionTimestamp));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
@@ -3200,7 +3200,7 @@ impl Coinbaseinternational {
         m.insert("id".to_string(), transactionId.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), self.safe_string_k(&info, "transaction", &[]));
         m.insert("timestamp".to_string(), Value::from(transactionTimestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(transactionTimestamp)));
+        m.insert("datetime".to_string(), self.iso8601(transactionTimestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3582,7 +3582,7 @@ impl Coinbaseinternational {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "label", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(nativeLastUpdateTimestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -4313,7 +4313,7 @@ impl Coinbaseinternational {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "trade_id", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "order_type", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade, "direction", &[]));

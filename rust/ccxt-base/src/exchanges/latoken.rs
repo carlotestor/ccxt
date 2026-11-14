@@ -1259,7 +1259,7 @@ impl Latoken {
         }
         }
         result.insert("timestamp".into(), Value::from(maxTimestamp));
-        result.insert("datetime".into(), self.iso8601(Value::from(maxTimestamp)));
+        result.insert("datetime".into(), self.iso8601(maxTimestamp));
         return self.safe_balance(Value::Map(result));
         Value::Null
         }).await?))
@@ -1406,7 +1406,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("low".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bestBid", &[]));
@@ -1577,7 +1577,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -1917,7 +1917,7 @@ impl Latoken {
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);
@@ -2408,7 +2408,7 @@ impl Latoken {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2609,7 +2609,7 @@ impl Latoken {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "id", &[]));
         m.insert("timestamp".to_string(), self.safe_integer_k(transfer.clone(), "timestamp", &[]));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "transferringFunds", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(transfer.clone(), "fromAccount", &[]));
@@ -2650,8 +2650,8 @@ impl Latoken {
         let mut requestBody: Option<String> = None;
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut requestString: String = request.clone();
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut urlencodedQuery: String = self.urlencode(query.clone(), &[]);
+        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
+        let mut urlencodedQuery: String = self.urlencode(&query, &[]);
         if (method.as_str() == Some("GET")) {
             if (urlencodedQuery != "") {
                 requestString.push_str(&format!("{}{}", "?", urlencodedQuery));

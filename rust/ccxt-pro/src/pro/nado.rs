@@ -2681,7 +2681,7 @@ impl Nado {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                         m.insert("timestamp".to_string(), Value::from(timestamp));
-                        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                        m.insert("datetime".to_string(), self.iso8601(timestamp));
                         m.insert("ask".to_string(), self.parent.parse_x18(ask.map(Value::from).unwrap_or(Value::Null)));
                         m.insert("bid".to_string(), self.parent.parse_x18(bid.map(Value::from).unwrap_or(Value::Null)));
                         m.insert("info".to_string(), Value::Dict(bbo));

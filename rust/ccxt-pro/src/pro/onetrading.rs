@@ -579,7 +579,7 @@ impl Onetrading {
             let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None).into_dict();
             let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
             std::sync::Arc::make_mut(&mut parsedTicker).insert("timestamp".into(), Value::from(timestamp));
-            std::sync::Arc::make_mut(&mut parsedTicker).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+            std::sync::Arc::make_mut(&mut parsedTicker).insert("datetime".into(), self.iso8601(timestamp));
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
             client.resolve(Value::Dict(parsedTicker), &(Value::Str(format!("{}{}", "ticker.", symbol.as_deref().unwrap_or("null")).into())));
         }
@@ -799,7 +799,7 @@ impl Onetrading {
         }
         orderbook.set_book_meta("nonce", Value::from(timestamp));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), channel.as_str());
 }

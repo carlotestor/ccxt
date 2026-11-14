@@ -1673,7 +1673,7 @@ impl Coinbaseinternational {
         m.insert("info".to_string(), ticker.clone());
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "best_bid_price", &[]));
         m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "best_bid_amount", &[]));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "best_ask_price", &[]));
@@ -2329,7 +2329,7 @@ impl Coinbaseinternational {
         orderbook.set_book_meta("symbol", symbol.clone());
         orderbook.set_book_meta("nonce", self.safe_integer_k(&data, "change_id", &[]));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         if (channel.is_some()) {
             client.resolve(Value::from(&orderbook), &channel.clone().map(Value::from).unwrap_or(Value::Null));

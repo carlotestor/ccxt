@@ -1042,14 +1042,14 @@ impl Bithumb {
                 promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_1]).await);
             }
             }
-            let mut results: Value = promise_all(&Value::from(promises)).await;
+            let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_392: bool = true;
                 while { if !__for_first_392 { i += 1; } __for_first_392 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut quoteId: Value = quote.clone();
-                let mut response: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
+                let mut response: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
                 let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1505,7 +1505,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "buy_price", &[]));
@@ -1593,12 +1593,12 @@ impl Bithumb {
             let mut maxMarketIdsPerRequest: Option<i64> = self.parse_to_int((if ((false) || (maxMarketIdsOption < 1)) { Value::Int(200) } else { Value::from(maxMarketIdsOption) }));
             let mut marketIdsChunk: Value = Value::from(vec![]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_397: bool = true;
-                while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < (marketIdsLength as f64) } {
-                if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
+                while { if !__for_first_397 { i += 1; } __for_first_397 = false; i < marketIdsLength } {
+                if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get(i as usize).cloned().unwrap_or(Value::Null)); }
                 let mut marketIdsChunkLength: i64 = marketIdsChunk.len() as i64;
-                let mut isLastMarketId: bool = i.as_f64() == (Value::Int((marketIdsLength - 1))).as_f64();
+                let mut isLastMarketId: bool = i == ((marketIdsLength - 1));
                 if ((maxMarketIdsPerRequest.is_some() && Some(marketIdsChunkLength) >= maxMarketIdsPerRequest)) || isLastMarketId {
                     std::sync::Arc::make_mut(&mut marketIdsChunks).push(marketIdsChunk.clone());
                     request.insert("markets".into(), Value::Str(marketIdsChunk.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
@@ -1640,13 +1640,13 @@ impl Bithumb {
             //         },
             //     ]
             //
-            let mut responses: Value = promise_all(&Value::from(promises)).await;
+            let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
             let mut responsesLength: i64 = responses.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_400: bool = true;
                 while { if !__for_first_400 { i += 1; } __for_first_400 = false; i < responsesLength } {
-                let mut response: Value = self.safe_value(responses.clone(), Value::Int(i), &[]);
+                let mut response: Value = self.safe_value(&responses, Value::Int(i), &[]);
                 if self.is_dictionary(response.clone()).as_bool() == Some(true) && (self.safe_value_k(response.clone(), "data", &[]) != Value::Null) {
                     response = self.safe_value_k(response, "data", &[]);
                 }
@@ -1736,13 +1736,13 @@ impl Bithumb {
                 promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_6]).await);
             }
             }
-            let mut responses: Value = promise_all(&Value::from(promises)).await;
+            let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_404: bool = true;
                 while { if !__for_first_404 { i += 1; } __for_first_404 = false; i < (quotes.len() as i64) } {
                 let mut quote: Option<String> = quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let mut response: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(i), &[]).into_dict();
+                let mut response: crate::value::Dict = self.safe_dict(&responses, Value::Int(i), &[]).into_dict();
                 let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -2182,7 +2182,7 @@ impl Bithumb {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::from(type_var.as_deref()));
@@ -2999,7 +2999,7 @@ impl Bithumb {
             }
         }  else {
             timestamp = self.safe_integer_product_k(order.clone(), "order_date", Value::Float(0.001), &[]).as_i64();
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }
         let mut sideProperty: Option<String> = self.safe_string2(order.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;

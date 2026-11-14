@@ -1965,7 +1965,7 @@ impl Deribit {
                         m.insert("maker".to_string(), self.safe_number_k(&market, "maker_commission", &[]));
                         m.insert("contractSize".to_string(), self.safe_number_k(&market, "contract_size", &[]));
                         m.insert("expiry".to_string(), Value::from(expiry));
-                        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
+                        m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
                         m.insert("strike".to_string(), Value::from(strike));
                         m.insert("optionType".to_string(), optionType.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("precision".to_string(), Value::Map({
@@ -2325,7 +2325,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string2(&stats, Value::Str("high".into()), Value::Str("max_price".into()), &[]));
         m.insert("low".to_string(), self.safe_string2(&stats, Value::Str("low".into()), Value::Str("min_price".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("best_bid_price".into()), Value::Str("bid_price".into()), &[]));
@@ -2716,7 +2716,7 @@ impl Deribit {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("type".to_string(), self.safe_string_k(trade, "order_type", &[]));
@@ -3196,7 +3196,7 @@ impl Deribit {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -4148,7 +4148,7 @@ impl Deribit {
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "transaction_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
@@ -4441,7 +4441,7 @@ impl Deribit {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(volatilityObj));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("volatility".to_string(), Value::from(volatilityObj));
                 m
             }));
@@ -4647,7 +4647,7 @@ impl Deribit {
         m.insert("fromAccount".to_string(), (if (direction.as_deref() != Some("payment")) { account.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
         m.insert("toAccount".to_string(), (if (direction.as_deref() == Some("payment")) { account.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -4970,7 +4970,7 @@ impl Deribit {
         //   }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(contract.clone(), "timestamp", &[]).as_i64();
-        let mut datetime: Option<String> = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
         let mut result: Option<f64> = self.safe_number2(contract.clone(), Value::Str("result".into()), Value::Str("interest_8h".into()), &[]).as_f64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5080,8 +5080,8 @@ impl Deribit {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&result, "continuation", &[]).as_str().map(str::to_owned);
         let mut settlements: crate::value::List = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]).into_list();
-        let mut settlementsWithCursor: Value = self.add_pagination_cursor_to_result(cursor.as_deref(), Value::Arr(settlements));
-        return self.parse_liquidations(settlementsWithCursor, Some(&market), &[since, limit]);
+        let mut settlementsWithCursor: Option<crate::value::List> = self.add_pagination_cursor_to_result(cursor.as_deref(), Value::Arr(settlements)).into_opt_list();
+        return self.parse_liquidations(&settlementsWithCursor, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -5216,7 +5216,7 @@ impl Deribit {
         m.insert("baseValue".to_string(), self.safe_number_k(liquidation, "session_bankrupcy", &[]));
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[]);
 
@@ -5361,7 +5361,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("delta".to_string(), self.safe_number_k(&stats, "delta", &[]));
         m.insert("gamma".to_string(), self.safe_number_k(&stats, "gamma", &[]));
         m.insert("theta".to_string(), self.safe_number_k(&stats, "theta", &[]));
@@ -5564,7 +5564,7 @@ impl Deribit {
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("impliedVolatility".to_string(), Value::Null);
         m.insert("openInterest".to_string(), self.safe_number_k(chain.clone(), "open_interest", &[]));
         m.insert("bidPrice".to_string(), self.safe_number_k(chain.clone(), "bid_price", &[]));
@@ -5701,7 +5701,7 @@ impl Deribit {
         m.insert("openInterestAmount".to_string(), Value::from(openInterestAmount));
         m.insert("openInterestValue".to_string(), Value::from(openInterestValue));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
 }), Some(&marketResolved));

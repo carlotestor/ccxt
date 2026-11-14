@@ -3955,7 +3955,7 @@ if _try_result.is_err() {
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0002".into()), &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("expiry".to_string(), Value::from(expiry));
-        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
+        m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
@@ -4082,7 +4082,7 @@ if _try_result.is_err() {
                         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0003".into()), &[]));
                         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
                         m.insert("expiry".to_string(), Value::from(expiry));
-                        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
+                        m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
                         m.insert("strike".to_string(), self.parse_number(Value::from(strike), &[]));
                         m.insert("optionType".to_string(), Value::from(optionType));
                         m.insert("precision".to_string(), Value::Map({
@@ -4586,7 +4586,7 @@ if _try_result.is_err() {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), Value::from(fundingRate));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTime));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTime)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTime));
         m.insert("nextFundingRate".to_string(), Value::from(fundingRateIndicative));
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -5210,7 +5210,7 @@ if _try_result.is_err() {
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("code".to_string(), self.safe_string_k(&marketResolved, "settle", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(info, "change", &[]));
     m
@@ -5536,7 +5536,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), bid.map(Value::from).unwrap_or(Value::Null));
@@ -6185,7 +6185,7 @@ if _try_result.is_err() {
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "r", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -6640,7 +6640,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
@@ -6974,7 +6974,7 @@ if _try_result.is_err() {
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("updated".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
@@ -8004,7 +8004,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "id", &[]));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -8666,13 +8666,13 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut defaultSettle: Value = Value::Null;
+        let mut defaultSettle: Option<String> = None;
         if (market.is_none()) {
-            defaultSettle = Value::Str("usdt".into());
+            defaultSettle = Some("usdt".to_string());
         }  else {
-            defaultSettle = crate::value::KeyRead::key_read(&&market, "settle");
+            defaultSettle = crate::value::KeyRead::key_read(&&market, "settle").into_opt_string();
         }
-        let mut settle: Option<String> = self.safe_string_lower_k(params.clone(), "settle", &[defaultSettle]).as_str().map(str::to_owned);
+        let mut settle: Option<String> = self.safe_string_lower_k(params.clone(), "settle", &[defaultSettle.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -9150,7 +9150,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp2(position.clone(), Value::Str("update_time".into()), Value::Str("time".into()), &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&initialMarginString, &notional), &[]));
@@ -9617,7 +9617,7 @@ if _try_result.is_err() {
             let mut maxNotional: Option<f64> = self.safe_number_k(&item, "risk_limit", &[]).as_f64();
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
+                    m.insert("tier".to_string(), Value::Int((i + 1)));
                     m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
                     m.insert("currency".to_string(), self.safe_string_k(&market, "settle", &[]));
                     m.insert("minNotional".to_string(), minNotional.clone());
@@ -9887,7 +9887,7 @@ if _try_result.is_err() {
         m.insert("amount".to_string(), self.safe_number_k(info.clone(), "amount", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::Str("margin".into())]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), info);
     m
 });
@@ -9995,7 +9995,7 @@ if _try_result.is_err() {
         m.insert("amountBorrowed".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -10376,7 +10376,7 @@ if _try_result.is_err() {
         m.insert("openInterestAmount".to_string(), self.safe_number_k(interest.clone(), "open_interest", &[]));
         m.insert("openInterestValue".to_string(), self.safe_number_k(interest.clone(), "open_interest_usd", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
 });
@@ -10603,7 +10603,7 @@ if _try_result.is_err() {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("price".to_string(), self.safe_number_k(settlement, "settle_price", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -11182,7 +11182,7 @@ if _try_result.is_err() {
         m.insert("baseValue".to_string(), self.parse_number(baseValueString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&quoteValueString), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[]);
 
@@ -11593,7 +11593,7 @@ if _try_result.is_err() {
         m.insert("currency".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("impliedVolatility".to_string(), Value::Null);
         m.insert("openInterest".to_string(), Value::Null);
         m.insert("bidPrice".to_string(), self.parse_number(self.safe_number_k(chain.clone(), "bid1_price", &[]), &[]));

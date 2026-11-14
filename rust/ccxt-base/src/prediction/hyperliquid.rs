@@ -392,7 +392,7 @@ impl Hyperliquid {
  * @returns {string} the coin name
  */
     pub fn outcome_coin(&self, mut encoding: Value) -> Option<String> {
-        return Value::Str(format!("{}{}", Value::Str("#".into()), Value::Str(format!("{}", encoding).into())).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("#".into()), Value::Str(format!("{}", encoding).into())));
 }
 
 /*
@@ -404,7 +404,7 @@ impl Hyperliquid {
  * @returns {string} the token name
  */
     pub fn outcome_token(&self, mut encoding: Value) -> Option<String> {
-        return Value::Str(format!("{}{}", Value::Str("+".into()), Value::Str(format!("{}", encoding).into())).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("+".into()), Value::Str(format!("{}", encoding).into())));
 }
 
 /*
@@ -486,7 +486,7 @@ impl Hyperliquid {
         if (expiryDate.as_deref() != Some("")) {
             base = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "_").into()), expiryDate.as_deref().unwrap_or("null")));
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), ":").into()), label).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), ":").into()), label));
 }
 
 /*
@@ -526,7 +526,7 @@ impl Hyperliquid {
             if (expiryDate.as_deref() != Some("")) {
                 expiryPart = format!("{}{}", "_", expiryDate.as_deref().unwrap_or("null"));
             }
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(underlying.to_uppercase()), targetPart).into()), expiryPart).into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(underlying.to_uppercase()), targetPart).into()), expiryPart));
         }
         let mut questionDescription: Option<String> = (match question.get("description") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (questionDescription.is_some()) && (questionDescription.as_deref() != Some("")) {
@@ -574,12 +574,12 @@ impl Hyperliquid {
                             bucketLabel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "BETWEEN_", get_value(&thresholds, &(match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
                                 Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).into()), "_").into()), get_value(&thresholds, &index)).into());
                         }
-                        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), bucketLabel).into()), questionExpiryPart).into()).as_str().map(str::to_owned);
+                        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), bucketLabel).into()), questionExpiryPart));
                     }
                 }
                 let mut isFallbackLike: bool = (rawDescription.as_deref() == Some("other")) || (nameLower.as_deref().unwrap_or_default().contains("fallback")) || (nameLower.as_deref().unwrap_or_default().contains("other"));
                 if ((questionUnderlying.is_some()) && (questionUnderlying.as_deref() != Some(""))) && isFallbackLike {
-                    return Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), Value::Str("_OTHER".into())).into()), questionExpiryPart).into()).as_str().map(str::to_owned);
+                    return Some(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), Value::Str("_OTHER".into())).into()), questionExpiryPart));
                 }
             }
         }
@@ -603,16 +603,16 @@ impl Hyperliquid {
                     }
                 }
                 if (outcomeSlug.is_some()) && (outcomeSlug.as_deref() != Some("")) {
-                    return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionSlug.as_deref().unwrap_or("null"), "_").into()), outcomeSlug.as_deref().unwrap_or("null")).into()), "_").into()), Value::Str(format!("{}", outcomeId).into())).into()).as_str().map(str::to_owned);
+                    return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionSlug.as_deref().unwrap_or("null"), "_").into()), outcomeSlug.as_deref().unwrap_or("null")).into()), "_").into()), Value::Str(format!("{}", outcomeId).into())));
                 }
-                return Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionSlug.as_deref().unwrap_or("null"), "_").into()), Value::Str(format!("{}", outcomeId).into())).into()).as_str().map(str::to_owned);
+                return Some(format!("{}{}", Value::Str(format!("{}{}", questionSlug.as_deref().unwrap_or("null"), "_").into()), Value::Str(format!("{}", outcomeId).into())));
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (name != Value::Null) && (name.as_str() != Some("")) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.shorten_slug(name), Value::Str("_".into())).into()), Value::Str(format!("{}", outcomeId).into())).into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", Value::Str(format!("{}{}", self.shorten_slug(name), Value::Str("_".into())).into()), Value::Str(format!("{}", outcomeId).into())));
         }
-        return Value::Str(format!("{}{}", Value::Str("OUTCOME_".into()), Value::Str(format!("{}", outcomeId).into())).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("OUTCOME_".into()), Value::Str(format!("{}", outcomeId).into())));
 }
 
 /*
@@ -1215,7 +1215,7 @@ impl Hyperliquid {
         m.insert("label".to_string(), self.safe_string_k(&mkt, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&mkt, "market", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), Value::from(bid));
@@ -1551,9 +1551,9 @@ impl Hyperliquid {
         m.insert("type".to_string(), Value::Str("allMids".into()));
     m
 })]).await]);
-        let mut results: Value = promise_all(&Value::Arr(promises)).await;
-        let mut response: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(0), &[]).into_dict();
-        let mut midsResponse: Value = results.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut results: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
+        let mut response: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[]).into_dict();
+        let mut midsResponse: Value = crate::value::KeyRead::read(&&results, &Value::Int(1));
         let mut balances: crate::value::List = self.safe_list_k(&response, "balances", &[Value::from(vec![])]).into_list();
         let mut allMids: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2459,7 +2459,7 @@ impl Hyperliquid {
         m.insert("clientOrderId".to_string(), self.safe_string_k(&entry, "cloid", &[]));
         m.insert("info".to_string(), order);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
@@ -2727,7 +2727,7 @@ impl Hyperliquid {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tid", &[]));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
@@ -3000,7 +3000,7 @@ impl Hyperliquid {
 }
 
     pub fn hash_message(&self, mut message: Value) -> Option<String> {
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])));
 }
 
     pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> Value {

@@ -457,7 +457,7 @@ impl Coincheck {
         m.insert("id".to_string(), self.safe_string(trade.clone(), Value::Int(1), &[]));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), Value::Null);
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("type".to_string(), Value::Null);

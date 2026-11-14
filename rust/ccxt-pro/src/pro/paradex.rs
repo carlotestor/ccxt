@@ -449,9 +449,9 @@ impl Paradex {
     pub fn get_order_book_channel(&self, mut marketId: Value, optional_args: &[Value]) -> Option<String> {
         let deltas: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         if deltas {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", "order_book.", marketId).into()), ".deltas").into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", Value::Str(format!("{}{}", "order_book.", marketId).into()), ".deltas"));
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", "order_book.", marketId).into()), ".snapshot@15@100ms").into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", "order_book.", marketId).into()), ".snapshot@15@100ms"));
 }
 
     pub fn request_id(&mut self) -> i64 {
@@ -569,7 +569,7 @@ impl Paradex {
                 break;
             }
             let mut channel: Value = get_value(&channels, &pending.get(0).cloned().unwrap_or(Value::Null));
-            let mut pendingRequest: Value = self.subscribe_request(channel.clone());
+            let mut pendingRequest: crate::value::Dict = self.subscribe_request(channel.clone()).into_dict();
             self.send_request(url.as_str().unwrap_or_default(), self.deep_extend(pendingRequest, &[params.clone()]), channel.as_str()).await;
         }
         }
@@ -600,11 +600,11 @@ impl Paradex {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_583: bool = true;
-            while { if !__for_first_583 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_583 = false; i.as_f64().unwrap_or(f64::NAN) < ((channels.len() as i64) as f64) } {
-            if !(client.has_subscription(&channels.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null))) {
-                result.push(i.clone());
+            while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (channels.len() as i64) } {
+            if !(client.has_subscription(&channels.get(i as usize).cloned().unwrap_or(Value::Null))) {
+                result.push(Value::Int(i));
             }
         }
         }
@@ -672,16 +672,15 @@ impl Paradex {
     m
 }));
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_584: bool = true;
-            while { if !__for_first_584 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_584 = false; i.as_f64().unwrap_or(f64::NAN) < ((channels.len() as i64) as f64) } {
+            while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (channels.len() as i64) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                self.unsubscribe_channel_at(url.as_str().unwrap_or_default(), topic.as_str().unwrap_or_default(), channels.clone(), subMessageHashes.clone(), symbols.clone(), i.clone(), &[params.clone()]).await;
+                self.unsubscribe_channel_at(url.as_str().unwrap_or_default(), topic.as_str().unwrap_or_default(), channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int(i), &[params.clone()]).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
-                self.unsubscribe_channels_from(url.as_str().unwrap_or_default(), topic.as_str().unwrap_or_default(), channels.clone(), subMessageHashes.clone(), symbols.clone(), (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
-                    Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[params.clone()]).await;
+                self.unsubscribe_channels_from(url.as_str().unwrap_or_default(), topic.as_str().unwrap_or_default(), channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int((i + 1)), &[params.clone()]).await;
                 panic!("{}", e);
             }
         }
@@ -772,8 +771,8 @@ if _try_result.is_err() {
                 m.insert("symbols".to_string(), Value::from(channelSymbols));
             m
         });
-        let mut request: Value = self.unsubscribe_request(channel.clone());
-        return self.send_unsubscribe(url.as_str().unwrap_or_default(), Value::Str(format!("{}{}", "unsubscribe:", channel).into()), request, Value::Map(subscription), &[params]).await;
+        let mut request: crate::value::Dict = self.unsubscribe_request(channel.clone()).into_dict();
+        return self.send_unsubscribe(url.as_str().unwrap_or_default(), Value::Str(format!("{}{}", "unsubscribe:", channel).into()), &request, Value::Map(subscription), &[params]).await;
 
     Value::Null
 }
@@ -1254,7 +1253,7 @@ if _try_result.is_err() {
         m.insert("baseValue".to_string(), self.parse_number(contracts.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&contracts, &price), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[marketResolved]);
 
@@ -1424,9 +1423,9 @@ if _try_result.is_err() {
             if isDeltas && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &snapshotChannel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
                 // arrives once the reply is in
-                let mut unsubscribe: Value = self.unsubscribe_request(snapshotChannel.clone());
+                let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(snapshotChannel.clone()).into_dict();
                 __ch.remove_subscription(&snapshotChannel);
-                self.send_request(url.as_deref().unwrap_or_default(), unsubscribe, None).await;
+                self.send_request(url.as_deref().unwrap_or_default(), &unsubscribe, None).await;
             }
             let mut channel: Value = (if (isDeltas) { deltasChannel.map(Value::from).unwrap_or(Value::Null) } else { snapshotChannel });
             channels.push(channel);
@@ -1643,7 +1642,7 @@ if _try_result.is_err() {
             self.handle_book_side_deltas(storedAsks, Value::from(asks.clone()));
             stored.set_book_meta("nonce", nonce.clone());
             stored.set_book_meta("timestamp", Value::from(timestamp));
-            stored.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+            stored.set_book_meta("datetime", self.iso8601(timestamp));
             client.resolve(Value::from(&stored), messageHash.as_str());
             return;
         }
@@ -1805,8 +1804,8 @@ if _try_result.is_err() {
                     }
                 }
                 }
-                let mut unsubscribe: Value = self.unsubscribe_request(Value::from(channel.clone()));
-                self.send_request(url.as_deref().unwrap_or_default(), unsubscribe, None).await;
+                let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(Value::from(channel.clone())).into_dict();
+                self.send_request(url.as_deref().unwrap_or_default(), &unsubscribe, None).await;
             }
             let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
             let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -1948,8 +1947,8 @@ if _try_result.is_err() {
                     m.insert("symbols".to_string(), tickerSymbols.clone());
                 m
             });
-            let mut unsubscribe: Value = self.unsubscribe_request(Value::from(channel.clone()));
-            return self.send_unsubscribe(url.as_deref().unwrap_or_default(), Value::Str(format!("{}{}", "unsubscribe:", channel).into()), unsubscribe, Value::Map(channelSubscription), &[params.clone()]).await;
+            let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(Value::from(channel.clone())).into_dict();
+            return self.send_unsubscribe(url.as_deref().unwrap_or_default(), Value::Str(format!("{}{}", "unsubscribe:", channel).into()), &unsubscribe, Value::Map(channelSubscription), &[params.clone()]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2271,7 +2270,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), self.safe_string_k(data.clone(), "ask", &[]));
         m.insert("askVolume".to_string(), self.safe_string_k(data.clone(), "ask_size", &[]));
         m.insert("bid".to_string(), self.safe_string_k(data.clone(), "bid", &[]));
@@ -2735,7 +2734,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), data.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
         let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(data.clone(), "settlement_asset", &[]), None);
@@ -2997,7 +2996,7 @@ if _try_result.is_err() {
         m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".into()), &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
@@ -3211,10 +3210,10 @@ if _try_result.is_err() {
             }
         }
         }
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), (match (&(raw), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(Value::Int(64)) { Value::Int(__n) => Some(*__n),
+        return Some(format!("{}{}", Value::Str("0x".into()), (match (&(raw), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(Value::Int(64)) { Value::Int(__n) => Some(*__n),
             Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-            __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null })).into()).as_str().map(str::to_owned);
+            __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null })));
 }
 
     pub fn sbe_read_var_strings(&self, mut frameHex: Value, mut offset: Value, mut count: Value, mut frameLength: Value) -> Value {
@@ -3578,17 +3577,16 @@ if _try_result.is_err() {
         let names = names.as_array().unwrap_or(&__names_empty);
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         let mut flags: Vec<Value> = Vec::new();
-        let mut bits: Value = Value::from(self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1))));
+        let mut bits: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
         {
                         let mut i: i64 = 0;
             let mut __for_first_617: bool = true;
             while { if !__for_first_617 { i += 1; } __for_first_617 = false; i < (names.len() as i64) } {
-            let mut bit: Option<i64> = self.parse_to_int((match (&(bits), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
-                Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }));
+            let mut bit: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = bits { Some(__l % 2) } else { None })));
             if (bit == Some(1)) && (names.get(i as usize).cloned().unwrap_or(Value::Null).as_str() != Some("")) {
                 flags.push(names.get(i as usize).cloned().unwrap_or(Value::Null));
             }
-            bits = Value::from(self.parse_to_int((match ((bits).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            bits = self.parse_to_int(Value::from((if let Some(__l) = bits { Some((__l as f64) / 2.0) } else { None })));
         }
         }
         return Value::from(flags);

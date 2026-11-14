@@ -2140,12 +2140,12 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // Fetch both currencies and fees data for comprehensive funding limits
-        let mut responses: Value = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_currencies(Value::Null).await), self.v4_public_get_fee(&[params]).await])).await;
-        let mut currenciesData: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(0), &[Value::Map({
+        let mut responses: crate::value::List = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_currencies(Value::Null).await), self.v4_public_get_fee(&[params]).await])).await.into_list();
+        let mut currenciesData: crate::value::Dict = self.safe_dict(&responses, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut feesData: crate::value::Dict = self.safe_dict(responses, Value::Int(1), &[Value::Map({
+        let mut feesData: crate::value::Dict = self.safe_dict(&responses, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3026,7 +3026,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -4009,7 +4009,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
@@ -4707,7 +4707,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "uniqueId", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "transactionId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), Some(&currencyResolved)).map(Value::from).unwrap_or(Value::Null)])));
         m.insert("addressFrom".to_string(), (if (method.as_deref() == Some("1")) { address.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5034,7 +5034,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("amountBorrowed".to_string(), self.safe_number_k(info, "amount", &[]));
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -5199,7 +5199,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("datetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), Value::from(fundingRate));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTime));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTime)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTime));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -5305,7 +5305,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("swap".into())]));
         m.insert("code".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(contract, "fundingAmount", &[]));
     m
@@ -5651,7 +5651,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(conversion.clone(), "id", &[]));
         m.insert("fromCurrency".to_string(), fromCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("fromAmount".to_string(), self.safe_number2(conversion.clone(), Value::Str("give".into()), Value::Str("finalGive".into()), &[]));
@@ -5904,7 +5904,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("side".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(position.clone(), "modifyDate", &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
@@ -5999,7 +5999,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("fundingRate".to_string(), self.safe_number_k(info, "fundingRate", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -6023,7 +6023,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         let mut version: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut accessibility: Option<&str> = api.get(1).and_then(Value::as_str);
         let mut publicHeaders: Value = Value::Map({
@@ -6038,8 +6038,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), pathWithParams);
         if (accessibility.as_deref() == Some("public")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut privateBody: Option<String> = None;

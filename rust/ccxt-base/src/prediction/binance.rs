@@ -951,9 +951,9 @@ impl Binance {
         m.insert("url".to_string(), Value::Null);
         m.insert("image".to_string(), self.safe_string_k(rawTopic.clone(), "imageUrl", &[]));
         m.insert("created".to_string(), Value::from(created));
-        m.insert("createdDatetime".to_string(), self.iso8601(Value::from(created)));
+        m.insert("createdDatetime".to_string(), self.iso8601(created));
         m.insert("end".to_string(), Value::from(endDate));
-        m.insert("endDatetime".to_string(), self.iso8601(Value::from(endDate)));
+        m.insert("endDatetime".to_string(), self.iso8601(endDate));
         m.insert("category".to_string(), self.safe_string_k(rawTopic.clone(), "chartType", &[]));
         m.insert("resolved".to_string(), resolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), rawTopic);
@@ -1109,7 +1109,7 @@ impl Binance {
         m.insert("inverse".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::from(endDate));
-        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(endDate)));
+        m.insert("expiryDatetime".to_string(), self.iso8601(endDate));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("taker".to_string(), Value::from(feeRate));
@@ -1508,7 +1508,7 @@ impl Binance {
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "outcome", &[]));
@@ -1611,8 +1611,8 @@ impl Binance {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut wallet: Value = self.fetch_wallet("fetchOpenOrders", &[Value::from(&paramsMaxEntriesPerRequest)]).await;
-        request.insert("walletAddress".into(), self.safe_string_k(wallet, "walletAddress", &[]));
+        let mut wallet: crate::value::Dict = self.fetch_wallet("fetchOpenOrders", &[Value::from(&paramsMaxEntriesPerRequest)]).await.into_dict();
+        request.insert("walletAddress".into(), self.safe_string_k(&wallet, "walletAddress", &[]));
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMaxEntriesPerRequest]);
         let mut response: crate::value::Dict = self.sapi_private_get_order_list(&[__ws_arg_8]).await.into_dict();
         //
@@ -1720,8 +1720,8 @@ impl Binance {
         if (until.is_some()) {
             request.insert("endDate".into(), self.yyyymmdd(Value::from(until), &[]));
         }
-        let mut wallet: Value = self.fetch_wallet("fetchOrders", &[Value::from(&paramsOmitted)]).await;
-        request.insert("walletAddress".into(), self.safe_string_k(wallet, "walletAddress", &[]));
+        let mut wallet: crate::value::Dict = self.fetch_wallet("fetchOrders", &[Value::from(&paramsOmitted)]).await.into_dict();
+        request.insert("walletAddress".into(), self.safe_string_k(&wallet, "walletAddress", &[]));
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.sapi_private_get_order_history(&[__ws_arg_9]).await.into_dict();
         //
@@ -1804,10 +1804,10 @@ impl Binance {
             }
             }
         }
-        let mut wallet: Value = self.fetch_wallet("fetchPositions", &[params.clone()]).await;
+        let mut wallet: crate::value::Dict = self.fetch_wallet("fetchPositions", &[params.clone()]).await.into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("walletAddress".to_string(), self.safe_string_k(wallet, "walletAddress", &[]));
+                m.insert("walletAddress".to_string(), self.safe_string_k(&wallet, "walletAddress", &[]));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
@@ -1915,8 +1915,8 @@ impl Binance {
             let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market((outcomeObj.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
             request.insert("marketTopicId".into(), crate::value::get_value_k(&market.get("info").cloned().unwrap_or(Value::Null), "marketTopicId"));
         }
-        let mut wallet: Value = self.fetch_wallet("fetchOrders", &[params.clone()]).await;
-        request.insert("walletAddress".into(), self.safe_string_k(wallet, "walletAddress", &[]));
+        let mut wallet: crate::value::Dict = self.fetch_wallet("fetchOrders", &[params.clone()]).await.into_dict();
+        request.insert("walletAddress".into(), self.safe_string_k(&wallet, "walletAddress", &[]));
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sapi_private_get_position_filter(&[__ws_arg_11]).await.into_dict();
         //
@@ -1961,7 +1961,7 @@ impl Binance {
         m.insert("outcomeId".to_string(), self.safe_string2(outcomeObjResolved.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObjResolved, "market", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("isolated".to_string(), Value::Bool(false));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("long".into()));
@@ -2054,8 +2054,8 @@ impl Binance {
         if (until.is_some()) {
             request.insert("endDate".into(), self.yyyymmdd(Value::from(until), &[]));
         }
-        let mut wallet: Value = self.fetch_wallet("fetchMyTrades", &[Value::from(&paramsOmitted)]).await;
-        request.insert("walletAddress".into(), self.safe_string_k(wallet, "walletAddress", &[]));
+        let mut wallet: crate::value::Dict = self.fetch_wallet("fetchMyTrades", &[Value::from(&paramsOmitted)]).await.into_dict();
+        request.insert("walletAddress".into(), self.safe_string_k(&wallet, "walletAddress", &[]));
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.sapi_private_get_order_history(&[__ws_arg_12]).await.into_dict();
         //
@@ -2172,7 +2172,7 @@ impl Binance {
         m.insert("id".to_string(), Value::Null);
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "label", &[]));
@@ -2339,14 +2339,14 @@ impl Binance {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketSymbol.as_deref().unwrap_or_default()));
         let mut typeUpper: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut sideUpper: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
-        let mut wallet: Value = self.fetch_wallet("createOrder", &[params.clone()]).await;
+        let mut wallet: crate::value::Dict = self.fetch_wallet("createOrder", &[params.clone()]).await.into_dict();
         let mut defaultSlippage: String = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".into())]).as_str().unwrap_or("0.05").to_string();
         let mut slippage: Option<String> = self.safe_string_k(params.clone(), "slippage", &[Value::from(defaultSlippage)]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(params.clone(), "cost", &[]).as_str().map(str::to_owned);
         let mut slippageBps: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&slippage, &Value::Str("10000".into())));
         let mut commonRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("walletAddress".to_string(), self.safe_string_k(wallet.clone(), "walletAddress", &[]));
+                m.insert("walletAddress".to_string(), self.safe_string_k(&wallet, "walletAddress", &[]));
                 m.insert("orderType".to_string(), Value::from(typeUpper.clone()));
                 m.insert("slippageBps".to_string(), Value::from(slippageBps));
             m
@@ -2394,9 +2394,9 @@ impl Binance {
                 m.insert("amountIn".to_string(), crate::precise::Precise::stringMul(&Value::from(__ws_arg_14), &Value::Str("1000000000000000000".into())));
             m
         })]).into_dict();
-        let mut quote: Value = self.fetch_quote(&quoteRequest, &[Value::from(&paramsOmitted)]).await;
-        let mut quoteId: Option<String> = self.safe_string_k(quote, "quoteId", &[]).as_str().map(str::to_owned);
-        let __ws_arg_15 = self.safe_string_k(wallet, "walletId", &[]);
+        let mut quote: crate::value::Dict = self.fetch_quote(&quoteRequest, &[Value::from(&paramsOmitted)]).await.into_dict();
+        let mut quoteId: Option<String> = self.safe_string_k(&quote, "quoteId", &[]).as_str().map(str::to_owned);
+        let __ws_arg_15 = self.safe_string_k(&wallet, "walletId", &[]);
         let mut orderRequest: crate::value::Dict = self.extend(Value::Map(commonRequest), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletId".to_string(), __ws_arg_15);
@@ -2530,11 +2530,11 @@ impl Binance {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
         }
-        let mut wallet: Value = self.fetch_wallet("cancelOrders", &[params.clone()]).await;
+        let mut wallet: crate::value::Dict = self.fetch_wallet("cancelOrders", &[params.clone()]).await.into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("walletAddress".to_string(), self.safe_string_k(wallet.clone(), "walletAddress", &[]));
-                m.insert("walletId".to_string(), self.safe_string_k(wallet, "walletId", &[]));
+                m.insert("walletAddress".to_string(), self.safe_string_k(&wallet, "walletAddress", &[]));
+                m.insert("walletId".to_string(), self.safe_string_k(&wallet, "walletId", &[]));
             m
         });
         {

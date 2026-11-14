@@ -1643,7 +1643,7 @@ impl Derive {
                     m.insert("symbol".to_string(), Value::from(symbol));
                     m.insert("side".to_string(), Value::from(side.clone()));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("info".to_string(), entry.clone());
                 m
             }));

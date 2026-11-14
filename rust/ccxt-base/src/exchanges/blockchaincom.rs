@@ -956,7 +956,7 @@ impl Blockchaincom {
         let mut price: Option<String> = (if (type_var.as_deref() != Some("market")) { self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned) } else { None });
         let mut average: Option<f64> = self.safe_number_k(order.clone(), "avgPx", &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "timestamp", &[]).as_i64();
-        let mut datetime: Option<String> = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "cumQty", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "leavesQty", &[]).as_str().map(str::to_owned);
         let mut result: Value = self.safe_order(Value::Map({
@@ -1350,7 +1350,7 @@ impl Blockchaincom {
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "qty", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
-        let mut datetime: Option<String> = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]);
         let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut fee: Option<crate::value::Dict> = None;
@@ -1559,7 +1559,7 @@ impl Blockchaincom {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));

@@ -531,7 +531,7 @@ impl Whitebit {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         if isSnapshot {
             let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
@@ -910,16 +910,16 @@ impl Whitebit {
         let mut feeCost: Option<String> = self.safe_string(trade.clone(), Value::Int(6), &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
             let mut feeCurrencyId: Option<String> = self.safe_string(trade.clone(), Value::Int(10), &[]).as_str().map(str::to_owned);
-            let mut feeCurrencyCode: Value = Value::Null;
+            let mut feeCurrencyCode: Option<String> = None;
             if (feeCurrencyId.is_some()) {
-                feeCurrencyCode = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                feeCurrencyCode = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
             }  else {
-                feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "quote");
+                feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "quote").into_opt_string();
             }
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), feeCurrencyCode);
+                    m.insert("currency".to_string(), feeCurrencyCode.map(Value::from).unwrap_or(Value::Null));
                 m
             }));
         }
@@ -942,7 +942,7 @@ impl Whitebit {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
@@ -1132,7 +1132,7 @@ impl Whitebit {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);

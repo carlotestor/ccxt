@@ -1022,7 +1022,7 @@ impl Krakenfutures {
                     m.insert("maker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]));
                     m.insert("maintenanceMarginRate".to_string(), Value::Null);
                     m.insert("expiry".to_string(), Value::from(expiry));
-                    m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
+                    m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
@@ -1355,7 +1355,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -1742,10 +1742,10 @@ impl Krakenfutures {
             rawTrades = std::sync::Arc::new(Vec::new());
             let mut length: i64 = elements.len() as i64;
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_871: bool = true;
-                while { if !__for_first_871 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_871 = false; i.as_f64().unwrap_or(f64::NAN) < (length as f64) } {
-                let mut index: Value = (match (&(Value::Int((length - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                while { if !__for_first_871 { i += 1; } __for_first_871 = false; i < length } {
+                let mut index: Value = Value::Int((((length - 1)) - i));
                 let mut element: crate::value::Dict = self.safe_dict(&elements, index, &[]).into_dict();
                 let mut event: crate::value::Dict = self.safe_dict_k(&element, "event", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1941,7 +1941,7 @@ impl Krakenfutures {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), order.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -2199,7 +2199,7 @@ impl Krakenfutures {
             let mut extendedParams: crate::value::Dict = self.extend(orderParams, &[params.clone()]).into_dict(); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if !(extendedParams.contains_key("order_tag")) {
                 // order tag is mandatory so we will generate one if not provided
-                std::sync::Arc::make_mut(&mut extendedParams).insert("order_tag".into(), Value::from(self.number_to_string(self.sum(&[Value::Int(i), Value::Int(1)])))); // sequential counter
+                std::sync::Arc::make_mut(&mut extendedParams).insert("order_tag".into(), Value::from(self.number_to_string(Value::Int((i + 1))))); // sequential counter
             }
             std::sync::Arc::make_mut(&mut extendedParams).insert("order".into(), Value::Str("send".into()));
             let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[price, Value::Dict(extendedParams)]).into_dict();
@@ -3447,7 +3447,7 @@ impl Krakenfutures {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_n(details.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientId".into()), Value::Str("cliOrdId".into())]), &[]));
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(details.clone(), "lastUpdateTimestamp", &[Value::from(lastUpdateTimestamp)]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -3753,7 +3753,7 @@ impl Krakenfutures {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
         m.insert("code".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "id", &[]));
         m.insert("amount".to_string(), self.safe_number_k(income, "realized_funding", &[]));
     m
@@ -3850,7 +3850,7 @@ impl Krakenfutures {
         m.insert("after".to_string(), self.parse_number(after.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -4229,7 +4229,7 @@ impl Krakenfutures {
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.parse_number(fundingRateResult.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
@@ -4557,7 +4557,7 @@ impl Krakenfutures {
         let mut datetime: Option<String> = None;
         if isHistory {
             timestamp = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }  else {
             datetime = self.safe_string_k(position.clone(), "fillTime", &[]).as_str().map(str::to_owned);
             timestamp = self.parse8601(Value::from(datetime.as_deref()));
@@ -4751,11 +4751,11 @@ impl Krakenfutures {
             let mut minNotional: Option<f64> = self.safe_number2(&tier, Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]).as_f64();
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
+                    m.insert("tier".to_string(), Value::Int((i + 1)));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "quote"));
                     m.insert("minNotional".to_string(), Value::from(minNotional));
-                    m.insert("maxNotional".to_string(), self.safe_number2(self.safe_dict(&marginLevels, self.sum(&[Value::Int(i), Value::Int(1)]), &[]), Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]));
+                    m.insert("maxNotional".to_string(), self.safe_number2(self.safe_dict(&marginLevels, Value::Int((i + 1)), &[]), Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(&tier, "maintenanceMargin", &[]));
                     m.insert("maxLeverage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMargin), &[]));
                     m.insert("info".to_string(), Value::from(&tier));

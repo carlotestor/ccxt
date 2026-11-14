@@ -1560,7 +1560,7 @@ if _try_result.is_err() {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "updated_at", &[]).as_i64();
         result.insert("timestamp".into(), Value::from(timestamp));
-        result.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        result.insert("datetime".into(), self.iso8601(timestamp));
         return self.safe_balance(Value::Map(result));
         Value::Null
         }).await?))
@@ -2007,10 +2007,10 @@ if _try_result.is_err() {
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), Value::from(funding));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTimestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::from(nextFundingRate));
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -2342,7 +2342,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -2922,7 +2922,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let mut request: Value = self.cancel_all_orders_request(symbol.as_str(), &[params.clone()]);
+        let mut request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[params.clone()]).into_dict();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["excludeReduceOnly", "expiryWindow"], &[]).into_dict();
         let __ws_arg_15 = self.extend(request, &[&paramsOmitted]);
         let mut response: Value = self.private_post_orders_cancel_all(&[__ws_arg_15]).await;
@@ -2994,12 +2994,12 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
-        let mut request: Value = self.cancel_order_request(id.clone(), symbol.as_str(), &[params.clone()]);
+        let mut request: crate::value::Dict = self.cancel_order_request(id.clone(), symbol.as_str(), &[params.clone()]).into_dict();
         let mut isStopOrder: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow", "trigger", "stop", "clientOrderId"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isStopOrder {
-            let __ws_arg_16 = self.extend(request.clone(), &[&paramsOmitted]);
+            let __ws_arg_16 = self.extend(&request, &[&paramsOmitted]);
             response = self.private_post_orders_stop_cancel(&[__ws_arg_16]).await.into_opt_dict();
         }  else {
             let __ws_arg_17 = self.extend(request, &[&paramsOmitted]);
@@ -3096,7 +3096,7 @@ if _try_result.is_err() {
         }
         self.initialize_client().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[params.clone()]);
+        let mut request: crate::value::Dict = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[params.clone()]).into_dict();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow", "clientOrderId"], &[]).into_dict();
         let __ws_arg_18 = self.extend(request, &[&paramsOmitted]);
         let mut response: Value = self.private_post_orders_edit(&[__ws_arg_18]).await;
@@ -3248,7 +3248,7 @@ if _try_result.is_err() {
                     m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "funding_rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -3351,7 +3351,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("previousClose".to_string(), self.safe_number_k(ticker.clone(), "yesterday_price", &[]));
         m.insert("close".to_string(), self.safe_number_k(ticker.clone(), "mid", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -3920,7 +3920,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("order_id".into()), Value::Str("i".into()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(order.clone(), Value::Str("client_order_id".into()), Value::Str("I".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer2(order.clone(), Value::Str("updated_at".into()), Value::Str("ut".into()), &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -4079,7 +4079,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(createdAt));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(createdAt)));
+        m.insert("datetime".to_string(), self.iso8601(createdAt));
         m.insert("isolated".to_string(), isIsolated);
         m.insert("hedged".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -4499,7 +4499,7 @@ if _try_result.is_err() {
         m.insert("openInterestAmount".to_string(), self.parse_number(openInterest.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("openInterestValue".to_string(), self.parse_number(interestValue.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
 }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
@@ -4614,7 +4614,7 @@ if _try_result.is_err() {
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), self.parse_number(crate::precise::Precise::stringSub(&balance, &change), &[]));
         m.insert("after".to_string(), self.parse_number(balance.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), Value::Null);
@@ -4767,7 +4767,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), Value::Null);
         m.insert("txid".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -4893,7 +4893,7 @@ if _try_result.is_err() {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("rate".to_string(), Value::from(rate));

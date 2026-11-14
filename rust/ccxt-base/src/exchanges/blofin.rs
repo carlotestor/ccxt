@@ -1560,7 +1560,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPrice", &[]));
@@ -1781,7 +1781,7 @@ impl Blofin {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), trade.clone());
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("symbol".to_string(), Value::from(spotSymbol));
                     m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1805,7 +1805,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -2019,7 +2019,7 @@ impl Blofin {
                     m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&rate, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -2066,7 +2066,7 @@ impl Blofin {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTime));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTime)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTime));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -2214,7 +2214,7 @@ impl Blofin {
         }
         }
         result.insert("timestamp".into(), Value::from(timestamp));
-        result.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        result.insert("datetime".into(), self.iso8601(timestamp));
         return self.safe_balance(Value::Map(result));
 
     Value::Null
@@ -2528,7 +2528,7 @@ impl Blofin {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -3956,7 +3956,7 @@ impl Blofin {
         m.insert("updated".to_string(), Value::Null);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
@@ -4037,7 +4037,7 @@ impl Blofin {
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(item, "amount", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Str("ok".into()));
@@ -4548,7 +4548,7 @@ impl Blofin {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), Value::Bool(hedged));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::from(maintenanceMargin));
         m.insert("maintenanceMarginPercentage".to_string(), Value::from(maintenanceMarginPercentage));
@@ -5163,7 +5163,7 @@ impl Blofin {
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 

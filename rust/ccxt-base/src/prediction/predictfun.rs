@@ -972,7 +972,7 @@ impl Predictfun {
             m
         });
         // market rows whose category row did not come back, bucketed by the slug they carry
-        let mut orphanMarkets: Value = Value::Map({
+        let mut orphanMarkets: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1071,15 +1071,15 @@ impl Predictfun {
                 let mut rawMarket: Value = rawMarkets.get(mi as usize).cloned().unwrap_or(Value::Null);
                 let mut marketSlug: Option<String> = self.safe_string_k_opt(rawMarket.clone(), "categorySlug", &[]);
                 if (marketSlug.is_some()) {
-                    if (matches!((&orphanMarkets, &marketSlug.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if (matches!(&marketSlug.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if orphanMarkets.contains_key(__k.as_ref()))) {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
-                        let mut bucket: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), marketSlug.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                        let mut bucket: Value = orphanMarkets.get(marketSlug.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                         if let Value::Arr(__a) = &mut bucket { std::sync::Arc::make_mut(__a).push(rawMarket.clone()); };
-                        crate::set_value(&mut orphanMarkets, &marketSlug.clone().map(Value::from).unwrap_or(Value::Null), bucket.clone());
-                        if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(marketSlug.as_deref().unwrap_or("null").to_string(), bucket); }
+                        if let Some(__k) = marketSlug.as_deref() { orphanMarkets.insert(__k.to_string(), bucket.clone()); }
+                        orphanMarkets.insert(marketSlug.as_deref().unwrap_or("null").to_string(), bucket);
                     }  else {
-                        if let Value::Dict(__d) = &mut orphanMarkets { std::sync::Arc::make_mut(__d).insert(marketSlug.as_deref().unwrap_or("null").to_string(), Value::from(vec![rawMarket])); }
+                        orphanMarkets.insert(marketSlug.as_deref().unwrap_or("null").to_string(), Value::from(vec![rawMarket]));
                         orphanSlugs.push(marketSlug.map(Value::from).unwrap_or(Value::Null));
                     }
                 }
@@ -1097,7 +1097,7 @@ impl Predictfun {
             let mut orphanSlug: Option<&str> = orphanSlugs.get(i as usize).and_then(Value::as_str);
             if !(matches!(orphanSlug.as_deref(), Some(__k) if seenSlugs.contains_key(__k))) {
                 seenSlugs.insert(orphanSlug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                let mut markets: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), orphanSlug) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut markets: Value = orphanMarkets.get(orphanSlug.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 let mut first: crate::value::Dict = self.safe_dict(markets.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1374,10 +1374,10 @@ impl Predictfun {
         let mut chars: Value = self.string_to_chars_array(text);
         let mut stripped: String = "".to_string();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1465: bool = true;
-            while { if !__for_first_1465 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1465 = false; i.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
-            let mut ch: Option<String> = chars.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).and_then(Value::as_str).map(str::to_owned);
+            while { if !__for_first_1465 { i += 1; } __for_first_1465 = false; i < (chars.len() as i64) } {
+            let mut ch: Option<String> = chars.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut keep: bool = true;
             if (ch.as_deref() == Some("$")) {
                 keep = false;
@@ -1385,11 +1385,9 @@ impl Predictfun {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                let mut prevIsDigit: bool = (i.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y),
-                    (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
-                let mut nextIsDigit: bool = (((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-                    _ => Value::Null })).as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64)) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y),
-                    (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
+                let mut prevIsDigit: bool = (i > 0) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &(Value::Int((i - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
+                let mut nextIsDigit: bool = ((Value::Int((i + 1))).as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64)) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &(Value::Int((i + 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize),
+                    _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
                 keep = !(prevIsDigit && nextIsDigit);
             }
             if keep {
@@ -1783,7 +1781,7 @@ impl Predictfun {
                     m.insert("bids".to_string(), self.sort_by(Value::from(noBids), Value::Int(0), &[Value::Bool(true)]));
                     m.insert("asks".to_string(), self.sort_by(Value::from(noAsks), Value::Int(0), &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("nonce".to_string(), Value::Null);
                 m
             });
@@ -2305,7 +2303,7 @@ impl Predictfun {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "settlementId", &[]));
         m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[outcomeObj.clone()]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
@@ -2382,7 +2380,7 @@ impl Predictfun {
         let mut x19: crate::value::Bytes = self.base16_to_binary(Value::Str("19".into()), &[]);
         let mut newline: crate::value::Bytes = self.base16_to_binary(Value::Str("0a".into()), &[]);
         let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(Value::from(binaryMessageLength)))))]);
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[Value::from(&binaryMessage)]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[Value::from(&binaryMessage)]), Value::Str("keccak".into()), &[Value::Str("hex".into())])));
 }
 
 /*
@@ -4431,7 +4429,7 @@ impl Predictfun {
         if (self.apiKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " requires an apiKey for all methods - the venue answers the socket handshake with a 401 without one")));
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "?apiKey=").into()), self.apiKey.clone()).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "?apiKey=").into()), self.apiKey.clone()));
 }
 
 /*
@@ -4623,7 +4621,7 @@ impl Predictfun {
                         m.insert("bids".to_string(), bids);
                         m.insert("asks".to_string(), asks);
                         m.insert("timestamp".to_string(), Value::from(timestamp));
-                        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                        m.insert("datetime".to_string(), self.iso8601(timestamp));
                         m.insert("outcome".to_string(), outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[]));
                         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
@@ -4891,7 +4889,7 @@ impl Predictfun {
         m.insert("id".to_string(), self.safe_string2(event.clone(), Value::Str("orderHash".into()), Value::Str("orderId".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(timestamp));
         m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4963,7 +4961,7 @@ impl Predictfun {
         m.insert("id".to_string(), self.safe_string_k(event.clone(), "settlementId", &[]));
         m.insert("order".to_string(), self.safe_string_k(event.clone(), "orderHash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), (match order.get("outcome") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("outcomeId".to_string(), (match order.get("outcomeId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("label".to_string(), (match order.get("label") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
@@ -5115,10 +5113,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "predictfun")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         if (method.as_str() == Some("GET")) {
-            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut existingHeaders: Value = Value::Map({

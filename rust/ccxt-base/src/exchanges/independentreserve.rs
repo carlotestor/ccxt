@@ -690,8 +690,8 @@ impl Independentreserve {
         let mut quoteCurrenciesPromise: Value = self.public_get_get_valid_secondary_currency_codes(&[params.clone()]).await;
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         let mut limitsPromise: Value = self.public_get_get_order_minimum_volumes(&[params]).await;
-        let mut responses: Value = promise_all(&Value::from(vec![baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise])).await;
-        let mut limits: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(2), &[]).into_dict();
+        let mut responses: crate::value::List = promise_all(&Value::from(vec![baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise])).await.into_list();
+        let mut limits: crate::value::Dict = self.safe_dict(&responses, Value::Int(2), &[]).into_dict();
         //
         //     {
         //         "Xbt": 0.0001,
@@ -701,8 +701,8 @@ impl Independentreserve {
         //     }
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut baseCurrencyIds: crate::value::List = self.to_array(self.safe_list(responses.clone(), Value::Int(0), &[])).into_list();
-        let mut quoteCurrencyIds: crate::value::List = self.to_array(self.safe_list(responses, Value::Int(1), &[])).into_list();
+        let mut baseCurrencyIds: crate::value::List = self.to_array(self.safe_list(&responses, Value::Int(0), &[])).into_list();
+        let mut quoteCurrencyIds: crate::value::List = self.to_array(self.safe_list(&responses, Value::Int(1), &[])).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_832: bool = true;
@@ -918,7 +918,7 @@ impl Independentreserve {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "DayHighestPrice", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "DayLowestPrice", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "CurrentHighestBidPrice", &[]));
@@ -1072,7 +1072,7 @@ impl Independentreserve {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "OrderGuid", &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
@@ -1343,7 +1343,7 @@ impl Independentreserve {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);

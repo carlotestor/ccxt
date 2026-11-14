@@ -2046,8 +2046,8 @@ impl Xt {
 }));
         let mut promisesRaw: crate::value::List = std::sync::Arc::new(vec![self.public_spot_get_wallet_support_currency(&[params.clone()]).await, self.public_spot_get_currencies(&[params]).await]);
         let chainsResponsecurrenciesResponseVariable: Vec<Value> = promise_all(&Value::Arr(promisesRaw)).await.as_array().cloned().unwrap_or_default();
-        let mut chainsResponse: Value = chainsResponsecurrenciesResponseVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut currenciesResponse: Value = chainsResponsecurrenciesResponseVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut chainsResponse: crate::value::Dict = chainsResponsecurrenciesResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+        let mut currenciesResponse: crate::value::Dict = chainsResponsecurrenciesResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         //
         // currencies
         //
@@ -2099,11 +2099,11 @@ impl Xt {
         //
         // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
         //
-        let mut chainsData: crate::value::List = self.safe_list_k(chainsResponse, "result", &[Value::from(vec![])]).into_list();
-        let mut currenciesResult: crate::value::Dict = self.safe_dict_k(currenciesResponse, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut chainsData: crate::value::List = self.safe_list_k(&chainsResponse, "result", &[Value::from(vec![])]).into_list();
+        let mut currenciesResult: crate::value::Dict = self.safe_dict_k(&currenciesResponse, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut currenciesData: crate::value::List = self.safe_list_k(&currenciesResult, "currencies", &[Value::from(vec![])]).into_list();
         let mut chainsDataIndexed: crate::value::Dict = self.index_by(Value::Arr(chainsData), Value::Str("currency".into())).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -3395,7 +3395,7 @@ impl Xt {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "h", &[]));
         m.insert("low".to_string(), self.safe_number_k(ticker.clone(), "l", &[]));
         m.insert("bid".to_string(), self.safe_number_k(ticker.clone(), "bp", &[]));
@@ -3814,7 +3814,7 @@ impl Xt {
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("i".into()), Value::Str("tradeId".into()), Value::Str("execId".into())]), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), self.safe_string2(trade.clone(), Value::Str("orderId".into()), Value::Str("oi".into()), &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "orderType", &[]));
@@ -5676,7 +5676,7 @@ impl Xt {
         m.insert("id".to_string(), self.safe_string_n(order.clone(), Value::from(vec![Value::Str("orderId".into()), Value::Str("result".into()), Value::Str("cancelId".into()), Value::Str("entrustId".into()), Value::Str("profitId".into()), Value::Str("trackId".into())]), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clientModifyId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastUpdatedTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdatedTimestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -5855,7 +5855,7 @@ impl Xt {
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), Some(&currencyResolved)).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(item.clone(), "amount", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), self.safe_number_k(item, "afterAmount", &[]));
         m.insert("status".to_string(), Value::Null);
@@ -6256,7 +6256,7 @@ impl Xt {
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "transactionId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("updated".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), self.safe_string_k(transaction.clone(), "fromAddr", &[]));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -6681,14 +6681,13 @@ impl Xt {
         let mut tiers: Vec<Value> = Vec::new();
         let mut brackets: crate::value::List = self.safe_list_k(info.clone(), "leverageBrackets", &[Value::from(vec![])]).into_list();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1193: bool = true;
-            while { if !__for_first_1193 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1193 = false; i.as_f64().unwrap_or(f64::NAN) < ((brackets.len() as i64) as f64) } {
-            let mut tier: Option<crate::value::Dict> = self.safe_dict(&brackets, i.clone(), &[]).into_opt_dict();
+            while { if !__for_first_1193 { i += 1; } __for_first_1193 = false; i < (brackets.len() as i64) } {
+            let mut tier: Option<crate::value::Dict> = self.safe_dict(&brackets, Value::Int(i), &[]).into_opt_dict();
             let mut marketId: Option<String> = self.safe_string_k(info.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into()), Value::Str("contract".into())]);
-            let mut minNotional: Value = self.safe_number(self.safe_dict(&brackets, (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]), Value::Str("maxNominalValue".into()), &[Value::Int(0)]);
+            let mut minNotional: Value = self.safe_number(self.safe_dict(&brackets, Value::Int((i - 1)), &[]), Value::Str("maxNominalValue".into()), &[Value::Int(0)]);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_integer_k(&tier, "bracket", &[]));
@@ -6810,7 +6809,7 @@ impl Xt {
                     m.insert("symbol".to_string(), symbolInner.map(Value::from).unwrap_or(Value::Null));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -6939,7 +6938,7 @@ impl Xt {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(timestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(timestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -7035,7 +7034,7 @@ impl Xt {
         m.insert("openInterestAmount".to_string(), self.safe_number_k(interest.clone(), "openInterest", &[]));
         m.insert("openInterestValue".to_string(), self.safe_number_k(interest.clone(), "openInterestUsd", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
 }), Some(&marketResolved));
@@ -7301,7 +7300,7 @@ impl Xt {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(contract.clone(), "id", &[]));
         m.insert("amount".to_string(), self.safe_number_k(contract, "cast", &[]));
     m
@@ -7464,8 +7463,8 @@ impl Xt {
             let mut marketInner: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]);
             let mut positionSize: Option<String> = self.safe_string_k(&entry, "positionSize", &[]).as_str().map(str::to_owned);
             if (positionSize.as_deref() != Some("0")) {
-                let mut merged: Value = self.merge_position_break_info(Value::Dict(entry), &breakBySymbolSide);
-                return self.parse_position(merged, Some(&marketInner));
+                let mut merged: Option<crate::value::Dict> = self.merge_position_break_info(Value::Dict(entry), &breakBySymbolSide).into_opt_dict();
+                return self.parse_position(&merged, Some(&marketInner));
             }
         }
         }
@@ -7564,8 +7563,8 @@ impl Xt {
             let mut entry: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             let mut marketInner: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]);
-            let mut merged: Value = self.merge_position_break_info(Value::Dict(entry), &breakBySymbolSide);
-            result.push(self.parse_position(merged, Some(&marketInner)));
+            let mut merged: Option<crate::value::Dict> = self.merge_position_break_info(Value::Dict(entry), &breakBySymbolSide).into_opt_dict();
+            result.push(self.parse_position(&merged, Some(&marketInner)));
         }
         }
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbols]);
@@ -7753,7 +7752,7 @@ impl Xt {
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "positionSide", &[]));
         m.insert("contracts".to_string(), self.safe_number2(position.clone(), Value::Str("positionSize".into()), Value::Str("closePositionSize".into()), &[]));

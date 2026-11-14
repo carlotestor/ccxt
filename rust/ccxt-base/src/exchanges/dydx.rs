@@ -1173,7 +1173,7 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -1301,7 +1301,7 @@ impl Dydx {
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
-            request.insert("toISO".into(), self.iso8601(Value::from(until)));
+            request.insert("toISO".into(), self.iso8601(until));
         }  else if (since != Value::Null) {
             // the indexer returns the newest candles in the range, so the range ends where the limit does
             let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
@@ -1379,7 +1379,7 @@ impl Dydx {
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         if (until.is_some()) {
-            request.insert("effectiveBeforeOrAt".into(), self.iso8601(Value::from(until)));
+            request.insert("effectiveBeforeOrAt".into(), self.iso8601(until));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.indexer_get_historical_funding_market(&[__ws_arg_3]).await.into_dict();
@@ -1411,7 +1411,7 @@ impl Dydx {
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -1484,7 +1484,7 @@ impl Dydx {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1750,7 +1750,7 @@ impl Dydx {
         m.insert("contracts".to_string(), self.parse_number(quantity.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
@@ -2301,7 +2301,7 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut credentials: Value = self.retrieve_credentials();
+        let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
         let mut account: Value = self.fetch_dydx_account().await;
         let mut lastBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
         // params['latestBlockHeight'] = lastBlockHeight;
@@ -2314,7 +2314,7 @@ impl Dydx {
         let mut orderId: Value = orderRequestRes.get(0).cloned().unwrap_or(Value::Null);
         let mut orderRequest: Value = orderRequestRes.get(1).cloned().unwrap_or(Value::Null);
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(credentials, "privateKey", &[])).as_str(), orderRequest.clone(), Some(""), chainName.as_deref(), account, Value::Null, &[]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), orderRequest.clone(), Some(""), chainName.as_deref(), account, Value::Null, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2434,7 +2434,7 @@ impl Dydx {
                 goodTillBlock = Some((latestBlockHeight + 20));
             }
         }
-        let mut credentials: Value = self.retrieve_credentials();
+        let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
         let mut account: Value = self.fetch_dydx_account().await;
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2466,7 +2466,7 @@ impl Dydx {
             m
         });
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), account, Value::Null, &[]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), account, Value::Null, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2537,7 +2537,7 @@ impl Dydx {
             let mut latestBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
             goodTillBlock = Some((latestBlockHeight + 20));
         }
-        let mut credentials: Value = self.retrieve_credentials();
+        let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
         let mut account: Value = self.fetch_dydx_account().await;
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2568,7 +2568,7 @@ impl Dydx {
             m
         });
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), account, Value::Null, &[]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), account, Value::Null, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2686,7 +2686,7 @@ impl Dydx {
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
@@ -2867,7 +2867,7 @@ impl Dydx {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " transfer requires fromSubaccountId and toSubaccountId.")));
             }
         }
-        let mut credentials: Value = self.retrieve_credentials();
+        let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
         let mut account: Value = self.fetch_dydx_account().await;
         let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
         let mut payload: Option<crate::value::Dict> = None;
@@ -2928,7 +2928,7 @@ impl Dydx {
         }
         let mut txFee: crate::value::Dict = self.estimate_tx_fee(signingPayload.clone(), Some(""), account.clone()).await.into_dict();
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(credentials, "privateKey", &[])).as_str(), signingPayload, Some(""), chainName.as_deref(), account, Value::Null, &[Value::Dict(txFee)]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), signingPayload, Some(""), chainName.as_deref(), account, Value::Null, &[Value::Dict(txFee)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2976,7 +2976,7 @@ impl Dydx {
         m.insert("info".to_string(), transfer);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
@@ -3067,7 +3067,7 @@ impl Dydx {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3128,7 +3128,7 @@ impl Dydx {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw requires subaccountId.")));
         }
         let mut currency: crate::types::Currency = self.currency(code);
-        let mut credentials: Value = self.retrieve_credentials();
+        let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
         let mut account: Value = self.fetch_dydx_account().await;
         let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
         let mut payload: indexmap::IndexMap<String, Value> = ({
@@ -3152,7 +3152,7 @@ impl Dydx {
         });
         let mut txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), tag.as_deref(), account.clone()).await.into_dict();
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), tag.as_deref(), chainName.as_deref(), account, Value::Null, &[Value::Dict(txFee)]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), tag.as_deref(), chainName.as_deref(), account, Value::Null, &[Value::Dict(txFee)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));

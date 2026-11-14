@@ -567,7 +567,7 @@ impl Cex {
         m.insert("info".to_string(), tradeParts);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -611,10 +611,10 @@ impl Cex {
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_217: bool = true;
-            while { if !__for_first_217 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_217 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut index: Value = (match (&(Value::Int((dataLength - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            while { if !__for_first_217 { i += 1; } __for_first_217 = false; i < dataLength } {
+            let mut index: Value = Value::Int((((dataLength - 1)) - i));
             let mut rawTrade: crate::value::Dict = crate::value::KeyRead::read(&&data, &index).into_dict();
             let mut parsed: crate::value::Dict = self.parse_ws_old_trade(Value::Dict(rawTrade), Some(&market)).into_dict();
             stored.append(Value::Dict(parsed));
@@ -845,7 +845,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -1283,7 +1283,7 @@ impl Cex {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
         add_element_to_object(&mut order, &Value::Str("timestamp".into()), Value::from(timestamp));
-        add_element_to_object(&mut order, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
+        add_element_to_object(&mut order, &Value::Str("datetime".into()), self.iso8601(timestamp));
         order = self.safe_order(order, None);
         storedOrders.append(order);
         let mut messageHash: String = format!("{}{}", "orders:", symbol);
@@ -1376,7 +1376,7 @@ impl Cex {
                 m.insert("clientOrderId".to_string(), Value::Null);
                 m.insert("info".to_string(), order.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("lastTradeTimestamp".to_string(), Value::Null);
                 m.insert("status".to_string(), Value::from(status));
                 m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1636,7 +1636,7 @@ impl Cex {
         self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), Value::Arr(asks));
         self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), Value::Arr(bids));
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
-        storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
         storedOrderBook.set_book_meta("nonce", Value::from(incrementalId));
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }

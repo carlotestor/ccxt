@@ -661,7 +661,7 @@ impl Blofin {
             self.handle_deltas_with_keys(orderbook.book_field("asks"), Value::Arr(asks), &[]);
             self.handle_deltas_with_keys(orderbook.book_field("bids"), Value::Arr(bids), &[]);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
-            orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         if (channelName.is_some()) {
@@ -882,7 +882,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "askPrice", &[]));
         m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "askSize", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPrice", &[]));
@@ -1144,9 +1144,9 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
-        let mut parsed: Value = self.parse_ws_balance(message);
+        let mut parsed: crate::value::Dict = self.parse_ws_balance(message).into_dict();
         let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
-        let mut keys: Vec<Value> = object_keys(&parsed).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(parsed.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_169: bool = true;
@@ -1155,11 +1155,7 @@ impl Blofin {
             if self.in_array(key.clone(), &reserved) {
                 continue;
             }
-            if let Value::Dict(__bf03d0) = &mut self.balance {
-                let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(marketType.clone()).or_insert(Value::Null);
-                if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (parsed.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
-                }
-            }
+            if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(marketType.clone()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&parsed, &key)); } }
         }
         }
         { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(marketType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }

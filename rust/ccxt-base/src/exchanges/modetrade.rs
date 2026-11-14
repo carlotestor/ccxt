@@ -1781,7 +1781,7 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -1892,16 +1892,16 @@ impl Modetrade {
         m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".into()), &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(estFundingRateTimestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(estFundingRateTimestamp)));
+        m.insert("datetime".to_string(), self.iso8601(estFundingRateTimestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(fundingRate.clone(), "est_funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(nextFundingTimestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("previousFundingRate".to_string(), self.safe_number_k(fundingRate, "last_funding_rate", &[]));
         m.insert("previousFundingTimestamp".to_string(), Value::from(lastFundingRateTimestamp));
-        m.insert("previousFundingDatetime".to_string(), self.iso8601(Value::from(lastFundingRateTimestamp)));
+        m.insert("previousFundingDatetime".to_string(), self.iso8601(lastFundingRateTimestamp));
         m.insert("interval".to_string(), self.parse_funding_interval(millisecondsInterval.as_deref()).map(Value::from).unwrap_or(Value::Null));
     m
 });
@@ -2146,7 +2146,7 @@ impl Modetrade {
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "funding_rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -2187,7 +2187,7 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "24h_high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "24h_low", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -2362,7 +2362,7 @@ impl Modetrade {
         m.insert("openInterestAmount".to_string(), self.safe_number_k(interest.clone(), "open_interest", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
 }), Some(&marketResolved));
@@ -2498,7 +2498,7 @@ impl Modetrade {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("rate".to_string(), Value::from(rate));
@@ -2911,7 +2911,7 @@ impl Modetrade {
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
@@ -4274,7 +4274,7 @@ impl Modetrade {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("type".to_string(), self.parse_ledger_entry_type((self.safe_string2(item.clone(), Value::Str("type".into()), Value::Str("side".into()), &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), item);
     m
@@ -4369,7 +4369,7 @@ impl Modetrade {
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("id".into()), Value::Str("withdraw_id".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "tx_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -4547,7 +4547,7 @@ impl Modetrade {
 }
 
     pub fn hash_message(&self, mut message: Value) -> Option<String> {
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])));
 }
 
     pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> Option<String> {
@@ -4557,7 +4557,7 @@ impl Modetrade {
         let mut r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), Value::from(format!("{:0>64}", r))).into()), Value::from(format!("{:0>64}", s))).into()), v).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), Value::from(format!("{:0>64}", r))).into()), Value::from(format!("{:0>64}", s))).into()), v));
 }
 
     pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Option<String> {
@@ -4873,7 +4873,7 @@ impl Modetrade {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);

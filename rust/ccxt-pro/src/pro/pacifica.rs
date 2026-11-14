@@ -561,7 +561,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[params]);
+        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[params]).into_dict();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -579,7 +579,7 @@ impl Pacifica {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), request).into_dict();
+        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), &request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         // {
@@ -774,7 +774,7 @@ impl Pacifica {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrderWs() requires a symbol argument")));
         }
-        let mut request: Value = self.parent.cancel_order_request(id, symbol.as_str(), &[params]);
+        let mut request: crate::value::Dict = self.parent.cancel_order_request(id, symbol.as_str(), &[params]).into_dict();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -792,7 +792,7 @@ impl Pacifica {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), request).into_dict();
+        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), &request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
@@ -866,7 +866,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut operationType: String = "cancel_all_orders".to_string();
-        let mut request: Value = self.parent.cancel_all_orders_request(symbol.as_str(), &[params]);
+        let mut request: crate::value::Dict = self.parent.cancel_all_orders_request(symbol.as_str(), &[params]).into_dict();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -884,7 +884,7 @@ impl Pacifica {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), request).into_dict();
+        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), &request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         return Value::from(vec![self.safe_order(Value::Map({
@@ -1748,7 +1748,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "i", &[]));

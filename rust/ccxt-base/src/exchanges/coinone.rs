@@ -1287,7 +1287,7 @@ impl Coinone {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(&bids, "price", &[]));
@@ -1352,16 +1352,16 @@ impl Coinone {
             feeCostString = crate::precise::Precise::stringAbs(&feeCostString).as_str().map(str::to_owned);
             let mut feeRateString: Option<String> = self.safe_string_k(trade.clone(), "feeRate", &[]).as_str().map(str::to_owned);
             feeRateString = crate::precise::Precise::stringAbs(&feeRateString).as_str().map(str::to_owned);
-            let mut feeCurrencyCode: Value = Value::Null;
+            let mut feeCurrencyCode: Option<String> = None;
             if (side.as_deref() == Some("sell")) {
-                feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "quote");
+                feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "quote").into_opt_string();
             }  else {
-                feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "base");
+                feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "base").into_opt_string();
             }
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), feeCurrencyCode);
+                    m.insert("currency".to_string(), feeCurrencyCode.map(Value::from).unwrap_or(Value::Null));
                     m.insert("rate".to_string(), feeRateString.map(Value::from).unwrap_or(Value::Null));
                 m
             }));
@@ -1371,7 +1371,7 @@ impl Coinone {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
@@ -1667,7 +1667,7 @@ impl Coinone {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("limit".into()));
@@ -1961,7 +1961,7 @@ impl Coinone {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut request: Value = Value::from(self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path), &[]).into_dict();
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
@@ -1991,8 +1991,8 @@ impl Coinone {
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if isPublic {
             url.push_str(&request.to_string());
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);

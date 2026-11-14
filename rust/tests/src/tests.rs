@@ -487,9 +487,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut maxRetries: i64 = 3;
         let mut argsStringified: Value = exchange.json(args.clone()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1620: bool = true;
-            while { if !__for_first_1620 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1620 = false; i.as_f64().unwrap_or(f64::NAN) < (maxRetries as f64) } {
+            while { if !__for_first_1620 { i += 1; } __for_first_1620 = false; i < maxRetries } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(methodName.clone(), exchange.clone(), args.clone(), isPublic.clone()).await;
                 return Value::Bool(true);
@@ -506,7 +506,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".into()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".into()), self.get_last_request_url(exchange.clone()).map(Value::from).unwrap_or(Value::Null)).into()), " )").into()) });
                 if isOperationFailed {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
-                    if (i.as_f64() == Value::Int((maxRetries - 1)).as_f64()) {
+                    if (i == ((maxRetries - 1))) {
                         let mut isOnMaintenance: bool = matches!(&e, Value::Str(__s) if __s.contains("[OnMaintenance]"));
                         let mut isExchangeNotAvailable: bool = is_instance(&e, &Value::Str("ExchangeNotAvailable".into()));
                         let mut shouldFail: Option<bool> = None;
@@ -539,8 +539,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }  else {
                         // wait and retry again
                         // (increase wait time on every retry)
-                        exchange.sleep((match (&(((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))),
-                            &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })).await;
+                        exchange.sleep(Value::Int((((i + 1)) * 1000))).await;
                     }
                 }  else {
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
@@ -1536,16 +1535,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut maxRetries: i64 = 3;
         let mut exceptionMessageString: Value = Value::Null;
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_1637: bool = true;
-            while { if !__for_first_1637 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1637 = false; j.as_f64().unwrap_or(f64::NAN) < (maxRetries as f64) } {
+            while { if !__for_first_1637 { j += 1; } __for_first_1637 = false; j < maxRetries } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(proxyTestName.clone(), exchange.clone(), Value::from(vec![]), true).await;
                 return Value::Bool(true);
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
                 exceptionMessageString = exceptionMessage(e);
-                exchange.sleep((match (&(j), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })).await;
+                exchange.sleep(Value::Int((j * 1000))).await;
              } }
         }
         }

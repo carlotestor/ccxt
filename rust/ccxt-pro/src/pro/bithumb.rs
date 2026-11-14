@@ -676,7 +676,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "highPrice", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "lowPrice", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -842,7 +842,7 @@ impl Bithumb {
             let mut legacyOrderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&legacySymbol);
             self.handle_book_deltas(Value::from(&legacyOrderbook), Value::Arr(list));
             legacyOrderbook.set_book_meta("timestamp", Value::from(legacyTimestamp));
-            legacyOrderbook.set_book_meta("datetime", self.iso8601(Value::from(legacyTimestamp)));
+            legacyOrderbook.set_book_meta("datetime", self.iso8601(legacyTimestamp));
             let mut legacyMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), legacySymbol);
             client.resolve(Value::from(&legacyOrderbook), legacyMessageHash.as_str());
             return;
@@ -1130,7 +1130,7 @@ impl Bithumb {
         m.insert("id".to_string(), Value::Null);
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
@@ -1282,7 +1282,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message.clone()); }
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         client.resolve(self.balance.clone(), messageHash.as_str());
 }
@@ -1557,7 +1557,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("uuid".into()), Value::Str("order_id".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order, "trade_timestamp", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));

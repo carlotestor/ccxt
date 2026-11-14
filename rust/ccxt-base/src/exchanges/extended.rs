@@ -1747,14 +1747,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_664: bool = true;
-            while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1851,14 +1851,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_665 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1898,7 +1898,7 @@ impl Extended {
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("code".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(history.clone(), "id", &[]));
         m.insert("amount".to_string(), self.safe_number_k(history.clone(), "fundingFee", &[]));
         m.insert("rate".to_string(), self.safe_number_k(history, "fundingRate", &[]));
@@ -1986,7 +1986,7 @@ impl Extended {
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("i".into()), Value::Str("id".into()), &[]));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), Value::Null);
@@ -2169,14 +2169,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_667 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2209,7 +2209,7 @@ impl Extended {
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("fundingRate".to_string(), self.safe_number_k(info, "f", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -2304,7 +2304,7 @@ impl Extended {
         m.insert("baseVolume".to_string(), self.safe_number_k(interest.clone(), "I", &[]));
         m.insert("quoteVolume".to_string(), self.safe_number_k(interest.clone(), "i", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
 }), market);
@@ -2560,14 +2560,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_669: bool = true;
-            while { if !__for_first_669 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2621,7 +2621,7 @@ impl Extended {
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), self.safe_string_k(item.clone(), "accountId", &[]));
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "transactionHash", &[]));
@@ -2715,14 +2715,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_670: bool = true;
-            while { if !__for_first_670 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_670 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2876,7 +2876,7 @@ impl Extended {
         m.insert("id".to_string(), self.safe_string_k(response, "data", &[]));
         m.insert("txid".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(now));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(now)));
+        m.insert("datetime".to_string(), self.iso8601(now));
         m.insert("address".to_string(), address.clone());
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), address);
@@ -2953,14 +2953,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_671: bool = true;
-            while { if !__for_first_671 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_671 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_671 { i += 1; } __for_first_671 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3055,7 +3055,7 @@ impl Extended {
         m.insert("info".to_string(), response);
         m.insert("id".to_string(), self.safe_string_k(&data, "id", &[]));
         m.insert("timestamp".to_string(), Value::from(now));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(now)));
+        m.insert("datetime".to_string(), self.iso8601(now));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "code"));
         m.insert("amount".to_string(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fromAccount".to_string(), Value::from(currentAccountId));
@@ -3094,7 +3094,7 @@ impl Extended {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(transfer, "id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
@@ -3196,7 +3196,7 @@ impl Extended {
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "transactionHash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -3654,14 +3654,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_673: bool = true;
-            while { if !__for_first_673 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_673 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_673 { i += 1; } __for_first_673 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3717,7 +3717,7 @@ impl Extended {
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("initialMargin".to_string(), Value::from(margin));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
@@ -4000,9 +4000,9 @@ impl Extended {
             (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::Null });
         let mut settlementExpiration: Value = self.safe_integer_k(paramsBuilder.clone(), "settlementExpiration", &[settlementDefault]);
         let mut nonce: Option<String> = self.number_to_string(self.nonce());
-        let mut account: Value = self.fetch_extended_account(&[]).await;
-        let mut starkKey: Option<String> = self.safe_string_k(account.clone(), "l2Key", &[]).as_str().map(str::to_owned);
-        let mut collateralPosition: Option<String> = self.safe_string_k(account, "l2Vault", &[]).as_str().map(str::to_owned);
+        let mut account: crate::value::Dict = self.fetch_extended_account(&[]).await.into_dict();
+        let mut starkKey: Option<String> = self.safe_string_k(&account, "l2Key", &[]).as_str().map(str::to_owned);
+        let mut collateralPosition: Option<String> = self.safe_string_k(&account, "l2Vault", &[]).as_str().map(str::to_owned);
         let mut info: crate::value::Dict = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4815,14 +4815,14 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_674: bool = true;
-            while { if !__for_first_674 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_674 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
+            while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < dataLength } {
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
+            if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4995,7 +4995,7 @@ impl Extended {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "externalId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -5067,7 +5067,7 @@ impl Extended {
         if (Value::Int(signature.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             return signature.as_str().map(str::to_owned);
         }
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.get_extended_decimal_to_base16(signature.as_str().unwrap_or_default())).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.get_extended_decimal_to_base16(signature.as_str().unwrap_or_default())));
 }
 
     pub fn get_extended_domain_hash(&self) -> Value {

@@ -798,7 +798,7 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string2(&ticker, Value::Str("high24h".into()), Value::Str("highPrice24h".into()), &[]));
         m.insert("low".to_string(), self.safe_string2(&ticker, Value::Str("low24h".into()), Value::Str("lowPrice24h".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(&ticker, Value::Str("bidPr".into()), Value::Str("bid1Price".into()), &[]));
@@ -934,7 +934,7 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), self.safe_string2(&ticker, Value::Str("askPr".into()), Value::Str("ask1Price".into()), &[]));
         m.insert("askVolume".to_string(), self.safe_string2(&ticker, Value::Str("askSz".into()), Value::Str("ask1Size".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(&ticker, Value::Str("bidPr".into()), Value::Str("bid1Price".into()), &[]));
@@ -1578,7 +1578,7 @@ impl Bitget {
             self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), Value::Arr(asks));
             self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), Value::Arr(bids));
             storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
-            storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+            storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
@@ -2032,7 +2032,7 @@ impl Bitget {
         m.insert("id".to_string(), self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("tradeId".into()), Value::Str("i".into()), Value::Str("execId".into())]), &[]));
         m.insert("order".to_string(), self.safe_string2(trade.clone(), Value::Str("orderId".into()), Value::Str("L".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "orderType", &[]));
         m.insert("side".to_string(), self.safe_string2(trade.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]));
@@ -2341,7 +2341,7 @@ impl Bitget {
         m.insert("side".to_string(), self.safe_string2(position.clone(), Value::Str("holdSide".into()), Value::Str("posSide".into()), &[]));
         m.insert("hedged".to_string(), Value::Bool(hedged));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), self.safe_number2(position.clone(), Value::Str("keepMarginRate".into()), Value::Str("mmr".into()), &[]));
         m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "available", &[]));
@@ -2921,7 +2921,7 @@ impl Bitget {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer2(order.clone(), Value::Str("uTime".into()), Value::Str("updatedTime".into()), &[]));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_upper2(order, Value::Str("force".into()), Value::Str("timeInForce".into()), &[]));

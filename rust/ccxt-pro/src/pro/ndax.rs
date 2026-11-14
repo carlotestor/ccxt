@@ -615,7 +615,7 @@ impl Ndax {
                 }
                 let mut candleTimestamp: Option<i64> = self.parse_to_int((match (&(((match ((Value::from(timestamp)).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
                     Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
-                let mut parsed: Value = Value::from(vec![Value::from(candleTimestamp), self.safe_float(&ohlcv, Value::Int(3), &[]), self.safe_float(&ohlcv, Value::Int(1), &[]), self.safe_float(&ohlcv, Value::Int(2), &[]), self.safe_float(&ohlcv, Value::Int(4), &[]), self.safe_float(&ohlcv, Value::Int(5), &[])]);
+                let mut parsed: crate::value::List = std::sync::Arc::new(vec![Value::from(candleTimestamp), self.safe_float(&ohlcv, Value::Int(3), &[]), self.safe_float(&ohlcv, Value::Int(1), &[]), self.safe_float(&ohlcv, Value::Int(2), &[]), self.safe_float(&ohlcv, Value::Int(4), &[]), self.safe_float(&ohlcv, Value::Int(5), &[])]);
                 let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
                 if (stored.is_none()) {
                     let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -654,7 +654,7 @@ impl Ndax {
                             continue;
                         }
                     }
-                    stored.append(parsed);
+                    stored.append(Value::Arr(parsed));
                     if (marketId.is_some()) {
                         marketUpdates.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
                     }
@@ -828,7 +828,7 @@ impl Ndax {
             let mut amount: Option<f64> = self.safe_float(&bidask, Value::Int(8), &[]).as_f64();
             let mut side: Option<i64> = self.safe_integer(&bidask, Value::Int(9), &[]).as_i64();
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            let mut orderbookSide: Value = (if (side == Some(0)) { orderbook.book_field("bids") } else { orderbook.book_field("asks") });
+            let mut orderbookSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of((if (side == Some(0)) { orderbook.book_field("bids") } else { orderbook.book_field("asks") }));
             // 0 new, 1 update, 2 remove
             if (type_var == Some(0)) {
                 orderbookSide.store(price, amount);
@@ -841,7 +841,7 @@ impl Ndax {
         }
         orderbook.set_book_meta("nonce", Value::from(nonce));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         let mut name: String = "SubscribeLevel2".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), marketId.as_deref().unwrap_or("null"));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());

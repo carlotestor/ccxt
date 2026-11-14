@@ -5917,13 +5917,13 @@ if _try_result.is_err() {
                 m
             })]).await);
         }
-        let mut results: Value = promise_all(&Value::from(promises)).await;
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
         let mut spotInstruments: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }).into_dict();
         if fetchMargins {
-            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(results.clone(), Value::from(spotInstrumentsIndex), &[]).into_dict();
+            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(&results, Value::from(spotInstrumentsIndex), &[]).into_dict();
             let mut instruments: crate::value::List = self.safe_list_k(&instrumentsResponse, "data", &[Value::from(vec![])]).into_list();
             spotInstruments = self.index_by(Value::Arr(instruments), Value::Str("symbol".into())).into_dict();
         }
@@ -5937,7 +5937,7 @@ if _try_result.is_err() {
             if (i == spotInstrumentsIndex) {
                 continue;
             }
-            let mut res: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
+            let mut res: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
             let mut data: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
             let mut firstData: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6282,13 +6282,13 @@ if _try_result.is_err() {
             promises.push(self.public_uta_get_v3_market_instruments(&[Value::Dict(req)]).await);
         }
         }
-        let mut results: Value = promise_all(&Value::from(promises)).await;
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
         let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_370: bool = true;
             while { if !__for_first_370 { i += 1; } __for_first_370 = false; i < (results.len() as i64) } {
-            let mut res: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
+            let mut res: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
             let mut data: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
             markets = self.array_concat(Value::Arr(markets), &data).into_list();
         }
@@ -7505,7 +7505,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), transaction.clone());
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("addressFrom".to_string(), self.safe_string_k(transaction.clone(), "fromAddress", &[]));
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "toAddress", &[]));
@@ -7890,7 +7890,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string2(ticker.clone(), Value::Str("high24h".into()), Value::Str("highPrice24h".into()), &[]));
         m.insert("low".to_string(), self.safe_string2(ticker.clone(), Value::Str("low24h".into()), Value::Str("lowPrice24h".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("bidPr".into()), Value::Str("bid1Price".into()), &[]));
@@ -8521,7 +8521,7 @@ if _try_result.is_err() {
         m.insert("amount".to_string(), self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("baseVolume".into()), Value::Str("size".into()), Value::Str("execQty".into())]), &[]));
         m.insert("cost".to_string(), self.safe_string_n(trade, Value::from(vec![Value::Str("quoteVolume".into()), Value::Str("amount".into()), Value::Str("execValue".into())]), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), market);
@@ -9936,7 +9936,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("orderId".into()), Value::Str("data".into()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(updateTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(updateTimestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -11503,7 +11503,7 @@ if _try_result.is_err() {
                         m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
                         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("spot".into())]));
                         m.insert("timestamp".to_string(), Value::from(timestamp));
-                        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                        m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m
                 }), None);
                 return Value::from(vec![parsedOrder]);
@@ -13037,7 +13037,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string2(item, Value::Str("billId".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
@@ -14082,7 +14082,7 @@ if _try_result.is_err() {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), hedged.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer2(position.clone(), Value::Str("utime".into()), Value::Str("updatedTime".into()), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -14218,7 +14218,7 @@ if _try_result.is_err() {
                     m.insert("symbol".to_string(), symbolInner.map(Value::from).unwrap_or(Value::Null));
                     m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -14530,10 +14530,10 @@ if _try_result.is_err() {
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTimestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -14672,7 +14672,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("swap".into())]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("code".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(contract.clone(), "amount", &[]));
         m.insert("id".to_string(), self.safe_string2(contract, Value::Str("billId".into()), Value::Str("id".into()), &[]));
@@ -15235,7 +15235,7 @@ if _try_result.is_err() {
         m.insert("openInterestAmount".to_string(), self.safe_number2(crate::value::KeyRead::read(&&data, &Value::Int(0)), Value::Str("size".into()), Value::Str("openInterest".into()), &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
 }), market);
@@ -15456,7 +15456,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "transferId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer, "size", &[]));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
@@ -16101,7 +16101,7 @@ if _try_result.is_err() {
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), self.parse_number(quoteValueString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[]);
 
@@ -16242,7 +16242,7 @@ if _try_result.is_err() {
         m.insert("quoteRate".to_string(), self.safe_number_k(info.clone(), "quoteDailyInterestRate", &[]));
         m.insert("period".to_string(), Value::Int(86400000));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), info);
     m
 });
@@ -16388,7 +16388,7 @@ if _try_result.is_err() {
         m.insert("rate".to_string(), self.safe_number2(info.clone(), Value::Str("dailyInterestRate".into()), Value::Str("dailyInterest".into()), &[]));
         m.insert("period".to_string(), Value::Int(86400000));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), info);
     m
 });
@@ -16578,7 +16578,7 @@ if _try_result.is_err() {
         m.insert("amountBorrowed".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -17141,7 +17141,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string2(conversion.clone(), Value::Str("id".into()), Value::Str("traceId".into()), &[]));
         m.insert("fromCurrency".to_string(), fromCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("fromAmount".to_string(), self.safe_number_k(conversion.clone(), "fromCoinSize", &[]));
@@ -17369,7 +17369,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("contract".into())]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("timeframe".to_string(), Value::Null);
         m.insert("longShortRatio".to_string(), self.safe_number2(info, Value::Str("longShortRatio".into()), Value::Str("longShortAccountRatio".into()), &[]));
     m
@@ -17458,10 +17458,10 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), payload);
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         if !signed && (method.as_str() == Some("GET")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", url, "?").into()), self.urlencode(query, &[]));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url = format!("{}{}", Value::Str(format!("{}{}", url, "?").into()), self.urlencode(&query, &[]));
             }
         }
         let mut requestBody: Option<String> = None;

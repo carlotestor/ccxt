@@ -1218,10 +1218,10 @@ impl Polymarket {
             }
             let mut remainingPages: Vec<Value> = Vec::new();
             {
-                                let mut p: Value = Value::Int(2);
+                                let mut p: i64 = 2;
                 let mut __for_first_1406: bool = true;
-                while { if !__for_first_1406 { if let Value::Int(n) = &mut p { *n += 1; } } __for_first_1406 = false; p.as_f64().unwrap_or(f64::NAN) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
-                remainingPages.push(p.clone());
+                while { if !__for_first_1406 { p += 1; } __for_first_1406 = false; (p as f64) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
+                remainingPages.push(Value::Int(p));
             }
             }
             let mut restPromises: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1380,12 +1380,12 @@ impl Polymarket {
                     m
                 }), &[params.clone()]).into_dict();
                 std::sync::Arc::make_mut(&mut singleTagParams).insert("tags".into(), Value::from(vec![requestedTags.get(ti as usize).cloned().unwrap_or(Value::Null)]));
-                let mut tagEvents: Value = Box::pin(self.fetch_raw_events_list(&[Value::Dict(singleTagParams)])).await;
+                let mut tagEvents: crate::value::List = Box::pin(self.fetch_raw_events_list(&[Value::Dict(singleTagParams)])).await.into_list();
                 {
                                         let mut ei: i64 = 0;
                     let mut __for_first_1414: bool = true;
                     while { if !__for_first_1414 { ei += 1; } __for_first_1414 = false; ei < (tagEvents.len() as i64) } {
-                    let mut rawEvent: crate::value::Dict = tagEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let mut rawEvent: crate::value::Dict = crate::value::KeyRead::read(&&tagEvents, &Value::Int(ei)).into_dict();
                     let mut eventId: Option<String> = self.safe_string_k(&rawEvent, "id", &[]).as_str().map(str::to_owned);
                     if (eventId.is_some()) && !(matches!(eventId.as_deref(), Some(__k) if seen.contains_key(__k))) {
                         seen.insert(eventId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -1452,12 +1452,12 @@ impl Polymarket {
                 restPromises.push(self.gamma_public_get_events(&[Value::Dict(pageRequest)]).await);
             }
             }
-            let mut restPages: Value = promise_all(&Value::from(restPromises)).await;
+            let mut restPages: crate::value::List = promise_all(&Value::from(restPromises)).await.into_list();
             {
                                 let mut ri: i64 = 0;
                 let mut __for_first_1420: bool = true;
                 while { if !__for_first_1420 { ri += 1; } __for_first_1420 = false; ri < (restPages.len() as i64) } {
-                let mut page: crate::value::List = self.safe_list(restPages.clone(), Value::Int(ri), &[Value::from(vec![])]).into_list();
+                let mut page: crate::value::List = self.safe_list(&restPages, Value::Int(ri), &[Value::from(vec![])]).into_list();
                 let mut pageLength: i64 = page.len() as i64;
                 {
                                         let mut pi: i64 = 0;
@@ -1869,14 +1869,14 @@ impl Polymarket {
     m
 })]).await]);
         let midpointResponsebookResponselastTradeResponseVariable: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
-        let mut midpointResponse: Value = midpointResponsebookResponselastTradeResponseVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut bookResponse: Value = midpointResponsebookResponselastTradeResponseVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut lastTradeResponse: Value = midpointResponsebookResponselastTradeResponseVariable.get(2).cloned().unwrap_or(Value::Null);
+        let mut midpointResponse: crate::value::Dict = midpointResponsebookResponselastTradeResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+        let mut bookResponse: crate::value::Dict = midpointResponsebookResponselastTradeResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut lastTradeResponse: crate::value::Dict = midpointResponsebookResponselastTradeResponseVariable.get(2).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("midpoint".to_string(), midpointResponse);
-                m.insert("book".to_string(), bookResponse);
-                m.insert("lastTrade".to_string(), lastTradeResponse);
+                m.insert("midpoint".to_string(), Value::Dict(midpointResponse));
+                m.insert("book".to_string(), Value::Dict(bookResponse));
+                m.insert("lastTrade".to_string(), Value::Dict(lastTradeResponse));
             m
         });
         return self.parse_prediction_ticker(Value::Map(response), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
@@ -2109,7 +2109,7 @@ impl Polymarket {
         m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), self.safe_number_k(bestBid.clone(), "price", &[]));
@@ -2757,7 +2757,7 @@ impl Polymarket {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), outcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), assetId.map(Value::from).unwrap_or(Value::Null));
         m.insert("label".to_string(), self.safe_string_k(mkt.clone(), "label", &[]));
@@ -3124,7 +3124,7 @@ impl Polymarket {
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), self.safe_string_k(mkt.clone(), "outcome", &[]));
@@ -4489,7 +4489,7 @@ impl Polymarket {
 }
 
     pub fn hash_message(&self, mut message: Value) -> Option<String> {
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])));
 }
 
     pub fn eth_checksum_address(&self, mut address: Value) -> Option<String> {
@@ -4514,7 +4514,7 @@ impl Polymarket {
             }
         }
         }
-        return Value::Str(format!("{}{}", "0x", result).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", "0x", result));
 }
 
     pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> Value {
@@ -4591,7 +4591,7 @@ impl Polymarket {
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
         let mut sig: indexmap::IndexMap<String, Value> = self.sign_message(encoded, (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(sig.get("r").cloned().unwrap_or(Value::Null))).into()), self.remove0x_prefix(sig.get("s").cloned().unwrap_or(Value::Null))).into()), self.int_to_base16(sig.get("v").cloned().unwrap_or(Value::Null), &[])).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(sig.get("r").cloned().unwrap_or(Value::Null))).into()), self.remove0x_prefix(sig.get("s").cloned().unwrap_or(Value::Null))).into()), self.int_to_base16(sig.get("v").cloned().unwrap_or(Value::Null), &[])));
 }
 
 /*

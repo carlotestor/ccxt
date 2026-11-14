@@ -1623,10 +1623,10 @@ impl Weex {
         }
         let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_api_v3_exchange_info(&[params.clone()]).await, self.contract_get_capi_v3_market_exchange_info(&[params]).await]);
         let spotResponsecontractResponseVariable: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
-        let mut spotResponse: Value = spotResponsecontractResponseVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut contractResponse: Value = spotResponsecontractResponseVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut spotArray: crate::value::List = self.safe_list_k(spotResponse, "symbols", &[Value::from(vec![])]).into_list();
-        let mut contractArray: crate::value::List = self.safe_list_k(contractResponse, "symbols", &[Value::from(vec![])]).into_list();
+        let mut spotResponse: crate::value::Dict = spotResponsecontractResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+        let mut contractResponse: crate::value::Dict = spotResponsecontractResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut spotArray: crate::value::List = self.safe_list_k(&spotResponse, "symbols", &[Value::from(vec![])]).into_list();
+        let mut contractArray: crate::value::List = self.safe_list_k(&contractResponse, "symbols", &[Value::from(vec![])]).into_list();
         let mut result: Value = self.array_concat(&spotArray, &contractArray);
         return self.parse_markets(result);
         Value::Null
@@ -2038,7 +2038,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "highPrice", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "lowPrice", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPrice", &[]));
@@ -2681,7 +2681,7 @@ impl Weex {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
@@ -2750,7 +2750,7 @@ impl Weex {
         m.insert("openInterestAmount".to_string(), self.safe_string_k(interest.clone(), "openInterest", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
 }), market);
@@ -2822,13 +2822,13 @@ impl Weex {
         m.insert("interestRate".to_string(), self.safe_number_k(contract.clone(), "interestRate", &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "lastFundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(timestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(timestamp));
         m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "forecastFundingRate", &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
-        m.insert("nextFundingDatetime".to_string(), self.iso8601(Value::from(nextFundingTimestamp)));
+        m.insert("nextFundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
@@ -2910,7 +2910,7 @@ impl Weex {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -3106,7 +3106,7 @@ impl Weex {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), currencyCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_lower_k(transfer.clone(), "fromType", &[]));
@@ -4392,7 +4392,7 @@ impl Weex {
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "executedQty", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -4790,7 +4790,7 @@ impl Weex {
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "billId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
@@ -4949,7 +4949,7 @@ impl Weex {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("swap".into())]));
         m.insert("code".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "billId", &[]));
         m.insert("amount".to_string(), self.safe_number_k(income, "income", &[]));
     m
@@ -5166,7 +5166,7 @@ impl Weex {
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("id".to_string(), self.safe_string2(position.clone(), Value::Str("id".into()), Value::Str("positionId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("contracts".to_string(), self.parse_number(size.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "side", &[]));
@@ -5817,7 +5817,7 @@ impl Weex {
         m.insert("code".to_string(), self.safe_string_k(&market, "settle", &[]));
         m.insert("status".to_string(), Value::from(status));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -5892,7 +5892,7 @@ impl Weex {
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut baseId: Option<String> = self.safe_string_k(&market, "baseId", &[]).as_str().map(str::to_owned);
         if sandboxMode && (baseId.is_some()) {
-            return Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), "SUSDT").into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", baseId.as_deref().unwrap_or("null"), "SUSDT"));
         }
         return self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
 }
@@ -5915,8 +5915,7 @@ impl Weex {
             return marketId.as_str().map(str::to_owned);
         }
         if (marketId.as_str().unwrap_or("").ends_with("SUSDT")) {
-            return Value::Str(format!("{}{}", marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 5).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
-                Value::Str("USDT".into())).into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 5).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("USDT".into())));
         }
         return marketId.as_str().map(str::to_owned);
 }

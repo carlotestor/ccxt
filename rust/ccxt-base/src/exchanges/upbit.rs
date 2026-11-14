@@ -1285,7 +1285,7 @@ impl Upbit {
         m.insert("bids".to_string(), self.sort_by(self.parse_order_book_bids_asks(orderbook.get("orderbook_units").cloned().unwrap_or(Value::Null), &[Value::Str("bid_price".into()), Value::Str("bid_size".into())]), Value::Int(0), &[Value::Bool(true)]));
         m.insert("asks".to_string(), self.sort_by(self.parse_order_book_bids_asks(orderbook.get("orderbook_units").cloned().unwrap_or(Value::Null), &[Value::Str("ask_price".into()), Value::Str("ask_size".into())]), Value::Int(0), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("nonce".to_string(), Value::Null);
     m
 }));
@@ -1364,7 +1364,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high_price", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low_price", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -1592,7 +1592,7 @@ impl Upbit {
         m.insert("info".to_string(), trade);
         m.insert("order".to_string(), Value::from(orderId.as_deref()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2491,7 +2491,7 @@ impl Upbit {
         m.insert("updated".to_string(), Value::from(self.parse8601(updatedRaw.map(Value::from).unwrap_or(Value::Null))));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
@@ -2674,7 +2674,7 @@ impl Upbit {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), identifier.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -3144,11 +3144,11 @@ impl Upbit {
     m
 }));
         url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
-        let mut numQueryKeys: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path), &[]).into_dict();
+        let mut numQueryKeys: f64 = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64);
         if (method.as_str() != Some("POST")) {
             if numQueryKeys > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut hasBody: bool = (apiName.as_deref() == Some("private")) && (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE"));
@@ -3174,7 +3174,7 @@ impl Upbit {
                 if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
             if (numQueryKeys != 0.0) {
-                auth = Some(self.rawencode(query, &[]));
+                auth = Some(self.rawencode(&query, &[]));
             }
             if (auth.is_some()) {
                 let mut hash: String = self.hash(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha512".into()), &[]);

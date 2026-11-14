@@ -729,7 +729,7 @@ impl Binance {
                     __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
                     __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
                     Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-                return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, "/").into()), category).into()), "/ws").into()).as_str().map(str::to_owned);
+                return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, "/").into()), category).into()), "/ws"));
             }
             return baseUrl.as_str().map(str::to_owned);
         }
@@ -748,7 +748,7 @@ impl Binance {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " getPrivateWsUrl() requires a listenKey from authenticate()")));
         }
         if (type_var.as_str() == Some("linear")) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), Value::Str("private".into())).map(Value::from).unwrap_or(Value::Null), Value::Str("?listenKey=".into())).into()), listenKey).into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), Value::Str("private".into())).map(Value::from).unwrap_or(Value::Null), Value::Str("?listenKey=".into())).into()), listenKey));
         }
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -761,7 +761,7 @@ impl Binance {
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " getPrivateWsUrl() has no websocket url for this market type")));
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), listenKey).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), listenKey));
 }
 
     pub fn get_stock_ws_url(&self, optional_args: &[Value]) -> Value {
@@ -1107,7 +1107,7 @@ impl Binance {
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[]);
 
@@ -1771,7 +1771,7 @@ impl Binance {
         orderbook.set_book_meta("nonce", Value::from(u));
         let mut timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         return orderbook;
 
     Value::Null
@@ -2438,7 +2438,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -4782,8 +4782,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
             rawBalance = self.safe_list_k(&result, "assets", &[Value::from(vec![])]).into_opt_list();
         }
-        let mut parsedBalances: Value = self.parent.parse_balance_custom(&rawBalance, None, None, &[]);
-        client.resolve(parsedBalances, messageHash.as_deref());
+        let mut parsedBalances: Option<crate::value::Dict> = self.parent.parse_balance_custom(&rawBalance, None, None, &[]).into_opt_dict();
+        client.resolve(&parsedBalances, messageHash.as_deref());
 }
 
     pub fn handle_account_status_ws(&self, mut client: Value, mut message: Value) {
@@ -4837,8 +4837,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
-        let mut parsedBalances: Value = self.parent.parse_balance_custom(&result, None, None, &[]);
-        client.resolve(parsedBalances, messageHash.as_deref());
+        let mut parsedBalances: Option<crate::value::Dict> = self.parent.parse_balance_custom(&result, None, None, &[]).into_opt_dict();
+        client.resolve(&parsedBalances, messageHash.as_deref());
 }
 
 /*
@@ -5218,7 +5218,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&balanceMessage, "E", &[]).as_i64();
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-        { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
+        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
         { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), __be_tmp); } }
         client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
@@ -6494,7 +6494,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("symbol".to_string(), stockSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "i", &[]));
         m.insert("timestamp".to_string(), Value::from(stockTimestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(stockTimestamp)));
+        m.insert("datetime".to_string(), self.iso8601(stockTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(stockLastUpdateTimestamp));
         m.insert("type".to_string(), self.parent.parse_order_type_by_market((self.safe_string_lower_k(order.clone(), "o", &[])).as_str(), Some("spot")).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
@@ -6577,7 +6577,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("i".into()), Value::Str("aid".into()), &[]));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("type".to_string(), self.parent.parse_order_type_by_market(orderType.as_deref(), Some(marketType.as_str())).map(Value::from).unwrap_or(Value::Null));
@@ -6789,7 +6789,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("last".to_string(), self.safe_string_k(&rate, "p", &[]));
                     m.insert("close".to_string(), self.safe_string_k(&rate, "p", &[]));
                     m.insert("previousClose".to_string(), self.safe_string_k(&rate, "pc", &[]));
@@ -6817,7 +6817,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("bid".to_string(), (match __pro_message.get("bp").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
                 m.insert("ask".to_string(), (match __pro_message.get("ap").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
                 m.insert("bidVolume".to_string(), (match __pro_message.get("bs").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
@@ -7153,7 +7153,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut position: crate::value::Dict = self.parse_ws_position(&rawPosition, None).into_dict();
             let mut timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             std::sync::Arc::make_mut(&mut position).insert("timestamp".into(), Value::from(timestamp));
-            std::sync::Arc::make_mut(&mut position).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+            std::sync::Arc::make_mut(&mut position).insert("datetime".into(), self.iso8601(timestamp));
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }
@@ -7813,14 +7813,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }
         }
         }
-        let mut timestamp: Value = (match __pro_message.get("E").cloned() {
-            Some(Value::Int(__n)) => Value::Int(__n),
-            Some(Value::Float(__f)) => Value::Int(__f as i64),
-            Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } },
-            _ => Value::Null
-        });
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), timestamp.clone()); } }
-        { let __be_tmp = self.iso8601(timestamp.clone()); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
+        let mut timestamp: Option<i64> = (match __pro_message.get("E") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
+        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
+        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
         { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), __be_tmp); } }
         client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", accountType, ":balance").into())));
         // --- positions ---
@@ -7836,8 +7831,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             while { if !__for_first_87 { i += 1; } __for_first_87 = false; i < (P.len() as i64) } {
             let mut rawPosition: crate::value::Dict = self.safe_dict(&P, Value::Int(i), &[]).into_dict();
             let mut position: crate::value::Dict = self.parse_ws_options_position(&rawPosition, None).into_dict();
-            std::sync::Arc::make_mut(&mut position).insert("timestamp".into(), timestamp.clone());
-            std::sync::Arc::make_mut(&mut position).insert("datetime".into(), self.iso8601(timestamp.clone()));
+            std::sync::Arc::make_mut(&mut position).insert("timestamp".into(), Value::from(timestamp));
+            std::sync::Arc::make_mut(&mut position).insert("datetime".into(), self.iso8601(timestamp));
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }

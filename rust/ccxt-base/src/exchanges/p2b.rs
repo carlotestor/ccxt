@@ -857,7 +857,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(tickerInner.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(tickerInner.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(tickerInner.clone(), "bid", &[]));
@@ -1078,7 +1078,7 @@ impl P2b {
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("deal_id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("order".to_string(), self.safe_string2(trade.clone(), Value::Str("dealOrderId".into()), Value::Str("deal_order_id".into()), &[]));
         m.insert("type".to_string(), Value::Null);
@@ -1830,7 +1830,7 @@ impl P2b {
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "type", &[]));

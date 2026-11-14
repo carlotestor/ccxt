@@ -802,9 +802,9 @@ impl Zebpay {
             }
         }
         }
-        let mut promises: Value = promise_all(&Value::from(promisesUnresolved)).await;
-        let mut spotMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-        let mut futureMarkets: crate::value::List = self.safe_list(promises, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut promises: crate::value::List = promise_all(&Value::from(promisesUnresolved)).await.into_list();
+        let mut spotMarkets: crate::value::List = self.safe_list(&promises, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut futureMarkets: crate::value::List = self.safe_list(&promises, Value::Int(1), &[Value::from(vec![])]).into_list();
         return self.array_concat(&spotMarkets, &futureMarkets);
         Value::Null
         }).await?))
@@ -1648,7 +1648,7 @@ impl Zebpay {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "type", &[]));
@@ -2105,7 +2105,7 @@ impl Zebpay {
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<f64> = self.safe_number_k(order.clone(), "timestamp", &[]).as_f64();
-        let mut datetime: Option<String> = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
@@ -2858,7 +2858,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -2929,12 +2929,12 @@ impl Zebpay {
         let mut suffix: String = "".to_string();
         let mut timestamp: String = format!("{}", self.milliseconds());
         let mut signature: String = "".to_string();
-        let mut query: Value = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]).into_dict();
         let mut access: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         if (access.as_deref() == Some("public")) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                if (Value::Int(Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64).as_f64() != Some(0.0)) {
-                    suffix = format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[]));
+                if (Value::Int(Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64).as_f64() != Some(0.0)) {
+                    suffix = format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[]));
                 }
             }  else {
                 let mut priceType: Option<String> = self.safe_string_k(paramsOmitted.clone(), "priceType", &[]).as_str().map(str::to_owned);

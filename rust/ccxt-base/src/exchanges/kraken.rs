@@ -1093,8 +1093,8 @@ impl Kraken {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             promises.push(self.load_time_difference(&[]).await);
         }
-        let mut responses: Value = promise_all(&Value::from(promises)).await;
-        let mut assetsResponse: crate::value::Dict = self.safe_dict(responses, Value::Int(0), &[]).into_dict();
+        let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+        let mut assetsResponse: crate::value::Dict = self.safe_dict(&responses, Value::Int(0), &[]).into_dict();
         //
         //     {
         //         "error": [],
@@ -1496,7 +1496,7 @@ impl Kraken {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = currencyId.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut firstPart: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut secondPart: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.super_safe_currency_code(firstPart.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null), Value::Str(".".into())).into()), secondPart.as_deref().unwrap_or("null")).into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", Value::Str(format!("{}{}", self.super_safe_currency_code(firstPart.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null), Value::Str(".".into())).into()), secondPart.as_deref().unwrap_or("null")));
         }
         return self.super_safe_currency_code(currencyId, currency);
 }
@@ -2006,7 +2006,7 @@ impl Kraken {
         m.insert("after".to_string(), self.safe_number_k(item.clone(), "balance", &[]));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(item, "fee", &[]));
@@ -2301,7 +2301,7 @@ impl Kraken {
             takerOrMaker = (if (maker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         if (datetime.is_none()) {
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }  else {
             timestamp = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         }
@@ -3085,7 +3085,7 @@ impl Kraken {
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), orderOmitted.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(orderOmitted.clone(), "closetm", &[]));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
@@ -4250,7 +4250,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("updated".to_string(), Value::Null);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({

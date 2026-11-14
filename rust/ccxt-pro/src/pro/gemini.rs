@@ -434,7 +434,7 @@ impl Gemini {
         m.insert("order".to_string(), Value::Null);
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -542,7 +542,7 @@ impl Gemini {
 
     pub fn handle_trades_for_multidata(&mut self, mut client: Value, mut trades: Value, mut timestamp: Value) {
         let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-        let mut storesForSymbols: Value = Value::Map({
+        let mut storesForSymbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -563,16 +563,16 @@ impl Gemini {
                 CacheStore::put(&mut self.trades, &symbol, stored.clone());
             }
             stored.append(Value::Dict(trade));
-            if let Value::Dict(__d) = &mut storesForSymbols { std::sync::Arc::make_mut(__d).insert(symbol.clone(), Value::from(&stored)); }
+            storesForSymbols.insert(symbol.clone(), Value::from(&stored));
         }
         }
-        let mut symbols: Vec<Value> = Value::Array(storesForSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbols: Vec<Value> = Value::Array(storesForSymbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_343: bool = true;
             while { if !__for_first_343 { i += 1; } __for_first_343 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut symbolStore: Value = (if let (Some(__m), Some(__k)) = (storesForSymbols.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut symbolStore: Value = storesForSymbols.get(symbol.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
             client.resolve(symbolStore, messageHash.as_str());
         }
@@ -1262,7 +1262,7 @@ impl Gemini {
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_order_id", &[]));
         m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_ws_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));

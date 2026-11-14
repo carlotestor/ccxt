@@ -1454,10 +1454,10 @@ impl Bitrue {
             }
         }
         }
-        let mut promises: Value = promise_all(&Value::from(promisesRaw)).await;
-        let mut spotMarkets: Value = self.safe_list(self.safe_dict(promises.clone(), Value::Int(0), &[]), Value::Str("symbols".into()), &[Value::from(vec![])]);
-        let mut futureMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
-        let mut deliveryMarkets: crate::value::List = self.safe_list(promises, Value::Int(2), &[Value::from(vec![])]).into_list();
+        let mut promises: crate::value::List = promise_all(&Value::from(promisesRaw)).await.into_list();
+        let mut spotMarkets: Value = self.safe_list(self.safe_dict(&promises, Value::Int(0), &[]), Value::Str("symbols".into()), &[Value::from(vec![])]);
+        let mut futureMarkets: crate::value::List = self.safe_list(&promises, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut deliveryMarkets: crate::value::List = self.safe_list(&promises, Value::Int(2), &[Value::from(vec![])]).into_list();
         let mut markets: Value = spotMarkets;
         markets = self.array_concat(markets, &futureMarkets);
         markets = self.array_concat(markets, &deliveryMarkets);
@@ -1739,7 +1739,7 @@ impl Bitrue {
         }
         }
         result.insert("timestamp".into(), Value::from(timestamp));
-        result.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        result.insert("datetime".into(), self.iso8601(timestamp));
         return self.safe_balance(Value::Map(result));
 
     Value::Null
@@ -1946,7 +1946,7 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string2(ticker.clone(), Value::Str("highPrice".into()), Value::Str("high".into()), &[]));
         m.insert("low".to_string(), self.safe_string2(ticker.clone(), Value::Str("lowPrice".into()), Value::Str("low".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("bidPrice".into()), Value::Str("buy".into()), &[]));
@@ -2454,7 +2454,7 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -3534,7 +3534,7 @@ impl Bitrue {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), Value::from(addressTo.as_deref()));
         m.insert("addressTo".to_string(), Value::from(addressTo.as_deref()));
@@ -3769,7 +3769,7 @@ impl Bitrue {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), self.safe_string_k(&currency, "code", &[]));
         m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4069,7 +4069,7 @@ impl Bitrue {
         if !(((type_var.as_deref() == Some("api")) && (version.as_deref() == Some("kline"))) || ((type_var.as_deref() == Some("open")) && path.as_str().unwrap_or("").contains("listenKey"))) {
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), endpointPath);
         }
-        let mut paramsOmitted: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
         if (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut recvWindow: i64 = self.safe_integer_k(self.options.clone(), "recvWindow", &[Value::Int(5000)]).as_i64().unwrap_or(5000);
@@ -4079,7 +4079,7 @@ impl Bitrue {
                         m.insert("timestamp".to_string(), self.nonce());
                         m.insert("recvWindow".to_string(), Value::from(recvWindow));
                     m
-                }), &[paramsOmitted.clone()]);
+                }), &[&paramsOmitted]);
                 let mut query: Value = Value::from(self.urlencode(__ws_arg_42, &[]));
                 let mut signature: String = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                 query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", "signature=").into()), signature).into())).into());
@@ -4109,8 +4109,8 @@ impl Bitrue {
                 }
                 let mut signMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", signPrefix, "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), path).into()))).into());
                 if (method.as_str() == Some("GET")) {
-                    if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                        signMessage = Value::Str(format!("{}{}", signMessage, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])).into())).into());
+                    if ((Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                        signMessage = Value::Str(format!("{}{}", signMessage, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])).into())).into());
                     }
                     let mut signature: String = self.hmac(self.encode(signMessage.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Some(crate::value::Dict::new({
@@ -4120,13 +4120,13 @@ impl Bitrue {
                             m.insert("X-CH-TS".to_string(), Value::from(timestamp.as_str()));
                         m
                     }));
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
                 }  else {
                     let mut query: Option<crate::value::Dict> = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("recvWindow".to_string(), Value::from(recvWindow));
     m
-}), &[paramsOmitted.clone()]).into_opt_dict();
+}), &[&paramsOmitted]).into_opt_dict();
                     requestBody = json_stringify(&query);
                     signMessage = Value::Str(format!("{}{}", signMessage, requestBody).into());
                     let mut signature: String = self.hmac(self.encode(signMessage), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
@@ -4141,8 +4141,8 @@ impl Bitrue {
                 }
             }
         }  else {
-            if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted, &[])));
+            if ((Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
             }
         }
         let mut bodyResult: Value = requestBody;

@@ -652,8 +652,8 @@ impl Poloniex {
             }
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut orders: Value = self.trade_request("createOrder", &[__ws_arg_1]).await;
-        let mut order: Option<crate::value::Dict> = self.safe_dict(orders, Value::Int(0), &[]).into_opt_dict();
+        let mut orders: crate::value::List = self.trade_request("createOrder", &[__ws_arg_1]).await.into_list();
+        let mut order: Option<crate::value::Dict> = self.safe_dict(&orders, Value::Int(0), &[]).into_opt_dict();
         return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -1474,7 +1474,7 @@ impl Poloniex {
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[]));
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "type", &[]));
         m.insert("side".to_string(), self.safe_string_lower2(trade.clone(), Value::Str("takerSide".into()), Value::Str("side".into()), &[]));
@@ -1547,7 +1547,7 @@ impl Poloniex {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tradeId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "type", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
@@ -1989,7 +1989,7 @@ impl Poloniex {
                 }
                 orderbook.set_book_meta("symbol", symbol.map(Value::from).unwrap_or(Value::Null));
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
-                orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+                orderbook.set_book_meta("datetime", self.iso8601(timestamp));
                 client.resolve(Value::from(&orderbook), messageHash.as_str());
             }
         }
@@ -2040,7 +2040,7 @@ impl Poloniex {
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&firstBalance, "ts", &[]).as_i64();
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
             let mut __for_first_647: bool = true;

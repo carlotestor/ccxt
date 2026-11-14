@@ -652,7 +652,7 @@ impl Bitopro {
         m.insert("info".to_string(), trade);
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -731,7 +731,7 @@ impl Bitopro {
         std::sync::Arc::make_mut(&mut result).insert("symbol".into(), self.safe_string_k(&market, "symbol", &[])); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         std::sync::Arc::make_mut(&mut result).insert("timestamp".into(), Value::from(timestamp));
-        std::sync::Arc::make_mut(&mut result).insert("datetime".into(), self.iso8601(Value::from(timestamp))); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
+        std::sync::Arc::make_mut(&mut result).insert("datetime".into(), self.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&result)); }
         if (event.is_some()) {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null"));

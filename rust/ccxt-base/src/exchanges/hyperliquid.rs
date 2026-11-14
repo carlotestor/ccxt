@@ -985,13 +985,13 @@ impl Hyperliquid {
             }
         }
         }
-        let mut promises: Value = promise_all(&Value::from(rawPromises)).await;
+        let mut promises: crate::value::List = promise_all(&Value::from(rawPromises)).await.into_list();
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_798: bool = true;
             while { if !__for_first_798 { i += 1; } __for_first_798 = false; i < (promises.len() as i64) } {
-            result = self.array_concat(Value::Arr(result), self.safe_list(promises.clone(), Value::Int(i), &[Value::from(vec![])])).into_list();
+            result = self.array_concat(Value::Arr(result), self.safe_list(&promises, Value::Int(i), &[Value::from(vec![])])).into_list();
         }
         }
         return Value::Arr(result);
@@ -1042,16 +1042,15 @@ impl Hyperliquid {
         });
         let mut dexesCount: i64 = get_array_length(&fetchDexes).as_i64().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(1);
+                        let mut i: i64 = 1;
             let mut __for_first_799: bool = true;
-            while { if !__for_first_799 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_799 = false; i.as_f64().unwrap_or(f64::NAN) < (dexesCount as f64) } {
+            while { if !__for_first_799 { i += 1; } __for_first_799 = false; i < dexesCount } {
             // builder-deployed perp dexs start at 110000
-            let mut dex: crate::value::Dict = self.safe_dict(fetchDexes.clone(), i.clone(), &[Value::Map({
+            let mut dex: crate::value::Dict = self.safe_dict(fetchDexes.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut secondPart: Value = (match (&((match (&(i), &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-                &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            let mut secondPart: Value = Value::Int((((i * 10000)) - 10000));
             let mut offset: Value = self.sum(&[Value::Int(110000), secondPart]);
             add_element_to_object(&mut perpDexesOffset, &self.safe_string_k(&dex, "name", &[Value::Str("".into())]), offset.clone());
         }
@@ -1114,7 +1113,7 @@ impl Hyperliquid {
             rawPromises.push(self.public_post_info(&[__ws_arg_3]).await);
         }
         }
-        let mut promises: Value = promise_all(&Value::from(rawPromises)).await;
+        let mut promises: crate::value::List = promise_all(&Value::from(rawPromises)).await.into_list();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hip3TokensByName".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1126,7 +1125,7 @@ impl Hyperliquid {
             while { if !__for_first_803 { i += 1; } __for_first_803 = false; i < (promises.len() as i64) } {
             let mut dexName: Value = fetchDexesList.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut offset: Option<i64> = self.safe_integer(perpDexesOffset.clone(), dexName.clone(), &[]).as_i64();
-            let mut response: crate::value::List = self.safe_list(promises.clone(), Value::Int(i), &[]).into_list();
+            let mut response: crate::value::List = self.safe_list(&promises, Value::Int(i), &[]).into_list();
             let mut meta: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1148,7 +1147,7 @@ impl Hyperliquid {
     m
 })]);
                 let mut data: crate::value::Dict = self.extend(__ws_arg_4, &[__ws_arg_5]).into_dict();
-                std::sync::Arc::make_mut(&mut data).insert("baseId".into(), self.sum(&[Value::Int(j), Value::from(offset)]));
+                std::sync::Arc::make_mut(&mut data).insert("baseId".into(), Value::from((if let Some(__m1) = offset { Some((j + __m1)) } else { None })));
                 std::sync::Arc::make_mut(&mut data).insert("collateralToken".into(), collateralToken.clone().map(Value::from).unwrap_or(Value::Null));
                 std::sync::Arc::make_mut(&mut data).insert("hip3".into(), Value::Bool(true));
                 std::sync::Arc::make_mut(&mut data).insert("dex".into(), dexName.clone());
@@ -1843,7 +1842,7 @@ impl Hyperliquid {
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(response, "time", &[]).as_i64();
         result.insert("timestamp".into(), Value::from(timestamp));
-        result.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        result.insert("datetime".into(), self.iso8601(timestamp));
         return self.safe_balance(Value::Map(result));
         Value::Null
         }).await?))
@@ -2166,7 +2165,7 @@ impl Hyperliquid {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), Value::from(funding));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTimestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -2433,7 +2432,7 @@ impl Hyperliquid {
 }
 
     pub fn hash_message(&self, mut message: Value) -> Option<String> {
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])));
 }
 
     pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> Value {
@@ -4506,7 +4505,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("symbol".to_string(), self.safe_symbol(Value::Null, Some(&market), &[]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -5074,7 +5073,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), self.safe_string_k(&entry, "oid", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&entry, "cloid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(orderOmitted, "statusTimestamp", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -5269,7 +5268,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "oid", &[]));
@@ -5430,7 +5429,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("quoteValue".to_string(), crate::precise::Precise::stringMul(&amount, &price));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[marketResolved]);
 
@@ -6332,7 +6331,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), Value::Null);
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "hash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), self.safe_string_k(&delta, "destination", &[]));
@@ -6588,7 +6587,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("currency".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
@@ -7013,7 +7012,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("code".to_string(), Value::from(code));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("rate".to_string(), Value::from(rate));
@@ -7166,7 +7165,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (hip3Dict.is_some()) {
             let mut quote: String = self.safe_string_k(&hip3Dict, "quote", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
             let mut code: Option<String> = self.safe_string_k(&hip3Dict, "code", &[coin.clone()]).as_str().map(str::to_owned);
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code.as_deref().unwrap_or("null"), "/").into()), quote).into()), ":").into()), quote).into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code.as_deref().unwrap_or("null"), "/").into()), quote).into()), ":").into()), quote));
         }
         if coin.as_str().unwrap_or("").contains("/") || coin.as_str().unwrap_or("").contains("@") {
             return coin.as_str().map(str::to_owned);
@@ -7176,7 +7175,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if coin.as_str().unwrap_or("").contains(":") {
             coinId = coin.as_str().map(|__s| Value::Str(__s.replace(":", "-").into())).unwrap_or_else(|| coin.clone());
         }
-        return Value::Str(format!("{}{}", self.safe_currency_code(coinId, None).map(Value::from).unwrap_or(Value::Null), Value::Str("/USDC:USDC".into())).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", self.safe_currency_code(coinId, None).map(Value::from).unwrap_or(Value::Null), Value::Str("/USDC:USDC".into())));
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {

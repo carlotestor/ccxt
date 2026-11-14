@@ -1495,7 +1495,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPx", &[]));
@@ -1635,7 +1635,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tradeId", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "ordId", &[]));
@@ -1927,7 +1927,7 @@ impl Deepcoin {
         m.insert("updated".to_string(), Value::Null);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
@@ -2076,15 +2076,15 @@ impl Deepcoin {
         let mut index: Value = Value::Int(0);
         if (network.is_some()) && (length > 1) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_611: bool = true;
-                while { if !__for_first_611 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < (length as f64) } {
-                let mut entryNetwork: Option<String> = self.safe_string(self.safe_dict(addressess.clone(), i.clone(), &[Value::Map({
+                while { if !__for_first_611 { i += 1; } __for_first_611 = false; i < length } {
+                let mut entryNetwork: Option<String> = self.safe_string(self.safe_dict(addressess.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
                 if (entryNetwork == network) {
-                    index = i.clone();
+                    index = Value::Int(i);
                 }
             }
             }
@@ -2256,7 +2256,7 @@ impl Deepcoin {
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), self.safe_string_k(item, "bal", &[]));
         m.insert("status".to_string(), Value::Null);
@@ -3539,13 +3539,13 @@ impl Deepcoin {
             m
         });
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " editOrder() is not supported for spot markets")));
             }
-            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol");
+            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string();
         }
         let mut stopLossPrice: Option<f64> = self.safe_number_k(params.clone(), "stopLossPrice", &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(params.clone(), "takeProfitPrice", &[]).as_f64();
@@ -3556,25 +3556,25 @@ impl Deepcoin {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")));
             }
             if (stopLossPrice.is_some()) {
-                request.insert("slTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone(), Value::from(stopLossPrice))) } else { Value::from(self.number_to_string(Value::from(stopLossPrice))) }));
+                request.insert("slTriggerPx".into(), (if (symbolResolved.as_deref() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), Value::from(stopLossPrice))) } else { Value::from(self.number_to_string(Value::from(stopLossPrice))) }));
             }
             if (takeProfitPrice.is_some()) {
-                request.insert("tpTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone(), Value::from(takeProfitPrice))) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
+                request.insert("tpTriggerPx".into(), (if (symbolResolved.as_deref() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), Value::from(takeProfitPrice))) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
             }
             let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["stopLossPrice", "takeProfitPrice"], &[]).into_dict();
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_deepcoin_trade_replace_order_sltp(&[__ws_arg_28]).await.into_opt_dict();
         }  else {
             if (price != Value::Null) {
-                if (symbolResolved != Value::Null) {
-                    request.insert("price".into(), Value::from(self.price_to_precision(symbolResolved.clone(), price.clone())));
+                if (symbolResolved.is_some()) {
+                    request.insert("price".into(), Value::from(self.price_to_precision(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), price.clone())));
                 }  else {
                     request.insert("price".into(), Value::from(self.number_to_string(price)));
                 }
             }
             if (amount != Value::Null) {
-                if (symbolResolved != Value::Null) {
-                    request.insert("volume".into(), Value::from(self.amount_to_precision(symbolResolved, amount.clone())));
+                if (symbolResolved.is_some()) {
+                    request.insert("volume".into(), Value::from(self.amount_to_precision(symbolResolved.map(Value::from).unwrap_or(Value::Null), amount.clone())));
                 }  else {
                     request.insert("volume".into(), Value::from(self.number_to_string(amount)));
                 }
@@ -3731,7 +3731,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "ordId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clOrdId", &[]));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "uTime", &[]));
@@ -3946,7 +3946,7 @@ impl Deepcoin {
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "posId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "pos", &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(position.clone(), "posSide", &[]));
@@ -4309,7 +4309,7 @@ impl Deepcoin {
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("fundingRate".to_string(), self.safe_number_k(info, "rate", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -4537,7 +4537,7 @@ impl Deepcoin {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: i64 = self.milliseconds();
-            let mut dateTime: Option<String> = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            let mut dateTime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", dateTime.as_deref().unwrap_or("null"), method).into()), "/").into()), requestPath);
             let mut privateHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

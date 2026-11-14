@@ -1910,13 +1910,13 @@ impl Aster {
 }));
         let mut promises: Vec<Value> = vec![self.sapi_public_get_v3_exchange_info(&[params.clone()]).await, self.fapi_public_get_v3_exchange_info(&[params]).await];
         promises.push(self.sign_in(&[]).await);
-        let mut results: Value = promise_all(&Value::from(promises)).await;
-        let mut sapiResult: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(0), &[Value::Map({
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+        let mut sapiResult: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut sapiRows: crate::value::List = self.safe_list_k(&sapiResult, "symbols", &[Value::from(vec![])]).into_list();
-        let mut fapiResult: crate::value::Dict = self.safe_dict(results, Value::Int(1), &[Value::Map({
+        let mut fapiResult: crate::value::Dict = self.safe_dict(&results, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2367,7 +2367,7 @@ impl Aster {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), Value::Null);
@@ -2655,7 +2655,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPrice", &[]));
@@ -2852,7 +2852,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("price".to_string(), self.safe_number_omit_zero(entry.clone(), Value::Str("price".into()), &[]));
         m.insert("side".to_string(), Value::Null);
         m.insert("info".to_string(), entry);
@@ -2947,13 +2947,13 @@ impl Aster {
         m.insert("interestRate".to_string(), self.safe_number_k(contract.clone(), "interestRate", &[]));
         m.insert("estimatedSettlePrice".to_string(), self.safe_number_k(contract.clone(), "estimatedSettlePrice", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "lastFundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
-        m.insert("nextFundingDatetime".to_string(), self.iso8601(Value::from(nextFundingTimestamp)));
+        m.insert("nextFundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
@@ -3132,7 +3132,7 @@ impl Aster {
         m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(contract.clone(), "symbol", &[]), None, &[Value::Null, Value::Str("swap".into())]));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -3479,7 +3479,7 @@ impl Aster {
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOrderId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "updateTime", &[]));
         m.insert("type".to_string(), self.parse_order_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null));
@@ -4488,7 +4488,7 @@ impl Aster {
         m.insert("total".to_string(), Value::Null);
         m.insert("status".to_string(), (if (success || noErrorCode) { Value::Str("ok".into()) } else { Value::Str("failed".into()) }));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -4601,7 +4601,7 @@ impl Aster {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("swap".into())]));
         m.insert("code".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "tranId", &[]));
         m.insert("amount".to_string(), self.safe_number_k(income, "income", &[]));
     m
@@ -4703,7 +4703,7 @@ impl Aster {
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
@@ -4957,7 +4957,7 @@ impl Aster {
         m.insert("maintenanceMargin".to_string(), Value::from(maintenanceMargin));
         m.insert("maintenanceMarginPercentage".to_string(), Value::from(maintenanceMarginPercentage));
         m.insert("marginRatio".to_string(), Value::from(marginRatio));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), Value::Bool(hedged));
@@ -5306,7 +5306,7 @@ impl Aster {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("initialMargin".to_string(), Value::from(initialMargin));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMargin".to_string(), Value::from(maintenanceMargin));
@@ -5430,7 +5430,7 @@ impl Aster {
 }
 
     pub fn keccak_message(&self, mut message: Value) -> Option<String> {
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])));
 }
 
     pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Option<String> {
@@ -5714,7 +5714,7 @@ impl Aster {
         let mut x19: crate::value::Bytes = self.base16_to_binary(Value::Str("19".into()), &[]);
         let mut newline: crate::value::Bytes = self.base16_to_binary(Value::Str("0a".into()), &[]);
         let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(Value::from(binaryMessageLength)))))]);
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[binaryMessage]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[binaryMessage]), Value::Str("keccak".into()), &[Value::Str("hex".into())])));
 }
 
     pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> Option<String> {
@@ -5723,9 +5723,9 @@ impl Aster {
         let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         let mut r: Option<String> = crate::value::KeyRead::key_read(&&signature, "r").as_str().map(str::to_owned);
-        let mut s: Value = crate::value::KeyRead::key_read(&&signature, "s");
+        let mut s: Option<String> = crate::value::KeyRead::key_read(&&signature, "s").as_str().map(str::to_owned);
         let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), (if let Some(__s) = r.as_deref() { Some(format!("{:0>64}", __s)) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), (if let Some(__s) = r.as_deref() { Some(format!("{:0>64}", __s)) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), (if let Some(__s) = s.as_deref() { Some(format!("{:0>64}", __s)) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), v));
 }
 
     pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {

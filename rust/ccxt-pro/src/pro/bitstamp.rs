@@ -508,7 +508,7 @@ impl Bitstamp {
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut timestamp: Option<i64> = self.safe_timestamp_k(delta.clone(), "timestamp", &[]).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "microtimestamp", &[]));
         let mut bids: crate::value::List = self.safe_list_k(delta.clone(), "bids", &[Value::from(vec![])]).into_list();
         let mut asks: crate::value::List = self.safe_list_k(delta, "asks", &[Value::from(vec![])]).into_list();
@@ -541,13 +541,13 @@ impl Bitstamp {
             return Value::Int(-1);
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_138: bool = true;
-            while { if !__for_first_138 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_138 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            let mut delta: crate::value::Dict = self.safe_dict(deltas.clone(), i.clone(), &[]).into_dict();
+            while { if !__for_first_138 { i += 1; } __for_first_138 = false; i < (deltas.len() as i64) } {
+            let mut delta: crate::value::Dict = self.safe_dict(deltas.clone(), Value::Int(i), &[]).into_dict();
             let mut deltaNonce: Option<i64> = self.safe_integer_k(&delta, "microtimestamp", &[]).as_i64();
             if (deltaNonce == nonce) {
-                return (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                return Value::Int((i + 1));
             }
         }
         }
@@ -671,7 +671,7 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
@@ -1063,7 +1063,7 @@ impl Bitstamp {
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id_str".into()), Value::Str("id".into()), &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
@@ -1207,7 +1207,7 @@ impl Bitstamp {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("type".to_string(), orderType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));

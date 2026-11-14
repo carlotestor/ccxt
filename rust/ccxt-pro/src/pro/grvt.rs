@@ -501,15 +501,15 @@ impl Grvt {
             m
         });
         let __ws_arg_2 = self.extend(paramsInterval, &[Value::Map(request)]);
-        let mut ticker: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_2, Value::from(rawHashes), &[]).await;
+        let mut ticker: crate::value::Dict = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_2, Value::from(rawHashes), &[]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
-                tickers.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
+                tickers.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
             return Value::Map(tickers);
         }
@@ -1071,7 +1071,7 @@ impl Grvt {
             self.handle_deltas_with_keys(orderbook.book_field("asks"), Value::Arr(asks), &[Value::Str("price".into()), Value::Str("size".into())]);
             self.handle_deltas_with_keys(orderbook.book_field("bids"), Value::Arr(bids), &[Value::Str("price".into()), Value::Str("size".into())]);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
-            orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         // grvt defaults to the delta channel (v1.book.d); if the very first
         // message is a delta, the freshly-created orderbook has symbol=null

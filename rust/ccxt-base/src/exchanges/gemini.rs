@@ -1961,7 +1961,7 @@ impl Gemini {
     m
 })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&volume, "timestamp", &[]).as_i64();
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut marketId: Option<String> = self.safe_string_lower_k(ticker.clone(), "pair", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), market, &[]);
         let mut baseId: Option<String> = None;
@@ -1980,11 +1980,11 @@ impl Gemini {
             base = self.safe_currency_code(Value::from(baseId.as_deref()), None);
             quote = self.safe_currency_code(Value::from(quoteId.as_deref()), None);
             if (base.is_some()) && (quote.is_some()) {
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into());
+                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
             }
         }
-        if (symbol == Value::Null) && (true) {
-            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        if (symbol.is_none()) && (true) {
+            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol").into_opt_string();
             baseId = self.safe_string_upper_k(&marketResolved, "baseId", &[]).as_str().map(str::to_owned);
             quoteId = self.safe_string_upper_k(&marketResolved, "quoteId", &[]).as_str().map(str::to_owned);
         }
@@ -1996,9 +1996,9 @@ impl Gemini {
         let mut quoteVolume: Option<String> = self.safe_string(&volume, quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -2123,7 +2123,7 @@ impl Gemini {
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -2467,7 +2467,7 @@ impl Gemini {
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), order);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), Value::from(status));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -2941,7 +2941,7 @@ impl Gemini {
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("eid".into()), Value::Str("withdrawalId".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txHash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), Value::Null);

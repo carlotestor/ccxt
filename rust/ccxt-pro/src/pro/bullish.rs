@@ -728,14 +728,14 @@ impl Bullish {
         // 302 ='53714.0000000'
         let mut entries: crate::value::List = self.to_array(entry).into_list();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_175: bool = true;
-            while { if !__for_first_175 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_175 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
-            if ((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }).as_f64() != Some(0.0)) {
+            while { if !__for_first_175 { i += 1; } __for_first_175 = false; i < (entries.len() as i64) } {
+            if (((i % 2)) != 0) {
                 continue;
             }
-            let mut price: Value = self.safe_string(&entries, i.clone(), &[]);
-            result.push(Value::from(vec![price, self.safe_string(&entries, (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[])]));
+            let mut price: Option<String> = self.safe_string(&entries, Value::Int(i), &[]).as_str().map(str::to_owned);
+            result.push(Value::from(vec![price.map(Value::from).unwrap_or(Value::Null), self.safe_string(&entries, Value::Int((i + 1)), &[])]));
         }
         }
         return Value::from(result);

@@ -869,7 +869,7 @@ impl Btcmarkets {
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "id", &[]));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), Value::from(address.as_deref()));
@@ -1234,7 +1234,7 @@ impl Btcmarkets {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high24h", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bestBid", &[]));
@@ -1347,11 +1347,11 @@ impl Btcmarkets {
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "timestamp", &[]));
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "marketId", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]);
-        let mut feeCurrencyCode: Value = Value::Null;
+        let mut feeCurrencyCode: Option<String> = None;
         if (crate::value::KeyRead::key_read(&&marketResolved, "quote").as_str() == Some("AUD")) {
-            feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "quote");
+            feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "quote").into_opt_string();
         }  else {
-            feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "base");
+            feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "base").into_opt_string();
         }
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("Bid")) {
@@ -1369,7 +1369,7 @@ impl Btcmarkets {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), feeCurrencyCode);
+                    m.insert("currency".to_string(), feeCurrencyCode.map(Value::from).unwrap_or(Value::Null));
                 m
             }));
         }
@@ -1379,7 +1379,7 @@ impl Btcmarkets {
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
@@ -1743,7 +1743,7 @@ impl Btcmarkets {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));

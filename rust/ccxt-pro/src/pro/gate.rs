@@ -1300,14 +1300,14 @@ impl Gate {
             return Value::Int(-1);
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_319: bool = true;
-            while { if !__for_first_319 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_319 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
-            let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), i.clone(), &[]).into_dict();
+            while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (cache.len() as i64) } {
+            let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(i), &[]).into_dict();
             let mut deltaStart: Option<i64> = self.safe_integer_k(&delta, "U", &[]).as_i64();
             let mut deltaEnd: Option<i64> = self.safe_integer_k(&delta, "u", &[]).as_i64();
             if (nonce.is_some()) && (deltaStart.is_some()) && (deltaEnd.is_some()) && (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) && ((nonce.is_some() && deltaEnd.is_some() && nonce < deltaEnd)) {
-                return i;
+                return Value::Int(i);
             }
         }
         }
@@ -1338,7 +1338,7 @@ impl Gate {
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut timestamp: Option<i64> = self.safe_integer_k(delta.clone(), "t", &[]).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "u", &[]));
         let mut bids: crate::value::List = self.safe_list_k(delta.clone(), "b", &[Value::from(vec![])]).into_list();
         let mut asks: crate::value::List = self.safe_list_k(delta, "a", &[Value::from(vec![])]).into_list();
@@ -1954,7 +1954,7 @@ impl Gate {
         }  else {
             result = std::sync::Arc::new(vec![rawResult]);
         }
-        let mut marketIds: Value = Value::Map({
+        let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1985,16 +1985,16 @@ impl Gate {
                 }
             }
             stored.append(parsed);
-            if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), timeframe.map(Value::from).unwrap_or(Value::Null)); }
+            marketIds.insert(crate::runtime::stringify_param(&symbol), timeframe.map(Value::from).unwrap_or(Value::Null));
         }
         }
-        let mut keys: Vec<Value> = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(marketIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_327: bool = true;
             while { if !__for_first_327 { i += 1; } __for_first_327 = false; i < (keys.len() as i64) } {
             let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut timeframe: Value = (if let (Some(__m), Some(__k)) = (marketIds.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut timeframe: Value = marketIds.get(symbol.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut interval: Option<String> = self.find_timeframe(timeframe, &[]);
             let mut hash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles", ":").into()), interval.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
             let mut symbolOhlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&interval);
@@ -2267,7 +2267,7 @@ impl Gate {
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId), None);
             let mut timestamp: Option<i64> = self.safe_integer2(&rawBalance, Value::Str("time_ms".into()), Value::Str("timestamp_ms".into()), &[]).as_i64();
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-            { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+            { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
             account.insert("used".into(), self.safe_string_k(&rawBalance, "freeze", &[]));
             account.insert("free".into(), self.safe_string_k(&rawBalance, "available", &[]));
             account.insert("total".into(), self.safe_string2(&rawBalance, Value::Str("total".into()), Value::Str("balance".into()), &[]));
@@ -2543,11 +2543,11 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut marketResolved: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             market = Some(crate::types::Market::clone(&marketResolved));
-            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol");
+            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string();
         }
         let mut type_var: Option<String> = None;
         let mut query: Value = Value::Null;
@@ -2594,7 +2594,7 @@ impl Gate {
         let mut orders: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), query, &[Value::Bool(requiresUid)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
         return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -2916,7 +2916,7 @@ impl Gate {
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[]);
 

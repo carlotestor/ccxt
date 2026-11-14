@@ -2197,10 +2197,10 @@ impl Woo {
         // }
         //
         let tokenResponsetokenNetworkResponseVariable: Vec<Value> = promise_all(&Value::from(vec![tokenResponsePromise, tokenNetworkResponsePromise])).await.as_array().cloned().unwrap_or_default();
-        let mut tokenResponse: Value = tokenResponsetokenNetworkResponseVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut tokenNetworkResponse: Value = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut tokenRows: crate::value::List = self.safe_list_k(tokenResponse, "rows", &[Value::from(vec![])]).into_list();
-        let mut tokenNetworkRows: crate::value::List = self.safe_list_k(tokenNetworkResponse, "rows", &[Value::from(vec![])]).into_list();
+        let mut tokenResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+        let mut tokenNetworkResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut tokenRows: crate::value::List = self.safe_list_k(&tokenResponse, "rows", &[Value::from(vec![])]).into_list();
+        let mut tokenNetworkRows: crate::value::List = self.safe_list_k(&tokenNetworkResponse, "rows", &[Value::from(vec![])]).into_list();
         let mut networksById: crate::value::Dict = self.group_by(Value::Arr(tokenNetworkRows), Value::Str("token".into()), &[]).into_dict();
         let mut tokensById: crate::value::Dict = self.group_by(Value::Arr(tokenRows), Value::Str("balance_token".into()), &[]).into_dict();
         let mut currencyIds: Vec<Value> = Value::Array(tokensById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -3532,7 +3532,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "24hHigh", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "24hLow", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -4034,17 +4034,17 @@ impl Woo {
         //     }
         //
         let mainAccountResponsesubAccountResponseVariable: Vec<Value> = promise_all(&Value::from(vec![mainAccountPromise, subAccountPromise])).await.as_array().cloned().unwrap_or_default();
-        let mut mainAccountResponse: Value = mainAccountResponsesubAccountResponseVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut subAccountResponse: Value = mainAccountResponsesubAccountResponseVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut mainData: crate::value::Dict = self.safe_dict_k(mainAccountResponse, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut mainAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+        let mut subAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut mainData: crate::value::Dict = self.safe_dict_k(&mainAccountResponse, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut mainRows: crate::value::List = std::sync::Arc::new(vec![Value::Dict(mainData)]);
-        let mut subData: crate::value::Dict = self.safe_dict_k(subAccountResponse, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut subData: crate::value::Dict = self.safe_dict_k(&subAccountResponse, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut subRows: crate::value::List = self.safe_list_k(&subData, "rows", &[Value::from(vec![])]).into_list();
         let mut rows: Value = self.array_concat(Value::Arr(mainRows), &subRows);
         return self.parse_accounts(rows, &[params]);
@@ -4414,7 +4414,7 @@ impl Woo {
         m.insert("after".to_string(), Value::Null);
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("type".to_string(), self.parse_ledger_entry_type((self.safe_string_k(item, "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
@@ -4604,7 +4604,7 @@ impl Woo {
         m.insert("id".to_string(), self.safe_string_n(transaction.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("withdraw_id".into()), Value::Str("withdrawId".into())]), &[]));
         m.insert("txid".to_string(), self.safe_string2(transaction.clone(), Value::Str("tx_id".into()), Value::Str("txId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
@@ -4862,7 +4862,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(&fromAccount, "applicationId", &[]));
@@ -5185,7 +5185,7 @@ impl Woo {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("rate".to_string(), Value::from(rate));
@@ -5329,16 +5329,16 @@ impl Woo {
         m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".into()), &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(estFundingRateTimestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(estFundingRateTimestamp)));
+        m.insert("datetime".to_string(), self.iso8601(estFundingRateTimestamp));
         m.insert("fundingRate".to_string(), self.safe_number2(fundingRate.clone(), Value::Str("estFundingRate".into()), Value::Str("fundingRate".into()), &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(nextFundingTimestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("previousFundingRate".to_string(), self.safe_number_k(fundingRate, "lastFundingRate", &[]));
         m.insert("previousFundingTimestamp".to_string(), Value::from(lastFundingRateTimestamp));
-        m.insert("previousFundingDatetime".to_string(), self.iso8601(Value::from(lastFundingRateTimestamp)));
+        m.insert("previousFundingDatetime".to_string(), self.iso8601(lastFundingRateTimestamp));
         m.insert("interval".to_string(), interval.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
@@ -5585,7 +5585,7 @@ impl Woo {
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -6442,7 +6442,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(conversion.clone(), "quoteId", &[]));
         m.insert("fromCurrency".to_string(), fromCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("fromAmount".to_string(), self.safe_number2(conversion.clone(), Value::Str("sellQuantity".into()), Value::Str("sellAmount".into()), &[]));
@@ -6665,7 +6665,7 @@ impl Woo {
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 

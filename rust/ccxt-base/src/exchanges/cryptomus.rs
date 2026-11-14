@@ -1049,7 +1049,7 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "trade_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
@@ -1547,7 +1547,7 @@ impl Cryptomus {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -1737,7 +1737,7 @@ impl Cryptomus {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut endpoint: String = self.implode_params(path.clone(), params.clone());
-        let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut paramsOmitted: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -1756,7 +1756,7 @@ impl Cryptomus {
                 jsonParams = json_stringify(&paramsOmitted).as_str().map(str::to_owned);
                 privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
             }  else {
-                let mut query: String = self.urlencode(paramsOmitted.clone(), &[]);
+                let mut query: String = self.urlencode(&paramsOmitted, &[]);
                 if (((query.chars().count() as i64)) != 0) {
                     url.push_str(&format!("{}{}", "?", query));
                 }
@@ -1775,7 +1775,7 @@ impl Cryptomus {
     m
 });
         }  else {
-            let mut query: String = self.urlencode(paramsOmitted, &[]);
+            let mut query: String = self.urlencode(&paramsOmitted, &[]);
             if (((query.chars().count() as i64)) != 0) {
                 url.push_str(&format!("{}{}", "?", query));
             }

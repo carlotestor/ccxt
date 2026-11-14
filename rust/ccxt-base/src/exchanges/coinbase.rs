@@ -2109,7 +2109,7 @@ impl Coinbase {
         //         "side": "BUY"
         //     }
         //
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut totalObject: crate::value::Dict = self.safe_dict_k(trade.clone(), "total", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2129,7 +2129,7 @@ impl Coinbase {
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]);
         if (true) {
-            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol").into_opt_string();
         }  else {
             let mut baseId: Option<String> = self.safe_string_k(&amountObject, "currency", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(&totalObject, "currency", &[]).as_str().map(str::to_owned);
@@ -2137,7 +2137,7 @@ impl Coinbase {
                 let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
                 if (base.is_some()) && (quote.is_some()) {
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into());
+                    symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
                 }
             }
         }
@@ -2194,7 +2194,7 @@ impl Coinbase {
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), (if (side.as_deref() == Some("unknown_order_side")) { Value::Null } else { side.clone().map(Value::from).unwrap_or(Value::Null) }));
         m.insert("takerOrMaker".to_string(), (if (takerOrMaker.as_deref() == Some("unknown_liquidity_indicator")) { Value::Null } else { takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null) }));
@@ -2252,15 +2252,15 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.fetch_currencies_from_cache(&[params]).await;
-        let mut currencies: crate::value::Dict = self.safe_dict_k(response.clone(), "currencies", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut exchangeRates: crate::value::Dict = self.safe_dict_k(response, "exchangeRates", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut response: crate::value::Dict = self.fetch_currencies_from_cache(&[params]).await.into_dict();
+        let mut currencies: crate::value::Dict = self.safe_dict_k(&response, "currencies", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut exchangeRates: crate::value::Dict = self.safe_dict_k(&response, "exchangeRates", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&currencies, "data", &[Value::from(vec![])]).into_list();
         let mut dataById: crate::value::Dict = self.index_by(Value::Arr(data.clone()), Value::Str("id".into())).into_dict();
         let mut rates: indexmap::IndexMap<String, Value> = self.safe_dict(self.safe_dict_k(&exchangeRates, "data", &[Value::Map({
@@ -2454,7 +2454,7 @@ impl Coinbase {
         //        has_promo_fee: false
         //    }
         //
-        let mut promises: Value = promise_all(&Value::from(spotUnresolvedPromises)).await;
+        let mut promises: crate::value::List = promise_all(&Value::from(spotUnresolvedPromises)).await.into_list();
         let mut unresolvedContractPromises: crate::value::List = std::sync::Arc::new(Vec::new());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let __ws_arg_10 = self.extend(paramsUsePrivate, &[Value::Map({
@@ -2474,11 +2474,11 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             contractPromises = Value::from(vec![]);
         }
-        let mut spot: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[Value::Map({
+        let mut spot: crate::value::Dict = self.safe_dict(&promises, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fees: crate::value::Dict = self.safe_dict(promises, Value::Int(1), &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict(&promises, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2847,7 +2847,7 @@ if _try_result.is_err() {
         let mut contractSize: Option<f64> = self.safe_number_k(&futureProductDetails, "contract_size", &[]).as_f64();
         let mut contractExpire: Option<String> = self.safe_string_k(&futureProductDetails, "contract_expiry", &[]).as_str().map(str::to_owned);
         let mut expireTimestamp: Option<i64> = self.parse8601(contractExpire.map(Value::from).unwrap_or(Value::Null));
-        let mut expireDateTime: Option<String> = self.iso8601(Value::from(expireTimestamp)).as_str().map(str::to_owned);
+        let mut expireDateTime: Option<String> = self.iso8601(expireTimestamp).as_str().map(str::to_owned);
         // US perpetual-style futures are listed as EXPIRING with a placeholder expiry, a funding interval, and a PERP display name
         let mut fundingInterval: Option<String> = self.safe_string_k(&futureProductDetails, "funding_interval", &[]).as_str().map(str::to_owned);
         let mut displayName: Option<String> = self.safe_string_k(market.clone(), "display_name", &[]).as_str().map(str::to_owned);
@@ -2958,8 +2958,8 @@ if _try_result.is_err() {
         let mut now: i64 = self.milliseconds();
         if (timestamp.is_none()) || (((if let Some(__r) = timestamp { Some(now - __r) } else { None })) > Some(expires)) {
             let mut promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await]);
-            let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
-            let mut fiatResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
+            let mut promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
+            let mut fiatResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2973,7 +2973,7 @@ if _try_result.is_err() {
             //        ...
             //    ]
             //
-            let mut cryptoResponse: crate::value::Dict = self.safe_dict(promisesResult, Value::Int(1), &[Value::Map({
+            let mut cryptoResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3029,8 +3029,8 @@ if _try_result.is_err() {
     m
 }));
         let mut promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await, self.v2_public_get_exchange_rates(&[params]).await]);
-        let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
-        let mut fiatResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
+        let mut promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
+        let mut fiatResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3044,7 +3044,7 @@ if _try_result.is_err() {
         //            },
         //        ...
         //
-        let mut cryptoResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(1), &[Value::Map({
+        let mut cryptoResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3063,7 +3063,7 @@ if _try_result.is_err() {
         //           },
         //          ...
         //
-        let mut ratesResponse: crate::value::Dict = self.safe_dict(promisesResult, Value::Int(2), &[Value::Map({
+        let mut ratesResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(2), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -4271,7 +4271,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), item);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceId".to_string(), Value::Null);
@@ -5207,7 +5207,7 @@ if _try_result.is_err() {
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
-            request.insert("end_date".into(), self.iso8601(Value::from(until)));
+            request.insert("end_date".into(), self.iso8601(until));
         }
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]).into_dict() } else { paramsPaginate });
         let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5303,7 +5303,7 @@ if _try_result.is_err() {
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         if (until.is_some()) {
-            request.insert("end_date".into(), self.iso8601(Value::from(until)));
+            request.insert("end_date".into(), self.iso8601(until));
         }
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until"], &[]) } else { params }).into_dict();
         let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5724,7 +5724,7 @@ if _try_result.is_err() {
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
-            request.insert("end_sequence_timestamp".into(), self.iso8601(Value::from(until)));
+            request.insert("end_sequence_timestamp".into(), self.iso8601(until));
         }
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]).into_dict() } else { paramsPaginate });
         let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);

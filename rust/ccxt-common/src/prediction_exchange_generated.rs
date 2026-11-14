@@ -2095,7 +2095,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Option<i64> = self.safe_integer_k(outcomeOrder.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.safe_string_k(outcomeOrder.clone(), "datetime", &[]).as_str().map(str::to_owned);
         if (datetime.is_none()) {
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2144,7 +2144,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.safe_string_k(trade.clone(), "datetime", &[]).as_str().map(str::to_owned);
         if (datetime.is_none()) {
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2195,7 +2195,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.safe_string_k(ticker.clone(), "datetime", &[]).as_str().map(str::to_owned);
         if (datetime.is_none()) {
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2235,7 +2235,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.safe_string_k(position.clone(), "datetime", &[]).as_str().map(str::to_owned);
         if (datetime.is_none()) {
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2353,19 +2353,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // instead — and an outcome object rebuilt from cached markets may still hold a legacy
         // `symbol` key, which would silently drop every parsed row
         let mut rows: crate::value::List = self.to_array(trades).into_list();
-        let mut results: Value = Value::from(vec![]);
+        let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_214: bool = true;
             while { if !__for_first_214 { i += 1; } __for_first_214 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
             let mut trade: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
-            if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(Value::Dict(trade)); }
+            std::sync::Arc::make_mut(&mut results).push(Value::Dict(trade));
         }
         }
-        results = self.sort_by2(results, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        results = self.sort_by2(Value::Arr(results), Value::Str("timestamp".into()), Value::Str("id".into()), &[]).into_list();
         let mut outcomeHandle: Option<String> = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        return self.filter_by_value_since_limit(results, Value::Str("outcome".into()), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
+        return self.filter_by_value_since_limit(Value::Arr(results), Value::Str("outcome".into()), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
 
     Value::Null
 }
@@ -2392,19 +2392,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         let mut rows: crate::value::List = self.to_array(orders).into_list();
-        let mut results: Value = Value::from(vec![]);
+        let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_215: bool = true;
             while { if !__for_first_215 { i += 1; } __for_first_215 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
             let mut order: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
-            if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(Value::Dict(order)); }
+            std::sync::Arc::make_mut(&mut results).push(Value::Dict(order));
         }
         }
-        results = self.sort_by(results, Value::Str("timestamp".into()), &[]);
+        results = self.sort_by(Value::Arr(results), Value::Str("timestamp".into()), &[]).into_list();
         let mut outcomeHandle: Option<String> = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        return self.filter_by_outcome_since_limit(results, &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_outcome_since_limit(Value::Arr(results), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit]);
 
     Value::Null
 }
@@ -2500,8 +2500,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str("".into());
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
-        let mut hexLength: Value = Value::Int(hex.len() as i64);
-        if (((match (&(hexLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() != Some(0.0)) {
+        let mut hexLength: i64 = hex.len() as i64;
+        if (((hexLength % 2)) != 0) {
             return Value::Str(format!("{}{}", "0", hex).into());
         }
         return hex;

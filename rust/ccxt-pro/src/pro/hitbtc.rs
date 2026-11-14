@@ -768,7 +768,7 @@ impl Hitbtc {
                 self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             }
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
-            orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             orderbook.set_book_meta("nonce", Value::from(nonce));
             orderbook.set_book_meta("symbol", symbol.clone());
             CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
@@ -1005,7 +1005,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "h", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "l", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "b", &[]));
@@ -1137,15 +1137,15 @@ impl Hitbtc {
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "t", &[]).as_i64();
-        let mut bidAskSymbol: Value = Value::Null;
+        let mut bidAskSymbol: Option<String> = None;
         if (market.is_some()) {
-            bidAskSymbol = crate::value::KeyRead::key_read(&market, "symbol");
+            bidAskSymbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), bidAskSymbol);
+        m.insert("symbol".to_string(), bidAskSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "a", &[]));
         m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "A", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "b", &[]));
@@ -1325,19 +1325,19 @@ impl Hitbtc {
     m
 }));
         let mut tradesArray: crate::value::List = self.to_array(trades).into_list();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_368: bool = true;
             while { if !__for_first_368 { i += 1; } __for_first_368 = false; i < (tradesArray.len() as i64) } {
             let __ws_arg_2 = self.parse_ws_trade(tradesArray.get(i as usize).cloned().unwrap_or(Value::Null), market);
             let mut trade: crate::value::Dict = self.extend(__ws_arg_2, &[params.clone()]).into_dict();
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Dict(trade)); }
+            std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
         }
         }
-        result = self.sort_by2(result, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]).into_list();
         let mut symbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -1360,7 +1360,7 @@ impl Hitbtc {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "i", &[]));
         m.insert("order".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "s", &[]));
@@ -1748,7 +1748,7 @@ impl Hitbtc {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "trade_id", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[])));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));

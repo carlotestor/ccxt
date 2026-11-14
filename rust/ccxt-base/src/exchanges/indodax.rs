@@ -760,7 +760,7 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
         let mut currencyIds: Vec<Value> = Value::Array(free.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -873,7 +873,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "buy", &[]));
@@ -1025,7 +1025,7 @@ impl Indodax {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tid", &[]));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market, &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
@@ -1205,7 +1205,7 @@ impl Indodax {
         //
         let mut side: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())])).as_str());
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut cost: Option<String> = None;
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = None;
@@ -1214,7 +1214,7 @@ impl Indodax {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "pair", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         if (true) {
-            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol").into_opt_string();
             let mut quoteId: String = self.safe_string_k(&marketResolved, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut baseId: String = self.safe_string_k(&marketResolved, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (crate::value::KeyRead::key_read(&&marketResolved, "quoteId").as_str() == Some("idr")) && (self.safe_string_k(order.clone(), "order_rp", &[]) != Value::Null) {
@@ -1239,9 +1239,9 @@ impl Indodax {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
@@ -1974,7 +1974,7 @@ impl Indodax {
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("withdraw_id".into()), Value::Str("deposit_id".into()), &[]));
         m.insert("txid".to_string(), self.safe_string2(transaction.clone(), Value::Str("txid".into()), Value::Str("tx".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "withdraw_address", &[]));
@@ -2158,11 +2158,11 @@ impl Indodax {
         let mut privateHeaders: Option<crate::value::Dict> = None;
         let mut isPublic: bool = apiName.as_deref() == Some("public");
         if isPublic {
-            let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+            let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
             let mut requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
             url = Some(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath));
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath).into()), "?").into()), self.urlencode_with_array_repeat(query)));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath).into()), "?").into()), self.urlencode_with_array_repeat(&query)));
             }
         }  else {
             self.check_required_credentials(&[]);

@@ -492,7 +492,7 @@ impl Lighter {
         orderbook.set_book_meta("nonce", self.safe_integer_k(&data, "offset", &[]));
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         return orderbook;
 
     Value::Null
@@ -843,15 +843,15 @@ impl Lighter {
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut newTicker: Value = self.subscribe_public_multiple(Value::from(messageHashes), &[__ws_arg_7]).await;
+        let mut newTicker: crate::value::Dict = self.subscribe_public_multiple(Value::from(messageHashes), &[__ws_arg_7]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Option<String> = self.safe_string_k(newTicker.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k(&newTicker, "symbol", &[]).as_str().map(str::to_owned);
             if (newTickerSymbol.is_some()) {
-                result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
+                result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), Value::Dict(newTicker));
             }
             return Value::Map(result);
         }
@@ -1046,7 +1046,7 @@ impl Lighter {
         m.insert("id".to_string(), tradeId.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market, &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::from(side));
@@ -1119,10 +1119,10 @@ impl Lighter {
         }
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_470: bool = true;
-            while { if !__for_first_470 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_470 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut iReversed: Value = Value::from(self.parse_to_int((match (&(Value::Int((dataLength - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
+            while { if !__for_first_470 { i += 1; } __for_first_470 = false; i < dataLength } {
+            let mut iReversed: Value = Value::from(self.parse_to_int(Value::Int((((dataLength - 1)) - i))));
             let mut trade: crate::value::Dict = self.parse_ws_trade(crate::value::KeyRead::read(&&data, &iReversed), Some(&market)).into_dict();
             stored.append(Value::Dict(trade));
         }
@@ -1291,7 +1291,7 @@ impl Lighter {
         m.insert("id".to_string(), tradeId.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market, &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1367,10 +1367,10 @@ impl Lighter {
             let mut trades: crate::value::List = self.safe_list(&data, Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
             let mut tradesLength: i64 = trades.len() as i64;
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_471: bool = true;
-                while { if !__for_first_471 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_471 = false; j.as_f64().unwrap_or(f64::NAN) < (tradesLength as f64) } {
-                let mut jReversed: Value = (match (&(Value::Int((tradesLength - 1))), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                while { if !__for_first_471 { j += 1; } __for_first_471 = false; j < tradesLength } {
+                let mut jReversed: Value = Value::Int((((tradesLength - 1)) - j));
                 let mut tradeRaw: Value = self.safe_dict(&trades, jReversed, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1540,7 +1540,7 @@ impl Lighter {
         m.insert("baseValue".to_string(), baseValue.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteValue".to_string(), quoteValue.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[]);
 
@@ -1600,10 +1600,10 @@ impl Lighter {
         }
         let mut dataLength: i64 = data.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_473 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
-            let mut iReversed: Value = Value::from(self.parse_to_int((match (&(Value::Int((dataLength - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
+            while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < dataLength } {
+            let mut iReversed: Value = Value::from(self.parse_to_int(Value::Int((((dataLength - 1)) - i))));
             let mut liquidation: Value = self.parse_ws_liquidation(crate::value::KeyRead::read(&&data, &iReversed), Some(&market));
             stored.append(liquidation);
         }
@@ -1794,7 +1794,7 @@ impl Lighter {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         balance.insert("timestamp".into(), Value::from(timestamp));
-        balance.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        balance.insert("datetime".into(), self.iso8601(timestamp));
         { let __be_tmp = self.safe_balance(Value::Map(balance)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("balances".into()), &[Value::Null, Value::from(type_var.as_str())]);
         client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_deref());

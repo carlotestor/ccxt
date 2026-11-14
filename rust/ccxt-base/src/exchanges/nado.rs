@@ -2459,10 +2459,10 @@ impl Nado {
         let mut symbolsRequest: Value = self.gateway_public_get_symbols(&[params.clone()]).await;
         let mut pairsRequest: Value = self.gateway_v2_public_get_pairs(&[params.clone()]).await;
         let mut assetsRequest: Value = self.gateway_v2_public_get_assets(&[params]).await;
-        let mut responses: Value = promise_all(&Value::from(vec![symbolsRequest, pairsRequest, assetsRequest])).await;
-        let mut symbols: crate::value::List = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-        let mut pairs: crate::value::List = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
-        let mut assets: crate::value::List = self.safe_list(responses, Value::Int(2), &[Value::from(vec![])]).into_list();
+        let mut responses: crate::value::List = promise_all(&Value::from(vec![symbolsRequest, pairsRequest, assetsRequest])).await.into_list();
+        let mut symbols: crate::value::List = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut pairs: crate::value::List = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut assets: crate::value::List = self.safe_list(&responses, Value::Int(2), &[Value::from(vec![])]).into_list();
         // product_id is a JSON number: JS object keys are always strings but a Python
         // dict keeps int keys, so indexBy would never match the safeString lookups below
         let mut pairsById: indexmap::IndexMap<String, Value> = ({
@@ -3399,7 +3399,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("trade_id".into()), Value::Str("submission_idx".into()), &[]));
         m.insert("order".to_string(), self.safe_string_k(trade, "digest", &[]));
@@ -3454,7 +3454,7 @@ impl Nado {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTimestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -3489,7 +3489,7 @@ impl Nado {
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("code".to_string(), self.safe_string_k(&marketResolved, "settle", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(funding.clone(), "idx", &[]));
         m.insert("amount".to_string(), self.parse_x18(self.safe_string_k(funding, "amount", &[])));
     m
@@ -3735,7 +3735,7 @@ impl Nado {
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "submission_idx", &[]));
         m.insert("txid".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -4173,7 +4173,7 @@ impl Nado {
         if ((encoded.as_deref().unwrap_or_default().chars().count() as i64)) > 24 {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() subaccount must fit in 12 bytes")));
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", "0x", address).into()), self.pad_hex(encoded.as_deref().unwrap_or_default(), Value::Int(24), &[Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", "0x", address).into()), self.pad_hex(encoded.as_deref().unwrap_or_default(), Value::Int(24), &[Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null)));
 }
 
     pub async fn query_contracts(&mut self, optional_args: &[Value]) -> Value {
@@ -4205,7 +4205,7 @@ impl Nado {
 
     pub fn order_verifying_contract(&self, productId: Option<i64>) -> Option<String> {
         let mut productId: Value = productId.into();
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(self.int_to_base16(productId, &[]).as_str(), Value::Int(40), &[]).map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str("0x".into()), self.pad_hex(self.int_to_base16(productId, &[]).as_str(), Value::Int(40), &[]).map(Value::from).unwrap_or(Value::Null)));
 }
 
     pub fn pad_hex(&self, value: &str, mut length: Value, optional_args: &[Value]) -> Option<String> {
@@ -4396,7 +4396,7 @@ impl Nado {
         let mut r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut v: Value = (Value::from(self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(r.as_str(), Value::Int(64), &[]).map(Value::from).unwrap_or(Value::Null)).into()), self.pad_hex(s.as_str(), Value::Int(64), &[]).map(Value::from).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(r.as_str(), Value::Int(64), &[]).map(Value::from).unwrap_or(Value::Null)).into()), self.pad_hex(s.as_str(), Value::Int(64), &[]).map(Value::from).unwrap_or(Value::Null)).into()), v));
 }
 
     pub fn remove_market_suffix(&self, marketId: Option<&str>) -> Option<String> {

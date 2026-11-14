@@ -1232,10 +1232,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
         // byte-identical to ethers' serialization
         let mut accessList: Option<String> = self.rlp_encode_list(Value::from(vec![])).as_str().map(str::to_owned);
-        let mut fields: Value = Value::from(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(self.safe_integer_k(tx.clone(), "chainId", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "nonce", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "maxPriorityFeePerGas", &[]))),
-            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "maxFeePerGas", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "gasLimit", &[]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx.clone(), "to", &[]))),
+        let mut fields: crate::value::List = std::sync::Arc::new(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(self.safe_integer_k(tx.clone(), "chainId", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "nonce", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "maxPriorityFeePerGas",
+            &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "maxFeePerGas", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "gasLimit", &[]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx.clone(), "to", &[]))),
             self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "value", &[Value::Str("0x0".into())]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "data", &[Value::Str("0x".into())]))), accessList.map(Value::from).unwrap_or(Value::Null)]);
-        let mut payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(fields.clone()));
+        let mut payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(Value::Arr(fields.clone())));
         let mut hashHex: Value = Value::from(self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]));
         let mut signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
         let mut rHex: Option<String> = self.safe_string_k(&signature, "r", &[]).as_str().map(str::to_owned);
@@ -1243,15 +1243,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (rHex.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " signEvmTransaction() missing rHex")));
         }
-        let mut rHexLength: Value = Value::Int((rHex.as_deref().unwrap_or_default().chars().count() as i64));
-        if (((match (&(rHexLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() != Some(0.0)) {
+        let mut rHexLength: i64 = (rHex.as_deref().unwrap_or_default().chars().count() as i64);
+        if (((rHexLength % 2)) != 0) {
             rHex = Some(format!("{}{}", "0", rHex.as_deref().unwrap_or("null")));
         }
         if (sHex.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " signEvmTransaction() missing sHex")));
         }
-        let mut sHexLength: Value = Value::Int((sHex.as_deref().unwrap_or_default().chars().count() as i64));
-        if (((match (&(sHexLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() != Some(0.0)) {
+        let mut sHexLength: i64 = (sHex.as_deref().unwrap_or_default().chars().count() as i64);
+        if (((sHexLength % 2)) != 0) {
             sHex = Some(format!("{}{}", "0", sHex.as_deref().unwrap_or("null")));
         }
         let mut yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
@@ -1260,7 +1260,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1348: bool = true;
             while { if !__for_first_1348 { i += 1; } __for_first_1348 = false; i < (fields.len() as i64) } {
-            signedFields.push(fields.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            signedFields.push(fields.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         signedFields.push(self.rlp_encode_bytes(self.int_to_rlp_hex(Value::from(yParity))));
@@ -2095,7 +2095,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("info".to_string(), order);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("outcome".to_string(), outcome.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
@@ -2162,7 +2162,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Str("closed".into()));
@@ -2908,7 +2908,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_string_k(order.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(order.clone(), "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(order.clone(), "label", &[]));
@@ -3177,10 +3177,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut makerFee: Value = self.safe_number_k(&sellFees, "fee", &[Value::Int(0)]);
         let mut outcomes: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1357: bool = true;
-            while { if !__for_first_1357 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1357 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOutcomes.len() as i64) as f64) } {
-            let mut outcome: crate::value::Dict = self.safe_dict(&rawOutcomes, i.clone(), &[Value::Map({
+            while { if !__for_first_1357 { i += 1; } __for_first_1357 = false; i < (rawOutcomes.len() as i64) } {
+            let mut outcome: crate::value::Dict = self.safe_dict(&rawOutcomes, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -4013,7 +4013,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         // resolve the uncached outcomes first, then group by parent market to fetch each market only once
         self.load_outcomes(&[outcomes.clone()]).await;
-        let mut outcomesByMarket: Value = Value::Map({
+        let mut outcomesByMarket: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4030,15 +4030,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, ":").into()), marketId).into());
-            if !(matches!((&outcomesByMarket, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut outcomesByMarket { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(vec![])); }
+            if !(matches!(&key, Value::Str(__k) if outcomesByMarket.contains_key(__k.as_ref()))) {
+                outcomesByMarket.insert(crate::runtime::stringify_param(&key), Value::from(vec![]));
                 marketKeys.push(key.clone());
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByMarket.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut grouped: Value = outcomesByMarket.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut grouped { std::sync::Arc::make_mut(__a).push(outcomeObj); };
-            crate::set_value(&mut outcomesByMarket, &key, grouped.clone());
-            if let Value::Dict(__d) = &mut outcomesByMarket { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), grouped.clone()); }
+            if let Some(__k) = key.as_str() { outcomesByMarket.insert(__k.to_string(), grouped.clone()); }
+            outcomesByMarket.insert(crate::runtime::stringify_param(&key), grouped.clone());
         }
         }
         let mut promises: Vec<Value> = Vec::new();
@@ -4047,7 +4047,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1366: bool = true;
             while { if !__for_first_1366 { i += 1; } __for_first_1366 = false; i < (marketKeys.len() as i64) } {
             let mut key: Value = marketKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByMarket.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut grouped: Value = outcomesByMarket.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut firstOutcome: crate::value::Dict = self.safe_dict(grouped, Value::Int(0), &[]).into_dict();
             let mut info: crate::value::Dict = self.safe_dict_k(&firstOutcome, "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4069,7 +4069,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1368 { i += 1; } __for_first_1368 = false; i < (marketKeys.len() as i64) } {
             let mut key: Value = marketKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut response: Value = responses.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByMarket.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut grouped: Value = outcomesByMarket.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1367: bool = true;
@@ -4201,7 +4201,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "txId", &[]));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_string_k(&market, "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(&market, "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
@@ -4262,9 +4262,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawQuestions: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // some markets are only discoverable through the questions search endpoint
-            let mut responses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(queries.clone(), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(queries.clone(), &[Value::from(&rest)]).await])).await;
-            rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-            rawQuestions = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).into_list();
+            let mut responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(queries.clone(), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(queries.clone(), &[Value::from(&rest)]).await])).await.into_list();
+            rawMarkets = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
+            rawQuestions = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         }  else if (eventId.is_some()) {
             if eventId.as_deref().unwrap_or_default().contains(":") {
                 let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await;
@@ -4278,9 +4278,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut requestedTagsLength: i64 = requestedTags.len() as i64;
             if (requestedTagsLength == 0) {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                let mut listResponses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_list(&[Value::from(&rest)]).await, self.fetch_raw_questions_list(&[Value::from(&rest)]).await])).await;
-                rawMarkets = self.safe_list(listResponses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-                rawQuestions = self.safe_list(listResponses, Value::Int(1), &[Value::from(vec![])]).into_list();
+                let mut listResponses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_list(&[Value::from(&rest)]).await, self.fetch_raw_questions_list(&[Value::from(&rest)]).await])).await.into_list();
+                rawMarkets = self.safe_list(&listResponses, Value::Int(0), &[Value::from(vec![])]).into_list();
+                rawQuestions = self.safe_list(&listResponses, Value::Int(1), &[Value::from(vec![])]).into_list();
             }  else {
                 let mut tagQueries: Vec<Value> = Vec::new();
                 {
@@ -4294,9 +4294,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                let mut responses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(Value::from(tagQueries.clone()), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(Value::from(tagQueries), &[Value::from(&rest)]).await])).await;
-                rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-                rawQuestions = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).into_list();
+                let mut responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(Value::from(tagQueries.clone()), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(Value::from(tagQueries), &[Value::from(&rest)]).await])).await.into_list();
+                rawMarkets = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
+                rawQuestions = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
             }
         }
         if (self.markets.clone() == Value::Null) {
@@ -4729,7 +4729,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut bookSide: Value = (if (sideStr.as_deref() == Some("bid")) { orderbook.book_field("bids") } else { orderbook.book_field("asks") });
             bookSide.store_array(Value::from(vec![price, amount]));
             orderbook.set_book_meta("timestamp", Value::from(ts));
-            orderbook.set_book_meta("datetime", self.iso8601(Value::from(ts)));
+            orderbook.set_book_meta("datetime", self.iso8601(ts));
             if let Value::Dict(__d) = &mut updated { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), Value::Bool(true)); }
         }
         }
@@ -4867,7 +4867,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), txHash.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), data);
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("outcome".to_string(), sym.clone());
         m.insert("outcomeId".to_string(), self.safe_string2(&outcomeObj, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
@@ -4926,7 +4926,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), txHash.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), Value::from(&maker));
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("outcome".to_string(), makerSym.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), self.safe_string_k(&makerOutcomeObj, "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(&makerOutcomeObj, "label", &[]));
@@ -5151,7 +5151,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), self.from_wei((self.safe_string_k(&oc, "bestBid", &[])).as_str()));
@@ -5249,7 +5249,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("info".to_string(), data.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), Value::from(sym.as_deref()));
         m.insert("outcomeId".to_string(), self.safe_string2(&outcomeObj, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
@@ -5411,7 +5411,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
                 m.insert("timestamp".to_string(), Value::from(ts));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+                m.insert("datetime".to_string(), self.iso8601(ts));
                 m.insert("side".to_string(), Value::Str("long".into()));
                 m.insert("contracts".to_string(), Value::from(contracts));
                 m.insert("entryPrice".to_string(), Value::Null);

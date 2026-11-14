@@ -2945,7 +2945,7 @@ impl Mexc {
         let mut id: Option<String> = None;
         let mut timestamp: Option<i64> = None;
         let mut orderId: Option<String> = None;
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
         let mut type_var: Option<String> = None;
         let mut side: Option<String> = None;
@@ -2970,7 +2970,7 @@ impl Mexc {
             //
             timestamp = self.safe_integer_k(trade.clone(), "t", &[]).as_i64();
             marketResolved = Some(self.safe_market(Value::Null, market, &[]));
-            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol").into_opt_string();
             priceString = self.safe_string_k(trade.clone(), "p", &[]).as_str().map(str::to_owned);
             amountString = self.safe_string_k(trade.clone(), "v", &[]).as_str().map(str::to_owned);
             side = self.parse_order_side((self.safe_string_k(trade.clone(), "T", &[])).as_str());
@@ -3028,7 +3028,7 @@ impl Mexc {
             //
             let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
             marketResolved = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
-            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol").into_opt_string();
             id = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("a".into()), &[]).as_str().map(str::to_owned);
             priceString = self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("p".into()), &[]).as_str().map(str::to_owned);
             orderId = self.safe_string_k(trade.clone(), "orderId", &[]).as_str().map(str::to_owned);
@@ -3082,7 +3082,7 @@ impl Mexc {
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
@@ -5141,7 +5141,7 @@ impl Mexc {
         m.insert("id".to_string(), id);
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOrderId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "updateTime", &[]));
         m.insert("status".to_string(), self.parse_order_status((self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("state".into()), &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
@@ -5293,8 +5293,8 @@ impl Mexc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.fetch_account_helper(marketType.as_deref(), &query).await;
-        let mut data: crate::value::List = self.safe_list_k(response, "balances", &[Value::from(vec![])]).into_list();
+        let mut response: crate::value::Dict = self.fetch_account_helper(marketType.as_deref(), &query).await.into_dict();
+        let mut data: crate::value::List = self.safe_list_k(&response, "balances", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -6017,7 +6017,7 @@ impl Mexc {
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("code".to_string(), Value::Null);
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("id".to_string(), self.safe_number_k(&entry, "id", &[]));
                     m.insert("amount".to_string(), self.safe_number_k(&entry, "funding", &[]));
                 m
@@ -6069,10 +6069,10 @@ impl Mexc {
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), Value::from(nextFundingRate));
         m.insert("fundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(nextFundingTimestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -6248,7 +6248,7 @@ impl Mexc {
                     m.insert("symbol".to_string(), symbolInner.map(Value::from).unwrap_or(Value::Null));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -6853,7 +6853,7 @@ impl Mexc {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -7155,7 +7155,7 @@ impl Mexc {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -7473,7 +7473,7 @@ impl Mexc {
         let mut currencyId: Option<String> = self.safe_string2(transfer.clone(), Value::Str("currency".into()), Value::Str("asset".into()), &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_n(transfer.clone(), Value::from(vec![Value::Str("transact_id".into()), Value::Str("txid".into()), Value::Str("tranId".into())]), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(transfer.clone(), Value::Str("createTime".into()), Value::Str("timestamp".into()), &[]).as_i64();
-        let mut datetime: Option<String> = (if (timestamp.is_some()) { self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned) } else { None });
+        let mut datetime: Option<String> = (if (timestamp.is_some()) { self.iso8601(timestamp).as_str().map(str::to_owned) } else { None });
         let mut direction: Option<String> = self.safe_string_k(transfer.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut accountFrom: Option<String> = None;
         let mut accountTo: Option<String> = None;

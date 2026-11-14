@@ -1676,7 +1676,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "oid", &[]));
@@ -2045,7 +2045,7 @@ impl Hyperliquid {
         let mut info: Value = Value::Null;
         let mut rawBalances: Value = Value::from(vec![]);
         let mut account: Value = Value::Str("".into());
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         if (topic.as_deref() == Some("spotState")) {
             let mut spotState: crate::value::Dict = self.safe_dict_k(&data, "spotState", &[]).into_dict();
@@ -2058,7 +2058,7 @@ impl Hyperliquid {
             let mut clearinghouseState: Value = self.safe_dict_k(&data, "clearinghouseState", &[]);
             if let Value::Arr(__a) = &mut rawBalances { std::sync::Arc::make_mut(__a).push(clearinghouseState.clone()); }
             info = clearinghouseState.clone();
-            timestamp = self.safe_integer_k(clearinghouseState, "time", &[]);
+            timestamp = self.safe_integer_k(clearinghouseState, "time", &[]).as_i64();
             self.handle_positions(client.clone(), message);
         }
         {
@@ -2075,7 +2075,7 @@ impl Hyperliquid {
 })); }
         }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), info); } }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), timestamp.clone()); } }
+        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
         { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
         if (topic.is_some()) {

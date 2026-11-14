@@ -1051,9 +1051,9 @@ impl Bigone {
     m
 }));
         let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_asset_pairs(&[params.clone()]).await, self.contract_public_get_symbols(&[params]).await]);
-        let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
-        let mut response: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[]).into_dict();
-        let mut contractResponse: Value = self.safe_value(promisesResult, Value::Int(1), &[]);
+        let mut promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
+        let mut response: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(0), &[]).into_dict();
+        let mut contractResponse: Value = self.safe_value(&promisesResult, Value::Int(1), &[]);
         //
         //     {
         //         "code":0,
@@ -1751,7 +1751,7 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
                 m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), Value::Str("limit".into()));
@@ -1961,7 +1961,7 @@ impl Bigone {
             if (until.is_some()) {
                 request.insert("time".into(), self.iso8601(Value::from((if let (Some(__m0), Some(__m1)) = (endByLimit, ((if let Some(__l) = until { Some(__l + 1) } else { None }))) { Some(i64::min(__m0, __m1)) } else { None }))));
             }  else {
-                request.insert("time".into(), self.iso8601(Value::from(endByLimit)));
+                request.insert("time".into(), self.iso8601(endByLimit));
             }
         }  else if (until.is_some()) {
             request.insert("time".into(), self.iso8601(Value::from((if let Some(__l) = until { Some(__l + 1) } else { None }))));
@@ -2133,7 +2133,7 @@ impl Bigone {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(order.clone(), "updated_at", &[]))));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -2968,7 +2968,7 @@ impl Bigone {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);

@@ -465,11 +465,11 @@ impl Okx {
         let mut isPublic: bool = access.as_str() == Some("public");
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if isBusiness || (channel.as_str().unwrap_or("").contains("candle")) || (channel.as_str() == Some("orders-algo")) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, "/business").into()), sandboxSuffix).into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", Value::Str(format!("{}{}", url, "/business").into()), sandboxSuffix));
         }  else if isPublic {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, "/public").into()), sandboxSuffix).into()).as_str().map(str::to_owned);
+            return Some(format!("{}{}", Value::Str(format!("{}{}", url, "/public").into()), sandboxSuffix));
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, "/private").into()), sandboxSuffix).into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", Value::Str(format!("{}{}", url, "/private").into()), sandboxSuffix));
 }
 
     pub async fn subscribe_multiple(&mut self, access: &str, channel: &str, optional_args: &[Value]) -> Value {
@@ -1400,7 +1400,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), ask.map(Value::from).unwrap_or(Value::Null));
         m.insert("askVolume".to_string(), askVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), bid.map(Value::from).unwrap_or(Value::Null));
@@ -1721,7 +1721,7 @@ impl Okx {
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[]);
 
@@ -1768,7 +1768,7 @@ impl Okx {
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[]);
 
@@ -2342,7 +2342,7 @@ impl Okx {
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         orderbook.set_book_meta("nonce", Value::from(seqId));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         return orderbook;
 
     Value::Null
@@ -2748,7 +2748,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&info));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_string_k(order.clone(), "symbol", &[]));
         m.insert("id".to_string(), self.safe_string_k(&info, "tradeId", &[]));
         m.insert("order".to_string(), self.safe_string_k(order.clone(), "id", &[]));
@@ -2821,13 +2821,13 @@ impl Okx {
         }
         let mut messageHash: String = format!("{}{}", channel, "::myTrades");
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         let mut type_var: Option<String> = typeOption;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol");
+            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string();
             type_var = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), symbolResolved);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         if (type_var.as_deref() == Some("future")) {
             type_var = Some("futures".to_string());
@@ -2853,9 +2853,9 @@ impl Okx {
         let mut orders: Value = self.subscribe("private", messageHash.as_str(), channel.as_str(), None, &[__ws_arg_1]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

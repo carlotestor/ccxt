@@ -1050,7 +1050,7 @@ if _try_result.is_err() {
         let mut timestamp: Option<i64> = self.safe_integer(trade.clone(), Value::Int(0), &[]).as_i64();
         let mut datetime: Option<String> = None;
         if (timestamp.is_some()) {
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }  else {
             datetime = self.safe_string_k(trade.clone(), "TS", &[]).as_str().map(str::to_owned);
         }
@@ -1246,7 +1246,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), self.safe_string_k(&orderUpdate, "uuid", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&orderUpdate, "customerID", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(&orderUpdate, "updateTime", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1341,7 +1341,7 @@ if _try_result.is_err() {
     m
 }) });
         let mut timestamp: Option<i64> = self.parse8601((match message.get("TS") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-        let mut datetime: Option<String> = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.map(Value::from).unwrap_or(Value::Null)); }

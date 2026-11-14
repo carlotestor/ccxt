@@ -1047,9 +1047,9 @@ impl Lbank {
     m
 }));
         let mut marketsPromises: crate::value::List = std::sync::Arc::new(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_markets(&[params]).await]);
-        let mut resolvedMarkets: Value = promise_all(&Value::Arr(marketsPromises)).await;
-        let mut spotMarkets: Value = self.safe_value(resolvedMarkets.clone(), Value::Int(0), &[]);
-        let mut swapMarkets: Value = self.safe_value(resolvedMarkets, Value::Int(1), &[]);
+        let mut resolvedMarkets: crate::value::List = promise_all(&Value::Arr(marketsPromises)).await.into_list();
+        let mut spotMarkets: Value = self.safe_value(&resolvedMarkets, Value::Int(0), &[]);
+        let mut swapMarkets: Value = self.safe_value(&resolvedMarkets, Value::Int(1), &[]);
         return self.array_concat(spotMarkets, swapMarkets);
         Value::Null
         }).await?))
@@ -1339,7 +1339,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string2(data.clone(), Value::Str("high".into()), Value::Str("highestPrice".into()), &[]));
         m.insert("low".to_string(), self.safe_string2(data.clone(), Value::Str("low".into()), Value::Str("lowestPrice".into()), &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -1730,7 +1730,7 @@ impl Lbank {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), order.map(Value::from).unwrap_or(Value::Null));
@@ -1975,7 +1975,7 @@ impl Lbank {
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
         let mut data: Value = self.safe_dict_k(response, "data", &[]);
@@ -2089,7 +2089,7 @@ impl Lbank {
         m.insert("indexPrice".to_string(), Value::from(indexPrice));
         m.insert("fundingRate".to_string(), Value::from(fundingRate));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTime));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTime)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTime));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -2692,7 +2692,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null));
@@ -3567,7 +3567,7 @@ impl Lbank {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction, "networkName", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
@@ -4409,10 +4409,10 @@ impl Lbank {
         let mut fullLines: Option<i64> = self.parse_to_int((match ((secretLength).as_f64(), (Value::Int(64)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut pem: String = "-----BEGIN PRIVATE KEY-----\n".to_string(); // eslint-disable-line
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_928: bool = true;
-            while { if !__for_first_928 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_928 = false; matches!(fullLines, Some(__b) if i.as_f64().unwrap_or(f64::NAN) <= (__b as f64)) } {
-            let mut start: Value = (match (&(i), &(Value::Int(64))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            while { if !__for_first_928 { i += 1; } __for_first_928 = false; matches!(fullLines, Some(__b) if (i as f64) <= (__b as f64)) } {
+            let mut start: Value = Value::Int((i * 64));
             let mut end: Value = self.sum(&[start.clone(), Value::Int(64)]);
             pem.push_str(&format!("{}{}", (match (&(self.secret.clone()), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(end) { Value::Int(__n) => Some(*__n),
                 Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
@@ -4421,7 +4421,7 @@ impl Lbank {
                 _ => Value::Null }), Value::Str("\n".into()))); // eslint-disable-line
         }
         }
-        return Value::Str(format!("{}{}", pem, "-----END PRIVATE KEY-----").into()).as_str().map(str::to_owned);
+        return Some(format!("{}{}", pem, "-----END PRIVATE KEY-----"));
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
