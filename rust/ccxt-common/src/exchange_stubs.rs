@@ -1139,10 +1139,10 @@ impl Exchange {
     // `client(url)` returns the client-handle `Value` (`Map{url, subscriptions,
     // futures}`) the transpiled `handle_message` reads; the live connection is
     // established lazily by `watch()`.
-    pub fn client(&mut self, args: &[Value]) -> Value {
-        match args.get(0) {
-            Some(Value::Str(url)) => crate::pro::ws_client::client_value(url),
-            _ => Value::Null,
+    pub fn client<'a>(&mut self, url: impl Into<Option<&'a str>>) -> Value {
+        match url.into() {
+            Some(url) => crate::pro::ws_client::client_value(url),
+            None => Value::Null,
         }
     }
     // `spawn(fn, ...)` / `delay(ms, fn, ...)`: the transpiler lowers the JS
