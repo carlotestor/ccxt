@@ -2645,3 +2645,51 @@ mod value_len_tests {
         assert_eq!(book_cache_len(id), 1);
     }
 }
+
+#[cfg(test)]
+mod list_alias_parity_tests {
+    // Typed list-alias forms (ral-tf / ral-uf printers) against the `Value` forms they replace.
+    use super::*;
+    use crate::runtime::append_to_array;
+
+    fn rows() -> Vec<Value> { vec![Value::Int(1), Value::Str("a".into()), Value::Null] }
+
+    #[test]
+    fn opt_list_guarded_move_matches_value_alias() {
+        for src in [Some(Arc::new(rows())), Some(Arc::new(Vec::new())), None::<List>] {
+            let mut boxed: Value = Value::from(vec![]);
+            if src.is_some() { boxed = src.clone().map_or(Value::Null, Value::Arr); }
+            let mut typed: List = Arc::new(Vec::new());
+            if src.is_some() { typed = src.clone().unwrap_or_default(); }
+            assert_eq!(Value::Arr(typed.clone()), boxed);
+            assert_eq!(typed.len(), boxed.len());
+            for i in 0..4 { assert_eq!((&typed).read(&Value::Int(i)), boxed.read(&Value::Int(i))); }
+        }
+    }
+
+    #[test]
+    fn opt_list_none_boxes_to_exactly_null() {
+        let none: Option<List> = None;
+        assert_eq!(none.clone().map_or(Value::Null, Value::Arr), Value::Null);
+        assert!(matches!(none.map_or(Value::Null, Value::Arr), Value::Null));
+        let some: Option<List> = Some(Arc::new(rows()));
+        assert_eq!(some.map_or(Value::Null, Value::Arr), Value::from(rows()));
+    }
+
+    #[test]
+    fn array_guarded_and_defaulted_into_list_match_value_alias() {
+        for src in [Value::from(rows()), Value::from(vec![]), Value::Null, Value::Str("x".into()), Value::Dict(Arc::new(HashMap::new()))] {
+            let guarded = matches!(&src, Value::Arr(_));
+            let mut boxed: Value = Value::from(vec![]);
+            let mut typed: List = Arc::new(Vec::new());
+            if guarded { boxed = src.clone(); typed = src.clone().into_list(); }
+            else { append_to_array(&mut boxed, src.clone()); Arc::make_mut(&mut typed).push(src.clone()); }
+            assert_eq!(Value::Arr(typed.clone()), boxed);
+            assert_eq!(typed.len(), boxed.len());
+            for i in 0..4 { assert_eq!((&typed).read(&Value::Int(i)), boxed.read(&Value::Int(i))); }
+        }
+        // a []-defaulted safeList read always yields an Arr, so into_list keeps every element
+        let read = Value::from(rows());
+        assert_eq!(Value::Arr(read.clone().into_list()), read);
+    }
+}
