@@ -1019,14 +1019,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         // resolve the owner the same way fetchBalance does — derive from the configured privateKey
         // when no explicit walletAddress/param is set, so a privateKey-only config works for both
-        let mut address: Value = self.safe_string2(params.clone(), Value::Str("address".into()), Value::Str("user".into()), &[self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null)]);
-        if (address == Value::Null) {
+        let mut address: Option<String> = self.safe_string2(params.clone(), Value::Str("address".into()), Value::Str("user".into()), &[self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (address.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchPositions() requires a walletAddress or an address parameter")));
         }
         let mut rest: crate::value::Dict = self.omit(params, &["address", "user"], &[]).into_dict();
         let __ws_arg_7 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("address".to_string(), address);
+                m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
             m
         }), &[&rest]);
         let mut response: crate::value::Dict = self.myriad_public_get_users_address_portfolio(&[__ws_arg_7]).await.into_dict();

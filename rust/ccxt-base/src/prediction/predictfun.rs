@@ -3778,7 +3778,7 @@ impl Predictfun {
             isYieldBearing = self.safe_bool_k(&marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool() == Some(true);
         }
         if (side.as_deref() == Some("sell")) {
-            let mut ctfToken: Value = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)]);
+            let mut ctfToken: Option<String> = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut operators: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut explicitOperator: Option<String> = self.safe_string_k(params.clone(), "spender", &[]).as_str().map(str::to_owned);
             if (explicitOperator.is_some()) {
@@ -3793,7 +3793,7 @@ impl Predictfun {
                     std::sync::Arc::make_mut(&mut operators).push(self.adapter_address(isYieldBearing).map(Value::from).unwrap_or(Value::Null));
                 }
             }
-            if (rpcUrl.is_none()) || (ctfToken == Value::Null) {
+            if (rpcUrl.is_none()) || (ctfToken.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain ").into()), chainKey.as_deref().unwrap_or("null"))));
             }
             let mut approved: bool = self.safe_bool_k(params.clone(), "approved", &[Value::Bool(true)]).as_bool().unwrap_or(true);
@@ -3815,7 +3815,7 @@ impl Predictfun {
                 let mut approvalData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0xa22cb465".into()), self.pad_hex_address(operatorAddress.map(Value::from).unwrap_or(Value::Null))).into()), approvedHex);
                 // each receipt is awaited before the next transaction goes out, so the nonce the
                 // second one looks up already counts the first
-                let mut approvalHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), Value::from(owner.as_deref()), ctfToken.clone(), Value::Str("0x0".into()), Value::from(approvalData), Value::from(gasLimit.clone())).await;
+                let mut approvalHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), Value::from(owner.as_deref()), Value::from(ctfToken.as_deref()), Value::Str("0x0".into()), Value::from(approvalData), Value::from(gasLimit.clone())).await;
                 let mut receipt: Value = self.wait_for_transaction_receipt(Value::from(rpcUrl.as_deref()), approvalHash, &[]).await;
                 receipts.push(receipt);
             }
