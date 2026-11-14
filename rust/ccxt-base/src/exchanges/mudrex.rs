@@ -869,14 +869,14 @@ impl Mudrex {
     m
 }));
         let mut aggregated: Vec<Value> = Vec::new();
-        let mut offset: Value = Value::Int(0);
+        let mut offset: i64 = 0;
         let mut pageLimit: i64 = 100;
         let mut paging: bool = true;
         while paging {
             let mut q: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("limit".to_string(), Value::Int(pageLimit.clone()));
-                    m.insert("offset".to_string(), offset.clone());
+                    m.insert("limit".to_string(), Value::from(pageLimit));
+                    m.insert("offset".to_string(), Value::from(offset));
                 m
             }), &[params.clone()]).into_dict();
             let mut response: crate::value::Dict = self.private_get_futures(&[Value::Dict(q)]).await.into_dict();
@@ -896,23 +896,23 @@ impl Mudrex {
             }  else {
                 items = self.to_array(data);
             }
-            let mut numItems: f64 = ((items.len() as i64) as f64);
-            if (numItems == 0.0) {
+            let mut numItems: i64 = items.len() as i64;
+            if (numItems == 0) {
                 paging = false;
                 break;
             }
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_970: bool = true;
-                while { if !__for_first_970 { i += 1; } __for_first_970 = false; (i as f64) < numItems } {
+                while { if !__for_first_970 { i += 1; } __for_first_970 = false; i < numItems } {
                 aggregated.push(items.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            if numItems < (pageLimit as f64) {
+            if numItems < pageLimit {
                 paging = false;
             }  else {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = self.sum(&[offset.clone(), Value::Int(pageLimit.clone())]);
+                offset = (offset + pageLimit);
             }
         }
         let mut result: Vec<Value> = Vec::new();

@@ -2144,11 +2144,11 @@ impl Apex {
         if isContract {
             assets = self.safe_list_k(&contractConfig, "assets", &[Value::from(vec![])]);
         }
-        let mut numAssets: f64 = ((assets.len() as i64) as f64);
+        let mut numAssets: i64 = assets.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_227: bool = true;
-            while { if !__for_first_227 { i += 1; } __for_first_227 = false; (i as f64) < numAssets } {
+            while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < numAssets } {
             let mut asset: Value = self.safe_dict(assets.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2164,7 +2164,7 @@ impl Apex {
         let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNumber));
         let mut amountNum: Value = self.parse_number(amount.clone(), &[]);
         let mut amountValue: Value = (if (amountNum == Value::Null) { Value::Int(0) } else { amountNum });
-        let mut amountNumber: Value = Value::from(self.parse_to_int((match (&(amountValue), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+        let mut amountNumber: Option<i64> = self.parse_to_int((match (&(amountValue), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         let mut timestampSeconds: Option<i64> = self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[])).map(Value::from).unwrap_or(Value::Null) });
@@ -2180,7 +2180,7 @@ impl Apex {
                     m.insert("subAccountId".to_string(), Value::from(subAccountId.clone()));
                     m.insert("receiverSubAccountId".to_string(), Value::from(subAccountId.clone()));
                     m.insert("tokenId".to_string(), Value::from(tokenId.clone()));
-                    m.insert("amount".to_string(), Value::Str(format!("{}", amountNumber).into()));
+                    m.insert("amount".to_string(), Value::Str(format!("{}", Value::from(amountNumber)).into()));
                     m.insert("fee".to_string(), Value::Str("0".into()));
                     m.insert("nonce".to_string(), finalClientOrderId.clone());
                     m.insert("timestampSeconds".to_string(), Value::from(expireTime));
@@ -2225,7 +2225,7 @@ impl Apex {
                     m.insert("subAccountId".to_string(), Value::from(subAccountId.clone()));
                     m.insert("receiverSubAccountId".to_string(), Value::from(receiverSubAccountId.clone()));
                     m.insert("tokenId".to_string(), Value::from(tokenId.clone()));
-                    m.insert("amount".to_string(), Value::Str(format!("{}", amountNumber).into()));
+                    m.insert("amount".to_string(), Value::Str(format!("{}", Value::from(amountNumber)).into()));
                     m.insert("fee".to_string(), Value::Str("0".into()));
                     m.insert("nonce".to_string(), Value::from(finalNonce.clone()));
                     m.insert("timestampSeconds".to_string(), Value::from(timestampSeconds));

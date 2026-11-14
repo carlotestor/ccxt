@@ -1384,13 +1384,13 @@ impl Grvt {
         //
         let mut currentBuilders: crate::value::Dict = self.safe_dict(results, Value::Int(0), &[]).into_dict();
         let mut approvedBuilder: crate::value::List = self.safe_list_k(&currentBuilders, "results", &[Value::from(vec![])]).into_list();
-        let mut length: f64 = ((approvedBuilder.len() as i64) as f64);
+        let mut length: i64 = approvedBuilder.len() as i64;
         let mut found: bool = false;
         let mut builderId: Option<String> = self.safe_string_k(self.options.clone(), "builder", &[]).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
             let mut __for_first_721: bool = true;
-            while { if !__for_first_721 { i += 1; } __for_first_721 = false; (i as f64) < length } {
+            while { if !__for_first_721 { i += 1; } __for_first_721 = false; i < length } {
             let mut builderInfo: crate::value::Dict = self.safe_dict(&approvedBuilder, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4863,19 +4863,19 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else {
             let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
             if (errorCode.is_some()) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }  else {
                 let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
                 if (message.is_some()) {
-                    let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                    self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                    let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                    self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                     panic!("{}", crate::exchange_errors::exchange_error(feedback));
                 }  else {
                     let mut status: Option<String> = self.safe_string_k(response, "status", &[]).as_str().map(str::to_owned);
                     if (status.is_some()) && (status.as_deref() != Some("success")) {
-                        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
+                        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
                         panic!("{}", crate::exchange_errors::exchange_error(feedback));
                     }
                 }

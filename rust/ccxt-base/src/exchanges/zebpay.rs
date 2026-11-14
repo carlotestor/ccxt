@@ -2927,7 +2927,7 @@ impl Zebpay {
         }
         let mut tail: String = format!("{}{}", Value::Str("/api/".into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         let mut suffix: String = "".to_string();
-        let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+        let mut timestamp: String = format!("{}", self.milliseconds());
         let mut signature: String = "".to_string();
         let mut query: Value = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]);
         let mut access: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2959,7 +2959,7 @@ impl Zebpay {
             let mut isSpot: bool = marketType == "spot";
             let mut paramsSigned: Option<crate::value::Dict> = self.extend(paramsOmitted, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
     m
 })]).into_opt_dict();
             if (method.as_str() == Some("GET")) || ((method.as_str() == Some("DELETE")) && isSpot) {

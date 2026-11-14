@@ -1440,8 +1440,8 @@ impl Hyperliquid {
             }
         }
         }
-        let mut newLiquidationsLength: f64 = ((newLiquidations.len() as i64) as f64);
-        if (newLiquidationsLength == 0.0) {
+        let mut newLiquidationsLength: i64 = newLiquidations.len() as i64;
+        if (newLiquidationsLength == 0) {
             return;
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.myLiquidations.clone();
@@ -1452,7 +1452,7 @@ impl Hyperliquid {
         {
                         let mut i: i64 = 0;
             let mut __for_first_403: bool = true;
-            while { if !__for_first_403 { i += 1; } __for_first_403 = false; (i as f64) < newLiquidationsLength } {
+            while { if !__for_first_403 { i += 1; } __for_first_403 = false; i < newLiquidationsLength } {
             let mut liquidation: Value = newLiquidations.get(i as usize).cloned().unwrap_or(Value::Null);
             cache.append(liquidation.clone());
             symbols.insert(crate::runtime::stringify_param(&(liquidation.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Bool(true));

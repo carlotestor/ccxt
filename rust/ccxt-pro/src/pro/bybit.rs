@@ -3423,11 +3423,11 @@ impl Bybit {
                     m
                 })]).into_dict();
                 let mut recordedTopics: crate::value::List = self.safe_list_k(&existing, "topics", &[Value::from(vec![])]).into_list();
-                let mut recordedLength: f64 = ((recordedTopics.len() as i64) as f64);
+                let mut recordedLength: i64 = recordedTopics.len() as i64;
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_208: bool = true;
-                    while { if !__for_first_208 { j += 1; } __for_first_208 = false; (j as f64) < recordedLength } {
+                    while { if !__for_first_208 { j += 1; } __for_first_208 = false; j < recordedLength } {
                     subscribedTopics.insert(crate::runtime::stringify_param(&(recordedTopics.get(j as usize).cloned().unwrap_or(Value::Null))), Value::Bool(true));
                 }
                 }
@@ -3590,7 +3590,7 @@ impl Bybit {
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 let mut msg: Option<String> = self.safe_string2(message.clone(), Value::Str("retMsg".into()), Value::Str("ret_msg".into()), &[]).as_str().map(str::to_owned);
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-                panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             let mut success: Option<bool> = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null }).as_bool();
             if (success.is_some()) && (!(success == Some(true))) {

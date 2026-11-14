@@ -2040,11 +2040,11 @@ impl Poloniex {
             m
         });
         let mut chains: crate::value::List = self.safe_list_k(entry.clone(), "networkList", &[Value::from(vec![])]).into_list();
-        let mut chainsLength: f64 = ((chains.len() as i64) as f64);
+        let mut chainsLength: i64 = chains.len() as i64;
         {
                         let mut j: i64 = 0;
             let mut __for_first_1084: bool = true;
-            while { if !__for_first_1084 { j += 1; } __for_first_1084 = false; (j as f64) < chainsLength } {
+            while { if !__for_first_1084 { j += 1; } __for_first_1084 = false; j < chainsLength } {
             let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
             let mut chainId: Option<String> = self.safe_string_k(&chain, "blockchain", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
@@ -3098,11 +3098,11 @@ impl Poloniex {
         }
         // the responses are positional, aligned with the submitted orders
         let mut results: Vec<Value> = Vec::new();
-        let mut dataLength: f64 = ((data.len() as i64) as f64);
+        let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1087: bool = true;
-            while { if !__for_first_1087 { i += 1; } __for_first_1087 = false; (i as f64) < dataLength } {
+            while { if !__for_first_1087 { i += 1; } __for_first_1087 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

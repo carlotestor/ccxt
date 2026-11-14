@@ -1712,15 +1712,15 @@ if _try_result.is_err() {
         let mut groupingType: Option<i64> = groupingTypeparamsGroupingTypeVariable.get(0).and_then(Value::as_i64);
         let mut paramsGroupingType: crate::value::Dict = groupingTypeparamsGroupingTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         let mut orderRequests: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(paramsGroupingType)]);
-        let mut totalOrderRequests: f64 = ((orderRequests.len() as i64) as f64);
-        if totalOrderRequests > ((1i64) as f64) {
+        let mut totalOrderRequests: i64 = orderRequests.len() as i64;
+        if totalOrderRequests > 1 {
             // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
             // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
             let mut groupOrderExpiry: Value = self.sum(&[Value::Int(self.milliseconds()), Value::Int(2419200000)]); // 28 days
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_930: bool = true;
-                while { if !__for_first_930 { i += 1; } __for_first_930 = false; (i as f64) < totalOrderRequests } {
+                while { if !__for_first_930 { i += 1; } __for_first_930 = false; i < totalOrderRequests } {
                 if (self.safe_integer_k(orderRequests.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "order_expiry", &[]).as_f64() == Value::Int(-1).as_f64()) {
                     add_element_to_object(get_value_mut(&mut orderRequests, &Value::Int(i)), &Value::Str("order_expiry".into()), groupOrderExpiry.clone());
                 }
@@ -1728,7 +1728,7 @@ if _try_result.is_err() {
             }
         }
         let mut order: Value = Value::Null;
-        if totalOrderRequests > ((0i64) as f64) {
+        if totalOrderRequests > 0 {
             order = orderRequests.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         }
         // the nonce could be updated
@@ -1737,7 +1737,7 @@ if _try_result.is_err() {
         }
         let mut txType: Option<String> = None;
         let mut txInfo: Value = Value::Null;
-        if totalOrderRequests < ((2i64) as f64) {
+        if totalOrderRequests < 2 {
             { let __destr_tmp: Vec<Value> = self.lighter_sign_create_order(signer.clone(), order.clone()).as_array().cloned().unwrap_or_default(); txType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); txInfo = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }  else {
             let mut signingPayload: indexmap::IndexMap<String, Value> = ({

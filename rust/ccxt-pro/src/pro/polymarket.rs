@@ -393,10 +393,10 @@ impl Polymarket {
             });
             return self.extend(Value::Map(emptyRequest), &[params.clone()]);
         }
-        let mut id: Value = Value::Int(self.request_id());
+        let mut id: i64 = self.request_id();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id.clone());
+                m.insert("id".to_string(), Value::from(id));
                 m.insert("req".to_string(), action.clone());
                 m.insert("chs".to_string(), channels);
             m
@@ -409,7 +409,7 @@ impl Polymarket {
             m
         });
         let mut pending: Value = self.extend(Value::Map(basePending), &[context]);
-        client.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
+        client.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", Value::from(id)).into())).into()), pending);
         return self.extend(Value::Map(request), &[params]);
 
     Value::Null
@@ -903,8 +903,8 @@ impl Polymarket {
         }  else {
             if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
         }
-        let mut rowsLength: f64 = ((rows.len() as i64) as f64);
-        if (rowsLength == 0.0) {
+        let mut rowsLength: i64 = rows.len() as i64;
+        if (rowsLength == 0) {
             return;
         }
         let mut first: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
@@ -923,7 +923,7 @@ impl Polymarket {
         {
                         let mut i: i64 = 0;
             let mut __for_first_652: bool = true;
-            while { if !__for_first_652 { i += 1; } __for_first_652 = false; (i as f64) < rowsLength } {
+            while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < rowsLength } {
             let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1152,7 +1152,7 @@ impl Polymarket {
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut id: Value = Value::Int(self.request_id());
+            let mut id: i64 = self.request_id();
             let mut pending: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), Value::Str("auth".into()));
@@ -1160,10 +1160,10 @@ impl Polymarket {
                     m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
                 m
             });
-            client.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), Value::Map(pending));
+            client.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", Value::from(id)).into())).into()), Value::Map(pending));
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), Value::from(id));
                     m.insert("req".to_string(), Value::Str("post".into()));
                     m.insert("op".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1268,8 +1268,8 @@ impl Polymarket {
         }  else {
             if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
         }
-        let mut rowsLength: f64 = ((rows.len() as i64) as f64);
-        if (rowsLength == 0.0) {
+        let mut rowsLength: i64 = rows.len() as i64;
+        if (rowsLength == 0) {
             return;
         }
         if (self.orders.is_none()) {
@@ -1284,7 +1284,7 @@ impl Polymarket {
         {
                         let mut i: i64 = 0;
             let mut __for_first_654: bool = true;
-            while { if !__for_first_654 { i += 1; } __for_first_654 = false; (i as f64) < rowsLength } {
+            while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < rowsLength } {
             let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1395,8 +1395,8 @@ impl Polymarket {
         }  else {
             if let Value::Arr(__a) = &mut rows { std::sync::Arc::make_mut(__a).push(data); };
         }
-        let mut rowsLength: f64 = ((rows.len() as i64) as f64);
-        if (rowsLength == 0.0) {
+        let mut rowsLength: i64 = rows.len() as i64;
+        if (rowsLength == 0) {
             return;
         }
         if (self.myTrades.is_none()) {
@@ -1411,7 +1411,7 @@ impl Polymarket {
         {
                         let mut i: i64 = 0;
             let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { i += 1; } __for_first_656 = false; (i as f64) < rowsLength } {
+            while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < rowsLength } {
             let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

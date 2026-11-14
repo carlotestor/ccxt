@@ -5530,8 +5530,8 @@ impl Bybit {
         let mut fundingInterval: Option<i64> = self.safe_integer_k(&info, "fundingInterval", &[]).as_i64();
         let mut intervalString: Option<String> = None;
         if (fundingInterval.is_some()) {
-            let mut interval: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = fundingInterval { Some((__l as f64) / 60.0) } else { None }))));
-            intervalString = Some(format!("{}{}", Value::Str(format!("{}", interval).into()), Value::Str("h".into())));
+            let mut interval: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = fundingInterval { Some((__l as f64) / 60.0) } else { None })));
+            intervalString = Some(format!("{}{}", Value::Str(format!("{}", Value::from(interval)).into()), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11804,7 +11804,7 @@ impl Bybit {
         //    }
         //
         let mut chains: crate::value::List = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]).into_list();
-        let mut chainsLength: f64 = ((chains.len() as i64) as f64);
+        let mut chainsLength: i64 = chains.len() as i64;
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fee);
@@ -11826,11 +11826,11 @@ impl Bybit {
 }));
             m
         });
-        if (chainsLength != 0.0) {
+        if (chainsLength != 0) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_520: bool = true;
-                while { if !__for_first_520 { i += 1; } __for_first_520 = false; (i as f64) < chainsLength } {
+                while { if !__for_first_520 { i += 1; } __for_first_520 = false; i < chainsLength } {
                 let mut chain: crate::value::Dict = self.safe_dict(&chains, Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
@@ -11853,7 +11853,7 @@ impl Bybit {
     m
 })); }
                 }
-                if (chainsLength == 1.0) {
+                if (chainsLength == 1) {
                     if let Value::Dict(__d) = result.entry("withdraw".into()).or_default() { std::sync::Arc::make_mut(__d).insert("fee".into(), self.safe_number_k(&chain, "withdrawFee", &[])); }
                     if let Value::Dict(__d) = result.entry("withdraw".into()).or_default() { std::sync::Arc::make_mut(__d).insert("percentage".into(), Value::Bool(false)); }
                 }

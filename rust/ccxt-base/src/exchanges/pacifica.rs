@@ -1718,8 +1718,8 @@ if _try_result.is_err() {
     pub fn parse_account_settings(&self, mut settings: Value) -> Value {
         let __settings_empty = Vec::new();
         let settings = settings.as_array().unwrap_or(&__settings_empty);
-        let mut settingsLen: f64 = ((settings.len() as i64) as f64);
-        if (settingsLen == 0.0) {
+        let mut settingsLen: i64 = settings.len() as i64;
+        if (settingsLen == 0) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1732,7 +1732,7 @@ if _try_result.is_err() {
         {
                         let mut i: i64 = 0;
             let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; (i as f64) < settingsLen } {
+            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < settingsLen } {
             let mut setting: crate::value::Dict = settings.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&setting, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);

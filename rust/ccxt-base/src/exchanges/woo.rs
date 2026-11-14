@@ -5085,13 +5085,13 @@ impl Woo {
             }
             let mut paramsSigned: Value = self.keysort(Value::Map(paramsSorted), &[]);
             let mut auth: String = "".to_string();
-            let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut ts: String = format!("{}", self.nonce());
             let mut authBase: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), pathWithParams);
             url = format!("{}{}", urlPrefix, pathWithParams);
             let mut signedHeaders: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("x-api-key".to_string(), self.apiKey.clone());
-                    m.insert("x-api-timestamp".to_string(), ts.clone());
+                    m.insert("x-api-timestamp".to_string(), Value::from(ts.as_str()));
                 m
             });
             if (version.as_deref() == Some("v3")) {

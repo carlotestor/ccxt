@@ -1818,10 +1818,10 @@ impl Alpaca {
         let mut clientOrderIdprefix: Option<String> = self.safe_string_k(self.options.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut uuid: String = self.uuid(&[]);
         let mut parts: crate::value::List = Value::Array(uuid.split("-").map(Value::from).collect()).into_list();
-        let mut random_id: Value = Value::Str(parts.iter().map(Value::to_string).collect::<Vec<String>>().join("").into());
+        let mut random_id: String = parts.iter().map(Value::to_string).collect::<Vec<String>>().join("");
         let mut defaultClientId: String = self.implode_params(clientOrderIdprefix.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), random_id);
+        m.insert("id".to_string(), Value::from(random_id));
     m
 }));
         let mut clientOrderId: Value = (match params.get("clientOrderId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(defaultClientId) });

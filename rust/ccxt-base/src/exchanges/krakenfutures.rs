@@ -1740,13 +1740,12 @@ impl Krakenfutures {
             let mut elements: crate::value::List = self.safe_list_k(&response, "elements", &[Value::from(vec![])]).into_list();
             // we need to reverse the list to fix chronology
             rawTrades = std::sync::Arc::new(Vec::new());
-            let mut length: Value = Value::Int(elements.len() as i64);
+            let mut length: i64 = elements.len() as i64;
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_871: bool = true;
-                while { if !__for_first_871 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_871 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
-                let mut index: Value = (match (&((match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
-                    &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                while { if !__for_first_871 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_871 = false; i.as_f64().unwrap_or(f64::NAN) < (length as f64) } {
+                let mut index: Value = (match (&(Value::Int((length - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 let mut element: crate::value::Dict = self.safe_dict(&elements, index, &[]).into_dict();
                 let mut event: crate::value::Dict = self.safe_dict_k(&element, "event", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();

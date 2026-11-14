@@ -1173,14 +1173,14 @@ impl Toobit {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut length: f64 = ((data.len() as i64) as f64);
-        if (length == 0.0) {
+        let mut length: i64 = data.len() as i64;
+        if (length == 0) {
             return;
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_672: bool = true;
-            while { if !__for_first_672 { i += 1; } __for_first_672 = false; (i as f64) < length } {
+            while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < length } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "s", &[]).as_str().map(str::to_owned);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);

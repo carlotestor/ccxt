@@ -10809,8 +10809,8 @@ impl Htx {
                 let mut auth: Value = Value::from(self.urlencode(sortedRequest, &[Value::Bool(true)])); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 let mut content: Value = Value::from(vec![method.clone(), self.hostname.clone(), url.clone(), auth.clone()]);
-                let mut payload: Value = Value::Str(content.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
-                let mut signature: String = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+                let mut payload: String = content.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default(); // eslint-disable-line quotes
+                let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("Signature".to_string(), Value::from(signature));
@@ -10914,8 +10914,8 @@ impl Htx {
                 let mut auth: Value = (Value::from(self.urlencode(request.clone(), &[Value::Bool(true)]))).as_str().map(|__s| Value::Str(__s.replace("%2c", "%2C").into())).unwrap_or_else(|| (Value::from(self.urlencode(request, &[Value::Bool(true)]))).clone()); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 let mut content2: Value = Value::from(vec![method.clone(), hostname.clone(), url.clone(), auth.clone()]);
-                let mut payload: Value = Value::Str(content2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
-                let mut signature: String = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+                let mut payload: String = content2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default(); // eslint-disable-line quotes
+                let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("Signature".to_string(), Value::from(signature));
@@ -10983,11 +10983,11 @@ impl Htx {
             let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
             if (status.as_deref() == Some("error")) {
                 let mut codeError: Option<String> = self.safe_string2(response.clone(), Value::Str("err-code".into()), Value::Str("err_code".into()), &[]).as_str().map(str::to_owned);
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), Value::from(feedback.as_str()));
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                 let mut message: Option<String> = self.safe_string2(response.clone(), Value::Str("err-msg".into()), Value::Str("err_msg".into()), &[]).as_str().map(str::to_owned);
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

@@ -561,14 +561,14 @@ impl Hyperliquid {
                         }
                     }
                     }
-                    let mut thresholdsLength: Value = Value::Int(thresholds.len() as i64);
+                    let mut thresholdsLength: i64 = thresholds.len() as i64;
                     let mut index: Value = Value::from(self.parse_to_int(indexStr.map(Value::from).unwrap_or(Value::Null)));
-                    if thresholdsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                    if thresholdsLength > 0 {
                         let mut bucketLabel: Value = Value::Null;
                         if index.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
                             bucketLabel = Value::Str(format!("{}{}", "BELOW_", thresholds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).into());
-                        }  else if index.as_f64().unwrap_or(f64::NAN) >= thresholdsLength.as_f64().unwrap_or(f64::NAN) {
-                            let mut lastIdx: Value = (match (&(thresholdsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                        }  else if index.as_f64().unwrap_or(f64::NAN) >= (thresholdsLength as f64) {
+                            let mut lastIdx: Value = Value::Int((thresholdsLength - 1));
                             bucketLabel = Value::Str(format!("{}{}", "ABOVE_", get_value(&thresholds, &lastIdx)).into());
                         }  else {
                             bucketLabel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "BETWEEN_", get_value(&thresholds, &(match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
@@ -2818,12 +2818,12 @@ impl Hyperliquid {
                     let mut __for_first_1254: bool = true;
                     while { if !__for_first_1254 { qi += 1; } __for_first_1254 = false; qi < (lowerQueries.len() as i64) } {
                     let mut words: Vec<Value> = Value::Array((lowerQueries.get(qi as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-                    let mut wordsLength: f64 = ((words.len() as i64) as f64);
+                    let mut wordsLength: i64 = words.len() as i64;
                     let mut allWords: bool = true;
                     {
                                                 let mut wi: i64 = 0;
                         let mut __for_first_1253: bool = true;
-                        while { if !__for_first_1253 { wi += 1; } __for_first_1253 = false; (wi as f64) < wordsLength } {
+                        while { if !__for_first_1253 { wi += 1; } __for_first_1253 = false; wi < wordsLength } {
                         let mut word: Value = words.get(wi as usize).cloned().unwrap_or(Value::Null);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
                         if (word.as_str() != Some("")) && (((if let (Some(__h), Some(__n)) = (Some(haystack.as_str()), (word).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) < 0) {
@@ -3315,9 +3315,9 @@ if _try_result.is_err() {
         let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[Value::Str("".into())]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("err")) {
             let mut message: Value = self.safe_string_k(response.clone(), "response", &[body.clone()]);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         // Check for error statuses in order responses
@@ -3336,9 +3336,9 @@ if _try_result.is_err() {
             while { if !__for_first_1257 { i += 1; } __for_first_1257 = false; i < (statuses.len() as i64) } {
             let mut message: Option<String> = self.safe_string_k_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
             if (message.is_some()) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

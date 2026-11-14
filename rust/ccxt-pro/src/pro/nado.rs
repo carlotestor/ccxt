@@ -799,8 +799,8 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+        let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
+        if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -810,7 +810,7 @@ impl Nado {
         {
                         let mut i: i64 = 0;
             let mut __for_first_506: bool = true;
-            while { if !__for_first_506 { i += 1; } __for_first_506 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_506 { i += 1; } __for_first_506 = false; i < symbolsLength } {
             let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut marketSymbol: Option<String> = self.safe_string(&symbolAndTimeframe, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
@@ -887,8 +887,8 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+        let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
+        if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -898,7 +898,7 @@ impl Nado {
         {
                         let mut i: i64 = 0;
             let mut __for_first_507: bool = true;
-            while { if !__for_first_507 { i += 1; } __for_first_507 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_507 { i += 1; } __for_first_507 = false; i < symbolsLength } {
             let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut marketSymbol: Option<String> = self.safe_string(&symbolAndTimeframe, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();

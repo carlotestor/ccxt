@@ -1817,10 +1817,10 @@ impl Btse {
                 // each tier's floor is the previous tier's cap (0 for the first)
                 let mut minNotional: Option<f64> = None;
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_483: bool = true;
-                    while { if !__for_first_483 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_483 = false; j.as_f64().unwrap_or(f64::NAN) < ((levels.len() as i64) as f64) } {
-                    let mut level: crate::value::Dict = levels.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    while { if !__for_first_483 { j += 1; } __for_first_483 = false; j < (levels.len() as i64) } {
+                    let mut level: crate::value::Dict = levels.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut maxNotional: Option<f64> = self.safe_number_k(&level, "value", &[]).as_f64();
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
@@ -1829,7 +1829,7 @@ impl Btse {
                             m.insert("tier".to_string(), self.safe_integer_k(&level, "level", &[]));
                             m.insert("symbol".to_string(), symbol.clone());
                             m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&market, "settle"));
-                            m.insert("minNotional".to_string(), (if (j.as_f64() == Some(0.0)) { Value::Int(0) } else { Value::from(minNotional) }));
+                            m.insert("minNotional".to_string(), (if (j == 0) { Value::Int(0) } else { Value::from(minNotional) }));
                             m.insert("maxNotional".to_string(), Value::from(maxNotional));
                             m.insert("maintenanceMarginRate".to_string(), Value::Null);
                             m.insert("maxLeverage".to_string(), Value::Null);
@@ -2259,8 +2259,8 @@ impl Btse {
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
         if (fundingIntervalMinutes.is_some()) && (fundingIntervalMinutes >= Some(60)) {
-            let mut hours: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = fundingIntervalMinutes { Some((__l as f64) / 60.0) } else { None }))));
-            interval = Some(format!("{}{}", Value::Str(format!("{}", hours).into()), Value::Str("h".into())));
+            let mut hours: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = fundingIntervalMinutes { Some((__l as f64) / 60.0) } else { None })));
+            interval = Some(format!("{}{}", Value::Str(format!("{}", Value::from(hours)).into()), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5020,17 +5020,17 @@ impl Btse {
         if !success {
             let mut spotErrorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
             let mut spotMessage: Option<String> = self.safe_string_k(response.clone(), "msg", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), spotErrorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), spotMessage.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), spotErrorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), spotMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "errorCode", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) {
             let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         //
@@ -5049,9 +5049,9 @@ impl Btse {
         let mut legacyEnumCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         if (legacyErrorText.is_some()) && (legacyEnumCode.is_some()) {
             let mut legacyMessage: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), legacyEnumCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), legacyMessage.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), legacyEnumCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), legacyMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let mut rows: Value = Value::from(vec![]);
@@ -5072,9 +5072,9 @@ impl Btse {
                 if (embedded != Value::Null) {
                     message = self.safe_string_k(embedded, "default_msg", &[message.clone()]);
                 }
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), status.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, feedback);
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), status.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, Value::from(feedback));
             }
         }
         }

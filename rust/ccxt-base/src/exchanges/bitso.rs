@@ -940,16 +940,16 @@ impl Bitso {
             let mut takerFees: Vec<Value> = Vec::new();
             let mut makerFees: Vec<Value> = Vec::new();
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_418: bool = true;
-                while { if !__for_first_418 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_418 = false; j.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
-                let mut tier: crate::value::Dict = self.safe_dict(&feeTiers, j.clone(), &[]).into_dict();
+                while { if !__for_first_418 { j += 1; } __for_first_418 = false; j < (feeTiers.len() as i64) } {
+                let mut tier: crate::value::Dict = self.safe_dict(&feeTiers, Value::Int(j), &[]).into_dict();
                 let mut volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
                 let mut takerFee: Option<f64> = self.safe_number_k(&tier, "taker", &[]).as_f64();
                 let mut makerFee: Option<f64> = self.safe_number_k(&tier, "maker", &[]).as_f64();
                 takerFees.push(Value::from(vec![Value::from(volume), Value::from(takerFee)]));
                 makerFees.push(Value::from(vec![Value::from(volume), Value::from(makerFee)]));
-                if (j.as_f64() == Some(0.0)) {
+                if (j == 0) {
                     fee.insert("taker".into(), Value::from(takerFee));
                     fee.insert("maker".into(), Value::from(makerFee));
                 }
@@ -1856,10 +1856,10 @@ impl Bitso {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut oids: Value = Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
+        let mut oids: String = ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("oids".to_string(), oids);
+                m.insert("oids".to_string(), Value::from(oids));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);

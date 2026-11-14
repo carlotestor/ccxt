@@ -5431,7 +5431,7 @@ impl Woofipro {
                 requestParams = self.keysort(Value::Map(requestParams.clone()), &[]).as_map().cloned().unwrap_or_default();
             }
             let mut auth: Value = Value::Str("".into());
-            let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut ts: String = format!("{}", self.nonce());
             url.push_str(&pathWithParams.to_string());
             let mut apiKey: Value = self.apiKey.clone();
             if !self.apiKey.as_str().unwrap_or("").contains("ed25519:") {
@@ -5441,7 +5441,7 @@ impl Woofipro {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderly-account-id".to_string(), self.accountId.clone());
                     m.insert("orderly-key".to_string(), apiKey);
-                    m.insert("orderly-timestamp".to_string(), ts.clone());
+                    m.insert("orderly-timestamp".to_string(), Value::from(ts.as_str()));
                 m
             });
             auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), pathWithParams).into());

@@ -8029,7 +8029,7 @@ impl Bingx {
         //
         let mut networks: crate::value::Dict = fee.get("networks").cloned().unwrap_or_default().into_dict();
         let mut networkCodes: Vec<Value> = Value::Array(networks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-        let mut networksLength: f64 = ((networkCodes.len() as i64) as f64);
+        let mut networksLength: i64 = networkCodes.len() as i64;
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::from(&networks));
@@ -8051,11 +8051,11 @@ impl Bingx {
 }));
             m
         });
-        if (networksLength != 0.0) {
+        if (networksLength != 0) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_322: bool = true;
-                while { if !__for_first_322 { i += 1; } __for_first_322 = false; (i as f64) < networksLength } {
+                while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < networksLength } {
                 let mut networkCode: Value = self.safe_string(&networkCodes, Value::Int(i), &[Value::Str("".into())]);
                 let mut network: crate::value::Dict = self.safe_dict(&networks, networkCode.clone(), &[]).into_dict();
                 if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -8074,7 +8074,7 @@ impl Bingx {
 }));
     m
 })); }
-                if (networksLength == 1.0) {
+                if (networksLength == 1) {
                     result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(&network, "fee", &[]));
@@ -8212,21 +8212,21 @@ impl Bingx {
         let mut copied: Value = self.clone_value(params.clone());
         let mut sortedParams: indexmap::IndexMap<String, Value> = self.keysort(params, &[]).as_map().cloned().unwrap_or_default();
         let mut rawKeys: Vec<Value> = Value::Array(sortedParams.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
-        let mut rawKeysLength: f64 = ((rawKeys.len() as i64) as f64);
+        let mut rawKeysLength: i64 = rawKeys.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_325: bool = true;
-            while { if !__for_first_325 { i += 1; } __for_first_325 = false; (i as f64) < rawKeysLength } {
+            while { if !__for_first_325 { i += 1; } __for_first_325 = false; i < rawKeysLength } {
             let mut key: Value = rawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = sortedParams.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Str("[".into());
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_324: bool = true;
-                    while { if !__for_first_324 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_324 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
-                    let mut arrayElement: Value = value.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                    if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                    while { if !__for_first_324 { j += 1; } __for_first_324 = false; j < (value.len() as i64) } {
+                    let mut arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+                    if j > 0 {
                         arrStr = Value::Str(format!("{}{}", arrStr, ",").into());
                     }
                     arrStr = Value::Str(format!("{}{}", arrStr, to_string_val(&arrayElement)).into());
@@ -8925,31 +8925,31 @@ impl Bingx {
         let mut params: Value = params.into();
         let mut sortedParams: Value = self.keysort(params, &[]);
         let mut rawKeys: Vec<Value> = Value::Array(sortedParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut rawKeysLength: f64 = ((rawKeys.len() as i64) as f64);
+        let mut rawKeysLength: i64 = rawKeys.len() as i64;
         let mut adjustedValue: Value = Value::Null;
         let mut result: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_328: bool = true;
-            while { if !__for_first_328 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_328 = false; i.as_f64().unwrap_or(f64::NAN) < rawKeysLength } {
-            let mut key: Value = rawKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_328 { i += 1; } __for_first_328 = false; i < rawKeysLength } {
+            let mut key: Value = rawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = get_value(&sortedParams, &key);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Null;
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_327: bool = true;
-                    while { if !__for_first_327 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_327 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
-                    let mut arrayElement: Value = value.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_327 { j += 1; } __for_first_327 = false; j < (value.len() as i64) } {
+                    let mut arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut isString: bool = matches!(&arrayElement, Value::Str(_));
                     if isString {
-                        if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                        if j > 0 {
                             arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ",", "\"").into()), Value::Str(format!("{}", arrayElement).into())).into()), "\"").into())).into());
                         }  else {
                             arrStr = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("\"".into()), Value::Str(format!("{}", arrayElement).into())).into()), "\"").into());
                         }
                     }  else {
-                        if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                        if j > 0 {
                             arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(",".into()), to_string_val(&arrayElement)).into())).into());
                         }  else {
                             arrStr = to_string_val(&arrayElement);
@@ -8960,7 +8960,7 @@ impl Bingx {
                 adjustedValue = Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", arrStr).into()), "]").into());
                 value = adjustedValue.clone();
             }
-            if (i.as_f64() == Some(0.0)) {
+            if (i == 0) {
                 result = Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, "=").into()), value).into());
             }  else {
                 result = Value::Str(format!("{}{}", result, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", key).into()), "=").into()), value).into())).into());

@@ -17908,17 +17908,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                     query = Value::from(self.rawencode(extendedParams.clone(), &[]));
                     let mut orderidlistLength: i64 = orderidlist.len() as i64;
-                    let mut origclientorderidlistLength: f64 = ((origclientorderidlist.len() as i64) as f64);
+                    let mut origclientorderidlistLength: i64 = origclientorderidlist.len() as i64;
                     if orderidlistLength > 0 {
                         query = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", query, "&").into()), "orderidlist=%5B").into()), join(&orderidlist, &Value::Str("%2C".into()))).into()), "%5D").into());
                     }
-                    if origclientorderidlistLength > ((0i64) as f64) {
+                    if origclientorderidlistLength > 0 {
                         // wrap clientOrderids around ""
                         let mut newClientOrderIds: Vec<Value> = Vec::new();
                         {
                                                         let mut i: i64 = 0;
                             let mut __for_first_311: bool = true;
-                            while { if !__for_first_311 { i += 1; } __for_first_311 = false; (i as f64) < origclientorderidlistLength } {
+                            while { if !__for_first_311 { i += 1; } __for_first_311 = false; i < origclientorderidlistLength } {
                             newClientOrderIds.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("%22".into()), self.safe_string(&origclientorderidlist, Value::Int(i), &[Value::Str("".into())])).into()), "%22").into()));
                         }
                         }
@@ -18507,8 +18507,8 @@ if _try_result.is_err() {
             request.insert("startTime".into(), since.clone());
             let mut endTime: Value = (match (&(self.sum(&[since.clone(), Value::Int((limitResolved * 86400000))])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // required when startTime is further than 93 days in the past
-            let mut now: Value = Value::Int(self.milliseconds());
-            request.insert("endTime".into(), crate::runtime::Math::min(&endTime, &now)); // cannot have an endTime later than current time
+            let mut now: i64 = self.milliseconds();
+            request.insert("endTime".into(), crate::runtime::Math::min(&endTime, &Value::from(now))); // cannot have an endTime later than current time
         }
         let __ws_arg_194 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.sapi_get_margin_interest_rate_history(&[__ws_arg_194]).await.into_list();

@@ -1745,16 +1745,16 @@ impl Extended {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "cursor", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
-        let mut dataLength: Value = Value::Int(data.len() as i64);
+        let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_664: bool = true;
-            while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1849,16 +1849,16 @@ impl Extended {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "cursor", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
-        let mut dataLength: Value = Value::Int(data.len() as i64);
+        let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_665 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_665 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_665 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2167,16 +2167,16 @@ impl Extended {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "cursor", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
-        let mut dataLength: Value = Value::Int(data.len() as i64);
+        let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_667 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_667 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_667 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2558,16 +2558,16 @@ impl Extended {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "cursor", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
-        let mut dataLength: Value = Value::Int(data.len() as i64);
+        let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_669: bool = true;
-            while { if !__for_first_669 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_669 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2713,16 +2713,16 @@ impl Extended {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "cursor", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
-        let mut dataLength: Value = Value::Int(data.len() as i64);
+        let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_670: bool = true;
-            while { if !__for_first_670 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_670 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_670 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_670 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2952,16 +2952,16 @@ impl Extended {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "cursor", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
-        let mut dataLength: Value = Value::Int(data.len() as i64);
+        let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_671: bool = true;
-            while { if !__for_first_671 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_671 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_671 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_671 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3654,16 +3654,16 @@ impl Extended {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "cursor", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
-        let mut dataLength: Value = Value::Int(data.len() as i64);
+        let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_673: bool = true;
-            while { if !__for_first_673 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_673 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_673 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_673 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4818,16 +4818,16 @@ impl Extended {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "cursor", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
-        let mut dataLength: Value = Value::Int(data.len() as i64);
+        let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_674: bool = true;
-            while { if !__for_first_674 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_674 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_674 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_674 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut entry: Value = self.safe_dict(&data, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+            if (cursor.is_some()) && (i.as_f64() == Value::Int((dataLength - 1)).as_f64()) {
                 entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));

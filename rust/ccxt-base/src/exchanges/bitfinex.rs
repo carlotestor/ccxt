@@ -1480,10 +1480,10 @@ impl Bitfinex {
     m
 }));
         let mut labels: Value = Value::from(vec![Value::Str("pub:info:pair".into()), Value::Str("pub:info:pair:futures".into()), Value::Str("pub:list:pair:securities".into()), Value::Str("pub:list:pair:margin".into())]);
-        let mut config: Value = Value::Str(labels.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
+        let mut config: String = labels.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("config".to_string(), config);
+                m.insert("config".to_string(), Value::from(config));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -1630,10 +1630,10 @@ impl Bitfinex {
 }));
         let mut labels: Value = Value::from(vec![Value::Str("pub:list:currency".into()), Value::Str("pub:map:currency:sym".into()), Value::Str("pub:map:currency:label".into()), Value::Str("pub:map:currency:unit".into()), Value::Str("pub:map:currency:undl".into()), Value::Str("pub:map:currency:pool".into()), Value::Str("pub:map:currency:explorer".into()),
             Value::Str("pub:map:currency:tx:fee".into()), Value::Str("pub:map:tx:method".into()), Value::Str("pub:info:tx:status".into()), Value::Str("pub:list:currency:margin".into())]);
-        let mut config: Value = Value::Str(labels.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
+        let mut config: String = labels.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("config".to_string(), config);
+                m.insert("config".to_string(), Value::from(config));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -4578,9 +4578,9 @@ impl Bitfinex {
         if (response != Value::Null) {
             if !(matches!(&response, Value::Arr(_))) {
                 let mut message: Option<String> = self.safe_string2(response.clone(), Value::Str("message".into()), Value::Str("error".into()), &[]).as_str().map(str::to_owned);
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback);
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body)));
             }
         }  else if (response.as_str() == Some("")) {
@@ -4593,10 +4593,10 @@ impl Bitfinex {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             let mut errorCode: String = self.safe_string(response.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut errorText: String = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorText).into());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(errorText.clone()), feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(errorCode.clone()), feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(errorText.clone()), feedback);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorText);
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(errorText.clone()), Value::from(feedback.as_str()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(errorCode.clone()), Value::from(feedback.as_str()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(errorText.clone()), Value::from(feedback));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorText).into()), " (#").into()), errorCode).into()), ")")));
         }
         return response;

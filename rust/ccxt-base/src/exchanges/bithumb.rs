@@ -1573,17 +1573,17 @@ impl Bithumb {
             if (symbols != Value::Null) {
                 symbolsForMarketIds = symbols.clone();
             }
-            let mut symbolsForMarketIdsLength: f64 = ((symbolsForMarketIds.len() as i64) as f64);
+            let mut symbolsForMarketIdsLength: i64 = symbolsForMarketIds.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_396: bool = true;
-                while { if !__for_first_396 { i += 1; } __for_first_396 = false; (i as f64) < symbolsForMarketIdsLength } {
+                while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < symbolsForMarketIdsLength } {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsForMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 marketIds.push(self.get_gen2_market_id(market));
             }
             }
-            let mut marketIdsLength: Value = Value::Int(marketIds.len() as i64);
-            if (marketIdsLength.as_f64() == Some(0.0)) {
+            let mut marketIdsLength: i64 = marketIds.len() as i64;
+            if (marketIdsLength == 0) {
                 return Value::Map(result);
             }
             let mut marketIdsChunks: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1595,10 +1595,10 @@ impl Bithumb {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_397: bool = true;
-                while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < marketIdsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < (marketIdsLength as f64) } {
                 if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
                 let mut marketIdsChunkLength: i64 = marketIdsChunk.len() as i64;
-                let mut isLastMarketId: bool = i.as_f64() == ((match (&(marketIdsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64();
+                let mut isLastMarketId: bool = i.as_f64() == (Value::Int((marketIdsLength - 1))).as_f64();
                 if ((maxMarketIdsPerRequest.is_some() && Some(marketIdsChunkLength) >= maxMarketIdsPerRequest)) || isLastMarketId {
                     std::sync::Arc::make_mut(&mut marketIdsChunks).push(marketIdsChunk.clone());
                     request.insert("markets".into(), Value::Str(marketIdsChunk.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
@@ -1641,11 +1641,11 @@ impl Bithumb {
             //     ]
             //
             let mut responses: Value = promise_all(&Value::from(promises)).await;
-            let mut responsesLength: f64 = ((responses.len() as i64) as f64);
+            let mut responsesLength: i64 = responses.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_400: bool = true;
-                while { if !__for_first_400 { i += 1; } __for_first_400 = false; (i as f64) < responsesLength } {
+                while { if !__for_first_400 { i += 1; } __for_first_400 = false; i < responsesLength } {
                 let mut response: Value = self.safe_value(responses.clone(), Value::Int(i), &[]);
                 if self.is_dictionary(response.clone()).as_bool() == Some(true) && (self.safe_value_k(response.clone(), "data", &[]) != Value::Null) {
                     response = self.safe_value_k(response, "data", &[]);
@@ -1760,10 +1760,10 @@ impl Bithumb {
                     if (base.is_none()) {
                         continue;
                     }
-                    let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into());
-                    let mut market: crate::types::Market = self.safe_market(symbol.clone(), None, &[]);
+                    let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
+                    let mut market: crate::types::Market = self.safe_market(Value::from(symbol.clone()), None, &[]);
                     add_element_to_object(&mut ticker, &Value::Str("date".into()), Value::from(timestamp));
-                    result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, Some(&market)));
+                    result.insert(symbol, self.parse_ticker(ticker, Some(&market)));
                 }
                 }
             }
@@ -4401,12 +4401,12 @@ impl Bithumb {
         if (error.is_some()) {
             let mut errorName: Option<String> = self.safe_string_k(&error, "name", &[]).as_str().map(str::to_owned);
             let mut message: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null"));
             if (errorName.is_some()) {
-                self.throw_exactly_matched_exception(self.exceptions.clone(), errorName.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.clone(), errorName.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             }
             if (message.is_some()) {
-                self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             }
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
@@ -4422,9 +4422,9 @@ impl Bithumb {
             }  else if (message.as_deref() == Some("거래 진행중인 내역이 존재하지 않습니다.")) {
                 return Value::Null;
             }
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into());
-            self.throw_exactly_matched_exception(self.exceptions.clone(), status.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null"));
+            self.throw_exactly_matched_exception(self.exceptions.clone(), status.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

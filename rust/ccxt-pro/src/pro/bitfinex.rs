@@ -1267,7 +1267,7 @@ impl Bitfinex {
         if (book.is_none()) {
             return;
         }
-        let mut depth: f64 = ((25i64) as f64); // covers the first 25 bids and asks
+        let mut depth: i64 = 25; // covers the first 25 bids and asks
         let mut stringArray: Vec<Value> = Vec::new();
         let mut bids: Value = book.book_field("bids");
         let mut asks: Value = book.book_field("asks");
@@ -1277,7 +1277,7 @@ impl Bitfinex {
         {
                         let mut i: i64 = 0;
             let mut __for_first_104: bool = true;
-            while { if !__for_first_104 { i += 1; } __for_first_104 = false; (i as f64) < depth } {
+            while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < depth } {
             let mut bid: Option<crate::value::List> = self.safe_list(bids.clone(), Value::Int(i), &[]).into_opt_list();
             let mut ask: Option<crate::value::List> = self.safe_list(asks.clone(), Value::Int(i), &[]).into_opt_list();
             if (bid.is_some()) {
@@ -1293,8 +1293,8 @@ impl Bitfinex {
             }
         }
         }
-        let mut payload: Value = Value::Str(stringArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":").into());
-        let mut localChecksum: Value = self.crc32(&[payload, Value::Bool(true)]);
+        let mut payload: String = stringArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":");
+        let mut localChecksum: Value = self.crc32(&[Value::from(payload), Value::Bool(true)]);
         let mut responseChecksum: Value = self.safe_integer(message, Value::Int(2), &[]);
         if (responseChecksum.as_f64() != localChecksum.as_f64()) {
             __ch.remove_subscription(messageHash.as_str());

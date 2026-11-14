@@ -886,11 +886,11 @@ impl Backpack {
             m
         })]);
         let mut hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
-        let mut hashesLength: f64 = ((hashes.len() as i64) as f64);
+        let mut hashesLength: i64 = hashes.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_40: bool = true;
-            while { if !__for_first_40 { i += 1; } __for_first_40 = false; (i as f64) < hashesLength } {
+            while { if !__for_first_40 { i += 1; } __for_first_40 = false; i < hashesLength } {
             let mut messageHash: Option<String> = hashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut subscription: crate::value::Dict = self.safe_dict(subscriptions.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -912,7 +912,7 @@ impl Backpack {
             client.resolve(Value::Dict(parsedTicker), messageHash.as_deref());
         }
         }
-        if hashesLength > ((0i64) as f64) {
+        if hashesLength > 0 {
             return;
         }
         let mut marketId: Option<String> = self.safe_string_k(&ticker, "s", &[]).as_str().map(str::to_owned);
@@ -995,11 +995,11 @@ impl Backpack {
             m
         })]);
         let mut hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
-        let mut hashesLength: f64 = ((hashes.len() as i64) as f64);
+        let mut hashesLength: i64 = hashes.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_41: bool = true;
-            while { if !__for_first_41 { i += 1; } __for_first_41 = false; (i as f64) < hashesLength } {
+            while { if !__for_first_41 { i += 1; } __for_first_41 = false; i < hashesLength } {
             let mut messageHash: Option<String> = hashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut subscription: crate::value::Dict = self.safe_dict(subscriptions.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1029,7 +1029,7 @@ impl Backpack {
             client.resolve(parsed, messageHash.as_deref());
         }
         }
-        return Value::Bool(hashesLength > ((0i64) as f64));
+        return Value::Bool(hashesLength > 0);
 
     Value::Null
 }
@@ -1118,11 +1118,11 @@ impl Backpack {
             m
         })]);
         let mut hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
-        let mut hashesLength: f64 = ((hashes.len() as i64) as f64);
+        let mut hashesLength: i64 = hashes.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_42: bool = true;
-            while { if !__for_first_42 { i += 1; } __for_first_42 = false; (i as f64) < hashesLength } {
+            while { if !__for_first_42 { i += 1; } __for_first_42 = false; i < hashesLength } {
             let mut messageHash: Option<String> = hashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut subscription: crate::value::Dict = self.safe_dict(subscriptions.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1138,7 +1138,7 @@ impl Backpack {
             client.resolve(Value::Dict(parsedBidAsk), messageHash.as_deref());
         }
         }
-        if hashesLength > ((0i64) as f64) {
+        if hashesLength > 0 {
             return;
         }
         let mut marketId: Option<String> = self.safe_string_k(&data, "s", &[]).as_str().map(str::to_owned);
@@ -1282,8 +1282,8 @@ impl Backpack {
     m
 }));
         let mut query: Value = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await;
-        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+        let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
+        if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")));
         }
         if (self.markets.clone() == Value::Null) {
@@ -1294,7 +1294,7 @@ impl Backpack {
         {
                         let mut i: i64 = 0;
             let mut __for_first_43: bool = true;
-            while { if !__for_first_43 { i += 1; } __for_first_43 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_43 { i += 1; } __for_first_43 = false; i < symbolsLength } {
             let mut marketId: Option<String> = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1341,8 +1341,8 @@ impl Backpack {
     m
 }));
         let mut query: Value = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await;
-        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+        let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
+        if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")));
         }
         if (self.markets.clone() == Value::Null) {
@@ -1353,7 +1353,7 @@ impl Backpack {
         {
                         let mut i: i64 = 0;
             let mut __for_first_44: bool = true;
-            while { if !__for_first_44 { i += 1; } __for_first_44 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_44 { i += 1; } __for_first_44 = false; i < symbolsLength } {
             let mut marketId: Option<String> = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1938,9 +1938,9 @@ impl Backpack {
         let mut firstDelta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(0), &[]).into_dict();
         let mut nonce: Value = self.safe_integer_k(orderbook, "nonce", &[]);
         let mut firstDeltaStart: Option<i64> = self.safe_integer_k(&firstDelta, "U", &[]).as_i64();
-        let mut cacheLength: Value = Value::Int(cache.len() as i64);
+        let mut cacheLength: i64 = cache.len() as i64;
         if (nonce == Value::Null) {
-            return cacheLength;
+            return Value::from(cacheLength);
         }
         if (firstDeltaStart.is_none()) {
             return Value::Int(-1);
@@ -1951,19 +1951,19 @@ impl Backpack {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_50: bool = true;
-            while { if !__for_first_50 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_50 = false; i.as_f64().unwrap_or(f64::NAN) < cacheLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_50 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_50 = false; i.as_f64().unwrap_or(f64::NAN) < (cacheLength as f64) } {
             let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), i.clone(), &[]).into_dict();
             let mut deltaStart: Option<i64> = self.safe_integer_k(&delta, "U", &[]).as_i64();
             let mut deltaEnd: Value = self.safe_integer_k(&delta, "u", &[]);
             if (deltaStart.is_none()) || (deltaEnd == Value::Null) {
-                return cacheLength;
+                return Value::from(cacheLength);
             }
             if (nonce.as_f64().unwrap_or(f64::NAN) >= Value::from((if let Some(__l) = deltaStart { Some(__l - 1) } else { None })).as_f64().unwrap_or(f64::NAN)) && (nonce.as_f64().unwrap_or(f64::NAN) < deltaEnd.as_f64().unwrap_or(f64::NAN)) {
                 return i;
             }
         }
         }
-        return cacheLength;
+        return Value::from(cacheLength);
 
     Value::Null
 }

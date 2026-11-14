@@ -1958,8 +1958,8 @@ impl Hitbtc {
         });
         if (symbolsNormalized.is_some()) {
             let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
-            let mut delimited: Value = Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into());
-            request.insert("symbols".into(), delimited);
+            let mut delimited: String = marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",");
+            request.insert("symbols".into(), Value::from(delimited));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_ticker(&[__ws_arg_3]).await.into_dict();

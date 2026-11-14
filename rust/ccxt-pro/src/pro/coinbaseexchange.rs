@@ -771,8 +771,8 @@ impl Coinbaseexchange {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " watchOrderBookForSymbols() requires a non-empty array of symbols")));
         }
         let mut name: String = "level2".to_string();
@@ -785,7 +785,7 @@ impl Coinbaseexchange {
         {
                         let mut i: i64 = 0;
             let mut __for_first_237: bool = true;
-            while { if !__for_first_237 { i += 1; } __for_first_237 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < symbolsLength } {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())])).into()));
         }
         }

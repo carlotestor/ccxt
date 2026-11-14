@@ -5931,13 +5931,13 @@ if _try_result.is_err() {
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), Value::from(vec![])); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), Value::from(vec![])); }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_367: bool = true;
-            while { if !__for_first_367 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_367 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
-            if ((Some(spotInstrumentsIndex as f64) == i.as_f64())) {
+            while { if !__for_first_367 { i += 1; } __for_first_367 = false; i < (results.len() as i64) } {
+            if (i == spotInstrumentsIndex) {
                 continue;
             }
-            let mut res: crate::value::Dict = self.safe_dict(results.clone(), i.clone(), &[]).into_dict();
+            let mut res: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
             let mut data: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
             let mut firstData: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6652,15 +6652,15 @@ if _try_result.is_err() {
         });
         let mut withdraw: Value = Value::Null;
         let mut deposit: Value = Value::Null;
-        let mut chainsLength: f64 = ((chains.len() as i64) as f64);
-        if (chainsLength == 0.0) {
+        let mut chainsLength: i64 = chains.len() as i64;
+        if (chainsLength == 0) {
             withdraw = Value::Bool(false);
             deposit = Value::Bool(false);
         }
         {
                         let mut j: i64 = 0;
             let mut __for_first_372: bool = true;
-            while { if !__for_first_372 { j += 1; } __for_first_372 = false; (j as f64) < chainsLength } {
+            while { if !__for_first_372 { j += 1; } __for_first_372 = false; j < chainsLength } {
             let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
             let mut network: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
@@ -15505,7 +15505,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut chains: crate::value::List = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]).into_list();
-        let mut chainsLength: f64 = ((chains.len() as i64) as f64);
+        let mut chainsLength: i64 = chains.len() as i64;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -15532,7 +15532,7 @@ if _try_result.is_err() {
         {
                         let mut i: i64 = 0;
             let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i += 1; } __for_first_387 = false; (i as f64) < chainsLength } {
+            while { if !__for_first_387 { i += 1; } __for_first_387 = false; i < chainsLength } {
             let mut chain: crate::value::Dict = self.safe_dict(&chains, Value::Int(i), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
@@ -15555,7 +15555,7 @@ if _try_result.is_err() {
     m
 }));
             }
-            if (chainsLength == 1.0) {
+            if (chainsLength == 1) {
                 withdraw.insert("fee".into(), self.safe_number_k(&chain, "withdrawFee", &[]));
                 withdraw.insert("percentage".into(), Value::Bool(false));
             }
