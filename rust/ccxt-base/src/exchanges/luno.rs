@@ -1985,15 +1985,15 @@ impl Luno {
             request.insert("type".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side.as_str() == Some("buy")) {
-                request.insert("counter_volume".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone()));
+                request.insert("counter_volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone())));
             }  else {
-                request.insert("base_volume".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone()));
+                request.insert("base_volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone())));
             }
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_post_marketorder(&[__ws_arg_11]).await;
         }  else {
-            request.insert("volume".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount));
-            request.insert("price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price));
+            request.insert("volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
+            request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
             request.insert("type".into(), (if (side.as_str() == Some("buy")) { Value::Str("BID".into()) } else { Value::Str("ASK".into()) }));
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_postorder(&[__ws_arg_12]).await;

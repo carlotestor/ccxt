@@ -2899,7 +2899,7 @@ if _try_result.is_err() {
                 m.insert("to_account_id".to_string(), self.safe_string_k(paramsFundingAccountId.clone(), "to_account_id", &[defaultFromAccountId.map(Value::from).unwrap_or(Value::Null)]));
                 m.insert("to_sub_account_id".to_string(), self.safe_string_k(paramsFundingAccountId.clone(), "to_sub_account_id", &[toSubAccount]));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("num_tokens".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("num_tokens".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("signature".to_string(), self.default_signature());
                 m.insert("transfer_type".to_string(), Value::Str("STANDARD".into()));
                 m.insert("transfer_metadata".to_string(), Value::Null);
@@ -3096,7 +3096,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("to_eth_address".to_string(), address);
                 m.insert("from_account_id".to_string(), defaultFromAccountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("num_tokens".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("num_tokens".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("signature".to_string(), Value::Map(withdrawSignature));
             m
         });
@@ -3158,11 +3158,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut orderLeg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument".to_string(), Value::from((market).id.as_deref()));
-                m.insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         if (price != Value::Null) {
-            orderLeg.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price));
+            orderLeg.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }  else {
             orderLeg.insert("limit_price".into(), Value::Null);
         }

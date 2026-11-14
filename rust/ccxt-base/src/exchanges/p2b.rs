@@ -1305,8 +1305,8 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side);
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
-                m.insert("price".to_string(), self.price_to_precision(symbol, price));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("price".to_string(), Value::from(self.price_to_precision(symbol, price)));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);

@@ -2251,11 +2251,11 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), Value::from(requestSide));
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             m
         });
         if isLimit || (uppercaseType == "STOP_LIMIT") {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             if isLimit {
                 let mut timeInForce: Option<String> = self.safe_string_k(query.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
                 if (timeInForce.as_deref() == Some("IOC")) {
@@ -2265,7 +2265,7 @@ impl Bigone {
                     request.insert("post_only".into(), Value::Bool(true));
                 }
             }
-            request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
         }  else {
             if isBuy {
                 let mut createMarketBuyOrderRequiresPrice: Option<bool> = None;
@@ -2280,17 +2280,17 @@ impl Bigone {
                         let mut priceString: Option<String> = self.number_to_string(price);
                         let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
                         let mut costRequest: Value = (if (cost.is_some()) { Value::from(cost) } else { quoteAmount });
-                        request.insert("amount".into(), self.cost_to_precision(symbol.clone(), costRequest));
+                        request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.clone(), costRequest)));
                     }
                 }  else {
-                    request.insert("amount".into(), self.cost_to_precision(symbol.clone(), amount.clone()));
+                    request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.clone(), amount.clone())));
                 }
             }  else {
-                request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
+                request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             }
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("operator".into(), (if isBuy { Value::Str("GTE".into()) } else { Value::Str("LTE".into()) }));
             if isLimit {
                 uppercaseType = "STOP_LIMIT".to_string();
@@ -3169,7 +3169,7 @@ impl Bigone {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount.clone(), &[])));
                 m.insert("from".to_string(), fromId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("to".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("guid".to_string(), Value::from(guid.as_deref()));
@@ -3273,7 +3273,7 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("target_address".to_string(), address);
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
             m
         });
         if (tagWithdrawTag.is_some()) {

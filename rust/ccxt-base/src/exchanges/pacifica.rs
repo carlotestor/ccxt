@@ -2530,15 +2530,15 @@ if _try_result.is_err() {
             let mut stopClientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
             let mut stopPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-                    m.insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+                    m.insert("stop_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
                 m
             });
             if (stopClientOrderId.is_some()) {
                 stopPayload.insert("client_order_id".into(), stopClientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
             if (price != Value::Null) {
-                stopPayload.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                stopPayload.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }
             sigPayload.insert("stop_order".into(), Value::Map(stopPayload));
         }  else {
@@ -2549,30 +2549,30 @@ if _try_result.is_err() {
         if isTakeProfitOrder {
             let mut tpPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("stop_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
                 m
             });
             if (price != Value::Null) {
-                tpPayload.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                tpPayload.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }
             sigPayload.insert("take_profit".into(), Value::Map(tpPayload));
         }
         if isStopLossOrder {
             let mut slPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("stop_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null))));
                 m
             });
             if (price != Value::Null) {
-                slPayload.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                slPayload.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }
             sigPayload.insert("stop_loss".into(), Value::Map(slPayload));
         }
         if (price != Value::Null) && (operationType == "create_order") {
-            sigPayload.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            sigPayload.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if (amount != Value::Null) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")) {
-            sigPayload.insert("amount".into(), self.amount_to_precision(symbol, amount));
+            sigPayload.insert("amount".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
         let mut paramsClientOrderId: crate::value::Dict = (if (operationType == "create_stop_order") { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_k(&paramsClientOrderId, "clientOrderId", &[]).as_str().map(str::to_owned);
@@ -3141,8 +3141,8 @@ if _try_result.is_err() {
         }
         let mut operationType: String = "edit_order".to_string();
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut priceNormalized: Option<String> = self.price_to_precision(symbol.clone(), price).as_str().map(str::to_owned);
-        let mut amountNormalized: Option<String> = self.amount_to_precision(symbol, amount).as_str().map(str::to_owned);
+        let mut priceNormalized: Option<String> = self.price_to_precision(symbol.clone(), price);
+        let mut amountNormalized: Option<String> = self.amount_to_precision(symbol, amount);
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_string_k(&market, "id", &[]));

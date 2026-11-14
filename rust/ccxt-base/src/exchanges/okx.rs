@@ -5826,7 +5826,7 @@ impl Okx {
         let mut closeFraction: Option<String> = self.safe_string_k(params.clone(), "closeFraction", &[]).as_str().map(str::to_owned);
         let mut shouldOmitSize: bool = isConditionalOrOCO && (closeFraction.is_some());
         if !shouldOmitSize {
-            request.insert("sz".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert("sz".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
         }
         let mut spot: bool = self.safe_bool_k(&market, "spot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut contract: Option<bool> = self.safe_bool_k(&market, "contract", &[]).as_bool();
@@ -5951,7 +5951,7 @@ impl Okx {
                     }  else {
                         notional = (if (notional == Value::Null) { amount } else { notional.clone() });
                     }
-                    request.insert("sz".into(), self.cost_to_precision(symbol.clone(), notional));
+                    request.insert("sz".into(), Value::from(self.cost_to_precision(symbol.clone(), notional)));
                 }
             }
             if marketIOC && (contract == Some(true)) {
@@ -5959,7 +5959,7 @@ impl Okx {
             }
         }  else {
             if (!trigger) && (!(conditional)) {
-                request.insert("px".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                request.insert("px".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }
         }
         if postOnly {
@@ -5986,7 +5986,7 @@ impl Okx {
                 if (stopLossTriggerPrice == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")));
                 }
-                let mut slTriggerPx: Option<String> = self.price_to_precision(symbol.clone(), stopLossTriggerPrice).as_str().map(str::to_owned);
+                let mut slTriggerPx: Option<String> = self.price_to_precision(symbol.clone(), stopLossTriggerPrice);
                 let mut slOrder: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -6003,13 +6003,13 @@ impl Okx {
                         if (stopLossLimitPrice == Value::Null) {
                             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")));
                         }  else {
-                            slOrder.insert("slOrdPx".into(), self.price_to_precision(symbol.clone(), stopLossLimitPrice.clone()));
+                            slOrder.insert("slOrdPx".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossLimitPrice.clone())));
                         }
                     }  else if (stopLossOrderType.as_deref() == Some("market")) {
                         slOrder.insert("slOrdPx".into(), Value::Str("-1".into()));
                     }
                 }  else if (stopLossLimitPrice != Value::Null) {
-                    slOrder.insert("slOrdPx".into(), self.price_to_precision(symbol.clone(), stopLossLimitPrice)); // limit sl order
+                    slOrder.insert("slOrdPx".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossLimitPrice))); // limit sl order
                 }  else {
                     slOrder.insert("slOrdPx".into(), Value::Str("-1".into())); // market sl order
                 }
@@ -6031,7 +6031,7 @@ impl Okx {
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                tpOrder.insert("tpTriggerPx".into(), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice));
+                tpOrder.insert("tpTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitTriggerPrice)));
                 let mut takeProfitLimitPrice: Value = self.safe_value_n(&takeProfit, Value::from(vec![Value::Str("price".into()), Value::Str("takeProfitPrice".into()), Value::Str("tpOrdPx".into())]), &[]);
                 let mut takeProfitOrderType: Option<String> = self.safe_string2(&takeProfit, Value::Str("type".into()), Value::Str("tpOrdKind".into()), &[]).as_str().map(str::to_owned);
                 if (takeProfitOrderType.is_some()) {
@@ -6044,14 +6044,14 @@ impl Okx {
                             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")));
                         }  else {
                             tpOrder.insert("tpOrdKind".into(), takeProfitOrderType.clone().map(Value::from).unwrap_or(Value::Null));
-                            tpOrder.insert("tpOrdPx".into(), self.price_to_precision(symbol.clone(), takeProfitLimitPrice.clone()));
+                            tpOrder.insert("tpOrdPx".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitLimitPrice.clone())));
                         }
                     }  else if (takeProfitOrderType.as_deref() == Some("market")) {
                         tpOrder.insert("tpOrdPx".into(), Value::Str("-1".into()));
                     }
                 }  else if (takeProfitLimitPrice != Value::Null) {
                     tpOrder.insert("tpOrdKind".into(), Value::Str("limit".into()));
-                    tpOrder.insert("tpOrdPx".into(), self.price_to_precision(symbol.clone(), takeProfitLimitPrice)); // limit tp order
+                    tpOrder.insert("tpOrdPx".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitLimitPrice))); // limit tp order
                 }  else {
                     tpOrder.insert("tpOrdPx".into(), Value::Str("-1".into())); // market tp order
                 }
@@ -6073,8 +6073,8 @@ impl Okx {
         // algo order details
         if trigger {
             request.insert("ordType".into(), Value::Str("trigger".into()));
-            request.insert("triggerPx".into(), self.price_to_precision(symbol.clone(), triggerPrice));
-            request.insert("orderPx".into(), (if isMarketOrder { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), price) }));
+            request.insert("triggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
+            request.insert("orderPx".into(), (if isMarketOrder { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol.clone(), price)) }));
         }  else if conditional {
             request.insert("ordType".into(), Value::Str("conditional".into()));
             let mut twoWayCondition: bool = (takeProfitPrice.is_some()) && (stopLossPrice.is_some());
@@ -6090,19 +6090,19 @@ impl Okx {
                 request.insert("tdMode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             }
             if (takeProfitPrice.is_some()) {
-                request.insert("tpTriggerPx".into(), self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("tpTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
                 let mut tpOrdPxReq: Option<String> = Some("-1".to_string());
                 if (tpOrdPx != Value::Null) {
-                    tpOrdPxReq = self.price_to_precision(symbol.clone(), tpOrdPx).as_str().map(str::to_owned);
+                    tpOrdPxReq = self.price_to_precision(symbol.clone(), tpOrdPx);
                 }
                 request.insert("tpOrdPx".into(), tpOrdPxReq.map(Value::from).unwrap_or(Value::Null));
                 request.insert("tpTriggerPxType".into(), Value::from(tpTriggerPxType));
             }
             if (stopLossPrice.is_some()) {
-                request.insert("slTriggerPx".into(), self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("slTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null))));
                 let mut slOrdPxReq: Option<String> = Some("-1".to_string());
                 if (slOrdPx != Value::Null) {
-                    slOrdPxReq = self.price_to_precision(symbol, slOrdPx).as_str().map(str::to_owned);
+                    slOrdPxReq = self.price_to_precision(symbol, slOrdPx);
                 }
                 request.insert("slOrdPx".into(), slOrdPxReq.map(Value::from).unwrap_or(Value::Null));
                 request.insert("slTriggerPxType".into(), Value::from(slTriggerPxType));
@@ -6363,8 +6363,8 @@ impl Okx {
         if (isAlgoOrder == Some(true)) {
             let mut triggerPrice: Option<f64> = self.safe_number2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("newTriggerPx".into()), &[]).as_f64();
             if (triggerPrice.is_some()) {
-                request.insert("newTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
-                request.insert("newOrdPx".into(), (if (price == Value::Null) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), price.clone()) }));
+                request.insert("newTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+                request.insert("newOrdPx".into(), (if (price == Value::Null) { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol.clone(), price.clone())) }));
                 request.insert("newTriggerPxType".into(), self.safe_string_k(params.clone(), "newTriggerPxType", &[Value::Str("last".into())]));
             }
             if (stopLossTriggerPrice.is_none()) && (takeProfitTriggerPrice.is_none()) && (triggerPrice.is_none()) && (amount == Value::Null) {
@@ -6374,35 +6374,35 @@ impl Okx {
                 if (stopLossPrice.is_none()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " editOrder() requires a newSlOrdPx parameter for editing an algo order")));
                 }
-                request.insert("newSlTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
-                request.insert("newSlOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), Value::from(stopLossPrice)) }));
+                request.insert("newSlTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice))));
+                request.insert("newSlOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))) }));
                 request.insert("newSlTriggerPxType".into(), Value::from(stopLossTriggerPriceType.clone()));
             }
             if (takeProfitTriggerPrice.is_some()) {
                 if (takeProfitPrice.is_none()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " editOrder() requires a newTpOrdPx parameter for editing an algo order")));
                 }
-                request.insert("newTpTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
-                request.insert("newTpOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice)) }));
+                request.insert("newTpTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice))));
+                request.insert("newTpOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice))) }));
                 request.insert("newTpTriggerPxType".into(), Value::from(takeProfitTriggerPriceType.clone()));
             }
         }  else {
             if (stopLossTriggerPrice.is_some()) {
-                request.insert("newSlTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
-                request.insert("newSlOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), Value::from(stopLossPrice)) }));
+                request.insert("newSlTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice))));
+                request.insert("newSlOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))) }));
                 request.insert("newSlTriggerPxType".into(), Value::from(stopLossTriggerPriceType.clone()));
             }
             if (takeProfitTriggerPrice.is_some()) {
-                request.insert("newTpTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
-                request.insert("newTpOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice)) }));
+                request.insert("newTpTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice))));
+                request.insert("newTpOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice))) }));
                 request.insert("newTpTriggerPxType".into(), Value::from(takeProfitTriggerPriceType.clone()));
             }
             if hasStopLoss {
                 stopLossTriggerPrice = self.safe_number_k(&stopLoss, "triggerPrice", &[]).as_f64();
                 stopLossPrice = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
                 let mut stopLossType: Option<String> = self.safe_string_k(&stopLoss, "type", &[]).as_str().map(str::to_owned);
-                request.insert("newSlTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
-                request.insert("newSlOrdPx".into(), (if (stopLossType.as_deref() == Some("market")) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), Value::from(stopLossPrice)) }));
+                request.insert("newSlTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice))));
+                request.insert("newSlOrdPx".into(), (if (stopLossType.as_deref() == Some("market")) { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))) }));
                 request.insert("newSlTriggerPxType".into(), Value::from(stopLossTriggerPriceType));
             }
             if hasTakeProfit {
@@ -6410,17 +6410,17 @@ impl Okx {
                 takeProfitPrice = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
                 let mut takeProfitType: Option<String> = self.safe_string_k(&takeProfit, "type", &[]).as_str().map(str::to_owned);
                 request.insert("newTpOrdKind".into(), (if (takeProfitType.as_deref() == Some("limit")) { takeProfitType.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Str("condition".into()) }));
-                request.insert("newTpTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
-                request.insert("newTpOrdPx".into(), (if (takeProfitType.as_deref() == Some("market")) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice)) }));
+                request.insert("newTpTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice))));
+                request.insert("newTpOrdPx".into(), (if (takeProfitType.as_deref() == Some("market")) { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice))) }));
                 request.insert("newTpTriggerPxType".into(), Value::from(takeProfitTriggerPriceType));
             }
         }
         if (amount != Value::Null) {
-            request.insert("newSz".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("newSz".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         if !(isAlgoOrder == Some(true)) {
             if (price != Value::Null) {
-                request.insert("newPx".into(), self.price_to_precision(symbol, price));
+                request.insert("newPx".into(), Value::from(self.price_to_precision(symbol, price)));
             }
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
@@ -9774,7 +9774,7 @@ impl Okx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amt".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amt".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("type".to_string(), Value::Str("0".into()));
                 m.insert("from".to_string(), Value::from(fromId.as_deref()));
                 m.insert("to".to_string(), Value::from(toId.as_deref()));
@@ -11478,7 +11478,7 @@ impl Okx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amt".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amt".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("side".to_string(), Value::Str("borrow".into()));
             m
         });
@@ -11544,7 +11544,7 @@ impl Okx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amt".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amt".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("side".to_string(), Value::Str("repay".into()));
                 m.insert("ordId".to_string(), id.map(Value::from).unwrap_or(Value::Null));
             m

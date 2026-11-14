@@ -2837,13 +2837,13 @@ impl Delta {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), crate::value::KeyRead::key_read(&&market, "numericId"));
-                m.insert("size".to_string(), self.amount_to_precision(Value::from((market).symbol.clone()), amount));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
                 m.insert("side".to_string(), side);
                 m.insert("order_type".to_string(), Value::from(orderType));
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("limit_price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
         }
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
@@ -2941,14 +2941,14 @@ impl Delta {
             m
         });
         if (amount != Value::Null) {
-            let mut sizeString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
+            let mut sizeString: Option<String> = self.amount_to_precision(symbol.clone(), amount);
             if (sizeString.is_none()) {
                 sizeString = Some("0".to_string());
             }
             request.insert("size".into(), Value::from(self.parse_to_int(sizeString.map(Value::from).unwrap_or(Value::Null))));
         }
         if (price != Value::Null) {
-            request.insert("limit_price".into(), self.price_to_precision(symbol, price));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_put_orders(&[__ws_arg_6]).await.into_dict();

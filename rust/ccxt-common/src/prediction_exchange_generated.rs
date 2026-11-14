@@ -2467,7 +2467,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn amount_to_prediction_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
         let mut outcomeObj: crate::value::Dict = self.outcome(outcome).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
-        return self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amount);
+        return Value::from(self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amount));
 
     Value::Null
 }
@@ -2475,7 +2475,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn price_to_prediction_precision(&self, mut outcome: Value, mut price: Value) -> Value {
         let mut outcomeObj: crate::value::Dict = self.outcome(outcome).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
-        return self.price_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), price);
+        return Value::from(self.price_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), price));
 
     Value::Null
 }
@@ -2483,7 +2483,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn cost_to_prediction_precision(&self, mut outcome: Value, mut cost: Value) -> Value {
         let mut outcomeObj: crate::value::Dict = self.outcome(outcome).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
-        return self.cost_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), cost);
+        return Value::from(self.cost_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), cost));
 
     Value::Null
 }
