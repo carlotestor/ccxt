@@ -2009,7 +2009,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut lastTradeTimestamp: Value = self.safe_integer_k(outcomeOrder.clone(), "lastTradeTimestamp", &[]);
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         let mut rawTrades: crate::value::List = self.safe_list_k(outcomeOrder.clone(), "trades", &[Value::from(vec![])]).into_list();
-        let mut trades: Value = self.parse_prediction_trades(Value::Arr(rawTrades), &[outcomeObj]);
+        let mut trades: crate::value::List = self.parse_prediction_trades(Value::Arr(rawTrades), &[outcomeObj]).into_list();
         let mut tradesLength: i64 = trades.len() as i64;
         let mut feeList: Vec<Value> = Vec::new();
         if tradesLength > 0 {
@@ -2023,7 +2023,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_213: bool = true;
                 while { if !__for_first_213 { i += 1; } __for_first_213 = false; i < tradesLength } {
-                let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut trade: Value = crate::value::KeyRead::read(&&trades, &Value::Int(i));
                 let mut tradeAmount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
                 if (tradeAmount.is_some()) {
                     filled = crate::precise::Precise::stringAdd(&filled.map(Value::from).unwrap_or(Value::Null), &tradeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
@@ -2118,7 +2118,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("fee".to_string(), fee);
                 m.insert("reduceOnly".to_string(), self.safe_bool_k(outcomeOrder.clone(), "reduceOnly", &[]));
                 m.insert("postOnly".to_string(), (if (postOnlyValue.is_some()) { postOnlyValue.map_or(Value::Null, Value::Bool) } else { derivedPostOnly }));
-                m.insert("trades".to_string(), trades);
+                m.insert("trades".to_string(), Value::Arr(trades));
                 m.insert("outcome".to_string(), self.safe_string_k(outcomeOrder.clone(), "outcome", &[]));
                 m.insert("outcomeId".to_string(), self.safe_string_k(outcomeOrder.clone(), "outcomeId", &[]));
                 m.insert("label".to_string(), self.safe_string_k(outcomeOrder.clone(), "label", &[]));

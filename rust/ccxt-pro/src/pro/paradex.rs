@@ -2596,12 +2596,12 @@ if _try_result.is_err() {
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
         let mut side: Option<String> = self.safe_string_k(&position, "side", &[]).as_str().map(str::to_owned);
-        let mut cached: Value = self.filter_by_symbol_since_limit(&cache, symbol.as_deref(), None, None, &[Value::Bool(true)]);
+        let mut cached: crate::value::List = self.filter_by_symbol_since_limit(&cache, symbol.as_deref(), None, None, &[Value::Bool(true)]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_609: bool = true;
             while { if !__for_first_609 { i += 1; } __for_first_609 = false; i < (cached.len() as i64) } {
-            let mut previous: crate::value::Dict = cached.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut previous: crate::value::Dict = crate::value::KeyRead::read(&&cached, &Value::Int(i)).into_dict();
             let mut previousSide: Option<String> = self.safe_string_k(&previous, "side", &[]).as_str().map(str::to_owned);
             let mut previousContracts: Option<String> = self.safe_string_k(&previous, "contracts", &[]).as_str().map(str::to_owned);
             let mut isOpposite: bool = (side.is_some()) && (previousSide.is_some()) && (previousSide != side);
@@ -2701,7 +2701,7 @@ if _try_result.is_err() {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parse_ws_balance(&data);
+        let mut balance: crate::value::Dict = self.parse_ws_balance(&data).into_dict();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2709,7 +2709,7 @@ if _try_result.is_err() {
             });
         }
         let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
-        let mut keys: Vec<Value> = object_keys(&balance).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(balance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_610: bool = true;
@@ -2718,7 +2718,7 @@ if _try_result.is_err() {
             if self.in_array(key.clone(), &reserved) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (balance.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&balance, &key)); }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }

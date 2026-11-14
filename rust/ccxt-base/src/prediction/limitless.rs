@@ -890,10 +890,10 @@ impl Limitless {
         let mut groupId: Option<String> = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[slug.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         // CTF condition id — needed to redeem a resolved winning position
         let mut conditionId: Option<String> = self.safe_string_k(raw.clone(), "conditionId", &[]).as_str().map(str::to_owned);
-        let mut tokens: Value = self.safe_dict_k(raw.clone(), "tokens", &[Value::Map({
+        let mut tokens: crate::value::Dict = self.safe_dict_k(raw.clone(), "tokens", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
         let mut isExpired: bool = self.safe_bool_k(raw.clone(), "expired", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -922,13 +922,13 @@ impl Limitless {
             m
         });
         let mut outcomes: Vec<Value> = Vec::new();
-        let mut tokenEntries: Vec<Value> = Value::Array(tokens.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut tokenEntries: Vec<Value> = Value::Array(tokens.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1306: bool = true;
             while { if !__for_first_1306 { i += 1; } __for_first_1306 = false; i < (tokenEntries.len() as i64) } {
             let mut outcomeLabel: Value = tokenEntries.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut tokenData: Value = (if let (Some(__m), Some(__k)) = (tokens.as_map(), outcomeLabel.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut tokenData: Value = crate::value::KeyRead::read(&&tokens, &outcomeLabel);
             let mut tokenId: Value = tokenData;
             let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null), outcomeLabel.clone()).as_str().map(str::to_owned);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
@@ -1848,7 +1848,7 @@ impl Limitless {
                                 let mut j: i64 = 0;
                 let mut __for_first_1312: bool = true;
                 while { if !__for_first_1312 { j += 1; } __for_first_1312 = false; j < (grouped.len() as i64) } {
-                let mut ticker: crate::value::Dict = self.parse_prediction_ticker(Value::Map(tickerInput.clone()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(grouped.get(j as usize).cloned().unwrap_or(Value::Null)).as_ref()).into_dict();
+                let mut ticker: crate::value::Dict = self.parse_prediction_ticker(Value::Map(tickerInput.clone()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(crate::value::KeyRead::read(&&grouped, &Value::Int(j))).as_ref()).into_dict();
                 let mut symbolKey: Option<String> = self.safe_string_k(&ticker, "outcome", &[]).as_str().map(str::to_owned);
                 if (symbolKey.is_some()) {
                     result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));

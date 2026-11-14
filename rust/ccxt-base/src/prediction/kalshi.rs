@@ -3515,7 +3515,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut si: i64 = 0;
                 let mut __for_first_1290: bool = true;
                 while { if !__for_first_1290 { si += 1; } __for_first_1290 = false; si < seriesListLength } {
-                let mut st: Option<String> = self.safe_string_k_opt(seriesList.get(si as usize).cloned().unwrap_or(Value::Null), "ticker", &[]);
+                let mut st: Option<String> = self.safe_string_opt(crate::value::KeyRead::read(&&seriesList, &Value::Int(si)), Value::Str("ticker".into()), &[]);
                 if (st.is_some()) {
                     std::sync::Arc::make_mut(&mut collected).push(st.map(Value::from).unwrap_or(Value::Null));
                 }
@@ -3536,7 +3536,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut si: i64 = 0;
                 let mut __for_first_1292: bool = true;
                 while { if !__for_first_1292 { si += 1; } __for_first_1292 = false; si < seriesListLength } {
-                let mut st: Option<String> = self.safe_string_k_opt(seriesList.get(si as usize).cloned().unwrap_or(Value::Null), "ticker", &[]);
+                let mut st: Option<String> = self.safe_string_opt(crate::value::KeyRead::read(&&seriesList, &Value::Int(si)), Value::Str("ticker".into()), &[]);
                 if (st.is_some()) {
                     std::sync::Arc::make_mut(&mut collected).push(st.map(Value::from).unwrap_or(Value::Null));
                 }

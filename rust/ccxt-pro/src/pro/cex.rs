@@ -598,7 +598,7 @@ impl Cex {
     pub fn handle_trades_inner(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut symbol: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
@@ -615,7 +615,7 @@ impl Cex {
             let mut __for_first_217: bool = true;
             while { if !__for_first_217 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_217 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut index: Value = (match (&(Value::Int((dataLength - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut rawTrade: crate::value::Dict = get_value(&data, &index).into_dict();
+            let mut rawTrade: crate::value::Dict = crate::value::KeyRead::read(&&data, &index).into_dict();
             let mut parsed: crate::value::Dict = self.parse_ws_old_trade(Value::Dict(rawTrade), Some(&market)).into_dict();
             stored.append(Value::Dict(parsed));
         }

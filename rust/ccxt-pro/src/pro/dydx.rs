@@ -402,12 +402,12 @@ impl Dydx {
             stored = Some(ArrayCache::new(limit));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut parsedTrades: Value = self.parse_trades(&rawTrades, Some(&market), &[]);
+        let mut parsedTrades: crate::value::List = self.parse_trades(&rawTrades, Some(&market), &[]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_305: bool = true;
             while { if !__for_first_305 { i += 1; } __for_first_305 = false; i < (parsedTrades.len() as i64) } {
-            stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            stored.append(crate::value::KeyRead::read(&&parsedTrades, &Value::Int(i)));
         }
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trade", ":").into()), symbol);

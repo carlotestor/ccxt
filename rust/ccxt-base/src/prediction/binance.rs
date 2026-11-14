@@ -408,13 +408,13 @@ impl Binance {
                                 let mut ei: i64 = 0;
                 let mut __for_first_1208: bool = true;
                 while { if !__for_first_1208 { ei += 1; } __for_first_1208 = false; ei < eventsLength } {
-                let mut eventMarkets: Value = self.safe_list_k(events.get(ei as usize).map(crate::Value::from).unwrap_or_default(), "markets", &[Value::from(vec![])]);
+                let mut eventMarkets: crate::value::List = self.safe_list_k(events.get(ei as usize).map(crate::Value::from).unwrap_or_default(), "markets", &[Value::from(vec![])]).into_list();
                 let mut eventMarketsLength: i64 = eventMarkets.len() as i64;
                 {
                                         let mut mi: i64 = 0;
                     let mut __for_first_1207: bool = true;
                     while { if !__for_first_1207 { mi += 1; } __for_first_1207 = false; mi < eventMarketsLength } {
-                    queryMarkets.push(eventMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(mi as usize).cloned().unwrap_or(Value::Null));
+                    queryMarkets.push(crate::value::KeyRead::read(&&eventMarkets, &Value::Int(mi)));
                 }
                 }
             }
@@ -433,13 +433,13 @@ impl Binance {
             while { if !__for_first_1210 { i += 1; } __for_first_1210 = false; i < rawTopicsLength } {
             let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
             parsedEvents.push(Value::from(&parsedEvent));
-            let mut eventMarkets: Value = self.safe_list_k(&parsedEvent, "markets", &[Value::from(vec![])]);
+            let mut eventMarkets: crate::value::List = self.safe_list_k(&parsedEvent, "markets", &[Value::from(vec![])]).into_list();
             let mut eventMarketsLength: i64 = eventMarkets.len() as i64;
             {
                                 let mut mi: i64 = 0;
                 let mut __for_first_1209: bool = true;
                 while { if !__for_first_1209 { mi += 1; } __for_first_1209 = false; mi < eventMarketsLength } {
-                flatMarkets.push(eventMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(mi as usize).cloned().unwrap_or(Value::Null));
+                flatMarkets.push(crate::value::KeyRead::read(&&eventMarkets, &Value::Int(mi)));
             }
             }
         }

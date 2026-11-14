@@ -1195,7 +1195,7 @@ impl Bitfinex {
                                         let mut i: i64 = 0;
                     let mut __for_first_102: bool = true;
                     while { if !__for_first_102 { i += 1; } __for_first_102 = false; i < (deltas.len() as i64) } {
-                    let mut delta: Value = deltas.get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut delta: Value = crate::value::KeyRead::read(&&deltas, &Value::Int(i));
                     let mut delta2: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
                     let mut size: Value = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(delta2) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { delta2.clone() });
                     let mut side: Value = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });

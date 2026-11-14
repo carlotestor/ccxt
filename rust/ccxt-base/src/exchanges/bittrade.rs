@@ -2846,7 +2846,7 @@ impl Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_451: bool = true;
             while { if !__for_first_451 { i += 1; } __for_first_451 = false; i < (failed.len() as i64) } {
-            let mut order: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = crate::value::KeyRead::read(&&failed, &Value::Int(i));
             result.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone());

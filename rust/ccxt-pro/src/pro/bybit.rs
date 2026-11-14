@@ -3266,7 +3266,7 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_204: bool = true;
                 while { if !__for_first_204 { i += 1; } __for_first_204 = false; i < (data.len() as i64) } {
-                let mut B: crate::value::List = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "B", &[Value::from(vec![])]).into_list();
+                let mut B: crate::value::List = self.safe_list(crate::value::KeyRead::read(&&data, &Value::Int(i)), Value::Str("B".into()), &[Value::from(vec![])]).into_list();
                 rawBalances = self.array_concat(rawBalances, &B);
             }
             }

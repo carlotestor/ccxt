@@ -2201,9 +2201,9 @@ impl Woo {
         let mut tokenNetworkResponse: Value = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut tokenRows: crate::value::List = self.safe_list_k(tokenResponse, "rows", &[Value::from(vec![])]).into_list();
         let mut tokenNetworkRows: crate::value::List = self.safe_list_k(tokenNetworkResponse, "rows", &[Value::from(vec![])]).into_list();
-        let mut networksById: Value = self.group_by(Value::Arr(tokenNetworkRows), Value::Str("token".into()), &[]);
-        let mut tokensById: Value = self.group_by(Value::Arr(tokenRows), Value::Str("balance_token".into()), &[]);
-        let mut currencyIds: Vec<Value> = Value::Array(tokensById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut networksById: crate::value::Dict = self.group_by(Value::Arr(tokenNetworkRows), Value::Str("token".into()), &[]).into_dict();
+        let mut tokensById: crate::value::Dict = self.group_by(Value::Arr(tokenRows), Value::Str("balance_token".into()), &[]).into_dict();
+        let mut currencyIds: Vec<Value> = Value::Array(tokensById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1168: bool = true;
@@ -2212,8 +2212,8 @@ impl Woo {
             let mut customCurrency: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("_coin_id".to_string(), id.clone());
-                    m.insert("_tokens_by_id".to_string(), (if let (Some(__m), Some(__k)) = (tokensById.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
-                    m.insert("_networks_by_id".to_string(), (if let (Some(__m), Some(__k)) = (networksById.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+                    m.insert("_tokens_by_id".to_string(), crate::value::KeyRead::read(&&tokensById, &id));
+                    m.insert("_networks_by_id".to_string(), crate::value::KeyRead::read(&&networksById, &id));
                 m
             });
             let mut parsed: crate::value::Dict = self.parse_currency(Value::Map(customCurrency)).into_dict();

@@ -1343,9 +1343,9 @@ impl Bitopro {
         let mut candleLength: i64 = candles.len() as i64;
         let mut resultLength: i64 = 0;
         while ((resultLength as f64) < limit.as_f64().unwrap_or(f64::NAN)) && (i < candleLength) {
-            let mut candle: Value = self.safe_list(candles.clone(), Value::from(i), &[Value::from(vec![])]);
-            if is_equal(&candle.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &timestamp) {
-                std::sync::Arc::make_mut(&mut result).push(candle);
+            let mut candle: crate::value::List = self.safe_list(candles.clone(), Value::from(i), &[Value::from(vec![])]).into_list();
+            if is_equal(&crate::value::KeyRead::read(&&candle, &Value::Int(0)), &timestamp) {
+                std::sync::Arc::make_mut(&mut result).push(Value::Arr(candle));
                 i = (i + 1);
             }  else {
                 // set open, high, low to close

@@ -4906,7 +4906,7 @@ impl Bitfinex {
         }
         }
         let mut reversedArray: Vec<Value> = Vec::new();
-        let mut rawRates: Value = self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut rawRates: crate::value::List = self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]).into_list();
         let mut ratesLength: Value = Value::Int(rawRates.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -4914,7 +4914,7 @@ impl Bitfinex {
             while { if !__for_first_361 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_361 = false; i.as_f64().unwrap_or(f64::NAN) < ratesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(ratesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                 &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut valueAtIndex: Value = get_value(&rawRates, &index);
+            let mut valueAtIndex: Value = crate::value::KeyRead::read(&&rawRates, &index);
             reversedArray.push(valueAtIndex);
         }
         }

@@ -668,7 +668,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_484: bool = true;
             while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (data.len() as i64) } {
-            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut entry: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::Int(i)).into_dict();
             let mut ticker: Value = Value::Null;
             if (isSpot.as_bool() == Some(true)) {
                 ticker = self.parse_ws_ticker(Value::from(&entry), Some(&market));

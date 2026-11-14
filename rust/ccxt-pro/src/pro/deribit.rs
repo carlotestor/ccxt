@@ -973,7 +973,7 @@ impl Deribit {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             cachedTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
-        let mut parsed: Value = self.parse_trades(&trades, None, &[]);
+        let mut parsed: crate::value::List = self.parse_trades(&trades, None, &[]).into_list();
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -982,7 +982,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_291: bool = true;
             while { if !__for_first_291 { i += 1; } __for_first_291 = false; i < (parsed.len() as i64) } {
-            let mut trade: Value = parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = crate::value::KeyRead::read(&&parsed, &Value::Int(i));
             cachedTrades.append(trade.clone());
             let mut symbol: Option<String> = self.safe_string_k(trade, "symbol", &[]).as_str().map(str::to_owned);
             marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));

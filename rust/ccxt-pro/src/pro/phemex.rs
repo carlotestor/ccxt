@@ -772,12 +772,12 @@ impl Phemex {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut trades: crate::value::List = self.safe_list2(message, Value::Str("trades".into()), Value::Str("trades_p".into()), &[Value::from(vec![])]).into_list();
-        let mut parsed: Value = self.parse_trades(&trades, Some(&market), &[]);
+        let mut parsed: crate::value::List = self.parse_trades(&trades, Some(&market), &[]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_623: bool = true;
             while { if !__for_first_623 { i += 1; } __for_first_623 = false; i < (parsed.len() as i64) } {
-            stored.append(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            stored.append(crate::value::KeyRead::read(&&parsed, &Value::Int(i)));
         }
         }
         client.resolve(Value::from(&stored), messageHash.as_str());

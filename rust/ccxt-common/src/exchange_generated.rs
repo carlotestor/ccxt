@@ -4756,12 +4756,12 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_117: bool = true;
             while { if !__for_first_117 { i += 1; } __for_first_117 = false; i < (currenciesToCheck.len() as i64) } {
-            let mut networks: Value = self.safe_dict_k(currenciesToCheck.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "networks", &[Value::Map({
+            let mut networks: crate::value::Dict = self.safe_dict_k(currenciesToCheck.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            if (matches!((&networks, &unifiedCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return self.safe_string((if let (Some(__m), Some(__k)) = (networks.as_map(), unifiedCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("id".into()), &[]);
+})]).into_dict();
+            if (matches!(&unifiedCode, Value::Str(__k) if networks.contains_key(__k.as_ref()))) {
+                return self.safe_string_k(crate::value::KeyRead::read(&&networks, &unifiedCode), "id", &[]);
             }
         }
         }

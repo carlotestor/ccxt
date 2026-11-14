@@ -1052,12 +1052,12 @@ impl Kraken {
             CacheStore::put(&mut self.trades, &symbol.clone().map(Value::from).unwrap_or(Value::Null), stored.clone());
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut parsed: Value = self.parse_trades(&data, Some(&market), &[]);
+        let mut parsed: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_416: bool = true;
             while { if !__for_first_416 { i += 1; } __for_first_416 = false; i < (parsed.len() as i64) } {
-            stored.append(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            stored.append(crate::value::KeyRead::read(&&parsed, &Value::Int(i)));
         }
         }
         client.resolve(Value::from(&stored), messageHash.as_deref());
