@@ -87,7 +87,7 @@ export default class lighter extends lighterRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePublicMultiple (messageHashes: string[], params: Dict = {}) {
+    async subscribePublicMultiple (messageHashes: string[], params: Dict = {}): Promise<Ticker> {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',

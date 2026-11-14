@@ -1580,7 +1580,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    async fetchWallet (methodName: string, params: Dict = {}): Promise<any> {
+    async fetchWallet (methodName: string, params: Dict = {}): Promise<NullableDict> {
         if (this.safeDict (this.options, 'wallet') !== undefined) {
             return this.safeDict (this.options, 'wallet');
         }

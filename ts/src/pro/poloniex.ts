@@ -220,7 +220,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    async tradeRequest (name: string, params: Dict = {}) {
+    async tradeRequest (name: string, params: Dict = {}): Promise<Order[]> {
         const url = this.safeString (this.urls['api']['ws'], 'private', '');
         const messageHash = this.numberToString (this.nonce ());
         const subscribe: Dict = {

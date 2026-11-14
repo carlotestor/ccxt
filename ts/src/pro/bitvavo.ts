@@ -96,7 +96,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPublicMultiple (methodName: string, channelName: string, symbols: string[], params: Dict = {}) {
+    async watchPublicMultiple (methodName: string, channelName: string, symbols: string[], params: Dict = {}): Promise<Ticker[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

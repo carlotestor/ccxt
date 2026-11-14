@@ -1010,7 +1010,7 @@ export default class nado extends nadoRest {
         return result;
     }
 
-    async watchExecuteRequest (requestIdString: string, request: Dict) {
+    async watchExecuteRequest (requestIdString: string, request: Dict): Promise<Dict> {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
         // request id and its response is correlated by the echoed id
