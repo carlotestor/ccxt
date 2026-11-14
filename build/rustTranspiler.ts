@@ -7451,16 +7451,6 @@ export class RustTranspilerBuilder {
                     `${indent}${n} = Value::Bool(${e});`],
 
 
-            // `set_value(...)`, `append_to_array(...)`, and
-            // `add_element_to_object(...)` take the value arg by move.
-            // A bare-identifier final arg moves the local out, breaking
-            // any later use (apex `timeStamp`, coinbaseexchange/
-            // krakenfutures/poloniex `trade`). Clone it.
-            [/\b((?:set_value|append_to_array|add_element_to_object)\([^;]*?,\s*)([a-zA-Z_][a-zA-Z0-9_]*)\)(\s*;)/g,
-                (whole: string, prefix: string, ident: string, tail: string) => {
-                    if (ident === 'self') return whole;
-                    return `${prefix}${ident}.clone())${tail}`;
-                }],
 
             // Paren-wrapped bool RHS in plain assignment: `X = (is_Y(...));`
             // (allows trailing whitespace/comments on the same line)
