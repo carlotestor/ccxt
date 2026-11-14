@@ -4762,15 +4762,15 @@ impl Coinbaseinternational {
         let mut route: Option<String> = routeparamsResolvedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsResolved: crate::value::Dict = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut deribit: Value = self.resolve_route(&[route.map(Value::from).unwrap_or(Value::Null)]);
-        let mut previousBackend: Value = self.safe_bool_k(self.options.clone(), "routeBackend", &[]);
-        let mut configuredBackend: Value = self.is_native_deribit_credentials();
+        let mut previousBackend: Option<bool> = self.safe_bool_k(self.options.clone(), "routeBackend", &[]).as_bool();
+        let mut configuredBackend: bool = self.is_native_deribit_credentials().as_bool().unwrap_or_default();
         let mut currentToken: Option<String> = self.get_v2_access_token();
         let mut hasToken: bool = (currentToken.is_some()) && (currentToken.as_deref() != Some(""));
         let mut hasWsState: bool = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]) != Value::Null;
-        if (previousBackend != Value::Null) && (previousBackend.as_bool() != deribit.as_bool()) {
+        if (previousBackend.is_some()) && ((previousBackend != deribit.as_bool())) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cannot switch route backend on an initialized instance; use a separate exchange instance")));
         }
-        if (previousBackend == Value::Null) && ((self.markets.clone() != Value::Null) || hasToken || hasWsState) && (configuredBackend.as_bool() != deribit.as_bool()) {
+        if (previousBackend.is_none()) && ((self.markets.clone() != Value::Null) || hasToken || hasWsState) && ((Some(configuredBackend) != deribit.as_bool())) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cannot switch route backend after markets or authentication state; use a separate exchange instance")));
         }
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.

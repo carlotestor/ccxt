@@ -4636,8 +4636,8 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_115: bool = true;
             while { if !__for_first_115 { i += 1; } __for_first_115 = false; (i as f64) < get_array_length(&objects).as_f64().unwrap_or(f64::NAN) } {
-            let mut objectValue: Option<String> = self.safe_string_opt(get_value(&objects, &Value::Int(i)), key.clone(), &[]);
-            if (objectValue.as_deref() == value.as_str()) {
+            let mut objectValue: Option<String> = self.safe_string(get_value(&objects, &Value::Int(i)), key.clone(), &[]).as_str().map(str::to_owned);
+            if ((objectValue.as_deref() == value.as_str())) {
                 result.push(get_value(&objects, &Value::Int(i)));
             }
         }

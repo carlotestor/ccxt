@@ -5909,7 +5909,7 @@ if _try_result.is_err() {
             }
         }
         }
-        let mut spotInstrumentsIndex: Value = Value::Int(promises.len() as i64);
+        let mut spotInstrumentsIndex: i64 = promises.len() as i64;
         if fetchMargins {
             promises.push(self.public_uta_get_v3_market_instruments(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5923,7 +5923,7 @@ if _try_result.is_err() {
             m
         });
         if fetchMargins {
-            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(results.clone(), spotInstrumentsIndex.clone(), &[]).into_dict();
+            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(results.clone(), Value::from(spotInstrumentsIndex), &[]).into_dict();
             let mut instruments: crate::value::List = self.safe_list_k(&instrumentsResponse, "data", &[Value::from(vec![])]).into_list();
             spotInstruments = self.index_by(Value::Arr(instruments), Value::Str("symbol".into()));
         }
@@ -5934,7 +5934,7 @@ if _try_result.is_err() {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_367: bool = true;
             while { if !__for_first_367 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_367 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
-            if (i.as_f64() == spotInstrumentsIndex.as_f64()) {
+            if ((Some(spotInstrumentsIndex as f64) == i.as_f64())) {
                 continue;
             }
             let mut res: crate::value::Dict = self.safe_dict(results.clone(), i.clone(), &[]).into_dict();
@@ -8894,16 +8894,16 @@ if _try_result.is_err() {
                 let mut __for_first_375: bool = true;
                 while { if !__for_first_375 { i += 1; } __for_first_375 = false; i < (rows.len() as i64) } {
                 let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-                let mut entryMarketId: Value = self.safe_string_k(&entry, "symbol", &[]);
-                if (entryMarketId == Value::Null) || (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &entryMarketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                let mut entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
+                if (entryMarketId.is_none()) || (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &entryMarketId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     continue;
                 }
-                let mut entryMarket: crate::types::Market = self.safe_market(entryMarketId.clone(), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
-                let mut entrySymbol: Value = self.safe_string_k(&entryMarket, "symbol", &[]);
-                if (entrySymbol == Value::Null) || (entrySymbol == entryMarketId) {
+                let mut entryMarket: crate::types::Market = self.safe_market(entryMarketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
+                let mut entrySymbol: Option<String> = self.safe_string_k(&entryMarket, "symbol", &[]).as_str().map(str::to_owned);
+                if (entrySymbol.is_none()) || ((entrySymbol.as_deref() == entryMarketId.as_deref())) {
                     continue;
                 }
-                utaResult.insert(crate::runtime::stringify_param(&entrySymbol), self.parse_trading_fee(&entry, Some(&entryMarket)));
+                utaResult.insert(entrySymbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(&entry, Some(&entryMarket)));
             }
             }
             return Value::Map(utaResult);

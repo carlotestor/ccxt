@@ -1881,15 +1881,15 @@ impl Kraken {
             // same client that already caches the token, and settlement goes
             // through client.resolve () / client.reject () so every write to
             // that map stays behind the client's own lock
-            let mut messageHash: Value = Value::Str("authenticateFlight".into());
-            if (__ch.has_future(&messageHash)) {
+            let mut messageHash: String = "authenticateFlight".to_string();
+            if (__ch.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the subscriptions bucket
-                crate::exchange_stubs::ws_await_flight(&client.future(messageHash.clone())).await;
+                crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
                 subscription = self.safe_dict(__ch.subscriptions.clone(), authenticated.clone(), &[]);
                 return self.safe_string_k(subscription.clone(), "token", &[]);
             }
-            let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.clone());
+            let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
                 let mut response: crate::value::Dict = self.parent.private_post_get_web_sockets_token(&[params]).await.into_dict();
@@ -1915,12 +1915,12 @@ impl Kraken {
                 __ch.add_subscription(&authenticated, subscription.clone());
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads
-                client.resolve(token.map(Value::from).unwrap_or(Value::Null), &messageHash);
+                client.resolve(token.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // reject the flight - all waiters throw and the next caller
                 // re-leads instead of deadlocking on a dead flight
-                client.reject(e, &messageHash);
+                client.reject(e, messageHash.as_str());
             }
             // rethrows the leader's own failure and attaches the handler that
             // keeps an alone leader's rejection from killing the process

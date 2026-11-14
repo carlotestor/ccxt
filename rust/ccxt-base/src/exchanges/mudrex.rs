@@ -2074,7 +2074,7 @@ impl Mudrex {
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginationCalls]);
             let mut response: crate::value::Dict = self.private_get_futures_fee_history(&[__ws_arg_20]).await.into_dict();
             let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-            let mut dataLength: Value = Value::Int(data.len() as i64);
+            let mut dataLength: i64 = data.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_974: bool = true;
@@ -2092,7 +2092,7 @@ impl Mudrex {
             calls = self.parse_to_int(Value::from((if let Some(__l) = calls { Some(__l + 1) } else { None })));
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if (limit != Value::Null) && (dataLength.as_f64() == pageSize.as_f64()) {
+            if (limit != Value::Null) && ((Some(dataLength as f64) == pageSize.as_f64())) {
                 if ((transactionsCount.is_some() && limit.as_i64().is_some() && transactionsCount < limit.as_i64())) && ((calls.is_some() && maxCalls.is_some() && calls < maxCalls)) {
                     // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                     offset = self.sum(&[offset.clone(), pageSize.clone()]);

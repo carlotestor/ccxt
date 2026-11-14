@@ -3202,8 +3202,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     panic!("{}", crate::exchange_errors::exchange_error(json_stringify(&message)));
                  #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                    let mut messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
-                    client.reject(e.clone(), &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                    let mut messageHash: Option<String> = self.safe_string_k(&subscription, "messageHash", &[]).as_str().map(str::to_owned);
+                    client.reject(e.clone(), messageHash.as_deref());
                     client.reject(e.clone(), id.as_deref());
                     if (__ch.has_subscription(id.as_deref())) {
                         if (id.is_some()) {
@@ -3214,8 +3214,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // without removing it a repeated watch call attaches to a future
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
-                    if (messageHash.is_some()) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        __ch.remove_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                    if (messageHash.is_some()) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &Value::from(&messageHash))) {
+                        __ch.remove_subscription(messageHash.as_deref());
                     }
                 }
             }
@@ -3231,9 +3231,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                     client.reject(e.clone(), "auth");
-                    let mut method: Value = Value::Str("auth".into());
-                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        __ch.remove_subscription(&method);
+                    let mut method: String = "auth".to_string();
+                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &Value::from(method.as_str()))) {
+                        __ch.remove_subscription(method.as_str());
                     }
                     return Value::Bool(false);
                 }  else {

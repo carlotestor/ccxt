@@ -396,16 +396,16 @@ impl Xt {
             // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
             // concurrent callers each minted their own token, last write won, and the losers
             // carried an orphaned token into name + '@' + listenKey so their streams went dead
-            let mut messageHash: Value = Value::Str(format!("{}{}", "authenticate:", tradeType).into());
-            if (__ch.has_future(&messageHash)) {
+            let mut messageHash: String = format!("{}{}", "authenticate:", tradeType);
+            if (__ch.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the bucket
-                crate::exchange_stubs::ws_await_flight(&client.future(messageHash.clone())).await;
+                crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
                 return __ch.subscriptions.clone().as_map().and_then(|__m| __m.get("token")).cloned().unwrap_or(Value::Null);
             }
             // client.futures is the same registry Exchange.watch () dedupes on, so registering
             // the flight here, before any suspension point, makes concurrent callers wait
-            let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.clone());
+            let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut listenKey: Value = Value::Null;
                 if isContract {
@@ -439,13 +439,13 @@ impl Xt {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " getListenKey() received an empty listen key")));
                 }
                 __ch.add_subscription(&Value::Str("token".into()), listenKey.clone());
-                client.resolve(listenKey, &messageHash);
+                client.resolve(listenKey, messageHash.as_str());
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // hand the failure to every waiter so the next caller re-leads instead of
                 // deadlocking on a dead flight. no throw here: the trailing future rethrows
                 // to this caller and keeps a waiterless rejection from crashing the process
-                client.reject(e, &messageHash);
+                client.reject(e, messageHash.as_str());
             }
             crate::exchange_stubs::ws_await_flight(&future).await;
         }

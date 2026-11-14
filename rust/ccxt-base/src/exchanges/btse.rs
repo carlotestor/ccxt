@@ -3949,8 +3949,8 @@ impl Btse {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut type_var: Value = self.safe_string_k(entry.clone(), "type", &[Value::Str("".into())]);
-            if (matches!((&allowed, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut type_var: String = self.safe_string_k(entry.clone(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (matches!((&allowed, Some(type_var.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 rows.push(entry);
             }
         }

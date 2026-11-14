@@ -2241,8 +2241,8 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1225: bool = true;
             while { if !__for_first_1225 { i += 1; } __for_first_1225 = false; (i as f64) < walletLength } {
-            let mut w: Value = self.safe_string_k(wallets.get(i as usize).cloned().unwrap_or(Value::Null), "walletAddress", &[Value::Str("".into())]);
-            if (w.as_str() == walletAddress.as_str()) {
+            let mut w: String = self.safe_string_k(wallets.get(i as usize).cloned().unwrap_or(Value::Null), "walletAddress", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if ((Some(w.as_str()) == walletAddress.as_str())) {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), wallets.get(i as usize).cloned().unwrap_or(Value::Null)); }
                 return self.safe_dict_k(self.options.clone(), "wallet", &[]);
             }

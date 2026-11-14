@@ -3293,8 +3293,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 })]);
                     let mut networkId: Option<String> = self.safe_string_k(entry.clone(), "network", &[]).as_str().map(str::to_owned);
-                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
-                    if (network.as_str() == networkCode.as_str()) {
+                    let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
+                    if ((networkCode.as_deref() == network.as_str())) {
                         data = entry;
                         break;
                     }

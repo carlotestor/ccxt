@@ -1401,8 +1401,8 @@ impl Extended {
             while { if !__for_first_318 { i += 1; } __for_first_318 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut subscriptionName: Option<String> = self.safe_string_k_opt(subscription.clone(), "name", &[]);
-            if (subscriptionName.as_deref() == name.as_str()) {
+            let mut subscriptionName: Option<String> = self.safe_string_k(subscription.clone(), "name", &[]).as_str().map(str::to_owned);
+            if ((subscriptionName.as_deref() == name.as_str())) {
                 return subscription;
             }
         }

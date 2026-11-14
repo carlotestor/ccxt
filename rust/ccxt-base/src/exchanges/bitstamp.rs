@@ -2517,13 +2517,13 @@ impl Bitstamp {
         if (numCurrencyIds == 2) {
             let mut firstCurrencyId: String = self.safe_string(&currencyIds, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut secondCurrencyId: String = self.safe_string(&currencyIds, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut marketId: Value = Value::Str(format!("{}{}", firstCurrencyId, secondCurrencyId).into());
-            if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return crate::types::IntoRaw::into_raw(self.safe_market(marketId.clone(), None, &[]));
+            let mut marketId: String = format!("{}{}", firstCurrencyId, secondCurrencyId);
+            if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, Some(marketId.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                return crate::types::IntoRaw::into_raw(self.safe_market(Value::from(marketId.clone()), None, &[]));
             }
-            marketId = Value::Str(format!("{}{}", secondCurrencyId, firstCurrencyId).into());
-            if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return crate::types::IntoRaw::into_raw(self.safe_market(marketId, None, &[]));
+            marketId = format!("{}{}", secondCurrencyId, firstCurrencyId);
+            if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, Some(marketId.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                return crate::types::IntoRaw::into_raw(self.safe_market(Value::from(marketId), None, &[]));
             }
         }
         return Value::Null;

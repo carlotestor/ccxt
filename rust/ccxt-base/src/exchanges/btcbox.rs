@@ -662,11 +662,11 @@ impl Btcbox {
             let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut free: Value = Value::Str(format!("{}{}", currencyId, "_balance").into());
-            if (matches!((&response, &free), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut free: String = format!("{}{}", currencyId, "_balance");
+            if (matches!((&response, Some(free.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 let mut used: String = format!("{}{}", currencyId, "_lock");
-                account.insert("free".into(), self.safe_string(response.clone(), free, &[]));
+                account.insert("free".into(), self.safe_string(response.clone(), Value::from(free), &[]));
                 account.insert("used".into(), self.safe_string(response.clone(), Value::from(used), &[]));
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }

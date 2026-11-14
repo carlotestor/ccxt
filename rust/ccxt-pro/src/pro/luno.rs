@@ -709,8 +709,8 @@ impl Luno {
             let mut __for_first_482: bool = true;
             while { if !__for_first_482 { i += 1; } __for_first_482 = false; (i as f64) < sideLength.as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&orderSide, &Value::Int(i));
-            let mut entryId: Option<String> = self.safe_string_opt(order.clone(), Value::Int(2), &[]);
-            if (entryId.as_deref() == orderId.as_str()) {
+            let mut entryId: Option<String> = self.safe_string(order.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
+            if ((entryId.as_deref() == orderId.as_str())) {
                 let mut price: Option<f64> = self.safe_number(order.clone(), Value::Int(0), &[]).as_f64();
                 let mut currentAmount: Option<String> = self.safe_string(order, Value::Int(1), &[]).as_str().map(str::to_owned);
                 let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount.map(Value::from).unwrap_or(Value::Null), &tradedAmount).as_str().map(str::to_owned);

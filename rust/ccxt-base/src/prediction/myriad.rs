@@ -658,9 +658,9 @@ impl Myriad {
                 let mut raw: crate::value::Dict = found.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut networkId: String = self.safe_string_k(&raw, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut marketId: String = self.safe_string_k(&raw, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, ":").into()), marketId).into());
-                if !(matches!(&key, Value::Str(__k) if seen.contains_key(__k.as_ref()))) {
-                    seen.insert(crate::runtime::stringify_param(&key), Value::Bool(true));
+                let mut key: String = format!("{}{}", Value::Str(format!("{}{}", networkId, ":").into()), marketId);
+                if !(seen.contains_key(key.as_str())) {
+                    seen.insert(key, Value::Bool(true));
                     rawMarkets.push(Value::Dict(raw));
                 }
             }
@@ -3143,9 +3143,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut state: String = self.safe_string_k(raw.clone(), "state", &[Value::Str("open".into())]).as_str().unwrap_or("open").to_string();
         let mut active: bool = state == "open";
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
-        let mut resolvedOutcomeId: Value = self.safe_string_k(raw.clone(), "resolvedOutcomeId", &[Value::Str("-1".into())]);
+        let mut resolvedOutcomeId: String = self.safe_string_k(raw.clone(), "resolvedOutcomeId", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
         let mut voided: bool = self.safe_bool_k_opt(raw.clone(), "voided", &[Value::Bool(false)]).unwrap_or(false);
-        let mut hasResolution: bool = (resolvedOutcomeId.as_str() != Some("-1")) && (resolvedOutcomeId != Value::Null) && (resolvedOutcomeId.as_str() != Some(""));
+        let mut hasResolution: bool = (resolvedOutcomeId != "-1") && (true) && (resolvedOutcomeId != "");
         let mut marketResolved: Value = Value::Bool(hasResolution || voided);
         let mut resolvedOutcome: Option<String> = None;
         let mut volume24h: Option<f64> = self.safe_number_k(raw.clone(), "volume24h", &[]).as_f64();
@@ -3193,7 +3193,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Option<i64> = None;
             if hasResolution {
-                winnerRaw = (Value::Bool(outcomeId.as_str() == resolvedOutcomeId.as_str()));
+                winnerRaw = (Value::Bool((Some(resolvedOutcomeId.as_str()) == outcomeId.as_str())));
                 settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Some(1) } else { Some(0) });
                 if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
@@ -5049,22 +5049,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]).into_dict();
             let mut networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "prices:", networkId).into()), ":").into()), marketId).into());
+            let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "prices:", networkId).into()), ":").into()), marketId);
             resolvedSymbols.push(self.safe_outcome_symbol(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[outcomeObj]));
-            if !(matches!(&channel, Value::Str(__k) if seenChannels.contains_key(__k.as_ref()))) {
-                seenChannels.insert(crate::runtime::stringify_param(&channel), Value::Bool(true));
+            if !(seenChannels.contains_key(channel.as_str())) {
+                seenChannels.insert(channel.clone(), Value::Bool(true));
                 let mut requestId: i64 = self.request_id(url.as_deref());
                 let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("subscribe".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
                         m.insert("id".to_string(), Value::from(requestId));
                     m
                 });
-                self.watch(url.as_deref(), "tickers", Value::Map(subscribeMsg), &channel, Value::Null).await;
+                self.watch(url.as_deref(), "tickers", Value::Map(subscribeMsg), channel.as_str(), Value::Null).await;
             }
         }
         }

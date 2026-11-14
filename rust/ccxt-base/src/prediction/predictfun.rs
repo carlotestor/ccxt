@@ -2340,14 +2340,14 @@ impl Predictfun {
         let optional_args: &[Value] = &__optional_args;
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        let mut wasSandbox: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
+        let mut wasSandbox: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         self.super_set_sandbox_mode(enable.clone());
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable.clone()); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".into(), (if (enable).as_bool() == Some(true) { Value::Int(97) } else { Value::Int(56) })); }
         if let Value::Dict(__d) = &mut self.requiredCredentials { std::sync::Arc::make_mut(__d).insert("apiKey".into(), Value::Bool(!is_true(&enable))); }
-        if (wasSandbox.as_bool() != enable.as_bool()) {
+        if ((Some(wasSandbox) != enable.as_bool())) {
             // a token minted for one host is not valid on the other, so the live one is set aside
             // on the way in and taken back on the way out - a round trip through the sandbox then
             // costs no re-authentication. the sandbox token is not kept: it dies with the switch

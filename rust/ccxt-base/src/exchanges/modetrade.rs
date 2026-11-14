@@ -2320,8 +2320,8 @@ impl Modetrade {
             let mut __for_first_963: bool = true;
             while { if !__for_first_963 { i += 1; } __for_first_963 = false; i < (rows.len() as i64) } {
             let mut row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut marketId: Value = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]);
-            if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 continue;
             }
             let mut ticker: crate::value::Dict = self.extend(Value::Map({
@@ -2453,8 +2453,8 @@ impl Modetrade {
             let mut __for_first_964: bool = true;
             while { if !__for_first_964 { i += 1; } __for_first_964 = false; i < (rows.len() as i64) } {
             let mut row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut marketId: Value = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]);
-            if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 continue;
             }
             let mut interest: crate::value::Dict = self.extend(Value::Map({

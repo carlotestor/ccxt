@@ -991,9 +991,9 @@ if _try_result.is_err() {
                 __ch.remove_subscription(&subscribeHash);
             }
             // a market moved to the deltas feed goes back to the snapshots on its next watch
-            let mut requestedHash: Value = Value::Str(format!("{}{}", subscribeHash, ":requested").into());
-            if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &requestedHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                __ch.remove_subscription(&requestedHash);
+            let mut requestedHash: String = format!("{}{}", subscribeHash, ":requested");
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &Value::from(requestedHash.as_str()))) {
+                __ch.remove_subscription(requestedHash.as_str());
             }
         }
         }

@@ -13690,9 +13690,9 @@ impl Binance {
         let mut tradedCurrency: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
         let mut bnb: crate::types::Currency = self.currency(Value::Str("BNB".into()));
         let mut earnedCurrency: Option<String> = crate::value::KeyRead::key_read(&&bnb, "code").as_str().map(str::to_owned);
-        let mut applicantSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", earnedCurrency.as_deref().unwrap_or("null"), "/").into()), tradedCurrency.as_deref().unwrap_or("null")).into());
+        let mut applicantSymbol: String = format!("{}{}", Value::Str(format!("{}{}", earnedCurrency.as_deref().unwrap_or("null"), "/").into()), tradedCurrency.as_deref().unwrap_or("null"));
         let mut tradedCurrencyIsQuote: bool = false;
-        if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &applicantSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (self.markets.clone() != Value::Null) && (matches!((&self.markets, Some(applicantSymbol.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             tradedCurrencyIsQuote = true;
         }
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "serviceChargeAmount", &[]).as_str().map(str::to_owned);
@@ -13702,17 +13702,17 @@ impl Binance {
                 m.insert("cost".to_string(), self.parse_number(feeCostString.map(Value::from).unwrap_or(Value::Null), &[]));
             m
         });
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut amountString: Option<String> = None;
         let mut costString: Option<String> = None;
         let mut side: Option<String> = None;
         if tradedCurrencyIsQuote {
-            symbol = applicantSymbol;
+            symbol = Some(applicantSymbol);
             amountString = self.safe_string_k(trade.clone(), "transferedAmount", &[]).as_str().map(str::to_owned);
             costString = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
             side = Some("buy".to_string());
         }  else {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", tradedCurrency.as_deref().unwrap_or("null"), "/").into()), earnedCurrency.as_deref().unwrap_or("null")).into());
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", tradedCurrency.as_deref().unwrap_or("null"), "/").into()), earnedCurrency.as_deref().unwrap_or("null")));
             amountString = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
             costString = self.safe_string_k(trade.clone(), "transferedAmount", &[]).as_str().map(str::to_owned);
             side = Some("sell".to_string());
@@ -13734,7 +13734,7 @@ impl Binance {
         m.insert("id".to_string(), Value::from(id.as_deref()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker.as_deref()));
