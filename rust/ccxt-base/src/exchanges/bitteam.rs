@@ -1068,13 +1068,13 @@ impl Bitteam {
                         let mut j: i64 = 0;
             let mut __for_first_440: bool = true;
             while { if !__for_first_440 { j += 1; } __for_first_440 = false; j < (networkIds.len() as i64) } {
-            let mut networkId: Option<String> = networkIds.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut networkId: Option<&str> = networkIds.get(j as usize).and_then(Value::as_str);
             let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(networkId.as_deref()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut networkFee: Option<f64> = self.safe_number(feesByNetworkId.clone(), Value::from(networkId.as_deref()), &[]).as_f64();
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(networkId.as_deref()));
         m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("deposit".to_string(), deposit.map_or(Value::Null, Value::Bool));
         m.insert("withdraw".to_string(), withdraw.map_or(Value::Null, Value::Bool));
@@ -2735,7 +2735,7 @@ impl Bitteam {
         let mut takerOrMaker: Option<String> = self.safe_string_k(trade.clone(), "isCurrentSide", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<String> = self.safe_string_k(trade.clone(), "timestamp", &[]).as_str().map(str::to_owned);
         if (takerOrMaker.is_some()) {
-            timestamp = crate::precise::Precise::stringMul(&timestamp.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
+            timestamp = crate::precise::Precise::stringMul(&timestamp, &Value::Str("1000".into())).as_str().map(str::to_owned);
         }
         // the exchange returns the side of the taker
         let mut side: Option<String> = self.safe_string2(trade.clone(), Value::Str("side".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);

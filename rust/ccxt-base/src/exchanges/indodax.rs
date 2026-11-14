@@ -768,11 +768,11 @@ impl Indodax {
                         let mut i: i64 = 0;
             let mut __for_first_839: bool = true;
             while { if !__for_first_839 { i += 1; } __for_first_839 = false; i < (currencyIds.len() as i64) } {
-            let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(&free, Value::from(currencyId.as_deref()), &[]));
-            account.insert("used".into(), self.safe_string(&used, currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
+            account.insert("used".into(), self.safe_string(&used, Value::from(currencyId.as_deref()), &[]));
             if (code.is_some()) {
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
@@ -1377,9 +1377,9 @@ impl Indodax {
                         let mut i: i64 = 0;
             let mut __for_first_841: bool = true;
             while { if !__for_first_841 { i += 1; } __for_first_841 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut marketOrders: Value = ordersDict.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            market = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
+            market = Some(self.safe_market(Value::from(marketId.as_deref()), None, &[]));
             let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[since.clone(), limit.clone()]).into_list();
             exchangeOrders = self.array_concat(Value::Arr(exchangeOrders), &parsedOrders).into_list();
         }
@@ -1496,7 +1496,7 @@ impl Indodax {
                     }
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
-                    let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
                 request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), quoteAmount.map(Value::from).unwrap_or(Value::Null));
@@ -2081,14 +2081,14 @@ impl Indodax {
                         let mut i: i64 = 0;
             let mut __for_first_845: bool = true;
             while { if !__for_first_845 { i += 1; } __for_first_845 = false; i < (addressKeys.len() as i64) } {
-            let mut marketId: Option<String> = addressKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut code: Option<String> = self.safe_currency_code(marketId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            let mut address: Option<String> = self.safe_string(&addresses, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<&str> = addressKeys.get(i as usize).and_then(Value::as_str);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(marketId.as_deref()), None);
+            let mut address: Option<String> = self.safe_string(&addresses, Value::from(marketId.as_deref()), &[]).as_str().map(str::to_owned);
             if (address.is_some()) && ((codes == Value::Null) || (self.in_array(&code, codes.clone()))) {
                 self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
                 let mut network: Value = Value::Null;
                 if (matches!(marketId.as_deref(), Some(__k) if networks.contains_key(__k))) {
-                    let mut networkId: Option<String> = self.safe_string(&networks, marketId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                    let mut networkId: Option<String> = self.safe_string(&networks, Value::from(marketId.as_deref()), &[]).as_str().map(str::to_owned);
                     if (networkId.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchDepositAddresses() missing networkId")));
                     }

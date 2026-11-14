@@ -1009,7 +1009,7 @@ impl Binance {
         let mut resolved: bool = (status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED"));
         let mut endDate: Option<i64> = (match rawTopic.get("endDate") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut feeRateBps: String = (match rawTopic.get("feeRateBps") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("200".into()) }).as_str().unwrap_or("200").to_string();
-        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&Value::from(feeRateBps.clone()), &Value::Str("10000".into())), &[]).as_f64();
+        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&feeRateBps, &Value::Str("10000".into())), &[]).as_f64();
         let mut decimalPrecision: String = self.safe_string_k(rawMarket.clone(), "decimalPrecision", &[Value::Str("2".into())]).as_str().unwrap_or("2").to_string();
         let mut pricePrecision: Option<f64> = self.parse_number(self.parse_precision(&[Value::from(decimalPrecision)]), &[]).as_f64();
         let mut precision: indexmap::IndexMap<String, Value> = ({
@@ -1234,7 +1234,7 @@ impl Binance {
         let mut last: Option<f64> = None;
         if (lastString.is_some()) {
             if isMirrored {
-                last = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &lastString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+                last = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &lastString), &[]).as_f64();
             }  else {
                 last = self.parse_number(lastString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }
@@ -2168,7 +2168,7 @@ impl Binance {
         if (orderType.as_deref() == Some("market")) && (cost.is_some()) && (price.is_some()) && (filled.is_some()) {
             // buys pay cost above price*filled, sells receive proceeds net of the fee —
             // either way the fee is the absolute difference
-            let mut feeCost: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&cost.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &filled.map(Value::from).unwrap_or(Value::Null)))).as_str().map(str::to_owned);
+            let mut feeCost: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&cost, &crate::precise::Precise::stringMul(&price, &filled))).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("USDT".into()));
@@ -2281,26 +2281,26 @@ impl Binance {
 
     pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Option<String> {
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
+        let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("price".into()), &[Value::Float(0.0001)]);
+})]), Value::Str("price".into()), &[Value::Float(0.0001)]).as_f64();
         let mut decimals: i64 = 4;
-        if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
-            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
+        if (prec.is_some()) && (prec > Some(0.0)) {
+            decimals = self.precision_from_string(Value::from(self.number_to_string(Value::from(prec))));
         }
         return self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Option<String> {
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
+        let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("amount".into()), &[Value::Float(0.01)]);
+})]), Value::Str("amount".into()), &[Value::Float(0.01)]).as_f64();
         let mut decimals: i64 = 2;
-        if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
-            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
+        if (prec.is_some()) && (prec > Some(0.0)) {
+            decimals = self.precision_from_string(Value::from(self.number_to_string(Value::from(prec))));
         }
         return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
@@ -2352,7 +2352,7 @@ impl Binance {
         let mut defaultSlippage: String = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".into())]).as_str().unwrap_or("0.05").to_string();
         let mut slippage: Option<String> = self.safe_string_k(params.clone(), "slippage", &[Value::from(defaultSlippage)]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(params.clone(), "cost", &[]).as_str().map(str::to_owned);
-        let mut slippageBps: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&slippage.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())));
+        let mut slippageBps: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&slippage, &Value::Str("10000".into())));
         let mut commonRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletAddress".to_string(), self.safe_string_k(wallet.clone(), "walletAddress", &[]));
@@ -2383,10 +2383,10 @@ impl Binance {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder requires price for ").into()), side).into()), " order")));
                     }
                 }
-                let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&Value::from(feeRateBps), &Value::Str("10000".into())).as_str().map(str::to_owned);
-                let mut minPrice: Option<String> = crate::precise::Precise::stringMin(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
-                let mut fee: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&feeRate.map(Value::from).unwrap_or(Value::Null), &minPrice.map(Value::from).unwrap_or(Value::Null)), &amountStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)), &fee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&feeRateBps, &Value::Str("10000".into())).as_str().map(str::to_owned);
+                let mut minPrice: Option<String> = crate::precise::Precise::stringMin(&priceStr, &crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr)).as_str().map(str::to_owned);
+                let mut fee: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&feeRate, &minPrice), &amountStr).as_str().map(str::to_owned);
+                amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr, &priceStr), &fee).as_str().map(str::to_owned);
             }
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::from(defaultTif)]).as_str().map(str::to_owned);

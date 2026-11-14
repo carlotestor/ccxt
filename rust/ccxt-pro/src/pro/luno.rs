@@ -190,7 +190,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
                 "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order_book_bids_asks" => self.parse_order_book_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "reduce_order_volume" => self.reduce_order_volume(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "reduce_order_volume" => self.reduce_order_volume(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
@@ -215,7 +215,7 @@ impl Luno {
             "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "parse_order_book_bids_asks" => self.parse_order_book_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "reduce_order_volume" => self.reduce_order_volume(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "reduce_order_volume" => self.reduce_order_volume(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
             "watch_trades" => { crate::exchange_stubs::enqueue_spawn("watch_trades", args.to_vec()); crate::Value::Null },
             _ => crate::Value::Null,
@@ -541,8 +541,7 @@ impl Luno {
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
-        let mut nonce: Option<i64> = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        let mut nonce: Option<i64> = (match __pro_message.get("sequence") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         orderbook.set_book_meta("nonce", Value::from(nonce));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
@@ -651,8 +650,8 @@ impl Luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut asksOrderSide: Value = orderbook.get("asks").cloned().unwrap_or(Value::Null);
-        let mut bidsOrderSide: Value = orderbook.get("bids").cloned().unwrap_or(Value::Null);
+        let mut asksOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("asks").cloned().unwrap_or(Value::Null));
+        let mut bidsOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("bids").cloned().unwrap_or(Value::Null));
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
         let mut tradeUpdates: crate::value::List = self.safe_list_k(message.clone(), "trade_updates", &[Value::from(vec![])]).into_list();
@@ -702,18 +701,18 @@ impl Luno {
  * @param {string} tradedAmount the traded amount in base currency, as a string
  * @returns {boolean} true if the order was found in this side, false otherwise
  */
-    pub fn reduce_order_volume(&self, mut orderSide: Value, mut orderId: Value, mut tradedAmount: Value) -> Value {
-        let mut sideLength: Value = get_array_length(&orderSide);
+    pub fn reduce_order_volume(&self, mut orderSide: crate::pro::order_book::Side, mut orderId: Value, mut tradedAmount: Value) -> Value {
+        let mut sideLength: Value = orderSide.length();
         {
                         let mut i: i64 = 0;
             let mut __for_first_482: bool = true;
             while { if !__for_first_482 { i += 1; } __for_first_482 = false; (i as f64) < sideLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut order: Value = get_value(&orderSide, &Value::Int(i));
+            let mut order: Value = orderSide.level(&Value::Int(i));
             let mut entryId: Option<String> = self.safe_string(order.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
             if ((entryId.as_deref() == orderId.as_str())) {
                 let mut price: Option<f64> = self.safe_number(order.clone(), Value::Int(0), &[]).as_f64();
                 let mut currentAmount: Option<String> = self.safe_string(order, Value::Int(1), &[]).as_str().map(str::to_owned);
-                let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount.map(Value::from).unwrap_or(Value::Null), &tradedAmount).as_str().map(str::to_owned);
+                let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount, &tradedAmount).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringLe(&remainingAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                     // fully filled, storing a zero amount deletes the order
                     orderSide.store_array(Value::from(vec![Value::from(price), Value::Int(0), orderId.clone()]));

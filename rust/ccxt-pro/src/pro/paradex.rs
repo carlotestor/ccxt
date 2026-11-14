@@ -270,7 +270,7 @@ impl Paradex {
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_binary_message" => { self.handle_binary_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_book_side_deltas" => { self.handle_book_side_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_book_side_deltas" => { self.handle_book_side_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -922,7 +922,7 @@ if _try_result.is_err() {
         //     }
         //
         // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
-        let mut requestId: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut authSubscription: crate::value::Dict = self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]).into_dict();
         let mut authRequestId: Option<String> = self.safe_string_k(&authSubscription, "id", &[]).as_str().map(str::to_owned);
         let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
@@ -1252,7 +1252,7 @@ if _try_result.is_err() {
         m.insert("price".to_string(), self.parse_number(price.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("side".to_string(), self.safe_string_lower_k(liquidation, "side", &[]));
         m.insert("baseValue".to_string(), self.parse_number(contracts.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&contracts.map(Value::from).unwrap_or(Value::Null), &price.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&contracts, &price), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
     m
@@ -1637,8 +1637,8 @@ if _try_result.is_err() {
                 self.spawn(&[Value::Str("resubscribe_order_book".into()).clone(), client.clone(), deltasChannel.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone())]);
                 return;
             }
-            let mut storedBids: Value = stored.book_field("bids");
-            let mut storedAsks: Value = stored.book_field("asks");
+            let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(stored.book_field("bids"));
+            let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(stored.book_field("asks"));
             self.handle_book_side_deltas(storedBids, Value::from(bids.clone()));
             self.handle_book_side_deltas(storedAsks, Value::from(asks.clone()));
             stored.set_book_meta("nonce", nonce.clone());
@@ -1664,7 +1664,7 @@ if _try_result.is_err() {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_book_side_deltas(&self, mut bookside: Value, mut deltas: Value) {
+    pub fn handle_book_side_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
@@ -3142,7 +3142,7 @@ if _try_result.is_err() {
         }
         let mut result: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(high))), &Value::Str("4294967296".into())), &Value::from(self.number_to_string(Value::from(low)))).as_str().map(str::to_owned);
         if high >= Some(2147483648) {
-            result = crate::precise::Precise::stringSub(&result.map(Value::from).unwrap_or(Value::Null), &Value::Str("18446744073709551616".into())).as_str().map(str::to_owned);
+            result = crate::precise::Precise::stringSub(&result, &Value::Str("18446744073709551616".into())).as_str().map(str::to_owned);
         }
         return result.map(Value::from).unwrap_or(Value::Null);
 
@@ -3165,7 +3165,7 @@ if _try_result.is_err() {
         if (microseconds.is_none()) {
             return Value::Null;
         }
-        return Value::from(self.parse_to_int(crate::precise::Precise::stringDivPrec(&microseconds.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into()), &Value::Int(0))));
+        return Value::from(self.parse_to_int(crate::precise::Precise::stringDivPrec(&microseconds, &Value::Str("1000".into()), &Value::Int(0))));
 
     Value::Null
 }
@@ -3700,9 +3700,9 @@ if _try_result.is_err() {
         let mut side: Option<String> = self.sbe_read_enum(frameHex.clone(), Value::Int(24), &sides);
         let mut account: Option<String> = self.sbe_read_address(frameHex.clone(), Value::Int(89));
         // the frame carries the size unsigned, the JSON channel signs it negative for a short
-        let mut size: Value = self.sbe_read_decimal(frameHex.clone(), Value::Int(25)).map(Value::from).unwrap_or(Value::Null);
-        if (side.as_deref() == Some("SHORT")) && (size.as_str() != Some("0")) {
-            size = crate::precise::Precise::stringNeg(&size);
+        let mut size: Option<String> = self.sbe_read_decimal(frameHex.clone(), Value::Int(25));
+        if (side.as_deref() == Some("SHORT")) && (size.as_deref() != Some("0")) {
+            size = crate::precise::Precise::stringNeg(&size).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3721,7 +3721,7 @@ if _try_result.is_err() {
         m.insert("realized_positional_pnl".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(49)).map(Value::from).unwrap_or(Value::Null));
         m.insert("seq_no".to_string(), self.sbe_read_int64(frameHex.clone(), Value::Int(16)));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("size".to_string(), size);
+        m.insert("size".to_string(), size.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(161), &statuses).map(Value::from).unwrap_or(Value::Null));
         m.insert("unrealized_funding_pnl".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(153)).map(Value::from).unwrap_or(Value::Null));
         m.insert("unrealized_pnl".to_string(), self.sbe_read_decimal(frameHex, Value::Int(41)).map(Value::from).unwrap_or(Value::Null));

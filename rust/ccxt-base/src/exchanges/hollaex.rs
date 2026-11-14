@@ -705,8 +705,8 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_759: bool = true;
             while { if !__for_first_759 { i += 1; } __for_first_759 = false; i < (keys.len() as i64) } {
-            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Option<crate::value::Dict> = self.safe_dict(&pairs, key.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut market: Option<crate::value::Dict> = self.safe_dict(&pairs, Value::from(key.as_deref()), &[]).into_opt_dict();
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "pair_base", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "pair_2", &[]);
             let mut baseCode: Option<String> = self.common_currency_code((if let Some(__s) = baseId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).as_str().map(str::to_owned);
@@ -899,13 +899,13 @@ impl Hollaex {
                         let mut j: i64 = 0;
             let mut __for_first_760: bool = true;
             while { if !__for_first_760 { j += 1; } __for_first_760 = false; j < (networkIds.len() as i64) } {
-            let mut networkId: Option<String> = networkIds.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut networkId: Option<&str> = networkIds.get(j as usize).and_then(Value::as_str);
             let mut networkEntry: Option<crate::value::Dict> = self.safe_dict(&rawNetworks, Value::from(networkId.as_deref()), &[]).into_opt_dict();
             let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(networkId.as_deref()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(networkId.as_deref()));
         m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), self.safe_bool_k(&networkEntry, "active", &[]));
         m.insert("deposit".to_string(), Value::Null);
@@ -999,12 +999,12 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_761: bool = true;
             while { if !__for_first_761 { i += 1; } __for_first_761 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut orderbook: crate::value::Dict = self.safe_dict(&response, Value::from(marketId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp)]));
         }
@@ -1155,9 +1155,9 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_762: bool = true;
             while { if !__for_first_762 { i += 1; } __for_first_762 = false; i < (keys.len() as i64) } {
-            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut ticker: Value = self.safe_value(tickers.clone(), Value::from(key.as_deref()), &[]);
-            let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[key.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[Value::from(key.as_deref())]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let __ws_arg_2 = self.parse_ticker(ticker, Some(&market));
@@ -1432,8 +1432,8 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&fees));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
-        m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]));
-        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]));
+        m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&makerString, &Value::Str("100".into())), &[]));
+        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&takerString, &Value::Str("100".into())), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -2686,11 +2686,11 @@ impl Hollaex {
                                 let mut i: i64 = 0;
                 let mut __for_first_765: bool = true;
                 while { if !__for_first_765 { i += 1; } __for_first_765 = false; i < keysLength } {
-                let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let mut value: crate::value::Dict = self.safe_dict(withdrawalFees.clone(), Value::from(key.as_deref()), &[]).into_dict();
                 let mut currencyId: Option<String> = self.safe_string_k(&value, "symbol", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-                let mut networkCode: Option<String> = self.network_id_to_code(&[key.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]);
+                let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(key.as_deref()), currencyCode.map(Value::from).unwrap_or(Value::Null)]);
                 if (networkCode.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a networkCode argument")));
                 }
@@ -2798,7 +2798,7 @@ impl Hollaex {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -2806,7 +2806,7 @@ impl Hollaex {
             let mut defaultExpires: Option<i64> = self.safe_integer2(self.options.clone(), Value::Str("api-expires".into()), Value::Str("expires".into()), &[Value::from(self.parse_to_int(Value::from((if let Some(__l) = timeoutMs { Some((__l as f64) / 1000.0) } else { None }))))]).as_i64();
             let mut expires: Value = Value::from((if let Some(__m1) = defaultExpires { Some(((self.seconds()) + __m1)) } else { None }));
             let mut expiresString: Option<String> = self.number_to_string(expires);
-            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, requestPath).into()), expiresString.as_deref().unwrap_or("null")).into());
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, requestPath).into()), expiresString.as_deref().unwrap_or("null"));
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("api-key".to_string(), self.apiKey.clone());
@@ -2816,20 +2816,20 @@ impl Hollaex {
             if (method.as_str() == Some("POST")) {
                 if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-type".to_string(), Value::Str("application/json".into())); }
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    requestBody = json_stringify(&query);
-                    auth = Value::Str(format!("{}{}", auth, requestBody).into());
+                    requestBody = json_stringify(&query).as_str().map(str::to_owned);
+                    auth.push_str(requestBody.as_deref().unwrap_or("null"));
                 }
             }
-            let mut signature: String = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("api-signature".to_string(), Value::from(signature)); }
         }
-        let mut bodyResult: Value = requestBody;
+        let mut bodyResult: Option<String> = requestBody;
         let mut headersResult: Option<crate::value::Dict> = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult.map_or(Value::Null, Value::Dict));
     m
 });

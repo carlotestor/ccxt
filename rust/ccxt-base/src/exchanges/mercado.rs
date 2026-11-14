@@ -924,10 +924,10 @@ impl Mercado {
                         let mut i: i64 = 0;
             let mut __for_first_944: bool = true;
             while { if !__for_first_944 { i += 1; } __for_first_944 = false; i < (currencyIds.len() as i64) } {
-            let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
+            let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             if (matches!(currencyId.as_deref(), Some(__k) if balances.contains_key(__k))) {
-                let mut balance: crate::value::Dict = self.safe_dict(&balances, currencyId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+                let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::from(currencyId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1025,7 +1025,7 @@ impl Mercado {
                 }
                 let mut amountString: Option<String> = self.number_to_string(amount.clone());
                 let mut priceString: Option<String> = self.number_to_string(price);
-                let mut cost: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
+                let mut cost: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString));
                 request.insert("cost".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), cost)));
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.private_post_place_market_buy_order(&[__ws_arg_7]).await.into_opt_dict();

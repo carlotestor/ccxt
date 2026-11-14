@@ -3376,14 +3376,14 @@ impl Xt {
             percentage = self.safe_string2(ticker.clone(), Value::Str("cr".into()), Value::Str("r".into()), &[]).as_str().map(str::to_owned);
         }
         if (percentage.is_some()) {
-            percentage = crate::precise::Precise::stringMul(&percentage.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         let mut baseVolume: Option<String> = self.safe_string2(ticker.clone(), Value::Str("a".into()), Value::Str("q".into()), &[]).as_str().map(str::to_owned);
         let mut quoteVolume: Option<String> = self.safe_string_k(ticker.clone(), "v", &[]).as_str().map(str::to_owned);
         let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
         if (marketResolved).contract && (contractSize.is_some()) {
             // 'a' counts contracts, 'v' is in the settle currency
-            let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &contractSize.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &contractSize).as_str().map(str::to_owned);
             if ((marketResolved).inverse == Some(true)) {
                 baseVolume = quoteVolume.clone();
                 quoteVolume = contractVolume.clone();
@@ -3806,7 +3806,7 @@ impl Xt {
             if (quantity.is_none()) {
                 amount = crate::precise::Precise::stringMul(&self.safe_string_k(trade.clone(), "a", &[]), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize")))).as_str().map(str::to_owned);
             }  else {
-                amount = crate::precise::Precise::stringMul(&quantity.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize")))).as_str().map(str::to_owned);
+                amount = crate::precise::Precise::stringMul(&quantity, &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize")))).as_str().map(str::to_owned);
             }
         }
         return self.safe_trade(Value::Map({
@@ -3977,7 +3977,7 @@ impl Xt {
             let mut total: Option<String> = self.safe_string2(&balance, Value::Str("totalAmount".into()), Value::Str("walletBalance".into()), &[]).as_str().map(str::to_owned);
             if (used.is_none()) {
                 let mut crossedAndIsolatedMargin: Option<String> = crate::precise::Precise::stringAdd(&self.safe_string_k(&balance, "crossedMargin", &[]), &self.safe_string_k(&balance, "isolatedMargin", &[])).as_str().map(str::to_owned);
-                used = crate::precise::Precise::stringAdd(&self.safe_string_k(&balance, "openOrderMarginFrozen", &[]), &crossedAndIsolatedMargin.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                used = crate::precise::Precise::stringAdd(&self.safe_string_k(&balance, "openOrderMarginFrozen", &[]), &crossedAndIsolatedMargin).as_str().map(str::to_owned);
             }
             account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));
             account.insert("used".into(), used.map(Value::from).unwrap_or(Value::Null));
@@ -4133,7 +4133,7 @@ impl Xt {
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
                         let mut costCalculated: Option<String> = None;
                         if (price != Value::Null) {
-                            costCalculated = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                            costCalculated = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                         }  else {
                             costCalculated = cost.clone();
                         }
@@ -4263,7 +4263,7 @@ impl Xt {
             request.insert("positionType".into(), (if (marginMode.as_deref() == Some("isolated")) { Value::Str("ISOLATED".into()) } else { Value::Str("CROSSED".into()) }));
             if (trailingPercent.is_some()) {
                 request.insert("callback".into(), Value::Str("PROPORTION".into()));
-                request.insert("callbackVal".into(), self.parse_to_numeric(crate::precise::Precise::stringDiv(&trailingPercent.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()))));
+                request.insert("callbackVal".into(), self.parse_to_numeric(crate::precise::Precise::stringDiv(&trailingPercent, &Value::Str("100".into()))));
             }  else {
                 request.insert("callback".into(), Value::Str("FIXED".into()));
                 request.insert("callbackVal".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
@@ -8098,21 +8098,21 @@ impl Xt {
         let mut signed: bool = api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private");
         let mut endpoint: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut request: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut payload: Value = Value::Null;
+        let mut payload: Option<String> = None;
         if (endpoint.as_deref() == Some("spot")) || (endpoint.as_deref() == Some("user")) {
             if signed {
-                payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), request).into());
+                payload = Some(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), request));
             }  else {
-                payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/public").into()), request).into());
+                payload = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/public").into()), request));
             }
         }  else {
-            payload = Value::from(request);
+            payload = Some(request);
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), endpoint.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload);
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload.as_deref().unwrap_or("null"));
         let __ws_arg_113 = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut query: Value = self.extend(__ws_arg_113, &[]);
         let mut urlencoded: String = self.urlencode(self.keysort(query.clone(), &[]), &[]);
@@ -8126,9 +8126,9 @@ impl Xt {
             self.check_required_credentials(&[]);
             let mut recvWindow: Option<String> = self.safe_string_k(query.clone(), "recvWindow", &[self.safe_string(self.options.clone(), Value::Str("recvWindow".into()), &[Value::Str("5000".into())])]).as_str().map(str::to_owned);
             let mut timestamp: Option<String> = self.number_to_string(self.nonce());
-            if (payload.as_str() == Some("/v4/order")) || (payload.as_str() == Some("/future/trade/v1/order/create")) || (payload.as_str() == Some("/future/trade/v1/entrust/create-plan")) || (payload.as_str() == Some("/future/trade/v1/entrust/create-profit")) || (payload.as_str() == Some("/future/trade/v1/order/create-batch")) {
+            if (payload.as_deref() == Some("/v4/order")) || (payload.as_deref() == Some("/future/trade/v1/order/create")) || (payload.as_deref() == Some("/future/trade/v1/entrust/create-plan")) || (payload.as_deref() == Some("/future/trade/v1/entrust/create-profit")) || (payload.as_deref() == Some("/future/trade/v1/order/create-batch")) {
                 let mut id: String = "CCXT".to_string();
-                if payload.as_str().unwrap_or("").contains("future") {
+                if payload.as_deref().unwrap_or_default().contains("future") {
                     add_element_to_object(&mut query, &Value::Str("clientMedia".into()), Value::from(id.clone()));
                 }  else {
                     add_element_to_object(&mut query, &Value::Str("media".into()), Value::from(id));
@@ -8146,13 +8146,13 @@ impl Xt {
                 let mut spotPrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", self.apiKey.clone()).into()), "&xt-validate-recvwindow=").into()), recvWindow.as_deref().unwrap_or("null")).into()), timestampPart);
                 if isUndefinedBody {
                     if (urlencoded != "") {
-                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload).into()), "?").into()), urlencoded);
-                        payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload).into()), "#").into()), self.rawencode(self.keysort(query, &[]), &[]));
+                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload.as_deref().unwrap_or("null")).into()), "?").into()), urlencoded);
+                        payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload.as_deref().unwrap_or("null")).into()), "#").into()), self.rawencode(self.keysort(query, &[]), &[]));
                     }  else {
-                        payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload);
+                        payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload.as_deref().unwrap_or("null"));
                     }
                 }  else {
-                    payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload).into()), "#").into()), jsonBody.as_deref().unwrap_or("null"));
+                    payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload.as_deref().unwrap_or("null")).into()), "#").into()), jsonBody.as_deref().unwrap_or("null"));
                 }
                 headersValue.insert("xt-validate-algorithms".into(), Value::Str("HmacSHA256".into()));
                 headersValue.insert("xt-validate-recvwindow".into(), recvWindow.map(Value::from).unwrap_or(Value::Null));
@@ -8160,13 +8160,13 @@ impl Xt {
                 let mut futurePrefix: String = format!("{}{}", Value::Str(format!("{}{}", "xt-validate-appkey=", self.apiKey.clone()).into()), timestampPart);
                 if (method.as_str() == Some("GET")) {
                     if (urlencoded != "") {
-                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload).into()), "?").into()), urlencoded);
-                        payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", futurePrefix, "#").into()), payload).into()), "#").into()), urlencoded);
+                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload.as_deref().unwrap_or("null")).into()), "?").into()), urlencoded);
+                        payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", futurePrefix, "#").into()), payload.as_deref().unwrap_or("null")).into()), "#").into()), urlencoded);
                     }  else {
-                        payloadString = format!("{}{}", Value::Str(format!("{}{}", futurePrefix, "#").into()), payload);
+                        payloadString = format!("{}{}", Value::Str(format!("{}{}", futurePrefix, "#").into()), payload.as_deref().unwrap_or("null"));
                     }
                 }  else {
-                    payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", futurePrefix, "#").into()), payload).into()), "#").into()), jsonBody.as_deref().unwrap_or("null"));
+                    payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", futurePrefix, "#").into()), payload.as_deref().unwrap_or("null")).into()), "#").into()), jsonBody.as_deref().unwrap_or("null"));
                 }
             }
             headersValue.insert("xt-validate-appkey".into(), self.apiKey.clone());
@@ -8174,7 +8174,7 @@ impl Xt {
             headersValue.insert("xt-validate-signature".into(), Value::from(self.hmac(self.encode(Value::from(payloadString)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
         }  else {
             if (urlencoded != "") {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload).into()), "?").into()), urlencoded);
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload.as_deref().unwrap_or("null")).into()), "?").into()), urlencoded);
             }
         }
         return Value::Map({

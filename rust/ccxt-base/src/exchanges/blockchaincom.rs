@@ -596,7 +596,7 @@ impl Blockchaincom {
                         let mut i: i64 = 0;
             let mut __for_first_456: bool = true;
             while { if !__for_first_456 { i += 1; } __for_first_456 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut market: Option<crate::value::Dict> = self.safe_dict(&markets, Value::from(marketId.as_deref()), &[]).into_opt_dict();
             let mut baseId: Option<String> = self.safe_string_k(&market, "base_currency", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(&market, "counter_currency", &[]).as_str().map(str::to_owned);
@@ -617,17 +617,17 @@ impl Blockchaincom {
             let mut minPriceIncrementString: Option<String> = self.safe_string_k(&market, "min_price_increment", &[]).as_str().map(str::to_owned);
             let mut minPriceIncrementScaleString: Option<String> = self.safe_string_k(&market, "min_price_increment_scale", &[]).as_str().map(str::to_owned);
             let mut minPriceScalePrecisionString: Option<String> = self.parse_precision(&[minPriceIncrementScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut pricePrecisionString: Option<String> = crate::precise::Precise::stringMul(&minPriceIncrementString.map(Value::from).unwrap_or(Value::Null), &minPriceScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut pricePrecisionString: Option<String> = crate::precise::Precise::stringMul(&minPriceIncrementString, &minPriceScalePrecisionString).as_str().map(str::to_owned);
             // amount precision
             let mut lotSizeString: Option<String> = self.safe_string_k(&market, "lot_size", &[]).as_str().map(str::to_owned);
             let mut lotSizeScaleString: Option<String> = self.safe_string_k(&market, "lot_size_scale", &[]).as_str().map(str::to_owned);
             let mut lotSizeScalePrecisionString: Option<String> = self.parse_precision(&[lotSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut amountPrecisionString: Option<String> = crate::precise::Precise::stringMul(&lotSizeString.map(Value::from).unwrap_or(Value::Null), &lotSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut amountPrecisionString: Option<String> = crate::precise::Precise::stringMul(&lotSizeString, &lotSizeScalePrecisionString).as_str().map(str::to_owned);
             // minimum order size
             let mut minOrderSizeString: Option<String> = self.safe_string_k(&market, "min_order_size", &[]).as_str().map(str::to_owned);
             let mut minOrderSizeScaleString: Option<String> = self.safe_string_k(&market, "min_order_size_scale", &[]).as_str().map(str::to_owned);
             let mut minOrderSizeScalePrecisionString: Option<String> = self.parse_precision(&[minOrderSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut minOrderSizePreciseString: Option<String> = crate::precise::Precise::stringMul(&minOrderSizeString.map(Value::from).unwrap_or(Value::Null), &minOrderSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut minOrderSizePreciseString: Option<String> = crate::precise::Precise::stringMul(&minOrderSizeString, &minOrderSizeScalePrecisionString).as_str().map(str::to_owned);
             let mut minOrderSize: Option<f64> = self.parse_number(minOrderSizePreciseString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             // maximum order size
             let mut maxOrderSize: Option<f64> = None;
@@ -635,13 +635,13 @@ impl Blockchaincom {
             if (maxOrderSizeRaw.as_deref() != Some("0")) {
                 let mut maxOrderSizeScaleString: Option<String> = self.safe_string_k(&market, "max_order_size_scale", &[]).as_str().map(str::to_owned);
                 let mut maxOrderSizeScalePrecisionString: Option<String> = self.parse_precision(&[maxOrderSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-                let mut maxOrderSizeValueString: Option<String> = crate::precise::Precise::stringMul(&maxOrderSizeRaw.map(Value::from).unwrap_or(Value::Null), &maxOrderSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut maxOrderSizeValueString: Option<String> = crate::precise::Precise::stringMul(&maxOrderSizeRaw, &maxOrderSizeScalePrecisionString).as_str().map(str::to_owned);
                 maxOrderSize = self.parse_number(maxOrderSizeValueString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), market.map_or(Value::Null, Value::Dict));
-                    m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(marketId.as_deref()));
                     m.insert("numericId".to_string(), Value::from(numericId));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));

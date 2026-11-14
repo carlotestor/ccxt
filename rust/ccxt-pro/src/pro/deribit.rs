@@ -1159,26 +1159,26 @@ impl Deribit {
     pub fn clean_order_book(&self, mut data: Value) -> Value {
         let mut bids: crate::value::List = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]).into_list();
         let mut asks: crate::value::List = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]).into_list();
-        let mut cleanedBids: Value = Value::from(vec![]);
+        let mut cleanedBids: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_292: bool = true;
             while { if !__for_first_292 { i += 1; } __for_first_292 = false; i < (bids.len() as i64) } {
             let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[Value::from(vec![])]).into_list();
-            if let Value::Arr(__a) = &mut cleanedBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![bid.get(1).cloned().unwrap_or(Value::Null), bid.get(2).cloned().unwrap_or(Value::Null)])); }
+            std::sync::Arc::make_mut(&mut cleanedBids).push(Value::from(vec![bid.get(1).cloned().unwrap_or(Value::Null), bid.get(2).cloned().unwrap_or(Value::Null)]));
         }
         }
-        let mut cleanedAsks: Value = Value::from(vec![]);
+        let mut cleanedAsks: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_293: bool = true;
             while { if !__for_first_293 { i += 1; } __for_first_293 = false; i < (asks.len() as i64) } {
             let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[Value::from(vec![])]).into_list();
-            if let Value::Arr(__a) = &mut cleanedAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![ask.get(1).cloned().unwrap_or(Value::Null), ask.get(2).cloned().unwrap_or(Value::Null)])); }
+            std::sync::Arc::make_mut(&mut cleanedAsks).push(Value::from(vec![ask.get(1).cloned().unwrap_or(Value::Null), ask.get(2).cloned().unwrap_or(Value::Null)]));
         }
         }
-        if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("bids".into(), cleanedBids); }
-        if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("asks".into(), cleanedAsks); }
+        if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("bids".into(), Value::Arr(cleanedBids)); }
+        if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("asks".into(), Value::Arr(cleanedAsks)); }
         return data;
 
     Value::Null

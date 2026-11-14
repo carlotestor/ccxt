@@ -977,9 +977,9 @@ impl Coinone {
                         let mut i: i64 = 0;
             let mut __for_first_571: bool = true;
             while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (currencyIds.len() as i64) } {
-            let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::from(currencyId.as_deref()), &[]).into_dict();
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "avail", &[]));
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
@@ -1349,9 +1349,9 @@ impl Coinone {
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCostString.is_some()) {
-            feeCostString = crate::precise::Precise::stringAbs(&feeCostString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeCostString = crate::precise::Precise::stringAbs(&feeCostString).as_str().map(str::to_owned);
             let mut feeRateString: Option<String> = self.safe_string_k(trade.clone(), "feeRate", &[]).as_str().map(str::to_owned);
-            feeRateString = crate::precise::Precise::stringAbs(&feeRateString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeRateString = crate::precise::Precise::stringAbs(&feeRateString).as_str().map(str::to_owned);
             let mut feeCurrencyCode: Value = Value::Null;
             if (side.as_deref() == Some("sell")) {
                 feeCurrencyCode = crate::value::KeyRead::key_read(&&marketResolved, "quote");
@@ -1635,17 +1635,17 @@ impl Coinone {
         }
         let mut remainingString: Option<String> = self.safe_string2(order.clone(), Value::Str("remainQty".into()), Value::Str("remain_qty".into()), &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("originalQty".into()), Value::Str("qty".into()), Value::Str("original_qty".into())]), &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         // https://github.com/ccxt/ccxt/pull/7067
-        if (status.as_str() == Some("live")) {
+        if (status.as_deref() == Some("live")) {
             if (remainingString.is_some()) && (amountString.is_some()) {
                 let mut isLessThan: Value = crate::precise::Precise::stringLt(&remainingString.clone().map(Value::from).unwrap_or(Value::Null), &amountString.clone().map(Value::from).unwrap_or(Value::Null));
                 if isLessThan.as_bool() == Some(true) {
-                    status = Value::Str("canceled".into());
+                    status = Some("canceled".to_string());
                 }
             }
         }
-        status = self.parse_order_status(status.as_str()).map(Value::from).unwrap_or(Value::Null);
+        status = self.parse_order_status(status.as_deref());
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCostString: Option<String> = self.safe_string_k(order.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (feeCostString.is_some()) {
@@ -1681,7 +1681,7 @@ impl Coinone {
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), self.safe_string2(order, Value::Str("executedQty".into()), Value::Str("executed_qty".into()), &[]));
         m.insert("remaining".to_string(), remainingString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m

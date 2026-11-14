@@ -1752,16 +1752,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_1639: bool = true;
             while { if !__for_first_1639 { i += 1; } __for_first_1639 = false; i < (urlParts.len() as i64) } {
             if i > 2 {
-                let mut current: Value = urlParts.get(i as usize).cloned().unwrap_or(Value::Null);
-                if current.as_str().unwrap_or("").contains("?") {
+                let mut current: Option<String> = urlParts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                if current.as_deref().unwrap_or_default().contains("?") {
                     // handle urls like this: /v1/account/accounts?AccessK
-                    let mut currentParts: Vec<Value> = Value::Array(if let Some(__s) = current.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+                    let mut currentParts: Vec<Value> = Value::Array(if let Some(__s) = current.as_deref() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                     res.push_str("/");
                     res.push_str(&(currentParts.get(0).cloned().unwrap_or(Value::Null)).to_string());
                     break;
                 }
                 res.push_str("/");
-                res.push_str(&current.to_string());
+                res.push_str(current.as_deref().unwrap_or("null"));
             }
         }
         }

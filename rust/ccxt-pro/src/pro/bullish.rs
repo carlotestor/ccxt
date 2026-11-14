@@ -883,7 +883,7 @@ impl Bullish {
                                 let mut i: i64 = 0;
                 let mut __for_first_177: bool = true;
                 while { if !__for_first_177 { i += 1; } __for_first_177 = false; i < (keys.len() as i64) } {
-                let mut hashSymbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut hashSymbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), hashSymbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.orders), symbolMessageHash.as_str());
             }
@@ -1024,7 +1024,7 @@ impl Bullish {
                                 let mut i: i64 = 0;
                 let mut __for_first_179: bool = true;
                 while { if !__for_first_179 { i += 1; } __for_first_179 = false; i < (keys.len() as i64) } {
-                let mut hashSymbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut hashSymbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), hashSymbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.myTrades), symbolMessageHash.as_str());
             }

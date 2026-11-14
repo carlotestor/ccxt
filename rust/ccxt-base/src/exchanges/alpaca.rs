@@ -1759,9 +1759,9 @@ impl Alpaca {
                         let mut i: i64 = 0;
             let mut __for_first_220: bool = true;
             while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
-            let mut entry: Option<crate::value::Dict> = self.safe_dict(&snapshots, marketId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut entry: Option<crate::value::Dict> = self.safe_dict(&snapshots, Value::from(marketId.as_deref()), &[]).into_opt_dict();
             let mut dailyBar: crate::value::Dict = self.safe_dict_k(&entry, "dailyBar", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2961,7 +2961,7 @@ impl Alpaca {
             timestamp = self.parse8601(Value::Str(format!("{}{}", date, "T00:00:00Z").into()));
             datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
             type_var = (if isIncoming { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
-            amount = self.parse_number(crate::precise::Precise::stringAbs(&netAmount.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            amount = self.parse_number(crate::precise::Precise::stringAbs(&netAmount), &[]).as_f64();
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
             // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
@@ -2991,7 +2991,7 @@ impl Alpaca {
             status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
             let mut fees: Option<String> = self.safe_string_k(transaction.clone(), "fees", &[]).as_str().map(str::to_owned);
             let mut networkFee: Option<String> = self.safe_string_k(transaction.clone(), "network_fee", &[]).as_str().map(str::to_owned);
-            let mut totalFee: Option<String> = crate::precise::Precise::stringAdd(&fees.map(Value::from).unwrap_or(Value::Null), &networkFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut totalFee: Option<String> = crate::precise::Precise::stringAdd(&fees, &networkFee).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(totalFee.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -3181,7 +3181,7 @@ impl Alpaca {
             cashAccount.insert("free".into(), self.safe_string_k(&account, "cash", &[])); // cash already excludes the amounts held for open orders, verified live 2026-09-16
             let mut equity: Option<String> = self.safe_string_k(&account, "equity", &[]).as_str().map(str::to_owned);
             let mut positionsValue: Option<String> = self.safe_string_k(&account, "position_market_value", &[]).as_str().map(str::to_owned);
-            cashAccount.insert("total".into(), crate::precise::Precise::stringSub(&equity.map(Value::from).unwrap_or(Value::Null), &positionsValue.map(Value::from).unwrap_or(Value::Null))); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            cashAccount.insert("total".into(), crate::precise::Precise::stringSub(&equity, &positionsValue)); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
             result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(cashAccount));
         }
         {

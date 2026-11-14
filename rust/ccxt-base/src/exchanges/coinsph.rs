@@ -1485,17 +1485,17 @@ impl Coinsph {
             m
         });
         if (symbols != Value::Null) {
-            let mut ids: Vec<Value> = vec![];
+            let mut ids: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_577: bool = true;
                 while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (symbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut id: Option<String> = (market).id.as_deref().map(str::to_owned);
-                ids.push(id.map(Value::from).unwrap_or(Value::Null));
+                std::sync::Arc::make_mut(&mut ids).push(id.map(Value::from).unwrap_or(Value::Null));
             }
             }
-            request.insert("symbols".into(), Value::Array(ids));
+            request.insert("symbols".into(), Value::Arr(ids));
         }
         let mut defaultMethod: String = "publicGetOpenapiQuoteV1Ticker24hr".to_string();
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchTickers", &[Value::Map({
@@ -1631,7 +1631,7 @@ impl Coinsph {
         let mut vwap: Option<String> = self.safe_string_k(ticker.clone(), "weightedAvgPrice", &[]).as_str().map(str::to_owned);
         let mut changeValue: Option<String> = self.safe_string_k(ticker.clone(), "priceChange", &[]).as_str().map(str::to_owned);
         let mut changePcnt: Option<String> = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]).as_str().map(str::to_owned);
-        changePcnt = crate::precise::Precise::stringMul(&changePcnt.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        changePcnt = crate::precise::Precise::stringMul(&changePcnt, &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -2132,15 +2132,15 @@ impl Coinsph {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut testOrder: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("test".into()), &[]).into_dict();
-        let mut orderType: Value = self.safe_string_k(&paramsOmitted, "type", &[type_var.clone()]);
-        orderType = self.encode_order_type(orderType.as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut orderType: Option<String> = self.safe_string_k(&paramsOmitted, "type", &[type_var.clone()]).as_str().map(str::to_owned);
+        orderType = self.encode_order_type(orderType.as_deref());
         let mut paramsType: Value = self.omit(&paramsOmitted, Value::Str("type".into()), &[]);
         let mut paramsQuote: Value = Value::Null;
         let mut orderSide: Option<String> = self.encode_order_side(side.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("type".to_string(), orderType.clone());
+                m.insert("type".to_string(), Value::from(orderType.as_deref()));
                 m.insert("side".to_string(), Value::from(orderSide.as_deref()));
             m
         });
@@ -2154,17 +2154,17 @@ impl Coinsph {
         })]).into_dict();
         let mut newOrderRespType: String = "FULL".to_string();
         // if limit order
-        if (orderType.as_str() == Some("LIMIT")) || (orderType.as_str() == Some("STOP_LOSS_LIMIT")) || (orderType.as_str() == Some("TAKE_PROFIT_LIMIT")) || (orderType.as_str() == Some("LIMIT_MAKER")) {
+        if (orderType.as_deref() == Some("LIMIT")) || (orderType.as_deref() == Some("STOP_LOSS_LIMIT")) || (orderType.as_deref() == Some("TAKE_PROFIT_LIMIT")) || (orderType.as_deref() == Some("LIMIT_MAKER")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }
             newOrderRespType = self.safe_string_k(&newOrderRespTypes, "limit", &[Value::Str("FULL".into())]).as_str().unwrap_or("FULL").to_string();
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
-            if (orderType.as_str() != Some("LIMIT_MAKER")) {
+            if (orderType.as_deref() != Some("LIMIT_MAKER")) {
                 request.insert("timeInForce".into(), self.safe_string_k(&options, "timeInForce", &[Value::Str("GTC".into())]));
             }
-        }  else if (orderType.as_str() == Some("MARKET")) || (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("TAKE_PROFIT")) {
+        }  else if (orderType.as_deref() == Some("MARKET")) || (orderType.as_deref() == Some("STOP_LOSS")) || (orderType.as_deref() == Some("TAKE_PROFIT")) {
             newOrderRespType = self.safe_string_k(&newOrderRespTypes, "market", &[Value::Str("FULL".into())]).as_str().unwrap_or("FULL").to_string();
             if (orderSide.as_deref() == Some("SELL")) {
                 request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
@@ -2183,7 +2183,7 @@ impl Coinsph {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
-                        let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                         quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
@@ -2192,7 +2192,7 @@ impl Coinsph {
                 request.insert("quoteOrderQty".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        if (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("STOP_LOSS_LIMIT")) || (orderType.as_str() == Some("TAKE_PROFIT")) || (orderType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
+        if (orderType.as_deref() == Some("STOP_LOSS")) || (orderType.as_deref() == Some("STOP_LOSS_LIMIT")) || (orderType.as_deref() == Some("TAKE_PROFIT")) || (orderType.as_deref() == Some("TAKE_PROFIT_LIMIT")) {
             let mut triggerPrice: Option<String> = self.safe_string2(paramsType.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")));
@@ -3124,22 +3124,22 @@ impl Coinsph {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut encodedArrayParams: Value = Value::Str("".into());
+        let mut encodedArrayParams: String = "".to_string();
         let mut remainingQuery: Value = query.clone();
         let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_580: bool = true;
             while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (keys.len() as i64) } {
-            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if (matches!(&(if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Arr(_))) {
                 if (i != 0) {
-                    encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, "&").into());
+                    encodedArrayParams.push_str("&");
                 }
                 let mut innerArray: Value = (if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-                remainingQuery = self.omit(remainingQuery, key.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                let mut encodedArrayParam: Value = self.parse_array_param(innerArray, key.as_deref().unwrap_or_default());
-                encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, encodedArrayParam).into());
+                remainingQuery = self.omit(remainingQuery, Value::from(key.as_deref()), &[]);
+                let mut encodedArrayParam: Option<String> = self.parse_array_param(innerArray, key.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
+                encodedArrayParams.push_str(encodedArrayParam.as_deref().unwrap_or("null"));
             }
         }
         }
@@ -3147,7 +3147,7 @@ impl Coinsph {
         if (((encodedQuery.chars().count() as i64)) != 0) {
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", encodedQuery, "&").into()), encodedArrayParams).into());
         }  else {
-            return encodedArrayParams;
+            return Value::from(encodedArrayParams);
         }
 
     Value::Null

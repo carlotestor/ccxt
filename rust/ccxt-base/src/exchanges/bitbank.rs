@@ -1681,7 +1681,7 @@ impl Bitbank {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into()));
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Value = Value::Null;
         if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("markets")) {
             url.push_str(&(self.implode_params(path.clone(), params.clone())).to_string());
@@ -1705,9 +1705,9 @@ impl Bitbank {
             }
             url.push_str(&format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), "/").into()), self.implode_params(path.clone(), params)));
             if (method.as_str() == Some("POST")) {
-                let mut jsonBody: Value = json_stringify(&query);
+                let mut jsonBody: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
                 requestBody = jsonBody.clone();
-                auth = Value::Str(format!("{}{}", auth, jsonBody).into());
+                auth = Value::Str(format!("{}{}", auth, jsonBody.as_deref().unwrap_or("null")).into());
             }  else {
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), path).into())).into());
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -1738,13 +1738,13 @@ impl Bitbank {
                 })]);
             }
         }
-        let mut bodyResolved: Value = requestBody;
+        let mut bodyResolved: Option<String> = requestBody;
         let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

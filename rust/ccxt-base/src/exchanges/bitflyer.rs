@@ -1705,7 +1705,7 @@ impl Bitflyer {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAdd(&feeCost.map(Value::from).unwrap_or(Value::Null), &additionalFee.map(Value::from).unwrap_or(Value::Null)), &[]));
+                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAdd(&feeCost, &additionalFee), &[]));
                 m
             }));
         }  else {
@@ -1823,7 +1823,7 @@ impl Bitflyer {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut bodySigned: Value = Value::Null;
+        let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/");
         if (apiName.as_deref() == Some("private")) {
@@ -1847,9 +1847,9 @@ impl Bitflyer {
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), request);
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 if (method.as_str() != Some("GET")) {
-                    let mut body: Value = json_stringify(&params);
+                    let mut body: Option<String> = json_stringify(&params).as_str().map(str::to_owned);
                     bodySigned = body.clone();
-                    auth.push_str(&body.to_string());
+                    auth.push_str(body.as_deref().unwrap_or("null"));
                 }
             }
             headersSigned = Some(crate::value::Dict::new({
@@ -1862,12 +1862,12 @@ impl Bitflyer {
             }));
         }
         let mut headersResolved: Option<crate::value::Dict> = headersSigned;
-        let mut bodyResolved: Value = bodySigned;
+        let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved.map_or(Value::Null, Value::Dict));
     m
 });

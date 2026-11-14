@@ -1247,9 +1247,9 @@ impl P2b {
                         let mut i: i64 = 0;
             let mut __for_first_1041: bool = true;
             while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (keys.len() as i64) } {
-            let mut currencyId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut currencyId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::from(currencyId.as_deref()), &[]).into_dict();
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut used: Option<String> = self.safe_string_k(&balance, "freeze", &[]).as_str().map(str::to_owned);
             let mut available: Option<String> = self.safe_string_k(&balance, "available", &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = ({
@@ -1771,7 +1771,7 @@ impl P2b {
                         let mut i: i64 = 0;
             let mut __for_first_1042: bool = true;
             while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (keys.len() as i64) } {
-            let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]).into_list();
             orders = self.array_concat(Value::Arr(orders), &parsedOrders).into_list();

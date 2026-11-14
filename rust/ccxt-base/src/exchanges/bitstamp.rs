@@ -2374,7 +2374,7 @@ impl Bitstamp {
         let mut timestamp: Option<i64> = self.safe_timestamp_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut vwap: Option<String> = self.safe_string_k(ticker.clone(), "vwap", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &vwap).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2578,7 +2578,7 @@ impl Bitstamp {
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut type_var: Option<String> = None;
-        let mut costString: Value = self.safe_string_k(trade.clone(), "cost", &[]);
+        let mut costString: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
         let mut rawMarketId: Option<String> = None;
         // resolved in the key scan below, falling back to the passed market
         let mut marketResolved: Value = crate::Value::from(market);
@@ -2611,7 +2611,7 @@ impl Bitstamp {
         }
         priceString = self.safe_string(trade.clone(), priceId.map(Value::from).unwrap_or(Value::Null), &[priceString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         amountString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "baseId", &[]), &[amountString.clone()]);
-        costString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "quoteId", &[]), &[costString.clone()]);
+        costString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "quoteId", &[]), &[costString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         // this endpoint is not aligned with "markets" endpoint
         let mut baseIdLower: String = self.safe_string_lower_k(marketResolved.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteIdLower: String = self.safe_string_lower_k(marketResolved.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2622,8 +2622,8 @@ impl Bitstamp {
         if (amountString == Value::Null) {
             amountString = self.safe_string(trade.clone(), Value::from(baseIdLower), &[]);
         }
-        if (costString == Value::Null) {
-            costString = self.safe_string(trade.clone(), Value::from(quoteIdLower), &[]);
+        if (costString.is_none()) {
+            costString = self.safe_string(trade.clone(), Value::from(quoteIdLower), &[]).as_str().map(str::to_owned);
         }
         symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut datetimeString: Option<String> = self.safe_string2(trade.clone(), Value::Str("date".into()), Value::Str("datetime".into()), &[]).as_str().map(str::to_owned);
@@ -2659,8 +2659,8 @@ impl Bitstamp {
                 side = None.clone();
             }
         }
-        if (costString != Value::Null) {
-            costString = crate::precise::Precise::stringAbs(&costString);
+        if (costString.is_some()) {
+            costString = crate::precise::Precise::stringAbs(&costString).as_str().map(str::to_owned);
         }
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCostString.is_some()) {
@@ -2684,7 +2684,7 @@ impl Bitstamp {
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString);
-        m.insert("cost".to_string(), costString);
+        m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
@@ -3072,7 +3072,7 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_434: bool = true;
             while { if !__for_first_434 { i += 1; } __for_first_434 = false; i < (ids.len() as i64) } {
-            let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let mut fees: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3089,7 +3089,7 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("info".to_string(), self.safe_dict(&currencies, id.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("info".to_string(), self.safe_dict(&currencies, Value::from(id.as_deref()), &[]));
     m
 }));
             }
@@ -4661,8 +4661,8 @@ impl Bitstamp {
                                         let mut i: i64 = 0;
                     let mut __for_first_437: bool = true;
                     while { if !__for_first_437 { i += 1; } __for_first_437 = false; i < (keys.len() as i64) } {
-                    let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                    let mut value: Value = self.safe_value(error.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]);
+                    let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+                    let mut value: Value = self.safe_value(error.clone(), Value::from(key.as_deref()), &[]);
                     if (matches!(&value, Value::Arr(_))) {
                         errors = self.array_concat(Value::Arr(errors), value.clone()).into_list();
                     }  else {

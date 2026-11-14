@@ -1063,12 +1063,12 @@ impl Bithumb {
                                         let mut j: i64 = 0;
                     let mut __for_first_391: bool = true;
                     while { if !__for_first_391 { j += 1; } __for_first_391 = false; j < (currencyIds.len() as i64) } {
-                    let mut currencyId: Value = currencyIds.get(j as usize).cloned().unwrap_or(Value::Null);
-                    if (currencyId.as_str() == Some("date")) {
+                    let mut currencyId: Option<&str> = currencyIds.get(j as usize).and_then(Value::as_str);
+                    if (currencyId.as_deref() == Some("date")) {
                         continue;
                     }
-                    let mut market: Value = data.get(currencyId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                    let mut base: Option<String> = self.safe_currency_code(currencyId.clone(), None);
+                    let mut market: Value = data.get(currencyId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                    let mut base: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                     if (base.is_none()) {
                         continue;
                     }
@@ -1081,12 +1081,12 @@ impl Bithumb {
                     }
                     let mut entry: Value = self.deep_extend(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("id".to_string(), currencyId.clone());
+                            m.insert("id".to_string(), Value::from(currencyId.as_deref()));
                             m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote).into()));
                             m.insert("base".to_string(), Value::from(base.as_deref()));
                             m.insert("quote".to_string(), quote.clone());
                             m.insert("settle".to_string(), Value::Null);
-                            m.insert("baseId".to_string(), currencyId);
+                            m.insert("baseId".to_string(), Value::from(currencyId.as_deref()));
                             m.insert("quoteId".to_string(), quoteId.clone());
                             m.insert("settleId".to_string(), Value::Null);
                             m.insert("type".to_string(), Value::Str("spot".into()));
@@ -1668,10 +1668,10 @@ impl Bithumb {
                                                         let mut j: i64 = 0;
                             let mut __for_first_398: bool = true;
                             while { if !__for_first_398 { j += 1; } __for_first_398 = false; j < (ids.len() as i64) } {
-                            let mut id: Option<String> = ids.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                            let mut id: Option<&str> = ids.get(j as usize).and_then(Value::as_str);
                             let mut ticker: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::from(id.as_deref()), &[]).into_opt_dict();
                             if (ticker.is_some()) {
-                                { let __be_tmp = self.safe_string_k(&ticker, "market", &[id.map(Value::from).unwrap_or(Value::Null)]); if let Some(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("market".into(), __be_tmp); }; }
+                                { let __be_tmp = self.safe_string_k(&ticker, "market", &[Value::from(id.as_deref())]); if let Some(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("market".into(), __be_tmp); }; }
                                 if let Value::Arr(__a) = &mut tickers { std::sync::Arc::make_mut(__a).push(ticker.map_or(Value::Null, Value::Dict)); };
                             }
                         }
@@ -1754,9 +1754,9 @@ impl Bithumb {
                                         let mut j: i64 = 0;
                     let mut __for_first_403: bool = true;
                     while { if !__for_first_403 { j += 1; } __for_first_403 = false; j < (currencyIds.len() as i64) } {
-                    let mut currencyId: Option<String> = currencyIds.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut currencyId: Option<&str> = currencyIds.get(j as usize).and_then(Value::as_str);
                     let mut ticker: Value = data.get(currencyId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                    let mut base: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+                    let mut base: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                     if (base.is_none()) {
                         continue;
                     }
@@ -1808,10 +1808,10 @@ impl Bithumb {
             m
         });
         let mut response: Value = Value::Null;
-        let mut data: Value = Value::Map({
+        let mut data: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (generation == Some(2)) {
             request.insert("markets".into(), self.get_gen2_market_id((market).raw.clone()));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
@@ -1851,7 +1851,7 @@ impl Bithumb {
             data = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }  else {
             request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
             request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
@@ -1879,9 +1879,9 @@ impl Bithumb {
             data = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }
-        return self.parse_ticker(data, Some(&market));
+        return self.parse_ticker(&data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2458,7 +2458,7 @@ impl Bithumb {
                     if (price == Value::Null) && (costParam.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
                     }
-                    cost = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(price))).as_str().map(str::to_owned);
+                    cost = crate::precise::Precise::stringMul(&amountString, &Value::from(self.number_to_string(price))).as_str().map(str::to_owned);
                 }
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
             }  else {
@@ -2652,7 +2652,7 @@ impl Bithumb {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut durationString: Option<String> = self.number_to_string(duration);
-        let mut durationSeconds: Option<String> = crate::precise::Precise::stringDiv(&durationString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
+        let mut durationSeconds: Option<String> = crate::precise::Precise::stringDiv(&durationString, &Value::Str("1000".into())).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), self.get_gen2_market_id(market.clone()));
@@ -4245,7 +4245,7 @@ impl Bithumb {
                         let mut i: i64 = 0;
             let mut __for_first_407: bool = true;
             while { if !__for_first_407 { i += 1; } __for_first_407 = false; i < (keys.len() as i64) } {
-            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut value: Value = self.safe_value(query.clone(), Value::from(key.as_deref()), &[]);
             if (matches!(&value, Value::Arr(_))) {
                 let mut encodedKey: String = format!("{}{}", self.encode_uri_component(Value::from(key.as_deref())), Value::Str("[]".into()));
@@ -4269,7 +4269,7 @@ impl Bithumb {
                     result.push_str("&");
                 }
                 let mut encodedKey: Option<String> = self.encode_uri_component(Value::from(key.as_deref())).as_str().map(str::to_owned);
-                let mut valueString: Option<String> = self.safe_string(query.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                let mut valueString: Option<String> = self.safe_string(query.clone(), Value::from(key.as_deref()), &[]).as_str().map(str::to_owned);
                 let mut encodedValue: Option<String> = self.encode_uri_component(valueString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 result.push_str(&format!("{}{}", Value::Str(format!("{}{}", encodedKey.as_deref().unwrap_or("null"), "=").into()), encodedValue.as_deref().unwrap_or("null")));
             }

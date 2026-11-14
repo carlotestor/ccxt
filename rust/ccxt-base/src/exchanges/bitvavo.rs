@@ -2082,7 +2082,7 @@ impl Bitvavo {
             if (price != Value::Null) {
                 let mut priceString: Option<String> = self.number_to_string(price.clone());
                 let mut amountString: Option<String> = self.number_to_string(amount.clone());
-                let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                 cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }  else {
                 cost = self.safe_number_k(paramsOmitted, "cost", &[]).as_f64();
@@ -2686,7 +2686,7 @@ impl Bitvavo {
         if (cost.is_none()) {
             let mut amountQuote: Option<String> = self.safe_string_k(order.clone(), "amountQuote", &[]).as_str().map(str::to_owned);
             let mut amountQuoteRemaining: Option<String> = self.safe_string_k(order.clone(), "amountQuoteRemaining", &[]).as_str().map(str::to_owned);
-            cost = crate::precise::Precise::stringSub(&amountQuote.map(Value::from).unwrap_or(Value::Null), &amountQuoteRemaining.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            cost = crate::precise::Precise::stringSub(&amountQuote, &amountQuoteRemaining).as_str().map(str::to_owned);
         }
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCost: Option<f64> = self.safe_number_k(order.clone(), "feePaid", &[]).as_f64();

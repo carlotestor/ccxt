@@ -1533,7 +1533,7 @@ impl Hitbtc {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(crate::precise::Precise::stringMul(&lotString.map(Value::from).unwrap_or(Value::Null), &stepString.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("min".to_string(), self.parse_number(crate::precise::Precise::stringMul(&lotString, &stepString), &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1987,10 +1987,10 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_746: bool = true;
             while { if !__for_first_746 { i += 1; } __for_first_746 = false; i < (keys.len() as i64) } {
-            let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
             let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), Some(&market), &[]).as_str().map(str::to_owned);
-            let mut entry: crate::value::Dict = self.safe_dict(&response, marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&response, Value::from(marketId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2598,12 +2598,12 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_748: bool = true;
             while { if !__for_first_748 { i += 1; } __for_first_748 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut orderbook: crate::value::Dict = self.safe_dict(&response, Value::from(marketId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), None, &[]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]));
         }
@@ -4188,9 +4188,9 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_753: bool = true;
             while { if !__for_first_753 { i += 1; } __for_first_753 = false; i < (contracts.len() as i64) } {
-            let mut marketId: Option<String> = contracts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = contracts.get(i as usize).and_then(Value::as_str);
             let mut marketInner: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
-            let mut fundingRateData: crate::value::List = self.safe_list(&response, marketId.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
+            let mut fundingRateData: crate::value::List = self.safe_list(&response, Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_752: bool = true;
@@ -4572,9 +4572,9 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_757: bool = true;
             while { if !__for_first_757 { i += 1; } __for_first_757 = false; i < (markets.len() as i64) } {
-            let mut marketId: Option<String> = markets.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = markets.get(i as usize).and_then(Value::as_str);
             let mut marketInner: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
-            let mut openInterest: crate::value::Dict = self.safe_dict(&response, marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut openInterest: crate::value::Dict = self.safe_dict(&response, Value::from(marketId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

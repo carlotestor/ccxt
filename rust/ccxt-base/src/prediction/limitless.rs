@@ -1682,18 +1682,18 @@ impl Limitless {
                 midStr = yesMid.clone();
             }  else {
                 if (yesAskPrice.is_some()) {
-                    bidStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesAskPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    bidStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesAskPrice).as_str().map(str::to_owned);
                 }
                 bidSizeStr = yesAskSize;
                 if (yesBidPrice.is_some()) {
-                    askStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesBidPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    askStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesBidPrice).as_str().map(str::to_owned);
                 }
                 askSizeStr = yesBidSize;
                 if (yesLast.is_some()) {
-                    lastStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesLast.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    lastStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesLast).as_str().map(str::to_owned);
                 }
                 if (yesMid.is_some()) {
-                    midStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesMid.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    midStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesMid).as_str().map(str::to_owned);
                 }
             }
         }
@@ -1710,7 +1710,7 @@ impl Limitless {
         let mut rawVolume: Option<String> = self.safe_string_k(raw, "volume", &[]).as_str().map(str::to_owned);
         let mut volumeStr: Option<String> = None;
         if (rawVolume.is_some()) {
-            volumeStr = crate::precise::Precise::stringDiv(&rawVolume.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())).as_str().map(str::to_owned);
+            volumeStr = crate::precise::Precise::stringDiv(&rawVolume, &Value::Str("1000000".into())).as_str().map(str::to_owned);
         }
         if (bidSizeStr.is_some()) {
             bidSizeStr = crate::precise::Precise::stringDiv(&bidSizeStr.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())).as_str().map(str::to_owned);
@@ -1995,7 +1995,7 @@ impl Limitless {
         //
         let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
-        let mut scaleStr: Value = self.parse_precision(&[Value::from(self.number_to_string((match &(decimals) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })))]);
+        let mut scaleStr: Option<String> = self.parse_precision(&[Value::from(self.number_to_string((match &(decimals) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })))]).as_str().map(str::to_owned);
         let mut outcomeLabel: Option<String> = self.safe_string_lower(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeLabel".into()), &[Value::Str("yes".into())]).as_str().map(str::to_owned);
         let mut isYes: bool = outcomeLabel.as_deref() != Some("no");
         let mut rawBids: Value = self.safe_list_k(&response, "bids", &[Value::from(vec![])]);
@@ -3026,7 +3026,7 @@ if _try_result.is_err() {
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
                 }  else {
-                    let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)));
+                    let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString));
                     let mut costRequest: Value = (if (cost.is_some()) { Value::from(cost) } else { quoteAmount });
                     makerAmount = self.cost_to_prediction_precision(outcome.clone(), costRequest).as_str().map(str::to_owned);
                 }
@@ -3036,7 +3036,7 @@ if _try_result.is_err() {
         }  else if isMarket {
             makerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone()).as_str().map(str::to_owned);
         }  else {
-            let mut calculatedCost: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut calculatedCost: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
             if (side.as_str() == Some("buy")) {
                 makerAmount = self.cost_to_prediction_precision(outcome.clone(), calculatedCost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 takerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone()).as_str().map(str::to_owned);
@@ -3259,7 +3259,7 @@ if _try_result.is_err() {
         if (amount.is_some()) {
             let mut decimals: i64 = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]).as_i64().unwrap_or(6);
             // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
-            let mut scaled: Option<String> = crate::precise::Precise::stringDiv(&amount.map(Value::from).unwrap_or(Value::Null), &self.parse_precision(&[Value::from(self.number_to_string(Value::from(decimals)))])).as_str().map(str::to_owned);
+            let mut scaled: Option<String> = crate::precise::Precise::stringDiv(&amount, &self.parse_precision(&[Value::from(self.number_to_string(Value::from(decimals)))])).as_str().map(str::to_owned);
             let mut amountInt: Option<i64> = self.parse_to_int(scaled.map(Value::from).unwrap_or(Value::Null));
             let mut amountBase16: String = self.int_to_base16(Value::from(amountInt), &[]);
             amountHex = format!("{:0>64}", amountBase16);
@@ -3622,11 +3622,11 @@ if _try_result.is_err() {
             }  else if (sideRaw.as_deref() == Some("1")) {
                 feedSide = Some("sell".to_string());
             }
-            let mut amountStr: Option<String> = crate::precise::Precise::stringDiv(&matchedSize.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())).as_str().map(str::to_owned);
+            let mut amountStr: Option<String> = crate::precise::Precise::stringDiv(&matchedSize, &Value::Str("1000000".into())).as_str().map(str::to_owned);
             let mut priceStr: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
             let mut costStr: Option<String> = None;
             if (priceStr.is_some()) {
-                costStr = crate::precise::Precise::stringMul(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &amountStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                costStr = crate::precise::Precise::stringMul(&priceStr, &amountStr).as_str().map(str::to_owned);
             }
             let mut feedOutcome: Option<String> = self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]).as_str().map(str::to_owned);
             return self.safe_prediction_trade(Value::Map({

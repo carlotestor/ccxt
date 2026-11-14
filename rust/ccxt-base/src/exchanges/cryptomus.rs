@@ -1215,7 +1215,7 @@ impl Cryptomus {
                     if (price == Value::Null) && (costParam.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")));
                     }  else if (costParam.is_none()) {
-                        cost = crate::precise::Precise::stringMul(&amountToString.clone().map(Value::from).unwrap_or(Value::Null), &priceToString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        cost = crate::precise::Precise::stringMul(&amountToString, &priceToString).as_str().map(str::to_owned);
                     }
                 }  else {
                     cost = (if ((costParam.is_some()) && (costParam.as_deref() != Some(""))) { costParam } else { amountToString.clone() });
@@ -1664,8 +1664,8 @@ impl Cryptomus {
         })]).into_dict();
         let mut makerFee: Option<String> = self.safe_string_k(&currentFeeTier, "maker_percent", &[]).as_str().map(str::to_owned);
         let mut takerFee: Option<String> = self.safe_string_k(&currentFeeTier, "taker_percent", &[]).as_str().map(str::to_owned);
-        makerFee = crate::precise::Precise::stringDiv(&makerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-        takerFee = crate::precise::Precise::stringDiv(&takerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        makerFee = crate::precise::Precise::stringDiv(&makerFee, &Value::Str("100".into())).as_str().map(str::to_owned);
+        takerFee = crate::precise::Precise::stringDiv(&takerFee, &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut feeTiers: crate::value::List = self.safe_list_k(&data, "tariff_steps", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1710,8 +1710,8 @@ impl Cryptomus {
             let mut turnover: Option<f64> = self.safe_number_k(&tier, "from_turnover", &[]).as_f64();
             let mut taker: Option<String> = self.safe_string_k(&tier, "taker_percent", &[]).as_str().map(str::to_owned);
             let mut maker: Option<String> = self.safe_string_k(&tier, "maker_percent", &[]).as_str().map(str::to_owned);
-            maker = crate::precise::Precise::stringDiv(&maker.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-            taker = crate::precise::Precise::stringDiv(&taker.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            maker = crate::precise::Precise::stringDiv(&maker, &Value::Str("100".into())).as_str().map(str::to_owned);
+            taker = crate::precise::Precise::stringDiv(&taker, &Value::Str("100".into())).as_str().map(str::to_owned);
             makerFees.push(Value::from(vec![Value::from(turnover), self.parse_number(maker.map(Value::from).unwrap_or(Value::Null), &[])]));
             takerFees.push(Value::from(vec![Value::from(turnover), self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[])]));
         }

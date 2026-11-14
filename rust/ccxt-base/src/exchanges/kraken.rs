@@ -1176,14 +1176,14 @@ impl Kraken {
             let mut firstMakerFeeRate: Option<String> = self.safe_string(&firstMakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut maker: Option<f64> = None;
             if (firstMakerFeeRate.is_some()) {
-                maker = self.parse_number(crate::precise::Precise::stringDiv(&firstMakerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
+                maker = self.parse_number(crate::precise::Precise::stringDiv(&firstMakerFeeRate, &Value::Str("100".into())), &[]).as_f64();
             }
             let mut takerFees: crate::value::List = self.safe_list_k(&market, "fees", &[Value::from(vec![])]).into_list();
             let mut firstTakerFee: crate::value::List = self.safe_list(&takerFees, Value::Int(0), &[Value::from(vec![])]).into_list();
             let mut firstTakerFeeRate: Option<String> = self.safe_string(&firstTakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut taker: Option<f64> = None;
             if (firstTakerFeeRate.is_some()) {
-                taker = self.parse_number(crate::precise::Precise::stringDiv(&firstTakerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
+                taker = self.parse_number(crate::precise::Precise::stringDiv(&firstTakerFeeRate, &Value::Str("100".into())), &[]).as_f64();
             }
             let mut leverageBuy: crate::value::List = self.safe_list_k(&market, "leverage_buy", &[Value::from(vec![])]).into_list();
             let mut leverageBuyLength: i64 = leverageBuy.len() as i64;
@@ -1710,7 +1710,7 @@ impl Kraken {
         let mut baseVolume: Option<String> = self.safe_string(&v, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut p: crate::value::List = self.safe_list_k(ticker.clone(), "p", &[Value::from(vec![])]).into_list();
         let mut vwap: Option<String> = self.safe_string(&p, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &vwap).as_str().map(str::to_owned);
         let mut c: crate::value::List = self.safe_list_k(ticker.clone(), "c", &[Value::from(vec![])]).into_list();
         let mut last: Option<String> = self.safe_string(&c, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut high: crate::value::List = self.safe_list_k(ticker.clone(), "h", &[Value::from(vec![])]).into_list();
@@ -1803,8 +1803,8 @@ impl Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_848: bool = true;
             while { if !__for_first_848 { i += 1; } __for_first_848 = false; i < (ids.len() as i64) } {
-            let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: crate::types::Market = self.safe_market(id.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
+            let mut id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
+            let mut market: crate::types::Market = self.safe_market(Value::from(id.as_deref()), None, &[]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut ticker: crate::value::Dict = tickers.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&ticker, Some(&market)));
@@ -1986,7 +1986,7 @@ impl Kraken {
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
         if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
-            amount = crate::precise::Precise::stringAbs(&amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }  else {
             direction = Some("in".to_string());
         }
@@ -2064,8 +2064,8 @@ impl Kraken {
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until", "till"], &[]) } else { params }).into_dict();
         if (until.is_some()) {
-            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())))));
+            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into())).as_str().map(str::to_owned);
+            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())))));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_ledgers(&[__ws_arg_5]).await.into_dict();
@@ -2418,9 +2418,9 @@ impl Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_851: bool = true;
             while { if !__for_first_851 { i += 1; } __for_first_851 = false; i < (currencyIds.len() as i64) } {
-            let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
-            let mut balance: crate::value::Dict = self.safe_dict(&balances, currencyId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::from(currencyId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3600,11 +3600,11 @@ impl Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_858: bool = true;
             while { if !__for_first_858 { i += 1; } __for_first_858 = false; i < (orderIds.len() as i64) } {
-            let mut id: Option<String> = orderIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut id: Option<&str> = orderIds.get(i as usize).and_then(Value::as_str);
             let mut item: crate::value::Dict = result.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
             let __ws_arg_13 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(id.as_deref()));
                 m
             }), &[&item]);
             let mut order: crate::value::Dict = self.parse_order(__ws_arg_13, None).into_dict();
@@ -3655,8 +3655,8 @@ impl Kraken {
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until", "till"], &[]) } else { params }).into_dict();
         if (until.is_some()) {
-            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())))));
+            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into())).as_str().map(str::to_owned);
+            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())))));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_trades_history(&[__ws_arg_14]).await.into_dict();
@@ -3988,11 +3988,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_860: bool = true;
             while { if !__for_first_860 { i += 1; } __for_first_860 = false; i < (orderIds.len() as i64) } {
-            let mut id: Option<String> = orderIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut id: Option<&str> = orderIds.get(i as usize).and_then(Value::as_str);
             let mut item: crate::value::Dict = open.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
             orders.push(self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(id.as_deref()));
                 m
             }), &[&item]));
         }
@@ -4109,11 +4109,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_861: bool = true;
             while { if !__for_first_861 { i += 1; } __for_first_861 = false; i < (orderIds.len() as i64) } {
-            let mut id: Option<String> = orderIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut id: Option<&str> = orderIds.get(i as usize).and_then(Value::as_str);
             let mut item: crate::value::Dict = closed.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
             orders.push(self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(id.as_deref()));
                 m
             }), &[&item]));
         }
@@ -4330,13 +4330,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (since != Value::Null) {
             let mut sinceString: Option<String> = self.number_to_string(since.clone());
-            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())));
+            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString, &Value::Str("1000".into())));
         }
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until", "till"], &[]) } else { params }).into_dict();
         if (until.is_some()) {
-            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())));
+            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into())).as_str().map(str::to_owned);
+            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())));
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_deposit_status(&[__ws_arg_21]).await.into_dict();
@@ -4444,13 +4444,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (since != Value::Null) {
             let mut sinceString: Option<String> = self.number_to_string(since.clone());
-            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())));
+            request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString, &Value::Str("1000".into())));
         }
         let mut until: Option<String> = self.safe_string2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until", "till"], &[]).into_dict() } else { paramsPaginate });
         if (until.is_some()) {
-            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())));
+            let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until, &Value::Str("1000".into())).as_str().map(str::to_owned);
+            request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_withdraw_status(&[__ws_arg_22]).await.into_dict();
@@ -5097,23 +5097,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
             let mut isJsonBody: bool = ((isCancelOrderBatch || isTriggerPercent) || isBatchOrder);
             // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-            let mut bodySigned: Value = Value::Null;
+            let mut bodySigned: Option<String> = None;
             if isJsonBody {
                 let __ws_arg_29 = self.extend(Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("nonce".to_string(), nonce.clone());
-                    m
-                }), &[params.clone()]);
-                bodySigned = self.json(__ws_arg_29);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("nonce".to_string(), nonce.clone());
+    m
+}), &[params.clone()]);
+                bodySigned = self.json(__ws_arg_29).as_str().map(str::to_owned);
             }  else {
                 let __ws_arg_30 = self.extend(Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("nonce".to_string(), nonce.clone());
-                    m
-                }), &[params]);
-                bodySigned = Value::from(self.urlencode_nested(__ws_arg_30, &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("nonce".to_string(), nonce.clone());
+    m
+}), &[params]);
+                bodySigned = Some(self.urlencode_nested(__ws_arg_30, &[]));
             }
-            let mut auth: crate::value::Bytes = self.encode(Value::Str(format!("{}{}", nonce, bodySigned).into()));
+            let mut auth: crate::value::Bytes = self.encode(Value::Str(format!("{}{}", nonce, bodySigned.as_deref().unwrap_or("null")).into()));
             let mut hash: crate::value::Bytes = self.hash_binary(&auth, Value::Str("sha256".into()));
             let mut binary: crate::value::Bytes = self.encode(Value::from(url.clone()));
             let mut binhash: crate::value::Bytes = self.binary_concat(&binary, &[Value::from(&hash)]);
@@ -5139,7 +5139,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(urlSigned));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodySigned);
+        m.insert("body".to_string(), bodySigned.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
 });

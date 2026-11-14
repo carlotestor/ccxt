@@ -600,7 +600,7 @@ impl Bit2c {
                         let mut i: i64 = 0;
             let mut __for_first_330: bool = true;
             while { if !__for_first_330 { i += 1; } __for_first_330 = false; i < (codes.len() as i64) } {
-            let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -915,13 +915,13 @@ impl Bit2c {
                         let mut i: i64 = 0;
             let mut __for_first_333: bool = true;
             while { if !__for_first_333 { i += 1; } __for_first_333 = false; i < (keys.len() as i64) } {
-            let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), None, &[]).as_str().map(str::to_owned);
-            let mut fee: Option<crate::value::Dict> = self.safe_dict(&fees, marketId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut fee: Option<crate::value::Dict> = self.safe_dict(&fees, Value::from(marketId.as_deref()), &[]).into_opt_dict();
             let mut makerString: Option<String> = self.safe_string_k(&fee, "FeeMaker", &[]).as_str().map(str::to_owned);
             let mut takerString: Option<String> = self.safe_string_k(&fee, "FeeTaker", &[]).as_str().map(str::to_owned);
-            let mut maker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
-            let mut taker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
+            let mut maker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&makerString, &Value::Str("100".into())), &[]).as_f64();
+            let mut taker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&takerString, &Value::Str("100".into())), &[]).as_f64();
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.map_or(Value::Null, Value::Dict));
@@ -990,7 +990,7 @@ impl Bit2c {
             request.insert("Price".into(), price.clone());
             let mut amountString: Option<String> = self.number_to_string(amount);
             let mut priceString: Option<String> = self.number_to_string(price);
-            request.insert("Total".into(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("Total".into(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)));
             request.insert("IsBid".into(), (Value::Bool(side.as_str() == Some("buy"))));
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_order_add_order(&[__ws_arg_6]).await.into_opt_dict();

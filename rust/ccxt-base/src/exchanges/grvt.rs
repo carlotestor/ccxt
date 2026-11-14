@@ -2267,7 +2267,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawItem);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
-        m.insert("fundingRate".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&rate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]));
+        m.insert("fundingRate".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&rate, &Value::Str("100".into())), &[]));
         m.insert("timestamp".to_string(), Value::from(ts));
         m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
     m
@@ -3568,8 +3568,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         if (symbolsNormalized.is_some()) {
-            let mut baseIds: Vec<Value> = vec![];
-            let mut quoteIds: Vec<Value> = vec![];
+            let mut baseIds: crate::value::List = std::sync::Arc::new(Vec::new());
+            let mut quoteIds: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_725: bool = true;
@@ -3579,12 +3579,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 if !(market).contract {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchPositions() supports contract markets only")));
                 }
-                baseIds.push(Value::from((market).base_id.as_deref()));
-                quoteIds.push(Value::from((market).quote_id.as_deref()));
+                std::sync::Arc::make_mut(&mut baseIds).push(Value::from((market).base_id.as_deref()));
+                std::sync::Arc::make_mut(&mut quoteIds).push(Value::from((market).quote_id.as_deref()));
             }
             }
-            request.insert("base".into(), Value::Array(baseIds));
-            request.insert("quote".into(), Value::Array(quoteIds));
+            request.insert("base".into(), Value::Arr(baseIds));
+            request.insert("quote".into(), Value::Arr(quoteIds));
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_positions(&[__ws_arg_18]).await.into_dict();
@@ -3668,7 +3668,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_k(position.clone(), "realized_pnl", &[]));
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&sizeRaw.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&sizeRaw), &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("side".to_string(), Value::from(side));

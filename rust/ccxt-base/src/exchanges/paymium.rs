@@ -432,7 +432,7 @@ impl Paymium {
                         let mut i: i64 = 0;
             let mut __for_first_1074: bool = true;
             while { if !__for_first_1074 { i += 1; } __for_first_1074 = false; i < (currencies.len() as i64) } {
-            let mut code: Option<String> = currencies.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut code: Option<&str> = currencies.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: Value = crate::value::KeyRead::key_read(&&currency, "id");
             let mut freeAmount: Option<String> = self.safe_string(response.clone(), Value::Str(format!("{}{}", "balance_", currencyId).into()), &[]).as_str().map(str::to_owned);
@@ -538,7 +538,7 @@ impl Paymium {
         let mut timestamp: Option<i64> = self.safe_timestamp_k(ticker.clone(), "at", &[]).as_i64();
         let mut vwap: Option<String> = self.safe_string_k(ticker.clone(), "vwap", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &vwap).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "price", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1045,13 +1045,13 @@ impl Paymium {
                     m.insert("Api-Nonce".to_string(), nonce.clone());
                 m
             });
-            let mut signedBody: Value = Value::Str("".into());
+            let mut signedBody: Option<String> = Some("".to_string());
             if (method.as_str() == Some("POST")) && hasQuery {
-                signedBody = json_stringify(&query);
+                signedBody = json_stringify(&query).as_str().map(str::to_owned);
             }
             if (method.as_str() == Some("POST")) {
                 if hasQuery {
-                    auth.push_str(&signedBody.to_string());
+                    auth.push_str(signedBody.as_deref().unwrap_or("null"));
                     signedHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                 }
             }  else {
@@ -1066,7 +1066,7 @@ impl Paymium {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), signedBody);
+        m.insert("body".to_string(), signedBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(signedHeaders));
     m
 });

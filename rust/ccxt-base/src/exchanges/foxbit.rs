@@ -2583,10 +2583,10 @@ impl Foxbit {
         let mut trade: Value = trade.into();
         let mut timestamp: Value = self.parse_date(self.safe_string_k(trade.clone(), "created_at", &[]), &[]);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut amount: Value = self.safe_string_k(trade.clone(), "volume", &[self.safe_string(trade.clone(), Value::Str("quantity".into()), &[])]);
+        let mut amount: Option<String> = self.safe_string_k(trade.clone(), "volume", &[self.safe_string(trade.clone(), Value::Str("quantity".into()), &[])]).as_str().map(str::to_owned);
         let mut privateSideField: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "taker_side", &[privateSideField.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut cost: Option<String> = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount).as_str().map(str::to_owned);
+        let mut cost: Option<String> = crate::precise::Precise::stringMul(&price, &amount).as_str().map(str::to_owned);
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_symbol(self.safe_string_k(trade.clone(), "fee_currency_symbol", &[]), None, &[]));
@@ -2606,7 +2606,7 @@ impl Foxbit {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
     m
@@ -2647,13 +2647,13 @@ impl Foxbit {
         // TODO: validate logic of amount here, should this be calculated?
         let mut amount: Option<String> = None;
         if (remaining.is_some()) && (filled.is_some()) {
-            amount = crate::precise::Precise::stringAdd(&remaining.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringAdd(&remaining, &filled).as_str().map(str::to_owned);
         }
         let mut cost: Option<String> = self.safe_string_k(order.clone(), "funds_received", &[]).as_str().map(str::to_owned);
         if (cost.is_none()) || (cost.as_deref() == Some("")) {
             let mut priceAverage: Option<String> = self.safe_string_k(order.clone(), "price_avg", &[]).as_str().map(str::to_owned);
             let mut priceToCalculate: Option<String> = self.safe_string_k(order.clone(), "price", &[priceAverage.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            cost = crate::precise::Precise::stringMul(&priceToCalculate.map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            cost = crate::precise::Precise::stringMul(&priceToCalculate, &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Option<String> = self.safe_string_upper_k(marketResolved.clone(), "quoteId", &[]).as_str().map(str::to_owned);
@@ -2759,9 +2759,9 @@ impl Foxbit {
         let mut datetime: Option<String> = self.iso8601(timestamp.clone()).as_str().map(str::to_owned);
         if (true) && (amount.is_some()) {
             // actualAmount = amount - fee;
-            actualAmount = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(fee.clone())).as_str().map(str::to_owned);
+            actualAmount = crate::precise::Precise::stringSub(&amount, &fee).as_str().map(str::to_owned);
         }
-        let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&Value::from(fee.clone()), &actualAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&fee, &actualAmount).as_str().map(str::to_owned);
         let mut feeObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.parse_number(Value::from(fee), &[]));
@@ -2916,8 +2916,8 @@ impl Foxbit {
                                 let mut i: i64 = 0;
                 let mut __for_first_679: bool = true;
                 while { if !__for_first_679 { i += 1; } __for_first_679 = false; i < (paramKeys.len() as i64) } {
-                let mut key: Option<String> = paramKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let mut value: Option<String> = self.safe_string(paramsOmitted.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                let mut key: Option<&str> = paramKeys.get(i as usize).and_then(Value::as_str);
+                let mut value: Option<String> = self.safe_string(paramsOmitted.clone(), Value::from(key.as_deref()), &[]).as_str().map(str::to_owned);
                 if (value.is_some()) {
                     signatureQuery.push_str(&format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), value.as_deref().unwrap_or("null")));
                 }

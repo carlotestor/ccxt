@@ -1675,9 +1675,9 @@ impl Hashkey {
         let mut minLeverage: Option<i64> = None;
         let mut maxLeverage: Option<i64> = None;
         if isSwap {
-            amountPrecisionString = crate::precise::Precise::stringDiv(&amountPrecisionString.map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            amountMinLimitString = crate::precise::Precise::stringDiv(&amountMinLimitString.map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            amountMaxLimitString = crate::precise::Precise::stringDiv(&amountMaxLimitString.map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountPrecisionString = crate::precise::Precise::stringDiv(&amountPrecisionString, &contractSizeString).as_str().map(str::to_owned);
+            amountMinLimitString = crate::precise::Precise::stringDiv(&amountMinLimitString, &contractSizeString).as_str().map(str::to_owned);
+            amountMaxLimitString = crate::precise::Precise::stringDiv(&amountMaxLimitString, &contractSizeString).as_str().map(str::to_owned);
             let mut riskLimits: Option<crate::value::List> = self.safe_list_k(market.clone(), "riskLimits", &[]).into_opt_list();
             if (riskLimits.is_some()) {
                 let mut first: crate::value::Dict = self.safe_dict(&riskLimits, Value::Int(0), &[]).into_dict();
@@ -1690,8 +1690,8 @@ impl Hashkey {
                     minInitialMargin = maxInitialMargin.clone();
                     maxInitialMargin = initialMarginsSwapped;
                 }
-                minLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &maxInitialMargin.map(Value::from).unwrap_or(Value::Null)));
-                maxLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &minInitialMargin.map(Value::from).unwrap_or(Value::Null)));
+                minLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &maxInitialMargin));
+                maxLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &minInitialMargin));
             }
         }
         let mut tradingFees: crate::value::Dict = self.safe_dict_k(self.fees.clone(), "trading", &[]).into_dict();
@@ -2393,7 +2393,7 @@ impl Hashkey {
         let mut contractSizeValue: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
         if (marketResolved).contract && (contractSizeValue.is_some()) {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = crate::precise::Precise::stringMul(&baseVolume.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(contractSizeValue.map(Value::from).unwrap_or(Value::Null)))).as_str().map(str::to_owned);
+            baseVolume = crate::precise::Precise::stringMul(&baseVolume, &Value::from(self.number_to_string(contractSizeValue.map(Value::from).unwrap_or(Value::Null)))).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2602,7 +2602,7 @@ impl Hashkey {
         account.insert("total".into(), self.safe_string_k(balance.clone(), "balance", &[]));
         let mut positionMargin: Option<String> = self.safe_string_k(balance.clone(), "positionMargin", &[]).as_str().map(str::to_owned);
         let mut orderMargin: Option<String> = self.safe_string_k(balance.clone(), "orderMargin", &[]).as_str().map(str::to_owned);
-        account.insert("used".into(), crate::precise::Precise::stringAdd(&positionMargin.map(Value::from).unwrap_or(Value::Null), &orderMargin.map(Value::from).unwrap_or(Value::Null)));
+        account.insert("used".into(), crate::precise::Precise::stringAdd(&positionMargin, &orderMargin));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), balance);
@@ -5164,7 +5164,7 @@ impl Hashkey {
         }
         let mut amountString: Option<String> = self.number_to_string(amount.clone());
         if (type_var.as_str() == Some("reduce")) {
-            amountString = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::Str("-1".into())).as_str().map(str::to_owned);
+            amountString = crate::precise::Precise::stringMul(&amountString, &Value::Str("-1".into())).as_str().map(str::to_owned);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5340,7 +5340,7 @@ impl Hashkey {
                     m.insert("minNotional".to_string(), Value::Null);
                     m.insert("maxNotional".to_string(), self.safe_number_k(&tier, "quantity", &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(&tier, "maintMargin", &[]));
-                    m.insert("maxLeverage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRate.map(Value::from).unwrap_or(Value::Null)), &[]));
+                    m.insert("maxLeverage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRate), &[]));
                     m.insert("info".to_string(), Value::from(&tier));
                 m
             }));

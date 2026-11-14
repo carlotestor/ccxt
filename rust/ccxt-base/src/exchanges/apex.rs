@@ -1971,9 +1971,9 @@ impl Apex {
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut orderSide: String = side.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut orderSize: Option<String> = self.amount_to_precision(symbol.clone(), amount);
-        let mut orderPrice: Value = Value::Str("0".into());
+        let mut orderPrice: Option<String> = Some("0".to_string());
         if (price != Value::Null) {
-            orderPrice = Value::from(self.price_to_precision(symbol.clone(), price.clone()));
+            orderPrice = self.price_to_precision(symbol.clone(), price.clone());
         }
         let mut fees: crate::value::Dict = self.safe_dict_k(self.fees.clone(), "swap", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1982,8 +1982,8 @@ impl Apex {
         let mut taker: String = self.safe_string_k(&fees, "taker", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
         let mut maker: String = self.safe_string_k(&fees, "maker", &[Value::Str("0.0002".into())]).as_str().unwrap_or("0.0002").to_string();
         let mut pricePrecision: Value = market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
-        let mut limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &Value::from(orderSize.as_deref())), &Value::from(taker.clone())), &Value::from(self.number_to_string(pricePrecision.clone()))), Value::Int(crate::runtime::TRUNCATE),
-            pricePrecision, &[self.precisionMode.clone(), self.paddingMode.clone()]);
+        let mut limitFee: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &taker), &Value::from(self.number_to_string(pricePrecision.clone()))), Value::Int(crate::runtime::TRUNCATE), pricePrecision, &[self.precisionMode.clone(),
+            self.paddingMode.clone()]).as_str().map(str::to_owned);
         let mut timeNow: i64 = self.milliseconds();
         let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
@@ -2017,7 +2017,7 @@ impl Apex {
         let mut accountId: Option<String> = self.get_account_id().await.as_str().map(str::to_owned);
         let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(Value::from(accountId.as_deref())).map(Value::from).unwrap_or(Value::Null) });
         let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted2, &["clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"], &[]).into_dict();
-        let mut finalOrderPrice: Value = orderPrice; // java req
+        let mut finalOrderPrice: Option<String> = orderPrice; // java req
         let mut orderToSign: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
@@ -2025,7 +2025,7 @@ impl Apex {
                 m.insert("nonce".to_string(), finalClientOrderId.clone());
                 m.insert("pairId".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
                 m.insert("size".to_string(), Value::from(orderSize.as_deref()));
-                m.insert("price".to_string(), finalOrderPrice.clone());
+                m.insert("price".to_string(), finalOrderPrice.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("direction".to_string(), Value::from(orderSide.clone()));
                 m.insert("makerFeeRate".to_string(), Value::from(maker));
                 m.insert("takerFeeRate".to_string(), Value::from(taker));
@@ -2041,8 +2041,8 @@ impl Apex {
                 m.insert("side".to_string(), Value::from(orderSide));
                 m.insert("type".to_string(), Value::from(orderType));
                 m.insert("size".to_string(), orderSize.map(Value::from).unwrap_or(Value::Null));
-                m.insert("price".to_string(), finalOrderPrice);
-                m.insert("limitFee".to_string(), limitFee);
+                m.insert("price".to_string(), finalOrderPrice.map(Value::from).unwrap_or(Value::Null));
+                m.insert("limitFee".to_string(), limitFee.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiration".to_string(), (match (&(Value::from(self.parse_to_int(Value::Float(((timeNow as f64) / 1000.0))))), &((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
                     (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
@@ -2172,7 +2172,7 @@ impl Apex {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[]).into_dict();
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();
-            let mut zkSignAccountId: Option<String> = crate::precise::Precise::stringMod(&Value::from(accountId), &Value::from(formattedUint32)).as_str().map(str::to_owned);
+            let mut zkSignAccountId: Option<String> = crate::precise::Precise::stringMod(&accountId, &formattedUint32).as_str().map(str::to_owned);
             let mut expireTime: Option<i64> = (if let Some(__l) = timestampSeconds { Some(__l + ((((3600 * 24)) * 28))) } else { None });
             let mut orderToSign: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2781,7 +2781,7 @@ impl Apex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut leverageString: Option<String> = self.number_to_string(leverage);
-        let mut initialMarginRate: Option<String> = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString.map(Value::from).unwrap_or(Value::Null), &Value::Int(4)).as_str().map(str::to_owned);
+        let mut initialMarginRate: Option<String> = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString, &Value::Int(4)).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -2859,7 +2859,7 @@ impl Apex {
         let mut leverage: Option<i64> = Some(20);
         let mut customInitialMarginRate: String = self.safe_string2(position.clone(), Value::Str("customInitialMarginRate".into()), Value::Str("customImr".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         if (Value::Int(self.precision_from_string(Value::from(customInitialMarginRate.clone()))).as_f64() != Some(0.0)) {
-            leverage = self.parse_to_int(crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &Value::from(customInitialMarginRate), &Value::Int(4)));
+            leverage = self.parse_to_int(crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &customInitialMarginRate, &Value::Int(4)));
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();

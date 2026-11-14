@@ -2471,7 +2471,7 @@ impl Tokocrypto {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
-                        quoteAmount = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
+                        quoteAmount = crate::precise::Precise::stringMul(&amountString, &priceString);
                     }
                 }  else {
                     quoteAmount = amount.clone();

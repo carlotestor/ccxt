@@ -1639,9 +1639,9 @@ impl Bigone {
                         let mut i: i64 = 0;
             let mut __for_first_265: bool = true;
             while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (bidsAsksKeys.len() as i64) } {
-            let mut price: Option<String> = bidsAsksKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut price: Option<&str> = bidsAsksKeys.get(i as usize).and_then(Value::as_str);
             let mut amount: Value = (if let (Some(__m), Some(__k)) = (bidsAsks.as_map(), price.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            result.push(Value::from(vec![self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(amount, &[])]));
+            result.push(Value::from(vec![self.parse_number(Value::from(price.as_deref()), &[]), self.parse_number(amount, &[])]));
         }
         }
         return Value::from(result);
@@ -2274,7 +2274,7 @@ impl Bigone {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
-                        let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
+                        let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString));
                         let mut costRequest: Value = (if (cost.is_some()) { Value::from(cost) } else { quoteAmount });
                         request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.clone(), costRequest)));
                     }

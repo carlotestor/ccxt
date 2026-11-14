@@ -3865,8 +3865,8 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_767: bool = true;
             while { if !__for_first_767 { i += 1; } __for_first_767 = false; i < (keys.len() as i64) } {
-            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if matches!(self.safe_bool(types.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]), Value::Bool(true)) {
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            if matches!(self.safe_bool(types.clone(), Value::from(key.as_deref()), &[Value::Bool(false)]), Value::Bool(true)) {
                 if (key.as_deref() == Some("spot")) {
                     promises.push(self.fetch_markets_by_type_and_sub_type(Some("spot"), None, &[paramsTypes.clone()]).await);
                 }  else if (key.as_deref() == Some("linear")) {
@@ -4412,7 +4412,7 @@ impl Htx {
             if matches!(self.safe_bool_k(&marketResolved, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 quoteVolume = self.safe_string_k(ticker.clone(), "trade_turnover", &[]).as_str().map(str::to_owned);
             }  else {
-                quoteVolume = crate::precise::Precise::stringMul(&quoteVolume.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&marketResolved, "contractSize", &[])).as_str().map(str::to_owned);
+                quoteVolume = crate::precise::Precise::stringMul(&quoteVolume, &self.safe_string_k(&marketResolved, "contractSize", &[])).as_str().map(str::to_owned);
             }
         }
         return self.safe_ticker(Value::Map({
@@ -6278,8 +6278,8 @@ impl Htx {
                                                 let mut j: i64 = 0;
                         let mut __for_first_777: bool = true;
                         while { if !__for_first_777 { j += 1; } __for_first_777 = false; j < (subCodes.len() as i64) } {
-                        let mut subCode: Option<String> = subCodes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                        result = self.merge_balance_account(result, subCode.clone().map(Value::from).unwrap_or(Value::Null), subResult.get(subCode.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                        let mut subCode: Option<&str> = subCodes.get(j as usize).and_then(Value::as_str);
+                        result = self.merge_balance_account(result, Value::from(subCode.as_deref()), subResult.get(subCode.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
                     }
                     }
                 }
@@ -7988,7 +7988,7 @@ impl Htx {
                     // we use amountToPrecision here because the exchange requires cost in base precision
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
-                    quoteAmount = self.amount_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
+                    quoteAmount = self.amount_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString, &priceString));
                 }
             }  else {
                 quoteAmount = self.amount_to_precision(symbol.clone(), amount.clone());
@@ -8179,7 +8179,7 @@ impl Htx {
                 }
             }
         }  else if isTrailingPercentOrder {
-            let mut trailingPercentString: Option<String> = crate::precise::Precise::stringDiv(&trailingPercent.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            let mut trailingPercentString: Option<String> = crate::precise::Precise::stringDiv(&trailingPercent, &Value::Str("100".into())).as_str().map(str::to_owned);
             request.insert("callback_rate".into(), self.parse_to_numeric(trailingPercentString.map(Value::from).unwrap_or(Value::Null)));
             request.insert("order_price_type".into(), self.safe_string_k(query.clone(), "order_price_type", &[Value::Str("formula_price".into())]));
             request.insert("active_price".into(), trailingTriggerPrice);
@@ -8502,7 +8502,7 @@ impl Htx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut ordersRequests: Value = Value::from(vec![]);
+        let mut ordersRequests: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut symbol: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         let mut marginMode: Value = Value::Null;
@@ -8546,7 +8546,7 @@ impl Htx {
                 orderRequest = self.create_contract_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[price, Value::Dict(orderParams)]);
             }
             orderRequest = self.omit(orderRequest, Value::Str("marginMode".into()), &[]);
-            if let Value::Arr(__a) = &mut ordersRequests { std::sync::Arc::make_mut(__a).push(orderRequest); }
+            std::sync::Arc::make_mut(&mut ordersRequests).push(orderRequest);
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -8555,12 +8555,12 @@ impl Htx {
         });
         let mut response: Option<crate::value::Dict> = None;
         if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
-            response = self.private_post_order_batch_orders(&[ordersRequests.clone()]).await.into_opt_dict();
+            response = self.private_post_order_batch_orders(&[Value::Arr(ordersRequests.clone())]).await.into_opt_dict();
         }  else {
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                response = self.contract_private_post_v5_trade_batch_orders(&[ordersRequests.clone()]).await.into_opt_dict();
+                response = self.contract_private_post_v5_trade_batch_orders(&[Value::Arr(ordersRequests.clone())]).await.into_opt_dict();
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
-                request.insert("orders_data".into(), ordersRequests);
+                request.insert("orders_data".into(), Value::Arr(ordersRequests));
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     response = self.contract_private_post_swap_api_v1_swap_batchorder(&[Value::Map(request.clone())]).await.into_opt_dict();
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -9722,7 +9722,7 @@ impl Htx {
         }
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
-            feeCost = crate::precise::Precise::stringAbs(&feeCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeCost = crate::precise::Precise::stringAbs(&feeCost).as_str().map(str::to_owned);
         }
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "chain", &[]).as_str().map(str::to_owned);
         let mut txHash: Option<String> = self.safe_string_k(transaction.clone(), "tx-hash", &[]).as_str().map(str::to_owned);
@@ -9871,7 +9871,7 @@ impl Htx {
             // fee needs to be deducted from whole amount
             let mut feeString: Option<String> = self.currency_to_precision(code.clone(), Value::from(fee), &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut amountString: Option<String> = self.number_to_string(Value::from(amountValue));
-            let mut amountSubtractedString: Option<String> = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::from(feeString.as_deref())).as_str().map(str::to_owned);
+            let mut amountSubtractedString: Option<String> = crate::precise::Precise::stringSub(&amountString, &feeString).as_str().map(str::to_owned);
             let mut amountSubtractedParsed: Option<String> = amountSubtractedString;
             if (amountSubtractedParsed.is_none()) {
                 amountSubtractedParsed = Some("0".to_string());
@@ -10430,7 +10430,7 @@ impl Htx {
         let mut nextFundingTimestamp: Option<i64> = self.safe_integer_k(contract.clone(), "next_funding_time", &[]).as_i64();
         let mut fundingTimeString: Option<String> = self.safe_string_k(contract.clone(), "funding_time", &[]).as_str().map(str::to_owned);
         let mut nextFundingTimeString: Option<String> = self.safe_string_k(contract.clone(), "next_funding_time", &[]).as_str().map(str::to_owned);
-        let mut millisecondsInterval: Option<String> = crate::precise::Precise::stringSub(&nextFundingTimeString.map(Value::from).unwrap_or(Value::Null), &fundingTimeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut millisecondsInterval: Option<String> = crate::precise::Precise::stringSub(&nextFundingTimeString, &fundingTimeString).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(contract.clone(), "contract_code", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         return Value::Map({
@@ -11317,15 +11317,15 @@ impl Htx {
         let mut leverage: Option<String> = self.safe_string_k(position.clone(), "lever_rate", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = crate::precise::Precise::stringMul(&self.safe_string_k(position.clone(), "profit_rate", &[]), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut lastPrice: Option<String> = self.safe_string_k(position.clone(), "last_price", &[]).as_str().map(str::to_owned);
-        let mut faceValue: Option<String> = crate::precise::Precise::stringMul(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut faceValue: Option<String> = crate::precise::Precise::stringMul(&contracts, &contractSizeString).as_str().map(str::to_owned);
         let mut notional: Option<String> = None;
         if ((marketResolved).linear == Some(true)) {
-            notional = crate::precise::Precise::stringMul(&faceValue.clone().map(Value::from).unwrap_or(Value::Null), &lastPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            notional = crate::precise::Precise::stringMul(&faceValue, &lastPrice).as_str().map(str::to_owned);
         }  else {
-            notional = crate::precise::Precise::stringDiv(&faceValue.map(Value::from).unwrap_or(Value::Null), &lastPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            notional = crate::precise::Precise::stringDiv(&faceValue, &lastPrice).as_str().map(str::to_owned);
             marginMode = Some("cross".to_string());
         }
-        let mut intialMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut intialMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&initialMargin, &notional.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut collateral: Option<String> = self.safe_string2(position.clone(), Value::Str("margin_balance".into()), Value::Str("margin".into()), &[]).as_str().map(str::to_owned);
         let mut adjustmentFactor: Option<String> = self.safe_string_k(position.clone(), "adjust_factor", &[]).as_str().map(str::to_owned);
         let mut maintenanceMarginLinear: Option<String> = self.safe_string_k(position.clone(), "maintenance_margin", &[]).as_str().map(str::to_owned);
@@ -11335,14 +11335,14 @@ impl Htx {
         let mut marginRatio: Option<String> = None;
         let mut maintenanceMarginPercentageResult: Option<f64> = None;
         if (maintenanceMarginLinear.is_none()) {
-            maintenanceMarginPercentage = crate::precise::Precise::stringDiv(&adjustmentFactor.map(Value::from).unwrap_or(Value::Null), &leverage.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            maintenanceMarginPercentage = crate::precise::Precise::stringDiv(&adjustmentFactor, &leverage).as_str().map(str::to_owned);
             maintenanceMargin = crate::precise::Precise::stringMul(&maintenanceMarginPercentage.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null));
             maintenanceMarginPercentageResult = self.parse_number(maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }  else {
             maintenanceMargin = maintenanceMarginLinear.map(Value::from).unwrap_or(Value::Null);
         }
         if (marginRatioLinear.is_none()) {
-            marginRatio = crate::precise::Precise::stringDiv(&maintenanceMargin, &collateral.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            marginRatio = crate::precise::Precise::stringDiv(&maintenanceMargin, &collateral).as_str().map(str::to_owned);
         }  else {
             marginRatio = marginRatioLinear.take();
         }
@@ -11813,7 +11813,7 @@ impl Htx {
                         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
                         m.insert("minNotional".to_string(), self.safe_number_k(&bracket, "min_size", &[]));
                         m.insert("maxNotional".to_string(), self.safe_number_k(&bracket, "max_size", &[]));
-                        m.insert("maintenanceMarginRate".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&adjustFactor.map(Value::from).unwrap_or(Value::Null), &leverage.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
+                        m.insert("maintenanceMarginRate".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&adjustFactor, &leverage), &[]));
                         m.insert("maxLeverage".to_string(), self.parse_number(leverage.clone().map(Value::from).unwrap_or(Value::Null), &[]));
                         m.insert("info".to_string(), Value::from(&bracket));
                     m

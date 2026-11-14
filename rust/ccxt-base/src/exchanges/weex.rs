@@ -2552,13 +2552,13 @@ impl Weex {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (market).spot {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_api_v3_market_trades(&[__ws_arg_10]).await;
+            response = self.public_get_api_v3_market_trades(&[__ws_arg_10]).await.into_opt_list();
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-            response = self.contract_get_capi_v3_market_trades(&[__ws_arg_11]).await;
+            response = self.contract_get_capi_v3_market_trades(&[__ws_arg_11]).await.into_opt_list();
         }
         //
         //     [
@@ -2574,8 +2574,8 @@ impl Weex {
         //     ]
         //
         let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response != Value::Null) {
-            responseList = self.to_array(response).into_list();
+        if (response.is_some()) {
+            responseList = self.to_array(&response).into_list();
         }
         return self.parse_trades(&responseList, Some(&market), &[since, limit]);
         Value::Null
@@ -2811,7 +2811,7 @@ impl Weex {
         let mut interval: Option<String> = None;
         let mut collectCycle: Option<String> = self.safe_string_k(contract.clone(), "collectCycle", &[]).as_str().map(str::to_owned);
         if (collectCycle.is_some()) {
-            interval = Some(format!("{}{}", crate::precise::Precise::stringDiv(&collectCycle.map(Value::from).unwrap_or(Value::Null), &Value::Str("60".into())), Value::Str("h".into())));
+            interval = Some(format!("{}{}", crate::precise::Precise::stringDiv(&collectCycle, &Value::Str("60".into())), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4562,7 +4562,7 @@ impl Weex {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if isSpot {
             //
             //     [
@@ -4580,7 +4580,7 @@ impl Weex {
             //     ]
             //
             let __ws_arg_33 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v3_my_trades(&[__ws_arg_33]).await;
+            response = self.private_get_api_v3_my_trades(&[__ws_arg_33]).await.into_opt_list();
         }  else {
             //
             //     [
@@ -4603,11 +4603,11 @@ impl Weex {
             //     ]
             //
             let __ws_arg_34 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.contract_private_get_capi_v3_user_trades(&[__ws_arg_34]).await;
+            response = self.contract_private_get_capi_v3_user_trades(&[__ws_arg_34]).await.into_opt_list();
         }
         let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response != Value::Null) {
-            responseList = self.to_array(response).into_list();
+        if (response.is_some()) {
+            responseList = self.to_array(&response).into_list();
         }
         return self.parse_trades(&responseList, market.as_ref(), &[since, limit]);
         Value::Null
@@ -4768,8 +4768,8 @@ impl Weex {
         let mut timestamp: Option<i64> = self.safe_integer2(item.clone(), Value::Str("cTime".into()), Value::Str("time".into()), &[]).as_i64();
         let mut amountRaw: Option<String> = self.safe_string2(item.clone(), Value::Str("deltaAmount".into()), Value::Str("income".into()), &[]).as_str().map(str::to_owned);
         let mut after: Option<String> = self.safe_string2(item.clone(), Value::Str("afterAmount".into()), Value::Str("balance".into()), &[]).as_str().map(str::to_owned);
-        let mut before: Option<String> = crate::precise::Precise::stringSub(&after.clone().map(Value::from).unwrap_or(Value::Null), &amountRaw.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+        let mut before: Option<String> = crate::precise::Precise::stringSub(&after, &amountRaw).as_str().map(str::to_owned);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]).as_f64();
         let mut direction: String = "in".to_string();
         if (amountRaw.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseLedgerEntry() missing amountRaw")));
@@ -5149,12 +5149,12 @@ impl Weex {
         }
         let mut notional: Option<String> = self.safe_string_k(position.clone(), "openValue", &[]).as_str().map(str::to_owned);
         let mut size: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
-        let mut entryPrice: Option<String> = crate::precise::Precise::stringDiv(&notional.clone().map(Value::from).unwrap_or(Value::Null), &size.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut entryPrice: Option<String> = crate::precise::Precise::stringDiv(&notional, &size).as_str().map(str::to_owned);
         let mut unrealizePnl: Option<String> = self.safe_string_k(position.clone(), "unrealizePnl", &[]).as_str().map(str::to_owned);
         let mut isolatedMargin: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("isolatedMargin".into()), Value::Str("marginSize".into()), &[]));
         let mut collateralString: Option<String> = None;
         if (marginMode == "isolated") && (isolatedMargin.is_some()) {
-            collateralString = (if (unrealizePnl.is_some()) { crate::precise::Precise::stringAdd(&isolatedMargin.clone().map(Value::from).unwrap_or(Value::Null), &unrealizePnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) } else { isolatedMargin.clone() });
+            collateralString = (if (unrealizePnl.is_some()) { crate::precise::Precise::stringAdd(&isolatedMargin, &unrealizePnl).as_str().map(str::to_owned) } else { isolatedMargin.clone() });
         }
         let mut initialMarginString: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("marginSize".into()), Value::Str("isolatedMargin".into()), &[]));
         let mut marginString: Option<String> = None;
@@ -5955,9 +5955,9 @@ impl Weex {
         }
         let mut isPrivate: bool = (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("contractPrivate"));
         let mut hasJsonBody: bool = isPrivate && ((method.as_str() == Some("POST")) || isBatch);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         if hasJsonBody {
-            requestBody = json_stringify(&query);
+            requestBody = json_stringify(&query).as_str().map(str::to_owned);
         }
         let mut requestHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5970,11 +5970,11 @@ impl Weex {
             }
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.number_to_string(self.nonce());
-            let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.as_deref().unwrap_or("null"), method).into()), "/").into()), endpoint).into());
+            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.as_deref().unwrap_or("null"), method).into()), "/").into()), endpoint);
             if hasJsonBody {
-                payload = Value::Str(format!("{}{}", payload, requestBody).into());
+                payload.push_str(requestBody.as_deref().unwrap_or("null"));
             }
-            let mut signature: String = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             requestHeaders = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
@@ -6003,7 +6003,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(requestHeaders));
     m
 });

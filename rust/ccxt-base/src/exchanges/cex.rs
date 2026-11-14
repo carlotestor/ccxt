@@ -726,7 +726,7 @@ impl Cex {
                         let mut j: i64 = 0;
             let mut __for_first_527: bool = true;
             while { if !__for_first_527 { j += 1; } __for_first_527 = false; j < (keys.len() as i64) } {
-            let mut networkId: Option<String> = keys.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut networkId: Option<&str> = keys.get(j as usize).and_then(Value::as_str);
             let mut rawNetwork: Option<crate::value::Dict> = self.safe_dict(&rawNetworks, Value::from(networkId.as_deref()), &[]).into_opt_dict();
             let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(networkId.as_deref()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut deposit: Value = Value::Bool(self.safe_string_k(&rawNetwork, "deposit", &[]).as_str() == Some("enabled"));
@@ -734,7 +734,7 @@ impl Cex {
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(networkId.as_deref()));
         m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("margin".to_string(), Value::Null);
         m.insert("deposit".to_string(), deposit);
@@ -1414,10 +1414,10 @@ impl Cex {
                         let mut i: i64 = 0;
             let mut __for_first_528: bool = true;
             while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (keys.len() as i64) } {
-            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut market: Option<crate::types::Market> = None;
             if useKeyAsId.as_bool() == Some(true) {
-                market = Some(self.safe_market(key.clone().map(Value::from).unwrap_or(Value::Null), None, &[]));
+                market = Some(self.safe_market(Value::from(key.as_deref()), None, &[]));
             }
             let mut parsed: crate::value::Dict = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), market.as_ref()).into_dict();
             let mut parsedSymbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
@@ -1610,12 +1610,12 @@ impl Cex {
                         let mut i: i64 = 0;
             let mut __for_first_530: bool = true;
             while { if !__for_first_530 { i += 1; } __for_first_530 = false; i < (keys.len() as i64) } {
-            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::from(key.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut code: Option<String> = self.safe_currency_code(key.map(Value::from).unwrap_or(Value::Null), None);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);
             let mut account: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("used".to_string(), self.safe_string_k(&balance, "balanceOnHold", &[]));
@@ -2284,7 +2284,7 @@ impl Cex {
         let mut direction: Option<String> = None;
         if crate::precise::Precise::stringLe(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
-            amount = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &amount).as_str().map(str::to_owned);
         }  else {
             direction = Some("in".to_string());
         }
