@@ -1304,9 +1304,9 @@ impl Dydx {
             request.insert("toISO".into(), self.iso8601(Value::from(until)));
         }  else if (since != Value::Null) {
             // the indexer returns the newest candles in the range, so the range ends where the limit does
-            let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut count: Value = (if (limit != Value::Null) { crate::runtime::Math::min(&limit, &Value::Int(1000)) } else { Value::Int(1000) });
-            request.insert("toISO".into(), self.iso8601(self.sum(&[since.clone(), (match (&(duration), &(count)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])));
+            let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
+            let mut count: i64 = i64::min(limit.as_i64().unwrap_or(1000), 1000);
+            request.insert("toISO".into(), self.iso8601(self.sum(&[since.clone(), Value::Int((duration * count))])));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.indexer_get_candles_perpetual_markets_market(&[__ws_arg_2]).await.into_dict();
