@@ -1833,14 +1833,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut parsedTrade: crate::value::Dict = self.parse_order_trade(&data, Some(&market)).into_dict();
                 // inject trade in existing order by faking an order object
                 let mut orderId: Option<String> = self.safe_string_k(&parsedTrade, "order", &[]).as_str().map(str::to_owned);
-                let mut trades: Value = Value::from(vec![Value::Dict(parsedTrade)]);
+                let mut trades: crate::value::List = std::sync::Arc::new(vec![Value::Dict(parsedTrade)]);
                 let mut status: Option<String> = self.parent.parse_order_status((self.safe_string2(&data, Value::Str("orderStatus".into()), Value::Str("status".into()), &[Value::Str("closed".into())])).as_str());
                 let mut filled: Option<String> = self.safe_string_k(&data, "execAmt", &[]).as_str().map(str::to_owned);
                 let mut remaining: Option<String> = self.safe_string_k(&data, "remainAmt", &[]).as_str().map(str::to_owned);
                 let mut order: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("trades".to_string(), trades);
+                        m.insert("trades".to_string(), Value::Arr(trades));
                         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
                         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(&data, "tradeTime", &[]));
                         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));

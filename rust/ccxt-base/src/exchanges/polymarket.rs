@@ -2131,14 +2131,14 @@ impl Polymarket {
             std::sync::Arc::make_mut(&mut ordersEntries).push(request.get("entry").cloned().unwrap_or(Value::Null));
         }
         }
-        let mut signable: Value = Value::from(vec![Value::Str("createOrders".into()), Value::Array(rows)]);
+        let mut signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("createOrders".into()), Value::Array(rows)]);
         let mut bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("createOrders".into()));
                 m.insert("args".to_string(), Value::from(entries));
             m
         });
-        let mut signed: crate::value::Dict = self.sign_perps_op(signable, Value::Map(bodyOp), &[params]).await.into_dict();
+        let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[params]).await.into_dict();
         let mut response: crate::value::List = self.trade_post_trade_orders(&[Value::Dict(signed)]).await.into_list();
         //
         //     [
@@ -2343,14 +2343,14 @@ impl Polymarket {
             args.insert("iid".into(), Value::from(instrumentId));
             signableArgs = Value::from(vec![Value::from(instrumentId)]);
         }
-        let mut signable: Value = Value::from(vec![Value::Str("cancelAll".into()), signableArgs]);
+        let mut signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("cancelAll".into()), signableArgs]);
         let mut bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("cancelAll".into()));
                 m.insert("args".to_string(), Value::Map(args));
             m
         });
-        let mut signed: crate::value::Dict = self.sign_perps_op(signable, Value::Map(bodyOp), &[]).await.into_dict();
+        let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
         let mut response: Value = self.trade_delete_trade_orders_all(&[Value::Dict(signed)]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -950,10 +950,10 @@ impl Gemini {
         add_element_to_object(&mut currentBidAsk, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut currentBidAsk, &Value::Str("datetime".into()), self.iso8601(timestamp));
         add_element_to_object(&mut currentBidAsk, &Value::Str("info".into()), rawBidAskChanges);
-        let mut bidsAsksDict: indexmap::IndexMap<String, Value> = {
+        let mut bidsAsksDict: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         bidsAsksDict.insert(crate::runtime::stringify_param(&symbol), currentBidAsk.clone());
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), currentBidAsk); }
         client.resolve(Value::Map(bidsAsksDict), messageHash.as_str());

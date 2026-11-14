@@ -636,14 +636,14 @@ impl Sxbet {
         if (self.safe_integer_k(raw.clone(), "gameTime", &[Value::Int(0)]).as_f64() != Some(0.0)) {
             gameTime = self.safe_timestamp_k(raw.clone(), "gameTime", &[]).as_i64();
         }
-        let mut outcomeLabels: Value = Value::from(vec![outcomeOneName.map(Value::from).unwrap_or(Value::Null), outcomeTwoName.map(Value::from).unwrap_or(Value::Null)]);
+        let mut outcomeLabels: crate::value::List = std::sync::Arc::new(vec![outcomeOneName.map(Value::from).unwrap_or(Value::Null), outcomeTwoName.map(Value::from).unwrap_or(Value::Null)]);
         let mut outcomeIds: Value = Value::from(vec![marketHash.clone(), Value::Str(format!("{}{}", marketHash, "-2").into())]);
         let mut outcomes: Vec<Value> = Vec::new();
         {
                         let mut oi: i64 = 0;
             let mut __for_first_1493: bool = true;
             while { if !__for_first_1493 { oi += 1; } __for_first_1493 = false; oi < (outcomeLabels.len() as i64) } {
-            let mut label: Option<String> = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut label: Option<String> = outcomeLabels.get(oi as usize).and_then(Value::as_str).map(str::to_owned);
             let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(eventSlug.as_deref()), Value::from(marketSlug.clone()), Value::from(label.as_deref())).as_str().map(str::to_owned);
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -2758,8 +2758,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "requestId": "633900538459062272"
         //     }
         //
-        let mut orders: Value = Value::from(vec![response]);
-        return self.parse_orders(orders, market.as_ref(), &[]);
+        let mut orders: crate::value::List = std::sync::Arc::new(vec![response]);
+        return self.parse_orders(&orders, market.as_ref(), &[]);
         Value::Null
         }).await?))
     }

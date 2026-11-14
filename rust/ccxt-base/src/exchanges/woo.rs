@@ -4040,13 +4040,13 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut mainRows: Value = Value::from(vec![Value::Dict(mainData)]);
+        let mut mainRows: crate::value::List = std::sync::Arc::new(vec![Value::Dict(mainData)]);
         let mut subData: crate::value::Dict = self.safe_dict_k(subAccountResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut subRows: crate::value::List = self.safe_list_k(&subData, "rows", &[Value::from(vec![])]).into_list();
-        let mut rows: Value = self.array_concat(mainRows, &subRows);
+        let mut rows: Value = self.array_concat(Value::Arr(mainRows), &subRows);
         return self.parse_accounts(rows, &[params]);
         Value::Null
         }).await?))

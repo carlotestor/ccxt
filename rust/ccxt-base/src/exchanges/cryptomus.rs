@@ -1023,11 +1023,11 @@ impl Cryptomus {
         //     }
         //
         let mut data: Option<crate::value::List> = self.safe_list_k(&response, "data", &[]).into_opt_list();
-        let mut dataList: Value = Value::from(vec![]);
+        let mut dataList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (data.is_some()) {
-            dataList = data.map_or(Value::Null, Value::Arr);
+            dataList = data.unwrap_or_default();
         }
-        return self.parse_trades(dataList, Some(&market), &[since, limit]);
+        return self.parse_trades(&dataList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

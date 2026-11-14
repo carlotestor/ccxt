@@ -9904,11 +9904,11 @@ impl Kucoin {
             m
         })]).into_dict();
         let mut trades: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        let mut tradesList: Value = Value::from(vec![]);
+        let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (trades != Value::Null) {
-            tradesList = trades;
+            tradesList = trades.into_list();
         }
-        return self.parse_trades(tradesList, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&tradesList, market.as_ref(), &[since, limit]);
 
     Value::Null
 }
@@ -10012,11 +10012,11 @@ impl Kucoin {
             m
         })]).into_dict();
         let mut trades: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        let mut tradesList: Value = Value::from(vec![]);
+        let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (trades != Value::Null) {
-            tradesList = trades;
+            tradesList = trades.into_list();
         }
-        return self.parse_trades(tradesList, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&tradesList, market.as_ref(), &[since, limit]);
 
     Value::Null
 }

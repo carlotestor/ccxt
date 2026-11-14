@@ -1170,10 +1170,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
             client.resolve(Value::from(&ticker), &(Value::Str(format!("{}{}", "ticker:", symbol).into())));
             // watchTickers
-            let mut allTickers: indexmap::IndexMap<String, Value> = {
+            let mut allTickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
-            };
+            });
             allTickers.insert(crate::runtime::stringify_param(&symbol), Value::Dict(ticker));
             client.resolve(Value::Map(allTickers), "tickers");
         }  else {

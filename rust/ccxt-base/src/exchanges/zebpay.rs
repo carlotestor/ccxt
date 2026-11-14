@@ -1594,8 +1594,8 @@ impl Zebpay {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = Value::from(vec![Value::Dict(data)]);
-        return self.parse_trades(trades, None, &[]);
+        let mut trades: crate::value::List = std::sync::Arc::new(vec![Value::Dict(data)]);
+        return self.parse_trades(&trades, None, &[]);
         Value::Null
         }).await?))
     }

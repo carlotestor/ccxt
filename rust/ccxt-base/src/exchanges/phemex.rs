@@ -2114,12 +2114,12 @@ impl Phemex {
                 m.insert("nonce".to_string(), Value::Null);
             m
         });
-        let mut sides: Value = Value::from(vec![bidsKey, asksKey]);
+        let mut sides: crate::value::List = std::sync::Arc::new(vec![bidsKey, asksKey]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1077: bool = true;
             while { if !__for_first_1077 { i += 1; } __for_first_1077 = false; i < (sides.len() as i64) } {
-            let mut side: Option<String> = sides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut side: Option<String> = sides.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut orders: Vec<Value> = Vec::new();
             let mut bidasks: crate::value::List = self.safe_list(orderbook.clone(), Value::from(side.as_deref()), &[Value::from(vec![])]).into_list();
             {

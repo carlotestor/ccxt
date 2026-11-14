@@ -2883,8 +2883,8 @@ impl Limitless {
     m
 }));
         let mut response: Value = self.limitless_private_get_profiles_me(&[params]).await;
-        let mut responseList: Value = Value::from(vec![response]);
-        return self.parse_accounts(responseList, &[]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(vec![response]);
+        return self.parse_accounts(&responseList, &[]);
         Value::Null
         }).await?))
     }

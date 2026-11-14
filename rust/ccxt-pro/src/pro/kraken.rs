@@ -1113,8 +1113,8 @@ impl Kraken {
             let mut candle: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut datetime: Option<String> = self.safe_string_k(&candle, "interval_begin", &[]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
-            let mut parsed: Value = Value::from(vec![Value::from(timestamp), self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
-            stored.append(parsed);
+            let mut parsed: crate::value::List = std::sync::Arc::new(vec![Value::from(timestamp), self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
+            stored.append(Value::Arr(parsed));
         }
         }
         client.resolve(Value::from(&stored), messageHash.as_deref());
