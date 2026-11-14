@@ -841,7 +841,7 @@ impl Ndax {
         }
         orderbook.set_book_meta("nonce", Value::from(nonce));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
-        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         let mut name: String = "SubscribeLevel2".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), marketId.as_deref().unwrap_or("null"));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());

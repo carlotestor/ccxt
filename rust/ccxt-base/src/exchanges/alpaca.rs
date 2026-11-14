@@ -1503,7 +1503,7 @@ impl Alpaca {
             let mut until: Option<i64> = self.safe_integer_k(query.clone(), "until", &[]).as_i64();
             if (until.is_some()) {
                 query = self.omit(query, Value::Str("until".into()), &[]);
-                request.insert("end".into(), self.iso8601(Value::from(until)));
+                request.insert("end".into(), self.iso8601(until));
             }
             request.insert("timeframe".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[query.clone()]);
@@ -2167,7 +2167,7 @@ impl Alpaca {
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         if (until.is_some()) {
-            request.insert("until".into(), self.iso8601(Value::from(until)));
+            request.insert("until".into(), self.iso8601(until));
         }
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (since != Value::Null) {
@@ -2506,7 +2506,7 @@ impl Alpaca {
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         if (until.is_some()) {
-            request.insert("until".into(), self.iso8601(Value::from(until)));
+            request.insert("until".into(), self.iso8601(until));
         }
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (since != Value::Null) {
@@ -2575,7 +2575,7 @@ impl Alpaca {
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("i".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "order_id", &[]));
         m.insert("type".to_string(), Value::Null);
@@ -2765,7 +2765,7 @@ impl Alpaca {
                 let mut entry: crate::value::Dict = ledger.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut activityType: Option<String> = self.safe_string_k(&entry, "activity_type", &[]).as_str().map(str::to_owned);
                 let mut amount: Option<String> = self.safe_string_k(&entry, "net_amount", &[]).as_str().map(str::to_owned);
-                let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&amount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
+                let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true)));
                 let mut entryDirection: String = "OUTGOING".to_string();
                 if isIncoming {
                     entryDirection = "INCOMING".to_string();
@@ -2956,10 +2956,10 @@ impl Alpaca {
         let mut fee: Option<crate::value::Dict> = None;
         if (activityType.is_some()) {
             let mut netAmount: Option<String> = self.safe_string_k(transaction.clone(), "net_amount", &[]).as_str().map(str::to_owned);
-            let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&netAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
+            let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".into())).as_bool() == Some(true)));
             let mut date: String = self.safe_string_k(transaction.clone(), "date", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             timestamp = self.parse8601(Value::Str(format!("{}{}", date, "T00:00:00Z").into()));
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
             type_var = (if isIncoming { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
             amount = self.parse_number(crate::precise::Precise::stringAbs(&netAmount), &[]).as_f64();
             // cash ledger rows carry no per-entry asset field and are USD, while crypto

@@ -1333,7 +1333,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Map(raw), None).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&data, "t", &[]).as_i64();
             std::sync::Arc::make_mut(&mut fundingRate).insert("timestamp".into(), Value::from(timestamp));
-            std::sync::Arc::make_mut(&mut fundingRate).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+            std::sync::Arc::make_mut(&mut fundingRate).insert("datetime".into(), self.iso8601(timestamp));
             let mut symbol: Value = crate::value::KeyRead::key_read(&&fundingRate, "symbol");
             if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
             let mut event: Option<String> = (match __pro_message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
@@ -1913,7 +1913,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "t", &[]).as_i64();
             orderbook.set_book_meta("nonce", self.safe_integer2(data, Value::Str("i".into()), Value::Str("u".into()), &[]));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
-            orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             orderbook.set_book_meta("symbol", symbol.map(Value::from).unwrap_or(Value::Null));
             client.resolve(orderbook, messageHash.as_str());
         }
@@ -2044,7 +2044,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("i".into()), Value::Str("orderId".into()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(order.clone(), Value::Str("ci".into()), Value::Str("clientOrderId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "type"));

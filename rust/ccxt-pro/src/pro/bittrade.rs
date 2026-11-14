@@ -402,7 +402,7 @@ impl Bittrade {
         let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(tick), Some(&market)).into_dict();
         let mut timestamp: Option<i64> = (match __pro_message.get("ts") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         std::sync::Arc::make_mut(&mut ticker).insert("timestamp".into(), Value::from(timestamp));
-        std::sync::Arc::make_mut(&mut ticker).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        std::sync::Arc::make_mut(&mut ticker).insert("datetime".into(), self.iso8601(timestamp));
         let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
         client.resolve(Value::Dict(ticker), ch.as_deref());
@@ -772,7 +772,7 @@ impl Bittrade {
         let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]).into_dict();
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&data, "seqNum", &[]));
         std::sync::Arc::make_mut(&mut snapshot).insert("timestamp".into(), Value::from(timestamp));
-        std::sync::Arc::make_mut(&mut snapshot).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        std::sync::Arc::make_mut(&mut snapshot).insert("datetime".into(), self.iso8601(timestamp));
         orderbook.reset(Value::Dict(snapshot));
         // unroll the accumulated deltas
         let mut messages: Value = orderbook.book_field("cache");
@@ -888,7 +888,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::from(seqNum));
             let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::from(timestamp));
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
+            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         return orderbook;
 

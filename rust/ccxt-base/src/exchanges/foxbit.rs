@@ -2540,7 +2540,7 @@ impl Foxbit {
         let mut change: Option<String> = self.safe_string_k(&rolling_24h, "price_change", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.safe_string_k(&rolling_24h, "price_change_percent", &[]).as_str().map(str::to_owned);
         // never-traded markets report all-zero placeholders instead of omitting the values
-        if crate::precise::Precise::stringEq(&lastPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringEq(&lastPrice, &Value::Str("0".into())).as_bool() == Some(true) {
             lastPrice = None.clone();
             change = None.clone();
             percentage = None.clone();
@@ -2860,7 +2860,7 @@ impl Foxbit {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), item);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);

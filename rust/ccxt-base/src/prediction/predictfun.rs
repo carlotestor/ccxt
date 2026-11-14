@@ -1783,7 +1783,7 @@ impl Predictfun {
                     m.insert("bids".to_string(), self.sort_by(Value::from(noBids), Value::Int(0), &[Value::Bool(true)]));
                     m.insert("asks".to_string(), self.sort_by(Value::from(noAsks), Value::Int(0), &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("nonce".to_string(), Value::Null);
                 m
             });
@@ -2305,7 +2305,7 @@ impl Predictfun {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "settlementId", &[]));
         m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[outcomeObj.clone()]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
@@ -3002,11 +3002,11 @@ impl Predictfun {
         // what the shares cost, which is also the collateral committed to the position
         let mut collateral: Option<String> = crate::precise::Precise::stringMul(&entryPrice, &contracts).as_str().map(str::to_owned);
         let mut markPrice: Option<String> = None;
-        if (notional.is_some()) && (contracts.is_some()) && crate::precise::Precise::stringGt(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (notional.is_some()) && (contracts.is_some()) && crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
             markPrice = crate::precise::Precise::stringDiv(&notional, &contracts).as_str().map(str::to_owned);
         }
         let mut percentage: Option<String> = None;
-        if (pnl.is_some()) && (collateral.is_some()) && crate::precise::Precise::stringGt(&collateral.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (pnl.is_some()) && (collateral.is_some()) && crate::precise::Precise::stringGt(&collateral, &Value::Str("0".into())).as_bool() == Some(true) {
             percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&pnl, &collateral), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         // a settled outcome reports WON or LOST, an open one leaves the field null - and the
@@ -3778,7 +3778,7 @@ impl Predictfun {
             isYieldBearing = self.safe_bool_k(&marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool() == Some(true);
         }
         if (side.as_deref() == Some("sell")) {
-            let mut ctfToken: Value = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)]);
+            let mut ctfToken: Option<String> = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut operators: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut explicitOperator: Option<String> = self.safe_string_k(params.clone(), "spender", &[]).as_str().map(str::to_owned);
             if (explicitOperator.is_some()) {
@@ -3793,7 +3793,7 @@ impl Predictfun {
                     std::sync::Arc::make_mut(&mut operators).push(self.adapter_address(isYieldBearing).map(Value::from).unwrap_or(Value::Null));
                 }
             }
-            if (rpcUrl.is_none()) || (ctfToken == Value::Null) {
+            if (rpcUrl.is_none()) || (ctfToken.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain ").into()), chainKey.as_deref().unwrap_or("null"))));
             }
             let mut approved: bool = self.safe_bool_k(params.clone(), "approved", &[Value::Bool(true)]).as_bool().unwrap_or(true);
@@ -3815,7 +3815,7 @@ impl Predictfun {
                 let mut approvalData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0xa22cb465".into()), self.pad_hex_address(operatorAddress.map(Value::from).unwrap_or(Value::Null))).into()), approvedHex);
                 // each receipt is awaited before the next transaction goes out, so the nonce the
                 // second one looks up already counts the first
-                let mut approvalHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), Value::from(owner.as_deref()), ctfToken.clone(), Value::Str("0x0".into()), Value::from(approvalData), Value::from(gasLimit.clone())).await;
+                let mut approvalHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), Value::from(owner.as_deref()), Value::from(ctfToken.as_deref()), Value::Str("0x0".into()), Value::from(approvalData), Value::from(gasLimit.clone())).await;
                 let mut receipt: Value = self.wait_for_transaction_receipt(Value::from(rpcUrl.as_deref()), approvalHash, &[]).await;
                 receipts.push(receipt);
             }
@@ -4623,7 +4623,7 @@ impl Predictfun {
                         m.insert("bids".to_string(), bids);
                         m.insert("asks".to_string(), asks);
                         m.insert("timestamp".to_string(), Value::from(timestamp));
-                        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                        m.insert("datetime".to_string(), self.iso8601(timestamp));
                         m.insert("outcome".to_string(), outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[]));
                         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
@@ -4870,7 +4870,7 @@ impl Predictfun {
         }  else if (eventType.as_deref() == Some("orderTransactionSuccess")) {
             // a settled fill closes the order only once nothing is left of it
             status = Some("open".to_string());
-            if (amount.is_some()) && (filled.is_some()) && !(crate::precise::Precise::stringLt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+            if (amount.is_some()) && (filled.is_some()) && !(crate::precise::Precise::stringLt(&filled, &amount).as_bool() == Some(true)) {
                 status = Some("closed".to_string());
             }
         }
@@ -4891,7 +4891,7 @@ impl Predictfun {
         m.insert("id".to_string(), self.safe_string2(event.clone(), Value::Str("orderHash".into()), Value::Str("orderId".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(timestamp));
         m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4963,7 +4963,7 @@ impl Predictfun {
         m.insert("id".to_string(), self.safe_string_k(event.clone(), "settlementId", &[]));
         m.insert("order".to_string(), self.safe_string_k(event.clone(), "orderHash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), (match order.get("outcome") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("outcomeId".to_string(), (match order.get("outcomeId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("label".to_string(), (match order.get("label") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));

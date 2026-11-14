@@ -741,7 +741,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "best_ask_price", &[]));
         m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "best_ask_amount", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "best_bid_price", &[]));
@@ -1149,7 +1149,7 @@ impl Deribit {
         self.handle_deltas(storedOrderBook.book_field("bids"), Value::Arr(bids));
         storedOrderBook.set_book_meta("nonce", Value::from(timestamp));
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
-        storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
         storedOrderBook.set_book_meta("symbol", symbol.clone());
         CacheStore::put(&mut self.orderbooks, &symbol, storedOrderBook.clone());
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "book|", symbol).into()), "|").into()), descriptor);

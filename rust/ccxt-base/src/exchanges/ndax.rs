@@ -1381,7 +1381,7 @@ impl Ndax {
         result.insert("bids".into(), self.sort_by(Value::from(bids), Value::Int(0), &[Value::Bool(true)]));
         result.insert("asks".into(), self.sort_by(Value::from(asks), Value::Int(0), &[]));
         result.insert("timestamp".into(), Value::from(latestTimestamp));
-        result.insert("datetime".into(), self.iso8601(Value::from(latestTimestamp)));
+        result.insert("datetime".into(), self.iso8601(latestTimestamp));
         result.insert("nonce".into(), Value::from(nonce));
         return Value::Map(result);
 
@@ -1495,7 +1495,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string2(ticker.clone(), Value::Str("SessionHigh".into()), Value::Str("highest_price_24h".into()), &[]));
         m.insert("low".to_string(), self.safe_string2(ticker.clone(), Value::Str("SessionLow".into()), Value::Str("lowest_price_24h".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("BestBid".into()), Value::Str("highest_bid".into()), &[]));
@@ -2080,10 +2080,10 @@ impl Ndax {
         let mut debit: Option<String> = self.safe_string_k(item.clone(), "DR", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = None;
         let mut direction: Option<String> = None;
-        if crate::precise::Precise::stringLt(&credit.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&credit, &Value::Str("0".into())).as_bool() == Some(true) {
             amount = credit;
             direction = Some("in".to_string());
-        }  else if crate::precise::Precise::stringLt(&debit.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        }  else if crate::precise::Precise::stringLt(&debit, &Value::Str("0".into())).as_bool() == Some(true) {
             amount = debit;
             direction = Some("out".to_string());
         }
@@ -2110,7 +2110,7 @@ impl Ndax {
         m.insert("after".to_string(), self.parse_number(after.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), Value::Null);
     m
 }), Some(&currencyResolved));
@@ -2283,7 +2283,7 @@ impl Ndax {
         m.insert("clientOrderId".to_string(), self.safe_string2(order.clone(), Value::Str("ReplacementClOrdId".into()), Value::Str("ClientOrderId".into()), &[]));
         m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "LastUpdatedTime", &[]));
         m.insert("status".to_string(), self.parse_order_status((self.safe_string_k(order.clone(), "OrderState", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
@@ -3281,7 +3281,7 @@ impl Ndax {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), self.safe_string2(templateForm.clone(), Value::Str("TxId".into()), Value::Str("TXId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), self.safe_string_k(templateForm, "FromAddress", &[]));

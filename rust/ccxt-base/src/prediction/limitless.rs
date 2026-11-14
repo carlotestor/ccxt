@@ -1010,7 +1010,7 @@ impl Limitless {
         m.insert("inverse".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::from(expiryTimestamp));
-        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiryTimestamp)));
+        m.insert("expiryDatetime".to_string(), self.iso8601(expiryTimestamp));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("taker".to_string(), Value::Float(0.02));
@@ -3634,7 +3634,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "txHash", &[]));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("outcome".to_string(), feedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
@@ -3727,7 +3727,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), tradeOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), self.safe_string_k(trade, "asset", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcome.clone(), "label", &[]));

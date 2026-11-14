@@ -1984,7 +1984,7 @@ impl Kraken {
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
-        if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
             amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }  else {
@@ -2006,7 +2006,7 @@ impl Kraken {
         m.insert("after".to_string(), self.safe_number_k(item.clone(), "balance", &[]));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(item, "fee", &[]));
@@ -2301,7 +2301,7 @@ impl Kraken {
             takerOrMaker = (if (maker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         if (datetime.is_none()) {
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }  else {
             timestamp = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         }
@@ -2982,7 +2982,7 @@ impl Kraken {
             price = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
         }
         // when type = trailing stop returns price = '+50.0000%'
-        if (price.is_some()) && ((price.as_deref().unwrap_or_default().ends_with("%")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.00000".into())).as_bool() == Some(true) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (price.is_some()) && ((price.as_deref().unwrap_or_default().ends_with("%")) || crate::precise::Precise::stringEquals(&price, &Value::Str("0.00000".into())).as_bool() == Some(true) || crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true)) {
             price = None.clone(); // this is not the price we want
         }
         if (price.is_none()) {
@@ -3053,13 +3053,13 @@ impl Kraken {
             if (rawType.as_deref().unwrap_or_default().starts_with("take-profit")) {
                 takeProfitPrice = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
                 price = self.safe_string_k(&description, "price2", &[]).as_str().map(str::to_owned);
-                if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+                if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true)) {
                     price = None.clone(); // kraken pads an absent price with zeros, so the omit-zero rule applies
                 }
             }  else if (rawType.as_deref().unwrap_or_default().starts_with("stop-loss")) {
                 stopLossPrice = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
                 price = self.safe_string_k(&description, "price2", &[]).as_str().map(str::to_owned);
-                if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+                if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true)) {
                     price = None.clone(); // kraken pads an absent price with zeros, so the omit-zero rule applies
                 }
             }  else if (rawType.as_deref() == Some("take profit")) {
@@ -3068,12 +3068,12 @@ impl Kraken {
                 stopLossPrice = triggerPrice.clone();
             }
         }
-        let mut typeParsed: Value = self.parse_order_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut typeParsed: Option<String> = self.parse_order_type(rawType.as_deref());
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
-        if self.in_array(typeParsed.clone(), Value::from(vec![Value::Str("stop loss".into()), Value::Str("take profit".into())])) {
-            typeParsed = (if (price.is_none()) { Value::Str("market".into()) } else { Value::Str("limit".into()) });
+        if self.in_array(&typeParsed, Value::from(vec![Value::Str("stop loss".into()), Value::Str("take profit".into())])) {
+            typeParsed = (if (price.is_none()) { Some("market".to_string()) } else { Some("limit".to_string()) });
         }
         let mut amendId: Option<String> = self.safe_string_k(orderOmitted.clone(), "amend_id", &[]).as_str().map(str::to_owned);
         if (amendId.is_some()) {
@@ -3085,12 +3085,12 @@ impl Kraken {
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), orderOmitted.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(orderOmitted.clone(), "closetm", &[]));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), typeParsed);
+        m.insert("type".to_string(), typeParsed.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), isPostOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -4250,7 +4250,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("updated".to_string(), Value::Null);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({

@@ -1259,7 +1259,7 @@ impl Latoken {
         }
         }
         result.insert("timestamp".into(), Value::from(maxTimestamp));
-        result.insert("datetime".into(), self.iso8601(Value::from(maxTimestamp)));
+        result.insert("datetime".into(), self.iso8601(maxTimestamp));
         return self.safe_balance(Value::Map(result));
         Value::Null
         }).await?))
@@ -1336,7 +1336,7 @@ impl Latoken {
             while { if !__for_first_914 { i += 1; } __for_first_914 = false; i < (rawAsks.len() as i64) } {
             let mut askEntry: crate::value::Dict = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut askQuantity: Option<String> = self.safe_string_k(&askEntry, "quantity", &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&askQuantity.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 asks.push(Value::Dict(askEntry));
             }
         }
@@ -1347,7 +1347,7 @@ impl Latoken {
             while { if !__for_first_915 { i += 1; } __for_first_915 = false; i < (rawBids.len() as i64) } {
             let mut bidEntry: crate::value::Dict = rawBids.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut bidQuantity: Option<String> = self.safe_string_k(&bidEntry, "quantity", &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringGt(&bidQuantity.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 bids.push(Value::Dict(bidEntry));
             }
         }
@@ -1406,7 +1406,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("low".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bestBid", &[]));
@@ -1577,7 +1577,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -1917,7 +1917,7 @@ impl Latoken {
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);
@@ -2408,7 +2408,7 @@ impl Latoken {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2609,7 +2609,7 @@ impl Latoken {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "id", &[]));
         m.insert("timestamp".to_string(), self.safe_integer_k(transfer.clone(), "timestamp", &[]));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "transferringFunds", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(transfer.clone(), "fromAccount", &[]));

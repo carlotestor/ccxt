@@ -40,11 +40,11 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1555: bool = true;
         while { if !__for_first_1555 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1555 = false; i.as_f64().unwrap_or(f64::NAN) < (bidsLength as f64) } {
-        let mut currentBidString: Value = exchange.safe_string(get_value(&bids, &i), Value::Int(0), &[]);
+        let mut currentBidString: Option<String> = exchange.safe_string(get_value(&bids, &i), Value::Int(0), &[]).as_str().map(str::to_owned);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
             let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             if (bidsLength as f64) > nextI.as_f64().unwrap_or(f64::NAN) {
-                let mut nextBidString: Value = exchange.safe_string(get_value(&bids, &nextI), Value::Int(0), &[]);
+                let mut nextBidString: Option<String> = exchange.safe_string(get_value(&bids, &nextI), Value::Int(0), &[]).as_str().map(str::to_owned);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&currentBidString, &nextBidString))));
             }
         }
@@ -61,11 +61,11 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1556: bool = true;
         while { if !__for_first_1556 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1556 = false; i.as_f64().unwrap_or(f64::NAN) < (asksLength as f64) } {
-        let mut currentAskString: Value = exchange.safe_string(get_value(&asks, &i), Value::Int(0), &[]);
+        let mut currentAskString: Option<String> = exchange.safe_string(get_value(&asks, &i), Value::Int(0), &[]).as_str().map(str::to_owned);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
             let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             if (asksLength as f64) > nextI.as_f64().unwrap_or(f64::NAN) {
-                let mut nextAskString: Value = exchange.safe_string(get_value(&asks, &nextI), Value::Int(0), &[]);
+                let mut nextAskString: Option<String> = exchange.safe_string(get_value(&asks, &nextI), Value::Int(0), &[]).as_str().map(str::to_owned);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLt(&currentAskString, &nextAskString))));
             }
         }
@@ -78,8 +78,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     }
     if !(in_op(&skippedProperties, &Value::Str("spread".into()))) {
         if (bidsLength > 0) && (asksLength > 0) {
-            let mut firstBid: Value = exchange.safe_string(get_value(&bids, &Value::Int(0)), Value::Int(0), &[]);
-            let mut firstAsk: Value = exchange.safe_string(get_value(&asks, &Value::Int(0)), Value::Int(0), &[]);
+            let mut firstBid: Option<String> = exchange.safe_string(get_value(&bids, &Value::Int(0)), Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut firstAsk: Option<String> = exchange.safe_string(get_value(&asks, &Value::Int(0)), Value::Int(0), &[]).as_str().map(str::to_owned);
             // check bid-ask spread
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLt(&firstBid, &firstAsk))));
         }

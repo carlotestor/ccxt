@@ -2005,9 +2005,9 @@ impl Coinbase {
         let mut resource: Option<String> = self.safe_string_k(transaction.clone(), "resource", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = resource;
         if !self.in_array(&type_var, Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())])) {
-            if crate::precise::Precise::stringGt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
                 type_var = Some("deposit".to_string());
-            }  else if crate::precise::Precise::stringLt(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            }  else if crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
                 type_var = Some("withdrawal".to_string());
             }
         }
@@ -2847,7 +2847,7 @@ if _try_result.is_err() {
         let mut contractSize: Option<f64> = self.safe_number_k(&futureProductDetails, "contract_size", &[]).as_f64();
         let mut contractExpire: Option<String> = self.safe_string_k(&futureProductDetails, "contract_expiry", &[]).as_str().map(str::to_owned);
         let mut expireTimestamp: Option<i64> = self.parse8601(contractExpire.map(Value::from).unwrap_or(Value::Null));
-        let mut expireDateTime: Option<String> = self.iso8601(Value::from(expireTimestamp)).as_str().map(str::to_owned);
+        let mut expireDateTime: Option<String> = self.iso8601(expireTimestamp).as_str().map(str::to_owned);
         // US perpetual-style futures are listed as EXPIRING with a placeholder expiry, a funding interval, and a PERP display name
         let mut fundingInterval: Option<String> = self.safe_string_k(&futureProductDetails, "funding_interval", &[]).as_str().map(str::to_owned);
         let mut displayName: Option<String> = self.safe_string_k(market.clone(), "display_name", &[]).as_str().map(str::to_owned);
@@ -4217,7 +4217,7 @@ if _try_result.is_err() {
 })]).into_dict();
         let mut amount: Option<String> = self.safe_string_k(&amountInfo, "amount", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
-        if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
             amount = crate::precise::Precise::stringNeg(&amount).as_str().map(str::to_owned);
         }  else {
@@ -4271,7 +4271,7 @@ if _try_result.is_err() {
         m.insert("info".to_string(), item);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceId".to_string(), Value::Null);
@@ -5207,7 +5207,7 @@ if _try_result.is_err() {
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
-            request.insert("end_date".into(), self.iso8601(Value::from(until)));
+            request.insert("end_date".into(), self.iso8601(until));
         }
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]).into_dict() } else { paramsPaginate });
         let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5303,7 +5303,7 @@ if _try_result.is_err() {
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         if (until.is_some()) {
-            request.insert("end_date".into(), self.iso8601(Value::from(until)));
+            request.insert("end_date".into(), self.iso8601(until));
         }
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until"], &[]) } else { params }).into_dict();
         let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5544,7 +5544,7 @@ if _try_result.is_err() {
         let mut windowEnd: Option<String> = crate::precise::Precise::stringAdd(&sinceString, &Value::Str(format!("{}", requestedDuration).into())).as_str().map(str::to_owned);
         if (until.is_some()) {
             let mut endString: Option<String> = self.number_to_string(Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
-            if (since != Value::Null) && crate::precise::Precise::stringLt(&windowEnd.clone().map(Value::from).unwrap_or(Value::Null), &endString.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+            if (since != Value::Null) && crate::precise::Precise::stringLt(&windowEnd, &endString).as_bool() == Some(true) {
                 endString = windowEnd.clone();
             }
             request.insert("end".into(), endString.map(Value::from).unwrap_or(Value::Null));
@@ -5724,7 +5724,7 @@ if _try_result.is_err() {
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
-            request.insert("end_sequence_timestamp".into(), self.iso8601(Value::from(until)));
+            request.insert("end_sequence_timestamp".into(), self.iso8601(until));
         }
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]).into_dict() } else { paramsPaginate });
         let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);

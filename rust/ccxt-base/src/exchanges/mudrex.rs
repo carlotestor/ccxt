@@ -804,11 +804,11 @@ impl Mudrex {
                 continue;
             }
             let mut m: crate::types::Market = self.safe_market(sym.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&m, "symbol");
-            if (symbols != Value::Null) && !self.in_array(symbol.clone(), symbols.clone()) {
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&m, "symbol").as_str().map(str::to_owned);
+            if (symbols != Value::Null) && !self.in_array(&symbol, symbols.clone()) {
                 continue;
             }
-            resultTickers.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(&t, Some(&m)));
+            resultTickers.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&t, Some(&m)));
         }
         }
         return self.filter_by_array_tickers(Value::Map(resultTickers), Value::Str("symbol".into()), &[symbols]);
@@ -1430,7 +1430,7 @@ impl Mudrex {
         m.insert("id".to_string(), oid.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), sym.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), typ.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1835,7 +1835,7 @@ impl Mudrex {
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("isolated".to_string(), Value::Bool(true));
         m.insert("hedged".to_string(), Value::Bool(false));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2209,7 +2209,7 @@ impl Mudrex {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
         m.insert("order".to_string(), Value::Null);

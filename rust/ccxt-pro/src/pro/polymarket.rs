@@ -687,7 +687,7 @@ impl Polymarket {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("close".to_string(), self.safe_string_k(&data, "last", &[]));
                 m.insert("last".to_string(), self.safe_string_k(&data, "last", &[]));
                 m.insert("markPrice".to_string(), self.safe_string_k(&data, "mark", &[]));
@@ -779,7 +779,7 @@ impl Polymarket {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("bid".to_string(), self.safe_string_k(&data, "bp", &[]));
                 m.insert("bidVolume".to_string(), self.safe_string_k(&data, "bq", &[]));
                 m.insert("ask".to_string(), self.safe_string_k(&data, "ap", &[]));
@@ -963,7 +963,7 @@ impl Polymarket {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tid", &[]));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
@@ -1673,7 +1673,7 @@ impl Polymarket {
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::Dict(data));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

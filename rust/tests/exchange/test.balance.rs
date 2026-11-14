@@ -54,16 +54,16 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
         assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), &code)))));
         assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), &code)))));
         assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), &code)))));
-        let mut total: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
-        let mut free: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
-        let mut used: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), code, &[]);
-        assert!(ccxt::runtime::is_true(&((total != Value::Null))));
-        assert!(ccxt::runtime::is_true(&((free != Value::Null))));
-        assert!(ccxt::runtime::is_true(&((used != Value::Null))));
+        let mut total: Option<String> = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), code.clone(), &[]).as_str().map(str::to_owned);
+        let mut free: Option<String> = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), code.clone(), &[]).as_str().map(str::to_owned);
+        let mut used: Option<String> = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), code, &[]).as_str().map(str::to_owned);
+        assert!(ccxt::runtime::is_true(&((total.is_some()))));
+        assert!(ccxt::runtime::is_true(&((free.is_some()))));
+        assert!(ccxt::runtime::is_true(&((used.is_some()))));
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&total, &Value::Str("0".into())))));
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&free, &Value::Str("0".into())))));
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&used, &Value::Str("0".into())))));
-        let mut sumFreeUsed: Value = ccxt::precise::Precise::stringAdd(&free, &used);
+        let mut sumFreeUsed: Option<String> = ccxt::precise::Precise::stringAdd(&free, &used).as_str().map(str::to_owned);
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&total, &sumFreeUsed))));
     }
     }

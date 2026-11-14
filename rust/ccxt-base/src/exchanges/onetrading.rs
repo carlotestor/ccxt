@@ -941,7 +941,7 @@ impl Onetrading {
         m.insert("inverse".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
         m.insert("contractSize".to_string(), (if matches!(&isContract, Value::Bool(true)) { self.parse_number(Value::Str("1".into()), &[]) } else { Value::Null }));
         m.insert("expiry".to_string(), Value::from(expiry));
-        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
+        m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
@@ -1279,7 +1279,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "best_bid", &[]));
@@ -1601,7 +1601,7 @@ impl Onetrading {
         });
         if (since == Value::Null) {
             let mut now: i64 = self.milliseconds();
-            request.insert("to".into(), self.iso8601(Value::from(now)));
+            request.insert("to".into(), self.iso8601(now));
             request.insert("from".into(), self.iso8601(Value::Int((now - ((limitResolved * duration))))));
         }  else {
             request.insert("from".into(), self.iso8601(since.clone()));
@@ -1698,7 +1698,7 @@ impl Onetrading {
         m.insert("id".to_string(), self.safe_string2(tradeValue.clone(), Value::Str("trade_id".into()), Value::Str("sequence".into()), &[]));
         m.insert("order".to_string(), self.safe_string_k(tradeValue.clone(), "order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1878,7 +1878,7 @@ impl Onetrading {
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), order);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -2211,7 +2211,7 @@ impl Onetrading {
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (until.is_some()) {
-            request.insert("to".into(), self.iso8601(Value::from(until)));
+            request.insert("to".into(), self.iso8601(until));
         }
         if (limit != Value::Null) {
             request.insert("max_page_size".into(), limit.clone());
@@ -2461,7 +2461,7 @@ impl Onetrading {
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (until.is_some()) {
-            request.insert("to".into(), self.iso8601(Value::from(until)));
+            request.insert("to".into(), self.iso8601(until));
         }
         if (limit != Value::Null) {
             request.insert("max_page_size".into(), limit.clone());

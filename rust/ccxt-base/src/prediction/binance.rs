@@ -951,9 +951,9 @@ impl Binance {
         m.insert("url".to_string(), Value::Null);
         m.insert("image".to_string(), self.safe_string_k(rawTopic.clone(), "imageUrl", &[]));
         m.insert("created".to_string(), Value::from(created));
-        m.insert("createdDatetime".to_string(), self.iso8601(Value::from(created)));
+        m.insert("createdDatetime".to_string(), self.iso8601(created));
         m.insert("end".to_string(), Value::from(endDate));
-        m.insert("endDatetime".to_string(), self.iso8601(Value::from(endDate)));
+        m.insert("endDatetime".to_string(), self.iso8601(endDate));
         m.insert("category".to_string(), self.safe_string_k(rawTopic.clone(), "chartType", &[]));
         m.insert("resolved".to_string(), resolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), rawTopic);
@@ -1036,7 +1036,7 @@ impl Binance {
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Option<i64> = None;
             if resolved && (price.is_some()) {
-                winnerRaw = crate::precise::Precise::stringEq(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into()));
+                winnerRaw = crate::precise::Precise::stringEq(&price, &Value::Str("1".into()));
                 settleFractionRaw = (if (winnerRaw).as_bool() == Some(true) { Some(1) } else { Some(0) });
                 if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcomeRaw = Some(outcomeHandle.clone());
@@ -1109,7 +1109,7 @@ impl Binance {
         m.insert("inverse".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::from(endDate));
-        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(endDate)));
+        m.insert("expiryDatetime".to_string(), self.iso8601(endDate));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("taker".to_string(), Value::from(feeRate));
@@ -1508,7 +1508,7 @@ impl Binance {
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "outcome", &[]));
@@ -1967,7 +1967,7 @@ impl Binance {
         m.insert("outcomeId".to_string(), self.safe_string2(outcomeObjResolved.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObjResolved, "market", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("isolated".to_string(), Value::Bool(false));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("long".into()));
@@ -2181,7 +2181,7 @@ impl Binance {
         m.insert("id".to_string(), Value::Null);
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "label", &[]));
@@ -2621,7 +2621,7 @@ impl Binance {
             return Value::Null;
         }
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
-        if (errorCode.is_some()) && crate::precise::Precise::stringLt(&errorCode.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (errorCode.is_some()) && crate::precise::Precise::stringLt(&errorCode, &Value::Str("0".into())).as_bool() == Some(true) {
             let mut message: String = self.safe_string_k(response, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

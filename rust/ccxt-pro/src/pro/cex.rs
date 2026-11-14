@@ -567,7 +567,7 @@ impl Cex {
         m.insert("info".to_string(), tradeParts);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -845,7 +845,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -1283,7 +1283,7 @@ impl Cex {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
         add_element_to_object(&mut order, &Value::Str("timestamp".into()), Value::from(timestamp));
-        add_element_to_object(&mut order, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
+        add_element_to_object(&mut order, &Value::Str("datetime".into()), self.iso8601(timestamp));
         order = self.safe_order(order, None);
         storedOrders.append(order);
         let mut messageHash: String = format!("{}{}", "orders:", symbol);
@@ -1376,7 +1376,7 @@ impl Cex {
                 m.insert("clientOrderId".to_string(), Value::Null);
                 m.insert("info".to_string(), order.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("lastTradeTimestamp".to_string(), Value::Null);
                 m.insert("status".to_string(), Value::from(status));
                 m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1636,7 +1636,7 @@ impl Cex {
         self.handle_deltas(storedOrderBook.book_field("asks"), Value::Arr(asks));
         self.handle_deltas(storedOrderBook.book_field("bids"), Value::Arr(bids));
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
-        storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+        storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
         storedOrderBook.set_book_meta("nonce", Value::from(incrementalId));
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }

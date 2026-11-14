@@ -1022,7 +1022,7 @@ impl Krakenfutures {
                     m.insert("maker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]));
                     m.insert("maintenanceMarginRate".to_string(), Value::Null);
                     m.insert("expiry".to_string(), Value::from(expiry));
-                    m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
+                    m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
@@ -1355,7 +1355,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -1502,7 +1502,7 @@ impl Krakenfutures {
             while { if !__for_first_870 { i += 1; } __for_first_870 = false; i < (tiers.len() as i64) } {
             let mut tier: crate::value::Dict = self.safe_dict(&tiers, Value::Int(i), &[]).into_dict();
             let mut tierVolume: Option<String> = self.safe_string_k(&tier, "usdVolume", &[]).as_str().map(str::to_owned);
-            if (volume == Value::Null) || crate::precise::Precise::stringGe(&volume, &tierVolume.map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+            if (volume == Value::Null) || crate::precise::Precise::stringGe(&volume, &tierVolume).as_bool() == Some(true) {
                 makerFee = self.safe_string_k(&tier, "makerFee", &[]).as_str().map(str::to_owned);
                 takerFee = self.safe_string_k(&tier, "takerFee", &[]).as_str().map(str::to_owned);
                 if (volume == Value::Null) {
@@ -1941,7 +1941,7 @@ impl Krakenfutures {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), order.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -3357,8 +3357,8 @@ impl Krakenfutures {
         }
         // This may be incorrectly marked as "open" if only execution report is given,
         // but will be fixed below
-        let mut status: Value = self.parse_order_status(statusId.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut isClosed: bool = self.in_array(status.clone(), Value::from(vec![Value::Str("canceled".into()), Value::Str("rejected".into()), Value::Str("closed".into())]));
+        let mut status: Option<String> = self.parse_order_status(statusId.as_deref());
+        let mut isClosed: bool = self.in_array(&status, Value::from(vec![Value::Str("canceled".into()), Value::Str("rejected".into()), Value::Str("closed".into())]));
         let mut marketId: Option<String> = self.safe_string2(details.clone(), Value::Str("symbol".into()), Value::Str("tradeable".into()), &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
@@ -3384,8 +3384,8 @@ impl Krakenfutures {
             }
             }
             average = crate::precise::Precise::stringDiv(&vwapSum, &filled2).as_str().map(str::to_owned);
-            if (amount.is_some()) && (!isClosed) && isPrior && crate::precise::Precise::stringGe(&filled2, &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
-                status = Value::Str("closed".into());
+            if (amount.is_some()) && (!isClosed) && isPrior && crate::precise::Precise::stringGe(&filled2, &amount).as_bool() == Some(true) {
+                status = Some("closed".to_string());
                 isClosed = true;
             }
             if isPrior {
@@ -3447,7 +3447,7 @@ impl Krakenfutures {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_n(details.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientId".into()), Value::Str("cliOrdId".into())]), &[]));
         m.insert("timestamp".to_string(), Value::from(ts));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
+        m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(details.clone(), "lastUpdateTimestamp", &[Value::from(lastUpdateTimestamp)]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -3464,7 +3464,7 @@ impl Krakenfutures {
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::Null);
         m.insert("trades".to_string(), trades);
@@ -3753,7 +3753,7 @@ impl Krakenfutures {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
         m.insert("code".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "id", &[]));
         m.insert("amount".to_string(), self.safe_number_k(income, "realized_funding", &[]));
     m
@@ -3850,7 +3850,7 @@ impl Krakenfutures {
         m.insert("after".to_string(), self.parse_number(after.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -4210,14 +4210,14 @@ impl Krakenfutures {
         let mut fundingRateResult: Option<String> = crate::precise::Precise::stringDiv(&fundingRateString, &markPriceString).as_str().map(str::to_owned);
         let mut nextFundingRateString: Option<String> = self.safe_string_k(ticker.clone(), "fundingRatePrediction", &[]).as_str().map(str::to_owned);
         let mut nextFundingRateResult: Option<String> = crate::precise::Precise::stringDiv(&nextFundingRateString, &markPriceString).as_str().map(str::to_owned);
-        if crate::precise::Precise::stringGt(&fundingRateResult.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.25".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringGt(&fundingRateResult, &Value::Str("0.25".into())).as_bool() == Some(true) {
             fundingRateResult = Some("0.25".to_string());
-        }  else if crate::precise::Precise::stringLt(&fundingRateResult.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("-0.25".into())).as_bool() == Some(true) {
+        }  else if crate::precise::Precise::stringLt(&fundingRateResult, &Value::Str("-0.25".into())).as_bool() == Some(true) {
             fundingRateResult = Some("-0.25".to_string());
         }
-        if crate::precise::Precise::stringGt(&nextFundingRateResult.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.25".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringGt(&nextFundingRateResult, &Value::Str("0.25".into())).as_bool() == Some(true) {
             nextFundingRateResult = Some("0.25".to_string());
-        }  else if crate::precise::Precise::stringLt(&nextFundingRateResult.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("-0.25".into())).as_bool() == Some(true) {
+        }  else if crate::precise::Precise::stringLt(&nextFundingRateResult, &Value::Str("-0.25".into())).as_bool() == Some(true) {
             nextFundingRateResult = Some("-0.25".to_string());
         }
         return Value::Map({
@@ -4229,7 +4229,7 @@ impl Krakenfutures {
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.parse_number(fundingRateResult.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
@@ -4557,7 +4557,7 @@ impl Krakenfutures {
         let mut datetime: Option<String> = None;
         if isHistory {
             timestamp = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }  else {
             datetime = self.safe_string_k(position.clone(), "fillTime", &[]).as_str().map(str::to_owned);
             timestamp = self.parse8601(Value::from(datetime.as_deref()));
@@ -4580,9 +4580,9 @@ impl Krakenfutures {
             }  else if (positionChange.as_deref() == Some("reverse")) {
                 contracts = crate::precise::Precise::stringAbs(&signedSize).as_str().map(str::to_owned); // a reversal closes the whole old position
             }
-            if crate::precise::Precise::stringGt(&signedSize.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringGt(&signedSize, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("long".to_string());
-            }  else if crate::precise::Precise::stringLt(&signedSize.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            }  else if crate::precise::Precise::stringLt(&signedSize, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("short".to_string());
             }
         }

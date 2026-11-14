@@ -539,7 +539,7 @@ impl Luno {
         }  else {
             self.handle_book_delta(Value::from(&orderbook), message);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
-            orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         let mut nonce: Option<i64> = (match __pro_message.get("sequence") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         orderbook.set_book_meta("nonce", Value::from(nonce));
@@ -713,7 +713,7 @@ impl Luno {
                 let mut price: Option<f64> = self.safe_number(order.clone(), Value::Int(0), &[]).as_f64();
                 let mut currentAmount: Option<String> = self.safe_string(order, Value::Int(1), &[]).as_str().map(str::to_owned);
                 let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount, &tradedAmount).as_str().map(str::to_owned);
-                if crate::precise::Precise::stringLe(&remainingAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                if crate::precise::Precise::stringLe(&remainingAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                     // fully filled, storing a zero amount deletes the order
                     orderSide.store_array(Value::from(vec![Value::from(price), Value::Int(0), orderId.clone()]));
                 }  else {

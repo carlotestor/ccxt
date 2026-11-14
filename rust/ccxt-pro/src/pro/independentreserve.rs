@@ -514,7 +514,7 @@ impl Independentreserve {
             self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
             self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
-            orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
         if (checksum).as_bool() == Some(true) && receivedSnapshot {

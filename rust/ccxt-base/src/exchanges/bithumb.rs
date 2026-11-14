@@ -1495,17 +1495,17 @@ impl Bithumb {
         let mut high: Option<String> = self.safe_string2(ticker.clone(), Value::Str("max_price".into()), Value::Str("high_price".into()), &[]).as_str().map(str::to_owned);
         let mut low: Option<String> = self.safe_string2(ticker.clone(), Value::Str("min_price".into()), Value::Str("low_price".into()), &[]).as_str().map(str::to_owned);
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
-        if (close.is_some()) && (high.is_some()) && crate::precise::Precise::stringGt(&close.clone().map(Value::from).unwrap_or(Value::Null), &high.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+        if (close.is_some()) && (high.is_some()) && crate::precise::Precise::stringGt(&close, &high).as_bool() == Some(true) {
             high = close.clone();
         }
-        if (close.is_some()) && (low.is_some()) && crate::precise::Precise::stringLt(&close.clone().map(Value::from).unwrap_or(Value::Null), &low.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+        if (close.is_some()) && (low.is_some()) && crate::precise::Precise::stringLt(&close, &low).as_bool() == Some(true) {
             low = close.clone();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "buy_price", &[]));
@@ -2182,7 +2182,7 @@ impl Bithumb {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::from(type_var.as_deref()));
@@ -2999,7 +2999,7 @@ impl Bithumb {
             }
         }  else {
             timestamp = self.safe_integer_product_k(order.clone(), "order_date", Value::Float(0.001), &[]).as_i64();
-            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+            datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }
         let mut sideProperty: Option<String> = self.safe_string2(order.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
@@ -3013,7 +3013,7 @@ impl Bithumb {
         let mut type_var: Option<String> = self.safe_string2(order.clone(), Value::Str("order_type".into()), Value::Str("ord_type".into()), &[]).as_str().map(str::to_owned);
         let mut progressCount: Option<String> = self.safe_string_k(order.clone(), "progress_count", &[]).as_str().map(str::to_owned);
         if (type_var.is_none()) && (price.is_some()) && (progressCount.is_none()) {
-            if crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true) {
                 type_var = Some("market".to_string());
             }  else {
                 type_var = Some("limit".to_string());

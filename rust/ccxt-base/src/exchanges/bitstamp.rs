@@ -2380,7 +2380,7 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -2576,7 +2576,7 @@ impl Bitstamp {
         let mut symbol: Option<String> = None;
         let mut side: Option<String> = None;
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
+        let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
         let mut costString: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
         let mut rawMarketId: Option<String> = None;
@@ -2610,7 +2610,7 @@ impl Bitstamp {
             priceId = self.safe_string_k(marketResolved.clone(), "id", &[]).as_str().map(str::to_owned);
         }
         priceString = self.safe_string(trade.clone(), priceId.map(Value::from).unwrap_or(Value::Null), &[priceString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        amountString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "baseId", &[]), &[amountString.clone()]);
+        amountString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "baseId", &[]), &[amountString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         costString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "quoteId", &[]), &[costString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         // this endpoint is not aligned with "markets" endpoint
         let mut baseIdLower: String = self.safe_string_lower_k(marketResolved.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2619,8 +2619,8 @@ impl Bitstamp {
         if (priceString.is_none()) {
             priceString = self.safe_string(trade.clone(), Value::from(dashedIdLower), &[]).as_str().map(str::to_owned);
         }
-        if (amountString == Value::Null) {
-            amountString = self.safe_string(trade.clone(), Value::from(baseIdLower), &[]);
+        if (amountString.is_none()) {
+            amountString = self.safe_string(trade.clone(), Value::from(baseIdLower), &[]).as_str().map(str::to_owned);
         }
         if (costString.is_none()) {
             costString = self.safe_string(trade.clone(), Value::from(quoteIdLower), &[]).as_str().map(str::to_owned);
@@ -2640,11 +2640,11 @@ impl Bitstamp {
         }
         // if it is a private trade
         if (matches!(&trade, Value::Dict(__d) if __d.contains_key("id"))) {
-            if (amountString != Value::Null) {
+            if (amountString.is_some()) {
                 let mut isAmountNeg: Value = crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into()));
                 if isAmountNeg.as_bool() == Some(true) {
                     side = Some("sell".to_string());
-                    amountString = crate::precise::Precise::stringNeg(&amountString);
+                    amountString = crate::precise::Precise::stringNeg(&amountString).as_str().map(str::to_owned);
                 }  else {
                     side = Some("buy".to_string());
                 }
@@ -2676,14 +2676,14 @@ impl Bitstamp {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "order_id", &[]));
         m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amountString);
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -3661,7 +3661,7 @@ impl Bitstamp {
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market, &[]));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -3898,7 +3898,7 @@ impl Bitstamp {
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), status);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4016,7 +4016,7 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
@@ -4268,7 +4268,7 @@ impl Bitstamp {
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(currentTime));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(currentTime)));
+        m.insert("datetime".to_string(), self.iso8601(currentTime));
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
@@ -4277,7 +4277,7 @@ impl Bitstamp {
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), self.safe_number_k(fundingRate, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(nextFundingRateTimestamp));
-        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(nextFundingRateTimestamp)));
+        m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingRateTimestamp));
         m.insert("interval".to_string(), Value::Null);
     m
 });

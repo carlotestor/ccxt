@@ -412,7 +412,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "high", &[]), &[marketValue.clone()]), &[]));
         m.insert("low".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "low", &[]), &[marketValue.clone()]), &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -605,7 +605,7 @@ impl Phemex {
             let mut messageHash: String = format!("{}{}", "ticker:", symbol);
             let mut timestamp: Option<i64> = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
             add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), Value::from(timestamp));
-            add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
+            add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }
             client.resolve(ticker, messageHash.as_str());
         }
@@ -1403,7 +1403,7 @@ impl Phemex {
                 self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids), &[market]);
                 orderbook.set_book_meta("nonce", Value::from(nonce));
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
-                orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+                orderbook.set_book_meta("datetime", self.iso8601(timestamp));
                 CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
                 client.resolve(orderbook, messageHash.as_str());
             }
@@ -2082,7 +2082,7 @@ impl Phemex {
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));

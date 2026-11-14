@@ -1735,7 +1735,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("inverse".to_string(), isInverse.map_or(Value::Null, Value::Bool));
                     m.insert("contractSize".to_string(), self.safe_number_k(&market, "contract_size", &[]));
                     m.insert("expiry".to_string(), Value::from(expiry));
-                    m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
+                    m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
                     m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));
                     m.insert("optionType".to_string(), optionType.map(Value::from).unwrap_or(Value::Null));
                     m.insert("precision".to_string(), Value::Map({
@@ -2448,13 +2448,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut priceString: Option<String> = self.number_to_string(price);
             if (uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
                 if (side.as_str() == Some("buy")) {
-                    if crate::precise::Precise::stringLt(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("STOP_LIMIT".into()));
                     }
                 }  else {
-                    if crate::precise::Precise::stringLt(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("STOP_LIMIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
@@ -2462,13 +2462,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }  else {
                 if (side.as_str() == Some("buy")) {
-                    if crate::precise::Precise::stringLt(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("STOP_LOSS".into()));
                     }
                 }  else {
-                    if crate::precise::Precise::stringLt(&priceString.map(Value::from).unwrap_or(Value::Null), &triggerPrice.map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("STOP_LOSS".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
@@ -2721,16 +2721,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isStopLossTrigger: bool = stopLossPrice.is_some();
         let mut isTakeProfitTrigger: bool = takeProfitPrice.is_some();
         if isTrigger {
-            let mut priceString: Value = Value::from(self.number_to_string(price.clone()));
+            let mut priceString: Option<String> = self.number_to_string(price.clone());
             if (uppercaseType.as_deref() == Some("LIMIT")) || (uppercaseType.as_deref() == Some("STOP_LIMIT")) || (uppercaseType.as_deref() == Some("TAKE_PROFIT_LIMIT")) {
                 if (side.as_str() == Some("buy")) {
-                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("STOP_LIMIT".into()));
                     }
                 }  else {
-                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("STOP_LIMIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
@@ -2738,13 +2738,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }  else {
                 if (side.as_str() == Some("buy")) {
-                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("STOP_LOSS".into()));
                     }
                 }  else {
-                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice.map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    if crate::precise::Precise::stringLt(&priceString, &triggerPrice).as_bool() == Some(true) {
                         request.insert("type".into(), Value::Str("STOP_LOSS".into()));
                     }  else {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
@@ -3701,7 +3701,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "h", &[]));
         m.insert("low".to_string(), self.safe_number_k(ticker.clone(), "l", &[]));
         m.insert("bid".to_string(), self.safe_number_k(ticker.clone(), "b", &[]));
@@ -3771,7 +3771,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("d".into()), Value::Str("trade_id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("side".to_string(), self.safe_string_lower2(trade.clone(), Value::Str("s".into()), Value::Str("side".into()), &[]));
@@ -3909,7 +3909,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_oid", &[]));
         m.insert("timestamp".to_string(), Value::from(created));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(created)));
+        m.insert("datetime".to_string(), self.iso8601(created));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "update_time", &[]));
         m.insert("status".to_string(), self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -4043,7 +4043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), Value::from(address.as_deref()));
@@ -4327,7 +4327,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "transaction_qty", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
-        if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());
             amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }  else {
@@ -4345,7 +4345,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
@@ -4560,7 +4560,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("price".to_string(), self.safe_number_k(settlement, "v", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 });
 
@@ -4683,7 +4683,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "v", &[]));
         m.insert("fundingTimestamp".to_string(), fundingTimestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
@@ -4796,7 +4796,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), Some(&market), &[]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "v", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
@@ -4984,9 +4984,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("hedged".to_string(), Value::Null);
-        m.insert("side".to_string(), (if crate::precise::Precise::stringGt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
+        m.insert("side".to_string(), (if crate::precise::Precise::stringGt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&amount), &[]));
         m.insert("contractSize".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "contractSize"));
         m.insert("entryPrice".to_string(), Value::Null);

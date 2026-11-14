@@ -1254,7 +1254,7 @@ if _try_result.is_err() {
         m.insert("baseValue".to_string(), self.parse_number(contracts.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&contracts, &price), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
 }), &[marketResolved]);
 
@@ -1643,7 +1643,7 @@ if _try_result.is_err() {
             self.handle_book_side_deltas(storedAsks, Value::from(asks.clone()));
             stored.set_book_meta("nonce", nonce.clone());
             stored.set_book_meta("timestamp", Value::from(timestamp));
-            stored.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
+            stored.set_book_meta("datetime", self.iso8601(timestamp));
             client.resolve(Value::from(&stored), messageHash.as_str());
             return;
         }
@@ -2271,7 +2271,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), self.safe_string_k(data.clone(), "ask", &[]));
         m.insert("askVolume".to_string(), self.safe_string_k(data.clone(), "ask_size", &[]));
         m.insert("bid".to_string(), self.safe_string_k(data.clone(), "bid", &[]));
@@ -2605,7 +2605,7 @@ if _try_result.is_err() {
             let mut previousSide: Option<String> = self.safe_string_k(&previous, "side", &[]).as_str().map(str::to_owned);
             let mut previousContracts: Option<String> = self.safe_string_k(&previous, "contracts", &[]).as_str().map(str::to_owned);
             let mut isOpposite: bool = (side.is_some()) && (previousSide.is_some()) && (previousSide != side);
-            if isOpposite && (previousContracts.is_some()) && !(crate::precise::Precise::stringEq(&previousContracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+            if isOpposite && (previousContracts.is_some()) && !(crate::precise::Precise::stringEq(&previousContracts, &Value::Str("0".into())).as_bool() == Some(true)) {
                 let __ws_arg_10 = self.parse_number(Value::Str("0".into()), &[]);
                 let __ws_arg_11 = self.safe_integer_k(&position, "lastUpdateTimestamp", &[]);
                 let mut flattened: Value = self.extend(previous, &[Value::Map({
@@ -2735,7 +2735,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), data.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
         let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(data.clone(), "settlement_asset", &[]), None);
@@ -2997,7 +2997,7 @@ if _try_result.is_err() {
         m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".into()), &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);

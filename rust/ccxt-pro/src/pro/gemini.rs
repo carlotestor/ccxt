@@ -434,7 +434,7 @@ impl Gemini {
         m.insert("order".to_string(), Value::Null);
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -934,7 +934,7 @@ impl Gemini {
             let mut rawSide: Option<String> = self.safe_string_k(&entry, "side", &[]).as_str().map(str::to_owned);
             let mut price: Option<f64> = self.safe_number_k(&entry, "price", &[]).as_f64();
             let mut sizeString: Option<String> = self.safe_string_k(&entry, "remaining", &[]).as_str().map(str::to_owned);
-            if crate::precise::Precise::stringEq(&sizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringEq(&sizeString, &Value::Str("0".into())).as_bool() == Some(true) {
                 continue;
             }
             let mut size: Option<f64> = self.parse_number(sizeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
@@ -1262,7 +1262,7 @@ impl Gemini {
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_order_id", &[]));
         m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_ws_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
