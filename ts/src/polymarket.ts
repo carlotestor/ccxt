@@ -2608,7 +2608,7 @@ export default class polymarket extends Exchange {
         return '0x' + r.padStart (64, '0') + sVal.padStart (64, '0') + v;
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: any): string {
         return this.signHash (this.hashMessage (message), privateKey);
     }
 
