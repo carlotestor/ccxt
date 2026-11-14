@@ -1217,7 +1217,7 @@ export default class dydx extends Exchange {
         return this.parsePositions (rows, symbols);
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: any): string {
         return this.hash (message, keccak, 'hex');
     }
 

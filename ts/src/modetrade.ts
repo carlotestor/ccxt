@@ -2940,7 +2940,7 @@ export default class modetrade extends Exchange {
         return this.safeNumber (this.safeDict (response, 'data', {}), 'withdraw_nonce');
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: any): string {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
