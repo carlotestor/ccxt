@@ -824,7 +824,7 @@ impl Sxbet {
             }
             rawMarkets = filtered;
         }
-        let mut grouped: Value = Value::Map({
+        let mut grouped: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -839,11 +839,11 @@ impl Sxbet {
             if (sportXeventId.is_none()) {
                 continue;
             }
-            if !(matches!((&grouped, &sportXeventId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut grouped { std::sync::Arc::make_mut(__d).insert(sportXeventId.as_deref().unwrap_or("null").to_string(), Value::from(vec![])); }
+            if !(matches!(&sportXeventId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if grouped.contains_key(__k.as_ref()))) {
+                grouped.insert(sportXeventId.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 order.push(sportXeventId.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            crate::runtime::append_to_object_array(&mut grouped, &sportXeventId.clone().map(Value::from).unwrap_or(Value::Null), raw);
+            if let Some(__k) = sportXeventId.as_deref() { if let Value::Arr(__a) = grouped.entry(__k.to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(raw); } }
         }
         }
         if (self.markets.clone() == Value::Null) {
@@ -856,7 +856,7 @@ impl Sxbet {
             let mut __for_first_1498: bool = true;
             while { if !__for_first_1498 { i += 1; } __for_first_1498 = false; i < orderLength } {
             let mut fixtureId: Value = order.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut event: crate::value::Dict = self.parse_event(fixtureId.as_str().unwrap_or_default(), (if let (Some(__m), Some(__k)) = (grouped.as_map(), fixtureId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })).into_dict();
+            let mut event: crate::value::Dict = self.parse_event(fixtureId.as_str().unwrap_or_default(), grouped.get(fixtureId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_dict();
             let mut evMarkets: crate::value::List = self.safe_list_k(&event, "markets", &[Value::from(vec![])]).into_list();
             let mut evMarketsLength: i64 = evMarkets.len() as i64;
             {

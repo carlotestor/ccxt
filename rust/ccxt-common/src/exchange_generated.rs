@@ -4336,43 +4336,43 @@ pub trait ExchangeBase:
         let mut ms = get_arg(optional_args, 6, Value::Bool(false));
         let __ohlcvs_empty = Vec::new();
         let ohlcvs = ohlcvs.as_array().unwrap_or(&__ohlcvs_empty);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&timestamp), Value::from(vec![])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&open), Value::from(vec![])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&high), Value::from(vec![])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&low), Value::from(vec![])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&close), Value::from(vec![])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&volume), Value::from(vec![])); }
+        result.insert(crate::runtime::stringify_param(&timestamp), Value::from(vec![]));
+        result.insert(crate::runtime::stringify_param(&open), Value::from(vec![]));
+        result.insert(crate::runtime::stringify_param(&high), Value::from(vec![]));
+        result.insert(crate::runtime::stringify_param(&low), Value::from(vec![]));
+        result.insert(crate::runtime::stringify_param(&close), Value::from(vec![]));
+        result.insert(crate::runtime::stringify_param(&volume), Value::from(vec![]));
         {
                         let mut i: i64 = 0;
             let mut __for_first_106: bool = true;
             while { if !__for_first_106 { i += 1; } __for_first_106 = false; i < (ohlcvs.len() as i64) } {
             let mut ts: Value = (if ms.as_bool() == Some(true) { ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::from(self.parse_to_int((match ((ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr|
                 __arr.get(0)).cloned().unwrap_or(Value::Null)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) });
-            let mut resultTimestamp: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), timestamp.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut resultTimestamp: Value = result.get(timestamp.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut resultTimestamp { std::sync::Arc::make_mut(__a).push(ts); };
-            crate::set_value(&mut result, &timestamp, resultTimestamp);
-            let mut resultOpen: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), open.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            if let Some(__k) = timestamp.as_str() { result.insert(__k.to_string(), resultTimestamp); }
+            let mut resultOpen: Value = result.get(open.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut resultOpen { std::sync::Arc::make_mut(__a).push(ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)); };
-            crate::set_value(&mut result, &open, resultOpen);
-            let mut resultHigh: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), high.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            if let Some(__k) = open.as_str() { result.insert(__k.to_string(), resultOpen); }
+            let mut resultHigh: Value = result.get(high.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut resultHigh { std::sync::Arc::make_mut(__a).push(ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null)); };
-            crate::set_value(&mut result, &high, resultHigh);
-            let mut resultLow: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), low.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            if let Some(__k) = high.as_str() { result.insert(__k.to_string(), resultHigh); }
+            let mut resultLow: Value = result.get(low.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut resultLow { std::sync::Arc::make_mut(__a).push(ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null)); };
-            crate::set_value(&mut result, &low, resultLow);
-            let mut resultClose: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), close.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            if let Some(__k) = low.as_str() { result.insert(__k.to_string(), resultLow); }
+            let mut resultClose: Value = result.get(close.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut resultClose { std::sync::Arc::make_mut(__a).push(ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null)); };
-            crate::set_value(&mut result, &close, resultClose);
-            let mut resultVolume: Value = (if let (Some(__m), Some(__k)) = (result.as_map(), volume.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            if let Some(__k) = close.as_str() { result.insert(__k.to_string(), resultClose); }
+            let mut resultVolume: Value = result.get(volume.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut resultVolume { std::sync::Arc::make_mut(__a).push(ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null)); };
-            crate::set_value(&mut result, &volume, resultVolume);
+            if let Some(__k) = volume.as_str() { result.insert(__k.to_string(), resultVolume); }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -9183,16 +9183,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn create_ohlcv_object(&self, mut symbol: Value, mut timeframe: Value, mut data: Value) -> Value {
-        let mut res: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
+        let mut res: indexmap::IndexMap<String, indexmap::IndexMap<String, Value>> = ({
+            let mut m = indexmap::IndexMap::<String, indexmap::IndexMap<String, Value>>::new();
             m
         });
-        res.insert(crate::runtime::stringify_param(&symbol), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        if let Value::Dict(__d) = res.entry(crate::runtime::stringify_param(&symbol)).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&timeframe), data); }
-        return Value::Map(res);
+        res.entry(crate::runtime::stringify_param(&symbol)).or_default();
+        res.entry(crate::runtime::stringify_param(&symbol)).or_default().insert(crate::runtime::stringify_param(&timeframe), data);
+        return Value::from(res);
 
     Value::Null
 }

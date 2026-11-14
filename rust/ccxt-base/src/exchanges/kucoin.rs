@@ -15601,7 +15601,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -15613,14 +15613,14 @@ if _try_result.is_err() {
             let mut tier: Value = self.safe_dict(&tiers, Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(tier.clone(), "symbol", &[]);
             if (symbol.is_some()) {
-                if !(matches!((&result, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(vec![])); }
+                if !(matches!(&symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 }
-                crate::runtime::append_to_object_array(&mut result, &symbol.clone().map(Value::from).unwrap_or(Value::Null), tier);
+                if let Some(__k) = symbol.as_deref() { if let Value::Arr(__a) = result.entry(__k.to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(tier); } }
             }
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
