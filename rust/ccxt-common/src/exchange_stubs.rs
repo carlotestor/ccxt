@@ -22,6 +22,43 @@ use chrono::{Datelike, TimeZone, Utc};
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 
+/// The needle of `in_array`: a `Value` (as before), or a typed string / integer local lent as is, so the transpiled
+/// code passes it without boxing or copying it. Each answers exactly `is_equal(element, &boxed_needle)`.
+pub trait InArrayNeedle {
+    fn needle_eq(&self, x: &Value) -> bool;
+}
+impl InArrayNeedle for Value {
+    fn needle_eq(&self, x: &Value) -> bool { crate::runtime::is_equal(x, self) }
+}
+impl InArrayNeedle for str {
+    fn needle_eq(&self, x: &Value) -> bool {
+        match x {
+            Value::Str(y) => y.as_ref() == self,
+            _ => matches!((crate::runtime::value_as_f64(x), self.parse::<f64>().ok()), (Some(a), Some(b)) if a == b),
+        }
+    }
+}
+impl InArrayNeedle for String {
+    fn needle_eq(&self, x: &Value) -> bool { self.as_str().needle_eq(x) }
+}
+impl InArrayNeedle for Option<String> {
+    fn needle_eq(&self, x: &Value) -> bool { match self { Some(s) => s.as_str().needle_eq(x), None => matches!(x, Value::Null) } }
+}
+impl InArrayNeedle for i64 {
+    fn needle_eq(&self, x: &Value) -> bool {
+        match x {
+            Value::Int(y) => y == self,
+            _ => crate::runtime::value_as_f64(x) == Some(*self as f64),
+        }
+    }
+}
+impl InArrayNeedle for Option<i64> {
+    fn needle_eq(&self, x: &Value) -> bool { match self { Some(n) => n.needle_eq(x), None => matches!(x, Value::Null) } }
+}
+impl<T: InArrayNeedle + ?Sized> InArrayNeedle for &T {
+    fn needle_eq(&self, x: &Value) -> bool { (**self).needle_eq(x) }
+}
+
 /// Coerces `&Exchange` to `&mut Exchange`. The lint that warns about
 /// this is suppressed locally — see the safety note on the call site.
 #[allow(clippy::mut_from_ref, invalid_reference_casting)]
@@ -2046,10 +2083,9 @@ impl Exchange {
         }
     }
 
-    pub fn in_array(&self, needle: impl Into<Value>, haystack: impl Into<Value>) -> bool {
-        let needle: Value = needle.into();
+    pub fn in_array(&self, needle: impl InArrayNeedle, haystack: impl Into<Value>) -> bool {
         if let Value::Arr(a) = haystack.into() {
-            a.iter().any(|x| crate::runtime::is_equal(x, &needle))
+            a.iter().any(|x| needle.needle_eq(x))
         } else {
             false
         }
