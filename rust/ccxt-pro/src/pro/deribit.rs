@@ -1312,19 +1312,19 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            orders = self.parse_orders(data.clone(), None, &[]);
+            orders = self.parse_orders(data.clone(), None, &[]).into_list();
         }  else {
             let mut order: crate::value::Dict = self.parse_order(data, None).into_dict();
-            orders = Value::from(vec![Value::Dict(order)]);
+            orders = std::sync::Arc::new(vec![Value::Dict(order)]);
         }
         let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_295: bool = true;
             while { if !__for_first_295 { i += 1; } __for_first_295 = false; i < (orders.len() as i64) } {
-            cachedOrders.append(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            cachedOrders.append(orders.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         client.resolve(Value::from(&self.orders), channel.as_str());

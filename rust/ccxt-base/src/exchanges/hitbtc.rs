@@ -2162,7 +2162,7 @@ impl Hitbtc {
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
         }
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2172,22 +2172,22 @@ impl Hitbtc {
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         if (marginMode.is_some()) {
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_margin_history_trade(&[__ws_arg_6]).await;
+            response = self.private_get_margin_history_trade(&[__ws_arg_6]).await.into_list();
         }  else {
             if (marketType.as_deref() == Some("spot")) {
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_get_spot_history_trade(&[__ws_arg_7]).await;
+                response = self.private_get_spot_history_trade(&[__ws_arg_7]).await.into_list();
             }  else if (marketType.as_deref() == Some("swap")) {
                 let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_get_futures_history_trade(&[__ws_arg_8]).await;
+                response = self.private_get_futures_history_trade(&[__ws_arg_8]).await.into_list();
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_get_margin_history_trade(&[__ws_arg_9]).await;
+                response = self.private_get_margin_history_trade(&[__ws_arg_9]).await.into_list();
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchMyTrades() not support this market type")));
             }
         }
-        return self.parse_trades(response, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3131,25 +3131,25 @@ impl Hitbtc {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marginMode.is_some()) {
             let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_margin_history_trade(&[__ws_arg_27]).await;
+            response = self.private_get_margin_history_trade(&[__ws_arg_27]).await.into_list();
         }  else {
             if (marketType.as_deref() == Some("spot")) {
                 let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_get_spot_history_trade(&[__ws_arg_28]).await;
+                response = self.private_get_spot_history_trade(&[__ws_arg_28]).await.into_list();
             }  else if (marketType.as_deref() == Some("swap")) {
                 let __ws_arg_29 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_get_futures_history_trade(&[__ws_arg_29]).await;
+                response = self.private_get_futures_history_trade(&[__ws_arg_29]).await.into_list();
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_get_margin_history_trade(&[__ws_arg_30]).await;
+                response = self.private_get_margin_history_trade(&[__ws_arg_30]).await.into_list();
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOrderTrades() not support this market type")));
             }
         }
-        return self.parse_trades(response, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

@@ -2499,7 +2499,7 @@ impl Bitrue {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (market).spot {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2510,11 +2510,11 @@ impl Bitrue {
                 request.insert("limit".into(), limit.clone()); // default 100, max 1000
             }
             let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-            response = self.spot_v1_public_get_trades(&[__ws_arg_14]).await;
+            response = self.spot_v1_public_get_trades(&[__ws_arg_14]).await.into_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTrades only support spot markets")));
         }
-        return self.parse_trades(response, Some(&market), &[since, limit]);
+        return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

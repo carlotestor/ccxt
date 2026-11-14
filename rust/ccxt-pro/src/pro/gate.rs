@@ -1954,7 +1954,7 @@ impl Gate {
         }  else {
             result = std::sync::Arc::new(vec![rawResult]);
         }
-        let mut marketIds: Value = Value::Map({
+        let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1985,16 +1985,16 @@ impl Gate {
                 }
             }
             stored.append(parsed);
-            if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), timeframe.map(Value::from).unwrap_or(Value::Null)); }
+            marketIds.insert(crate::runtime::stringify_param(&symbol), timeframe.map(Value::from).unwrap_or(Value::Null));
         }
         }
-        let mut keys: Vec<Value> = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(marketIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_327: bool = true;
             while { if !__for_first_327 { i += 1; } __for_first_327 = false; i < (keys.len() as i64) } {
             let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut timeframe: Value = (if let (Some(__m), Some(__k)) = (marketIds.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut timeframe: Value = marketIds.get(symbol.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut interval: Option<String> = self.find_timeframe(timeframe, &[]);
             let mut hash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles", ":").into()), interval.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
             let mut symbolOhlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&interval);

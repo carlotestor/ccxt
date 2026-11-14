@@ -959,18 +959,18 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            orders = self.parse_orders(data.clone(), None, &[]);
+            orders = self.parse_orders(data.clone(), None, &[]).into_list();
         }  else {
-            orders = Value::from(vec![self.parse_order(data, None)]);
+            orders = std::sync::Arc::new(vec![self.parse_order(data, None)]);
         }
         let mut ordersLength: i64 = orders.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_246: bool = true;
             while { if !__for_first_246 { i += 1; } __for_first_246 = false; i < ordersLength } {
-            self.orders.append(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            self.orders.append(orders.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         client.resolve(Value::from(&self.orders), channel.as_deref());

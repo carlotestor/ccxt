@@ -13061,7 +13061,7 @@ if _try_result.is_err() {
         //         }
         //     ]
         //
-        let mut borrowRateHistories: Value = Value::Map({
+        let mut borrowRateHistories: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -13072,27 +13072,26 @@ if _try_result.is_err() {
             let mut item: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::Int(i), &[]).into_opt_dict();
             let mut code: Value = self.safe_currency_code(self.safe_string_k(&item, "currency", &[]), None).map(Value::from).unwrap_or(Value::Null);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone())) {
-                if !(matches!((&borrowRateHistories, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::from(vec![])); }
+                if !(matches!(&code, Value::Str(__k) if borrowRateHistories.contains_key(__k.as_ref()))) {
+                    borrowRateHistories.insert(crate::runtime::stringify_param(&code), Value::from(vec![]));
                 }
                 let mut borrowRateStructure: crate::value::Dict = self.parse_borrow_rate(item.map_or(Value::Null, Value::Dict), None).into_dict();
-                let mut borrowRateHistoriesCode: Value = (if let (Some(__m), Some(__k)) = (borrowRateHistories.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut borrowRateHistoriesCode: Value = borrowRateHistories.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut borrowRateHistoriesCode { std::sync::Arc::make_mut(__a).push(Value::Dict(borrowRateStructure)); };
-                crate::set_value(&mut borrowRateHistories, &code, borrowRateHistoriesCode);
+                if let Some(__k) = code.as_str() { borrowRateHistories.insert(__k.to_string(), borrowRateHistoriesCode); }
             }
         }
         }
-        let mut keys: Vec<Value> = Value::Array(borrowRateHistories.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(borrowRateHistories.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_903: bool = true;
             while { if !__for_first_903 { i += 1; } __for_first_903 = false; i < (keys.len() as i64) } {
             let mut code: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            { let __be_tmp = self.filter_by_currency_since_limit((if let (Some(__m), Some(__k)) = (borrowRateHistories.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[code.clone(), since.clone(), limit.clone()]);
-                if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.filter_by_currency_since_limit(borrowRateHistories.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[code.clone(), since.clone(), limit.clone()]); borrowRateHistories.insert(crate::runtime::stringify_param(&code), __be_tmp); }
         }
         }
-        return borrowRateHistories;
+        return Value::Map(borrowRateHistories);
 
     Value::Null
 }
@@ -15602,7 +15601,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -15614,14 +15613,14 @@ if _try_result.is_err() {
             let mut tier: Value = self.safe_dict(&tiers, Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(tier.clone(), "symbol", &[]);
             if (symbol.is_some()) {
-                if !(matches!((&result, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(vec![])); }
+                if !(matches!(&symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 }
-                crate::runtime::append_to_object_array(&mut result, &symbol.clone().map(Value::from).unwrap_or(Value::Null), tier);
+                if let Some(__k) = symbol.as_deref() { if let Value::Arr(__a) = result.entry(__k.to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(tier); } }
             }
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

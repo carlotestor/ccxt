@@ -3196,15 +3196,15 @@ impl Toobit {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            response = self.private_get_api_v1_spot_open_orders(&[__ws_arg_21]).await;
+            response = self.private_get_api_v1_spot_open_orders(&[__ws_arg_21]).await.into_list();
         }  else {
             let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_get_api_v1_futures_open_orders(&[__ws_arg_22]).await;
+            response = self.private_get_api_v1_futures_open_orders(&[__ws_arg_22]).await.into_list();
         }
-        return self.parse_orders(response, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3255,13 +3255,13 @@ impl Toobit {
             std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut marketType: Value = self.handle_market_type_and_params(Value::Str("fetchOrders".into()), market.as_ref(), &[Value::from(&paramsUntil)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_str() == Some("spot")) {
-            response = self.private_get_api_v1_spot_trade_orders(&[Value::Dict(requestUntil)]).await;
+            response = self.private_get_api_v1_spot_trade_orders(&[Value::Dict(requestUntil)]).await.into_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrders() is not supported for ").into()), marketType).into()), " markets")));
         }
-        return self.parse_orders(response, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3387,14 +3387,14 @@ impl Toobit {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_23 = self.extend(requestUntil.clone(), &[&paramsUntil]);
-            response = self.private_get_api_v1_account_trades(&[__ws_arg_23]).await;
+            response = self.private_get_api_v1_account_trades(&[__ws_arg_23]).await.into_list();
         }  else {
-            response = self.private_get_api_v1_futures_user_trades(&[requestUntil]).await;
+            response = self.private_get_api_v1_futures_user_trades(&[requestUntil]).await.into_list();
         }
-        return self.parse_trades(response, Some(&market), &[since, limit]);
+        return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3748,13 +3748,13 @@ impl Toobit {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_str() == Some("deposits")) {
             let __ws_arg_28 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v1_account_deposit_orders(&[__ws_arg_28]).await;
+            response = self.private_get_api_v1_account_deposit_orders(&[__ws_arg_28]).await.into_list();
         }  else if (type_var.as_str() == Some("withdrawals")) {
             let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v1_account_withdraw_orders(&[__ws_arg_29]).await;
+            response = self.private_get_api_v1_account_withdraw_orders(&[__ws_arg_29]).await.into_list();
         }
         let mut transactType: String = (if (type_var.as_str() == Some("deposits")) { "deposit".to_string() } else { "withdrawal".to_string() });
         let mut results: Vec<Value> = Vec::new();
@@ -3762,7 +3762,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_1136: bool = true;
             while { if !__for_first_1136 { i += 1; } __for_first_1136 = false; i < (response.len() as i64) } {
-            let __ws_arg_30 = self.parse_transaction_with_type(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[crate::Value::from(currency.as_ref()), Value::from(transactType.as_str())]);
+            let __ws_arg_30 = self.parse_transaction_with_type(response.get(i as usize).cloned().unwrap_or(Value::Null), &[crate::Value::from(currency.as_ref()), Value::from(transactType.as_str())]);
             results.push(self.extend(__ws_arg_30, &[&paramsUntil]));
         }
         }

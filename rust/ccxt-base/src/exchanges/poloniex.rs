@@ -2744,7 +2744,7 @@ impl Poloniex {
         }
         let mut isTrigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["trigger", "stop"], &[]).into_dict();
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() != Some("spot")) {
             let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             let mut raw: crate::value::Dict = self.swap_private_get_v3_trade_order_opens(&[__ws_arg_8]).await.into_dict();
@@ -2787,13 +2787,13 @@ impl Poloniex {
             //                "qCcy": "USDT"
             //            },
             //
-            response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]);
+            response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]).into_list();
         }  else if (isTrigger == Some(true)) {
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_smartorders(&[__ws_arg_9]).await;
+            response = self.private_get_smartorders(&[__ws_arg_9]).await.into_list();
         }  else {
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_orders(&[__ws_arg_10]).await;
+            response = self.private_get_orders(&[__ws_arg_10]).await.into_list();
         }
         //
         //     [
@@ -2823,7 +2823,7 @@ impl Poloniex {
                 m.insert("status".to_string(), Value::Str("open".into()));
             m
         });
-        return self.parse_orders(response, market.as_ref(), &[since, limit, Value::Map(extension)]);
+        return self.parse_orders(&response, market.as_ref(), &[since, limit, Value::Map(extension)]);
         Value::Null
         }).await?))
     }
@@ -3073,7 +3073,7 @@ impl Poloniex {
             ordersMarkets.push(marketInner);
         }
         }
-        let mut data: Value = Value::from(vec![]);
+        let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         if isContract {
             let mut response: crate::value::Dict = self.swap_private_post_v3_trade_orders(&[Value::from(ordersRequests.clone())]).await.into_dict();
             //
@@ -3086,7 +3086,7 @@ impl Poloniex {
             //         ]
             //     }
             //
-            data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            data = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }  else {
             //
             //     [
@@ -3094,7 +3094,7 @@ impl Poloniex {
             //         { "code": 21709, "message": "Low available balance", "clientOrderId": "" }
             //     ]
             //
-            data = self.private_post_orders_batch(&[Value::from(ordersRequests)]).await;
+            data = self.private_post_orders_batch(&[Value::from(ordersRequests)]).await.into_list();
         }
         // the responses are positional, aligned with the submitted orders
         let mut results: Vec<Value> = Vec::new();
@@ -3103,7 +3103,7 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_1087: bool = true;
             while { if !__for_first_1087 { i += 1; } __for_first_1087 = false; i < dataLength } {
-            let mut entry: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3486,7 +3486,7 @@ impl Poloniex {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbols".into(), Value::from(vec![crate::value::KeyRead::key_read(&&market, "id")]));
         }
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3507,19 +3507,19 @@ impl Poloniex {
             //        ]
             //    }
             //
-            response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]);
-            return self.parse_orders(response.clone(), market.as_ref(), &[]);
+            response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]).into_list();
+            return self.parse_orders(&response, market.as_ref(), &[]);
         }
         let mut isTrigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["trigger", "stop"], &[]).into_dict();
         if (isTrigger == Some(true)) {
             let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_delete_smartorders(&[__ws_arg_23]).await;
+            response = self.private_delete_smartorders(&[__ws_arg_23]).await.into_list();
         }  else {
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_delete_orders(&[__ws_arg_24]).await;
+            response = self.private_delete_orders(&[__ws_arg_24]).await.into_list();
         }
-        return self.parse_orders(response, market.as_ref(), &[]);
+        return self.parse_orders(&response, market.as_ref(), &[]);
         Value::Null
         }).await?))
     }

@@ -3165,14 +3165,14 @@ impl Aster {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        let mut data: Value = Value::from(vec![]);
+        let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("swap")) {
-            data = self.fapi_private_get_v3_balance(&[Value::from(&paramsMarketType)]).await;
+            data = self.fapi_private_get_v3_balance(&[Value::from(&paramsMarketType)]).await.into_list();
         }  else if (marketType.as_deref() == Some("spot")) {
             response = self.sapi_private_get_v3_account(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
-            data = self.safe_list_k(&response, "balances", &[Value::from(vec![])]);
+            data = self.safe_list_k(&response, "balances", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_balance_list(data);
+        return self.parse_balance_list(&data);
         Value::Null
         }).await?))
     }

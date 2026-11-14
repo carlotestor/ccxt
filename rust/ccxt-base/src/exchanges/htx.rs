@@ -5417,7 +5417,7 @@ impl Htx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_772: bool = true;
@@ -5428,13 +5428,13 @@ impl Htx {
                 let mut __for_first_771: bool = true;
                 while { if !__for_first_771 { j += 1; } __for_first_771 = false; j < (trades.len() as i64) } {
                 let mut trade: crate::value::Dict = self.parse_trade(trades.get(j as usize).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
-                if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Dict(trade)); }
+                std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
             }
             }
         }
         }
-        result = self.sort_by(result, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(result, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        result = self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(&result, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

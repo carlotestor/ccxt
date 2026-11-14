@@ -6071,7 +6071,7 @@ impl Digifinex {
         //         },
         //     ]
         //
-        let mut depositWithdrawFees: Value = Value::Map({
+        let mut depositWithdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -6084,15 +6084,15 @@ impl Digifinex {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&rows, Value::Int(i), &[]).into_opt_dict();
             let mut code: Value = self.safe_currency_code(self.safe_string_k(&entry, "currency", &[]), None).map(Value::from).unwrap_or(Value::Null);
             if (code != Value::Null) && ((codesValue == Value::Null) || (self.in_array(code.clone(), codesValue.clone()))) {
-                if !(matches!((&depositWithdrawFees, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if !(matches!(&code, Value::Str(__k) if depositWithdrawFees.contains_key(__k.as_ref()))) {
                     let mut feeStructure: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })).as_map().cloned().unwrap_or_default();
                     feeStructure.insert("info".into(), Value::from(vec![]));
-                    if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(feeStructure)); }
+                    depositWithdrawFees.insert(crate::runtime::stringify_param(&code), Value::Map(feeStructure));
                 }
-                let mut depositWithdrawFee: Value = (if let (Some(__m), Some(__k)) = (depositWithdrawFees.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut depositWithdrawFee: Value = depositWithdrawFees.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 let mut depositWithdrawInfo: Value = depositWithdrawFee.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut depositWithdrawInfo { std::sync::Arc::make_mut(__a).push(entry.clone().map_or(Value::Null, Value::Dict)); };
                 let mut networkId: Option<String> = self.safe_string_k(&entry, "chain", &[]).as_str().map(str::to_owned);
@@ -6126,17 +6126,17 @@ impl Digifinex {
             }
         }
         }
-        let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_657: bool = true;
             while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: crate::types::Currency = self.currency(code.clone());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); depositWithdrawFees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
         }
         }
-        return depositWithdrawFees;
+        return Value::Map(depositWithdrawFees);
 
     Value::Null
 }

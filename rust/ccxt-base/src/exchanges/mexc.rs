@@ -2884,7 +2884,7 @@ impl Mexc {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut trades: Value = Value::from(vec![]);
+        let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         if (market).spot {
             let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("endTime".into()), Value::Str("until".into()), &[]).as_i64();
             if (since != Value::Null) {
@@ -2904,13 +2904,13 @@ impl Mexc {
             let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["method"], &[]).into_dict();
             if (method.as_deref() == Some("spotPublicGetAggTrades")) {
                 let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                trades = self.spot_public_get_agg_trades(&[__ws_arg_2]).await;
+                trades = self.spot_public_get_agg_trades(&[__ws_arg_2]).await.into_list();
             }  else if (method.as_deref() == Some("spotPublicGetHistoricalTrades")) {
                 let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                trades = self.spot_public_get_historical_trades(&[__ws_arg_3]).await;
+                trades = self.spot_public_get_historical_trades(&[__ws_arg_3]).await.into_list();
             }  else if (method.as_deref() == Some("spotPublicGetTrades")) {
                 let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                trades = self.spot_public_get_trades(&[__ws_arg_4]).await;
+                trades = self.spot_public_get_trades(&[__ws_arg_4]).await.into_list();
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTrades() not support this method")));
             }
@@ -2933,9 +2933,9 @@ impl Mexc {
             //         ]
             //     }
             //
-            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_trades(trades, Some(&market), &[since, limit]);
+        return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -5648,7 +5648,7 @@ impl Mexc {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut trades: Value = Value::from(vec![]);
+        let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
@@ -5662,7 +5662,7 @@ impl Mexc {
             }
             let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsMarketType, Value::Str("until".into()), &[]).into_dict() } else { paramsMarketType.clone() });
             let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
-            trades = self.spot_private_get_my_trades(&[__ws_arg_40]).await;
+            trades = self.spot_private_get_my_trades(&[__ws_arg_40]).await.into_list();
         }  else {
             if (since != Value::Null) {
                 request.insert("start_time".into(), since.clone());
@@ -5699,9 +5699,9 @@ impl Mexc {
             //         ]
             //     }
             //
-            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_trades(trades, Some(&market), &[since, limit]);
+        return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -5747,7 +5747,7 @@ impl Mexc {
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderTrades".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut trades: Value = Value::from(vec![]);
+        let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrderTrades() requires a symbol argument")));
@@ -5755,7 +5755,7 @@ impl Mexc {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             request.insert("orderId".into(), id.clone());
             let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&query]);
-            trades = self.spot_private_get_my_trades(&[__ws_arg_42]).await;
+            trades = self.spot_private_get_my_trades(&[__ws_arg_42]).await.into_list();
         }  else {
             request.insert("order_id".into(), id);
             let __ws_arg_43 = self.extend(Value::Map(request), &[&query]);
@@ -5783,9 +5783,9 @@ impl Mexc {
             //         ]
             //     }
             //
-            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_trades(trades, market.as_ref(), &[since, limit, Value::Dict(query)]);
+        return self.parse_trades(&trades, market.as_ref(), &[since, limit, Value::Dict(query)]);
         Value::Null
         }).await?))
     }

@@ -4220,18 +4220,18 @@ impl Backpack {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " fetchOpenOrders() rfq requires an RFQ market symbol")));
         }
         let mut accountParams: crate::value::Dict = self.omit(&query, Value::Str("rfq".into()), &[]).into_dict();
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if !rfq {
             let mut venueParams: crate::value::Dict = self.omit(&accountParams, &["rfqId", "deferredSettlement"], &[]).into_dict();
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&venueParams]);
-            response = self.private_get_api_v1_orders(&[__ws_arg_22]).await;
+            response = self.private_get_api_v1_orders(&[__ws_arg_22]).await.into_list();
         }
         if rfq || (stock && (market.is_none())) {
             let __ws_arg_23 = self.extend(Value::Map(request), &[self.omit(&accountParams, Value::Str("marketType".into()), &[])]);
             let mut rfqResponse: crate::value::List = self.private_get_api_v1_rfqs(&[__ws_arg_23]).await.into_list();
-            response = self.array_concat(response, &rfqResponse);
+            response = self.array_concat(Value::Arr(response), &rfqResponse).into_list();
         }
-        let mut orders: Value = self.parse_orders(response, market.as_ref(), &[since.clone()]);
+        let mut orders: Value = self.parse_orders(&response, market.as_ref(), &[since.clone()]);
         if stock {
             orders = self.filter_stock_structures(orders);
         }
@@ -4358,19 +4358,19 @@ impl Backpack {
         }  else {
             request.insert("orderId".into(), id.clone());
         }
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if rfq {
             let __ws_arg_26 = self.extend(&query, &[Value::Map(request.clone())]);
-            response = self.private_get_wapi_v1_history_rfq(&[__ws_arg_26]).await;
+            response = self.private_get_wapi_v1_history_rfq(&[__ws_arg_26]).await.into_list();
         }  else {
             let __ws_arg_27 = self.extend(&query, &[Value::Map(request)]);
-            response = self.private_get_wapi_v1_history_orders(&[__ws_arg_27]).await;
+            response = self.private_get_wapi_v1_history_orders(&[__ws_arg_27]).await.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_260: bool = true;
             while { if !__for_first_260 { i += 1; } __for_first_260 = false; i < (response.len() as i64) } {
-            let mut order: Value = self.parse_order(self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            let mut order: Value = self.parse_order(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Some(&market));
@@ -4560,18 +4560,18 @@ impl Backpack {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " fetchOrders() rfq requires an RFQ market symbol")));
         }
         let mut accountParams: crate::value::Dict = self.omit(&query, Value::Str("rfq".into()), &[]).into_dict();
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if !rfq {
             let mut venueParams: crate::value::Dict = self.omit(&accountParams, &["rfqId", "status", "side", "deferredSettlement"], &[]).into_dict();
             let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[&venueParams]);
-            response = self.private_get_wapi_v1_history_orders(&[__ws_arg_32]).await;
+            response = self.private_get_wapi_v1_history_orders(&[__ws_arg_32]).await.into_list();
         }
         if rfq || (stock && (market.is_none())) {
             let __ws_arg_33 = self.extend(Value::Map(request), &[self.omit(&accountParams, Value::Str("marketType".into()), &[])]);
             let mut rfqResponse: crate::value::List = self.private_get_wapi_v1_history_rfq(&[__ws_arg_33]).await.into_list();
-            response = self.array_concat(response, &rfqResponse);
+            response = self.array_concat(Value::Arr(response), &rfqResponse).into_list();
         }
-        let mut orders: Value = self.parse_orders(response, market.as_ref(), &[since.clone()]);
+        let mut orders: Value = self.parse_orders(&response, market.as_ref(), &[since.clone()]);
         if stock {
             orders = self.filter_stock_structures(orders);
         }

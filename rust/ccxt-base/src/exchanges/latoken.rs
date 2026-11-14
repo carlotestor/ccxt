@@ -1777,18 +1777,18 @@ impl Latoken {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100
         }
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
             request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_auth_trade_pair_currency_quote(&[__ws_arg_5]).await;
+            response = self.private_get_auth_trade_pair_currency_quote(&[__ws_arg_5]).await.into_list();
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_auth_trade(&[__ws_arg_6]).await;
+            response = self.private_get_auth_trade(&[__ws_arg_6]).await.into_list();
         }
-        return self.parse_trades(response, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

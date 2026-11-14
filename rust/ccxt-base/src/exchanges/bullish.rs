@@ -2198,7 +2198,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let methodResolvedparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsSinceAndUntil, Value::Str("fetchOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetV2HistoryOrders".into())]).as_array().cloned().unwrap_or_default();
         let mut methodResolved: Option<String> = methodResolvedparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodResolvedparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (methodResolved.as_deref() == Some("privateGetV2Orders")) {
             //
             //     [
@@ -2230,14 +2230,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             //     ]
             //
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsMethod]);
-            response = self.private_get_v2_orders(&[__ws_arg_7]).await;
+            response = self.private_get_v2_orders(&[__ws_arg_7]).await.into_list();
         }  else if (methodResolved.as_deref() == Some("privateGetV2HistoryOrders")) {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMethod]);
-            response = self.private_get_v2_history_orders(&[__ws_arg_8]).await;
+            response = self.private_get_v2_history_orders(&[__ws_arg_8]).await.into_list();
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"")));
         }
-        return self.parse_orders(response, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
