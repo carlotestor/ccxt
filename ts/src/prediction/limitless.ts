@@ -2727,7 +2727,7 @@ export default class limitless extends Exchange {
         });
     }
 
-    getOutcomeBySlugAndLabel (slug: Str, label: Str, market: Market = undefined): NullableDict {
+    getOutcomeBySlugAndLabel (slug: Str, label: Str, market: Market = undefined): any {
         const mkt = this.safeMarket (slug, market);
         const outcomes = this.safeList (mkt, 'outcomes', []);
         for (let i = 0; i < outcomes.length; i++) {
