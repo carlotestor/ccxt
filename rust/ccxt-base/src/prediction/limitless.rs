@@ -681,11 +681,11 @@ impl Limitless {
             let mut promises: Vec<Value> = Vec::new();
             let mut cappedPages: Value = ((match ((Value::from(maxMarkets)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
             let mut knownTotal: i64 = self.safe_integer_k(&firstPageResponse, "totalMarketsCount", &[Value::Int(0)]).as_i64().unwrap_or(0);
-            let mut allPages: Value = Value::from(self.parse_to_int(((match ((Value::from(knownTotal)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
+            let mut allPages: Option<i64> = self.parse_to_int(((match ((Value::from(knownTotal)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
             {
                                 let mut i: Value = Value::Int(2);
                 let mut __for_first_1301: bool = true;
-                while { if !__for_first_1301 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1301 = false; i.as_f64().unwrap_or(f64::NAN) <= allPages.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1301 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1301 = false; matches!(allPages, Some(__b) if i.as_f64().unwrap_or(f64::NAN) <= (__b as f64)) } {
                 if i.as_f64().unwrap_or(f64::NAN) > cappedPages.as_f64().unwrap_or(f64::NAN) {
                     break;
                 }
@@ -2883,8 +2883,8 @@ impl Limitless {
     m
 }));
         let mut response: Value = self.limitless_private_get_profiles_me(&[params]).await;
-        let mut responseList: Value = Value::from(vec![response]);
-        return self.parse_accounts(responseList, &[]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(vec![response]);
+        return self.parse_accounts(&responseList, &[]);
         Value::Null
         }).await?))
     }
@@ -4365,8 +4365,8 @@ if _try_result.is_err() {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("limitless")).cloned().unwrap_or(Value::Null)]);
+        let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "limitless")]);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut querystring: String = self.urlencode_with_array_repeat(query.clone());

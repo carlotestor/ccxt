@@ -2653,7 +2653,7 @@ impl Backpack {
         let mut price: Option<String> = self.safe_string_k(&paramsUntil, "price", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (price.is_some()) { self.omit(&paramsUntil, Value::Str("price".into()), &[]).into_dict() } else { paramsUntil });
         if (price.is_some()) {
-            request.insert("priceType".into(), self.capitalize(price.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("priceType".into(), Value::from(self.capitalize(price.map(Value::from).unwrap_or(Value::Null))));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_api_v1_klines(&[__ws_arg_6]).await.into_list();
@@ -4078,7 +4078,7 @@ impl Backpack {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), self.encode_order_side(side.as_str()).map(Value::from).unwrap_or(Value::Null));
-                m.insert("orderType".to_string(), self.capitalize(type_var.clone()));
+                m.insert("orderType".to_string(), Value::from(self.capitalize(type_var.clone())));
             m
         });
         let mut triggerPrice: Option<String> = self.safe_string_k(&query, "triggerPrice", &[]).as_str().map(str::to_owned);

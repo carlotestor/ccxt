@@ -636,14 +636,14 @@ impl Sxbet {
         if (self.safe_integer_k(raw.clone(), "gameTime", &[Value::Int(0)]).as_f64() != Some(0.0)) {
             gameTime = self.safe_timestamp_k(raw.clone(), "gameTime", &[]).as_i64();
         }
-        let mut outcomeLabels: Value = Value::from(vec![outcomeOneName.map(Value::from).unwrap_or(Value::Null), outcomeTwoName.map(Value::from).unwrap_or(Value::Null)]);
+        let mut outcomeLabels: crate::value::List = std::sync::Arc::new(vec![outcomeOneName.map(Value::from).unwrap_or(Value::Null), outcomeTwoName.map(Value::from).unwrap_or(Value::Null)]);
         let mut outcomeIds: Value = Value::from(vec![marketHash.clone(), Value::Str(format!("{}{}", marketHash, "-2").into())]);
         let mut outcomes: Vec<Value> = Vec::new();
         {
                         let mut oi: i64 = 0;
             let mut __for_first_1493: bool = true;
             while { if !__for_first_1493 { oi += 1; } __for_first_1493 = false; oi < (outcomeLabels.len() as i64) } {
-            let mut label: Option<String> = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut label: Option<String> = outcomeLabels.get(oi as usize).and_then(Value::as_str).map(str::to_owned);
             let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(eventSlug.as_deref()), Value::from(marketSlug.clone()), Value::from(label.as_deref())).as_str().map(str::to_owned);
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1790,13 +1790,13 @@ impl Sxbet {
         // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
         // chunk larger batches instead of letting the whole request 400
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "cancelOrdersBatchSize", &[Value::Int(100)]);
-        let mut chunkCount: Value = Value::from(self.parse_to_int((match ((self.sum(&[Value::from(idsLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+        let mut chunkCount: Option<i64> = self.parse_to_int((match ((self.sum(&[Value::from(idsLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut c: i64 = 0;
             let mut __for_first_1508: bool = true;
-            while { if !__for_first_1508 { c += 1; } __for_first_1508 = false; (c as f64) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1508 { c += 1; } __for_first_1508 = false; matches!(chunkCount, Some(__b) if (c as f64) < (__b as f64)) } {
             let mut chunkIndex: Option<i64> = self.parse_to_int(Value::Int(c));
             let mut chunkWidth: Option<i64> = self.parse_to_int(chunkSize.clone());
             let mut start: Option<i64> = (if let (Some(__l), Some(__r)) = (chunkIndex, chunkWidth) { Some(__l * __r) } else { None });
@@ -2917,12 +2917,12 @@ impl Sxbet {
             return self.parse_sxbet_tickers_by_hash(outcomesList.clone(), Value::Map(rowsByHash.clone()));
         }
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "bestOddsBatchSize", &[Value::Int(100)]);
-        let mut chunkCount: Value = Value::from(self.parse_to_int((match ((self.sum(&[Value::from(hashesLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+        let mut chunkCount: Option<i64> = self.parse_to_int((match ((self.sum(&[Value::from(hashesLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         {
                         let mut c: i64 = 0;
             let mut __for_first_1519: bool = true;
-            while { if !__for_first_1519 { c += 1; } __for_first_1519 = false; (c as f64) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1519 { c += 1; } __for_first_1519 = false; matches!(chunkCount, Some(__b) if (c as f64) < (__b as f64)) } {
             let mut chunkIndex: Option<i64> = self.parse_to_int(Value::Int(c));
             let mut chunkWidth: Option<i64> = self.parse_to_int(chunkSize.clone());
             let mut start: Option<i64> = (if let (Some(__l), Some(__r)) = (chunkIndex, chunkWidth) { Some(__l * __r) } else { None });
@@ -4074,8 +4074,8 @@ impl Sxbet {
         if (accessLevel.as_deref() == Some("private")) && (self.apiKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), path).into()), " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")));
         }
-        let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("sxbet")).cloned().unwrap_or(Value::Null)]);
+        let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "sxbet")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({

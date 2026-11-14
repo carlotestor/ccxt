@@ -707,9 +707,9 @@ impl Hollaex {
         //
         let mut channel: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut dataDict: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut rawOrders: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut rawOrders: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         if (dataDict != Value::Null) {
-            rawOrders = Value::from(vec![dataDict]);
+            rawOrders = std::sync::Arc::new(vec![dataDict]);
         }
         // usually the first message is an empty array
         if (Value::Int(rawOrders.len() as i64).as_f64() == Some(0.0)) {
@@ -728,7 +728,7 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_380: bool = true;
             while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (rawOrders.len() as i64) } {
-            let mut order: Value = self.safe_value(rawOrders.clone(), Value::Int(i), &[]);
+            let mut order: Value = self.safe_value(&rawOrders, Value::Int(i), &[]);
             let mut parsed: crate::value::Dict = self.parse_order(order.clone(), None).into_dict();
             stored.append(Value::Dict(parsed));
             let mut symbol: Option<String> = self.safe_string_k(order, "symbol", &[]).as_str().map(str::to_owned);

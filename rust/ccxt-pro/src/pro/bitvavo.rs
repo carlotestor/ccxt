@@ -844,7 +844,7 @@ impl Bitvavo {
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "@").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
         }
         }
-        let mut channels: Value = Value::from(vec![Value::Map({
+        let mut channels: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::from(name));
         m.insert("markets".to_string(), Value::from(marketIds));
@@ -855,7 +855,7 @@ impl Bitvavo {
                 m.insert("symbols".to_string(), symbolsNormalized.map_or(Value::Null, Value::Arr));
             m
         });
-        return self.un_watch_channels("trades", channels, Value::from(subMessageHashes), Value::Map(subscriptionArgs), &[params]).await;
+        return self.un_watch_channels("trades", &channels, Value::from(subMessageHashes), Value::Map(subscriptionArgs), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1364,7 +1364,7 @@ impl Bitvavo {
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "@").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
         }
         }
-        let mut channels: Value = Value::from(vec![Value::Map({
+        let mut channels: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::from(name));
         m.insert("markets".to_string(), Value::from(marketIds));
@@ -1375,7 +1375,7 @@ impl Bitvavo {
                 m.insert("symbols".to_string(), symbolsNormalized.map_or(Value::Null, Value::Arr));
             m
         });
-        return self.un_watch_channels("orderbook", channels, Value::from(subMessageHashes), Value::Map(subscriptionArgs), &[params]).await;
+        return self.un_watch_channels("orderbook", &channels, Value::from(subMessageHashes), Value::Map(subscriptionArgs), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1615,8 +1615,9 @@ impl Bitvavo {
         }
 }
 
-    pub async fn un_watch_channels(&mut self, topic: &str, mut channels: Value, mut subMessageHashes: Value, subscriptionArgs: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_channels(&mut self, topic: &str, channels: impl Into<crate::Value>, mut subMessageHashes: Value, subscriptionArgs: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut topic: Value = topic.into();
+        let mut channels: Value = channels.into();
         let mut subscriptionArgs: Value = subscriptionArgs.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1629,23 +1630,23 @@ impl Bitvavo {
                 m.insert("channels".to_string(), channels);
             m
         });
-        let mut unsubHashes: Value = Value::from(vec![]);
+        let mut unsubHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_158: bool = true;
             while { if !__for_first_158 { i += 1; } __for_first_158 = false; i < (subMessageHashes.len() as i64) } {
-            if let Value::Arr(__a) = &mut unsubHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.safe_string(subMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())])).into())); };
+            std::sync::Arc::make_mut(&mut unsubHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.safe_string(subMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())])).into()));
         }
         }
         let mut subscription: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), topic);
                 m.insert("subMessageHashes".to_string(), subMessageHashes);
-                m.insert("unsubHashes".to_string(), unsubHashes.clone());
+                m.insert("unsubHashes".to_string(), Value::Arr(unsubHashes.clone()));
             m
         }), &[subscriptionArgs]).into_dict();
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        return self.watch_multiple(url.as_deref(), unsubHashes.clone(), &message, unsubHashes.clone(), &subscription).await;
+        return self.watch_multiple(url.as_deref(), &unsubHashes, &message, &unsubHashes, &subscription).await;
 
     Value::Null
 }

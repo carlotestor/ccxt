@@ -5909,8 +5909,8 @@ impl Aster {
             while { if !__for_first_241 { i += 1; } __for_first_241 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut value: Value = (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut capitalizedKey: Value = self.capitalize(key.map(Value::from).unwrap_or(Value::Null));
-            capitalized.insert(crate::runtime::stringify_param(&capitalizedKey), value);
+            let mut capitalizedKey: String = self.capitalize(key.map(Value::from).unwrap_or(Value::Null));
+            capitalized.insert(capitalizedKey, value);
         }
         }
         return Value::Map(capitalized);

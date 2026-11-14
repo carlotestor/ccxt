@@ -2114,12 +2114,12 @@ impl Phemex {
                 m.insert("nonce".to_string(), Value::Null);
             m
         });
-        let mut sides: Value = Value::from(vec![bidsKey, asksKey]);
+        let mut sides: crate::value::List = std::sync::Arc::new(vec![bidsKey, asksKey]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1077: bool = true;
             while { if !__for_first_1077 { i += 1; } __for_first_1077 = false; i < (sides.len() as i64) } {
-            let mut side: Option<String> = sides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut side: Option<String> = sides.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut orders: Vec<Value> = Vec::new();
             let mut bidasks: crate::value::List = self.safe_list(orderbook.clone(), Value::from(side.as_deref()), &[Value::from(vec![])]).into_list();
             {
@@ -3828,13 +3828,13 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut requestSide: String = self.capitalize(side.clone()).to_string();
-        let mut typeValue: Option<String> = self.capitalize(type_var).as_str().map(str::to_owned);
+        let mut requestSide: String = self.capitalize(side.clone());
+        let mut typeValue: String = self.capitalize(type_var);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), Value::from(requestSide));
-                m.insert("ordType".to_string(), typeValue.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("ordType".to_string(), Value::from(typeValue.clone()));
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
@@ -3864,15 +3864,15 @@ impl Phemex {
         let mut orderParams: Value = self.omit(&paramsOmitted, &["stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"], &[]);
         if (market).spot {
             let mut qtyType: String = self.safe_string_k(orderParams.clone(), "qtyType", &[Value::Str("ByBase".into())]).as_str().unwrap_or("ByBase").to_string();
-            if (typeValue.as_deref() == Some("Market")) || (typeValue.as_deref() == Some("Stop")) || (typeValue.as_deref() == Some("MarketIfTouched")) {
+            if (typeValue == "Market") || (typeValue == "Stop") || (typeValue == "MarketIfTouched") {
                 if (price != Value::Null) {
                     qtyType = "ByQuote".to_string();
                 }
             }
             if (triggerPrice.is_some()) {
-                if (typeValue.as_deref() == Some("Limit")) {
+                if (typeValue == "Limit") {
                     request.insert("ordType".into(), Value::Str("StopLimit".into()));
-                }  else if (typeValue.as_deref() == Some("Market")) {
+                }  else if (typeValue == "Market") {
                     request.insert("ordType".into(), Value::Str("Stop".into()));
                 }
                 request.insert("trigger".into(), Value::Str("ByLastPrice".into()));
@@ -3919,7 +3919,7 @@ impl Phemex {
                     posSide = Some("Merged".to_string());
                 }
             }
-            let mut posSideCapitalized: String = self.capitalize(posSide.map(Value::from).unwrap_or(Value::Null)).to_string();
+            let mut posSideCapitalized: String = self.capitalize(posSide.map(Value::from).unwrap_or(Value::Null));
             request.insert("posSide".into(), Value::from(posSideCapitalized));
             if isStableSettled {
                 request.insert("orderQtyRq".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
@@ -3940,15 +3940,15 @@ impl Phemex {
                 // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
                 if (triggerDirection.as_deref() == Some("ascending")) || (triggerDirection.as_deref() == Some("up")) {
                     if (sideResolved == "sell") {
-                        request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
+                        request.insert("ordType".into(), (if (typeValue == "Market") { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
                     }  else if (sideResolved == "buy") {
-                        request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
+                        request.insert("ordType".into(), (if (typeValue == "Market") { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
                     }
                 }  else if (triggerDirection.as_deref() == Some("descending")) || (triggerDirection.as_deref() == Some("down")) {
                     if (sideResolved == "sell") {
-                        request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
+                        request.insert("ordType".into(), (if (typeValue == "Market") { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
                     }  else if (sideResolved == "buy") {
-                        request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
+                        request.insert("ordType".into(), (if (typeValue == "Market") { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
                     }
                 }
             }
@@ -3993,7 +3993,7 @@ impl Phemex {
                 }
             }
         }
-        if (typeValue.as_deref() == Some("Limit")) || (typeValue.as_deref() == Some("StopLimit")) || (typeValue.as_deref() == Some("LimitIfTouched")) {
+        if (typeValue == "Limit") || (typeValue == "StopLimit") || (typeValue == "LimitIfTouched") {
             if isStableSettled {
                 request.insert("priceRp".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }  else {

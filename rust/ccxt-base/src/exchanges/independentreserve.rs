@@ -1517,13 +1517,13 @@ impl Independentreserve {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderType: Value = self.capitalize(type_var.clone());
-        orderType = Value::Str(format!("{}{}", orderType, (if (side.as_str() == Some("sell")) { Value::Str("Offer".into()) } else { Value::Str("Bid".into()) })).into());
+        let mut orderType: String = self.capitalize(type_var.clone());
+        orderType.push_str(&((if (side.as_str() == Some("sell")) { Value::Str("Offer".into()) } else { Value::Str("Bid".into()) })).to_string());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("primaryCurrencyCode".to_string(), Value::from((market).base_id.as_deref()));
                 m.insert("secondaryCurrencyCode".to_string(), Value::from((market).quote_id.as_deref()));
-                m.insert("orderType".to_string(), orderType);
+                m.insert("orderType".to_string(), Value::from(orderType));
             m
         });
         let mut response: Option<crate::value::Dict> = None;

@@ -4491,7 +4491,7 @@ impl Coinbaseinternational {
                     Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
             }
         }
-        let mut nonce: Option<String> = self.random_bytes(Value::Int(16)).as_str().map(str::to_owned);
+        let mut nonce: String = self.random_bytes(Value::Int(16));
         let mut aud: String = "retail_rest_api_proxy".to_string();
         if useEddsa {
             aud = "cdp_service".to_string();
@@ -4523,7 +4523,7 @@ impl Coinbaseinternational {
             return Value::from(jwt(&request, seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("kid".to_string(), self.apiKey.clone());
-        m.insert("nonce".to_string(), Value::from(nonce.as_deref()));
+        m.insert("nonce".to_string(), Value::from(nonce.as_str()));
         m.insert("alg".to_string(), Value::Str("EdDSA".into()));
     m
 })));
@@ -4531,7 +4531,7 @@ impl Coinbaseinternational {
         return Value::from(jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("kid".to_string(), self.apiKey.clone());
-        m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
+        m.insert("nonce".to_string(), Value::from(nonce));
         m.insert("alg".to_string(), Value::Str("ES256".into()));
     m
 })));

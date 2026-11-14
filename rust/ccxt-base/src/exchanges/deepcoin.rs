@@ -2687,7 +2687,7 @@ impl Deepcoin {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
-                m.insert("productGroup".to_string(), self.capitalize(Value::from((market).market_type.clone())));
+                m.insert("productGroup".to_string(), Value::from(self.capitalize(Value::from((market).market_type.clone()))));
                 m.insert("sz".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("side".to_string(), side.clone());
                 m.insert("orderType".to_string(), type_var.clone());

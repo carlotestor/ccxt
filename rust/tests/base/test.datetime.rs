@@ -125,10 +125,10 @@ pub fn testMicroseconds() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut value: Value = exchange.microseconds();
-    let mut valueString: Value = Value::Str(format!("{}", value).into());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(valueString.len() as i64).as_f64() == Some(16.0)))));
+    let mut value: i64 = exchange.microseconds();
+    let mut valueString: String = format!("{}", value);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(value > 0))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(((valueString.chars().count() as i64)) == 16))));
 }
 pub fn testMilliseconds() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

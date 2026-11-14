@@ -1294,9 +1294,9 @@ impl Bitfinex {
         }
         }
         let mut payload: String = stringArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":");
-        let mut localChecksum: Value = self.crc32(&[Value::from(payload), Value::Bool(true)]);
-        let mut responseChecksum: Value = self.safe_integer(message, Value::Int(2), &[]);
-        if (responseChecksum.as_f64() != localChecksum.as_f64()) {
+        let mut localChecksum: i64 = self.crc32(&[Value::from(payload), Value::Bool(true)]);
+        let mut responseChecksum: Option<i64> = self.safe_integer(message, Value::Int(2), &[]).as_i64();
+        if (responseChecksum != Some(localChecksum)) {
             __ch.remove_subscription(messageHash.as_str());
             CacheStore::forget(&mut self.orderbooks, &symbol);
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();

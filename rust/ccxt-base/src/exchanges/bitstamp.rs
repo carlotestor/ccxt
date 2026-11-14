@@ -3232,9 +3232,9 @@ impl Bitstamp {
         }
         let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["clientOrderId"], &[]) } else { params }).into_dict();
         let mut response: Value = Value::Null;
-        let mut capitalizedSide: Option<String> = self.capitalize(side).as_str().map(str::to_owned);
+        let mut capitalizedSide: String = self.capitalize(side);
         if (type_var.as_str() == Some("market")) {
-            if (capitalizedSide.as_deref() == Some("Buy")) {
+            if (capitalizedSide == "Buy") {
                 let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_buy_market_pair(&[__ws_arg_5]).await;
             }  else {
@@ -3242,7 +3242,7 @@ impl Bitstamp {
                 response = self.private_post_sell_market_pair(&[__ws_arg_6]).await;
             }
         }  else if (type_var.as_str() == Some("instant")) {
-            if (capitalizedSide.as_deref() == Some("Buy")) {
+            if (capitalizedSide == "Buy") {
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_buy_instant_pair(&[__ws_arg_7]).await;
             }  else {
@@ -3251,7 +3251,7 @@ impl Bitstamp {
             }
         }  else {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
-            if (capitalizedSide.as_deref() == Some("Buy")) {
+            if (capitalizedSide == "Buy") {
                 let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_buy_pair(&[__ws_arg_9]).await;
             }  else {

@@ -3100,13 +3100,13 @@ if _try_result.is_err() {
         let mut digits: String = "0123456789abcdef".to_string();
         let mut result: Option<i64> = Some(0);
         let mut factor: Option<i64> = Some(1);
-        let mut count: Value = Value::from(self.parse_to_int(length));
+        let mut count: Option<i64> = self.parse_to_int(length);
         let mut start: Option<i64> = self.parse_to_int(offset);
         let mut position: Value = Value::from((if let Some(__l) = start { Some(__l * 2) } else { None }));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_612: bool = true;
-            while { if !__for_first_612 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_612 = false; i.as_f64().unwrap_or(f64::NAN) < count.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_612 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_612 = false; matches!(count, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
             // plain variables as slice bounds, php gets end - start unparenthesized
             let mut middle: Value = (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut next: Value = (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -3224,12 +3224,12 @@ if _try_result.is_err() {
         // Every caller guards on the count it needs, so an empty list and a short one read alike
         let mut result: Vec<Value> = Vec::new();
         let mut end: Option<i64> = self.parse_to_int(frameLength);
-        let mut total: Value = Value::from(self.parse_to_int(count));
+        let mut total: Option<i64> = self.parse_to_int(count);
         let mut position: Option<i64> = self.parse_to_int(offset);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_614: bool = true;
-            while { if !__for_first_614 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_614 = false; i.as_f64().unwrap_or(f64::NAN) < total.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_614 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_614 = false; matches!(total, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
             if (position.is_some() && end.is_some() && position >= end) {
                 return Value::from(result);
             }

@@ -2134,9 +2134,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (limit != Value::Null) {
             request.insert("count".into(), Value::from(limitResolved));
         }
-        let mut now: Value = self.microseconds();
+        let mut now: i64 = self.microseconds();
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-        let mut until: Value = self.safe_integer_k(&paramsPaginate, "until", &[now]);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[Value::from(now)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["until"], &[]).into_dict();
         if (since != Value::Null) {
             request.insert("start_ts".into(), (match (&(since), &(Value::Int((duration * 1000)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
@@ -2144,10 +2144,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut countLimit: Option<i64> = self.parse_to_int(crate::runtime::Math::min(&limit, &Value::Int(300)));
                 request.insert("end_ts".into(), self.sum(&[since.clone(), Value::from((if let Some(__l) = ((if let Some(__r) = countLimit { Some(duration * __r) } else { None })) { Some(__l * 1000) } else { None }))]));
             }  else {
-                request.insert("end_ts".into(), until.clone());
+                request.insert("end_ts".into(), Value::from(until));
             }
         }  else {
-            request.insert("end_ts".into(), until);
+            request.insert("end_ts".into(), Value::from(until));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v1_public_get_public_get_candlestick(&[__ws_arg_3]).await.into_dict();

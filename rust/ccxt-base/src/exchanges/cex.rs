@@ -2024,7 +2024,7 @@ impl Cex {
                 m.insert("currency1".to_string(), Value::from((market).base_id.as_deref()));
                 m.insert("currency2".to_string(), Value::from((market).quote_id.as_deref()));
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("orderType".to_string(), self.capitalize((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })));
+                m.insert("orderType".to_string(), Value::from(self.capitalize((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }))));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
                 m.insert("amountCcy1".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));

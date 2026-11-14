@@ -513,14 +513,14 @@ impl Hitbtc {
 }));
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut subMessageHashes: Vec<Value> = Vec::new();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_361: bool = true;
             while { if !__for_first_361 { i += 1; } __for_first_361 = false; i < (symbols.len() as i64) } {
             let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, "::").into()), symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             subMessageHashes.push(Value::from(subMessageHash.clone()));
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into())); };
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into()));
         }
         }
         let mut requestId: i64 = self.incrementing_nonce();
@@ -541,11 +541,11 @@ impl Hitbtc {
                 m.insert("id".to_string(), Value::from(requestId));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("subMessageHashes".to_string(), Value::from(subMessageHashes));
-                m.insert("messageHashes".to_string(), messageHashes.clone());
+                m.insert("messageHashes".to_string(), Value::Arr(messageHashes.clone()));
             m
         })]).into_dict();
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch_multiple(url.as_deref(), messageHashes.clone(), __ws_arg_0, messageHashes.clone(), &unsubscription).await;
+        return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_0, &messageHashes, &unsubscription).await;
 
     Value::Null
 }

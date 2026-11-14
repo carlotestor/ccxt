@@ -1663,8 +1663,8 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_726: bool = true;
             while { if !__for_first_726 { i += 1; } __for_first_726 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.get(i as usize).map(crate::Value::from).unwrap_or_default();
-            let mut contracts: String = self.safe_string_k(position.clone(), "contracts", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
+            let mut position: Option<&crate::types::Position> = positions.get(i as usize);
+            let mut contracts: String = self.safe_string_k(&position, "contracts", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             if crate::precise::Precise::stringGt(&Value::from(contracts), &Value::Str("0".into())).as_bool() == Some(true) {
                 cache.append(position);
             }

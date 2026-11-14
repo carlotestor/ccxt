@@ -1464,8 +1464,8 @@ impl Bybit {
         }
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbol.as_deref().unwrap_or("null")).into()), "::").into()), timeframe.as_deref().unwrap_or("null"));
-        let mut resolveData: Value = Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
-        client.resolve(resolveData, messageHash.as_str());
+        let mut resolveData: crate::value::List = std::sync::Arc::new(vec![symbol.map(Value::from).unwrap_or(Value::Null), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
+        client.resolve(Value::Arr(resolveData), messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
@@ -1744,10 +1744,10 @@ impl Bybit {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
         if (limit.as_deref() == Some("1")) {
             let mut bidask: indexmap::IndexMap<String, Value> = self.parse_ws_bid_ask(Value::from(self.orderbooks.at(&symbol)), Some(&market)).as_map().cloned().unwrap_or_default();
-            let mut newBidsAsks: indexmap::IndexMap<String, Value> = {
+            let mut newBidsAsks: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
-            };
+            });
             newBidsAsks.insert(crate::runtime::stringify_param(&symbol), Value::Map(bidask.clone()));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(bidask)); }
             client.resolve(Value::Map(newBidsAsks), &(Value::Str(format!("{}{}", "bidask:", symbol).into())));

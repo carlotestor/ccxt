@@ -2347,7 +2347,7 @@ impl Ndax {
         let mut orderType: Option<i64> = self.safe_integer(self.safe_dict_k(self.options.clone(), "orderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), self.capitalize(type_var.clone()), &[]).as_i64();
+})]), Value::from(self.capitalize(type_var.clone())), &[]).as_i64();
         let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
             if (type_var.as_str() == Some("market")) {
@@ -2442,7 +2442,7 @@ impl Ndax {
                 m.insert("OrderType".to_string(), self.safe_integer(self.safe_dict_k(self.options.clone(), "orderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), self.capitalize(type_var), &[]));
+})]), Value::from(self.capitalize(type_var)), &[]));
             m
         });
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified

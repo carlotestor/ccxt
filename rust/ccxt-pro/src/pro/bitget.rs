@@ -1582,8 +1582,8 @@ impl Bitget {
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
-            let mut responseChecksum: Value = self.safe_integer_k(rawOrderBook.clone(), "checksum", &[]);
-            if !isSnapshot && (checksum == Some(true)) && (responseChecksum != Value::Null) {
+            let mut responseChecksum: Option<i64> = self.safe_integer_k(rawOrderBook.clone(), "checksum", &[]).as_i64();
+            if !isSnapshot && (checksum == Some(true)) && (responseChecksum.is_some()) {
                 let mut storedAsks: Value = storedOrderBook.book_field("asks");
                 let mut storedBids: Value = storedOrderBook.book_field("bids");
                 let mut asksLength: i64 = get_array_length(&storedAsks).as_i64().unwrap_or_default();
@@ -1608,8 +1608,8 @@ impl Bitget {
                 }
                 }
                 let mut payload: String = payloadArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":");
-                let mut calculatedChecksum: Value = self.crc32(&[Value::from(payload), Value::Bool(true)]);
-                if (calculatedChecksum.as_f64() != responseChecksum.as_f64()) {
+                let mut calculatedChecksum: i64 = self.crc32(&[Value::from(payload), Value::Bool(true)]);
+                if (Some(calculatedChecksum) != responseChecksum) {
                     self.spawn(&[Value::Str("handle_check_sum_error".into()).clone(), client.clone(), symbol.clone(), Value::from(messageHash.clone())]);
                     return;
                 }

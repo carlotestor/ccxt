@@ -2013,8 +2013,8 @@ impl Aster {
         let mut parsed: crate::value::List = self.parse_ws_ohlcv(kline.map_or(Value::Null, Value::Dict), None).into_list();
         stored.append(Value::Arr(parsed));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbol.as_deref().unwrap_or("null")).into()), ":").into()), timeframe.as_deref().unwrap_or("null"));
-        let mut resolveData: Value = Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
-        client.resolve(resolveData, messageHash.as_str());
+        let mut resolveData: crate::value::List = std::sync::Arc::new(vec![symbol.map(Value::from).unwrap_or(Value::Null), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
+        client.resolve(Value::Arr(resolveData), messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
@@ -2432,8 +2432,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut i: i64 = 0;
             let mut __for_first_33: bool = true;
             while { if !__for_first_33 { i += 1; } __for_first_33 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.get(i as usize).map(crate::Value::from).unwrap_or_default();
-            let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
+            let mut position: Option<&crate::types::Position> = positions.get(i as usize);
+            let mut contracts: Value = self.safe_number_k(&position, "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 cache.append(position);
             }

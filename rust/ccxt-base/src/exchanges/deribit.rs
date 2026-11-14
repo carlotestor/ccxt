@@ -2022,17 +2022,17 @@ impl Deribit {
                 m.insert("info".to_string(), balance.clone());
             m
         });
-        let mut summaries: Value = Value::from(vec![]);
+        let mut summaries: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&balance, Value::Dict(__d) if __d.contains_key("summaries"))) {
-            summaries = self.safe_list_k(balance.clone(), "summaries", &[Value::from(vec![])]);
+            summaries = self.safe_list_k(balance.clone(), "summaries", &[Value::from(vec![])]).into_list();
         }  else {
-            summaries = Value::from(vec![balance]);
+            summaries = std::sync::Arc::new(vec![balance]);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_622: bool = true;
             while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (summaries.len() as i64) } {
-            let mut data: crate::value::Dict = self.safe_dict(summaries.clone(), Value::Int(i), &[]).into_dict();
+            let mut data: crate::value::Dict = self.safe_dict(&summaries, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3409,7 +3409,7 @@ impl Deribit {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        if (self.capitalize(side).as_str() == Some("Buy")) {
+        if (Value::from(self.capitalize(side)).as_str() == Some("Buy")) {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_buy(&[__ws_arg_12]).await.into_opt_dict();
         }  else {

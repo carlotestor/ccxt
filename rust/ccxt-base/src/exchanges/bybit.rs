@@ -6995,8 +6995,8 @@ impl Bybit {
             defaultMethod = Some("privatePostV5OrderCreate".to_string());
         }
         let mut method: Option<String> = None;
-        let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default(); method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut query: crate::value::Dict = Default::default();
+        { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod.map(Value::from).unwrap_or(Value::Null)]).into_list(); method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut endpointIsTradingStop: bool = method.as_deref() == Some("privatePostV5PositionTradingStop");
         if (price == Value::Null) && (lowerCaseType.as_deref() == Some("limit")) && !endpointIsTradingStop {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder requires a price argument for limit orders")));
@@ -7017,7 +7017,7 @@ impl Bybit {
                 let mut tpslModeTp: Option<String> = None;
                 if isStopLossOrder {
                     request.insert("stopLoss".into(), self.get_price(Some(symbolValue.as_str()), stopLossTriggerPrice.as_deref()));
-                    let mut stopLossLimitPrice: Option<String> = self.safe_string2(query.clone(), Value::Str("stopLossLimitPrice".into()), Value::Str("slLimitPrice".into()), &[]).as_str().map(str::to_owned);
+                    let mut stopLossLimitPrice: Option<String> = self.safe_string2(Value::from(&query), Value::Str("stopLossLimitPrice".into()), Value::Str("slLimitPrice".into()), &[]).as_str().map(str::to_owned);
                     if (stopLossLimitPrice.is_some()) {
                         tpslModeSl = Some("Partial".to_string());
                         request.insert("slOrderType".into(), Value::Str("Limit".into()));
@@ -7035,7 +7035,7 @@ impl Bybit {
                 }
                 if isTakeProfitOrder {
                     request.insert("takeProfit".into(), self.get_price(Some(symbolValue.as_str()), takeProfitTriggerPrice.as_deref()));
-                    let mut takeProfitLimitPrice: Option<String> = self.safe_string2(query.clone(), Value::Str("takeProfitLimitPrice".into()), Value::Str("tpLimitPrice".into()), &[]).as_str().map(str::to_owned);
+                    let mut takeProfitLimitPrice: Option<String> = self.safe_string2(Value::from(&query), Value::Str("takeProfitLimitPrice".into()), Value::Str("tpLimitPrice".into()), &[]).as_str().map(str::to_owned);
                     if (takeProfitLimitPrice.is_some()) {
                         tpslModeTp = Some("Partial".to_string());
                         request.insert("tpOrderType".into(), Value::Str("Limit".into()));
@@ -7059,14 +7059,14 @@ impl Bybit {
                 }  else {
                     request.insert("tpslMode".into(), tpslModeTp.map(Value::from).unwrap_or(Value::Null));
                 }
-                query = self.omit(query, &["stopLossLimitPrice", "takeProfitLimitPrice", "tradingStopEndpoint"], &[]);
+                query = self.omit(&query, &["stopLossLimitPrice", "takeProfitLimitPrice", "tradingStopEndpoint"], &[]).into_dict();
             }
         }  else {
-            request.insert("side".into(), self.capitalize(side.clone()));
-            request.insert("orderType".into(), self.capitalize(lowerCaseType.clone().map(Value::from).unwrap_or(Value::Null)));
-            let mut timeInForce: Option<String> = self.safe_string_lower_k(query.clone(), "timeInForce", &[]).as_str().map(str::to_owned); // this is same as exchange specific param
+            request.insert("side".into(), Value::from(self.capitalize(side.clone())));
+            request.insert("orderType".into(), Value::from(self.capitalize(lowerCaseType.clone().map(Value::from).unwrap_or(Value::Null))));
+            let mut timeInForce: Option<String> = self.safe_string_lower_k(&query, "timeInForce", &[]).as_str().map(str::to_owned); // this is same as exchange specific param
             let mut postOnly: Option<bool> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(timeInForce.as_deref() == Some("postonly")), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(timeInForce.as_deref() == Some("postonly")), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             if (postOnly == Some(true)) {
                 request.insert("timeInForce".into(), Value::Str("PostOnly".into()));
             }  else if (timeInForce.as_deref() == Some("gtc")) {
@@ -7084,7 +7084,7 @@ impl Bybit {
                     request.insert("orderFilter".into(), Value::Str("tpslOrder".into()));
                 }
             }
-            let mut clientOrderId: Option<String> = self.safe_string_k(query.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+            let mut clientOrderId: Option<String> = self.safe_string_k(&query, "clientOrderId", &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_some()) {
                 request.insert("orderLinkId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }  else if (market).option {
@@ -7096,10 +7096,10 @@ impl Bybit {
             }
         }
         let mut category: Option<String> = None;
-        { let __destr_tmp: Vec<Value> = self.get_bybit_type("createOrderRequest", Some(&market), &[query.clone()]).as_array().cloned().unwrap_or_default(); category = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.get_bybit_type("createOrderRequest", Some(&market), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); category = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
-        let mut cost: Option<String> = self.safe_string_k(query.clone(), "cost", &[]).as_str().map(str::to_owned);
-        query = self.omit(query, Value::Str("cost".into()), &[]);
+        let mut cost: Option<String> = self.safe_string_k(&query, "cost", &[]).as_str().map(str::to_owned);
+        query = self.omit(&query, Value::Str("cost".into()), &[]).into_dict();
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         let mut isMarketBuyAndCostInferable: bool = (lowerCaseType.as_deref() == Some("market")) && (side.as_str() == Some("buy")) && ((price != Value::Null) || (cost.is_some()));
         let mut isMarketOrder: bool = lowerCaseType.as_deref() == Some("market");
@@ -7123,7 +7123,8 @@ impl Bybit {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
+                query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -7155,8 +7156,8 @@ impl Bybit {
             }
             request.insert("trailingStop".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
         }  else if isTriggerOrder && !endpointIsTradingStop {
-            let mut triggerDirection: Option<String> = self.safe_string_k(query.clone(), "triggerDirection", &[]).as_str().map(str::to_owned);
-            query = self.omit(query, &["triggerPrice", "stopPrice", "triggerDirection"], &[]);
+            let mut triggerDirection: Option<String> = self.safe_string_k(&query, "triggerDirection", &[]).as_str().map(str::to_owned);
+            query = self.omit(&query, &["triggerPrice", "stopPrice", "triggerDirection"], &[]).into_dict();
             if (market).spot {
                 if (triggerDirection.is_some()) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() : trigger order does not support triggerDirection for spot markets yet")));
@@ -7225,7 +7226,7 @@ impl Bybit {
         }
         if !(market).spot && hedged {
             if reduceOnly {
-                query = self.omit(query, Value::Str("reduceOnly".into()), &[]);
+                query = self.omit(&query, Value::Str("reduceOnly".into()), &[]).into_dict();
             }
             // a reduce-only order closes the position on the opposite side
             let mut isBuyPosition: bool = false;
@@ -7236,8 +7237,8 @@ impl Bybit {
             }
             request.insert("positionIdx".into(), (if isBuyPosition { Value::Int(1) } else { Value::Int(2) }));
         }
-        query = self.omit(query, &["stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"], &[]);
-        return self.extend(Value::Map(request), &[query]);
+        query = self.omit(&query, &["stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"], &[]).into_dict();
+        return self.extend(Value::Map(request), &[&query]);
 
     Value::Null
 }
@@ -13293,11 +13294,11 @@ impl Bybit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
         let mut rawPositions: Option<crate::value::List> = self.safe_list_k(&result, "list", &[]).into_opt_list();
-        let mut rawPositionsList: Value = Value::from(vec![]);
+        let mut rawPositionsList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (rawPositions.is_some()) {
-            rawPositionsList = rawPositions.map_or(Value::Null, Value::Arr);
+            rawPositionsList = rawPositions.unwrap_or_default();
         }
-        let mut positions: crate::value::List = self.parse_positions(rawPositionsList, &[symbols, Value::Dict(paramsOmitted)]).into_list();
+        let mut positions: crate::value::List = self.parse_positions(&rawPositionsList, &[symbols, Value::Dict(paramsOmitted)]).into_list();
         return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))

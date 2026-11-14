@@ -3927,7 +3927,7 @@ impl Btse {
         // the requested types are also filtered client side over both the legacy
         // and the unified enum vocabularies as the legacy endpoint ignored the
         // filter and returned the whole mixed ledger
-        let mut allowed: Value = Value::Map({
+        let mut allowed: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3936,8 +3936,8 @@ impl Btse {
             let mut __for_first_489: bool = true;
             while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (typesList.len() as i64) } {
             let mut historyType: String = self.safe_string(&typesList, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            if let Value::Dict(__d) = &mut allowed { std::sync::Arc::make_mut(__d).insert(historyType.clone(), Value::Bool(true)); }
-            add_element_to_object(&mut allowed, &self.capitalize(Value::from(historyType.to_lowercase())), Value::Bool(true));
+            allowed.insert(historyType.clone(), Value::Bool(true));
+            allowed.insert(crate::runtime::stringify_param(&(Value::from(self.capitalize(Value::from(historyType.to_lowercase()))))), Value::Bool(true));
         }
         }
         let mut rows: Vec<Value> = Vec::new();
@@ -3950,7 +3950,7 @@ impl Btse {
     m
 })]).into_dict();
             let mut type_var: String = self.safe_string_k(&entry, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            if (matches!((&allowed, Some(type_var.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            if (allowed.contains_key(type_var.as_str())) {
                 rows.push(Value::Dict(entry));
             }
         }

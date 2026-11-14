@@ -1872,7 +1872,7 @@ impl Hyperliquid {
         if postOnly {
             defaultTif = "Alo".to_string();
         }
-        let mut tif: String = self.capitalize(self.safe_string_lower_k(params.clone(), "timeInForce", &[Value::from(defaultTif)])).to_string(); // eslint-disable-line
+        let mut tif: String = self.capitalize(self.safe_string_lower_k(params.clone(), "timeInForce", &[Value::from(defaultTif)])); // eslint-disable-line
         if (price == Value::Null) {
             if isMarket {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.")));

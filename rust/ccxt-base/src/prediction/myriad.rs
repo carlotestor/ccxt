@@ -3033,11 +3033,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (decimals == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fromWeiWithDecimals() missing decimals")));
         }
-        let mut decimalsCount: Value = Value::from(self.parse_to_int(decimals));
+        let mut decimalsCount: Option<i64> = self.parse_to_int(decimals);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1356: bool = true;
-            while { if !__for_first_1356 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1356 = false; i.as_f64().unwrap_or(f64::NAN) < decimalsCount.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1356 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1356 = false; matches!(decimalsCount, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
             scale = format!("{}{}", scale, "0");
         }
         }
@@ -4258,20 +4258,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
         // an eventId does a direct lookup, and tags map to server-side keyword searches (the
         // markets listing ignores tag filter params, but tag slugs match through keyword=)
-        let mut rawMarkets: Value = Value::from(vec![]);
-        let mut rawQuestions: Value = Value::from(vec![]);
+        let mut rawMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
+        let mut rawQuestions: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // some markets are only discoverable through the questions search endpoint
             let mut responses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(queries.clone(), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(queries.clone(), &[Value::from(&rest)]).await])).await;
-            rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]);
-            rawQuestions = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]);
+            rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+            rawQuestions = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         }  else if (eventId.is_some()) {
             if eventId.as_deref().unwrap_or_default().contains(":") {
                 let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await;
-                rawMarkets = Value::from(vec![rawMarket]);
+                rawMarkets = std::sync::Arc::new(vec![rawMarket]);
             }  else {
                 let mut rawQuestion: Value = self.fetch_raw_question_by_id(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await;
-                rawQuestions = Value::from(vec![rawQuestion]);
+                rawQuestions = std::sync::Arc::new(vec![rawQuestion]);
             }
         }  else {
             let mut requestedTags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
@@ -4279,8 +4279,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (requestedTagsLength == 0) {
                 // unscoped mode: fetch bounded open lists from both sources and merge
                 let mut listResponses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_list(&[Value::from(&rest)]).await, self.fetch_raw_questions_list(&[Value::from(&rest)]).await])).await;
-                rawMarkets = self.safe_list(listResponses.clone(), Value::Int(0), &[Value::from(vec![])]);
-                rawQuestions = self.safe_list(listResponses, Value::Int(1), &[Value::from(vec![])]);
+                rawMarkets = self.safe_list(listResponses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+                rawQuestions = self.safe_list(listResponses, Value::Int(1), &[Value::from(vec![])]).into_list();
             }  else {
                 let mut tagQueries: Vec<Value> = Vec::new();
                 {
@@ -4295,8 +4295,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
                 let mut responses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(Value::from(tagQueries.clone()), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(Value::from(tagQueries), &[Value::from(&rest)]).await])).await;
-                rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]);
-                rawQuestions = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]);
+                rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+                rawQuestions = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).into_list();
             }
         }
         if (self.markets.clone() == Value::Null) {
@@ -4312,7 +4312,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1372: bool = true;
             while { if !__for_first_1372 { i += 1; } __for_first_1372 = false; i < rawQuestionsLength } {
-            let mut rawQuestion: Value = rawQuestions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawQuestion: Value = rawQuestions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ev: crate::value::Dict = self.parse_event(rawQuestion).into_dict();
             let mut evMarkets: crate::value::List = self.safe_list_k(&ev, "markets", &[Value::from(vec![])]).into_list();
             let mut evMarketsLength: i64 = evMarkets.len() as i64;
@@ -4350,7 +4350,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1373: bool = true;
             while { if !__for_first_1373 { i += 1; } __for_first_1373 = false; i < rawMarketsLength } {
-            let mut raw: crate::value::Dict = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut m: crate::value::Dict = self.parse_myriad_market(Value::from(&raw), None).into_dict();
             let mut marketHandle: Option<String> = self.safe_string_k_opt(&m, "market", &[]);
             if (marketHandle.is_some()) && (matches!(&marketHandle.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seenMarketHandles.contains_key(__k.as_ref()))) {
@@ -5478,8 +5478,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("myriad")).cloned().unwrap_or(Value::Null)]);
+        let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "myriad")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (method.as_str() == Some("GET")) {

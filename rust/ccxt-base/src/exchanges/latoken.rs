@@ -911,7 +911,7 @@ impl Latoken {
                     continue;
                 }
                 let mut lowercaseQuote: Option<String> = quote.as_deref().map(str::to_lowercase);
-                let mut capitalizedQuote: Option<String> = self.capitalize(lowercaseQuote.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut capitalizedQuote: String = self.capitalize(lowercaseQuote.map(Value::from).unwrap_or(Value::Null));
                 let mut status: Option<String> = self.safe_string_k(&market, "status", &[]).as_str().map(str::to_owned);
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -966,8 +966,8 @@ impl Latoken {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", "minOrderCost", capitalizedQuote.as_deref().unwrap_or("null")).into()), &[]));
-        m.insert("max".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", "maxOrderCost", capitalizedQuote.as_deref().unwrap_or("null")).into()), &[]));
+        m.insert("min".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", "minOrderCost", capitalizedQuote).into()), &[]));
+        m.insert("max".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", "maxOrderCost", capitalizedQuote).into()), &[]));
     m
 }));
     m

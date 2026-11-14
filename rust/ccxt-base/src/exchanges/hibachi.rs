@@ -1065,11 +1065,11 @@ impl Hibachi {
         // }
         //
         let mut trades: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
-        let mut tradesList: Value = Value::from(vec![]);
+        let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (trades != Value::Null) {
-            tradesList = trades;
+            tradesList = trades.into_list();
         }
-        return self.parse_trades(tradesList, Some(&market), &[]);
+        return self.parse_trades(&tradesList, Some(&market), &[]);
         Value::Null
         }).await?))
     }
@@ -2161,11 +2161,11 @@ impl Hibachi {
         // }
         //
         let mut trades: Option<crate::value::List> = self.safe_list_k(&response, "trades", &[]).into_opt_list();
-        let mut tradesList: Value = Value::from(vec![]);
+        let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (trades.is_some()) {
-            tradesList = trades.map_or(Value::Null, Value::Arr);
+            tradesList = trades.unwrap_or_default();
         }
-        return self.parse_trades(tradesList, market.as_ref(), &[since, limit, params]);
+        return self.parse_trades(&tradesList, market.as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
     }

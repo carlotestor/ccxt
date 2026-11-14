@@ -2758,8 +2758,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "requestId": "633900538459062272"
         //     }
         //
-        let mut orders: Value = Value::from(vec![response]);
-        return self.parse_orders(orders, market.as_ref(), &[]);
+        let mut orders: crate::value::List = std::sync::Arc::new(vec![response]);
+        return self.parse_orders(&orders, market.as_ref(), &[]);
         Value::Null
         }).await?))
     }
@@ -3920,7 +3920,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.microseconds()).into());
+            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.microseconds())).into());
             let mut timestamp: Value = Value::Str(format!("{}", self.get_timestamp()).into());
             let mut headers: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

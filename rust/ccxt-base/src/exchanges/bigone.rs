@@ -2240,9 +2240,9 @@ impl Bigone {
         let mut isLimit: bool = uppercaseType == "LIMIT";
         let mut exchangeSpecificParam: bool = self.safe_bool_k(params.clone(), "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut postOnly: Option<bool> = None;
-        let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(exchangeSpecificParam), &[params]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut triggerPrice: Option<String> = self.safe_string_n(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_str().map(str::to_owned);
+        let mut query: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(exchangeSpecificParam), &[params]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut triggerPrice: Option<String> = self.safe_string_n(Value::from(&query), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));
@@ -2253,7 +2253,7 @@ impl Bigone {
         if isLimit || (uppercaseType == "STOP_LIMIT") {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             if isLimit {
-                let mut timeInForce: Option<String> = self.safe_string_k(query.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+                let mut timeInForce: Option<String> = self.safe_string_k(&query, "timeInForce", &[]).as_str().map(str::to_owned);
                 if (timeInForce.as_deref() == Some("IOC")) {
                     request.insert("immediate_or_cancel".into(), Value::Bool(true));
                 }
@@ -2265,9 +2265,9 @@ impl Bigone {
         }  else {
             if isBuy {
                 let mut createMarketBuyOrderRequiresPrice: Option<bool> = None;
-                { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-                let mut cost: Option<f64> = self.safe_number_k(query.clone(), "cost", &[]).as_f64();
-                query = self.omit(query, Value::Str("cost".into()), &[]);
+                { let __destr_tmp = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).into_list(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+                let mut cost: Option<f64> = self.safe_number_k(&query, "cost", &[]).as_f64();
+                query = self.omit(&query, Value::Str("cost".into()), &[]).into_dict();
                 if (createMarketBuyOrderRequiresPrice == Some(true)) {
                     if (price == Value::Null) && (cost.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -2295,12 +2295,12 @@ impl Bigone {
             }
         }
         request.insert("type".into(), Value::from(uppercaseType));
-        let mut clientOrderId: Option<String> = self.safe_string_k(query.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&query, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        query = self.omit(query, &["stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"], &[]);
-        let __ws_arg_6 = self.extend(Value::Map(request), &[query]);
+        query = self.omit(&query, &["stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"], &[]).into_dict();
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&query]);
         let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_6]).await.into_dict();
         //
         //    {
@@ -2735,7 +2735,7 @@ impl Bigone {
     pub fn nonce(&self) -> Value {
         let mut exchangeMillisecondsCorrection: i64 = self.safe_integer_k(self.options.clone(), "exchangeMillisecondsCorrection", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut exchangeTimeCorrection: i64 = (exchangeMillisecondsCorrection * 1000000);
-        return self.sum(&[(match (&(self.microseconds()), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), Value::from(exchangeTimeCorrection)]);
+        return Value::Int(((((self.microseconds()) * 1000)) + exchangeTimeCorrection));
 
     Value::Null
 }
