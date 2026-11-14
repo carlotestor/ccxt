@@ -3350,7 +3350,7 @@ func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code stri
 		"ts":      ts,
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
-	var signature any = this.SignMessage(encoded, this.PrivateKey)
+	var signature string = this.SignMessage(encoded, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"op": map[string]any{
 			"type": "withdraw",
@@ -3758,14 +3758,14 @@ func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], sy
 func (this *Polymarket) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Polymarket) SignHash(hash any, privateKey any) any {
+func (this *Polymarket) SignHash(hash any, privateKey any) string {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var sVal *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(sVal, 64, "0") + v
 }
-func (this *Polymarket) SignMessage(message any, privateKey any) any {
+func (this *Polymarket) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), privateKey)
 }
 
@@ -3792,7 +3792,7 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 	// key over a timestamped nonce - unpredictable without the wallet
 	// secret and unique per provisioning, the paradex stark-key idiom
 	var nonceMessage string = "polymarket-perps-proxy:" + strconv.FormatInt(this.Milliseconds(), 10) + ":" + strconv.FormatInt(this.RandNumber(9), 10)
-	var seedSignature any = this.SignMessage(nonceMessage, this.PrivateKey)
+	var seedSignature string = this.SignMessage(nonceMessage, this.PrivateKey)
 	var proxyPrivateKey any = this.Hash(this.Encode(seedSignature), keccak, "hex")
 	var proxyAddress string = this.EthGetAddressFromPrivateKey(proxyPrivateKey)
 	var owner string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
@@ -3828,7 +3828,7 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 		"ts":   ts,
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
-	var signature any = this.SignMessage(encoded, this.PrivateKey)
+	var signature string = this.SignMessage(encoded, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"op": map[string]any{
 			"type": "createProxy",
@@ -3960,7 +3960,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable []any
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var proxyPrivateKey *string = this.SafeString(credentials, "privateKey")
-	var signature any = this.SignMessage(encoded, proxyPrivateKey)
+	var signature string = this.SignMessage(encoded, proxyPrivateKey)
 	var envelope map[string]any = map[string]any{
 		"op":   bodyOp,
 		"sig":  signature,
