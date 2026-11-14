@@ -2586,7 +2586,7 @@ if _try_result.is_err() {
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut position: crate::value::Dict = self.parse_position(Value::Dict(data), None).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&position, "symbol");
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
         let mut side: Option<String> = self.safe_string_k(&position, "side", &[]).as_str().map(str::to_owned);
@@ -2609,14 +2609,14 @@ if _try_result.is_err() {
                     m
                 })]);
                 cache.append(flattened.clone());
-                if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(flattened); }
+                std::sync::Arc::make_mut(&mut newPositions).push(flattened);
             }
         }
         }
         cache.append(Value::from(&position));
-        if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::Dict(position)); }
-        client.resolve(newPositions.clone(), "positions");
-        client.resolve(newPositions, &(Value::Str(format!("{}{}", Value::Str("positions:".into()), symbol).into())));
+        std::sync::Arc::make_mut(&mut newPositions).push(Value::Dict(position));
+        client.resolve(&newPositions, "positions");
+        client.resolve(Value::Arr(newPositions), &(Value::Str(format!("{}{}", Value::Str("positions:".into()), symbol).into())));
 }
 
 /*

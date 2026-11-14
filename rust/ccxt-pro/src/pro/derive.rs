@@ -1685,7 +1685,7 @@ impl Derive {
             m
         })]);
         let mut updated: bool = false;
-        let mut positionUpdates: Vec<Value> = vec![];
+        let mut positionUpdates: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_303: bool = true;
@@ -1699,7 +1699,7 @@ impl Derive {
                 // position deltas carry instrument names and do not belong into the balance structure
                 if (self.positionsByType.has(&subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null))) {
                     let mut position: Value = self.handle_position_delta(subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null), Value::from(&entry));
-                    positionUpdates.push(position);
+                    std::sync::Arc::make_mut(&mut positionUpdates).push(position);
                 }
                 continue;
             }
@@ -1726,7 +1726,7 @@ impl Derive {
         }
         let mut positionUpdatesLength: i64 = positionUpdates.len() as i64;
         if positionUpdatesLength > 0 {
-            client.resolve(Value::Array(positionUpdates), &(Value::Str(format!("{}{}", Value::Str("positions:".into()), topic).into())));
+            client.resolve(Value::Arr(positionUpdates), &(Value::Str(format!("{}{}", Value::Str("positions:".into()), topic).into())));
         }
 }
 

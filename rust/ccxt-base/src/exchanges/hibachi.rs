@@ -1105,8 +1105,8 @@ impl Hibachi {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-        let mut rawPromises: Value = Value::from(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(Value::Map(request), &[params])]).await]);
-        let pricesResponsestatsResponseVariable: Vec<Value> = promise_all(&rawPromises).await.as_array().cloned().unwrap_or_default();
+        let mut rawPromises: crate::value::List = std::sync::Arc::new(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(Value::Map(request), &[params])]).await]);
+        let pricesResponsestatsResponseVariable: Vec<Value> = promise_all(&Value::Arr(rawPromises)).await.as_array().cloned().unwrap_or_default();
         let mut pricesResponse: Value = pricesResponsestatsResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut statsResponse: Value = pricesResponsestatsResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         // {
@@ -2769,8 +2769,8 @@ impl Hibachi {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-        let mut rawPromises: Value = Value::from(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(Value::Map(request), &[params.clone()])]).await]);
-        let mut promises: Value = promise_all(&rawPromises).await;
+        let mut rawPromises: crate::value::List = std::sync::Arc::new(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(Value::Map(request), &[params.clone()])]).await]);
+        let mut promises: Value = promise_all(&Value::Arr(rawPromises)).await;
         let mut responseCapitalHistory: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[]).into_dict();
         //
         // {
@@ -3176,8 +3176,8 @@ impl Hibachi {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "settlements", &[Value::from(vec![])]).into_list();
         let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(data), market.as_ref()).into_list();
-        let mut sorted: Value = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }

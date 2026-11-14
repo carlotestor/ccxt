@@ -2044,8 +2044,8 @@ impl Xt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promisesRaw: Value = Value::from(vec![self.public_spot_get_wallet_support_currency(&[params.clone()]).await, self.public_spot_get_currencies(&[params]).await]);
-        let chainsResponsecurrenciesResponseVariable: Vec<Value> = promise_all(&promisesRaw).await.as_array().cloned().unwrap_or_default();
+        let mut promisesRaw: crate::value::List = std::sync::Arc::new(vec![self.public_spot_get_wallet_support_currency(&[params.clone()]).await, self.public_spot_get_currencies(&[params]).await]);
+        let chainsResponsecurrenciesResponseVariable: Vec<Value> = promise_all(&Value::Arr(promisesRaw)).await.as_array().cloned().unwrap_or_default();
         let mut chainsResponse: Value = chainsResponsecurrenciesResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut currenciesResponse: Value = chainsResponsecurrenciesResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         //
@@ -2247,8 +2247,8 @@ impl Xt {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut promisesUnresolved: Value = Value::from(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_and_future_markets(&[params]).await]);
-        let mut promises: Vec<Value> = promise_all(&promisesUnresolved).await.as_array().cloned().unwrap_or_default();
+        let mut promisesUnresolved: crate::value::List = std::sync::Arc::new(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_and_future_markets(&[params]).await]);
+        let mut promises: Vec<Value> = promise_all(&Value::Arr(promisesUnresolved)).await.as_array().cloned().unwrap_or_default();
         let mut spotMarkets: crate::value::List = promises.get(0).cloned().unwrap_or(Value::Null).into_list();
         let mut swapAndFutureMarkets: crate::value::List = promises.get(1).cloned().unwrap_or(Value::Null).into_list();
         return self.array_concat(&spotMarkets, &swapAndFutureMarkets);

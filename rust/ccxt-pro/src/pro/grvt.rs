@@ -849,8 +849,8 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
-        return self.create_ohlcv_object(symbol, timeframe, filtered);
+        let mut filtered: crate::value::List = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
     }
@@ -1350,10 +1350,10 @@ impl Grvt {
         let mut data: Option<crate::value::Dict> = message.get("feed").cloned().unwrap_or_default().into_opt_dict();
         let mut position: crate::value::Dict = self.parse_ws_position(data.map_or(Value::Null, Value::Dict), None).into_dict();
         self.positions.append(Value::from(&position));
-        let mut newPositions: Value = Value::from(vec![]);
-        if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
-        client.resolve(newPositions.clone(), &(Value::Str(format!("{}{}", Value::Str("positions::".into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
-        client.resolve(newPositions, "positions");
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
+        std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
+        client.resolve(&newPositions, &(Value::Str(format!("{}{}", Value::Str("positions::".into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
+        client.resolve(Value::Arr(newPositions), "positions");
 }
 
     pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> Value {

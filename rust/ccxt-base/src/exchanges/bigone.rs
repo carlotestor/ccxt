@@ -1050,8 +1050,8 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promises: Value = Value::from(vec![self.public_get_asset_pairs(&[params.clone()]).await, self.contract_public_get_symbols(&[params]).await]);
-        let mut promisesResult: Value = promise_all(&promises).await;
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_asset_pairs(&[params.clone()]).await, self.contract_public_get_symbols(&[params]).await]);
+        let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
         let mut response: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[]).into_dict();
         let mut contractResponse: Value = self.safe_value(promisesResult, Value::Int(1), &[]);
         //

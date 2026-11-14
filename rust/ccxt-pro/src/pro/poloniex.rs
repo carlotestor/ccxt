@@ -777,17 +777,17 @@ impl Poloniex {
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut orders: Vec<Value> = vec![];
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_634: bool = true;
             while { if !__for_first_634 { i += 1; } __for_first_634 = false; i < (data.len() as i64) } {
             let mut order: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
-            orders.push(Value::Dict(parsedOrder));
+            std::sync::Arc::make_mut(&mut orders).push(Value::Dict(parsedOrder));
         }
         }
-        client.resolve(Value::Array(orders), messageHash.as_deref());
+        client.resolve(Value::Arr(orders), messageHash.as_deref());
 }
 
 /*
@@ -1854,9 +1854,9 @@ impl Poloniex {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut tickers: Value = self.filter_by_array(newTickers.clone(), Value::Str("symbol".into()), &symbols, &[]);
-            if !(self.is_empty(tickers.clone()).as_bool() == Some(true)) {
-                client.resolve(tickers, messageHash.as_deref());
+            let mut tickers: crate::value::Dict = self.filter_by_array(newTickers.clone(), Value::Str("symbol".into()), &symbols, &[]).into_dict();
+            if !(self.is_empty(&tickers).as_bool() == Some(true)) {
+                client.resolve(Value::Dict(tickers), messageHash.as_deref());
             }
         }
         }

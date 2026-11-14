@@ -556,7 +556,7 @@ impl Bitvavo {
         self.handle_bid_ask(client.clone(), message);
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut tickers: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-        let mut result: Vec<Value> = vec![];
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_144: bool = true;
@@ -567,14 +567,14 @@ impl Bitvavo {
             let mut ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market)).into_dict();
             let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
-            result.push(Value::from(&ticker));
+            std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
             if (event.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), Value::Str("@".into())).into()), self.safe_string_k(&data, "market", &[Value::Str("".into())]));
                 client.resolve(Value::Dict(ticker), messageHash.as_str());
             }
         }
         }
-        client.resolve(Value::Array(result), event.as_deref());
+        client.resolve(Value::Arr(result), event.as_deref());
 }
 
 /*
@@ -613,7 +613,7 @@ impl Bitvavo {
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut event: String = "bidask".to_string();
         let mut tickers: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut result: Vec<Value> = vec![];
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_145: bool = true;
@@ -622,12 +622,12 @@ impl Bitvavo {
             let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None).into_dict();
             let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
-            result.push(Value::from(&ticker));
+            std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event, Value::Str(":".into())).into()), symbol);
             client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
         }
-        client.resolve(Value::Array(result), event.as_str());
+        client.resolve(Value::Arr(result), event.as_str());
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
@@ -1071,8 +1071,8 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
-        return self.create_ohlcv_object(symbol, timeframe, filtered);
+        let mut filtered: crate::value::List = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
     }

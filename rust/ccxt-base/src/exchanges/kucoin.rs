@@ -12810,8 +12810,8 @@ if _try_result.is_err() {
             assets = self.safe_list_k(&data, "accounts", &[Value::from(vec![])]).into_opt_list();
         }
         let mut interest: crate::value::List = self.parse_borrow_interests(&assets, market.as_ref()).into_list();
-        let mut filteredByCurrency: Value = self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since.clone(), limit.clone()]);
-        return self.filter_by_symbol_since_limit(filteredByCurrency, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut filteredByCurrency: crate::value::List = self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since.clone(), limit.clone()]).into_list();
+        return self.filter_by_symbol_since_limit(&filteredByCurrency, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
