@@ -2409,19 +2409,19 @@ if _try_result.is_err() {
         }
         self.initialize_client().await;
         let requestoperationTypeVariable: Vec<Value> = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params.clone()]).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut operationType: Option<String> = requestoperationTypeVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clientOrderId".into()), Value::Str("stopLimitPrice".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossCloid".into()),
             Value::Str("stopLossPrice".into()), Value::Str("stopLossLimitPrice".into()), Value::Str("takeProfitCloid".into()), Value::Str("takeProfitPrice".into()), Value::Str("takeProfitLimitPrice".into()), Value::Str("expiryWindow".into()), Value::Str("slippage".into()), Value::Str("slippage_percent".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (operationType.as_deref() == Some("create_market_order")) {
-            let __ws_arg_8 = self.extend(request.clone(), &[&paramsOmitted]);
+            let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
             response = self.private_post_orders_create_market(&[__ws_arg_8]).await.into_opt_dict();
         }  else if (operationType.as_deref() == Some("create_stop_order")) {
-            let __ws_arg_9 = self.extend(request.clone(), &[&paramsOmitted]);
+            let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
             response = self.private_post_orders_stop_create(&[__ws_arg_9]).await.into_opt_dict();
         }  else if (operationType.as_deref() == Some("set_position_tpsl")) {
-            let __ws_arg_10 = self.extend(request.clone(), &[&paramsOmitted]);
+            let __ws_arg_10 = self.extend(&request, &[&paramsOmitted]);
             response = self.private_post_positions_tpsl(&[__ws_arg_10]).await.into_opt_dict();
         }  else {
             let __ws_arg_11 = self.extend(request, &[&paramsOmitted]);

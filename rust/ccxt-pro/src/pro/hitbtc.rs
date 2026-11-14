@@ -1938,7 +1938,7 @@ impl Hitbtc {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let orderRequestparamsValueVariable: Vec<Value> = self.parent.create_order_request(market, marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, marginMode.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarginMode)]).as_array().cloned().unwrap_or_default();
-        let mut orderRequest: Value = orderRequestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut orderRequest: crate::value::Dict = orderRequestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = orderRequestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: crate::value::Dict = self.extend(orderRequest, &[&paramsValue]).into_dict();
         if (marketType.as_deref() == Some("swap")) {

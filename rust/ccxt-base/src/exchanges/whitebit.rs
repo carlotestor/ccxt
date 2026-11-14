@@ -2661,19 +2661,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("fetchTickers".into()), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut methodOption: Value = methodOptionparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut methodOption: Option<String> = methodOptionparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut method: Value = methodOption;
-        if (method == Value::Null) {
+        let mut method: Option<String> = methodOption;
+        if (method.is_none()) {
             // if the user did not specify a method, choose it based on market type and symbols
             if onlyContractSymbols || (marketType.as_deref() == Some("swap")) {
-                method = Value::Str("v4PublicGetFutures".into());
+                method = Some("v4PublicGetFutures".to_string());
             }  else {
-                method = Value::Str("v4PublicGetTicker".into());
+                method = Some("v4PublicGetTicker".to_string());
             }
         }
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("v4PublicGetTicker")) {
+        if (method.as_deref() == Some("v4PublicGetTicker")) {
             //
             //      "BCH_RUB": {
             //          "base_id":1831,
@@ -2686,7 +2686,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             //      },
             //
             response = self.v4_public_get_ticker(&[Value::from(&paramsMethod)]).await;
-        }  else if (method.as_str() == Some("v4PublicGetFutures")) {
+        }  else if (method.as_deref() == Some("v4PublicGetFutures")) {
             //
             //     {
             //         "success": true,

@@ -2968,14 +2968,14 @@ impl Poloniex {
         });
         let mut triggerPrice: Option<f64> = self.safe_number2(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
         let requestValueparamsValueVariable: Vec<Value> = self.order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, Value::Map(request), &[price, params]).as_array().cloned().unwrap_or_default();
-        let mut requestValue: Value = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestValue: crate::value::Dict = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (market).swap || (market).future {
-            let __ws_arg_12 = self.extend(requestValue.clone(), &[&paramsValue]);
+            let __ws_arg_12 = self.extend(&requestValue, &[&paramsValue]);
             let mut responseInitial: crate::value::Dict = self.swap_private_post_v3_trade_order(&[__ws_arg_12]).await.into_dict();
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -2985,7 +2985,7 @@ impl Poloniex {
                 m
             })]);
         }  else if (triggerPrice.is_some()) {
-            let __ws_arg_13 = self.extend(requestValue.clone(), &[&paramsValue]);
+            let __ws_arg_13 = self.extend(&requestValue, &[&paramsValue]);
             response = self.private_post_smartorders(&[__ws_arg_13]).await;
         }  else {
             let __ws_arg_14 = self.extend(requestValue, &[&paramsValue]);
@@ -3280,14 +3280,14 @@ impl Poloniex {
         });
         let mut triggerPrice: Option<f64> = self.safe_number2(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
         let requestValueparamsValueVariable: Vec<Value> = self.order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, Value::Map(request), &[price, params]).as_array().cloned().unwrap_or_default();
-        let mut requestValue: Value = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestValue: crate::value::Dict = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (triggerPrice.is_some()) {
-            let __ws_arg_15 = self.extend(requestValue.clone(), &[&paramsValue]);
+            let __ws_arg_15 = self.extend(&requestValue, &[&paramsValue]);
             response = self.private_put_smartorders_id(&[__ws_arg_15]).await;
         }  else {
             let __ws_arg_16 = self.extend(requestValue, &[&paramsValue]);

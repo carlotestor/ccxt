@@ -3537,14 +3537,14 @@ impl Hitbtc {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let requestparamsValueVariable: Vec<Value> = self.create_order_request(market.clone(), marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, marginMode.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarginMode)]).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
-            let __ws_arg_51 = self.extend(request.clone(), &[&paramsValue]);
+            let __ws_arg_51 = self.extend(&request, &[&paramsValue]);
             response = self.private_post_futures_order(&[__ws_arg_51]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            let __ws_arg_52 = self.extend(request.clone(), &[&paramsValue]);
+            let __ws_arg_52 = self.extend(&request, &[&paramsValue]);
             response = self.private_post_margin_order(&[__ws_arg_52]).await.into_opt_dict();
         }  else {
             let __ws_arg_53 = self.extend(request, &[&paramsValue]);

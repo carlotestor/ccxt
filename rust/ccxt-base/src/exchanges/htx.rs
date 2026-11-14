@@ -9452,8 +9452,8 @@ impl Htx {
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let networkCodeparamsOmitedVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Option<String> = networkCodeparamsOmitedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsOmited: Value = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut indexedAddresses: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), paramsOmited).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut paramsOmited: crate::value::Dict = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut indexedAddresses: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsOmited)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut selectedNetworkCode: Option<String> = self.select_network_key_from_networks(crate::value::KeyRead::key_read(&&currency, "code"), networkCode.map(Value::from).unwrap_or(Value::Null), crate::types::IntoRaw::into_raw(indexedAddresses.clone()), &[Value::Bool(true)]).as_str().map(str::to_owned);
         return self.safe_dict(crate::types::IntoRaw::into_raw(indexedAddresses), selectedNetworkCode.map(Value::from).unwrap_or(Value::Null), &[]);
         Value::Null
@@ -10553,23 +10553,23 @@ impl Htx {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut defaultSubType: String = "linear".to_string();
         let subTypeOptionparamsSubTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchFundingRates".into()), Value::Str("subType".into()), &[Value::from(defaultSubType)]).as_array().cloned().unwrap_or_default();
-        let mut subTypeOption: Value = subTypeOptionparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subTypeOption: Option<String> = subTypeOptionparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeOptionparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut subType: Value = subTypeOption;
+        let mut subType: Option<String> = subTypeOption;
         if (symbolsNormalized.is_some()) {
             let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut isLinear: Option<bool> = (market).linear;
-            subType = (if (isLinear == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
+            subType = (if (isLinear == Some(true)) { Some("linear".to_string()) } else { Some("inverse".to_string()) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        if (subType.as_str() == Some("linear")) {
+        if (subType.as_deref() == Some("linear")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchFundingRates() not support this market type")));
-        }  else if (subType.as_str() == Some("inverse")) {
+        }  else if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_127 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.contract_public_get_swap_api_v1_swap_batch_funding_rate(&[__ws_arg_127]).await.into_opt_dict();
         }  else {

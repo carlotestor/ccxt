@@ -3158,10 +3158,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let tradingAccountIdOptionparamsTradingAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("loadAccount".into()), Value::Str("tradingAccountId".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tradingAccountIdOption: Value = tradingAccountIdOptionparamsTradingAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tradingAccountIdOption: Option<String> = tradingAccountIdOptionparamsTradingAccountIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTradingAccountId: crate::value::Dict = tradingAccountIdOptionparamsTradingAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut tradingAccountId: Value = tradingAccountIdOption;
-        if (tradingAccountId == Value::Null) {
+        let mut tradingAccountId: Option<String> = tradingAccountIdOption;
+        if (tradingAccountId.is_none()) {
             let mut response: crate::value::List = self.private_get_v1_accounts_trading_accounts(&[Value::Dict(paramsTradingAccountId)]).await.into_list();
             let mut accounts: crate::value::List = self.to_array(&response).into_list();
             {
@@ -3171,16 +3171,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut account: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
                 let mut name: Option<String> = self.safe_string_k(&account, "tradingAccountName", &[]).as_str().map(str::to_owned);
                 if (name.as_deref() == Some("Primary Account")) {
-                    tradingAccountId = self.safe_string_k(&account, "tradingAccountId", &[]);
+                    tradingAccountId = self.safe_string_k(&account, "tradingAccountId", &[]).as_str().map(str::to_owned);
                     break;
                 }
             }
             }
         }
-        if (tradingAccountId == Value::Null) {
+        if (tradingAccountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")));
         }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingAccountId".into(), tradingAccountId); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null)); }
         return self.safe_string_k(self.options.clone(), "tradingAccountId", &[]);
 
     Value::Null

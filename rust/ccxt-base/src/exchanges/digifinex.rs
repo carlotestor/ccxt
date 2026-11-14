@@ -3159,7 +3159,7 @@ impl Digifinex {
         }
         let marketTypeparamsOmittedVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsOmittedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsOmitted: Value = marketTypeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOmitted: crate::value::Dict = marketTypeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("swap")) {
             if (market.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a symbol argument for swap markets")));
@@ -3179,7 +3179,7 @@ impl Digifinex {
                 orders.push(Value::Map(orderItem));
             }
             }
-            return crate::types::IntoRaw::into_raw(self.cancel_orders_for_symbols(crate::types::FromRaw::from_raw(Value::from(orders)), paramsOmitted.clone()).await);
+            return crate::types::IntoRaw::into_raw(self.cancel_orders_for_symbols(crate::types::FromRaw::from_raw(Value::from(orders)), Value::from(&paramsOmitted)).await);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3187,7 +3187,7 @@ impl Digifinex {
                 m.insert("order_id".to_string(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             m
         });
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_spot_post_spot_order_cancel(&[__ws_arg_14]).await.into_dict();
         return self.parse_cancel_orders(&response, &[]);
         Value::Null

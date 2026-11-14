@@ -5063,23 +5063,23 @@ impl Aster {
     m
 }));
         let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchPositions".into()), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut methodOption: Value = methodOptionparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethod: Value = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut defaultMethod: Value = methodOption;
-        if (defaultMethod == Value::Null) {
+        let mut methodOption: Option<String> = methodOptionparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut paramsMethod: crate::value::Dict = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut defaultMethod: Option<String> = methodOption;
+        if (defaultMethod.is_none()) {
             let mut options: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchPositions", &[]).into_opt_dict();
             if (options.is_none()) {
-                defaultMethod = self.safe_string_k(self.options.clone(), "fetchPositions", &[Value::Str("positionRisk".into())]);
+                defaultMethod = self.safe_string_k(self.options.clone(), "fetchPositions", &[Value::Str("positionRisk".into())]).as_str().map(str::to_owned);
             }  else {
-                defaultMethod = Value::Str("positionRisk".into());
+                defaultMethod = Some("positionRisk".to_string());
             }
         }
-        if (defaultMethod.as_str() == Some("positionRisk")) {
-            return crate::types::IntoRaw::into_raw(self.fetch_positions_risk(symbols.to_opt_str_vec(), paramsMethod.clone()).await);
-        }  else if (defaultMethod.as_str() == Some("account")) {
-            return self.fetch_account_positions(&[symbols, paramsMethod]).await;
+        if (defaultMethod.as_deref() == Some("positionRisk")) {
+            return crate::types::IntoRaw::into_raw(self.fetch_positions_risk(symbols.to_opt_str_vec(), Value::from(&paramsMethod)).await);
+        }  else if (defaultMethod.as_deref() == Some("account")) {
+            return self.fetch_account_positions(&[symbols, Value::Dict(paramsMethod)]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"").into()), defaultMethod).into()), "\" is invalid, please choose between \"account\" and \"positionRisk\"")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"").into()), defaultMethod.as_deref().unwrap_or("null")).into()), "\" is invalid, please choose between \"account\" and \"positionRisk\"")));
         }
         Value::Null
         }).await?))

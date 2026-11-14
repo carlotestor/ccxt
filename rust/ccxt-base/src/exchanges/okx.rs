@@ -8243,15 +8243,15 @@ impl Okx {
             m
         });
         let marginModeOptionparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLedger".into()), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
-        let mut marginModeOption: Value = marginModeOptionparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginModeOption: Option<String> = marginModeOptionparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeOptionparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut marginMode: Value = marginModeOption;
-        if (marginMode == Value::Null) {
-            marginMode = self.safe_string_k(&paramsMarginMode, "mgnMode", &[]);
+        let mut marginMode: Option<String> = marginModeOption;
+        if (marginMode.is_none()) {
+            marginMode = self.safe_string_k(&paramsMarginMode, "mgnMode", &[]).as_str().map(str::to_owned);
         }
         if (method.as_deref() != Some("privateGetAssetBills")) {
-            if (marginMode != Value::Null) {
-                request.insert("mgnMode".into(), marginMode);
+            if (marginMode.is_some()) {
+                request.insert("mgnMode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             }
         }
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), None, &[Value::from(&paramsMarginMode)]).as_array().cloned().unwrap_or_default();
@@ -12463,19 +12463,19 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchUnderlyingAssets".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut marketTypeOption: Value = marketTypeOptionparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketTypeOption: Option<String> = marketTypeOptionparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeOptionparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isSpotOrUndefined: bool = (marketTypeOption == Value::Null) || (marketTypeOption.as_str() == Some("spot"));
-        let mut marketType: Value = marketTypeOption;
+        let mut isSpotOrUndefined: bool = (marketTypeOption.is_none()) || (marketTypeOption.as_deref() == Some("spot"));
+        let mut marketType: Option<String> = marketTypeOption;
         if isSpotOrUndefined {
-            marketType = Value::Str("option".into());
+            marketType = Some("option".to_string());
         }
-        if (marketType.as_str() != Some("option")) && (marketType.as_str() != Some("swap")) && (marketType.as_str() != Some("future")) {
+        if (marketType.as_deref() != Some("option")) && (marketType.as_deref() != Some("swap")) && (marketType.as_deref() != Some("future")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchUnderlyingAssets() supports contract markets only")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.as_str()).map(Value::from).unwrap_or(Value::Null));
+                m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.as_deref()).map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_90 = self.extend(Value::Map(request), &[&paramsMarketType]);

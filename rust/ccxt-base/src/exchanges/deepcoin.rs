@@ -2070,8 +2070,8 @@ impl Deepcoin {
         if (network.is_some()) {
             network = self.safe_string(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned);
         }
-        let mut paramsOmitted: Value = (if (network.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
-        let mut addressess: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), paramsOmitted).await);
+        let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let mut addressess: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), Value::Dict(paramsOmitted)).await);
         let mut length: f64 = ((addressess.len() as i64) as f64);
         let mut index: Value = Value::Int(0);
         if (network.is_some()) && (length > ((1i64) as f64)) {

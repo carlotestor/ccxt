@@ -19860,7 +19860,7 @@ if _try_result.is_err() {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchMarginMode".into()), Some(&market), &[params]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (subType.as_deref() == Some("linear")) {
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -19868,10 +19868,10 @@ if _try_result.is_err() {
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            let __ws_arg_220 = self.extend(Value::Map(request), &[paramsSubType.clone()]);
+            let __ws_arg_220 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.fapi_private_get_symbol_config(&[__ws_arg_220]).await;
         }  else if (subType.as_deref() == Some("inverse")) {
-            let mut fetchMarginModesResponse: crate::types::MarginModes = (match self.fetch_margin_modes((Value::from(vec![symbol.clone()])).to_opt_str_vec(), paramsSubType).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut fetchMarginModesResponse: crate::types::MarginModes = (match self.fetch_margin_modes((Value::from(vec![symbol.clone()])).to_opt_str_vec(), Value::Dict(paramsSubType)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marginMode: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(fetchMarginModesResponse), symbol, &[]).into_opt_dict();
             return marginMode.map_or(Value::Null, Value::Dict);
         }  else {

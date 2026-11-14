@@ -962,12 +962,12 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1118: bool = true;
             while { if !__for_first_1118 { i += 1; } __for_first_1118 = false; i < (data.len() as i64) } {
-            let mut tickerData: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut tickerData: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            if let Value::Dict(__d) = &mut tickerData { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-            let mut ticker: crate::value::Dict = self.parse_ticker(tickerData, None).into_dict();
+})]).into_dict();
+            std::sync::Arc::make_mut(&mut tickerData).insert("timestamp".into(), Value::from(timestamp));
+            let mut ticker: crate::value::Dict = self.parse_ticker(&tickerData, None).into_dict();
             let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (symbol == "") {
                 continue;

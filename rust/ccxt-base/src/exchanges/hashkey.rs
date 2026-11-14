@@ -3618,17 +3618,17 @@ impl Hashkey {
         }
         request.insert("side".into(), Value::Str(format!("{}{}", (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), suffix).into()));
         let timeInForceParamparamsTimeInForceVariable: Vec<Value> = self.handle_param_string(&paramsReduceOnly, Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut timeInForceParam: Value = timeInForceParamparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut timeInForceParam: Option<String> = timeInForceParamparamsTimeInForceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimeInForce: crate::value::Dict = timeInForceParamparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(timeInForceParam.as_str() == Some("LIMIT_MAKER")), &[Value::from(&paramsTimeInForce)]).as_array().cloned().unwrap_or_default();
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(timeInForceParam.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsTimeInForce)]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut timeInForce: Value = timeInForceParam;
+        let mut timeInForce: Option<String> = timeInForceParam;
         if postOnly {
-            timeInForce = Value::Str("LIMIT_MAKER".into());
+            timeInForce = Some("LIMIT_MAKER".to_string());
         }
-        if (timeInForce != Value::Null) {
-            request.insert("timeInForce".into(), timeInForce);
+        if (timeInForce.is_some()) {
+            request.insert("timeInForce".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(&paramsPostOnly, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {

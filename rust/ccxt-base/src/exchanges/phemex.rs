@@ -3239,16 +3239,16 @@ impl Phemex {
         }
         if (type_var.as_deref() == Some("swap")) {
             let settleparamsSettleVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("fetchBalance".into()), Value::Str("settle".into()), &[Value::Str("USDT".into())]).as_array().cloned().unwrap_or_default();
-            let mut settle: Value = settleparamsSettleVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut settle: Option<String> = settleparamsSettleVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsSettle: crate::value::Dict = settleparamsSettleVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            if (code.is_some()) || (settle != Value::Null) {
-                let mut coin: Value = Value::Null;
+            if (code.is_some()) || (settle.is_some()) {
+                let mut coin: Option<String> = None;
                 if (code.is_some()) {
-                    coin = code.map(Value::from).unwrap_or(Value::Null);
+                    coin = code;
                 }  else {
                     coin = settle;
                 }
-                let mut currency: crate::types::Currency = self.currency(coin);
+                let mut currency: crate::types::Currency = self.currency(coin.map(Value::from).unwrap_or(Value::Null));
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
                 if (crate::value::KeyRead::key_read(&&currency, "id").as_str() == Some("USDT")) {
                     let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsSettle]);

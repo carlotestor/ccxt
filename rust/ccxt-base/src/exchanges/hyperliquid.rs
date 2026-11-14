@@ -1951,7 +1951,7 @@ impl Hyperliquid {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("type".into()), &[]).into_dict();
         let hip3OptionparamsHip3Variable: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchTickers".into()), Value::Str("hip3".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut hip3Option: Value = hip3OptionparamsHip3Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsHip3: Value = hip3OptionparamsHip3Variable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsHip3: crate::value::Dict = hip3OptionparamsHip3Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut hip3: Value = hip3Option;
         if (symbolsNormalized.is_some()) {
             // infer from first symbol
@@ -1964,13 +1964,13 @@ impl Hyperliquid {
             }
         }
         if hip3.as_bool() == Some(true) {
-            response = self.fetch_hip3_markets(&[self.omit(paramsHip3.clone(), Value::Str("hip3".into()), &[])]).await;
+            response = self.fetch_hip3_markets(&[self.omit(&paramsHip3, Value::Str("hip3".into()), &[])]).await;
         }  else if (type_var.as_deref() == Some("spot")) {
-            response = self.fetch_spot_markets(&[paramsHip3.clone()]).await;
+            response = self.fetch_spot_markets(&[Value::from(&paramsHip3)]).await;
         }  else if (type_var.as_deref() == Some("swap")) {
-            response = self.fetch_swap_markets(&[paramsHip3.clone()]).await;
+            response = self.fetch_swap_markets(&[Value::from(&paramsHip3)]).await;
         }  else {
-            response = crate::types::IntoRaw::into_raw(self.fetch_markets(paramsHip3).await);
+            response = crate::types::IntoRaw::into_raw(self.fetch_markets(Value::Dict(paramsHip3)).await);
         }
         // same response as under "fetchMarkets"
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -3191,8 +3191,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let orderglobalParamsVariable: Vec<Value> = self.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut globalParams: Value = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orders: Vec<crate::types::Order> = (match self.create_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), globalParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut globalParams: crate::value::Dict = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut orders: Vec<crate::types::Order> = (match self.create_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut created: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
         return created.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -4300,8 +4300,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let orderglobalParamsVariable: Vec<Value> = self.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut globalParams: Value = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orders: Vec<crate::types::Order> = (match self.edit_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), globalParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut globalParams: crate::value::Dict = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut orders: Vec<crate::types::Order> = (match self.edit_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut edited: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
         return edited.map_or(Value::Null, Value::Dict);
         Value::Null

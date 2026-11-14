@@ -2940,16 +2940,16 @@ impl Weex {
 }));
         let mut requestedType: Option<String> = self.safe_string_k(params.clone(), "type", &[]).as_str().map(str::to_owned);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
-        let mut type_var: Value = marketType;
+        let mut type_var: Option<String> = marketType;
         if sandboxMode && (requestedType.is_none()) {
-            type_var = Value::Str("swap".into());
+            type_var = Some("swap".to_string());
         }
         let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("spot")) {
+        if (type_var.as_deref() == Some("spot")) {
             if sandboxMode {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"")));
             }
@@ -4030,15 +4030,15 @@ impl Weex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orders: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchClosedOrders() requires a symbol argument for spot markets")));
             }
-            orders = crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), None, paramsMarketType.clone()).await);
+            orders = crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), None, Value::from(&paramsMarketType)).await);
         }  else {
-            orders = crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), paramsMarketType).await);
+            orders = crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(paramsMarketType)).await);
         }
         return self.filter_by(orders, Value::Str("status".into()), Value::Str("closed".into()), &[]);
         Value::Null
@@ -4082,15 +4082,15 @@ impl Weex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchCanceledOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orders: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchCanceledOrders() requires a symbol argument for spot markets")));
             }
-            orders = crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), None, paramsMarketType.clone()).await);
+            orders = crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), None, Value::from(&paramsMarketType)).await);
         }  else {
-            orders = crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), paramsMarketType).await);
+            orders = crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(paramsMarketType)).await);
         }
         return self.filter_by(orders, Value::Str("status".into()), Value::Str("canceled".into()), &[]);
         Value::Null

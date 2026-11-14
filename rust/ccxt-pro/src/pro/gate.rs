@@ -814,7 +814,7 @@ impl Gate {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let requestrequestParamsVariable: Vec<Value> = self.parent.fetch_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Option<String> = self.get_type_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_status");
@@ -926,9 +926,9 @@ impl Gate {
             }
         }
         let requestrequestParamsVariable: Vec<Value> = self.parent.prepare_orders_by_status_request(status.as_str(), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[params]).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut newRequest: crate::value::Dict = self.omit(request, Value::from(vec![Value::Str("settle".into())]), &[]).into_dict();
+        let mut newRequest: crate::value::Dict = self.omit(&request, Value::from(vec![Value::Str("settle".into())]), &[]).into_dict();
         let mut messageType: Option<String> = self.get_type_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_list");
         let mut url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);

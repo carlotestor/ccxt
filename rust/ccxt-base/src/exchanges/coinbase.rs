@@ -1671,17 +1671,17 @@ impl Coinbase {
     m
 }));
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(code.as_str(), limit.as_i64(), &[params]).await.as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_str() == Some("v2PrivateGetAccountsAccountIdTransactions")) {
-            let __ws_arg_7 = self.extend(request.clone(), &[&paramsValue]);
+            let __ws_arg_7 = self.extend(&request, &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_7]).await.into_opt_dict();
         }  else if (method.as_str() == Some("v2PrivateGetAccountsAccountIdWithdrawals")) {
-            let __ws_arg_8 = self.extend(request.clone(), &[&paramsValue]);
+            let __ws_arg_8 = self.extend(&request, &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_withdrawals(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
             let __ws_arg_9 = self.extend(request, &[&paramsValue]);
@@ -3900,7 +3900,7 @@ if _try_result.is_err() {
             currency = Some(self.currency(code.clone()));
         }
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(code.as_str(), limit.as_i64(), &[Value::Dict(paramsPaginate)]).await.as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
@@ -6048,7 +6048,7 @@ if _try_result.is_err() {
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code((self.safe_string_k(&currency, "code", &[])).as_str(), None, &[params]).await.as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_55 = self.extend(request, &[&paramsValue]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_55]).await.into_dict();
