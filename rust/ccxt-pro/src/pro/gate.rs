@@ -1244,7 +1244,7 @@ impl Gate {
         }
         let mut delta: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut deltaStart: Option<i64> = self.safe_integer_k(delta.clone(), "U", &[]).as_i64();
-        let mut deltaEnd: Value = self.safe_integer_k(delta.clone(), "u", &[]);
+        let mut deltaEnd: Option<i64> = self.safe_integer_k(delta.clone(), "u", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(delta.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::from(marketType)]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
@@ -1252,8 +1252,8 @@ impl Gate {
     let mut m = indexmap::IndexMap::new();
     m
 })]))));
-        let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);
-        if (nonce == Value::Null) {
+        let mut nonce: Option<i64> = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]).as_i64();
+        if (nonce.is_none()) {
             let mut cacheLength: Option<i64> = self.parse_to_int(Value::Int(0));
             if (storedOrderBook != Value::Null) {
                 let mut storedCacheLength: Value = get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".into())));
@@ -1275,9 +1275,9 @@ impl Gate {
             }
             crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".into()), delta.clone());
             return;
-        }  else if (deltaEnd != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) >= deltaEnd.as_f64().unwrap_or(f64::NAN)) {
+        }  else if (deltaEnd.is_some()) && ((nonce.is_some() && deltaEnd.is_some() && nonce >= deltaEnd)) {
             return;
-        }  else if (deltaStart.is_some()) && (nonce != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) >= Value::from((if let Some(__l) = deltaStart { Some(__l - 1) } else { None })).as_f64().unwrap_or(f64::NAN)) {
+        }  else if (deltaStart.is_some()) && (nonce.is_some()) && (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) {
             self.handle_book_delta(storedOrderBook.clone(), delta);
         }  else {
             __ch.remove_subscription(messageHash.as_str());
@@ -1293,10 +1293,10 @@ impl Gate {
 }
 
     pub fn get_cache_index(&self, mut orderBook: Value, mut cache: Value) -> Value {
-        let mut nonce: Value = self.safe_integer_k(orderBook, "nonce", &[]);
+        let mut nonce: Option<i64> = self.safe_integer_k(orderBook, "nonce", &[]).as_i64();
         let mut firstDelta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(0), &[]).into_dict();
-        let mut firstDeltaStart: Value = self.safe_integer_k(&firstDelta, "U", &[]);
-        if (nonce != Value::Null) && (firstDeltaStart != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) < firstDeltaStart.as_f64().unwrap_or(f64::NAN)) {
+        let mut firstDeltaStart: Option<i64> = self.safe_integer_k(&firstDelta, "U", &[]).as_i64();
+        if (nonce.is_some()) && (firstDeltaStart.is_some()) && ((nonce.is_some() && firstDeltaStart.is_some() && nonce < firstDeltaStart)) {
             return Value::Int(-1);
         }
         {
@@ -1305,8 +1305,8 @@ impl Gate {
             while { if !__for_first_319 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_319 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
             let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), i.clone(), &[]).into_dict();
             let mut deltaStart: Option<i64> = self.safe_integer_k(&delta, "U", &[]).as_i64();
-            let mut deltaEnd: Value = self.safe_integer_k(&delta, "u", &[]);
-            if (nonce != Value::Null) && (deltaStart.is_some()) && (deltaEnd != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) >= Value::from((if let Some(__l) = deltaStart { Some(__l - 1) } else { None })).as_f64().unwrap_or(f64::NAN)) && (nonce.as_f64().unwrap_or(f64::NAN) < deltaEnd.as_f64().unwrap_or(f64::NAN)) {
+            let mut deltaEnd: Option<i64> = self.safe_integer_k(&delta, "u", &[]).as_i64();
+            if (nonce.is_some()) && (deltaStart.is_some()) && (deltaEnd.is_some()) && (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) && ((nonce.is_some() && deltaEnd.is_some() && nonce < deltaEnd)) {
                 return i;
             }
         }

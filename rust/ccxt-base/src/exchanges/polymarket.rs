@@ -1900,14 +1900,14 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1105: bool = true;
             while { if !__for_first_1105 { i += 1; } __for_first_1105 = false; i < (self.symbols.len() as i64) } {
-            let mut symbol: Value = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbol: String = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut category: Option<String> = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "category", &[]).as_str().map(str::to_owned);
             let mut entry: Value = self.safe_dict(Value::Map(byCategory.clone()), category.map(Value::from).unwrap_or(Value::Null), &[Value::from(&fallback)]);
-            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(symbol.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("maker".to_string(), self.safe_number_k(entry.clone(), "maker_fee_rate", &[]));
         m.insert("taker".to_string(), self.safe_number_k(entry, "taker_fee_rate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));

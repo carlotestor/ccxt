@@ -1689,11 +1689,11 @@ impl Btse {
                     let mut __for_first_479: bool = true;
                     while { if !__for_first_479 { j += 1; } __for_first_479 = false; j < (inUse.len() as i64) } {
                     let mut usedRow: crate::value::Dict = self.safe_dict(&inUse, Value::Int(j), &[]).into_dict();
-                    let mut usedCode: Value = self.safe_currency_code(self.safe_string_k(&usedRow, "currency", &[]), None).map(Value::from).unwrap_or(Value::Null);
-                    if (usedCode == Value::Null) {
+                    let mut usedCode: Option<String> = self.safe_currency_code(self.safe_string_k(&usedRow, "currency", &[]), None);
+                    if (usedCode.is_none()) {
                         continue;
                     }
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(useds.clone()), usedCode.clone(), &[Value::Str("0".into())]), &self.safe_string_k(&usedRow, "balance", &[])); useds.insert(crate::runtime::stringify_param(&usedCode), __be_tmp); }
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(useds.clone()), Value::from(usedCode.as_deref()), &[Value::Str("0".into())]), &self.safe_string_k(&usedRow, "balance", &[])); useds.insert(usedCode.as_deref().unwrap_or("null").to_string(), __be_tmp); }
                 }
                 }
                 {

@@ -1132,7 +1132,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         let mut ticker: Option<String> = self.safe_string_k(raw.clone(), "ticker", &[]).as_str().map(str::to_owned);
         let mut eventTicker: Option<String> = self.safe_string_k_opt(raw.clone(), "event_ticker", &[]);
-        let mut subtitle: Value = self.safe_string_k(raw.clone(), "subtitle", &[self.safe_string(raw.clone(), Value::Str("title".into()), &[])]);
+        let mut subtitle: Option<String> = self.safe_string_k(raw.clone(), "subtitle", &[self.safe_string(raw.clone(), Value::Str("title".into()), &[])]).as_str().map(str::to_owned);
         // markets use status 'active' while events use 'open'
         let mut status: Option<String> = self.safe_string_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool((status.as_deref() == Some("active")) || (status.as_deref() == Some("open")));
@@ -1154,11 +1154,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         // market symbol (no outcome suffix)
-        let mut subtitleOrTicker: Value = ticker.clone().map(Value::from).unwrap_or(Value::Null);
-        if (subtitle != Value::Null) {
+        let mut subtitleOrTicker: Option<String> = ticker.clone();
+        if (subtitle.is_some()) {
             subtitleOrTicker = subtitle.clone();
         }
-        let mut marketSymbol: Value = self.slug_to_market_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone());
+        let mut marketSymbol: Value = self.slug_to_market_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null));
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
@@ -1188,7 +1188,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1266: bool = true;
             while { if !__for_first_1266 { oi += 1; } __for_first_1266 = false; oi < (outcomeLabels.len() as i64) } {
             let mut label: Option<String> = outcomeLabels.get(oi as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone(), label.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null), label.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Option<i64> = None;
             if resolved && (result.is_some()) && (result.as_deref() != Some("")) {
@@ -1218,7 +1218,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("ticker".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("eventTicker".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("seriesTicker".to_string(), seriesTicker.clone());
-        m.insert("subtitle".to_string(), subtitle.clone());
+        m.insert("subtitle".to_string(), Value::from(subtitle.as_deref()));
         m.insert("outcomeLabel".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("volume".to_string(), Value::from(volume));
         m.insert("liquidity".to_string(), Value::from(liquidity));
@@ -1301,7 +1301,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("ticker".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("eventTicker".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("seriesTicker".to_string(), seriesTicker);
-        m.insert("subtitle".to_string(), subtitle);
+        m.insert("subtitle".to_string(), subtitle.map(Value::from).unwrap_or(Value::Null));
         m.insert("volume".to_string(), Value::from(volume));
         m.insert("liquidity".to_string(), Value::from(liquidity));
         m.insert("openInterest".to_string(), Value::from(openInt));
@@ -3402,11 +3402,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut pi: i64 = 0;
                 let mut __for_first_1287: bool = true;
                 while { if !__for_first_1287 { pi += 1; } __for_first_1287 = false; (pi as f64) < pageLength } {
-                let mut et: Option<String> = self.safe_string_k_opt(page.get(pi as usize).cloned().unwrap_or(Value::Null), "event_ticker", &[]);
+                let mut et: Option<String> = self.safe_string_k(page.get(pi as usize).cloned().unwrap_or(Value::Null), "event_ticker", &[]).as_str().map(str::to_owned);
                 if (et.is_some()) {
-                    let mut already: Option<String> = self.safe_string(Value::Map(seen.clone()), et.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                    let mut already: Option<String> = self.safe_string(Value::Map(seen.clone()), Value::from(et.as_deref()), &[]).as_str().map(str::to_owned);
                     if (already.is_none()) {
-                        seen.insert(et.as_deref().unwrap_or("null").to_string(), et.clone().map(Value::from).unwrap_or(Value::Null));
+                        seen.insert(et.as_deref().unwrap_or("null").to_string(), Value::from(et.as_deref()));
                         eventTickers.push(et.map(Value::from).unwrap_or(Value::Null));
                     }
                 }
