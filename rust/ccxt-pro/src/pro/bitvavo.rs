@@ -242,8 +242,8 @@ impl Bitvavo {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
@@ -1566,22 +1566,22 @@ impl Bitvavo {
 }
 
     pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
-        let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
-        let mut limits: Value = self.safe_dict_k(self.options.clone(), "orderBookLimits", &[Value::Map({
+        let mut limits: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "orderBookLimits", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut storedLimit: Option<i64> = self.safe_integer(limits.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
-        if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) || (storedLimit != limit) {
+        })]).as_map().cloned().unwrap_or_default();
+        let mut storedLimit: Option<i64> = self.safe_integer(Value::Map(limits.clone()), Value::from(symbol.as_deref()), &[]).as_i64();
+        if !(self.orderbooks.has(&symbol)) || (storedLimit != limit) {
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
-            if let Value::Dict(__d) = &mut limits { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(limit)); }
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("orderBookLimits".into(), limits); }
+}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+            limits.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(limit));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("orderBookLimits".into(), Value::Map(limits)); }
         }
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         orderbook.set_book_meta("nonce", Value::Null);
         orderbook.set_book_meta("cache", Value::from(vec![]));
 }
@@ -2691,9 +2691,9 @@ impl Bitvavo {
                 m.insert("privateGetTrades".to_string(), Value::Str("action_and_market_message_hash".into()).clone());
             m
         });
-        let mut method: Value = self.safe_value(&methods, action.clone(), &[]);
+        let mut method: Option<String> = self.safe_value(&methods, action.clone(), &[]).as_str().map(str::to_owned);
         let mut messageHash: Value = action.clone();
-        if (method != Value::Null) {
+        if (method.is_some()) {
             messageHash = self.dispatch_ws_handler(&method, &[action, params]);
         }
         return messageHash.as_str().map(str::to_owned);
@@ -2818,8 +2818,8 @@ impl Bitvavo {
             let mut __for_first_160: bool = true;
             while { if !__for_first_160 { i += 1; } __for_first_160 = false; i < (names.len() as i64) } {
             let mut name: Option<String> = names.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut method: Value = self.safe_value(&methods, Value::from(name.as_deref()), &[]);
-            if (method != Value::Null) {
+            let mut method: Option<String> = self.safe_value(&methods, Value::from(name.as_deref()), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 let mut subscription: Value = self.safe_value(&subscriptions, name.map(Value::from).unwrap_or(Value::Null), &[]);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
             }
@@ -3018,11 +3018,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut method: Value = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
-        if (method == Value::Null) {
+        let mut method: Option<String> = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (method.is_none()) {
             let mut action: Option<String> = (match __pro_message.get("action").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-            method = self.safe_value(&methods, action.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method != Value::Null) {
+            method = self.safe_value(&methods, action.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }  else {

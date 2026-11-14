@@ -230,8 +230,8 @@ impl Kraken {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
@@ -1571,13 +1571,13 @@ impl Kraken {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut symbols: Value = Value::Arr(self.symbols.clone()); // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
-            if (symbols != Value::Null) {
+            let mut symbols: crate::value::List = self.symbols.clone(); // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            if (true) {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_419: bool = true;
                     while { if !__for_first_419 { i += 1; } __for_first_419 = false; i < (symbols.len() as i64) } {
-                    let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
                     let mut info: crate::value::Dict = self.safe_dict_k(market.clone(), "info", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -2668,8 +2668,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("orders".to_string(), Value::Str("handle_orders".into()).clone());
                 m
             }).into_dict();
-            let mut method: Value = self.safe_value(&methods, channel.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method != Value::Null) {
+            let mut method: Option<String> = self.safe_value(&methods, channel.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }
@@ -2688,8 +2688,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("pong".to_string(), Value::Str("handle_pong".into()).clone());
                 m
             }).into_dict();
-            let mut method: Value = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method != Value::Null) {
+            let mut method: Option<String> = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client, message]);
             }
         }

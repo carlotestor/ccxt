@@ -245,8 +245,8 @@ impl Nado {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
@@ -2628,7 +2628,7 @@ impl Nado {
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(message, None).into_dict();
-        let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -2639,8 +2639,8 @@ impl Nado {
             m
         });
         if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-        client.resolve(Value::from(&ticker), &(Value::Str(format!("{}{}", "bidask:", symbol.clone().map(Value::from).unwrap_or(Value::Null)).into())));
-        client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", "ticker:", symbol.map(Value::from).unwrap_or(Value::Null)).into())));
+        client.resolve(Value::from(&ticker), &(Value::Str(format!("{}{}", "bidask:", symbol.as_deref().unwrap_or("null")).into())));
+        client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null")).into())));
         client.resolve(tickers.clone(), "bidask");
         client.resolve(tickers, "ticker");
 }
@@ -3063,8 +3063,8 @@ impl Nado {
                 m.insert("position_change".to_string(), Value::Str("handle_position".into()).clone());
             m
         });
-        let mut handler: Value = self.safe_value(&methods, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
-        if (handler != Value::Null) {
+        let mut handler: Option<String> = self.safe_value(&methods, type_var.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (handler.is_some()) {
             self.dispatch_ws_handler(&handler, &[client, message]);
         }
 }
