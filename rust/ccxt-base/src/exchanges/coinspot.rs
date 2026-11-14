@@ -1542,7 +1542,7 @@ impl Coinspot {
         }
         let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("error")) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response)).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

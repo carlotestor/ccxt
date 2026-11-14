@@ -1066,17 +1066,17 @@ impl Htx {
             client.resolve(Value::from(&snapshotOrderBook), id.as_deref());
             if (sequence.is_none()) || ((nonce.is_some() && sequence.is_some() && nonce < sequence)) {
                 let mut maxAttempts: Value = Value::from(self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("maxRetries".into()), &[Value::Int(3)])));
-                let mut numAttempts: Value = self.safe_integer_k(subscription.clone(), "numAttempts", &[Value::Int(0)]);
+                let mut numAttempts: i64 = self.safe_integer_k(subscription.clone(), "numAttempts", &[Value::Int(0)]).as_i64().unwrap_or(0);
                 // retry to synchronize if we have not reached maxAttempts yet
-                if numAttempts.as_f64().unwrap_or(f64::NAN) < maxAttempts.as_f64().unwrap_or(f64::NAN) {
+                if (numAttempts as f64) < maxAttempts.as_f64().unwrap_or(f64::NAN) {
                     // safety guard
                     if (__ch.has_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null))) {
-                        let mut nextAttempts: Value = self.sum(&[numAttempts, Value::Int(1)]);
+                        let mut nextAttempts: i64 = (numAttempts + 1);
                         let mut delayTime: Option<i64> = Some(1000);
                         if (lastTimestamp.is_some()) && (snapshotTimestamp.is_some()) {
                             delayTime = (if let Some(__m1) = ((if let (Some(__l), Some(__r)) = (lastTimestamp, snapshotTimestamp) { Some(__l - __r) } else { None })) { Some((1000 + __m1)) } else { None });
                         }
-                        if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("numAttempts".into(), nextAttempts); }
+                        if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("numAttempts".into(), Value::from(nextAttempts)); }
                         __ch.add_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null), subscription.clone());
                         self.delay(Value::from(delayTime), &[Value::Str("watch_order_book_snapshot".into()).clone(), client.clone(), message, subscription.clone()]).await;
                     }
@@ -1263,8 +1263,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             orderbook.reset(Value::Dict(snapshot));
             orderbook.set_book_meta("nonce", Value::from(version));
         }
-        let mut orderbookNonce: Value = self.safe_integer_k(Value::from(&orderbook), "nonce", &[Value::Int(0)]);
-        if (prevSeqNum != Value::Null) && prevSeqNum.as_f64().unwrap_or(f64::NAN) > orderbookNonce.as_f64().unwrap_or(f64::NAN) {
+        let mut orderbookNonce: i64 = self.safe_integer_k(Value::from(&orderbook), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
+        if (prevSeqNum != Value::Null) && prevSeqNum.as_f64().unwrap_or(f64::NAN) > (orderbookNonce as f64) {
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
             if (checksum == Some(true)) {
                 panic!("{}", crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null)))));
@@ -3226,7 +3226,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message));
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 self.throw_exactly_matched_exception(wsExceptions.get("exact").cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-                panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_instance(&e, &Value::Str("AuthenticationError".into())) {

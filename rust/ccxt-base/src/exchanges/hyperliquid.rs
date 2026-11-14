@@ -1287,11 +1287,11 @@ impl Hyperliquid {
         let mut priceSplitted: crate::value::List = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut maxDecimalsInt: i64 = self.parse_to_int(maxDecimals).unwrap_or_default();
         let mut amountPrecisionInt: i64 = self.parse_to_int(amountPrecision).unwrap_or_default();
-        let mut decimalsLeft: Value = Value::Int((maxDecimalsInt - amountPrecisionInt));
+        let mut decimalsLeft: i64 = (maxDecimalsInt - amountPrecisionInt);
         if crate::precise::Precise::stringEq(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = crate::runtime::Math::min(&decimalsLeft, &Value::Int(5));
+            pricePrecision = Value::Int(i64::min(decimalsLeft, 5));
         }  else if crate::precise::Precise::stringGt(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringLt(&priceStr, &Value::Str("1".into())).as_bool() == Some(true) {
             // Significant digits, always 5 in this case
             let mut significantDigits: i64 = 5;
@@ -1305,17 +1305,17 @@ impl Hyperliquid {
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = (match (&(leadingZeros), &(Value::from(significantDigits))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = crate::runtime::Math::min(&decimalsLeft, &pricePrecision);
+            pricePrecision = crate::runtime::Math::min(&Value::from(decimalsLeft), &pricePrecision);
         }  else {
             // Count the numbers before the decimal separator
             let mut integerPart: String = self.safe_string(&priceSplitted, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // Get significant digits, take the max() of 5 and the integer digits count
             // significantDigits - integerPart.length, with significantDigits = max (5, integerPart.length)
-            let mut digitsLeft: Value = Value::Int(0);
+            let mut digitsLeft: i64 = 0;
             if ((integerPart.chars().count() as i64)) <= 5 {
-                digitsLeft = Value::Int((5 - ((integerPart.chars().count() as i64))));
+                digitsLeft = (5 - ((integerPart.chars().count() as i64)));
             }
-            pricePrecision = crate::runtime::Math::min(&decimalsLeft, &digitsLeft);
+            pricePrecision = Value::Int(i64::min(decimalsLeft, digitsLeft));
         }
         return Value::from(self.parse_to_int(pricePrecision));
 

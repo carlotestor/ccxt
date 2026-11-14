@@ -441,7 +441,7 @@ impl Opinion {
 }));
         let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]).into_dict();
         let mut userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
-        let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(20)]);
+        let mut pageLimit: i64 = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(20)]).as_i64().unwrap_or(20);
         let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]);
         let mut flatMarkets: Vec<Value> = Vec::new();
         // seen-guard keyed by the event handle; the events themselves go through setEvents below
@@ -460,7 +460,7 @@ impl Opinion {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("marketType".to_string(), Value::Int(2));
-                    m.insert("limit".to_string(), pageLimit.clone());
+                    m.insert("limit".to_string(), Value::from(pageLimit));
                     m.insert("page".to_string(), page.clone());
                 m
             });
@@ -506,7 +506,7 @@ impl Opinion {
             }
             let mut collectedLength: i64 = flatMarkets.len() as i64;
             let mut fetchedRawCount: i64 = fetchedRawRows.len() as i64;
-            if (rawMarketsLength < pageLimit.as_f64().unwrap_or(f64::NAN)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || ((total.is_some()) && ((total.is_some() && Some(fetchedRawCount) >= total))) || ((userLimit.is_some()) && ((userLimit.is_some() && Some(collectedLength) >= userLimit))) {
+            if (rawMarketsLength < (pageLimit as f64)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || ((total.is_some()) && ((total.is_some() && Some(fetchedRawCount) >= total))) || ((userLimit.is_some()) && ((userLimit.is_some() && Some(collectedLength) >= userLimit))) {
                 break;
             }
         }

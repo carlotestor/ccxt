@@ -1760,10 +1760,10 @@ impl Bithumb {
                     if (base.is_none()) {
                         continue;
                     }
-                    let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into());
-                    let mut market: crate::types::Market = self.safe_market(symbol.clone(), None, &[]);
+                    let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
+                    let mut market: crate::types::Market = self.safe_market(Value::from(symbol.clone()), None, &[]);
                     add_element_to_object(&mut ticker, &Value::Str("date".into()), Value::from(timestamp));
-                    result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, Some(&market)));
+                    result.insert(symbol, self.parse_ticker(ticker, Some(&market)));
                 }
                 }
             }
@@ -4400,12 +4400,12 @@ impl Bithumb {
         if (error.is_some()) {
             let mut errorName: Option<String> = self.safe_string_k(&error, "name", &[]).as_str().map(str::to_owned);
             let mut message: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null"));
             if (errorName.is_some()) {
-                self.throw_exactly_matched_exception(self.exceptions.clone(), errorName.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.clone(), errorName.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             }
             if (message.is_some()) {
-                self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             }
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
@@ -4421,9 +4421,9 @@ impl Bithumb {
             }  else if (message.as_deref() == Some("거래 진행중인 내역이 존재하지 않습니다.")) {
                 return Value::Null;
             }
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into());
-            self.throw_exactly_matched_exception(self.exceptions.clone(), status.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null"));
+            self.throw_exactly_matched_exception(self.exceptions.clone(), status.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

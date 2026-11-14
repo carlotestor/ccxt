@@ -967,19 +967,18 @@ pub trait ExchangeBase:
         let mut key = get_arg(optional_args, 1, Value::Str("timestamp".into()));
         let mut fromStart = get_arg(optional_args, 2, Value::Bool(false));
         if (limit != Value::Null) && (limit != Value::Null) {
-            let mut arrayLength: Value = Value::Int(array.len() as i64);
-            if arrayLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+            let mut arrayLength: i64 = array.len() as i64;
+            if arrayLength > 0 {
                 let mut ascending: bool = true;
                 if (in_op(&array.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &key)) {
                     let mut first: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), key.clone(), &[]).as_f64();
-                    let mut last: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| match &((match (&(arrayLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                        Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null), key, &[]).as_f64();
+                    let mut last: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| match &(Value::Int((arrayLength - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null), key, &[]).as_f64();
                     if (first.is_some()) && (last.is_some()) {
                         ascending = (last.is_some() && first.is_some() && last >= first); // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 if fromStart.as_bool() == Some(true) {
-                    let mut limitResolved: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > arrayLength.as_f64().unwrap_or(f64::NAN)) { arrayLength } else { limit.clone() });
+                    let mut limitResolved: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > (arrayLength as f64)) { Value::from(arrayLength) } else { limit.clone() });
                     if ascending {
                         return self.array_slice(array.clone(), Value::Int(0), &[limitResolved.clone()]);
                     }
@@ -5971,8 +5970,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut i_close: Value = Value::Int(4);
         let mut i_volume: Value = Value::Int(5);
         let mut i_count: Value = Value::Int(6);
-        let mut tradesLength: Value = Value::Int(trades.len() as i64);
-        let mut oldest: Value = crate::runtime::Math::min(&tradesLength, &limit);
+        let mut tradesLength: i64 = trades.len() as i64;
+        let mut oldest: Value = crate::runtime::Math::min(&Value::from(tradesLength), &limit);
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "buildOHLCVC", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9395,15 +9394,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // pagination always walks forward internally, so strip it here to avoid leaking an
         // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
         let mut paramsOmitted: Value = self.omit(&paramsMaxEntriesPerRequest, Value::Str("paginationDirection".into()), &[]);
-        let mut current: Value = Value::Int(self.milliseconds());
+        let mut current: i64 = self.milliseconds();
         let mut tasks: Vec<Value> = Vec::new();
         let mut time: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
         let mut maxEntriesPerRequestValue: Value = self.require_value(maxEntriesPerRequestOption, &[Value::Str("fetchPaginatedCallDeterministic() maxEntriesPerRequest is required".into())]);
         let mut step: Value = (match (&(Value::from(time)), &(Value::from(self.parse_to_int(maxEntriesPerRequestValue.clone())))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut until: Value = self.safe_integer2(paramsOmitted.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]); // do not omit it here
-        let mut currentSince: Value = (match (&((match (&(current), &(((match (&(maxCallsLimit), &(step)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-            _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x),
-            Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut currentSince: Value = (match (&((match (&(Value::from(current)), &(((match (&(maxCallsLimit), &(step)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
+            &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         if (since != Value::Null) {
             if (until != Value::Null) {
                 // the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -9435,7 +9434,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (until != Value::Null) && (currentSince.as_f64().unwrap_or(f64::NAN) >= until.as_f64().unwrap_or(f64::NAN)) {
                 break;
             }
-            if currentSince.as_f64().unwrap_or(f64::NAN) >= current.as_f64().unwrap_or(f64::NAN) {
+            if currentSince.as_f64().unwrap_or(f64::NAN) >= (current as f64) {
                 break;
             }
             tasks.push(self.safe_deterministic_call(method.clone(), &[symbol.clone(), currentSince.clone(), maxEntriesPerRequestValue.clone(), timeframe.clone(), paramsOmitted.clone()]).await);

@@ -868,14 +868,14 @@ impl Mudrex {
     m
 }));
         let mut aggregated: Vec<Value> = Vec::new();
-        let mut offset: Value = Value::Int(0);
+        let mut offset: i64 = 0;
         let mut pageLimit: i64 = 100;
         let mut paging: bool = true;
         while paging {
             let mut q: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("limit".to_string(), Value::Int(pageLimit.clone()));
-                    m.insert("offset".to_string(), offset.clone());
+                    m.insert("limit".to_string(), Value::from(pageLimit));
+                    m.insert("offset".to_string(), Value::from(offset));
                 m
             }), &[params.clone()]).into_dict();
             let mut response: crate::value::Dict = self.private_get_futures(&[Value::Dict(q)]).await.into_dict();
@@ -911,7 +911,7 @@ impl Mudrex {
                 paging = false;
             }  else {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = self.sum(&[offset.clone(), Value::Int(pageLimit.clone())]);
+                offset = (offset + pageLimit);
             }
         }
         let mut result: Vec<Value> = Vec::new();

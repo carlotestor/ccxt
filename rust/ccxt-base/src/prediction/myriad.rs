@@ -687,7 +687,7 @@ impl Myriad {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut limit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchMarketsLimit", &[Value::Int(50)]);
+        let mut limit: i64 = self.safe_integer_k(self.options.clone(), "defaultFetchMarketsLimit", &[Value::Int(50)]).as_i64().unwrap_or(50);
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every open myriad market. Cap the total number of markets collected.
         let mut maxMarkets: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]).as_i64();
@@ -704,7 +704,7 @@ impl Myriad {
             let __ws_arg_1 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("state".to_string(), Value::from(state.as_deref()));
-                    m.insert("limit".to_string(), limit.clone());
+                    m.insert("limit".to_string(), Value::from(limit));
                     m.insert("page".to_string(), Value::from(page));
                     m.insert("trading_model".to_string(), Value::from(tradingModel.as_deref()));
                 m
@@ -727,7 +727,7 @@ impl Myriad {
             }
             }
             page = (page + 1);
-            if rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || (maxMarkets.is_some() && Some(collected) >= maxMarkets) {
+            if rawMarketsLength < (limit as f64) || (maxMarkets.is_some() && Some(collected) >= maxMarkets) {
                 break;
             }
         }
@@ -939,7 +939,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut limit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(50)]);
+        let mut limit: i64 = self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(50)]).as_i64().unwrap_or(50);
         let mut maxQuestions: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchEventsLimit".into()), &[Value::Int(1000)])]).as_i64();
         let mut state: Option<String> = self.safe_string2(params.clone(), Value::Str("state".into()), Value::Str("status".into()), &[self.safe_string_k(self.options.clone(), "defaultMarketStatus", &[Value::Str("open".into())])]).as_str().map(str::to_owned);
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("state".into()), Value::Str("status".into()), Value::Str("limit".into()), Value::Str("tradingModel".into()), Value::Str("trading_model".into())]), &[]).into_dict();
@@ -953,7 +953,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         loop {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("limit".to_string(), limit.clone());
+                    m.insert("limit".to_string(), Value::from(limit));
                     m.insert("page".to_string(), Value::from(page));
                 m
             });
@@ -987,7 +987,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
             page = (page + 1);
-            if (rawQuestionsLength < limit.as_f64().unwrap_or(f64::NAN)) || ((maxQuestions.is_some() && Some(collected) >= maxQuestions)) {
+            if (rawQuestionsLength < (limit as f64)) || ((maxQuestions.is_some() && Some(collected) >= maxQuestions)) {
                 break;
             }
         }

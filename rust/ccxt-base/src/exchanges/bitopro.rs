@@ -1341,8 +1341,8 @@ impl Bitopro {
         }
         let mut i: i64 = 0;
         let mut candleLength: i64 = candles.len() as i64;
-        let mut resultLength: Value = Value::Int(0);
-        while (resultLength.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN)) && (i < candleLength) {
+        let mut resultLength: i64 = 0;
+        while ((resultLength as f64) < limit.as_f64().unwrap_or(f64::NAN)) && (i < candleLength) {
             let mut candle: Value = self.safe_list(candles.clone(), Value::from(i), &[Value::from(vec![])]);
             if is_equal(&candle.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &timestamp) {
                 std::sync::Arc::make_mut(&mut result).push(candle.clone());
@@ -1353,8 +1353,8 @@ impl Bitopro {
                 std::sync::Arc::make_mut(&mut result).push(Value::from(vec![timestamp.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), self.parse_number(Value::Str("0".into()), &[])]));
             }
             timestamp = self.sum(&[timestamp.clone(), distanceInMs.clone()]);
-            resultLength = Value::Int(result.len() as i64);
-            copyFrom = self.safe_list(&result, (match (&(resultLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
+            resultLength = result.len() as i64;
+            copyFrom = self.safe_list(&result, Value::Int((resultLength - 1)), &[]);
         }
         return Value::Arr(result);
 

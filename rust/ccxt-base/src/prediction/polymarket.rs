@@ -1774,15 +1774,15 @@ impl Polymarket {
             }
             // token ids are ~78 chars each, so cap the batch to keep the URL under common limits
             let mut chunkSize: i64 = self.safe_integer_k(self.options.clone(), "fetchOutcomesBatchSize", &[Value::Int(50)]).as_i64().unwrap_or(50);
-            let mut startIndex: Value = Value::Int(0);
-            while startIndex.as_f64().unwrap_or(f64::NAN) < tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
-                let mut endIndex: Value = self.sum(&[startIndex.clone(), Value::from(chunkSize)]);
+            let mut startIndex: i64 = 0;
+            while (startIndex as f64) < tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
+                let mut endIndex: Value = Value::Int((startIndex + chunkSize));
                 if endIndex.as_f64().unwrap_or(f64::NAN) > tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
                     endIndex = tokenIdsLength.clone();
                 }
                 let mut chunk: Vec<Value> = Vec::new();
                 {
-                                        let mut i: Value = startIndex.clone();
+                                        let mut i: Value = Value::from(startIndex);
                     let mut __for_first_1425: bool = true;
                     while { if !__for_first_1425 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                         } __for_first_1425 = false; i.as_f64().unwrap_or(f64::NAN) < endIndex.as_f64().unwrap_or(f64::NAN) } {
@@ -1814,7 +1814,7 @@ impl Polymarket {
                     add_element_to_object(&mut self.markets, &mkt.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), mkt.clone());
                 }
                 }
-                startIndex = self.sum(&[startIndex.clone(), Value::from(chunkSize)]);
+                startIndex = (startIndex + chunkSize);
             }
             self.populate_outcomes();
         }
@@ -1943,15 +1943,15 @@ impl Polymarket {
             m
         });
         let mut tokenIdsLength: Value = Value::Int(tokenIds.len() as i64);
-        let mut startIndex: Value = Value::Int(0);
-        while startIndex.as_f64().unwrap_or(f64::NAN) < tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
-            let mut endIndex: Value = self.sum(&[startIndex.clone(), Value::from(chunkSize)]);
+        let mut startIndex: i64 = 0;
+        while (startIndex as f64) < tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
+            let mut endIndex: Value = Value::Int((startIndex + chunkSize));
             if endIndex.as_f64().unwrap_or(f64::NAN) > tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
                 endIndex = tokenIdsLength.clone();
             }
             let mut bookParams: Vec<Value> = Vec::new();
             {
-                                let mut i: Value = startIndex.clone();
+                                let mut i: Value = Value::from(startIndex);
                 let mut __for_first_1430: bool = true;
                 while { if !__for_first_1430 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                     } __for_first_1430 = false; i.as_f64().unwrap_or(f64::NAN) < endIndex.as_f64().unwrap_or(f64::NAN) } {
@@ -2018,7 +2018,7 @@ impl Polymarket {
                 result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
             }
-            startIndex = self.sum(&[startIndex.clone(), Value::from(chunkSize)]);
+            startIndex = (startIndex + chunkSize);
         }
         return Value::Map(result);
         Value::Null

@@ -18506,8 +18506,8 @@ if _try_result.is_err() {
             request.insert("startTime".into(), since.clone());
             let mut endTime: Value = (match (&(self.sum(&[since.clone(), Value::Int((limitResolved * 86400000))])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // required when startTime is further than 93 days in the past
-            let mut now: Value = Value::Int(self.milliseconds());
-            request.insert("endTime".into(), crate::runtime::Math::min(&endTime, &now)); // cannot have an endTime later than current time
+            let mut now: i64 = self.milliseconds();
+            request.insert("endTime".into(), crate::runtime::Math::min(&endTime, &Value::from(now))); // cannot have an endTime later than current time
         }
         let __ws_arg_194 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.sapi_get_margin_interest_rate_history(&[__ws_arg_194]).await.into_list();

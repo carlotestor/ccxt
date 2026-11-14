@@ -507,7 +507,7 @@ impl Sxbet {
     m
 }));
         let mut userLimit = get_arg(optional_args, 1, Value::Null);
-        let mut pageSize: Value = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(100)]);
+        let mut pageSize: i64 = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(100)]).as_i64().unwrap_or(100);
         let mut maxPages: i64 = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]).as_i64().unwrap_or(50);
         let mut rawMarkets: Vec<Value> = Vec::new();
         let mut collectCap: Option<i64> = self.safe_integer(Value::Map({
@@ -520,7 +520,7 @@ impl Sxbet {
         loop {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("pageSize".to_string(), pageSize.clone());
+                    m.insert("pageSize".to_string(), Value::from(pageSize));
                 m
             });
             if (paginationKey.is_some()) {
@@ -544,7 +544,7 @@ impl Sxbet {
             paginationKey = self.safe_string_k(&result, "nextKey", &[]).as_str().map(str::to_owned);
             page = self.parse_to_int(Value::from((if let Some(__l) = page { Some(__l + 1) } else { None })));
             let mut collectedLength: Option<i64> = self.parse_to_int(Value::Int(rawMarkets.len() as i64));
-            if (pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN)) || (page >= Some(maxPages)) || (paginationKey.is_none()) || ((collectCap.is_some()) && ((collectedLength.is_some() && collectCap.is_some() && collectedLength >= collectCap))) {
+            if (pageMarketsLength < (pageSize as f64)) || (page >= Some(maxPages)) || (paginationKey.is_none()) || ((collectCap.is_some()) && ((collectedLength.is_some() && collectCap.is_some() && collectedLength >= collectCap))) {
                 break;
             }
         }

@@ -3802,7 +3802,7 @@ impl Okx {
                     }
                     }
                 }
-                panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);

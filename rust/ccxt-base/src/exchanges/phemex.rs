@@ -2116,10 +2116,10 @@ impl Phemex {
         });
         let mut sides: Value = Value::from(vec![bidsKey, asksKey]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1077: bool = true;
-            while { if !__for_first_1077 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1077 = false; i.as_f64().unwrap_or(f64::NAN) < ((sides.len() as i64) as f64) } {
-            let mut side: Option<String> = sides.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).and_then(Value::as_str).map(str::to_owned);
+            while { if !__for_first_1077 { i += 1; } __for_first_1077 = false; i < (sides.len() as i64) } {
+            let mut side: Option<String> = sides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut orders: Vec<Value> = Vec::new();
             let mut bidasks: crate::value::List = self.safe_list(orderbook.clone(), Value::from(side.as_deref()), &[Value::from(vec![])]).into_list();
             {
@@ -2129,7 +2129,7 @@ impl Phemex {
                 orders.push(self.custom_parse_bid_ask(bidasks.get(k as usize).cloned().unwrap_or(Value::Null), &[priceKey.clone(), amountKey.clone(), market.clone()]));
             }
             }
-            let mut descending: Value = (Value::Bool(i.as_f64() == Some(0.0)));
+            let mut descending: Value = (Value::Bool(i == 0));
             result.insert(side.as_deref().unwrap_or("null").to_string(), self.sort_by(Value::from(orders), Value::Int(0), &[descending]));
         }
         }

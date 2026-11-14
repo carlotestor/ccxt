@@ -689,8 +689,8 @@ impl Binance {
             }
             let mut subscriptionsByStream: i64 = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("numSubscriptionsByStream")).cloned().unwrap_or(Value::Null), stream.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
             let mut newNumSubscriptions: Value = (match (&(Value::from(subscriptionsByStream)), &(numSubscriptions)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            let mut subscriptionLimitByStream: Value = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("subscriptionLimitByStream")).cloned().unwrap_or(Value::Null), type_var, &[Value::Int(200)]);
-            if newNumSubscriptions.as_f64().unwrap_or(f64::NAN) > subscriptionLimitByStream.as_f64().unwrap_or(f64::NAN) {
+            let mut subscriptionLimitByStream: i64 = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("subscriptionLimitByStream")).cloned().unwrap_or(Value::Null), type_var, &[Value::Int(200)]).as_i64().unwrap_or(200);
+            if newNumSubscriptions.as_f64().unwrap_or(f64::NAN) > (subscriptionLimitByStream as f64) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")));
             }
             if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("numSubscriptionsByStream".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&stream), newNumSubscriptions); } }
@@ -1862,8 +1862,8 @@ impl Binance {
                         }
                         if (conditional == Some(true)) {
                             self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
-                            let mut newNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]);
-                            if nonce.as_f64().unwrap_or(f64::NAN) < newNonce.as_f64().unwrap_or(f64::NAN) {
+                            let mut newNonce: i64 = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
+                            if nonce.as_f64().unwrap_or(f64::NAN) < (newNonce as f64) {
                                 client.resolve(orderbook.clone(), messageHash.as_str());
                             }
                         }  else {
@@ -1881,8 +1881,8 @@ impl Binance {
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if (U.as_f64().unwrap_or(f64::NAN) <= nonce.as_f64().unwrap_or(f64::NAN)) || ((pu == nonce.as_i64())) {
                             self.handle_order_book_message(client.clone(), message, orderbook.clone());
-                            let mut newNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]);
-                            if nonce.as_f64().unwrap_or(f64::NAN) <= newNonce.as_f64().unwrap_or(f64::NAN) {
+                            let mut newNonce: i64 = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
+                            if nonce.as_f64().unwrap_or(f64::NAN) <= (newNonce as f64) {
                                 client.resolve(orderbook.clone(), messageHash.as_str());
                             }
                         }  else {

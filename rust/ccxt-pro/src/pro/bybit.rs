@@ -3593,7 +3593,7 @@ impl Bybit {
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 let mut msg: Option<String> = self.safe_string2(message.clone(), Value::Str("retMsg".into()), Value::Str("ret_msg".into()), &[]).as_str().map(str::to_owned);
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-                panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             let mut success: Option<bool> = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null }).as_bool();
             if (success.is_some()) && (!(success == Some(true))) {

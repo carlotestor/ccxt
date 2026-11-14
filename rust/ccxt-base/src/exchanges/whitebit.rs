@@ -6115,7 +6115,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut codeNew: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
             let mut hasErrorStatus: bool = (status.is_some()) && (status.as_deref() != Some("200")) && (errors.is_some());
             if hasErrorStatus || (codeNew.is_some()) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
                 let mut errorInfo: Option<String> = message;
                 if hasErrorStatus {
                     errorInfo = status;
@@ -6132,8 +6132,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         errorInfo = self.safe_string(&errorMessageArray, Value::Int(0), &[body.clone()]).as_str().map(str::to_owned);
                     }
                 }
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorInfo.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorInfo.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), Value::from(feedback.as_str()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
@@ -6151,9 +6151,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut errorMessageArray: crate::value::List = self.safe_list(&errMsg, Value::from(errorKey), &[Value::from(vec![])]).into_list();
                     errorInfo = self.safe_string(&errorMessageArray, Value::Int(0), &[body.clone()]);
                 }
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorInfo, feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorInfo, Value::from(feedback.as_str()));
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.as_str()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

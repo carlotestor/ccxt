@@ -8222,11 +8222,11 @@ impl Bingx {
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Str("[".into());
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_324: bool = true;
-                    while { if !__for_first_324 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_324 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
-                    let mut arrayElement: Value = value.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                    if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                    while { if !__for_first_324 { j += 1; } __for_first_324 = false; j < (value.len() as i64) } {
+                    let mut arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+                    if j > 0 {
                         arrStr = Value::Str(format!("{}{}", arrStr, ",").into());
                     }
                     arrStr = Value::Str(format!("{}{}", arrStr, to_string_val(&arrayElement)).into());
@@ -8929,27 +8929,27 @@ impl Bingx {
         let mut adjustedValue: Value = Value::Null;
         let mut result: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_328: bool = true;
-            while { if !__for_first_328 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_328 = false; i.as_f64().unwrap_or(f64::NAN) < rawKeysLength } {
-            let mut key: Value = rawKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_328 { i += 1; } __for_first_328 = false; (i as f64) < rawKeysLength } {
+            let mut key: Value = rawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = get_value(&sortedParams, &key);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Null;
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_327: bool = true;
-                    while { if !__for_first_327 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_327 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
-                    let mut arrayElement: Value = value.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_327 { j += 1; } __for_first_327 = false; j < (value.len() as i64) } {
+                    let mut arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut isString: bool = matches!(&arrayElement, Value::Str(_));
                     if isString {
-                        if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                        if j > 0 {
                             arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ",", "\"").into()), Value::Str(format!("{}", arrayElement).into())).into()), "\"").into())).into());
                         }  else {
                             arrStr = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("\"".into()), Value::Str(format!("{}", arrayElement).into())).into()), "\"").into());
                         }
                     }  else {
-                        if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                        if j > 0 {
                             arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(",".into()), to_string_val(&arrayElement)).into())).into());
                         }  else {
                             arrStr = to_string_val(&arrayElement);
@@ -8960,7 +8960,7 @@ impl Bingx {
                 adjustedValue = Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", arrStr).into()), "]").into());
                 value = adjustedValue.clone();
             }
-            if (i.as_f64() == Some(0.0)) {
+            if (i == 0) {
                 result = Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, "=").into()), value).into());
             }  else {
                 result = Value::Str(format!("{}{}", result, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", key).into()), "=").into()), value).into())).into());

@@ -1748,11 +1748,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut urlParts: Vec<Value> = Value::Array(if let Some(__s) = url.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut res: String = "".to_string();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1639: bool = true;
-            while { if !__for_first_1639 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1639 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            if i.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
-                let mut current: Value = urlParts.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1639 { i += 1; } __for_first_1639 = false; i < (urlParts.len() as i64) } {
+            if i > 2 {
+                let mut current: Value = urlParts.get(i as usize).cloned().unwrap_or(Value::Null);
                 if current.as_str().unwrap_or("").contains("?") {
                     // handle urls like this: /v1/account/accounts?AccessK
                     let mut currentParts: Vec<Value> = Value::Array(if let Some(__s) = current.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();

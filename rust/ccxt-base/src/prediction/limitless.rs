@@ -667,11 +667,11 @@ impl Limitless {
             }
         }  else {
             let mut page: Value = Value::Int(1);
-            let mut pageSize: Value = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(25)]);
+            let mut pageSize: i64 = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(25)]).as_i64().unwrap_or(25);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("page".to_string(), page.clone());
-                    m.insert("limit".to_string(), pageSize.clone());
+                    m.insert("limit".to_string(), Value::from(pageSize));
                 m
             });
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&rest]);
@@ -679,9 +679,9 @@ impl Limitless {
             let mut firstData: crate::value::List = self.safe_list_k(&firstPageResponse, "data", &[Value::from(vec![])]).into_list();
             allRaw = self.array_concat(Value::Arr(allRaw), &firstData).into_list();
             let mut promises: Vec<Value> = Vec::new();
-            let mut cappedPages: Value = ((match ((Value::from(maxMarkets)).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
+            let mut cappedPages: Value = ((match ((Value::from(maxMarkets)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
             let mut knownTotal: i64 = self.safe_integer_k(&firstPageResponse, "totalMarketsCount", &[Value::Int(0)]).as_i64().unwrap_or(0);
-            let mut allPages: Value = Value::from(self.parse_to_int(((match ((Value::from(knownTotal)).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
+            let mut allPages: Value = Value::from(self.parse_to_int(((match ((Value::from(knownTotal)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
             {
                                 let mut i: Value = Value::Int(2);
                 let mut __for_first_1301: bool = true;
@@ -709,9 +709,9 @@ impl Limitless {
             let mut lastPageResponse: crate::value::Dict = self.safe_dict(responses, (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
             let mut lastPageData: crate::value::List = self.safe_list_k(&lastPageResponse, "data", &[Value::from(vec![])]).into_list();
-            let mut lastPageLength: f64 = ((lastPageData.len() as i64) as f64);
+            let mut lastPageLength: i64 = lastPageData.len() as i64;
             let mut allRawLength: i64 = allRaw.len() as i64;
-            if lastPageLength >= pageSize.as_f64().unwrap_or(f64::NAN) && Some(allRawLength) < maxMarkets {
+            if lastPageLength >= pageSize && Some(allRawLength) < maxMarkets {
                 loop {
                     page = self.sum(&[page.clone(), Value::Int(1)]);
                     request.insert("page".into(), page.clone());
@@ -735,7 +735,7 @@ impl Limitless {
                     }
                     }
                     let mut allRawCount: i64 = allRaw.len() as i64;
-                    if pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN) || (maxMarkets.is_some() && Some(allRawCount) >= maxMarkets) {
+                    if pageMarketsLength < (pageSize as f64) || (maxMarkets.is_some() && Some(allRawCount) >= maxMarkets) {
                         break;
                     }
                 }
@@ -3407,7 +3407,7 @@ if _try_result.is_err() {
         let mut failedLethgn: i64 = failed.len() as i64;
         if failedLethgn > 0 {
             let mut message: Option<String> = json_stringify(&response).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cancelOrders failed: ").into()), message.as_deref().unwrap_or("null")).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cancelOrders failed: ").into()), message.as_deref().unwrap_or("null"));
             panic!("{}", crate::exchange_errors::order_not_found(feedback));
         }
         return self.parse_prediction_orders(Value::Arr(canceled), &[]);
@@ -4200,7 +4200,7 @@ if _try_result.is_err() {
 }));
         let mut categoryId = get_arg(optional_args, 1, Value::Null);
         let mut maxMarkets: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]).as_i64();
-        let mut pageSize: Value = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(25)]);
+        let mut pageSize: i64 = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(25)]).as_i64().unwrap_or(25);
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("status".into()), Value::Str("tags".into())]), &[]).into_dict();
         let mut allRaw: Vec<Value> = Vec::new();
         let mut page: i64 = 1;
@@ -4208,7 +4208,7 @@ if _try_result.is_err() {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("page".to_string(), Value::from(page));
-                    m.insert("limit".to_string(), pageSize.clone());
+                    m.insert("limit".to_string(), Value::from(pageSize));
                 m
             });
             let mut response: Option<crate::value::Dict> = None;
@@ -4237,7 +4237,7 @@ if _try_result.is_err() {
             }
             page = (page + 1);
             let mut collectedTotal: i64 = allRaw.len() as i64;
-            if dataLength < pageSize.as_f64().unwrap_or(f64::NAN) || (maxMarkets.is_some() && Some(collectedTotal) >= maxMarkets) {
+            if dataLength < (pageSize as f64) || (maxMarkets.is_some() && Some(collectedTotal) >= maxMarkets) {
                 break;
             }
         }
