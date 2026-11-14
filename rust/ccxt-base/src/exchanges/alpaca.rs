@@ -2754,15 +2754,15 @@ impl Alpaca {
             //     ]
             //
             let mut filtered: Vec<Value> = Vec::new();
-            let mut ledger: Value = Value::from(vec![]);
+            let mut ledger: crate::value::List = std::sync::Arc::new(Vec::new());
             if (matches!(&activities, Value::Arr(_))) {
-                ledger = activities;
+                ledger = activities.into_list();
             }
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_221: bool = true;
                 while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (ledger.len() as i64) } {
-                let mut entry: crate::value::Dict = ledger.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut entry: crate::value::Dict = ledger.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut activityType: Option<String> = self.safe_string_k(&entry, "activity_type", &[]).as_str().map(str::to_owned);
                 let mut amount: Option<String> = self.safe_string_k(&entry, "net_amount", &[]).as_str().map(str::to_owned);
                 let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&amount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
@@ -2796,15 +2796,15 @@ impl Alpaca {
         //     }
         //
         let mut results: Vec<Value> = Vec::new();
-        let mut transfers: Value = Value::from(vec![]);
+        let mut transfers: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            transfers = response;
+            transfers = response.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_222: bool = true;
             while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (transfers.len() as i64) } {
-            let mut entry: crate::value::Dict = transfers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut entry: crate::value::Dict = transfers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut direction: Option<String> = self.safe_string_k(&entry, "direction", &[]).as_str().map(str::to_owned);
             if (direction.as_deref() == Some(type_var.as_str().unwrap_or_default().to_string().as_str())) {
                 results.push(Value::from(&entry));

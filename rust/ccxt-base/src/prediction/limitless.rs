@@ -4264,9 +4264,9 @@ if _try_result.is_err() {
         let __tags_empty = Vec::new();
         let tags = tags.as_array().unwrap_or(&__tags_empty);
         let mut categoriesResponse: Value = self.limitless_public_get_categories(&[]).await;
-        let mut categories: Value = Value::from(vec![]);
+        let mut categories: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&categoriesResponse, Value::Arr(_))) {
-            categories = categoriesResponse;
+            categories = categoriesResponse.into_list();
         }
         let mut wanted: Vec<Value> = Vec::new();
         {
@@ -4282,7 +4282,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1336: bool = true;
             while { if !__for_first_1336 { i += 1; } __for_first_1336 = false; (i as f64) < categoriesLength } {
-            let mut category: crate::value::Dict = self.safe_dict(categories.clone(), Value::Int(i), &[]).into_dict();
+            let mut category: crate::value::Dict = self.safe_dict(&categories, Value::Int(i), &[]).into_dict();
             let mut name: String = self.safe_string_lower_k(&category, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut categoryId: Option<String> = self.safe_string_k(&category, "id", &[]).as_str().map(str::to_owned);
             let mut matched: bool = false;

@@ -1400,11 +1400,11 @@ impl Hyperliquid {
         //         }
         //     ]
         //
-        let mut candles: Value = Value::from(vec![]);
+        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            candles = response;
+            candles = response.into_list();
         }
-        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2222,15 +2222,15 @@ impl Hyperliquid {
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMethod]);
         let mut response: Value = self.public_post_info(&[__ws_arg_8]).await;
         let mut ordersWithStatus: Vec<Value> = Vec::new();
-        let mut rawOrders: Value = Value::from(vec![]);
+        let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            rawOrders = response;
+            rawOrders = response.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_1250: bool = true;
             while { if !__for_first_1250 { i += 1; } __for_first_1250 = false; i < (rawOrders.len() as i64) } {
-            let mut order: crate::value::Dict = rawOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut order: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             ordersWithStatus.push(self.extend(order, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ccxtStatus".to_string(), Value::Str("open".into()));
@@ -2291,15 +2291,15 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut historicalOrders: Value = Value::from(vec![]);
+        let mut historicalOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            historicalOrders = response;
+            historicalOrders = response.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_1251: bool = true;
             while { if !__for_first_1251 { i += 1; } __for_first_1251 = false; i < (historicalOrders.len() as i64) } {
-            let mut raw: Value = historicalOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut raw: Value = historicalOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entry: Value = self.safe_dict_k(raw.clone(), "order", &[]);
             if (entry == Value::Null) {
                 entry = raw.clone();
