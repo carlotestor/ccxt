@@ -1551,7 +1551,7 @@ impl Derive {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("loadedPositionsSnapshots".into(), Value::Map(emptySnapshots)); }
         }
         // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
-        let mut subaccountIdKey: Option<String> = self.number_to_string(Value::from(subaccountId));
+        let mut subaccountIdKey: Value = Value::from(self.number_to_string(Value::from(subaccountId)));
         if !(self.positionsByType.has(&subaccountIdKey)) {
             CacheStore::put(&mut self.positionsByType, &subaccountIdKey, ArrayCacheBySymbolBySide::new(Value::Null));
         }
@@ -1559,7 +1559,7 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if fetchSnapshot && !(matches!((&loadedSnapshots, subaccountIdKey.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+        if fetchSnapshot && !(matches!((&loadedSnapshots, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), Value::from(subaccountId));
@@ -1576,7 +1576,7 @@ impl Derive {
                 cache.append(snapshotPosition);
             }
             }
-            if let Value::Dict(__d) = &mut loadedSnapshots { std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut loadedSnapshots { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&subaccountIdKey), Value::Bool(true)); }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("loadedPositionsSnapshots".into(), loadedSnapshots.clone()); }
         }
         let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
