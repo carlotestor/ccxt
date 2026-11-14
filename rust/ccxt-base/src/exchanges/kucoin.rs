@@ -14014,10 +14014,10 @@ if _try_result.is_err() {
         let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUta, Value::Str("until".into()), &[]).into_dict();
-        let mut start: Value = since.clone();
+        let mut start: Option<i64> = since.as_i64();
         let mut end: Option<i64> = until;
         if (since == Value::Null) {
-            start = Value::Int(0);
+            start = Some(0);
         }
         if (until.is_none()) {
             end = Some(self.milliseconds());
@@ -14025,7 +14025,7 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         let mut resultKey: String = "data".to_string();
         if utaOption {
-            request.insert("startAt".into(), start.clone());
+            request.insert("startAt".into(), Value::from(start));
             request.insert("endAt".into(), Value::from(end));
             //
             //     {
@@ -14049,7 +14049,7 @@ if _try_result.is_err() {
 })]).into_opt_dict();
             resultKey = "list".to_string();
         }  else {
-            request.insert("from".into(), start);
+            request.insert("from".into(), Value::from(start));
             request.insert("to".into(), Value::from(end));
             //
             //     {

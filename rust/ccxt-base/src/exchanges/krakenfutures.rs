@@ -5173,13 +5173,13 @@ impl Krakenfutures {
                 m
             }));
         }
-        let mut requestHeaders: Value = privateHeaders.map_or(Value::Null, Value::Dict);
+        let mut requestHeaders: Option<crate::value::Dict> = privateHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 

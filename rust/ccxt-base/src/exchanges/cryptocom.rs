@@ -2127,12 +2127,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("timeframe".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) > ((300i64) as f64)) {
-            limitResolved = Value::Int(300);
+            limitResolved = Some(300);
         }
         if (limit != Value::Null) {
-            request.insert("count".into(), limitResolved.clone());
+            request.insert("count".into(), Value::from(limitResolved));
         }
         let mut now: Value = self.microseconds();
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
@@ -2177,7 +2177,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

@@ -2028,18 +2028,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
         let mut maxDelta: i64 = (((duration * maxLimit)) * 1000);
-        let mut startTime: Value = since.clone();
+        let mut startTime: Option<i64> = since.as_i64();
         // both of since and until are required
         if (since == Value::Null) && (untilParam.is_none()) {
             let mut now: i64 = self.milliseconds();
             until = Value::from(now);
-            startTime = Value::Int((now - maxDelta));
+            startTime = Some((now - maxDelta));
         }  else if (since == Value::Null) && (untilParam.is_some()) {
-            startTime = Value::from((if let Some(__l) = untilParam { Some(__l - maxDelta) } else { None }));
+            startTime = (if let Some(__l) = untilParam { Some(__l - maxDelta) } else { None });
         }  else if (untilParam.is_none()) {
-            until = self.sum(&[startTime.clone(), Value::from(maxDelta)]);
+            until = self.sum(&[Value::from(startTime), Value::from(maxDelta)]);
         }
-        request.insert("createdAtDatetime[gte]".into(), self.iso8601(startTime));
+        request.insert("createdAtDatetime[gte]".into(), self.iso8601(Value::from(startTime)));
         request.insert("createdAtDatetime[lte]".into(), self.iso8601(until));
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.public_get_v1_markets_symbol_candle(&[__ws_arg_5]).await.into_list();
@@ -2291,9 +2291,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsResult: Value = (if sinceFromUntil { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
         if (since != Value::Null) || (untilParam.is_some()) {
             let mut timeDelta: i64 = (((((((7 * 24)) * 60)) * 60)) * 1000); // 7 days
-            let mut sinceResolved: Value = since.clone();
+            let mut sinceResolved: Option<i64> = since.as_i64();
             if (since == Value::Null) && (untilParam.is_some()) {
-                sinceResolved = Value::from((if let Some(__l) = untilParam { Some(__l - timeDelta) } else { None }));
+                sinceResolved = (if let Some(__l) = untilParam { Some(__l - timeDelta) } else { None });
             }
             if (since != Value::Null) && (untilParam.is_none()) {
                 let mut now: i64 = self.milliseconds();
@@ -2304,7 +2304,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     until = self.sum(&[since, Value::from(timeDelta)]);
                 }
             }
-            add_element_to_object(&mut paramsResult, &sinceKey, self.iso8601(sinceResolved));
+            add_element_to_object(&mut paramsResult, &sinceKey, self.iso8601(Value::from(sinceResolved)));
             add_element_to_object(&mut paramsResult, &untilKey, self.iso8601(until));
         }
         return paramsResult;
@@ -3748,19 +3748,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut now: i64 = self.milliseconds();
-        let mut startTimestamp: Value = since.clone();
+        let mut startTimestamp: Option<i64> = since.as_i64();
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("createdAtDatetime[lte]".into()), Value::Map(request.clone()), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut until: Option<i64> = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
         // current endpoint requires both since and until parameters
         if (since == Value::Null) {
-            startTimestamp = Value::Int((now - ((((((((1000 * 60)) * 60)) * 24)) * 90)))); // Only the last 90 days of data is available for querying
+            startTimestamp = Some((now - ((((((((1000 * 60)) * 60)) * 24)) * 90)))); // Only the last 90 days of data is available for querying
         }
         if (until.is_none()) {
             until = Some(now);
         }
-        request.insert("createdAtDatetime[gte]".into(), self.iso8601(startTimestamp));
+        request.insert("createdAtDatetime[gte]".into(), self.iso8601(Value::from(startTimestamp)));
         request.insert("createdAtDatetime[lte]".into(), self.iso8601(Value::from(until)));
         let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_v1_history_borrow_interest(&[__ws_arg_27]).await.into_list();

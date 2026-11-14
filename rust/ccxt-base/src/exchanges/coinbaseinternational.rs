@@ -1801,19 +1801,19 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut duration: i64 = ((self.parse_timeframe(Value::Str("1h".into()))) * 1000);
         let mut now: i64 = self.milliseconds();
-        let mut sinceResolved: Value = since.clone();
+        let mut sinceResolved: Option<i64> = since.as_i64();
         if (since == Value::Null) {
-            sinceResolved = Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
+            sinceResolved = Some((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("start_timestamp".to_string(), sinceResolved.clone());
+                m.insert("start_timestamp".to_string(), Value::from(sinceResolved));
                 m.insert("end_timestamp".to_string(), Value::from(now));
             m
         });
         if (limit != Value::Null) {
-            let mut endTimestamp: Value = self.sum(&[sinceResolved, (match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+            let mut endTimestamp: Value = self.sum(&[Value::from(sinceResolved), (match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
             request.insert("end_timestamp".into(), endTimestamp);
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
@@ -2581,14 +2581,14 @@ impl Coinbaseinternational {
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let mut now: i64 = self.milliseconds();
-        let mut sinceResolved: Value = since.clone();
+        let mut sinceResolved: Option<i64> = since.as_i64();
         if (since == Value::Null) {
-            sinceResolved = Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
+            sinceResolved = Some((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("start_timestamp".to_string(), sinceResolved);
+                m.insert("start_timestamp".to_string(), Value::from(sinceResolved));
                 m.insert("end_timestamp".to_string(), Value::from(now));
                 m.insert("query".to_string(), Value::Str("transfer".into()));
             m
@@ -2975,14 +2975,14 @@ impl Coinbaseinternational {
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let mut now: i64 = self.milliseconds();
-        let mut sinceResolved: Value = since.clone();
+        let mut sinceResolved: Option<i64> = since.as_i64();
         if (since == Value::Null) {
-            sinceResolved = Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
+            sinceResolved = Some((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("start_timestamp".to_string(), sinceResolved);
+                m.insert("start_timestamp".to_string(), Value::from(sinceResolved));
                 m.insert("end_timestamp".to_string(), Value::from(now));
             m
         });

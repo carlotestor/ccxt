@@ -2252,7 +2252,7 @@ impl Hyperliquid {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]).as_i64();
         let mut useTail: bool = (since == Value::Null);
-        let mut originalSince: Value = since.clone();
+        let mut originalSince: Option<i64> = since.as_i64();
         let mut startTime: Value = since.clone();
         if (since == Value::Null) {
             if (limit != Value::Null) {
@@ -2304,7 +2304,7 @@ impl Hyperliquid {
         if (matches!(&response, Value::Arr(_))) {
             candles = response;
         }
-        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, originalSince, limit, Value::Bool(useTail)]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, Value::from(originalSince), limit, Value::Bool(useTail)]);
         Value::Null
         }).await?))
     }

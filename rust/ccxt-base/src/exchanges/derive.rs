@@ -2471,9 +2471,9 @@ impl Derive {
             market = Some(crate::types::Market::clone(&symbolMarket));
             request.insert("instrument_name".into(), Value::from((symbolMarket).id.as_deref()));
         }
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
-            limitResolved = Value::Int(1000);
+            limitResolved = Some(1000);
         }
         if (limit != Value::Null) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
@@ -2597,7 +2597,7 @@ impl Derive {
             m
         })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&data, market.as_ref(), &[since, limitResolved]);
+        return self.parse_trades(&data, market.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

@@ -5508,9 +5508,9 @@ impl Htx {
         let mut isContract: bool = (market).contract;
         let mut marketType: String = (market).market_type.clone();
         let mut contractLimit: i64 = limit.as_i64().unwrap_or(2000); // only used for from/to calculation
-        let mut rangeLimit: Value = limit.clone();
+        let mut rangeLimit: Option<i64> = limit.as_i64();
         if isContract {
-            rangeLimit = Value::from(contractLimit);
+            rangeLimit = Some(contractLimit);
         }
         if isContract {
             if (limit != Value::Null) {
@@ -5630,7 +5630,7 @@ impl Htx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, rangeLimit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(rangeLimit)]);
         Value::Null
         }).await?))
     }
@@ -10955,14 +10955,14 @@ impl Htx {
     m
 })), url).into());
         }
-        let mut headersResolved: Value = signedHeaders.map_or(Value::Null, Value::Dict);
+        let mut headersResolved: Option<crate::value::Dict> = signedHeaders;
         let mut bodyResolved: Option<String> = signedBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResolved);
+        m.insert("headers".to_string(), headersResolved.map_or(Value::Null, Value::Dict));
     m
 });
 

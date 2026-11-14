@@ -14227,13 +14227,13 @@ impl Bybit {
                     authFull = Value::Str(format!("{}{}", auth_base, queryEncoded).into());
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.clone().map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path).into()), "?").into()), queryEncoded);
                 }
-                let mut signature: Value = Value::Null;
+                let mut signature: Option<String> = None;
                 if self.secret.as_str().unwrap_or("").contains("PRIVATE KEY") {
-                    signature = Value::from(rsa(authFull.clone(), self.secret.clone(), Value::Str("sha256".into())));
+                    signature = Some(rsa(authFull.clone(), self.secret.clone(), Value::Str("sha256".into())));
                 }  else {
-                    signature = Value::from(self.hmac(self.encode(authFull), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+                    signature = Some(self.hmac(self.encode(authFull), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
                 }
-                add_element_to_object(&mut requestHeaders, &Value::Str("X-BAPI-SIGN".into()), signature.clone());
+                add_element_to_object(&mut requestHeaders, &Value::Str("X-BAPI-SIGN".into()), signature.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 let __ws_arg_88 = crate::value::get_value_k(&self.options, "recvWindow");
                 let mut query: crate::value::Dict = self.extend(params, &[Value::Map({

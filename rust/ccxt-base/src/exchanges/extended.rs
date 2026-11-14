@@ -2252,15 +2252,15 @@ impl Extended {
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]).as_i64();
         let mut endTime: Option<i64> = self.safe_integer_k(params.clone(), "endTime", &[Value::from(until)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
-        let mut sinceResolved: Value = since.clone();
+        let mut sinceResolved: Option<i64> = since.as_i64();
         if (endTime.is_some()) && (since == Value::Null) {
-            sinceResolved = Value::from((if let Some(__l) = endTime { Some(__l - ((((limitResolved * (self.parse_timeframe(timeframe)))) * 1000))) } else { None }));
+            sinceResolved = (if let Some(__l) = endTime { Some(__l - ((((limitResolved * (self.parse_timeframe(timeframe)))) * 1000))) } else { None });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
-                m.insert("startTime".to_string(), sinceResolved.clone());
+                m.insert("startTime".to_string(), Value::from(sinceResolved));
                 m.insert("endTime".to_string(), Value::from(endTime));
                 m.insert("limit".to_string(), Value::from(limitResolved));
             m
@@ -2280,7 +2280,7 @@ impl Extended {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_open_interests_history(&data, Some(&market), &[sinceResolved, Value::from(limitResolved)]);
+        return self.parse_open_interests_history(&data, Some(&market), &[Value::from(sinceResolved), Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3801,10 +3801,10 @@ impl Extended {
         let mut syntheticResolution: Option<i64> = self.safe_integer_k(params.clone(), "syntheticResolution", &[]).as_i64();
         let mut collateralResolution: Option<i64> = self.safe_integer_k(params, "collateralResolution", &[]).as_i64();
         let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
-        let mut baseRoundUp: Value = isBuy.clone();
-        let mut quoteRoundUp: Value = isBuy.clone();
-        let mut baseAmount: Value = self.get_extended_stark_amount(amountString, syntheticResolution, &[baseRoundUp]);
-        let mut collateralAmount: Value = self.get_extended_stark_amount(quoteAmount.clone().map(Value::from).unwrap_or(Value::Null), collateralResolution, &[quoteRoundUp]);
+        let mut baseRoundUp: bool = isBuy.as_bool().unwrap_or_default();
+        let mut quoteRoundUp: bool = isBuy.as_bool().unwrap_or_default();
+        let mut baseAmount: Value = self.get_extended_stark_amount(amountString, syntheticResolution, &[Value::Bool(baseRoundUp)]);
+        let mut collateralAmount: Value = self.get_extended_stark_amount(quoteAmount.clone().map(Value::from).unwrap_or(Value::Null), collateralResolution, &[Value::Bool(quoteRoundUp)]);
         if isBuy.as_bool() == Some(true) {
             collateralAmount = crate::precise::Precise::stringNeg(&collateralAmount);
         }  else {

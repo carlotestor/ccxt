@@ -949,16 +949,16 @@ impl Bithumb {
                 let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "market", &[]).as_str().map(str::to_owned);
                 let mut baseId: Option<String> = None;
-                let mut quoteId: Value = Value::Null;
+                let mut quoteId: Option<String> = None;
                 let mut base: Value = Value::Null;
                 let mut quote: Value = Value::Null;
                 if (marketId.is_some()) {
                     let mut parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-                    quoteId = parts.get(0).cloned().unwrap_or(Value::Null);
+                    quoteId = parts.get(0).and_then(Value::as_str).map(str::to_owned);
                     base = self.safe_currency_code(Value::from(baseId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
-                    quote = self.safe_currency_code(quoteId.clone(), None).map(Value::from).unwrap_or(Value::Null);
+                    quote = self.safe_currency_code(Value::from(quoteId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
                 }
                 if (base == Value::Null) || (quote == Value::Null) {
                     continue;
@@ -971,7 +971,7 @@ impl Bithumb {
                         m.insert("quote".to_string(), quote);
                         m.insert("settle".to_string(), Value::Null);
                         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("quoteId".to_string(), quoteId);
+                        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("settleId".to_string(), Value::Null);
                         m.insert("type".to_string(), Value::Str("spot".into()));
                         m.insert("spot".to_string(), Value::Bool(true));
