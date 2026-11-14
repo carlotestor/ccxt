@@ -12811,16 +12811,15 @@ impl Bybit {
         //
         let mut tiers: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_525: bool = true;
-            while { if !__for_first_525 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_525 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
-            let mut tier: Option<crate::value::Dict> = self.safe_dict(info.clone(), i.clone(), &[]).into_opt_dict();
+            while { if !__for_first_525 { i += 1; } __for_first_525 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut tier: Option<crate::value::Dict> = self.safe_dict(info.clone(), Value::Int(i), &[]).into_opt_dict();
             let mut marketId: Option<String> = self.safe_string_k(&tier, "symbol", &[]).as_str().map(str::to_owned);
             let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("contract".into())]);
             let mut minNotional: Option<f64> = Some(0_f64);
-            if (i.as_f64() != Some(0.0)) {
-                minNotional = self.safe_number(get_value(&info, &(match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                    _ => Value::Null })), Value::Str("riskLimitValue".into()), &[]).as_f64();
+            if (i != 0) {
+                minNotional = self.safe_number(get_value(&info, &Value::Int((i - 1))), Value::Str("riskLimitValue".into()), &[]).as_f64();
             }
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -82,14 +82,14 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
         return;
     }
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1586: bool = true;
-        while { if !__for_first_1586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1586 = false; i.as_f64().unwrap_or(f64::NAN) < (barsLength as f64) } {
-        let mut ohlcv: Value = ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+        while { if !__for_first_1586 { i += 1; } __for_first_1586 = false; i < barsLength } {
+        let mut ohlcv: Value = ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let mut barTs: Value = get_value(&ohlcv, &Value::Int(0));
         // if this is the first bar, then ensure its timestamp is not earlier than requested "since"
         if !(in_op(&skippedProperties, &Value::Str("compareTimestampToSince".into()))) {
-            if (i.as_f64() == Some(0.0)) && (since != Value::Null) {
+            if (i == 0) && (since != Value::Null) {
                 assert!(ccxt::runtime::is_true(&(((match (&(barTs), &(since)) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64),
                     Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x > __y, _ => matches!((__a, __b), (Value::Str(__x), Value::Str(__y)) if __x > __y) }) || (match (__a, __b) { (Value::Null, Value::Null) => true,
                     (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, _ => matches!(((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
@@ -97,7 +97,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
             }
         }
         // if this is the last bar, then check if it's <= now
-        if (i.as_f64() == Value::Int((barsLength - 1)).as_f64()) {
+        if (i == ((barsLength - 1))) {
             if !(in_op(&skippedProperties, &Value::Str("compareToNow".into()))) {
                 assert!(ccxt::runtime::is_true(&(((match (&(barTs), &(now)) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64),
                     Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x < __y, _ => matches!((__a, __b), (Value::Str(__x), Value::Str(__y)) if __x < __y) }) || (match (__a, __b) { (Value::Null, Value::Null) => true,
@@ -119,9 +119,8 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
         }
         // we compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
         if !(in_op(&skippedProperties, &Value::Str("compareDuration".into()))) {
-            if i.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                let mut previousBarTs: Value = get_value(&ohlcvs.as_array().and_then(|__arr| match &((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null), &Value::Int(0));
+            if i > 0 {
+                let mut previousBarTs: Value = get_value(&ohlcvs.as_array().and_then(|__arr| match &(Value::Int((i - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null), &Value::Int(0));
                 let mut diffBetweenCurrentAndPrevious: Value = (match (&(barTs), &(previousBarTs)) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x - __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
                     Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => Value::Float(__x - __y), _ => Value::Null } });
                 assert!(ccxt::runtime::is_true(&((diffBetweenCurrentAndPrevious.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));

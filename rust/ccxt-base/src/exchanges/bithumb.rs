@@ -1593,12 +1593,12 @@ impl Bithumb {
             let mut maxMarketIdsPerRequest: Option<i64> = self.parse_to_int((if ((false) || (maxMarketIdsOption < 1)) { Value::Int(200) } else { Value::from(maxMarketIdsOption) }));
             let mut marketIdsChunk: Value = Value::from(vec![]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_397: bool = true;
-                while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < (marketIdsLength as f64) } {
-                if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
+                while { if !__for_first_397 { i += 1; } __for_first_397 = false; i < marketIdsLength } {
+                if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get(i as usize).cloned().unwrap_or(Value::Null)); }
                 let mut marketIdsChunkLength: i64 = marketIdsChunk.len() as i64;
-                let mut isLastMarketId: bool = i.as_f64() == (Value::Int((marketIdsLength - 1))).as_f64();
+                let mut isLastMarketId: bool = i == ((marketIdsLength - 1));
                 if ((maxMarketIdsPerRequest.is_some() && Some(marketIdsChunkLength) >= maxMarketIdsPerRequest)) || isLastMarketId {
                     std::sync::Arc::make_mut(&mut marketIdsChunks).push(marketIdsChunk.clone());
                     request.insert("markets".into(), Value::Str(marketIdsChunk.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));

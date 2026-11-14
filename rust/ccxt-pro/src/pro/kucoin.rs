@@ -2610,17 +2610,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Int(-1);
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_457: bool = true;
-            while { if !__for_first_457 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_457 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
-            let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), i.clone(), &[]).into_dict();
+            while { if !__for_first_457 { i += 1; } __for_first_457 = false; i < (cache.len() as i64) } {
+            let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(i), &[]).into_dict();
             let mut deltaStart: Option<i64> = self.safe_integer_n(&delta, Value::from(vec![Value::Str("sequenceStart".into()), Value::Str("sequence".into()), Value::Str("O".into())]), &[]).as_i64();
             let mut deltaEnd: Option<i64> = self.safe_integer_n(&delta, Value::from(vec![Value::Str("sequenceEnd".into()), Value::Str("sequence".into()), Value::Str("C".into())]), &[]).as_i64(); // todo check
             if (deltaStart.is_none()) || (deltaEnd.is_none()) {
                 continue;
             }
             if (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) && ((nonce.is_some() && deltaEnd.is_some() && nonce < deltaEnd)) {
-                return i;
+                return Value::Int(i);
             }
         }
         }

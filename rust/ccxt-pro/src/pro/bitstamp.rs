@@ -541,13 +541,13 @@ impl Bitstamp {
             return Value::Int(-1);
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_138: bool = true;
-            while { if !__for_first_138 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_138 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            let mut delta: crate::value::Dict = self.safe_dict(deltas.clone(), i.clone(), &[]).into_dict();
+            while { if !__for_first_138 { i += 1; } __for_first_138 = false; i < (deltas.len() as i64) } {
+            let mut delta: crate::value::Dict = self.safe_dict(deltas.clone(), Value::Int(i), &[]).into_dict();
             let mut deltaNonce: Option<i64> = self.safe_integer_k(&delta, "microtimestamp", &[]).as_i64();
             if (deltaNonce == nonce) {
-                return (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                return Value::Int((i + 1));
             }
         }
         }

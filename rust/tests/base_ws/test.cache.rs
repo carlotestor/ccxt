@@ -166,14 +166,14 @@ pub fn testWsCache() {
     // ----------------------------------------------------------------------------
     let mut cacheSymbolId5: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Int(5));
     {
-                let mut i: Value = Value::Int(1);
+                let mut i: i64 = 1;
         let mut __for_first_1535: bool = true;
-        while { if !__for_first_1535 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1535 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1535 { i += 1; } __for_first_1535 = false; (i as f64) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
                 m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
-                m.insert("i".to_string(), i.clone());
+                m.insert("i".to_string(), Value::Int(i));
             m
         }));
     }
@@ -210,14 +210,14 @@ pub fn testWsCache() {
     m
 })])))));
     {
-                let mut i: Value = Value::Int(1);
+                let mut i: i64 = 1;
         let mut __for_first_1536: bool = true;
-        while { if !__for_first_1536 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1536 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1536 { i += 1; } __for_first_1536 = false; (i as f64) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
                 m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
-                m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                m.insert("i".to_string(), Value::Int((i + 10)));
             m
         }));
     }
@@ -332,14 +332,14 @@ pub fn testWsCache() {
     m
 })])))));
     {
-                let mut i: Value = Value::Int(30);
+                let mut i: i64 = 30;
         let mut __for_first_1537: bool = true;
-        while { if !__for_first_1537 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1537 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(33).as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1537 { i += 1; } __for_first_1537 = false; (i as f64) < Value::Int(33).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
                 m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
-                m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                m.insert("i".to_string(), Value::Int((i + 10)));
             m
         }));
     }
@@ -459,14 +459,14 @@ pub fn testWsCache() {
     let mut cacheSymbolId2: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Null);
     let mut initialLength: Value = Value::Int(5);
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1538: bool = true;
-        while { if !__for_first_1538 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1538 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1538 { i += 1; } __for_first_1538 = false; (i as f64) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId2.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
-                m.insert("i".to_string(), i.clone());
+                m.insert("i".to_string(), Value::Int(i));
             m
         }));
     }
@@ -477,14 +477,14 @@ pub fn testWsCache() {
     let mut cacheSymbolId3: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Null);
     let mut appendItemsLength: Value = Value::Int(3);
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1539: bool = true;
-        while { if !__for_first_1539 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1539 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1539 { i += 1; } __for_first_1539 = false; (i as f64) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId3.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
-                m.insert("i".to_string(), i.clone());
+                m.insert("i".to_string(), Value::Int(i));
             m
         }));
     }
@@ -501,14 +501,14 @@ pub fn testWsCache() {
     let mut cacheSymbolId4: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Null);
     initialLength = Value::Int(5);
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1540: bool = true;
-        while { if !__for_first_1540 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1540 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1540 { i += 1; } __for_first_1540 = false; (i as f64) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId4.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
-                m.insert("i".to_string(), i.clone());
+                m.insert("i".to_string(), Value::Int(i));
             m
         }));
     }
@@ -519,14 +519,14 @@ pub fn testWsCache() {
     let mut cacheSymbolId6: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Null);
     appendItemsLength = Value::Int(3);
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1541: bool = true;
-        while { if !__for_first_1541 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1541 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1541 { i += 1; } __for_first_1541 = false; (i as f64) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId6.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
-                m.insert("i".to_string(), i.clone());
+                m.insert("i".to_string(), Value::Int(i));
             m
         }));
     }
@@ -573,26 +573,20 @@ pub fn testWsCache() {
     let mut timestampCache2: ccxt::pro::cache::Cache = ArrayCacheByTimestamp::new(Value::Null);
     initialLength = Value::Int(5);
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1542: bool = true;
-        while { if !__for_first_1542 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1542 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
-        timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }),
-            (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i),
-            &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x),
-            Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+        while { if !__for_first_1542 { i += 1; } __for_first_1542 = false; (i as f64) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        timestampCache2.append(Value::from(vec![Value::Int((i * 10)), Value::Int((i * 10)), Value::Int((i * 10)), Value::Int((i * 10))]));
     }
     }
     limited = Value::from(timestampCache2.get_limit(None::<&str>, None::<i64>));
     assert!(ccxt::runtime::is_true(&(Value::Bool(initialLength.as_f64() == limited.as_f64()))));
     appendItemsLength = Value::Int(3);
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1543: bool = true;
-        while { if !__for_first_1543 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1543 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
-        timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i),
-            &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x),
-            Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-            (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+        while { if !__for_first_1543 { i += 1; } __for_first_1543 = false; (i as f64) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        timestampCache2.append(Value::from(vec![Value::Int((i * 4)), Value::Int((i * 4)), Value::Int((i * 4)), Value::Int((i * 4))]));
     }
     }
     outsideLimit = Value::Int(5);
@@ -1151,14 +1145,14 @@ pub fn testWsCache() {
     // so the map grew without bound even though the array stayed at maxSize
     let mut cacheEvictBuckets: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Int(3));
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1545: bool = true;
-        while { if !__for_first_1545 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1545 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1545 { i += 1; } __for_first_1545 = false; (i as f64) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
         cacheEvictBuckets.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".into()), Value::Str(format!("{}", i).into())).into()), "/USDT").into()));
                 m.insert("id".to_string(), Value::Str("x".into()));
-                m.insert("i".to_string(), i.clone());
+                m.insert("i".to_string(), Value::Int(i));
             m
         }));
     }

@@ -9617,7 +9617,7 @@ if _try_result.is_err() {
             let mut maxNotional: Option<f64> = self.safe_number_k(&item, "risk_limit", &[]).as_f64();
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
+                    m.insert("tier".to_string(), Value::Int((i + 1)));
                     m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
                     m.insert("currency".to_string(), self.safe_string_k(&market, "settle", &[]));
                     m.insert("minNotional".to_string(), minNotional.clone());

@@ -37,12 +37,12 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut bids: Value = orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null);
     let mut bidsLength: i64 = get_array_length(&bids).as_i64().unwrap_or_default();
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1555: bool = true;
-        while { if !__for_first_1555 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1555 = false; i.as_f64().unwrap_or(f64::NAN) < (bidsLength as f64) } {
-        let mut currentBidString: Option<String> = exchange.safe_string(get_value(&bids, &i), Value::Int(0), &[]).as_str().map(str::to_owned);
+        while { if !__for_first_1555 { i += 1; } __for_first_1555 = false; i < bidsLength } {
+        let mut currentBidString: Option<String> = exchange.safe_string(get_value(&bids, &Value::Int(i)), Value::Int(0), &[]).as_str().map(str::to_owned);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
-            let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            let mut nextI: Value = Value::Int((i + 1));
             if (bidsLength as f64) > nextI.as_f64().unwrap_or(f64::NAN) {
                 let mut nextBidString: Option<String> = exchange.safe_string(get_value(&bids, &nextI), Value::Int(0), &[]).as_str().map(str::to_owned);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&currentBidString, &nextBidString))));
@@ -50,20 +50,20 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
         }
         if !(in_op(&skippedProperties, &Value::Str("compareToZero".into()))) {
             // compare price & volume to zero
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &i).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &i).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &Value::Int(i)).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &Value::Int(i)).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
         }
     }
     }
     let mut asks: Value = orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null);
     let mut asksLength: i64 = get_array_length(&asks).as_i64().unwrap_or_default();
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1556: bool = true;
-        while { if !__for_first_1556 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1556 = false; i.as_f64().unwrap_or(f64::NAN) < (asksLength as f64) } {
-        let mut currentAskString: Option<String> = exchange.safe_string(get_value(&asks, &i), Value::Int(0), &[]).as_str().map(str::to_owned);
+        while { if !__for_first_1556 { i += 1; } __for_first_1556 = false; i < asksLength } {
+        let mut currentAskString: Option<String> = exchange.safe_string(get_value(&asks, &Value::Int(i)), Value::Int(0), &[]).as_str().map(str::to_owned);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
-            let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            let mut nextI: Value = Value::Int((i + 1));
             if (asksLength as f64) > nextI.as_f64().unwrap_or(f64::NAN) {
                 let mut nextAskString: Option<String> = exchange.safe_string(get_value(&asks, &nextI), Value::Int(0), &[]).as_str().map(str::to_owned);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLt(&currentAskString, &nextAskString))));
@@ -71,8 +71,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
         }
         if !(in_op(&skippedProperties, &Value::Str("compareToZero".into()))) {
             // compare price & volume to zero
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &i).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &i).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &Value::Int(i)).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &Value::Int(i)).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
         }
     }
     }

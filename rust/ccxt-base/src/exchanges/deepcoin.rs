@@ -2076,15 +2076,15 @@ impl Deepcoin {
         let mut index: Value = Value::Int(0);
         if (network.is_some()) && (length > 1) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_611: bool = true;
-                while { if !__for_first_611 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < (length as f64) } {
-                let mut entryNetwork: Option<String> = self.safe_string(self.safe_dict(addressess.clone(), i.clone(), &[Value::Map({
+                while { if !__for_first_611 { i += 1; } __for_first_611 = false; i < length } {
+                let mut entryNetwork: Option<String> = self.safe_string(self.safe_dict(addressess.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
                 if (entryNetwork == network) {
-                    index = i.clone();
+                    index = Value::Int(i);
                 }
             }
             }

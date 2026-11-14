@@ -1374,10 +1374,10 @@ impl Predictfun {
         let mut chars: Value = self.string_to_chars_array(text);
         let mut stripped: String = "".to_string();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1465: bool = true;
-            while { if !__for_first_1465 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1465 = false; i.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
-            let mut ch: Option<String> = chars.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).and_then(Value::as_str).map(str::to_owned);
+            while { if !__for_first_1465 { i += 1; } __for_first_1465 = false; i < (chars.len() as i64) } {
+            let mut ch: Option<String> = chars.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut keep: bool = true;
             if (ch.as_deref() == Some("$")) {
                 keep = false;
@@ -1385,11 +1385,9 @@ impl Predictfun {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                let mut prevIsDigit: bool = (i.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y),
-                    (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
-                let mut nextIsDigit: bool = (((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-                    _ => Value::Null })).as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64)) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y),
-                    (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
+                let mut prevIsDigit: bool = (i > 0) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &(Value::Int((i - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
+                let mut nextIsDigit: bool = ((Value::Int((i + 1))).as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64)) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &(Value::Int((i + 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize),
+                    _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
                 keep = !(prevIsDigit && nextIsDigit);
             }
             if keep {

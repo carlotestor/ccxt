@@ -1238,11 +1238,11 @@ impl Opinion {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1394: bool = true;
-            while { if !__for_first_1394 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1394 = false; i.as_f64().unwrap_or(f64::NAN) < (outcomesLength as f64) } {
-            let mut outcomeObj: Value = self.outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            let mut priceIndex: Value = (match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            while { if !__for_first_1394 { i += 1; } __for_first_1394 = false; i < outcomesLength } {
+            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut priceIndex: Value = Value::Int((i * 2));
             let mut priceResponse: Option<crate::value::Dict> = self.safe_dict(responses.clone(), priceIndex.clone(), &[]).into_opt_dict();
             let mut bookResponse: Option<crate::value::Dict> = self.safe_dict(responses.clone(), self.sum(&[priceIndex, Value::Int(1)]), &[]).into_opt_dict();
             let mut response: indexmap::IndexMap<String, Value> = ({

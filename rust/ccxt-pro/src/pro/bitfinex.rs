@@ -607,13 +607,12 @@ impl Bitfinex {
             stored = Some(ArrayCacheByTimestamp::new(limit));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
-        let mut ohlcvsLength: Value = Value::Int(ohlcvs.len() as i64);
+        let mut ohlcvsLength: i64 = ohlcvs.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_100: bool = true;
-            while { if !__for_first_100 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_100 = false; i.as_f64().unwrap_or(f64::NAN) < ohlcvsLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut parsed: crate::value::List = self.parse_ohlcv(self.safe_list(&ohlcvs, (match (&((match (&(ohlcvsLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]), Some(&market)).into_list();
+            while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < ohlcvsLength } {
+            let mut parsed: crate::value::List = self.parse_ohlcv(self.safe_list(&ohlcvs, Value::Int((((ohlcvsLength - i)) - 1)), &[]), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
         }
@@ -863,13 +862,12 @@ impl Bitfinex {
             // initial snapshot
             let mut trades: crate::value::List = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
             // needs to be reversed to make chronological order
-            let mut length: Value = Value::Int(trades.len() as i64);
+            let mut length: i64 = trades.len() as i64;
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_101: bool = true;
-                while { if !__for_first_101 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_101 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
-                let mut index: Value = (match (&((match (&(length), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
-                    &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                while { if !__for_first_101 { i += 1; } __for_first_101 = false; i < length } {
+                let mut index: Value = Value::Int((((length - i)) - 1));
                 let mut parsed: crate::value::Dict = self.parse_ws_trade(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("result".to_string(), self.safe_list(&trades, index, &[]));

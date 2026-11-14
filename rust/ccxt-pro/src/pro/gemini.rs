@@ -688,13 +688,12 @@ impl Gemini {
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
         }
-        let mut changesLength: Value = Value::Int(changes.len() as i64);
+        let mut changesLength: i64 = changes.len() as i64;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_344: bool = true;
-            while { if !__for_first_344 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_344 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut index: Value = (match (&((match (&(changesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
-                &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            while { if !__for_first_344 { i += 1; } __for_first_344 = false; i < changesLength } {
+            let mut index: Value = Value::Int((((changesLength - i)) - 1));
             let mut parsed: Value = self.parse_ohlcv(self.safe_value(&changes, index, &[]), Some(&market));
             stored.append(parsed);
         }

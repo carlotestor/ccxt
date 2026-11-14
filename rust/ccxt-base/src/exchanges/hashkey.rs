@@ -5334,7 +5334,7 @@ impl Hashkey {
             let mut initialMarginRate: Option<String> = self.safe_string_k(&tier, "initialMargin", &[]).as_str().map(str::to_owned);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
+                    m.insert("tier".to_string(), Value::Int((i + 1)));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
                     m.insert("minNotional".to_string(), Value::Null);

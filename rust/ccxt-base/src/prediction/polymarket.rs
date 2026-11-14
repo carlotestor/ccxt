@@ -1218,10 +1218,10 @@ impl Polymarket {
             }
             let mut remainingPages: Vec<Value> = Vec::new();
             {
-                                let mut p: Value = Value::Int(2);
+                                let mut p: i64 = 2;
                 let mut __for_first_1406: bool = true;
-                while { if !__for_first_1406 { if let Value::Int(n) = &mut p { *n += 1; } } __for_first_1406 = false; p.as_f64().unwrap_or(f64::NAN) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
-                remainingPages.push(p.clone());
+                while { if !__for_first_1406 { p += 1; } __for_first_1406 = false; (p as f64) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
+                remainingPages.push(Value::Int(p));
             }
             }
             let mut restPromises: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1337,11 +1337,11 @@ impl Polymarket {
 }));
         // gamma hard-caps each response at 100 events regardless of the requested limit, so the
         // page size must be that cap or pagination never advances (the > check below stays false)
-        let mut pageSize: Value = self.safe_integer_k(self.options.clone(), "eventsPageSize", &[Value::Int(100)]);
+        let mut pageSize: i64 = self.safe_integer_k(self.options.clone(), "eventsPageSize", &[Value::Int(100)]).as_i64().unwrap_or(100);
         // scope the listing: without a search query loadMarkets would otherwise dump every
         // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
         let mut limit: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(200)])]).as_i64();
-        let mut maxPages: Value = ((match ((Value::from(limit)).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
+        let mut maxPages: Value = ((match ((Value::from(limit)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
         let mut status: Option<String> = self.safe_string_k(params.clone(), "status", &[self.safe_string(self.options.clone(), Value::Str("defaultEventStatus".into()), &[Value::Str("active".into())])]).as_str().map(str::to_owned);
         // sort maps to the gamma `order` field; 'volume' is the default ranking
         let mut sort: Option<String> = self.safe_string_k(params.clone(), "sort", &[]).as_str().map(str::to_owned);
@@ -1354,7 +1354,7 @@ impl Polymarket {
         let mut rest: crate::value::Dict = self.omit(params.clone(), &["status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags"], &[]).into_dict();
         let mut baseRequest: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("limit".to_string(), pageSize.clone());
+                m.insert("limit".to_string(), Value::from(pageSize));
                 m.insert("order".to_string(), Value::from(order));
                 m.insert("ascending".to_string(), Value::Bool(false));
             m
@@ -1429,13 +1429,13 @@ impl Polymarket {
             allRawEvents.push(firstPage.as_array().map(Vec::as_slice).unwrap_or_default().get(fi as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        if (firstPageLength as f64) >= pageSize.as_f64().unwrap_or(f64::NAN) {
+        if firstPageLength >= pageSize {
             let mut offsets: Vec<Value> = Vec::new();
             {
                                 let mut p: Value = Value::Int(1);
                 let mut __for_first_1417: bool = true;
                 while { if !__for_first_1417 { if let Value::Int(n) = &mut p { *n += 1; } } __for_first_1417 = false; maxPages.as_f64().unwrap_or(f64::NAN) > p.as_f64().unwrap_or(f64::NAN) } {
-                offsets.push((match (&(p), &(pageSize)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                offsets.push((match (&(p), &(Value::from(pageSize))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
             }
             }
             let mut restPromises: Vec<Value> = Vec::new();

@@ -1243,15 +1243,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (rHex.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " signEvmTransaction() missing rHex")));
         }
-        let mut rHexLength: Value = Value::Int((rHex.as_deref().unwrap_or_default().chars().count() as i64));
-        if (((match (&(rHexLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() != Some(0.0)) {
+        let mut rHexLength: i64 = (rHex.as_deref().unwrap_or_default().chars().count() as i64);
+        if (((rHexLength % 2)) != 0) {
             rHex = Some(format!("{}{}", "0", rHex.as_deref().unwrap_or("null")));
         }
         if (sHex.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " signEvmTransaction() missing sHex")));
         }
-        let mut sHexLength: Value = Value::Int((sHex.as_deref().unwrap_or_default().chars().count() as i64));
-        if (((match (&(sHexLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() != Some(0.0)) {
+        let mut sHexLength: i64 = (sHex.as_deref().unwrap_or_default().chars().count() as i64);
+        if (((sHexLength % 2)) != 0) {
             sHex = Some(format!("{}{}", "0", sHex.as_deref().unwrap_or("null")));
         }
         let mut yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
@@ -3177,10 +3177,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut makerFee: Value = self.safe_number_k(&sellFees, "fee", &[Value::Int(0)]);
         let mut outcomes: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1357: bool = true;
-            while { if !__for_first_1357 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1357 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOutcomes.len() as i64) as f64) } {
-            let mut outcome: crate::value::Dict = self.safe_dict(&rawOutcomes, i.clone(), &[Value::Map({
+            while { if !__for_first_1357 { i += 1; } __for_first_1357 = false; i < (rawOutcomes.len() as i64) } {
+            let mut outcome: crate::value::Dict = self.safe_dict(&rawOutcomes, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

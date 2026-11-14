@@ -3908,10 +3908,10 @@ pub trait ExchangeBase:
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_103: bool = true;
-            while { if !__for_first_103 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_103 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&fees).as_f64().unwrap_or(f64::NAN) } {
-            let mut fee: Value = get_value(&fees, &i);
+            while { if !__for_first_103 { i += 1; } __for_first_103 = false; (i as f64) < get_array_length(&fees).as_f64().unwrap_or(f64::NAN) } {
+            let mut fee: Value = get_value(&fees, &Value::Int(i));
             let mut code: Option<String> = self.safe_string_k(fee.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut feeCurrencyCode: Value = (if (code.is_some()) { code.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Str(format!("{}", i).into()) });
             if (feeCurrencyCode != Value::Null) {
@@ -4394,9 +4394,9 @@ pub trait ExchangeBase:
             let mut response: Value = Value::Null;
             let mut shouldBreak: bool = false;
             {
-                                let mut retry: Value = Value::Int(0);
+                                let mut retry: i64 = 0;
                 let mut __for_first_107: bool = true;
-                while { if !__for_first_107 { if let Value::Int(n) = &mut retry { *n += 1; } } __for_first_107 = false; retry.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_107 { retry += 1; } __for_first_107 = false; (retry as f64) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
                 {
                     response = self.call_dynamic_checked(endpointMethod.clone(), vec![(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -9250,9 +9250,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut shouldBreak: bool = false;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_161: bool = true;
-            while { if !__for_first_161 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_161 = false; matches!(maxCallsPaginationCalls, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_161 { i += 1; } __for_first_161 = false; matches!(maxCallsPaginationCalls, Some(__b) if (i as f64) < (__b as f64)) } {
             {
                 if (paginationDirection.as_deref() == Some("backward")) {
                     // do it backwards, starting from the last
@@ -9264,8 +9264,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (Value::Null).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
                     let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                     if self.verbose.as_bool() == Some(true) {
-                        let mut backwardMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), Value::from(self.number_to_string((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y),
-                            (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))).into()), " method ").into()), method).into()), " response length ").into()), Value::Str(format!("{}", responseLength).into()));
+                        let mut backwardMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), Value::from(self.number_to_string(Value::Int((i + 1))))).into()), " method ").into()), method).into()),
+                            " response length ").into()), Value::Str(format!("{}", responseLength).into()));
                         if (paginationTimestamp != Value::Null) {
                             backwardMessage.push_str(&format!("{}{}", Value::Str(" timestamp ".into()), Value::from(self.number_to_string(paginationTimestamp.clone()))));
                         }
@@ -9292,8 +9292,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (paginationTimestamp).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
                     let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                     if self.verbose.as_bool() == Some(true) {
-                        let mut forwardMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), Value::from(self.number_to_string((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y),
-                            (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))).into()), " method ").into()), method).into()), " response length ").into()), Value::Str(format!("{}", responseLength).into()));
+                        let mut forwardMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), Value::from(self.number_to_string(Value::Int((i + 1))))).into()), " method ").into()), method).into()),
+                            " response length ").into()), Value::Str(format!("{}", responseLength).into()));
                         if (paginationTimestamp != Value::Null) {
                             forwardMessage.push_str(&format!("{}{}", Value::Str(" timestamp ".into()), Value::from(self.number_to_string(paginationTimestamp.clone()))));
                         }
@@ -9490,9 +9490,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsOmitted: Value = self.omit(&paramsMaxEntriesPerRequest, Value::Str("timeframe".into()), &[]); // reading the timeframe from the method arguments to avoid changing the signature
         let mut shouldBreak: bool = false;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_165: bool = true;
-            while { if !__for_first_165 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_165 = false; matches!(maxCallsPaginationCalls, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_165 { i += 1; } __for_first_165 = false; matches!(maxCallsPaginationCalls, Some(__b) if (i as f64) < (__b as f64)) } {
             {
                 if (cursorValue != Value::Null) {
                     if (cursorIncrement != Value::Null) {
@@ -9520,33 +9520,30 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (response == Value::Null) {
                     panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " fetchPaginatedCallCursor() returned empty response")));
                 }
-                let mut responseLength: Value = Value::Int(response.len() as i64);
+                let mut responseLength: i64 = response.len() as i64;
                 if self.verbose.as_bool() == Some(true) {
                     let mut cursorString: Value = Value::Str("".into());
                     if (cursorValue != Value::Null) {
                         cursorString = Value::Str(format!("{}", cursorValue).into());
                     }
-                    let mut cursorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Cursor pagination call ".into()), Value::Str(format!("{}", ((match (&(i), &(Value::Int(1))) { (Value::Int(x),
-                        Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).into())).into()), " method ").into()), method).into()), " response length ").into()),
-                        Value::Str(format!("{}", responseLength).into())).into()), " cursor ").into()), cursorString);
+                    let mut cursorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Cursor pagination call ".into()), Value::Str(format!("{}", (Value::Int((i + 1)))).into())).into()),
+                        " method ").into()), method).into()), " response length ").into()), Value::Str(format!("{}", responseLength).into())).into()), " cursor ").into()), cursorString);
                     self.log(Value::from(cursorMessage));
                 }
-                if (responseLength.as_f64() == Some(0.0)) {
+                if (responseLength == 0) {
                     shouldBreak = true;
                     break;
                 }
                 result = self.array_concat(result, response.clone());
-                let mut last: crate::value::Dict = self.safe_dict(response.clone(), (match (&(responseLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
+                let mut last: crate::value::Dict = self.safe_dict(response.clone(), Value::Int((responseLength - 1)), &[]).into_dict();
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = Value::Null; // search for the cursor
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_164: bool = true;
-                    while { if !__for_first_164 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_164 = false; j.as_f64().unwrap_or(f64::NAN) < responseLength.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_164 { j += 1; } __for_first_164 = false; j < responseLength } {
                     if (cursorValue == Value::Null) {
-                        let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
-                            &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                        let mut index: Value = Value::Int((((responseLength - j)) - 1));
                         let mut entry: crate::value::Dict = self.safe_dict(response.clone(), index, &[]).into_dict();
                         let mut info: crate::value::Dict = self.safe_dict_k(&entry, "info", &[]).into_dict();
                         if (cursorReceived != Value::Null) {
@@ -9606,17 +9603,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::from(vec![]);
         let mut shouldBreak: bool = false;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_166: bool = true;
-            while { if !__for_first_166 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_166 = false; matches!(maxCallsLimit, Some(__b) if i.as_f64().unwrap_or(f64::NAN) < (__b as f64)) } {
+            while { if !__for_first_166 { i += 1; } __for_first_166 = false; matches!(maxCallsLimit, Some(__b) if (i as f64) < (__b as f64)) } {
             {
-                if let Value::Dict(__d) = &mut paramsMaxEntriesPerRequest { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&pageKey), (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
-                    Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
+                if let Value::Dict(__d) = &mut paramsMaxEntriesPerRequest { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&pageKey), Value::Int((i + 1))); }
                 let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
                 errors = 0;
                 let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                 if self.verbose.as_bool() == Some(true) {
-                    let mut iteration: Value = ((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                    let mut iteration: Value = (Value::Int((i + 1)));
                     let mut incrementalMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Incremental pagination call ".into()), Value::Str(format!("{}", iteration).into())).into()), " method ").into()), method).into()), " response length ").into()),
                         Value::Str(format!("{}", responseLength).into()));
                     self.log(Value::from(incrementalMessage));
@@ -11812,15 +11808,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut fetchSnapshotMaxRetries: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("maxRetries".into()), &[Value::Int(3)]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_185: bool = true;
-            while { if !__for_first_185 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_185 = false; i.as_f64().unwrap_or(f64::NAN) < fetchSnapshotMaxRetries.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_185 { i += 1; } __for_first_185 = false; (i as f64) < fetchSnapshotMaxRetries.as_f64().unwrap_or(f64::NAN) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut orderBook: crate::types::OrderBook = (match self.fetch_order_book(symbol.as_str().unwrap_or_default(), limit.as_i64(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 return crate::types::IntoRaw::into_raw(orderBook);
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                if is_equal(&((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &fetchSnapshotMaxRetries) {
+                if is_equal(&(Value::Int((i + 1))), &fetchSnapshotMaxRetries) {
                     panic!("{}", e);
                 }
              } }
