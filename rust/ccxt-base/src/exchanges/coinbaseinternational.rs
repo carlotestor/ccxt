@@ -4129,14 +4129,14 @@ impl Coinbaseinternational {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
                 m.insert("include_old".to_string(), Value::Bool(true));
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), limit.clone()); }
+            request.insert("count".into(), limit.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: Value = paramsPaginate.clone();
@@ -4146,15 +4146,15 @@ impl Coinbaseinternational {
         self.authenticate_v2(&[]).await;
         let mut response: Option<crate::value::Dict> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) && ((since != Value::Null) || (until.is_some())) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), (if (since != Value::Null) { since.clone() } else { Value::Int(0) })); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), (if (until.is_some()) { Value::from(until) } else { Value::Int(self.milliseconds()) })); }
+            request.insert("start_timestamp".into(), (if (since != Value::Null) { since.clone() } else { Value::Int(0) }));
+            request.insert("end_timestamp".into(), (if (until.is_some()) { Value::from(until) } else { Value::Int(self.milliseconds()) }));
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).shift_remove("include_old"); }
+                request.shift_remove("include_old");
             }
-            let __ws_arg_18 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.private_get_get_user_trades_by_instrument_and_time(&[__ws_arg_18]).await.into_opt_dict();
         }  else {
-            let __ws_arg_19 = self.extend(request, &[paramsOmitted]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.private_get_get_user_trades_by_instrument(&[__ws_arg_19]).await.into_opt_dict();
         }
         //
