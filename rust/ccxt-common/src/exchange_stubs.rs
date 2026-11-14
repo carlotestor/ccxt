@@ -3339,6 +3339,40 @@ pub(crate) fn synthesize_currencies_from_markets(markets: &Value, precision_mode
 }
 
 #[cfg(test)]
+mod built_list_sort_parity_tests {
+    // ral-xf: `x = self.sort_by(Value::Arr(x), ..).into_list()` on a native list against the boxed
+    // `x = self.sort_by(x, ..)`: same order, and an Arr input always answers a `Value::Arr`.
+    use super::*;
+
+    fn rows() -> Vec<Value> {
+        let mut out = Vec::new();
+        for (ts, id) in [(3, "c"), (1, "a"), (2, "b"), (1, "z")] {
+            let mut m = HashMap::new();
+            m.insert("timestamp".to_string(), Value::Int(ts));
+            m.insert("id".to_string(), Value::Str(id.into()));
+            out.push(Value::Dict(Arc::new(m)));
+        }
+        out.push(Value::Null);
+        out
+    }
+
+    #[test]
+    fn native_list_sort_matches_boxed_sort() {
+        let ex = Exchange::default();
+        let sort: fn(&Exchange, Value, Value, &[Value]) -> Value = Exchange::sort_by;
+        let sort2: fn(&Exchange, Value, Value, Value, &[Value]) -> Value = Exchange::sort_by2;
+        for desc in [false, true] {
+            let native: crate::value::List = Arc::new(rows());
+            let native = sort(&ex, Value::Arr(native), Value::Str("timestamp".into()), &[Value::Bool(desc)]).into_list();
+            assert_eq!(Value::Arr(native), sort(&ex, Value::Array(rows()), Value::Str("timestamp".into()), &[Value::Bool(desc)]));
+            let native2: crate::value::List = Arc::new(rows());
+            let native2 = sort2(&ex, Value::Arr(native2), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]).into_list();
+            assert_eq!(Value::Arr(native2), sort2(&ex, Value::Array(rows()), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]));
+        }
+    }
+}
+
+#[cfg(test)]
 mod spawn_queue_tests {
     use super::*;
 
