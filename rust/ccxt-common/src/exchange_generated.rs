@@ -4381,17 +4381,17 @@ pub trait ExchangeBase:
     fn fetch_web_endpoint(&mut self, mut method: Value, mut endpointMethod: Value, mut returnAsJson: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut startRegex = get_arg(optional_args, 0, Value::Null);
         let mut endRegex = get_arg(optional_args, 1, Value::Null);
-        let mut options: Value = self.safe_value(self.options.clone(), method, &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_value(self.options.clone(), method, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut muteOnFailure: bool = self.safe_bool_k(options.clone(), "webApiMuteFailure", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        })]).into_dict();
+        let mut muteOnFailure: bool = self.safe_bool_k(&options, "webApiMuteFailure", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         {
             // if it was not explicitly disabled, then don't fetch
-            if !matches!(self.safe_bool_k(options.clone(), "webApiEnable", &[Value::Bool(true)]), Value::Bool(true)) {
+            if !matches!(self.safe_bool_k(&options, "webApiEnable", &[Value::Bool(true)]), Value::Bool(true)) {
                 return Value::Null;
             }
-            let mut maxRetries: Value = self.safe_integer_k(options, "webApiRetries", &[Value::Int(10)]);
+            let mut maxRetries: Value = self.safe_integer_k(&options, "webApiRetries", &[Value::Int(10)]);
             let mut response: Value = Value::Null;
             let mut shouldBreak: bool = false;
             {
