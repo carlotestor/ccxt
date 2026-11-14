@@ -11453,13 +11453,13 @@ impl Kucoin {
         //        }
         //    }
         //
-        let mut result: Value = Value::Map({
+        let mut result: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
                 m.insert("timestamp".to_string(), Value::Null);
                 m.insert("datetime".to_string(), Value::Null);
             m
-        });
+        }).into_dict();
         if isolated {
             let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -11482,10 +11482,10 @@ impl Kucoin {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "currency", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "currency", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
+                    result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base)).into_dict();
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
+                    result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote)).into_dict();
                 }
             }
             }
@@ -11503,7 +11503,7 @@ impl Kucoin {
                 let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
                 let mut codeInner: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 if (codeInner.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(codeInner.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(balance)); }
+                    std::sync::Arc::make_mut(&mut result).insert(codeInner.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(balance));
                 }
             }
             }
@@ -11523,13 +11523,13 @@ impl Kucoin {
                     account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
                     account.insert("used".into(), self.safe_string_k(&balance, "holds", &[]));
                     if (codeInner2.is_some()) {
-                        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(codeInner2.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                        std::sync::Arc::make_mut(&mut result).insert(codeInner2.as_deref().unwrap_or("null").to_string(), Value::Map(account));
                     }
                 }
             }
             }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Dict(result));
         Value::Null
         }).await?))
     }
@@ -11723,13 +11723,13 @@ impl Kucoin {
             m
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
-        let mut result: Value = Value::Map({
+        let mut result: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
             m
-        });
+        }).into_dict();
         let mut accounts: crate::value::List = self.safe_list_k(&data, "accounts", &[Value::from(vec![])]).into_list();
         if isIsolated {
             {
@@ -11749,7 +11749,7 @@ impl Kucoin {
                     let mut currencyId: Option<String> = self.safe_string_k(&currencyEntry, "currency", &[]).as_str().map(str::to_owned);
                     let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
                     if (currencyCode != Value::Null) {
-                        result = self.merge_balance_account(result, currencyCode, self.parse_balance_helper(&currencyEntry));
+                        result = self.merge_balance_account(Value::Dict(result), currencyCode, self.parse_balance_helper(&currencyEntry)).into_dict();
                     }
                 }
                 }
@@ -11772,12 +11772,12 @@ impl Kucoin {
                 let mut currencyId: Option<String> = self.safe_string_k(&currencyEntry, "currency", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 if (currencyCode.is_some()) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(currencyCode.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(&currencyEntry)); }
+                    std::sync::Arc::make_mut(&mut result).insert(currencyCode.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(&currencyEntry));
                 }
             }
             }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Dict(result));
 
     Value::Null
 }
