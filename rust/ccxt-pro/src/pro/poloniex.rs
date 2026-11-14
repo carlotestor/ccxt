@@ -610,8 +610,8 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrderWs() side is required")));
         }
         let mut uppercaseSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
-        let mut isPostOnly: Value = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(uppercaseType == "LIMIT_MAKER"), &[params.clone()]);
-        if isPostOnly.as_bool() == Some(true) {
+        let mut isPostOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(uppercaseType == "LIMIT_MAKER"), &[params.clone()]);
+        if isPostOnly {
             uppercaseType = "LIMIT_MAKER".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

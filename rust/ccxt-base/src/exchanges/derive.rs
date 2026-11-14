@@ -2698,20 +2698,20 @@ impl Derive {
         let mut span: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = limitResolved { Some(__l * duration) } else { None })));
         let mut windowStart: Option<i64> = self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (untilSeconds, span) { Some(__l - __r) } else { None })));
         let mut start: Option<i64> = windowStart;
-        let mut end: Value = Value::from(untilSeconds);
+        let mut end: Option<i64> = untilSeconds;
         if (since != Value::Null) {
             let mut sinceSeconds: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             start = sinceSeconds;
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
             if (sinceSeconds.is_some() && windowStart.is_some() && sinceSeconds < windowStart) {
-                end = self.sum(&[Value::from(sinceSeconds), Value::from(span)]);
+                end = (if let (Some(__m0), Some(__m1)) = (sinceSeconds, span) { Some((__m0 + __m1)) } else { None });
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("period".to_string(), period.map(Value::from).unwrap_or(Value::Null));
                 m.insert("start_timestamp".to_string(), Value::from(start));
-                m.insert("end_timestamp".to_string(), end);
+                m.insert("end_timestamp".to_string(), Value::from(end));
             m
         });
         let mut response: Option<crate::value::Dict> = None;
@@ -3054,10 +3054,10 @@ impl Derive {
     pub fn hash_message(&self, message: &str) -> Option<String> {
         let mut message: Value = message.into();
         let mut binaryMessage: crate::value::Bytes = self.encode(message);
-        let mut binaryMessageLength: Value = self.binary_length(&binaryMessage, &[]);
+        let mut binaryMessageLength: i64 = self.binary_length(&binaryMessage, &[]);
         let mut x19: crate::value::Bytes = self.base16_to_binary(Value::Str("19".into()), &[]);
         let mut newline: crate::value::Bytes = self.base16_to_binary(Value::Str("0a".into()), &[]);
-        let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(binaryMessageLength))))]);
+        let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(Value::from(binaryMessageLength)))))]);
         return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[Value::from(&binaryMessage)]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
 }
 

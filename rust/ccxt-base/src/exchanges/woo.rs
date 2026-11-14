@@ -2560,7 +2560,7 @@ impl Woo {
         let mut isConditional: bool = isTrailing || (triggerPrice.is_some()) || hasStopLoss || hasTakeProfit || (self.safe_list_k(&paramsMarginMode, "childOrders", &[]) != Value::Null);
         let mut isMarket: bool = orderType == "MARKET";
         let mut timeInForce: Option<String> = self.safe_string_lower_k(&paramsMarginMode, "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[Value::from(&paramsMarginMode)]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[Value::from(&paramsMarginMode)]);
         let mut clientOrderIdKey: String = "clientOrderId".to_string();
         if isConditional {
             clientOrderIdKey = "clientAlgoOrderId".to_string();

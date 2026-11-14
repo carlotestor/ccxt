@@ -1607,7 +1607,7 @@ impl Bitopro {
             }
         }
         let mut paramsOmitted: crate::value::Dict = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params }).into_dict();
-        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[Value::from(&paramsOmitted)]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[Value::from(&paramsOmitted)]);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
         }

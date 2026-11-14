@@ -1586,7 +1586,7 @@ impl Krakenfutures {
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             let mut fromTimestamp: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("from".into(), Value::from(fromTimestamp));
-            let mut toTimestamp: Option<i64> = self.parse_to_int(self.sum(&[Value::from(fromTimestamp), Value::from((if let Some(__l) = ((if let Some(__l) = windowSize { Some(__l * duration) } else { None })) { Some(__l - 1) } else { None }))]));
+            let mut toTimestamp: Option<i64> = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (fromTimestamp, ((if let Some(__l) = ((if let Some(__l) = windowSize { Some(__l * duration) } else { None })) { Some(__l - 1) } else { None }))) { Some((__m0 + __m1)) } else { None })));
             let mut currentTimestamp: i64 = self.seconds();
             request.insert("to".into(), (if ((toTimestamp.is_some() && toTimestamp < Some(currentTimestamp))) { Value::from(toTimestamp) } else { Value::from(currentTimestamp) }));
         }  else if (limitResolved.is_some()) {

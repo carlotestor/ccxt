@@ -2018,7 +2018,7 @@ impl Nado {
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut id: i64 = self.request_id();
         let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
-        let mut expiration: Value = self.sum(&[Value::Int(self.milliseconds()), Value::from(recvWindow)]);
+        let mut expiration: Value = Value::from((if let Some(__m1) = recvWindow { Some(((self.milliseconds()) + __m1)) } else { None }));
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));

@@ -9879,7 +9879,7 @@ impl Binance {
         });
         let mut initialUppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut uppercaseType: String = initialUppercaseType.clone();
-        let mut postOnly: bool = self.is_post_only(Value::Bool(initialUppercaseType == "MARKET"), Value::Bool(initialUppercaseType == "LIMIT_MAKER"), &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(initialUppercaseType == "MARKET"), Value::Bool(initialUppercaseType == "LIMIT_MAKER"), &[params.clone()]);
         if postOnly {
             uppercaseType = "LIMIT_MAKER".to_string();
         }
@@ -11571,7 +11571,7 @@ impl Binance {
         }
         let mut postOnly: Value = Value::Null;
         if !(isPortfolioMargin.as_bool() == Some(true)) {
-            postOnly = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]);
+            postOnly = Value::Bool(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
             if (market).spot || (marketType.as_deref() == Some("margin")) {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if postOnly.as_bool() == Some(true) {
@@ -11582,7 +11582,7 @@ impl Binance {
                 }
             }
         }  else {
-            postOnly = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]);
+            postOnly = Value::Bool(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
             if postOnly.as_bool() == Some(true) {
                 if !(market).contract {
                     uppercaseType = Some("LIMIT_MAKER".to_string());

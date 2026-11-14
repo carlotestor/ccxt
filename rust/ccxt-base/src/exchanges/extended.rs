@@ -3967,7 +3967,7 @@ impl Extended {
         }
         let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
         let mut priceString: Value = self.price_to_precision(symbol.clone(), price);
-        let mut postOnly: Value = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Null, &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Null, &[params.clone()]);
         let mut reduceOnly: bool = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         if (timeInForce.is_none()) {
@@ -4044,7 +4044,7 @@ impl Extended {
                 m.insert("expiryEpochMillis".to_string(), Value::from(expiryEpochMillis));
                 m.insert("fee".to_string(), Value::from(fee));
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
-                m.insert("postOnly".to_string(), postOnly);
+                m.insert("postOnly".to_string(), Value::Bool(postOnly));
                 m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
                 m.insert("selfTradeProtectionLevel".to_string(), Value::Str("ACCOUNT".into()));
             m

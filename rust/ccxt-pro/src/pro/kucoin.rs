@@ -649,12 +649,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
         }
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut url: Value = self.get_uta_url().await;
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_uta_url().await.as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         if !(client.has_subscription(&subscribeHash)) {
             client.add_subscription(&requestId, subscribeHash.clone());
         }
-        return self.watch_multiple(&url, messageHashes, &message, Value::from(vec![subscribeHash]), subscription).await;
+        return self.watch_multiple(url.as_deref(), messageHashes, &message, Value::from(vec![subscribeHash]), subscription).await;
 
     Value::Null
 }

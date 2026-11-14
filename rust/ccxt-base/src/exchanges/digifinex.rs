@@ -2850,7 +2850,7 @@ impl Digifinex {
             marketIdRequest = "instrument_id".to_string();
         }
         request.insert(marketIdRequest, Value::from((market).id.as_deref()));
-        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsMarginMode)]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsMarginMode)]);
         let mut postOnlyParsed: i64 = 0;
         let mut paramsRequest: Value = Value::Null;
         if swap {
@@ -2874,7 +2874,7 @@ impl Digifinex {
             }  else if (timeInForce.as_deref() == Some("GTC")) || isMarketOrder {
                 orderType = Some(14);
             }  else if (timeInForce.as_deref() == Some("PO")) {
-                postOnly = Value::Bool(true);
+                postOnly = true;
             }
             if (price != Value::Null) {
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
@@ -2883,7 +2883,7 @@ impl Digifinex {
             request.insert("size".into(), amount.clone()); // swap orders require the amount to be the number of contracts
             paramsRequest = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         }  else {
-            postOnlyParsed = (if (postOnly).as_bool() == Some(true) { 1 } else { 2 });
+            postOnlyParsed = (if postOnly { 1 } else { 2 });
             request.insert("market".into(), (if (marginMode.is_some()) { Value::Str("margin".into()) } else { marketTypeRaw.map(Value::from).unwrap_or(Value::Null) }));
             let mut suffix: String = "".to_string();
             if (type_var.as_str() == Some("market")) {
@@ -2926,11 +2926,11 @@ impl Digifinex {
             }
             request.insert("amount".into(), quantity.map(Value::from).unwrap_or(Value::Null));
         }
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             if (postOnlyParsed != 0) {
                 request.insert("post_only".into(), Value::from(postOnlyParsed));
             }  else {
-                request.insert("post_only".into(), postOnly);
+                request.insert("post_only".into(), Value::Bool(postOnly));
             }
         }
         return self.extend(Value::Map(request), &[paramsRequest]);

@@ -3198,7 +3198,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsOmitted3.clone(), "timeInForce", &[Value::Str("GOOD_TILL_TIME".into())]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[paramsOmitted3.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[paramsOmitted3.clone()]);
         if postOnly {
             orderRequest.insert("post_only".into(), Value::Bool(true));
         }

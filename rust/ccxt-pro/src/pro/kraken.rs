@@ -1712,7 +1712,7 @@ impl Kraken {
         let mut a: Value = self.safe_list_k(&first, "asks", &[Value::from(vec![])]);
         let mut b: Value = self.safe_list_k(&first, "bids", &[Value::from(vec![])]);
         let mut c: Value = self.safe_integer_k(&first, "checksum", &[]);
-        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut orderbook: Option<crate::pro::order_book::Book> = None;
         if (type_var.as_deref() == Some("update")) {
             orderbook = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1730,7 +1730,7 @@ impl Kraken {
             orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }  else {
             // snapshot
-            let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+            let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.as_deref()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1817,13 +1817,13 @@ impl Kraken {
             let mut localChecksum: Value = self.crc32(&[payload, Value::Bool(false)]);
             if (localChecksum.as_f64() != c.as_f64()) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.clone().map(Value::from).unwrap_or(Value::Null)))));
-                __ch.remove_subscription(&messageHash);
+                __ch.remove_subscription(messageHash.as_deref());
                 CacheStore::forget(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null));
-                client.reject(error, &messageHash);
+                client.reject(error, messageHash.as_deref());
                 return;
             }
         }
-        client.resolve(Value::from(&orderbook), &messageHash);
+        client.resolve(Value::from(&orderbook), messageHash.as_deref());
 }
 
     pub fn custom_handle_deltas(&self, mut bookside: Value, mut deltas: Value) {

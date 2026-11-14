@@ -1703,17 +1703,17 @@ impl Opinion {
         let mut salt: Option<String> = self.number_to_string(Value::Int(self.milliseconds()));
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]).into_dict();
-        let mut maker: Value = self.load_multi_sign_address().await;
+        let mut maker: Option<String> = self.load_multi_sign_address().await.as_str().map(str::to_owned);
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
         // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
-        let mut makerLower: Value = (if let Some(__s) = maker.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut makerLower: Value = maker.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null);
         let mut walletAddressLower: Value = (if let Some(__s) = self.walletAddress.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut signatureType: i64 = (if (makerLower.as_str() == walletAddressLower.as_str()) { 0 } else { 2 });
         let mut order: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), salt.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("maker".to_string(), maker.clone());
+                m.insert("maker".to_string(), Value::from(maker.as_deref()));
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("taker".to_string(), Value::Str("0x0000000000000000000000000000000000000000".into()));
                 m.insert("tokenId".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1733,7 +1733,7 @@ impl Opinion {
         let mut orderBody: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), salt.map(Value::from).unwrap_or(Value::Null));
-                m.insert("maker".to_string(), maker);
+                m.insert("maker".to_string(), maker.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("taker".to_string(), Value::Str("0x0000000000000000000000000000000000000000".into()));
                 m.insert("tokenId".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
@@ -2792,8 +2792,8 @@ if _try_result.is_err() {
         let mut channel: String = "market.depth.diff".to_string();
         let mut messageHash: String = format!("{}{}", "orderbook::", sym.as_deref().unwrap_or("null"));
         self.load_api_key().await;
-        let mut url: Value = self.opinion_ws_url().map(Value::from).unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.opinion_ws_url();
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -2806,7 +2806,7 @@ if _try_result.is_err() {
         if isNewSubscription {
             self.seed_order_book(outcome.as_str().unwrap_or_default(), sym.as_deref(), limit.as_i64()).await;
         }
-        let mut future: Value = self.watch(&url, messageHash.as_str(), Value::Map(subscribeMsg), subscriptionKey.as_str(), Value::Null).await;
+        let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), subscriptionKey.as_str(), Value::Null).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next delta
             client.resolve(Value::from(self.orderbooks.lookup(&sym)), messageHash.as_str());

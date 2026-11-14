@@ -2113,8 +2113,8 @@ impl Bybit {
         if (symbol != Value::Null) {
             messageHash.push_str(&format!("{}{}", ":", symbolResolved.as_deref().unwrap_or("null")));
         }
-        let mut url: Value = self.get_url_by_market_type(symbolResolved.as_deref(), &[Value::Bool(true), Value::from(method), params.clone()]).await;
-        self.authenticate(url.as_str().unwrap_or_default(), &[]).await;
+        let mut url: Option<String> = self.get_url_by_market_type(symbolResolved.as_deref(), &[Value::Bool(true), Value::from(method), params.clone()]).await.as_str().map(str::to_owned);
+        self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut topicByMarket: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("ticketInfo".into()));
@@ -2122,14 +2122,14 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::Str("user.openapi.perp.trade".into()));
             m
         });
-        let mut topic: Option<String> = self.safe_string(&topicByMarket, self.get_private_type(url.clone()), &[]).as_str().map(str::to_owned);
+        let mut topic: Option<String> = self.safe_string(&topicByMarket, self.get_private_type(Value::from(url.as_deref())), &[]).as_str().map(str::to_owned);
         let executionFastparamsExecutionFastVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut executionFast: bool = executionFastparamsExecutionFastVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsExecutionFast: crate::value::Dict = executionFastparamsExecutionFastVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if executionFast {
             topic = Some("execution.fast".to_string());
         }
-        let mut trades: Value = self.watch_topics(url.as_str().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![topic.map(Value::from).unwrap_or(Value::Null)]), &[Value::Dict(paramsExecutionFast)]).await;
+        let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![topic.map(Value::from).unwrap_or(Value::Null)]), &[Value::Dict(paramsExecutionFast)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2171,8 +2171,8 @@ impl Bybit {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades")));
         }
-        let mut url: Value = self.get_url_by_market_type(symbol.as_str(), &[Value::Bool(true), Value::from(method), params.clone()]).await;
-        self.authenticate(url.as_str().unwrap_or_default(), &[]).await;
+        let mut url: Option<String> = self.get_url_by_market_type(symbol.as_str(), &[Value::Bool(true), Value::from(method), params.clone()]).await.as_str().map(str::to_owned);
+        self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut topicByMarket: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("ticketInfo".into()));
@@ -2180,14 +2180,14 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::Str("user.openapi.perp.trade".into()));
             m
         });
-        let mut topic: Option<String> = self.safe_string(&topicByMarket, self.get_private_type(url.clone()), &[]).as_str().map(str::to_owned);
+        let mut topic: Option<String> = self.safe_string(&topicByMarket, self.get_private_type(Value::from(url.as_deref())), &[]).as_str().map(str::to_owned);
         let executionFastparamsExecutionFastVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut executionFast: bool = executionFastparamsExecutionFastVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsExecutionFast: crate::value::Dict = executionFastparamsExecutionFastVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if executionFast {
             topic = Some("execution.fast".to_string());
         }
-        return self.un_watch_topics(url.as_str().unwrap_or_default(), "myTrades", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), Value::from(vec![topic.map(Value::from).unwrap_or(Value::Null)]), &[Value::Dict(paramsExecutionFast)]).await;
+        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "myTrades", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), Value::from(vec![topic.map(Value::from).unwrap_or(Value::Null)]), &[Value::Dict(paramsExecutionFast)]).await;
         Value::Null
         }).await?))
     }
@@ -2392,10 +2392,10 @@ impl Bybit {
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
         let mut firstSymbol: Option<String> = self.safe_string(symbolsNormalized.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut url: Value = self.get_url_by_market_type(firstSymbol.as_deref(), &[Value::Bool(true), Value::from(method), params.clone()]).await;
+        let mut url: Option<String> = self.get_url_by_market_type(firstSymbol.as_deref(), &[Value::Bool(true), Value::from(method), params.clone()]).await.as_str().map(str::to_owned);
         messageHash = format!("{}{}", "positions", messageHash);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        self.authenticate(url.as_str().unwrap_or_default(), &[]).await;
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
+        self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone()]);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
@@ -2405,7 +2405,7 @@ impl Bybit {
             return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut topics: Value = Value::from(vec![Value::Str("position".into())]);
-        let mut newPositions: Value = self.watch_topics(url.as_str().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
+        let mut newPositions: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2798,8 +2798,8 @@ impl Bybit {
         if (symbol != Value::Null) {
             messageHash.push_str(&format!("{}{}", ":", symbolResolved.as_deref().unwrap_or("null")));
         }
-        let mut url: Value = self.get_url_by_market_type(symbolResolved.as_deref(), &[Value::Bool(true), Value::from(method), params.clone()]).await;
-        self.authenticate(url.as_str().unwrap_or_default(), &[]).await;
+        let mut url: Option<String> = self.get_url_by_market_type(symbolResolved.as_deref(), &[Value::Bool(true), Value::from(method), params.clone()]).await.as_str().map(str::to_owned);
+        self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut topicsByMarket: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::from(vec![Value::Str("order".into()), Value::Str("stopOrder".into())]));
@@ -2807,8 +2807,8 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::from(vec![Value::Str("user.openapi.perp.order".into())]));
             m
         });
-        let mut topics: Option<crate::value::List> = self.safe_list(&topicsByMarket, self.get_private_type(url.clone()), &[]).into_opt_list();
-        let mut orders: Value = self.watch_topics(url.as_str().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics.map_or(Value::Null, Value::Arr), &[params]).await;
+        let mut topics: Option<crate::value::List> = self.safe_list(&topicsByMarket, self.get_private_type(Value::from(url.as_deref())), &[]).into_opt_list();
+        let mut orders: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics.map_or(Value::Null, Value::Arr), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2848,8 +2848,8 @@ impl Bybit {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchOrders() does not support a symbol parameter, you must unwatch all orders")));
         }
-        let mut url: Value = self.get_url_by_market_type(symbol.as_str(), &[Value::Bool(true), Value::from(method), params.clone()]).await;
-        self.authenticate(url.as_str().unwrap_or_default(), &[]).await;
+        let mut url: Option<String> = self.get_url_by_market_type(symbol.as_str(), &[Value::Bool(true), Value::from(method), params.clone()]).await.as_str().map(str::to_owned);
+        self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut topicsByMarket: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::from(vec![Value::Str("order".into()), Value::Str("stopOrder".into())]));
@@ -2857,8 +2857,8 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::from(vec![Value::Str("user.openapi.perp.order".into())]));
             m
         });
-        let mut topics: Option<crate::value::List> = self.safe_list(&topicsByMarket, self.get_private_type(url.clone()), &[]).into_opt_list();
-        return self.un_watch_topics(url.as_str().unwrap_or_default(), "orders", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), topics.map_or(Value::Null, Value::Arr), &[params]).await;
+        let mut topics: Option<crate::value::List> = self.safe_list(&topicsByMarket, self.get_private_type(Value::from(url.as_deref())), &[]).into_opt_list();
+        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "orders", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), topics.map_or(Value::Null, Value::Arr), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -3063,8 +3063,8 @@ impl Bybit {
         let mut unified: Value = self.parent.is_unified_enabled(&[]).await;
         let mut isUnifiedMargin: bool = self.safe_bool(unified.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isUnifiedAccount: bool = self.safe_bool(unified, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut url: Value = self.get_url_by_market_type(None, &[Value::Bool(true), Value::from(method), Value::from(&paramsSubType)]).await;
-        self.authenticate(url.as_str().unwrap_or_default(), &[]).await;
+        let mut url: Option<String> = self.get_url_by_market_type(None, &[Value::Bool(true), Value::from(method), Value::from(&paramsSubType)]).await.as_str().map(str::to_owned);
+        self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut topicByMarket: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("outboundAccountInfo".into()));
@@ -3099,8 +3099,8 @@ impl Bybit {
                 }
             }
         }
-        let mut topics: Value = Value::from(vec![self.safe_string(&topicByMarket, self.get_private_type(url.clone()), &[])]);
-        return self.watch_topics(url.as_str().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics, &[Value::Dict(paramsSubType)]).await;
+        let mut topics: Value = Value::from(vec![self.safe_string(&topicByMarket, self.get_private_type(Value::from(url.as_deref())), &[])]);
+        return self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics, &[Value::Dict(paramsSubType)]).await;
         Value::Null
         }).await?))
     }

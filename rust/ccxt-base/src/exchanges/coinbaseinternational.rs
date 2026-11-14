@@ -4559,10 +4559,10 @@ impl Coinbaseinternational {
         let mut forceRefresh: bool = self.safe_bool_k(&paramsResolved, "forceRefresh", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(&paramsResolved, Value::Str("forceRefresh".into()), &[]);
         let mut now: i64 = self.milliseconds();
-        let mut token: Value = self.get_v2_access_token().map(Value::from).unwrap_or(Value::Null);
+        let mut token: Option<String> = self.get_v2_access_token();
         let mut tokenExpires: Option<i64> = self.safe_integer_k(self.options.clone(), "v2TokenExpires", &[]).as_i64();
-        if !forceRefresh && (token != Value::Null) && (token.as_str() != Some("")) && (tokenExpires.is_some()) && (Some(now) < tokenExpires) {
-            return token;
+        if !forceRefresh && (token.is_some()) && (token.as_deref() != Some("")) && (tokenExpires.is_some()) && (Some(now) < tokenExpires) {
+            return token.map(Value::from).unwrap_or(Value::Null);
         }
         let mut response: crate::value::Dict = self.public_post_auth(&[paramsOmitted]).await.into_dict();
         //
@@ -4593,7 +4593,7 @@ impl Coinbaseinternational {
         let mut tokenRefreshInMilliseconds: Option<i64> = self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (((if let Some(__l) = expiresIn { Some(__l * 1000) } else { None })), refreshRatio) { Some((__l as f64) * __r) } else { None })));
         self.token = accessToken.clone();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), accessToken.clone()); }
-        { let __be_tmp = self.sum(&[Value::from(now), Value::from(tokenRefreshInMilliseconds)]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), __be_tmp); } }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), Value::from((if let Some(__m1) = tokenRefreshInMilliseconds { Some((now + __m1)) } else { None }))); }
         return accessToken;
 
     Value::Null

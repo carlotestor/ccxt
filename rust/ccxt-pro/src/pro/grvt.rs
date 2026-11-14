@@ -1164,16 +1164,16 @@ impl Grvt {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut subAccountId: Option<String> = self.parent.get_sub_account_id(params.clone());
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rawHashes: Vec<Value> = Vec::new();
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, "-").into()), Value::from((market).id.as_deref())).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId.as_deref().unwrap_or("null"), "-").into()), Value::from((market).id.as_deref())).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "myTrades::", Value::from((market).symbol.clone())).into()));
         }  else {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str("myTrades".into()));
-            rawHashes.push(subAccountId);
+            rawHashes.push(subAccountId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1278,7 +1278,7 @@ impl Grvt {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut subAccountId: Option<String> = self.parent.get_sub_account_id(params.clone());
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut rawHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1289,13 +1289,13 @@ impl Grvt {
                 while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, "-").into()), Value::from((market).id.as_deref())).into()));
+                rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId.as_deref().unwrap_or("null"), "-").into()), Value::from((market).id.as_deref())).into()));
                 messageHashes.push(Value::Str(format!("{}{}", "positions::", Value::from((market).symbol.clone())).into()));
             }
             }
         }  else {
             messageHashes.push(Value::Str("positions".into()));
-            rawHashes.push(subAccountId);
+            rawHashes.push(subAccountId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

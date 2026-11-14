@@ -2932,7 +2932,7 @@ impl Paradex {
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
         let mut isStopOrder: bool = (triggerPrice.is_some()) || isTakeProfitOrder || isStopLossOrder;
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]);
         let mut instruction: Value = Value::Str("GTC".into());
         if (timeInForce.is_some()) {
             instruction = self.encode_time_in_force(timeInForce.as_deref());

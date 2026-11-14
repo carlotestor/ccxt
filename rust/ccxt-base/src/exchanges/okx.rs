@@ -11911,7 +11911,7 @@ impl Okx {
         let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
         let mut end: Value = Value::Null;
         if (until.is_some()) {
-            end = self.sum(&[Value::from(until), Value::Int(1)]);
+            end = Value::from((if let Some(__m0) = until { Some((__m0 + 1)) } else { None }));
         }
         if (since != Value::Null) {
             // end the window after limit periods, so that the earliest entries from since on come back

@@ -5518,17 +5518,17 @@ impl Htx {
             }
             if (priceType.is_none()) {
                 let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-                let mut calcualtedEnd: Value = Value::Null;
+                let mut calcualtedEnd: Option<i64> = None;
                 if (since == Value::Null) {
                     let mut now: i64 = self.seconds();
                     request.insert("from".into(), Value::Int((now - ((duration * ((contractLimit - 1)))))));
-                    calcualtedEnd = Value::from(now);
+                    calcualtedEnd = Some(now);
                 }  else {
                     let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
                     request.insert("from".into(), Value::from(start));
-                    calcualtedEnd = self.sum(&[Value::from(start), Value::Int((duration * ((contractLimit - 1))))]);
+                    calcualtedEnd = (if let Some(__m0) = start { Some((__m0 + ((duration * ((contractLimit - 1)))))) } else { None });
                 }
-                request.insert("to".into(), (if (untilSeconds.is_some()) { Value::from(untilSeconds) } else { calcualtedEnd }));
+                request.insert("to".into(), (if (untilSeconds.is_some()) { Value::from(untilSeconds) } else { Value::from(calcualtedEnd) }));
             }
         }
         let mut response: Option<crate::value::Dict> = None;
