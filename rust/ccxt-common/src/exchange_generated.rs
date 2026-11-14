@@ -1011,8 +1011,8 @@ pub trait ExchangeBase:
                 let mut __for_first_77: bool = true;
                 while { if !__for_first_77 { i += 1; } __for_first_77 = false; i < (parsedArray.len() as i64) } {
                 let mut entry: Value = parsedArray.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut value: Value = self.safe_integer(entry.clone(), key.clone(), &[]);
-                if (value != Value::Null) && (value.as_f64() != Some(0.0)) && (value.as_f64().unwrap_or(f64::NAN) >= Value::from(since).as_f64().unwrap_or(f64::NAN)) {
+                let mut value: Option<i64> = self.safe_integer(entry.clone(), key.clone(), &[]).as_i64();
+                if (value.is_some()) && (value != Some(0)) && ((value.is_some() && since.is_some() && value >= since)) {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(entry); }
                 }
             }
