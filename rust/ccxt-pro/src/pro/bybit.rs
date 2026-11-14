@@ -3635,10 +3635,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (reqId.is_some()) {
                     client.reject(error.clone(), reqId.as_deref());
                 }  else if is_instance(&error, &Value::Str("AuthenticationError".into())) {
-                    let mut authenticatedHash: String = "authenticated".to_string();
-                    client.reject(error.clone(), authenticatedHash.as_str());
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &Value::from(authenticatedHash.as_str()))) {
-                        __ch.remove_subscription(authenticatedHash.as_str());
+                    let mut authenticatedHash: Value = Value::Str("authenticated".into());
+                    client.reject(error.clone(), &authenticatedHash);
+                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &authenticatedHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                        __ch.remove_subscription(&authenticatedHash);
                     }
                     let mut op: Option<String> = (match __pro_message.get("op").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                     if (op.is_some()) && (op.as_deref() != Some("auth")) {

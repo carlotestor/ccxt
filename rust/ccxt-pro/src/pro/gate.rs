@@ -2982,7 +2982,7 @@ impl Gate {
         let mut errs: Option<crate::value::Dict> = self.safe_dict_k(&data, "errs", &[]).into_opt_dict();
         let mut error: Value = self.safe_dict_k(message.clone(), "error", &[errs.clone().map_or(Value::Null, Value::Dict)]);
         let mut code: Option<String> = self.safe_string2(error.clone(), Value::Str("code".into()), Value::Str("label".into()), &[]).as_str().map(str::to_owned);
-        let mut id: Option<String> = self.safe_string_n(message.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("requestId".into()), Value::Str("request_id".into())]), &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_n_opt(message.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("requestId".into()), Value::Str("request_id".into())]), &[]);
         if (error != Value::Null) {
             let mut messageHash: Option<String> = self.safe_string(__ch.subscriptions.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -3013,16 +3013,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             marketType = parsedChannel.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
                         }
                         let mut symbol: Option<String> = self.safe_symbol(payload.get(i as usize).cloned().unwrap_or(Value::Null), None, &[Value::Str("_".into()), marketType.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-                        let mut messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), ":").into()), symbol.as_deref().unwrap_or("null"));
-                        if (true) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &Value::from(messageHashSymbol.as_str()))) {
-                            __ch.remove_subscription(messageHashSymbol.as_str());
+                        let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), ":").into()), symbol.as_deref().unwrap_or("null")).into());
+                        if (messageHashSymbol != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                            __ch.remove_subscription(&messageHashSymbol);
                         }
                     }
                     }
                 }
             }
-            if (id.is_some()) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &Value::from(&id))) {
-                __ch.remove_subscription(id.as_deref());
+            if (id.is_some()) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                __ch.remove_subscription(&id.clone().map(Value::from).unwrap_or(Value::Null));
             }
             return Value::Bool(true);
         }
