@@ -2396,10 +2396,10 @@ impl Bitget {
         let mut market: Option<crate::types::Market> = None;
         let mut marketId: Option<String> = None;
         let isTriggerparamsTriggerVariable: Vec<Value> = self.is_trigger_order(params).as_array().cloned().unwrap_or_default();
-        let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isTrigger: bool = isTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut messageHash: String = "order".to_string();
-        if (isTrigger.as_bool() == Some(true)) {
+        if (isTrigger) {
             messageHash = "triggerOrder".to_string();
         }
         let mut subscriptionHash: String = "order:trades".to_string();
@@ -2441,7 +2441,7 @@ impl Bitget {
         if (type_var.as_deref() == Some("spot")) && (symbolResolved.is_some()) {
             subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, ":").into()), symbolResolved.as_deref().unwrap_or("null"));
         }
-        if (isTrigger.as_bool() == Some(true)) {
+        if (isTrigger) {
             subscriptionHash = format!("{}{}", subscriptionHash, ":stop"); // we don't want to re-use the same subscription hash for stop orders
         }
         // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
@@ -2450,7 +2450,7 @@ impl Bitget {
             instId = marketId;
         }
         let mut channel: String = "orders".to_string();
-        if (isTrigger.as_bool() == Some(true)) {
+        if (isTrigger) {
             channel = "orders-algo".to_string();
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[paramsInstType]).as_array().cloned().unwrap_or_default();

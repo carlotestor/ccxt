@@ -2705,12 +2705,12 @@ impl Toobit {
             m
         });
         let reduceOnlyparamsReduceOnlyVariable: Vec<Value> = self.handle_param_bool(params, Value::Str("reduceOnly".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut reduceOnly: Option<bool> = reduceOnlyparamsReduceOnlyVariable.get(0).and_then(Value::as_bool);
+        let mut reduceOnly: bool = reduceOnlyparamsReduceOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsReduceOnly: crate::value::Dict = reduceOnlyparamsReduceOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (side.as_str() == Some("buy")) {
-            request.insert("side".into(), (if (reduceOnly == Some(true)) { Value::Str("BUY_CLOSE".into()) } else { Value::Str("BUY_OPEN".into()) }));
+            request.insert("side".into(), (if (reduceOnly) { Value::Str("BUY_CLOSE".into()) } else { Value::Str("BUY_OPEN".into()) }));
         }  else if (side.as_str() == Some("sell")) {
-            request.insert("side".into(), (if (reduceOnly == Some(true)) { Value::Str("SELL_CLOSE".into()) } else { Value::Str("SELL_OPEN".into()) }));
+            request.insert("side".into(), (if (reduceOnly) { Value::Str("SELL_CLOSE".into()) } else { Value::Str("SELL_OPEN".into()) }));
         }  else {
             request.insert("side".into(), side);
         }

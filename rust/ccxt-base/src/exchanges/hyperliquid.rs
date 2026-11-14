@@ -1748,10 +1748,10 @@ impl Hyperliquid {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let isUnifiedEnabledparamsValueVariable: Vec<Value> = self.is_unified_enabled("fetchBalance", userAddress.as_deref(), &[shouldRefresh, Value::Dict(paramsMarginMode)]).await.as_array().cloned().unwrap_or_default();
-        let mut isUnifiedEnabled: Value = isUnifiedEnabledparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isUnifiedEnabled: bool = isUnifiedEnabledparamsValueVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsValue: crate::value::Dict = isUnifiedEnabledparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut dex: Option<String> = self.safe_string_k(&paramsValue, "dex", &[]).as_str().map(str::to_owned);
-        let mut isSpot: bool = ((type_var.as_deref() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex.is_none());
+        let mut isSpot: bool = ((type_var.as_deref() == Some("spot")) || (isUnifiedEnabled)) && (dex.is_none());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), (if (isSpot) { Value::Str("spotClearinghouseState".into()) } else { Value::Str("clearinghouseState".into()) }));

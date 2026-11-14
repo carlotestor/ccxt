@@ -8158,9 +8158,9 @@ impl Bybit {
             m
         });
         let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_param_bool2(&paramsValue, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isTrigger: Option<bool> = isTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool);
+        let mut isTrigger: bool = isTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsTrigger: crate::value::Dict = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (isTrigger == Some(true)) {
+        if (isTrigger) {
             request.insert("orderFilter".into(), Value::Str("StopOrder".into()));
         }
         let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsTrigger]);
@@ -8224,7 +8224,7 @@ impl Bybit {
         let mut innerListLength: i64 = innerList.len() as i64;
         if (innerListLength == 0) {
             let mut extra: String = " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".to_string();
-            if (isTrigger == Some(true)) {
+            if (isTrigger) {
                 extra = "".to_string();
             }
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), Value::Str(format!("{}", id).into())).into()), " was not found.").into()), extra)));

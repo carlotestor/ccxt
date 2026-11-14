@@ -4892,9 +4892,9 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")));
         }
         let hedgedparamsHedgedVariable: Vec<Value> = self.handle_param_bool(&paramsMarginMode, Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut hedged: Option<bool> = hedgedparamsHedgedVariable.get(0).and_then(Value::as_bool);
+        let mut hedged: bool = hedgedparamsHedgedVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsHedged: crate::value::Dict = hedgedparamsHedgedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (hedged == Some(true)) {
+        if (hedged) {
             if (self.safe_string_k(&paramsHedged, "posSide", &[]) == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")));
             }

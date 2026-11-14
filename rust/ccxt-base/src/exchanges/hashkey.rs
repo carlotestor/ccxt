@@ -3610,10 +3610,10 @@ impl Hashkey {
             request.insert("priceType".into(), Value::Str("INPUT".into()));
         }
         let reduceOnlyparamsReduceOnlyVariable: Vec<Value> = self.handle_param_bool(params, Value::Str("reduceOnly".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut reduceOnly: Option<bool> = reduceOnlyparamsReduceOnlyVariable.get(0).and_then(Value::as_bool);
+        let mut reduceOnly: bool = reduceOnlyparamsReduceOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsReduceOnly: crate::value::Dict = reduceOnlyparamsReduceOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut suffix: String = "_OPEN".to_string();
-        if (reduceOnly == Some(true)) {
+        if (reduceOnly) {
             suffix = "_CLOSE".to_string();
         }
         request.insert("side".into(), Value::Str(format!("{}{}", (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), suffix).into()));

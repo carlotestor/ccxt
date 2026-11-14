@@ -5870,13 +5870,13 @@ impl Okx {
         }
         let mut usesHedged: bool = isSwapOrFuture && (positionSide.is_none());
         let hedgedparamsHedgedOptionVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSwapOrFuture.clone(), Value::Str("createOrder".into()), Value::Str("hedged".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut hedged: Option<bool> = hedgedparamsHedgedOptionVariable.get(0).and_then(Value::as_bool);
+        let mut hedged: bool = hedgedparamsHedgedOptionVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsHedgedOption: crate::value::Dict = hedgedparamsHedgedOptionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsHedged: Value = paramsSwapOrFuture;
         if usesHedged {
             paramsHedged = Value::Dict(paramsHedgedOption);
         }
-        let mut omitReduceOnly: bool = usesHedged && (hedged == Some(true)) && isReduceOnly;
+        let mut omitReduceOnly: bool = usesHedged && (hedged) && isReduceOnly;
         let mut paramsReduceOnly: Value = paramsHedged.clone();
         if omitReduceOnly {
             paramsReduceOnly = self.omit(paramsHedged, Value::Str("reduceOnly".into()), &[]);
@@ -5894,7 +5894,7 @@ impl Okx {
                 if (positionSide.is_some()) {
                     request.insert("posSide".into(), positionSide.map(Value::from).unwrap_or(Value::Null));
                 }  else {
-                    if (hedged == Some(true)) {
+                    if (hedged) {
                         let mut isBuy: bool = side.as_str() == Some("buy");
                         let mut isProtective: bool = (takeProfitPrice.is_some()) || (stopLossPrice.is_some()) || isReduceOnly;
                         if isProtective {

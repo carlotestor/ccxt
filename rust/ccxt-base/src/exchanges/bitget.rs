@@ -5858,9 +5858,9 @@ if _try_result.is_err() {
         let mut stock: bool = stockparamsStockVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsStock, Some("fetchMarkets"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if stock || (uta.as_bool() == Some(true)) {
+        if stock || (uta) {
             return self.fetch_uta_markets(&paramsUTA).await;
         }
         return self.fetch_default_markets(&paramsUTA).await;
@@ -7022,19 +7022,19 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(params, Some("fetchDeposits"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsUTA, Value::Str("fetchDeposits".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            if (uta.as_bool() == Some(true)) {
+            if (uta) {
                 return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[Value::Null, since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("orderId".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
             }
             return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[Value::Null, since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("idLessThan".into()), Value::Str("idLessThan".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut defaultWindow: i64 = 7776000000; // uta allows a window of 30 days at most, else 90 days
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             defaultWindow = 2592000000;
         }
         let mut sinceResolved: Option<i64> = (if (since == Value::Null) { Some(((self.milliseconds()) - defaultWindow)) } else { since.as_i64() });
@@ -7056,7 +7056,7 @@ if _try_result.is_err() {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             let __ws_arg_6 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.private_uta_get_v3_account_deposit_records(&[__ws_arg_6]).await.into_opt_dict();
         }  else {
@@ -7193,7 +7193,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsNetworkCode, Some("withdraw"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut networkId: Option<String> = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code.clone()]).as_str().map(str::to_owned);
@@ -7210,7 +7210,7 @@ if _try_result.is_err() {
             request.insert("tag".into(), tag.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.private_uta_post_v3_account_withdrawal(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
@@ -7285,13 +7285,13 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(params, Some("fetchWithdrawals"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsUTA, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            if (uta.as_bool() == Some(true)) {
+            if (uta) {
                 return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[Value::Null, since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("orderId".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
             }
             return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[Value::Null, since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("idLessThan".into()), Value::Str("idLessThan".into()), Value::Null, Value::Int(100)]).await;
@@ -7301,7 +7301,7 @@ if _try_result.is_err() {
             currency = Some(self.currency(code));
         }
         let mut defaultWindow: i64 = 7776000000; // uta allows a window of 30 days at most, else 90 days
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             defaultWindow = 2592000000;
         }
         let mut sinceResolved: Option<i64> = (if (since == Value::Null) { Some(((self.milliseconds()) - defaultWindow)) } else { since.as_i64() });
@@ -7321,7 +7321,7 @@ if _try_result.is_err() {
             std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             let __ws_arg_11 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.private_uta_get_v3_account_withdrawal_records(&[__ws_arg_11]).await.into_opt_dict();
         }  else {
@@ -7580,7 +7580,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(params, Some("fetchDepositAddress"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsUTA).as_array().cloned().unwrap_or_default();
         let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -7595,7 +7595,7 @@ if _try_result.is_err() {
             request.insert("chain".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&paramsNetworkCode]);
             response = self.private_uta_get_v3_account_deposit_address(&[__ws_arg_14]).await.into_opt_dict();
         }  else {
@@ -7701,10 +7701,10 @@ if _try_result.is_err() {
         let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
         let mut paramsStock: crate::value::Dict = self.omit(&paramsProductType, Value::Str("stock".into()), &[]).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsStock, Some("fetchOrderBook"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
-        let mut isStockOrUta: bool = isStockSpot || (uta.as_bool() == Some(true));
+        let mut isStockOrUta: bool = isStockSpot || (uta);
         if isStockSpot {
             if (limit != Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOrderBook() does not support limit for tokenized stock markets")));
@@ -7714,7 +7714,7 @@ if _try_result.is_err() {
             }
             let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.private_uta_get_v3_account_reality_orderbook(&[__ws_arg_16]).await.into_opt_dict();
-        }  else if (uta.as_bool() == Some(true)) {
+        }  else if (uta) {
             request.insert("category".into(), productType.clone());
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.public_uta_get_v3_market_orderbook(&[__ws_arg_17]).await.into_opt_dict();
@@ -7955,9 +7955,9 @@ if _try_result.is_err() {
         let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
         let mut paramsStock: crate::value::Dict = self.omit(&paramsProductType, Value::Str("stock".into()), &[]).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsStock, Some("fetchTicker"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isStockOrUta: bool = (isStock.as_bool() == Some(true) && ((market).spot)) || (uta.as_bool() == Some(true));
+        let mut isStockOrUta: bool = (isStock.as_bool() == Some(true) && ((market).spot)) || (uta);
         if isStockOrUta {
             request.insert("category".into(), productType.clone());
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
@@ -8197,14 +8197,14 @@ if _try_result.is_err() {
         let mut productType: Value = productTypeparamsProductTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsProductType, Value::Str("fetchTickers".into()), Value::Str("stock".into()), &[stockDefault.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
-        let mut stock: Option<bool> = stockparamsStockVariable.get(0).and_then(Value::as_bool);
+        let mut stock: bool = stockparamsStockVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // only if passedSubType && productType is undefined, then use spot
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsStock, Some("fetchTickers"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isStock: bool = stock == Some(true);
-        let mut isStockOrUta: bool = isStock || (uta.as_bool() == Some(true));
+        let mut isStock: bool = stock;
+        let mut isStockOrUta: bool = isStock || (uta);
         if isStockOrUta {
             if (symbols != Value::Null) {
                 let mut symbolsLength: i64 = symbols.len() as i64;
@@ -9351,12 +9351,12 @@ if _try_result.is_err() {
         let mut marginMode: Option<String> = None;
         let mut response: Value = Value::Null;
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchBalance".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut stock: Option<bool> = stockparamsStockVariable.get(0).and_then(Value::as_bool);
+        let mut stock: bool = stockparamsStockVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut uta: Option<bool> = None;
         let mut paramsUTA: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(&paramsStock, Some("fetchBalance"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut isStock: bool = stock == Some(true);
+        let mut isStock: bool = stock;
         let mut isStockOrUta: bool = isStock || (uta == Some(true));
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -10090,9 +10090,9 @@ if _try_result.is_err() {
         let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut response: Option<crate::value::Dict> = None;
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(paramsStock, Some("createOrder"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isStockOrUta: bool = isStockSpot || (uta.as_bool() == Some(true));
+        let mut isStockOrUta: bool = isStockSpot || (uta);
         if isStockSpot {
             if isTriggerOrder || isStopLossOrTakeProfitTrigger || hasStopLoss || hasTakeProfit || isTrailingPercentOrder {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() only supports market and limit orders for tokenized stock markets")));
@@ -11580,9 +11580,9 @@ if _try_result.is_err() {
         let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
         let mut response: Value = Value::Null;
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsOmitted, Some("fetchOrder"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             let __ws_arg_76 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.private_uta_get_v3_trade_order_info(&[__ws_arg_76]).await;
         }  else if (market).spot {
@@ -11710,7 +11710,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        if (uta.as_bool() != Some(true)) && (matches!(&response, Value::Str(_))) {
+        if (!uta) && (matches!(&response, Value::Str(_))) {
             response = json_parse(&response);
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
@@ -13542,9 +13542,9 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         let mut result: Option<crate::value::List> = None;
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("fetchPosition"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             request.insert("category".into(), productType.clone());
             let __ws_arg_106 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.private_uta_get_v3_position_current_position(&[__ws_arg_106]).await.into_opt_dict();
@@ -14337,14 +14337,14 @@ if _try_result.is_err() {
         let mut productType: Value = productTypeparamsProductTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("fetchFundingRates"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut method: String = "publicMixGetV2MixMarketTickers".to_string();
         let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUTA, Value::Str("fetchFundingRates".into()), Value::Str("method".into()), &[Value::from(method)]).as_array().cloned().unwrap_or_default();
         let mut methodOption: Option<String> = methodOptionparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             request.insert("category".into(), productType.clone());
             if (methodOption.as_deref() == Some("publicMixGetV2MixMarketTickers")) {
                 let __ws_arg_116 = self.extend(Value::Map(request.clone()), &[&paramsMethod]);
@@ -14582,13 +14582,13 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingHistory() requires a symbol argument")));
         }
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(params, Some("fetchFundingHistory"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsUTA, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            if (uta.as_bool() == Some(true)) {
+            if (uta) {
                 return self.fetch_paginated_call_cursor(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into())]).await;
             }
             return self.fetch_paginated_call_cursor(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("endId".into()), Value::Str("idLessThan".into())]).await;
@@ -14614,7 +14614,7 @@ if _try_result.is_err() {
             std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("coin".into(), crate::value::KeyRead::key_read(&&market, "settleId"));
             std::sync::Arc::make_mut(&mut requestUntil).insert("category".into(), productType.clone());
             let __ws_arg_120 = self.extend(&requestUntil, &[&paramsUntil]);
@@ -14632,7 +14632,7 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         let mut bills: Value = self.safe_list2(&data, Value::Str("bills".into()), Value::Str("list".into()), &[Value::from(vec![])]);
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             bills = self.filter_by_array(bills.clone(), Value::Str("type".into()), Value::from(vec![Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_IN".into()), Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_OUT".into())]), &[Value::Bool(false)]);
         }
         return self.parse_funding_histories(bills, Some(&market), &[since, limit]);
@@ -15125,9 +15125,9 @@ if _try_result.is_err() {
         let mut productType: Option<String> = productTypeparamsProductTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("setPositionMode"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             request.insert("holdMode".into(), Value::from(posMode.clone()));
             let __ws_arg_128 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.private_uta_post_v3_account_set_hold_mode(&[__ws_arg_128]).await;
@@ -15181,9 +15181,9 @@ if _try_result.is_err() {
         });
         let mut response: Option<crate::value::Dict> = None;
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("fetchOpenInterest"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             request.insert("category".into(), productType.clone());
             let __ws_arg_130 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.public_uta_get_v3_market_open_interest(&[__ws_arg_130]).await.into_opt_dict();
@@ -15363,7 +15363,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(params, Some("transfer"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut currency: crate::types::Currency = self.currency(code);
         let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
@@ -15388,7 +15388,7 @@ if _try_result.is_err() {
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             let __ws_arg_133 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_uta_post_v3_account_transfer(&[__ws_arg_133]).await.into_opt_dict();
         }  else {
@@ -16289,9 +16289,9 @@ if _try_result.is_err() {
             m
         });
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(params, Some("fetchCrossBorrowRate"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             let __ws_arg_142 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.public_uta_get_v3_market_margin_loans(&[__ws_arg_142]).await.into_opt_dict();
             //
@@ -16625,9 +16625,9 @@ if _try_result.is_err() {
         let mut productType: Value = productTypeparamsProductTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("closePosition"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             if (side != Value::Null) {
                 request.insert("posSide".into(), side.clone());
             }
@@ -16685,9 +16685,9 @@ if _try_result.is_err() {
         let mut productType: Value = productTypeparamsProductTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("closeAllPositions"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             request.insert("category".into(), productType.clone());
             let __ws_arg_148 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_148]).await.into_opt_dict();
@@ -16853,9 +16853,9 @@ if _try_result.is_err() {
         let mut productType: Option<String> = productTypeparamsProductTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("fetchPositionsHistory"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("category".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_151 = self.extend(&requestUntil, &[&paramsUTA]);
             response = self.private_uta_get_v3_position_history_position(&[__ws_arg_151]).await.into_opt_dict();
@@ -17289,9 +17289,9 @@ if _try_result.is_err() {
         });
         let mut response: Option<crate::value::Dict> = None;
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("fetchFundingInterval"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta) {
             let __ws_arg_156 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
             response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_156]).await.into_opt_dict();
         }  else {
