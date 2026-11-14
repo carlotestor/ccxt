@@ -2845,7 +2845,7 @@ public partial class polymarket : Exchange
         return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
-    public virtual string signHash(object hash, object privateKey)
+    public virtual string? signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
