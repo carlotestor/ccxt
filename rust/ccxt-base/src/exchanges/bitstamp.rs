@@ -2952,14 +2952,14 @@ impl Bitstamp {
         //     ]
         //
         let mut tradingFeesByMarketId: crate::value::Dict = self.index_by(response, Value::Str("currency_pair".into())).into_dict();
-        let mut tradingFee: Value = self.safe_dict(&tradingFeesByMarketId, Value::from((market).id.as_deref()), &[]);
-        if (tradingFee == Value::Null) {
+        let mut tradingFee: Option<crate::value::Dict> = self.safe_dict(&tradingFeesByMarketId, Value::from((market).id.as_deref()), &[]).into_opt_dict();
+        if (tradingFee.is_none()) {
             tradingFee = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
+    let mut m = indexmap::IndexMap::new();
+    m
+}).into_opt_dict();
         }
-        return self.parse_trading_fee(tradingFee, Some(&market));
+        return self.parse_trading_fee(&tradingFee, Some(&market));
         Value::Null
         }).await?))
     }

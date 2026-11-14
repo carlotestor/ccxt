@@ -1881,11 +1881,11 @@ impl Bitopro {
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_orders_all_pair(&[__ws_arg_10]).await.into_dict();
-        let mut orders: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        if (orders == Value::Null) {
-            orders = Value::from(vec![]);
+        let mut orders: Option<crate::value::List> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_opt_list();
+        if (orders.is_none()) {
+            orders = Value::from(vec![]).into_opt_list();
         }
-        return self.parse_orders(orders, Some(&market), &[since, limit]);
+        return self.parse_orders(&orders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
