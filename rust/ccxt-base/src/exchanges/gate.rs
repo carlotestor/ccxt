@@ -7402,16 +7402,16 @@ if _try_result.is_err() {
                     m
                 });
                 if (trigger.is_none()) {
-                    let mut rule: Value = Value::Null;
-                    let mut triggerOrderPrice: Value = Value::Null;
+                    let mut rule: Option<i64> = None;
+                    let mut triggerOrderPrice: Option<String> = None;
                     if isStopLossOrder {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
-                        rule = (if (side.as_str() == Some("buy")) { Value::Int(1) } else { Value::Int(2) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice));
+                        rule = (if (side.as_str() == Some("buy")) { Some(1) } else { Some(2) });
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice)).as_str().map(str::to_owned);
                     }  else if isTakeProfitOrder {
-                        rule = (if (side.as_str() == Some("buy")) { Value::Int(2) } else { Value::Int(1) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
+                        rule = (if (side.as_str() == Some("buy")) { Some(2) } else { Some(1) });
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice)).as_str().map(str::to_owned);
                     }
                     let mut priceType: i64 = self.safe_integer_k(query.clone(), "price_type", &[Value::Int(0)]).as_i64().unwrap_or(0);
                     if priceType < 0 || priceType > 2 {
@@ -7421,8 +7421,8 @@ if _try_result.is_err() {
                     request.insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("price_type".to_string(), Value::from(priceType));
-        m.insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerOrderPrice));
-        m.insert("rule".to_string(), rule);
+        m.insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerOrderPrice.map(Value::from).unwrap_or(Value::Null)));
+        m.insert("rule".to_string(), Value::from(rule));
     m
 }));
                 }
@@ -7455,21 +7455,21 @@ if _try_result.is_err() {
                 if (trigger.is_none()) {
                     let mut defaultExpiration: Option<i64> = self.safe_integer_k(&options, "expiration", &[]).as_i64();
                     let mut expiration: Option<i64> = self.safe_integer_k(query.clone(), "expiration", &[Value::from(defaultExpiration)]).as_i64();
-                    let mut rule: Value = Value::Null;
-                    let mut triggerOrderPrice: Value = Value::Null;
+                    let mut rule: Option<String> = None;
+                    let mut triggerOrderPrice: Option<String> = None;
                     if isStopLossOrder {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
-                        rule = (if (side.as_str() == Some("buy")) { Value::Str(">=".into()) } else { Value::Str("<=".into()) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice));
+                        rule = (if (side.as_str() == Some("buy")) { Some(">=".to_string()) } else { Some("<=".to_string()) });
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice)).as_str().map(str::to_owned);
                     }  else if isTakeProfitOrder {
-                        rule = (if (side.as_str() == Some("buy")) { Value::Str("<=".into()) } else { Value::Str(">=".into()) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
+                        rule = (if (side.as_str() == Some("buy")) { Some("<=".to_string()) } else { Some(">=".to_string()) });
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice)).as_str().map(str::to_owned);
                     }
                     let mut triggerRequest: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("price".to_string(), self.price_to_precision(symbol, triggerOrderPrice));
-                            m.insert("rule".to_string(), rule);
+                            m.insert("price".to_string(), self.price_to_precision(symbol, triggerOrderPrice.map(Value::from).unwrap_or(Value::Null)));
+                            m.insert("rule".to_string(), rule.map(Value::from).unwrap_or(Value::Null));
                             m.insert("expiration".to_string(), Value::from(expiration));
                         m
                     });
@@ -10131,15 +10131,15 @@ if _try_result.is_err() {
                 m
             }));
         }
-        let mut headersResolved: Value = signedHeaders.map_or(Value::Null, Value::Dict);
+        let mut headersResolved: Option<crate::value::Dict> = signedHeaders;
         if (type_var.as_str() == Some("futures")) {
-            if (headersResolved == Value::Null) {
-                headersResolved = Value::Map({
+            if (headersResolved.is_none()) {
+                headersResolved = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                     m
-                });
+                }));
             }
-            add_element_to_object(&mut headersResolved, &Value::Str("X-Gate-Size-Decimal".into()), Value::Str("1".into()));
+            if let Some(__d) = &mut headersResolved { std::sync::Arc::make_mut(__d).insert("X-Gate-Size-Decimal".to_string(), Value::Str("1".into())); }
         }
         let mut bodyResolved: Option<String> = bodyJson;
         return Value::Map({
@@ -10147,7 +10147,7 @@ if _try_result.is_err() {
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResolved);
+        m.insert("headers".to_string(), headersResolved.map_or(Value::Null, Value::Dict));
     m
 });
 
