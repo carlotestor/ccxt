@@ -4211,7 +4211,7 @@ public class Aster extends AsterApi
         return this.safeLedgerEntry(mapLiteral7, currencyResolved);
     }
 
-    public String parseLedgerEntryType(String type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "TRANSFER", "transfer" );
