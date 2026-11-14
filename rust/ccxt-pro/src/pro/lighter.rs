@@ -1105,7 +1105,7 @@ impl Lighter {
         if liquidationDataLength > 0 {
             self.handle_liquidation(client.clone(), message);
         }
-        let mut data: Value = (match __pro_message.get("trades").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut data: crate::value::List = __pro_message.get("trades").cloned().unwrap_or_default().into_list();
         let mut channel: String = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = Value::Array(channel.split(":").map(Value::from).collect()).into_list();
         let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -1123,7 +1123,7 @@ impl Lighter {
             let mut __for_first_470: bool = true;
             while { if !__for_first_470 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_470 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut iReversed: Value = Value::from(self.parse_to_int((match (&(Value::Int((dataLength - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
-            let mut trade: crate::value::Dict = self.parse_ws_trade(get_value(&data, &iReversed), Some(&market)).into_dict();
+            let mut trade: crate::value::Dict = self.parse_ws_trade(crate::value::KeyRead::read(&&data, &iReversed), Some(&market)).into_dict();
             stored.append(Value::Dict(trade));
         }
         }
@@ -1586,7 +1586,7 @@ impl Lighter {
         //         "type": "subscribed/trade"
         //     }
         //
-        let mut data: Value = (match message.get("liquidation_trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: crate::value::List = message.get("liquidation_trades").cloned().unwrap_or_default().into_list();
         let mut channel: String = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = Value::Array(channel.split(":").map(Value::from).collect()).into_list();
         let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -1604,7 +1604,7 @@ impl Lighter {
             let mut __for_first_473: bool = true;
             while { if !__for_first_473 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_473 = false; i.as_f64().unwrap_or(f64::NAN) < (dataLength as f64) } {
             let mut iReversed: Value = Value::from(self.parse_to_int((match (&(Value::Int((dataLength - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
-            let mut liquidation: Value = self.parse_ws_liquidation(get_value(&data, &iReversed), Some(&market));
+            let mut liquidation: Value = self.parse_ws_liquidation(crate::value::KeyRead::read(&&data, &iReversed), Some(&market));
             stored.append(liquidation);
         }
         }

@@ -985,13 +985,13 @@ impl Hyperliquid {
             }
         }
         }
-        let mut promises: Value = promise_all(&Value::from(rawPromises)).await;
+        let mut promises: crate::value::List = promise_all(&Value::from(rawPromises)).await.into_list();
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_798: bool = true;
             while { if !__for_first_798 { i += 1; } __for_first_798 = false; i < (promises.len() as i64) } {
-            result = self.array_concat(Value::Arr(result), self.safe_list(promises.clone(), Value::Int(i), &[Value::from(vec![])])).into_list();
+            result = self.array_concat(Value::Arr(result), self.safe_list(&promises, Value::Int(i), &[Value::from(vec![])])).into_list();
         }
         }
         return Value::Arr(result);
@@ -1114,7 +1114,7 @@ impl Hyperliquid {
             rawPromises.push(self.public_post_info(&[__ws_arg_3]).await);
         }
         }
-        let mut promises: Value = promise_all(&Value::from(rawPromises)).await;
+        let mut promises: crate::value::List = promise_all(&Value::from(rawPromises)).await.into_list();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hip3TokensByName".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1126,7 +1126,7 @@ impl Hyperliquid {
             while { if !__for_first_803 { i += 1; } __for_first_803 = false; i < (promises.len() as i64) } {
             let mut dexName: Value = fetchDexesList.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut offset: Option<i64> = self.safe_integer(perpDexesOffset.clone(), dexName.clone(), &[]).as_i64();
-            let mut response: crate::value::List = self.safe_list(promises.clone(), Value::Int(i), &[]).into_list();
+            let mut response: crate::value::List = self.safe_list(&promises, Value::Int(i), &[]).into_list();
             let mut meta: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6680,12 +6680,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (matches!(&response, Value::Arr(_))) {
             depositLedger = response;
         }
-        let mut records: Value = self.extract_type_from_delta(&[depositLedger]);
+        let mut records: crate::value::List = self.extract_type_from_delta(&[depositLedger]).into_list();
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(vaultAddress.as_str()).map(Value::from).unwrap_or(Value::Null);
         if (vaultAddress == Value::Null) {
-            let mut filtered: Value = self.filter_by_array(records.clone(), Value::Str("type".into()), Value::from(vec![Value::Str("deposit".into())]), &[Value::Bool(false)]);
+            let mut filtered: Value = self.filter_by_array(&records, Value::Str("type".into()), Value::from(vec![Value::Str("deposit".into())]), &[Value::Bool(false)]);
             return self.parse_transactions(filtered, None, &[since.clone(), limit.clone()]);
         }
         let mut deposits: Vec<Value> = Vec::new();
@@ -6693,7 +6693,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_827: bool = true;
             while { if !__for_first_827 { i += 1; } __for_first_827 = false; i < (records.len() as i64) } {
-            let mut record: crate::value::Dict = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut record: crate::value::Dict = crate::value::KeyRead::read(&&records, &Value::Int(i)).into_dict();
             if (self.safe_string_k(&record, "type", &[]).as_str() == Some("vaultDeposit")) {
                 let mut delta: crate::value::Dict = self.safe_dict_k(&record, "delta", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -6779,12 +6779,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (matches!(&response, Value::Arr(_))) {
             withdrawalLedger = response;
         }
-        let mut records: Value = self.extract_type_from_delta(&[withdrawalLedger]);
+        let mut records: crate::value::List = self.extract_type_from_delta(&[withdrawalLedger]).into_list();
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(vaultAddress.as_str()).map(Value::from).unwrap_or(Value::Null);
         if (vaultAddress == Value::Null) {
-            let mut filtered: Value = self.filter_by_array(records.clone(), Value::Str("type".into()), Value::from(vec![Value::Str("withdraw".into())]), &[Value::Bool(false)]);
+            let mut filtered: Value = self.filter_by_array(&records, Value::Str("type".into()), Value::from(vec![Value::Str("withdraw".into())]), &[Value::Bool(false)]);
             return self.parse_transactions(filtered, None, &[since.clone(), limit.clone()]);
         }
         let mut withdrawals: Vec<Value> = Vec::new();
@@ -6792,7 +6792,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_828: bool = true;
             while { if !__for_first_828 { i += 1; } __for_first_828 = false; i < (records.len() as i64) } {
-            let mut record: crate::value::Dict = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut record: crate::value::Dict = crate::value::KeyRead::read(&&records, &Value::Int(i)).into_dict();
             if (self.safe_string_k(&record, "type", &[]).as_str() == Some("vaultWithdraw")) {
                 let mut delta: crate::value::Dict = self.safe_dict_k(&record, "delta", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();

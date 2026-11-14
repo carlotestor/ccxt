@@ -1888,7 +1888,7 @@ impl Bitget {
             stored = Some(ArrayCache::new(limit));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut length: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -1896,7 +1896,7 @@ impl Bitget {
             while { if !__for_first_117 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_117 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(length), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                 &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut rawTrade: crate::value::Dict = get_value(&data, &index).into_dict();
+            let mut rawTrade: crate::value::Dict = crate::value::KeyRead::read(&&data, &index).into_dict();
             let mut parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, Some(&market)).into_dict();
             stored.append(Value::Dict(parsed));
         }

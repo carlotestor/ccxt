@@ -2351,13 +2351,13 @@ impl Btse {
         if (until.is_none()) {
             return self.parse_trades(&data, Some(&market), &[since.clone(), limit.clone()]);
         }
-        let mut trades: Value = self.parse_trades(&data, Some(&market), &[since, limit]);
+        let mut trades: crate::value::List = self.parse_trades(&data, Some(&market), &[since, limit]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_487: bool = true;
             while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = crate::value::KeyRead::read(&&trades, &Value::Int(i));
             let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
             if (timestamp.is_none()) || ((timestamp.is_some() && until.is_some() && timestamp <= until)) {
                 result.push(trade);

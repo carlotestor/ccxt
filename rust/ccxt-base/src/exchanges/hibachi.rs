@@ -2772,8 +2772,8 @@ impl Hibachi {
         });
         let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
         let mut rawPromises: crate::value::List = std::sync::Arc::new(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(Value::Map(request), &[params.clone()])]).await]);
-        let mut promises: Value = promise_all(&Value::Arr(rawPromises)).await;
-        let mut responseCapitalHistory: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[]).into_dict();
+        let mut promises: crate::value::List = promise_all(&Value::Arr(rawPromises)).await.into_list();
+        let mut responseCapitalHistory: crate::value::Dict = self.safe_dict(&promises, Value::Int(0), &[]).into_dict();
         //
         // {
         //     "transactions": [
@@ -2828,7 +2828,7 @@ impl Hibachi {
         // }
         //
         let mut rowsCapitalHistory: crate::value::List = self.safe_list_k(&responseCapitalHistory, "transactions", &[Value::from(vec![])]).into_list();
-        let mut responseTradingHistory: crate::value::Dict = self.safe_dict(promises, Value::Int(1), &[]).into_dict();
+        let mut responseTradingHistory: crate::value::Dict = self.safe_dict(&promises, Value::Int(1), &[]).into_dict();
         //
         // {
         //     "tradingHistory": [

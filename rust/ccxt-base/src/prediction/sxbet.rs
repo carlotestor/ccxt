@@ -1676,7 +1676,7 @@ impl Sxbet {
             while { if !__for_first_1504 { i += 1; } __for_first_1504 = false; i < cancelledLength } {
             result.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(cancelled.get(i as usize).cloned().unwrap_or(Value::Null), "orderId", &[]));
+        m.insert("id".to_string(), self.safe_string(crate::value::KeyRead::read(&&cancelled, &Value::Int(i)), Value::Str("orderId".into()), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
         m.insert("info".to_string(), response.clone());
     m

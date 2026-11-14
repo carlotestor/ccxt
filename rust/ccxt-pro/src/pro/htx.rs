@@ -2395,12 +2395,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_387: bool = true;
                 while { if !__for_first_387 { i += 1; } __for_first_387 = false; i < (prefixes.len() as i64) } {
-                let mut messageHashes: Value = self.find_message_hashes(client.clone(), prefixes.get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut messageHashes: crate::value::List = self.find_message_hashes(client.clone(), prefixes.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_386: bool = true;
                     while { if !__for_first_386 { j += 1; } __for_first_386 = false; j < (messageHashes.len() as i64) } {
-                    client.resolve(Value::from(vec![]), &messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
+                    client.resolve(Value::from(vec![]), &crate::value::KeyRead::read(&&messageHashes, &Value::Int(j)));
                 }
                 }
             }

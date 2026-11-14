@@ -802,9 +802,9 @@ impl Zebpay {
             }
         }
         }
-        let mut promises: Value = promise_all(&Value::from(promisesUnresolved)).await;
-        let mut spotMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-        let mut futureMarkets: crate::value::List = self.safe_list(promises, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut promises: crate::value::List = promise_all(&Value::from(promisesUnresolved)).await.into_list();
+        let mut spotMarkets: crate::value::List = self.safe_list(&promises, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut futureMarkets: crate::value::List = self.safe_list(&promises, Value::Int(1), &[Value::from(vec![])]).into_list();
         return self.array_concat(&spotMarkets, &futureMarkets);
         Value::Null
         }).await?))

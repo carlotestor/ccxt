@@ -2140,12 +2140,12 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // Fetch both currencies and fees data for comprehensive funding limits
-        let mut responses: Value = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_currencies(Value::Null).await), self.v4_public_get_fee(&[params]).await])).await;
-        let mut currenciesData: Value = self.safe_dict(responses.clone(), Value::Int(0), &[Value::Map({
+        let mut responses: crate::value::List = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_currencies(Value::Null).await), self.v4_public_get_fee(&[params]).await])).await.into_list();
+        let mut currenciesData: crate::value::Dict = self.safe_dict(&responses, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut feesData: crate::value::Dict = self.safe_dict(responses, Value::Int(1), &[Value::Map({
+})]).into_dict();
+        let mut feesData: crate::value::Dict = self.safe_dict(&responses, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2209,13 +2209,13 @@ impl Whitebit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currencyKeys: Vec<Value> = Value::Array(currenciesData.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencyKeys: Vec<Value> = Value::Array(currenciesData.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1155: bool = true;
             while { if !__for_first_1155 { i += 1; } __for_first_1155 = false; i < (currencyKeys.len() as i64) } {
             let mut code: Value = currencyKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: Value = (if let (Some(__m), Some(__k)) = (currenciesData.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut currency: Value = crate::value::KeyRead::read(&&currenciesData, &code);
             if (currency == Value::Null) {
                 continue;
             }

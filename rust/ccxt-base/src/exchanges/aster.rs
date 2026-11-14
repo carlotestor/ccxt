@@ -1910,13 +1910,13 @@ impl Aster {
 }));
         let mut promises: Vec<Value> = vec![self.sapi_public_get_v3_exchange_info(&[params.clone()]).await, self.fapi_public_get_v3_exchange_info(&[params]).await];
         promises.push(self.sign_in(&[]).await);
-        let mut results: Value = promise_all(&Value::from(promises)).await;
-        let mut sapiResult: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(0), &[Value::Map({
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+        let mut sapiResult: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut sapiRows: crate::value::List = self.safe_list_k(&sapiResult, "symbols", &[Value::from(vec![])]).into_list();
-        let mut fapiResult: crate::value::Dict = self.safe_dict(results, Value::Int(1), &[Value::Map({
+        let mut fapiResult: crate::value::Dict = self.safe_dict(&results, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

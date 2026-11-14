@@ -1093,8 +1093,8 @@ impl Kraken {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             promises.push(self.load_time_difference(&[]).await);
         }
-        let mut responses: Value = promise_all(&Value::from(promises)).await;
-        let mut assetsResponse: crate::value::Dict = self.safe_dict(responses, Value::Int(0), &[]).into_dict();
+        let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+        let mut assetsResponse: crate::value::Dict = self.safe_dict(&responses, Value::Int(0), &[]).into_dict();
         //
         //     {
         //         "error": [],
@@ -4649,13 +4649,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
         if (depositMethod.is_none()) {
-            let mut depositMethods: Value = self.fetch_deposit_methods(codeResolved.as_str(), &[]).await;
+            let mut depositMethods: crate::value::List = self.fetch_deposit_methods(codeResolved.as_str(), &[]).await.into_list();
             if (network != Value::Null) {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_863: bool = true;
                     while { if !__for_first_863 { i += 1; } __for_first_863 = false; i < (depositMethods.len() as i64) } {
-                    let mut entry: Option<String> = self.safe_string_k(depositMethods.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "method", &[]).as_str().map(str::to_owned);
+                    let mut entry: Option<String> = self.safe_string(crate::value::KeyRead::read(&&depositMethods, &Value::Int(i)), Value::Str("method".into()), &[]).as_str().map(str::to_owned);
                     if (entry.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchDepositAddress() missing entry")));
                     }
@@ -4668,7 +4668,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             // if depositMethod was not specified, fallback to the first available deposit method
             if (depositMethod.is_none()) {
-                let mut firstDepositMethod: crate::value::Dict = self.safe_dict(depositMethods, Value::Int(0), &[Value::Map({
+                let mut firstDepositMethod: crate::value::Dict = self.safe_dict(&depositMethods, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

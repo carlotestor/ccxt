@@ -5917,13 +5917,13 @@ if _try_result.is_err() {
                 m
             })]).await);
         }
-        let mut results: Value = promise_all(&Value::from(promises)).await;
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
         let mut spotInstruments: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }).into_dict();
         if fetchMargins {
-            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(results.clone(), Value::from(spotInstrumentsIndex), &[]).into_dict();
+            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(&results, Value::from(spotInstrumentsIndex), &[]).into_dict();
             let mut instruments: crate::value::List = self.safe_list_k(&instrumentsResponse, "data", &[Value::from(vec![])]).into_list();
             spotInstruments = self.index_by(Value::Arr(instruments), Value::Str("symbol".into())).into_dict();
         }
@@ -5937,7 +5937,7 @@ if _try_result.is_err() {
             if (i == spotInstrumentsIndex) {
                 continue;
             }
-            let mut res: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
+            let mut res: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
             let mut data: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
             let mut firstData: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6282,13 +6282,13 @@ if _try_result.is_err() {
             promises.push(self.public_uta_get_v3_market_instruments(&[Value::Dict(req)]).await);
         }
         }
-        let mut results: Value = promise_all(&Value::from(promises)).await;
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
         let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_370: bool = true;
             while { if !__for_first_370 { i += 1; } __for_first_370 = false; i < (results.len() as i64) } {
-            let mut res: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
+            let mut res: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
             let mut data: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
             markets = self.array_concat(Value::Arr(markets), &data).into_list();
         }
@@ -15228,11 +15228,11 @@ if _try_result.is_err() {
         //
         let mut data: crate::value::List = self.safe_list2(interest.clone(), Value::Str("openInterestList".into()), Value::Str("list".into()), &[Value::from(vec![])]).into_list();
         let mut timestamp: Option<i64> = self.safe_integer_k(interest.clone(), "ts", &[]).as_i64();
-        let mut marketId: Option<String> = self.safe_string_k(data.get(0).cloned().unwrap_or(Value::Null), "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string(crate::value::KeyRead::read(&&data, &Value::Int(0)), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("contract".into())]));
-        m.insert("openInterestAmount".to_string(), self.safe_number2(data.get(0).cloned().unwrap_or(Value::Null), Value::Str("size".into()), Value::Str("openInterest".into()), &[]));
+        m.insert("openInterestAmount".to_string(), self.safe_number2(crate::value::KeyRead::read(&&data, &Value::Int(0)), Value::Str("size".into()), Value::Str("openInterest".into()), &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -16645,7 +16645,7 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         let mut order: crate::value::List = self.safe_list2(&data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]).into_list();
-        return self.parse_order(order.get(0).cloned().unwrap_or(Value::Null), Some(&market));
+        return self.parse_order(crate::value::KeyRead::read(&&order, &Value::Int(0)), Some(&market));
         Value::Null
         }).await?))
     }

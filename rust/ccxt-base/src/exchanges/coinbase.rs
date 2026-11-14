@@ -2454,7 +2454,7 @@ impl Coinbase {
         //        has_promo_fee: false
         //    }
         //
-        let mut promises: Value = promise_all(&Value::from(spotUnresolvedPromises)).await;
+        let mut promises: crate::value::List = promise_all(&Value::from(spotUnresolvedPromises)).await.into_list();
         let mut unresolvedContractPromises: crate::value::List = std::sync::Arc::new(Vec::new());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let __ws_arg_10 = self.extend(paramsUsePrivate, &[Value::Map({
@@ -2474,11 +2474,11 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             contractPromises = Value::from(vec![]);
         }
-        let mut spot: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[Value::Map({
+        let mut spot: crate::value::Dict = self.safe_dict(&promises, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fees: crate::value::Dict = self.safe_dict(promises, Value::Int(1), &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict(&promises, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2958,8 +2958,8 @@ if _try_result.is_err() {
         let mut now: i64 = self.milliseconds();
         if (timestamp.is_none()) || (((if let Some(__r) = timestamp { Some(now - __r) } else { None })) > Some(expires)) {
             let mut promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await]);
-            let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
-            let mut fiatResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
+            let mut promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
+            let mut fiatResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2973,7 +2973,7 @@ if _try_result.is_err() {
             //        ...
             //    ]
             //
-            let mut cryptoResponse: crate::value::Dict = self.safe_dict(promisesResult, Value::Int(1), &[Value::Map({
+            let mut cryptoResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3029,8 +3029,8 @@ if _try_result.is_err() {
     m
 }));
         let mut promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await, self.v2_public_get_exchange_rates(&[params]).await]);
-        let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
-        let mut fiatResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
+        let mut promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
+        let mut fiatResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3044,7 +3044,7 @@ if _try_result.is_err() {
         //            },
         //        ...
         //
-        let mut cryptoResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(1), &[Value::Map({
+        let mut cryptoResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3063,7 +3063,7 @@ if _try_result.is_err() {
         //           },
         //          ...
         //
-        let mut ratesResponse: crate::value::Dict = self.safe_dict(promisesResult, Value::Int(2), &[Value::Map({
+        let mut ratesResponse: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(2), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

@@ -790,13 +790,13 @@ impl Coinbaseinternational {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
-        let mut trades: Value = self.parse_trades(&data, None, &[]);
+        let mut trades: crate::value::List = self.parse_trades(&data, None, &[]).into_list();
         let mut tradesLength: i64 = trades.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_244: bool = true;
             while { if !__for_first_244 { i += 1; } __for_first_244 = false; i < tradesLength } {
-            self.myTrades.append(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            self.myTrades.append(crate::value::KeyRead::read(&&trades, &Value::Int(i)));
         }
         }
         client.resolve(Value::from(&self.myTrades), channel.as_deref());

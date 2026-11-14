@@ -840,9 +840,9 @@ impl Polymarket {
     m
 }));
         let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_info_instruments(&[params.clone()]).await, self.public_get_info_assets(&[params]).await]);
-        let mut responses: Value = promise_all(&Value::Arr(promises)).await;
-        let mut instruments: crate::value::List = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
-        let mut assets: crate::value::List = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut responses: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
+        let mut instruments: crate::value::List = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut assets: crate::value::List = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1112,7 +1112,7 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_info_tickers(&[params.clone()]).await, self.public_get_info_statistics(&[params.clone()]).await, self.public_get_info_bbo(&[params]).await]);
-        let mut responses: Value = promise_all(&Value::Arr(promises)).await;
+        let mut responses: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
         //
         // tickers
         //
@@ -1160,7 +1160,7 @@ impl Polymarket {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut statistics: crate::value::List = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut statistics: crate::value::List = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1100: bool = true;
@@ -1171,7 +1171,7 @@ impl Polymarket {
             merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.omit(&entry, Value::Str("klines".into()), &[]));
         }
         }
-        let mut bbos: crate::value::List = self.safe_list(responses.clone(), Value::Int(2), &[Value::from(vec![])]).into_list();
+        let mut bbos: crate::value::List = self.safe_list(&responses, Value::Int(2), &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1101: bool = true;
@@ -1186,7 +1186,7 @@ impl Polymarket {
             merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.extend(previous, &[&entry]));
         }
         }
-        let mut tickers: crate::value::List = self.safe_list(responses, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut tickers: crate::value::List = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

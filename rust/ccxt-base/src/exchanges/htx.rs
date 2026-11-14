@@ -6265,7 +6265,7 @@ impl Htx {
                                                 let mut j: i64 = 0;
                         let mut __for_first_776: bool = true;
                         while { if !__for_first_776 { j += 1; } __for_first_776 = false; j < (balances.len() as i64) } {
-                        let mut balance: Value = balances.get(j as usize).cloned().unwrap_or(Value::Null);
+                        let mut balance: Value = crate::value::KeyRead::read(&&balances, &Value::Int(j));
                         let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
                         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
                         if (code != Value::Null) {
@@ -6291,7 +6291,7 @@ impl Htx {
                                         let mut i: i64 = 0;
                     let mut __for_first_779: bool = true;
                     while { if !__for_first_779 { i += 1; } __for_first_779 = false; i < (balances.len() as i64) } {
-                    let mut balance: Value = balances.get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut balance: Value = crate::value::KeyRead::read(&&balances, &Value::Int(i));
                     let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
                     if (code != Value::Null) {
@@ -9164,7 +9164,7 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_785: bool = true;
             while { if !__for_first_785 { i += 1; } __for_first_785 = false; i < (failed.len() as i64) } {
-            let mut order: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = crate::value::KeyRead::read(&&failed, &Value::Int(i));
             result.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone());

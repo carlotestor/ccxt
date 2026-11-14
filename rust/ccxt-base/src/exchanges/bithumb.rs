@@ -939,12 +939,12 @@ impl Bithumb {
         if (generation == Some(2)) {
             request.insert("isDetails".into(), Value::Bool(true));
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
-            let mut response: Value = self.public_get_v1_market_all(&[__ws_arg_0]).await;
+            let mut response: crate::value::List = self.public_get_v1_market_all(&[__ws_arg_0]).await.into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_389: bool = true;
                 while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (response.len() as i64) } {
-                let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = crate::value::KeyRead::read(&&response, &Value::Int(i));
                 let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "market", &[]).as_str().map(str::to_owned);
                 let mut baseId: Option<String> = None;
                 let mut quoteId: Option<String> = None;
@@ -1042,14 +1042,14 @@ impl Bithumb {
                 promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_1]).await);
             }
             }
-            let mut results: Value = promise_all(&Value::from(promises)).await;
+            let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_392: bool = true;
                 while { if !__for_first_392 { i += 1; } __for_first_392 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut quoteId: Value = quote.clone();
-                let mut response: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
+                let mut response: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
                 let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1640,13 +1640,13 @@ impl Bithumb {
             //         },
             //     ]
             //
-            let mut responses: Value = promise_all(&Value::from(promises)).await;
+            let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
             let mut responsesLength: i64 = responses.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_400: bool = true;
                 while { if !__for_first_400 { i += 1; } __for_first_400 = false; i < responsesLength } {
-                let mut response: Value = self.safe_value(responses.clone(), Value::Int(i), &[]);
+                let mut response: Value = self.safe_value(&responses, Value::Int(i), &[]);
                 if self.is_dictionary(response.clone()).as_bool() == Some(true) && (self.safe_value_k(response.clone(), "data", &[]) != Value::Null) {
                     response = self.safe_value_k(response, "data", &[]);
                 }
@@ -1736,13 +1736,13 @@ impl Bithumb {
                 promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_6]).await);
             }
             }
-            let mut responses: Value = promise_all(&Value::from(promises)).await;
+            let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_404: bool = true;
                 while { if !__for_first_404 { i += 1; } __for_first_404 = false; i < (quotes.len() as i64) } {
                 let mut quote: Option<String> = quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let mut response: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(i), &[]).into_dict();
+                let mut response: crate::value::Dict = self.safe_dict(&responses, Value::Int(i), &[]).into_dict();
                 let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m

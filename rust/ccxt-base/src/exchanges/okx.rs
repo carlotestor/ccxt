@@ -4371,13 +4371,13 @@ impl Okx {
                 promises.push(self.public_get_public_instruments(&[__ws_arg_10]).await);
             }
             }
-            let mut promisesResult: Value = promise_all(&Value::from(promises)).await;
+            let mut promisesResult: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
             let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1004: bool = true;
                 while { if !__for_first_1004 { i += 1; } __for_first_1004 = false; i < (promisesResult.len() as i64) } {
-                let mut res: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(i), &[Value::Map({
+                let mut res: crate::value::Dict = self.safe_dict(&promisesResult, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

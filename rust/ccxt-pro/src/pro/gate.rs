@@ -1774,12 +1774,12 @@ impl Gate {
         }  else {
             result = std::sync::Arc::new(vec![rawResult]);
         }
-        let mut parsedTrades: Value = self.parse_trades(&result, None, &[]);
+        let mut parsedTrades: crate::value::List = self.parse_trades(&result, None, &[]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_325: bool = true;
             while { if !__for_first_325 { i += 1; } __for_first_325 = false; i < (parsedTrades.len() as i64) } {
-            let mut trade: Value = parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = crate::value::KeyRead::read(&&parsedTrades, &Value::Int(i));
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
             let mut cachedTrades: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (cachedTrades.is_none()) {
@@ -2108,7 +2108,7 @@ impl Gate {
             cachedTrades = Some(ArrayCacheBySymbolById::new(limit));
             self.myTrades = cachedTrades.clone();
         }
-        let mut parsed: Value = self.parse_trades(Value::Arr(result), None, &[]);
+        let mut parsed: crate::value::List = self.parse_trades(Value::Arr(result), None, &[]).into_list();
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2117,7 +2117,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_328: bool = true;
             while { if !__for_first_328 { i += 1; } __for_first_328 = false; i < (parsed.len() as i64) } {
-            let mut trade: Value = parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = crate::value::KeyRead::read(&&parsed, &Value::Int(i));
             cachedTrades.append(trade.clone());
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {

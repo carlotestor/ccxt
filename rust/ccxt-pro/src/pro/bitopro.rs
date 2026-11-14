@@ -462,7 +462,7 @@ impl Bitopro {
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut event: Option<String> = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawData: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut trades: Value = self.parse_trades(&rawData, Some(&market), &[]);
+        let mut trades: crate::value::List = self.parse_trades(&rawData, Some(&market), &[]).into_list();
         let mut tradesCache: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesCache.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -472,7 +472,7 @@ impl Bitopro {
                         let mut i: i64 = 0;
             let mut __for_first_131: bool = true;
             while { if !__for_first_131 { i += 1; } __for_first_131 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = crate::value::KeyRead::read(&&trades, &Value::Int(i));
             tradesCache.append(trade);
         }
         }

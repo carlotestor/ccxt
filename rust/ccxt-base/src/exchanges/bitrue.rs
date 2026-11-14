@@ -1454,10 +1454,10 @@ impl Bitrue {
             }
         }
         }
-        let mut promises: Value = promise_all(&Value::from(promisesRaw)).await;
-        let mut spotMarkets: Value = self.safe_list(self.safe_dict(promises.clone(), Value::Int(0), &[]), Value::Str("symbols".into()), &[Value::from(vec![])]);
-        let mut futureMarkets: crate::value::List = self.safe_list(promises.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
-        let mut deliveryMarkets: crate::value::List = self.safe_list(promises, Value::Int(2), &[Value::from(vec![])]).into_list();
+        let mut promises: crate::value::List = promise_all(&Value::from(promisesRaw)).await.into_list();
+        let mut spotMarkets: Value = self.safe_list(self.safe_dict(&promises, Value::Int(0), &[]), Value::Str("symbols".into()), &[Value::from(vec![])]);
+        let mut futureMarkets: crate::value::List = self.safe_list(&promises, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut deliveryMarkets: crate::value::List = self.safe_list(&promises, Value::Int(2), &[Value::from(vec![])]).into_list();
         let mut markets: Value = spotMarkets;
         markets = self.array_concat(markets, &futureMarkets);
         markets = self.array_concat(markets, &deliveryMarkets);

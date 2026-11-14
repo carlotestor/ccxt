@@ -1551,9 +1551,9 @@ impl Hyperliquid {
         m.insert("type".to_string(), Value::Str("allMids".into()));
     m
 })]).await]);
-        let mut results: Value = promise_all(&Value::Arr(promises)).await;
-        let mut response: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(0), &[]).into_dict();
-        let mut midsResponse: Value = results.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut results: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
+        let mut response: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[]).into_dict();
+        let mut midsResponse: Value = crate::value::KeyRead::read(&&results, &Value::Int(1));
         let mut balances: crate::value::List = self.safe_list_k(&response, "balances", &[Value::from(vec![])]).into_list();
         let mut allMids: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

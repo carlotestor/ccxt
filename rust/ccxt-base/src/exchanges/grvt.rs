@@ -1372,7 +1372,7 @@ impl Grvt {
         if approvedBuilderFee {
             return Value::Bool(true);
         }
-        let mut results: Value = promise_all(&Value::from(vec![self.private_trading_post_full_v1_get_authorized_builders(&[]).await, self.load_account_infos().await])).await;
+        let mut results: crate::value::List = promise_all(&Value::from(vec![self.private_trading_post_full_v1_get_authorized_builders(&[]).await, self.load_account_infos().await])).await.into_list();
         //
         // {
         //     "results": [{
@@ -1382,7 +1382,7 @@ impl Grvt {
         //     }]
         // }
         //
-        let mut currentBuilders: crate::value::Dict = self.safe_dict(results, Value::Int(0), &[]).into_dict();
+        let mut currentBuilders: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[]).into_dict();
         let mut approvedBuilder: crate::value::List = self.safe_list_k(&currentBuilders, "results", &[Value::from(vec![])]).into_list();
         let mut length: i64 = approvedBuilder.len() as i64;
         let mut found: bool = false;
@@ -1491,8 +1491,8 @@ if _try_result.is_err() {
         if !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true)) || !(self.is_empty_string(self.privateKey.clone()).as_bool() == Some(true)) {
             promises.push(self.sign_in(&[]).await);
         }
-        let mut results: Value = promise_all(&Value::from(promises)).await;
-        let mut response: crate::value::Dict = self.safe_dict(results, Value::Int(0), &[]).into_dict();
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+        let mut response: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[]).into_dict();
         let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         return self.parse_markets(&result);
         Value::Null

@@ -789,12 +789,12 @@ impl Whitebit {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut data: crate::value::List = self.safe_list(&params, Value::Int(1), &[Value::from(vec![])]).into_list();
-        let mut parsedTrades: Value = self.parse_trades(&data, Some(&market), &[]);
+        let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_708: bool = true;
             while { if !__for_first_708 { j += 1; } __for_first_708 = false; j < (parsedTrades.len() as i64) } {
-            stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
+            stored.append(crate::value::KeyRead::read(&&parsedTrades, &Value::Int(j)));
         }
         }
         let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));

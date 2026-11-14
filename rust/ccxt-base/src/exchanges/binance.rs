@@ -7041,11 +7041,11 @@ impl Binance {
         if fetchMargins {
             promises.push(self.sapi_get_margin_all_pairs(&[params]).await);
         }
-        let mut results: Value = promise_all(&Value::from(promises)).await;
-        let mut responseCurrencies: Value = self.safe_value(results.clone(), Value::Int(0), &[]);
+        let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+        let mut responseCurrencies: Value = self.safe_value(&results, Value::Int(0), &[]);
         let mut marginablesById: Value = Value::Null;
         if fetchMargins {
-            let mut responseMarginables: Option<crate::value::List> = self.safe_list(results, Value::Int(1), &[]).into_opt_list();
+            let mut responseMarginables: Option<crate::value::List> = self.safe_list(&results, Value::Int(1), &[]).into_opt_list();
             marginablesById = self.index_by(responseMarginables.map_or(Value::Null, Value::Arr), Value::Str("assetName".into()));
         }
         return self.parse_currencies_custom(responseCurrencies, marginablesById);
@@ -7380,7 +7380,7 @@ impl Binance {
             }
         }
         }
-        let mut results: Value = promise_all(&Value::from(promisesRaw)).await;
+        let mut results: crate::value::List = promise_all(&Value::from(promisesRaw)).await.into_list();
         let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), Value::from(vec![])); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), Value::from(vec![])); }
@@ -7388,7 +7388,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_274: bool = true;
             while { if !__for_first_274 { i += 1; } __for_first_274 = false; i < (results.len() as i64) } {
-            let mut res: Value = self.safe_value(results.clone(), Value::Int(i), &[]);
+            let mut res: Value = self.safe_value(&results, Value::Int(i), &[]);
             if fetchMargins && (matches!(&res, Value::Arr(_))) {
                 let mut keysList: Value = Value::Array((self.index_by(res.clone(), Value::Str("symbol".into()))).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
                 let mut length: Value = get_array_length(&self.options.as_map().and_then(|__m| __m.get("crossMarginPairsData")).cloned().unwrap_or(Value::Null));

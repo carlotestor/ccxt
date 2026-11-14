@@ -3708,9 +3708,9 @@ impl Bybit {
                 return Value::from(vec![self.options.as_map().and_then(|__m| __m.get("enableUnifiedMargin")).cloned().unwrap_or(Value::Null), self.options.as_map().and_then(|__m| __m.get("enableUnifiedAccount")).cloned().unwrap_or(Value::Null)]);
             }
             let mut rawPromises: crate::value::List = std::sync::Arc::new(vec![self.private_get_v5_user_query_api(&[params.clone()]).await, self.private_get_v5_account_info(&[params]).await]);
-            let mut promises: Value = promise_all(&Value::Arr(rawPromises)).await;
-            let mut response: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[]).into_dict();
-            let mut accountInfo: crate::value::Dict = self.safe_dict(promises, Value::Int(1), &[]).into_dict();
+            let mut promises: crate::value::List = promise_all(&Value::Arr(rawPromises)).await.into_list();
+            let mut response: crate::value::Dict = self.safe_dict(&promises, Value::Int(0), &[]).into_dict();
+            let mut accountInfo: crate::value::Dict = self.safe_dict(&promises, Value::Int(1), &[]).into_dict();
             //
             //     {
             //         "retCode": 0,
@@ -4499,12 +4499,12 @@ impl Bybit {
         m.insert("status".to_string(), Value::Str("PreLaunch".into()));
     m
 })])]).await]);
-            let mut promises: Value = promise_all(&Value::Arr(linearPromises)).await;
-            response = self.safe_dict(promises.clone(), Value::Int(0), &[Value::Map({
+            let mut promises: crate::value::List = promise_all(&Value::Arr(linearPromises)).await.into_list();
+            response = self.safe_dict(&promises, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_opt_dict();
-            preLaunchMarkets = self.safe_dict(promises, Value::Int(1), &[Value::Map({
+            preLaunchMarkets = self.safe_dict(&promises, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

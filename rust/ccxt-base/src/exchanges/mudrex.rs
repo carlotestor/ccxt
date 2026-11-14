@@ -1965,10 +1965,10 @@ impl Mudrex {
         let mut positionId: Option<String> = self.safe_string_k(params.clone(), "position_id", &[]).as_str().map(str::to_owned);
         if (positionId.is_none()) {
             let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut matches: Value = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), symbol.clone(), &[]);
+            let mut matches: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), symbol.clone(), &[]).into_list();
             let mut numMatches: i64 = matches.len() as i64;
             if numMatches > 0 {
-                let mut found: crate::value::Dict = matches.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+                let mut found: crate::value::Dict = crate::value::KeyRead::read(&&matches, &Value::Int(0)).into_dict();
                 positionId = self.safe_string_k(&found, "id", &[]).as_str().map(str::to_owned);
             }
         }
