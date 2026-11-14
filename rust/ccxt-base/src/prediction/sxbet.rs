@@ -4074,8 +4074,8 @@ impl Sxbet {
         if (accessLevel.as_deref() == Some("private")) && (self.apiKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), path).into()), " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")));
         }
-        let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("sxbet")).cloned().unwrap_or(Value::Null)]);
+        let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "sxbet")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({

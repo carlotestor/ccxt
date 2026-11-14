@@ -4423,8 +4423,8 @@ impl Predictfun {
  * @returns {string} the url to connect to
  */
     pub fn socket_url(&self) -> Option<String> {
-        let mut urls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut base: Option<String> = self.safe_string_k(urls, "ws", &[]).as_str().map(str::to_owned);
+        let mut urls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
+        let mut base: Option<String> = self.safe_string_k(&urls, "ws", &[]).as_str().map(str::to_owned);
         if (base.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " does not have a sandbox websocket endpoint")));
         }
@@ -5112,8 +5112,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " sign() requires the \"apiKey\" credential for all endpoints")));
         }
         let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("predictfun")).cloned().unwrap_or(Value::Null)]);
+        let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "predictfun")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         if (method.as_str() == Some("GET")) {

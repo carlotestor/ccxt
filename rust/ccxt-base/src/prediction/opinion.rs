@@ -3331,8 +3331,8 @@ if _try_result.is_err() {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("opinion")).cloned().unwrap_or(Value::Null)]);
+        let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrl: Value = self.safe_string(&baseUrls, apiGroup.map(Value::from).unwrap_or(Value::Null), &[crate::value::KeyRead::key_read(&&baseUrls, "opinion")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({
