@@ -121,9 +121,10 @@ func (this *Coinbaseinternational) GetWsUrl(optionalArgs ...any) any {
 		return "wss://www.deribit.com/ws/api/v2"
 	}
 	if isPrivate == true {
-		return this.UrlsApi["wsPrivate"]
+		return this.SafeString(this.Urls["api"], "wsPrivate", "")
+	} else {
+		return this.SafeString(this.Urls["api"], "ws", "")
 	}
-	return this.UrlsApi["ws"]
 }
 func (this *Coinbaseinternational) Ping(client any) any {
 	var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
@@ -779,9 +780,9 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 			ccxt.AddElementToObject(position, "side", "long")
 			var shortPosition any = this.Clone(position)
 			ccxt.AddElementToObject(shortPosition, "side", "short")
-			this.Positions.(ccxt.Appender).Append(shortPosition)
+			this.Positions.Append(shortPosition)
 		}
-		this.Positions.(ccxt.Appender).Append(position)
+		this.Positions.Append(position)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Positions, channel)
 }
@@ -2131,7 +2132,7 @@ func (this *Coinbaseinternational) HandleDelta(bookside any, delta any) {
 func (this *Coinbaseinternational) HandleDeltas(bookside any, deltas any) {
 	var deltasLength int = ccxt.GetArrayLength(deltas)
 	for i := 0; i < deltasLength; i++ {
-		this.HandleDelta(bookside, this.SafeValue(deltas, i))
+		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
 func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) bool {
