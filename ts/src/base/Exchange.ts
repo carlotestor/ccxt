@@ -2593,7 +2593,7 @@ export class BaseExchange {
         throw new Error (message);
     }
 
-    lighterSignCancelOrder (signer: any, request: any): any[] {
+    lighterSignCancelOrder (signer: any, request: any): [ int, string ] {
         const res = (globalThis.SignCancelOrder (
             request['market_index'],
             request['order_index'],
@@ -2606,7 +2606,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignWithdraw (signer: any, request: any): any[] {
+    lighterSignWithdraw (signer: any, request: any): [ int, string ] {
         const res = (globalThis.SignWithdraw (
             request['asset_index'],
             request['route_type'],
@@ -2620,7 +2620,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignCreateSubAccount (signer: any, request: any): any[] {
+    lighterSignCreateSubAccount (signer: any, request: any): [ int, string ] {
         const res = (globalThis.SignCreateSubAccount (
             1, // skip nonce
             request['nonce'],
@@ -2631,7 +2631,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignCancelAllOrders (signer: any, request: any): any[] {
+    lighterSignCancelAllOrders (signer: any, request: any): [ int, string ] {
         const res = (globalThis.SignCancelAllOrders (
             request['time_in_force'],
             request['time'],
@@ -2645,7 +2645,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignModifyOrder (signer: any, request: any): any[] {
+    lighterSignModifyOrder (signer: any, request: any): [ int, string ] {
         const res = (globalThis.SignModifyOrder (
             request['market_index'],
             request['index'],
@@ -2667,7 +2667,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignTransfer (signer: any, request: any): any[] {
+    lighterSignTransfer (signer: any, request: any): [ int, string ] {
         const res = globalThis.SignTransfer (
             request['to_account_index'],
             request['asset_index'],
@@ -2685,7 +2685,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignUpdateLeverage (signer: any, request: any): any[] {
+    lighterSignUpdateLeverage (signer: any, request: any): [ int, string ] {
         const res = (globalThis.SignUpdateLeverage (
             request['market_index'],
             request['initial_margin_fraction'],
@@ -2709,7 +2709,7 @@ export class BaseExchange {
         return res.authToken;
     }
 
-    lighterSignUpdateMargin (signer: any, request: any): any[] {
+    lighterSignUpdateMargin (signer: any, request: any): [ int, string ] {
         const res = globalThis.SignUpdateMargin (
             request['market_index'],
             request['usdc_amount'],

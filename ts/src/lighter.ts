@@ -3218,7 +3218,7 @@ export default class lighter extends Exchange {
         return await this.publicPostSendTx (request);
     }
 
-    async signAndCancelOrder (method: string, id: string, symbol: Str = undefined, params: Dict = {}): Promise<any[]> {
+    async signAndCancelOrder (method: string, id: string, symbol: Str = undefined, params: Dict = {}): Promise<[ int, string ]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3273,7 +3273,7 @@ export default class lighter extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async signAndCancelAllOrders (method: string, symbol: Str = undefined, params: Dict = {}): Promise<any[]> {
+    async signAndCancelAllOrders (method: string, symbol: Str = undefined, params: Dict = {}): Promise<[ int, string ]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
