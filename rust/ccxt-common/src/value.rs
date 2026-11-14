@@ -2842,8 +2842,8 @@ mod typed_counter_write_back_tests {
 
 #[cfg(test)]
 mod nested_slot_insert_tests {
-    // ral-40f: `p['params']['k'] = v` on a typed params slot prints an in-place insert on the `Dict`
-    // (`entry(..).or_insert(Value::Null)` then a Dict-or-skip `insert`); the `Value` local printed
+    // ral-40f: `p['params']['k'] = v` on a typed params slot takes the first hop in place on the `Dict`
+    // (`entry(..).or_insert(Value::Null)`), the write stays `add_element_to_object`; the `Value` local printed
     // `add_element_to_object(get_value_mut(&mut p, "params"), "k", v)`. Same map for a missing inner key, a `Null`
     // inner, a wrong-kind inner and a map inner.
     use super::*;
@@ -2857,7 +2857,7 @@ mod nested_slot_insert_tests {
     }
 
     fn typed(mut p: Dict, v: Value) -> Dict {
-        if let Value::Dict(__h1) = std::sync::Arc::make_mut(&mut p).entry("params".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__h1).insert("k".to_string(), v); }
+        boxed_write(std::sync::Arc::make_mut(&mut p).entry("params".to_string()).or_insert(Value::Null), &Value::Str("k".into()), v);
         p
     }
 
