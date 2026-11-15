@@ -258,7 +258,10 @@ pub trait DerivedExchange {
     fn parse_market_leverage_tiers(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
     fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
-    fn market(&self, _symbol: Value) -> Value { Value::Null }
+    /// Typed like `ExchangeBase::market`, whose dispatch hands the call here unchanged; the default is the base lookup.
+    fn market(&self, symbol: &str) -> Result<crate::types::Market> where Self: crate::exchange_generated::ExchangeBase {
+        crate::exchange_generated::ExchangeBase::market_non_virtual(self, symbol)
+    }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
     fn parse_prediction_trade(&self, _trade: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_prediction_order(&self, _order: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }

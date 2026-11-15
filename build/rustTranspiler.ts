@@ -9883,6 +9883,20 @@ export class RustTranspilerBuilder {
         return new Set([ 'market' ]);
     }
 
+    private _typedVirtualSlots: Map<string, { params: string, ret: string }> | null = null;
+    /** Trait slots the printed base forwards with their typed signature unchanged (`fn X(&self, P) -> crate::Result<T>`). */
+    typedVirtualSlots(): Map<string, { params: string, ret: string }> {
+        if (this._typedVirtualSlots) return this._typedVirtualSlots;
+        const slots = new Map<string, { params: string, ret: string }>();
+        let src = '';
+        try { src = fs.readFileSync(BASE_METHODS_FILE, 'utf8'); } catch (_) { /* base not generated yet */ }
+        const re = /\n    fn ([a-z_][a-z0-9_]*)\(&self, ([^)]*)\) -> (crate::Result<[^{]+>) \{\n        \/\/ virtual-dispatch \(static: DerivedExchange::\1\(self, \.\.\.\)\)\n        crate::exchange::DerivedExchange::\1\(self, /g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(src)) !== null) slots.set(m[1], { params: m[2], ret: m[3] });
+        this._typedVirtualSlots = slots;
+        return slots;
+    }
+
     /**
      * Trait method signatures — keyed by snake-case name, value is the
      * list of arg names (matching the trait declaration in exchange.rs).
@@ -10317,6 +10331,18 @@ ${arms.join('\n')}
             // for a subclass, delegate to the parent's trait impl — that
             // is Go-style inheritance. A base exchange falls back to the
             // trait default.
+            const typedSlot = this.typedVirtualSlots().get(name);
+            if (typedSlot !== undefined) {
+                // a typed slot keeps its typed signature: forward to the own inherent, else to the parent's impl
+                const own = inherent.has(name) && inh !== undefined && !inh.isAsync;
+                if (!own && !parentCore) continue;
+                const names = typedSlot.params.split(', ').map(p => p.slice(0, p.indexOf(':')).replace(/^mut\s+/, '')).join(', ');
+                out.push(`    fn ${name}(&self, ${typedSlot.params}) -> ${typedSlot.ret} {`);
+                if (own) out.push(`        // Forward to the inherent method on ${coreName}.`);
+                out.push(own ? `        ${coreName}::${name}(self, ${names})` : `        crate::exchange::DerivedExchange::${name}(&self.parent, ${names})`);
+                out.push(`    }`);
+                continue;
+            }
             if (!inherent.has(name) || !inh || inh.isAsync) {
                 if (parentCore) {
                     const traitParams = rustDispatch.slotParams(args);
@@ -10994,13 +11020,15 @@ impl std::ops::DerefMut for ${coreName} {
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
                 // the whole inherent item (signature line to its matching `}`) replaces its forwarder item.
                 {
-                    const liftClasses = new Set<string>([ 'same' ]);
+                    const liftClasses = new Set<string>([ 'same', 'typed-return' ]);
                     const norm = (t: string) => t.replace(/^crate::Value$/, 'Value');
                     const forwarderClass = (sig: any, fact: { isAsync: boolean, isMut: boolean }, slots: string[]): string => {
                         if (fact.isAsync) return 'async';
                         if (fact.isMut) return 'mut-cast';
                         if (sig.params.some((p: any) => p.type === '&[Value]')) return 'slice-args';
-                        if (sig.ret !== 'value') return 'typed-return';
+                        // a typed return lifts only when the trait slot carries the same typed signature
+                        const typedSlot = this.typedVirtualSlots().get(sig.name);
+                        if (sig.ret !== 'value') return typedSlot !== undefined && sig.returns === typedSlot.ret && sig.params.map((p: any) => `${p.name}: ${p.type}`).join(', ') === typedSlot.params ? 'typed-return' : 'typed-differs';
                         const slotTypes = rustDispatch.slotParams(slots).split(', ').filter((s: string) => s.length > 0).map((s: string) => norm(s.slice(s.indexOf(': ') + 2)));
                         if (slotTypes.length !== sig.params.length) return 'arity';
                         return sig.params.every((p: any, i: number) => norm(p.type) === slotTypes[i]) ? 'same' : 'param-differs';
