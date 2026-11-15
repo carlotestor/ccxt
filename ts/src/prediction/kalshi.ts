@@ -3,7 +3,7 @@ import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, Endpoint, NullableDict, PredictionOutcomeHandle } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, Endpoint, NullableDict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -324,7 +324,7 @@ export default class kalshi extends Exchange {
      * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix — or a unified handle like KXBTCD_26JUL1417_53_000_ABOVE:YES
      * @returns {object} the resolved outcome object
      */
-    override async fetchOutcome (outcomeSymbol: string): Promise<PredictionOutcomeHandle> {
+    override async fetchOutcome (outcomeSymbol: string): Promise<any> {
         // a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
         // sending a unified handle (EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
         // the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
