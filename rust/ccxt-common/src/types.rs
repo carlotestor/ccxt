@@ -2110,7 +2110,7 @@ mod ohlcvs_by_symbol_key_read_tests {
     use super::{IntoRaw, OHLCVsBySymbol};
     use crate::value::{get_value, KeyRead};
     use crate::Value;
-    use std::collections::HashMap;
+    use indexmap::IndexMap as HashMap;
 
     // ral-46h: `r[s][tf]` on the typed result reads exactly what the boxed result read
     #[test]
