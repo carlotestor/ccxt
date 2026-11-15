@@ -4082,6 +4082,45 @@ function rustTypedCaughtErrorsSelfTest(): string[] {
     return p;
 }
 
+/**
+ * `let X: Value = self.safe_value(<client>.subscriptions.clone(), key, &[]);` (the ws
+ * `client.subscriptions[hash]` lookup) whose every later use in its fn is `X == Value::Null`
+ * / `X != Value::Null` is a presence flag: print `let X: bool = <same read> != Value::Null;`
+ * and the tests as `!X` / `X`. Any other use (returned, passed, reassigned) keeps `Value`.
+ */
+export function rustSubscriptionPresenceFlags(content: string): string {
+    const decl = /let (?:mut )?([A-Za-z_][A-Za-z0-9_]*): Value = (self\.safe_value\((?:\(client\)|__ch|client)\.subscriptions\.clone\(\), [^;\n]*, &\[\]\));/g;
+    let out = content;
+    const seen = new Set<string>();
+    let m: RegExpExecArray | null;
+    while ((m = decl.exec(content)) !== null) {
+        const [whole, name, read] = m;
+        if (seen.has(whole)) continue;
+        const start = m.index + whole.length;
+        const fnEnd = content.slice(start).search(/\n    (?:pub )?(?:async )?fn /);
+        const end = fnEnd < 0 ? content.length : start + fnEnd;
+        const body = content.slice(start, end);
+        const test = new RegExp(`\\(${name} (==|!=) Value::Null\\)`, 'g');
+        const rest = body.replace(test, '');
+        if (new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`).test(rest)) continue;
+        if (!test.test(body)) continue;
+        seen.add(whole);
+        const newBody = body.replace(new RegExp(`\\(${name} (==|!=) Value::Null\\)`, 'g'), (_w: string, op: string) => (op === '==' ? `(!${name})` : `(${name})`));
+        out = out.replace(whole + body, `let ${name}: bool = ${read} != Value::Null;` + newBody);
+    }
+    return out;
+}
+
+function rustSubscriptionPresenceFlagsSelfTest(): string[] {
+    const p: string[] = [];
+    const f = (uses: string) => '    pub async fn authenticate(&mut self) -> Value {\n        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);\n' + uses + '\n    }\n    pub fn other(&self) { let authenticated = 1; }\n';
+    const a = rustSubscriptionPresenceFlags(f('        if (authenticated == Value::Null) { go(); }\n        if (authenticated != Value::Null) { stop(); }'));
+    if (!a.includes('let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;') || !a.includes('if (!authenticated) { go(); }') || !a.includes('if (authenticated) { stop(); }') || !a.includes('let authenticated = 1;')) p.push('presence flag: tests');
+    const kept = f('        if (authenticated != Value::Null) { return authenticated; }');
+    if (rustSubscriptionPresenceFlags(kept) !== kept) p.push('presence flag: returned keeps Value');
+    return p;
+}
+
 // ---- narrow str locals ----
 // `safe_string*` locals narrowed to a native `String` / `Option<String>`.
 // Text passes over the final Rust; neither touches `this`.
@@ -11465,6 +11504,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.rewriteNativeErrorClassChecks(rustContent);
                 // A catch binding read only as an error object is a typed `CaughtError`.
                 rustContent = rustTypedCaughtErrors(rustContent);
+                rustContent = rustSubscriptionPresenceFlags(rustContent);
                 // Last: a `.clone()` in a by-value slot whose local is dead
                 // afterwards moves instead of copying (B-32).
                 rustContent = this.dropDeadValueSlotClones(rustContent);
@@ -12295,6 +12335,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustVecPushInline(finalFile);
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
         finalFile = rustTypedCaughtErrors(finalFile);
+        finalFile = rustSubscriptionPresenceFlags(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
         finalFile = this.rustNativeTruthAndEquality(finalFile);
@@ -14762,7 +14803,7 @@ function rustPassesSelfTest(): string[] {
     const problems: string[] = [];
     const lists: Record<string, () => string[]> = {
         nativeContainerOpsSelfTest, nativeBoolScalarsSelfTest, arrOnlyVecPushSelfTest, rustTypedLocalsSelfTest,
-        nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest, rustStringNativesSelfTest, rustTypedCaughtErrorsSelfTest,
+        nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest, rustStringNativesSelfTest, rustTypedCaughtErrorsSelfTest, rustSubscriptionPresenceFlagsSelfTest,
     };
     for (const [name, fn] of Object.entries(lists)) for (const p of fn()) problems.push(`${name}: ${p}`);
     if (mapParamDispatchSelfTest() !== 0) problems.push('mapParamDispatchSelfTest');

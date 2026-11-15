@@ -157,7 +157,7 @@ impl From<CaughtError> for crate::Value {
 }
 
 impl From<&CaughtError> for crate::Value {
-    fn from(e: &CaughtError) -> Self { crate::Value::Str(e.raw.clone().into()) }
+    fn from(e: &CaughtError) -> Self { crate::Value::Str(e.raw.as_str().to_owned().into()) }
 }
 
 #[cfg(test)]
