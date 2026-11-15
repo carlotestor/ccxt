@@ -253,6 +253,9 @@ type MarketInterface struct {
 	BaseName        *string
 	Id2             *string
 	InstIdCode      *int64
+	PriceScale      *int64
+	ValueScale      *int64
+	RatioScale      *int64
 	Tiers           map[string]any
 	NumericId       *float64
 	SubType         *string
@@ -337,6 +340,9 @@ func NewMarketInterface(data any) MarketInterface {
 		BaseName:        SafeStringTyped(m, "baseName"),
 		Id2:             SafeStringTyped(m, "id2"),
 		InstIdCode:      SafeInt64Typed(m, "instIdCode"),
+		PriceScale:      SafeInt64Typed(m, "priceScale"),
+		ValueScale:      SafeInt64Typed(m, "valueScale"),
+		RatioScale:      SafeInt64Typed(m, "ratioScale"),
 		Tiers:           SafeMapTyped(m, "tiers"),
 		NumericId:       SafeFloatTyped(m, "numericId"),
 		SubType:         SafeStringTyped(m, "subType"),

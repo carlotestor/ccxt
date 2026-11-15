@@ -51,6 +51,9 @@ public final class MarketInterface extends TypedMap {
     public String baseName;
     public String id2;
     public Long instIdCode;
+    public Long priceScale;
+    public Long valueScale;
+    public Long ratioScale;
     public Map<String, Object> tiers;
     public List<PredictionOutcome> outcomes;
     public String market;
@@ -111,6 +114,9 @@ public final class MarketInterface extends TypedMap {
         this.baseName = TypeHelper.safeString(data, "baseName");
         this.id2 = TypeHelper.safeString(data, "id2");
         this.instIdCode = TypeHelper.safeInteger(data, "instIdCode");
+        this.priceScale = TypeHelper.safeInteger(data, "priceScale");
+        this.valueScale = TypeHelper.safeInteger(data, "valueScale");
+        this.ratioScale = TypeHelper.safeInteger(data, "ratioScale");
         Object tiersRaw = TypeHelper.safeValue(data, "tiers");
         this.tiers = tiersRaw instanceof Map ? (Map<String, Object>) tiersRaw : null;
         Object outcomesRaw = TypeHelper.safeValue(data, "outcomes");

@@ -265,6 +265,9 @@ public struct Market
     public string? baseName;
     public string? id2;
     public Int64? instIdCode;
+    public Int64? priceScale;
+    public Int64? valueScale;
+    public Int64? ratioScale;
     public Dictionary<string, object>? tiers;
     public string? market;
     public string? marketType;
@@ -313,6 +316,9 @@ public struct Market
         baseName = Exchange.SafeString(market, "baseName");
         id2 = Exchange.SafeString(market, "id2");
         instIdCode = Exchange.SafeInteger(market, "instIdCode");
+        priceScale = Exchange.SafeInteger(market, "priceScale");
+        valueScale = Exchange.SafeInteger(market, "valueScale");
+        ratioScale = Exchange.SafeInteger(market, "ratioScale");
         tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
         this.market = Exchange.SafeString(market, "market");
         marketType = Exchange.SafeString(market, "marketType");
@@ -2000,6 +2006,9 @@ public struct MarketInterface
     public string? baseName;
     public string? id2;
     public Int64? instIdCode;
+    public Int64? priceScale;
+    public Int64? valueScale;
+    public Int64? ratioScale;
     public Dictionary<string, object>? tiers;
     public string? market;
     public string? marketType;
@@ -2055,6 +2064,9 @@ public struct MarketInterface
         baseName = Exchange.SafeString(market, "baseName");
         id2 = Exchange.SafeString(market, "id2");
         instIdCode = Exchange.SafeInteger(market, "instIdCode");
+        priceScale = Exchange.SafeInteger(market, "priceScale");
+        valueScale = Exchange.SafeInteger(market, "valueScale");
+        ratioScale = Exchange.SafeInteger(market, "ratioScale");
         tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
         this.market = Exchange.SafeString(market, "market");
         marketType = Exchange.SafeString(market, "marketType");

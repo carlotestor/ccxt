@@ -123,3 +123,43 @@ func TestDeriveLoadMarketsFromMockedResponse(t *testing.T) {
 		t.Fatalf("derive LoadMarkets produced no symbols")
 	}
 }
+
+// phemex: loadMarkets round-trips rows through MarketInterface; the venue integer
+// scales must survive it or FromEp / FromEv return nil (fetchTrades nil prices)
+func TestPhemexMarketKeepsScalesThroughTypedMarket(t *testing.T) {
+	ex := NewPhemex(map[string]any{})
+	rows := MarketInterfacesToList(MarketInterfacesFromList([]any{map[string]any{
+		"id": "BTCUSD", "symbol": "BTC/USD:BTC", "base": "BTC", "quote": "USD", "type": "swap", "swap": true,
+		"priceScale": int64(4), "valueScale": int64(8), "ratioScale": int64(8),
+	}}))
+	market := rows[0]
+	cases := []struct{ got, want any }{
+		{ex.FromEp("123450000", market), "12345"},
+		{ex.FromEv("150000000", market), "1.5"},
+		{ex.FromEr("10000", market), "0.0001"},
+	}
+	for i, c := range cases {
+		if s, ok := derefScalar(c.got).(string); !ok || s != c.want {
+			t.Errorf("case %d: got %#v, want %q", i, c.got, c.want)
+		}
+	}
+}
+
+// Precise.ToString (phemex fromEn, bitget) must match ts/src/base/Precise.ts toString
+func TestPreciseToStringMatchesTs(t *testing.T) {
+	cases := []struct {
+		n    string
+		dec  int64
+		want string
+	}{
+		{"150000000", 8, "1.5"}, {"123450000", 4, "12345"}, {"10000", 8, "0.0001"}, {"-15", 1, "-1.5"},
+		{"-5", 3, "-0.005"}, {"12", -2, "1200"}, {"0", 5, "0"}, {"123", 3, "0.123"}, {"1234", 2, "12.34"},
+	}
+	for _, c := range cases {
+		pr := NewPrecise(c.n)
+		pr.Decimals = (&BaseExchange{}).Sum(pr.Decimals, c.dec)
+		if got := pr.ToString(); got != c.want {
+			t.Errorf("Precise(%s, +%d).ToString() = %q, want %q", c.n, c.dec, got, c.want)
+		}
+	}
+}

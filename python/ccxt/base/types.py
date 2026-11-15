@@ -505,6 +505,9 @@ class MarketInterface(TypedDict):
     baseName: Str
     id2: Str
     instIdCode: Int
+    priceScale: Int
+    valueScale: Int
+    ratioScale: Int
     tiers: dict[str, Any]
     info: dict[str, Any]
     market: Str

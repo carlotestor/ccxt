@@ -151,6 +151,9 @@ export interface MarketInterface {
     baseName?: Str;               // venue coin name used on the wire (dydx, hyperliquid)
     id2?: Str;                    // venue alternate market id (apex)
     instIdCode?: Int;             // venue numeric instrument code (okx)
+    priceScale?: Int;             // venue integer scale of prices (phemex)
+    valueScale?: Int;             // venue integer scale of values (phemex)
+    ratioScale?: Int;             // venue integer scale of rates (phemex)
     tiers?: Dict;                 // fee tiers (weex)
     info: any;
     // prediction venues: fetchMarkets rows are PredictionMarket-shaped
