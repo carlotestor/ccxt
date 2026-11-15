@@ -11020,15 +11020,13 @@ impl std::ops::DerefMut for ${coreName} {
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
                 // the whole inherent item (signature line to its matching `}`) replaces its forwarder item.
                 {
-                    const liftClasses = new Set<string>([ 'same', 'typed-return' ]);
+                    const liftClasses = new Set<string>([ 'same' ]);
                     const norm = (t: string) => t.replace(/^crate::Value$/, 'Value');
                     const forwarderClass = (sig: any, fact: { isAsync: boolean, isMut: boolean }, slots: string[]): string => {
                         if (fact.isAsync) return 'async';
                         if (fact.isMut) return 'mut-cast';
                         if (sig.params.some((p: any) => p.type === '&[Value]')) return 'slice-args';
-                        // a typed return lifts only when the trait slot carries the same typed signature
-                        const typedSlot = this.typedVirtualSlots().get(sig.name);
-                        if (sig.ret !== 'value') return typedSlot !== undefined && sig.returns === typedSlot.ret && sig.params.map((p: any) => `${p.name}: ${p.type}`).join(', ') === typedSlot.params ? 'typed-return' : 'typed-differs';
+                        if (sig.ret !== 'value') return 'typed-return';
                         const slotTypes = rustDispatch.slotParams(slots).split(', ').filter((s: string) => s.length > 0).map((s: string) => norm(s.slice(s.indexOf(': ') + 2)));
                         if (slotTypes.length !== sig.params.length) return 'arity';
                         return sig.params.every((p: any, i: number) => norm(p.type) === slotTypes[i]) ? 'same' : 'param-differs';
