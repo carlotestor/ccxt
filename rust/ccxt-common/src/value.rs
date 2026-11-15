@@ -879,6 +879,14 @@ impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**se
 impl ExtendHead for Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.map(ExtendHead::into_head).unwrap_or_default() } }
 impl ExtendHead for &Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.as_ref().map(ExtendHead::into_head).unwrap_or_default() } }
 
+/// ral-43c: the key of the runtime `get_value`: a boxed `&Value`, or a typed string local (`&str`, `Option<&str>`) that is
+/// boxed here to the same `Str` / `Null` key the boxed read used, so the lookup is unchanged.
+pub trait ValueKey { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R; }
+impl ValueKey for &Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
+impl ValueKey for &&Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
+impl ValueKey for &str { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(&Value::Str(self.into())) } }
+impl ValueKey for Option<&str> { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { match self { Some(s) => f(&Value::Str(s.into())), None => f(&Value::Null) } } }
+
 /// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
 pub trait OmitSource { fn into_operand(self) -> Value; }
 impl OmitSource for Value { fn into_operand(self) -> Value { self } }
@@ -3065,6 +3073,25 @@ mod reader_default_split_tests {
             let typed = if k < 4 { Value::from(nested(k).as_str().map(str::to_owned)) } else { Value::from(nested(k).as_i64()) };
             assert_eq!(typed, held, "{:?}", held);
         }
+    }
+
+    #[test]
+    fn ral43c_value_key_typed_keys_read_like_the_boxed_key() {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        m.insert("2".to_string(), Value::Int(7));
+        let d = Value::Dict(Arc::new(m));
+        let l = Value::Arr(Arc::new(vec![Value::Int(10), Value::Int(11), Value::Int(12)]));
+        for (obj, k) in [(&d, "a"), (&d, "zz"), (&d, "2"), (&l, "1"), (&l, "x")] {
+            let boxed = crate::runtime::get_value(obj, &Value::Str(k.into()));
+            assert_eq!(crate::runtime::get_value(obj, k), boxed);
+            assert_eq!(crate::runtime::get_value(obj, Some(k)), boxed);
+        }
+        // a None key reads exactly as the boxed Null key
+        assert_eq!(crate::runtime::get_value(&d, None::<&str>), crate::runtime::get_value(&d, &Value::Null));
+        assert_eq!(crate::runtime::get_value(&l, None::<&str>), crate::runtime::get_value(&l, &Value::Null));
+        let s: Option<String> = Some("a".into());
+        assert_eq!(crate::runtime::get_value(&d, s.as_deref()), Value::Int(1));
     }
 
     #[test]

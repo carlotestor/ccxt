@@ -381,8 +381,8 @@ fn error_parent(class: &str) -> Option<&'static str> {
 
 // ── element access ───────────────────────────────────────────────────────────
 
-pub fn get_value(obj: &Value, key: &Value) -> Value {
-    crate::value::get_value(obj, key)
+pub fn get_value(obj: &Value, key: impl crate::value::ValueKey) -> Value {
+    key.with_key(|k| crate::value::get_value(obj, k))
 }
 
 /// Forge a `&mut Value` from a `&Value`. Used by the transpiler to
