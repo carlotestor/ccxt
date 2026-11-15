@@ -943,7 +943,12 @@ pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
 
 /// Access a value in a map by string key, or array by integer key encoded as
 /// a `Value::Str` / `Value::Int`. Returns `Value::Null` on miss.
-pub fn get_value(obj: &Value, key: &Value) -> Value {
+/// ral-43c: the key is `impl ValueKey` (a boxed `&Value`, or a typed `&str` / `Option<&str>` boxed to the same key).
+pub fn get_value(obj: &Value, key: impl ValueKey) -> Value {
+    key.with_key(|key| get_value_boxed(obj, key))
+}
+
+fn get_value_boxed(obj: &Value, key: &Value) -> Value {
     match (obj, key) {
         (Value::Dict(m), _) => get_map_value(m, key),
         (Value::Arr(a), _) => get_list_value(a, key),
