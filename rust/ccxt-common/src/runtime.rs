@@ -1446,7 +1446,7 @@ pub fn to_fixed(x: &Value, digits: &Value) -> Value {
 mod list_hop_tests {
     // ral-48e: `xs[i]['k'] = v` on a held `List` local hops the slot as the boxed `Value::Arr` did.
     use super::*;
-    fn rows() -> crate::value::List { Arc::new(vec![Value::from(std::collections::HashMap::<String, Value>::new()), Value::Int(3)]) }
+    fn rows() -> crate::value::List { Arc::new(vec![Value::from(HashMap::<String, Value>::new()), Value::Int(3)]) }
     #[test]
     fn list_hop_matches_the_boxed_hop() {
         for k in [0i64, 1, 4] {
