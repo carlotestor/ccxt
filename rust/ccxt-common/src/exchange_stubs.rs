@@ -3462,9 +3462,7 @@ mod eth_encode_structured_data_bytes_tests {
         Value::Dict(Arc::new(m))
     }
 
-    #[test]
-    fn bytes_box_to_the_old_value_list() {
-        let ex = Exchange::default();
+    fn inputs() -> (Value, Value, Value) {
         let mut domain = HashMap::new();
         domain.insert("name".to_string(), Value::Str("ccxt".into()));
         domain.insert("chainId".to_string(), Value::Int(1));
@@ -3473,14 +3471,21 @@ mod eth_encode_structured_data_bytes_tests {
         let mut message = HashMap::new();
         message.insert("contents".to_string(), Value::Str("hello".into()));
         message.insert("nonce".to_string(), Value::Int(7));
-        let (d, t, m) = (Value::Dict(Arc::new(domain)), Value::Dict(Arc::new(types)), Value::Dict(Arc::new(message)));
-        let typed: crate::value::Bytes = ex.eth_encode_structured_data(d.clone(), t.clone(), m.clone());
+        (Value::Dict(Arc::new(domain)), Value::Dict(Arc::new(types)), Value::Dict(Arc::new(message)))
+    }
+
+    #[test]
+    fn bytes_box_to_the_old_value_list() {
+        let ex = Exchange::default();
+        let (d, t, m) = inputs();
         let raw = crate::exchange::eip712_encode(&d, &t, &m);
         let old = Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect());
-        assert_eq!(Value::from(&typed), old);
-        assert_eq!(Value::from(typed.clone()), old);
+        let (d, t, m) = inputs();
+        let typed: crate::value::Bytes = ex.eth_encode_structured_data(d, t, m);
         assert_eq!(typed.0.len(), 66);
         assert_eq!(typed.0[0], Value::Int(0x19));
         assert_eq!(typed.0[1], Value::Int(0x01));
+        assert_eq!(Value::from(&typed), old);
+        assert_eq!(Value::from(typed), old);
     }
 }
