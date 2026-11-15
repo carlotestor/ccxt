@@ -11220,7 +11220,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropSelfBoolFieldIsTrue(rustContent);
                 rustContent = this.rustDropBoolBoxedIsTrue(rustContent);
-                rustContent = this.rustNativeBoolEquals(rustContent);
                 rustContent = this.rustNativeBoolIsTrue(rustContent);
                 rustContent = this.rustInlineLiteralIsEqual(rustContent);
                 // Last: element writes into a fresh dict local go native.
@@ -12057,7 +12056,6 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropSelfBoolFieldIsTrue(finalFile);
         finalFile = this.rustDropBoolBoxedIsTrue(finalFile);
-        finalFile = this.rustNativeBoolEquals(finalFile);
         finalFile = this.rustNativeBoolIsTrue(finalFile);
         finalFile = this.rustInlineLiteralIsEqual(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
@@ -13943,64 +13941,6 @@ impl std::ops::DerefMut for ${coreName} {
             end = at + typedInit.length - typedTail.length;
         }
         return this.rustIsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
-    }
-
-    /** Rewrites `is_equal(&X, &Value::Bool(b))` in a proven bool slot when X is bool-boxed. */
-    rustNativeBoolEquals(content: string): string {
-        if (!content.includes('is_equal(&') && !content.includes('is_true(&')) return content;
-        this.rustEmittedBoolReturnMethods(content, []);
-        const masked = this.maskStringsAndComments(content);
-        const own = new Set<string>();
-        for (const om of masked.matchAll(/\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g)) own.add(om[1]);
-        const memo = new Map<string, boolean>();
-        const headers: number[] = [0];
-        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
-        headers.push(content.length);
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        for (let h = 0; h + 1 < headers.length; h++) {
-            const from = headers[h];
-            const region = masked.slice(from, headers[h + 1]);
-            const localOk = new Map<string, boolean>();
-            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_(?:equal|true)\(&/g)) {
-                const start = from + (sm.index as number);
-                const isTrue = sm[0].startsWith('is_true');
-                const open = start + (isTrue ? 'is_true(' : 'is_equal(').length - 1;
-                const close = this.closeParenAt(content, open);
-                if (close < 0 || close >= headers[h + 1]) continue;
-                const end = close + 1;
-                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
-                const args = isTrue ? [content.slice(open + 1, close), '&Value::Bool(true)'] : this.splitTopLevelCommas(content.slice(open + 1, close));
-                if (args.length !== 2) continue;
-                const lit = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(args[1].trim());
-                if (lit === null || !args[0].trim().startsWith('&')) continue;
-                // `is_true` sites over non-locals stay with rustDropBoolBoxedIsTrue (already rewritten when proven).
-                if (isTrue && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(this.stripOuterParens(args[0].trim().slice(1).trim()))) continue;
-                const lead = content.slice(Math.max(0, start - 12), start);
-                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
-                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
-                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
-                if (slot === undefined) continue;
-                const inner = this.stripOuterParens(args[0].trim().slice(1).trim());
-                if (inner.includes('is_equal(')) continue;
-                if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(inner)) {
-                    const declAt = region.search(new RegExp(`let (?:mut )?${inner}\\b`));
-                    if (declAt < 0 || declAt > (sm.index as number)) continue;
-                    if (!localOk.has(inner)) localOk.set(inner, this.rustBoolBoxedLocal(inner, region, from, content, own, memo));
-                    if (!localOk.get(inner)) continue;
-                } else if (!this.rustIsBoolBoxedExpr(inner, content, own, memo)) continue;
-                const recv = /^[A-Za-z_][A-Za-z0-9_.]*$/.test(inner) ? inner : `(${inner})`;
-                const cmp = `${recv}.as_bool() == Some(${lit[1]})`;
-                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
-            }
-        }
-        if (rewrites.length === 0) return content;
-        let out = ''; let at = 0;
-        for (const r of rewrites) {
-            if (r.start < at) continue;
-            out += content.slice(at, r.start) + r.text;
-            at = r.end;
-        }
-        return out + content.slice(at);
     }
 
     /** A printed expression that is a native Rust `bool`: `&&`/`||`/`!` over `X.as_str().is_some_and(|__s| __s.starts_with|ends_with("lit"))`
