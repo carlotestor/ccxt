@@ -853,7 +853,7 @@ export default class PredictionExchange extends BaseExchange {
         return words.join (' ');
     }
 
-    async fetchOutcome (outcomeSymbol: string) {
+    async fetchOutcome (outcomeSymbol: string): Promise<PredictionOutcomeHandle> {
         // fetch just one outcome on demand — never through a bulk listing download. the base has
         // no generic by-id endpoint, so it derives a search query from the handle and resolves it
         // through the venue's own scoped fetchEvents (which caches everything it finds), then

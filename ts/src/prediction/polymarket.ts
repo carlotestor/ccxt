@@ -11,7 +11,7 @@ import type { OrderSide, OrderType, Int, int, Str, Num, Dict,
     PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
-    fetchEventsParams,Bool, NullableDict, Endpoint, List } from '../base/types.js';
+    fetchEventsParams,Bool, NullableDict, Endpoint, List, PredictionOutcomeHandle } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied, OrderNotFillable, ExchangeError } from '../base/errors.js';
 
@@ -874,7 +874,7 @@ export default class polymarket extends Exchange {
      * @param {string} outcomeSymbol the outcome token id or handle
      * @returns {object} the resolved outcome object
      */
-    override async fetchOutcome (outcomeSymbol: string): Promise<any> {
+    override async fetchOutcome (outcomeSymbol: string): Promise<PredictionOutcomeHandle> {
         // a bare CLOB token id has no ':' (an outcome handle is always "MARKET:LABEL") and no
         // searchable words — outcomeSearchQuery returns undefined only for id-like inputs, so
         // word-bearing junk like 'BTC/USDT' skips the gamma by-id lookup (which 422s on
