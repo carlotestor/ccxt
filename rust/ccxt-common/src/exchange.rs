@@ -272,8 +272,8 @@ pub trait DerivedExchange {
     /// parent's inherent one. Binance spot then signs its ws-api subscribe with
     /// a seconds timestamp and the venue answers -1130.
     fn nonce(&self) -> Value { Value::Null }
-    fn sign(&self, _path: &str, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
-    fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
+    fn sign(&mut self, _path: &str, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
+    fn handle_errors(&mut self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
 }
 
 // `Internals` no longer holds raw pointers, so `Send`/`Sync` are auto-derived
@@ -3114,7 +3114,7 @@ mod http_error_tests {
         fn deref_mut(&mut self) -> &mut Exchange { &mut self.exchange }
     }
     impl DerivedExchange for EnvelopeCore {
-        fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, response: Value, _request_headers: Value, _request_body: Value) -> Value {
+        fn handle_errors(&mut self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, response: Value, _request_headers: Value, _request_body: Value) -> Value {
             let code = crate::get_value(&response, &Value::Str("code".into()));
             if !matches!(code, Value::Null) && code != Value::Str("0".into()) {
                 panic!("{}", crate::exchange_errors::create_error("InsufficientFunds", "code 51008"));

@@ -6075,7 +6075,7 @@ export class RustTranspilerBuilder {
                 'pub async fn $1(&mut self)'],
 
             // Specific sync methods known to mutate self.
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string)\(&self,/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string|sign|handle_errors)\(&self,/g,
                 'pub fn $1(&mut self,'],
             [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|incrementing_nonce)\(&self\)/g,
                 'pub fn $1(&mut self)'],
@@ -6795,6 +6795,7 @@ export class RustTranspilerBuilder {
             // WS Client / handler infra
             'client', 'get_listen_key', 'spawn', 'delay',
             'fetch_rest_order_book_safe',
+            ...this.mutReceiverTraitMethods(),
         ]);
         if (extraMutSeeds) {
             for (const name of extraMutSeeds) mutSet.add(name);
@@ -6815,13 +6816,8 @@ export class RustTranspilerBuilder {
             // handle_* cache handlers (and the dispatch entry points) so their
             // writes persist. Gated to WS so the REST/prediction transpile — and
             // its long-green output — is byte-for-byte unchanged.
-            // handle_errors is the one `&self` virtual where venues persist session state read
-            // from the response headers (grvt stores its auth cookie / account id in
-            // this.options there). Promote it when it writes a self field so those writes are
-            // not cloned away; the DerivedExchange forwarder already casts for mut virtuals.
             const seeded = directMutRe.test(body)
-                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)))
-                || (f.name === 'handle_errors' && refMutRe.test(body));
+                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)));
             if (seeded) mutSet.add(f.name);
         }
         // Fixed-point: any fn that calls a known-mut method joins the set.
@@ -10300,6 +10296,11 @@ ${arms.join('\n')}
 }`;
     }
 
+    /** DerivedExchange methods with a `&mut self` receiver: venue overrides persist state (nonce, session) there. */
+    mutReceiverTraitMethods(): Set<string> {
+        return new Set([ 'sign', 'handle_errors' ]);
+    }
+
     /**
      * Emits `impl DerivedExchange for <CoreName>` with one forwarding
      * method per trait signature that this exchange provides as an
@@ -10312,6 +10313,37 @@ ${arms.join('\n')}
         const out: string[] = [`impl crate::exchange::DerivedExchange for ${coreName} {`];
         for (const [name, args] of Object.entries(traitSigs)) {
             const inh = inherentSigs.get(name);
+            // Trait methods whose overrides write exchange state take `&mut self` end to end.
+            if (this.mutReceiverTraitMethods().has(name)) {
+                const traitParams = rustDispatch.slotParams(args);
+                if (!inherent.has(name) || !inh || inh.isAsync) {
+                    if (parentCore) {
+                        out.push(`    fn ${name}(&mut self, ${traitParams}) -> crate::Value {`);
+                        out.push(`        crate::exchange::DerivedExchange::${name}(&mut self.parent${args.length ? ', ' + args.join(', ') : ''})`);
+                        out.push(`    }`);
+                    }
+                    continue;
+                }
+                const callArgs: string[] = [];
+                let traitIdx = 0;
+                for (const kind of inh.paramKinds) {
+                    if (kind === 'value') {
+                        callArgs.push(rustDispatch.isSlotStr(args[traitIdx] ?? '', traitIdx) ? `crate::Value::from(${args[traitIdx]})` : args[traitIdx] ?? 'crate::Value::Null');
+                        traitIdx++;
+                    } else if (rustDispatch.isTyped(kind)) {
+                        callArgs.push(rustDispatch.slotArg(kind, args[traitIdx] ?? 'crate::Value::Null', traitIdx));
+                        traitIdx++;
+                    } else if (kind === 'slice') {
+                        callArgs.push(`&[${args.slice(traitIdx).map((a, i) => rustDispatch.slotValue(a, traitIdx + i)).join(', ')}]`);
+                        break;
+                    }
+                }
+                out.push(`    fn ${name}(&mut self, ${traitParams}) -> crate::Value {`);
+                out.push(`        // Forward to the inherent method on ${coreName}.`);
+                out.push(`        ${rustDispatch.result(`${coreName}::${name}(self, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
+                out.push(`    }`);
+                continue;
+            }
             // A method this exchange doesn't override (or overrides only
             // as an async variant the sync trait can't forward to) must,
             // for a subclass, delegate to the parent's trait impl — that
