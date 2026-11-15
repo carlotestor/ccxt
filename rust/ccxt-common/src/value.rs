@@ -874,6 +874,10 @@ impl ExtendHead for Value { fn into_head(self) -> HashMap<String, Value> { if le
 impl ExtendHead for &Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { (**m).clone() } else { HashMap::new() } } }
 impl ExtendHead for Dict { fn into_head(self) -> HashMap<String, Value> { Arc::try_unwrap(self).unwrap_or_else(|x| (*x).clone()) } }
 impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**self).clone() } }
+/// ral-43c: an optional map (`safeDict` with no default, a nil-declared endpoint answer): `None` merges onto an empty map,
+/// exactly as the boxed `Value::Null` head did.
+impl ExtendHead for Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.map(ExtendHead::into_head).unwrap_or_default() } }
+impl ExtendHead for &Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.as_ref().map(ExtendHead::into_head).unwrap_or_default() } }
 
 /// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
 pub trait OmitSource { fn into_operand(self) -> Value; }
@@ -3061,6 +3065,26 @@ mod reader_default_split_tests {
             let typed = if k < 4 { Value::from(nested(k).as_str().map(str::to_owned)) } else { Value::from(nested(k).as_i64()) };
             assert_eq!(typed, held, "{:?}", held);
         }
+    }
+
+    #[test]
+    fn ral43c_extend_head_option_dict() {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        let d: Dict = Arc::new(m);
+        let some: Option<Dict> = Some(Arc::clone(&d));
+        // lent: the shared map is copied, the local keeps it
+        let h = ExtendHead::into_head(&some);
+        assert_eq!(h.get("a"), Some(&Value::Int(1)));
+        assert!(some.is_some());
+        // owned: same keys as the boxed head
+        let boxed = ExtendHead::into_head(Value::Dict(Arc::clone(&d)));
+        assert_eq!(ExtendHead::into_head(some), boxed);
+        // None merges nothing, exactly as the boxed Null head
+        let none: Option<Dict> = None;
+        assert!(ExtendHead::into_head(&none).is_empty());
+        assert!(ExtendHead::into_head(none).is_empty());
+        assert_eq!(ExtendHead::into_head(Value::Null), HashMap::new());
     }
 
     #[test]
