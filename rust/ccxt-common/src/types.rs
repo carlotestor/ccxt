@@ -2115,11 +2115,15 @@ mod ohlcvs_by_symbol_key_read_tests {
     // ral-46h: `r[s][tf]` on the typed result reads exactly what the boxed result read
     #[test]
     fn key_read_matches_the_boxed_read() {
-        let mut tf = HashMap::new();
-        tf.insert("1m".to_string(), vec![[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]]);
-        let mut r: OHLCVsBySymbol = HashMap::new();
-        r.insert("BTC/USDT".to_string(), tf);
-        let boxed = r.clone().into_raw();
+        let make = || {
+            let mut tf = HashMap::new();
+            tf.insert("1m".to_string(), vec![[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]]);
+            let mut r: OHLCVsBySymbol = HashMap::new();
+            r.insert("BTC/USDT".to_string(), tf);
+            r
+        };
+        let r = make();
+        let boxed = make().into_raw();
         let sym = Value::Str("BTC/USDT".into());
         let tfk = Value::Str("1m".into());
         assert_eq!(get_value(&(&r).read(&sym), &tfk), get_value(&get_value(&boxed, &sym), &tfk));
