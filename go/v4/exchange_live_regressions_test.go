@@ -163,3 +163,12 @@ func TestPreciseToStringMatchesTs(t *testing.T) {
 		}
 	}
 }
+
+// sxbet fetchEvent: info is the raw list of fixture markets; the typed event must keep it
+func TestPredictionEventKeepsListInfo(t *testing.T) {
+	raw := []any{map[string]any{"marketHash": "0xabc"}}
+	ev := NewPredictionEvent(map[string]any{"id": "f1", "title": "x", "markets": []any{}, "info": raw})
+	if got, ok := PredictionEventToMap(ev)["info"].([]any); !ok || len(got) != 1 {
+		t.Fatalf("event info dropped: %#v", ev.Info)
+	}
+}
