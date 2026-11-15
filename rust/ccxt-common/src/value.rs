@@ -884,8 +884,8 @@ impl ExtendHead for &Option<Dict> { fn into_head(self) -> HashMap<String, Value>
 pub trait ValueKey { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R; }
 impl ValueKey for &Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
 impl ValueKey for &&Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
-impl ValueKey for &str { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(&Value::Str(self.into())) } }
-impl ValueKey for Option<&str> { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { match self { Some(s) => f(&Value::Str(s.into())), None => f(&Value::Null) } } }
+impl ValueKey for &str { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(&Value::from(self)) } }
+impl ValueKey for Option<&str> { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { match self { Some(s) => f(&Value::from(s)), None => f(&Value::Null) } } }
 
 /// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
 pub trait OmitSource { fn into_operand(self) -> Value; }
