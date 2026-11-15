@@ -172,3 +172,28 @@ func TestPredictionEventKeepsListInfo(t *testing.T) {
 		t.Fatalf("event info dropped: %#v", ev.Info)
 	}
 }
+
+// myriad / limitless / predictfun sign: yParity and chainId reach intToRlpHex as SafeInteger's
+// *int64; 0 is the empty byte string and 137 is "89" (was "00"-style / empty for every value)
+func TestIntToRlpHexOfSafeInteger(t *testing.T) {
+	ex := &PredictionExchange{}
+	row := map[string]any{"zero": int64(0), "one": int64(1), "chain": int64(137), "big": int64(4096)}
+	cases := []struct{ key, want string }{{"zero", ""}, {"one", "01"}, {"chain", "89"}, {"big", "1000"}}
+	for _, c := range cases {
+		if got := ex.IntToRlpHex(ex.SafeInteger(row, c.key)); got != c.want {
+			t.Errorf("IntToRlpHex(SafeInteger %s) = %#v, want %q", c.key, got, c.want)
+		}
+	}
+}
+
+// CountedOrderBookSide.StoreArray: a zero count deletes the level whatever numeric kind it has
+func TestCountedOrderBookSideZeroCountDeletes(t *testing.T) {
+	for _, zero := range []any{float64(0), int64(0), int(0)} {
+		side := NewCountedOrderBookSide(false, []any{}, nil)
+		side.StoreArray([]any{float64(100), float64(1), float64(3)})
+		side.StoreArray([]any{float64(100), float64(1), zero})
+		if side.Length != 0 {
+			t.Errorf("count %T 0 kept the level: length %d", zero, side.Length)
+		}
+	}
+}
