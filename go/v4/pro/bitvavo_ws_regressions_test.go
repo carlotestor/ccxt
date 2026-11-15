@@ -25,8 +25,12 @@ func TestBitvavoWatchTickersResolvesList(t *testing.T) {
 		"market": "BTC-EUR", "timestamp": int64(1786614374241), "last": "55198", "bid": "55198", "ask": "55199",
 	}}}
 	for _, watch := range []func() (ccxt.Tickers, error){
-		func() (ccxt.Tickers, error) { return ex.WatchTickers(ccxt.WithWatchTickersSymbols([]string{"BTC/EUR"})) },
-		func() (ccxt.Tickers, error) { return ex.WatchBidsAsks(ccxt.WithWatchBidsAsksSymbols([]string{"BTC/EUR"})) },
+		func() (ccxt.Tickers, error) {
+			return ex.WatchTickers(ccxt.WithWatchTickersSymbols([]string{"BTC/EUR"}))
+		},
+		func() (ccxt.Tickers, error) {
+			return ex.WatchBidsAsks(ccxt.WithWatchBidsAsksSymbols([]string{"BTC/EUR"}))
+		},
 	} {
 		type out struct {
 			r   ccxt.Tickers
