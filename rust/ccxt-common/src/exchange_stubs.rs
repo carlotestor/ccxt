@@ -3455,7 +3455,7 @@ mod eth_encode_structured_data_bytes_tests {
     // `Value::Arr` of byte ints the old `-> Value` stub returned, and the same 0x1901-prefixed preimage.
     use super::*;
 
-    fn entry(name: &str, ty: &str) -> Value {
+    fn entry(name: &'static str, ty: &'static str) -> Value {
         let mut m = HashMap::new();
         m.insert("name".to_string(), Value::Str(name.into()));
         m.insert("type".to_string(), Value::Str(ty.into()));
