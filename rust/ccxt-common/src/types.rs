@@ -2148,7 +2148,7 @@ mod prediction_outcome_record_tests {
         Value::Map(m)
     }
 
-    // ral-48c: `outcome` / `safeOutcome` / `loadOutcome` hand back `Option<Market>`; the outcome identity keys the
+    // ral-48c / ral-49c: `loadOutcome` hands back `Option<Market>`; the outcome identity keys the
     // venue bodies read stay on the record, and the by-name arm boxes back exactly the cached token
     #[test]
     fn outcome_record_keeps_its_identity_keys() {
