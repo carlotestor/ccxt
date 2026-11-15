@@ -4017,6 +4017,71 @@ function mapParamDispatchSelfTest(): number {
     return failures;
 }
 
+// ---- typed caught errors ----
+/**
+ * `let e: Value = panic_to_value(_try_err);` whose every use in its catch arm is an
+ * error-object sink becomes a typed `crate::error::CaughtError` (same `[Kind] message`
+ * text): `panic!("{}", e)` (Display), `matches!(&e, Value::Str(__s) if __s.contains("[K]"))`
+ * -> `e.names("K")`, `is_instance(&e, &Value::Str("K".into()))` -> `e.is_instance_of("K")`,
+ * `<recv>.reject(e[.clone()], ..)` and `self.exception_message(e[.clone()], ..)` (both take
+ * `impl Into<Value>`). Any other use keeps `Value`.
+ */
+export function rustTypedCaughtErrors(content: string): string {
+    const head = /let ([A-Za-z_][A-Za-z0-9_]*): Value = panic_to_value\(_try_err\);/g;
+    let out = '';
+    let last = 0;
+    let m: RegExpExecArray | null;
+    while ((m = head.exec(content)) !== null) {
+        const name = m[1];
+        const start = m.index + m[0].length;
+        let depth = 1, k = start, inStr = false, esc = false;
+        while (k < content.length) {
+            const c = content[k];
+            if (esc) { esc = false; k++; continue; }
+            if (c === '\\' && inStr) { esc = true; k++; continue; }
+            if (c === '"') { inStr = !inStr; k++; continue; }
+            if (!inStr) {
+                if (c === '{') depth++;
+                else if (c === '}') { depth--; if (depth === 0) break; }
+            }
+            k++;
+        }
+        if (depth !== 0) continue;
+        const body = content.slice(start, k);
+        const id = name.replace(/[$]/g, '');
+        const sinks: [RegExp, string][] = [
+            [new RegExp(`matches!\\(&${id}, Value::Str\\(__s\\) if __s\\.contains\\("\\[([A-Za-z0-9_]+)\\]"\\)\\)`, 'g'), `${id}.names("$1")`],
+            [new RegExp(`is_instance\\(&${id}, &Value::Str\\("([A-Za-z0-9_]+)"\\.(?:into|to_string)\\(\\)\\)\\)`, 'g'), `${id}.is_instance_of("$1")`],
+        ];
+        let rest = body;
+        for (const [rx] of sinks) rest = rest.replace(rx, '');
+        rest = rest.replace(new RegExp(`panic!\\("\\{\\}", ${id}\\)`, 'g'), '');
+        rest = rest.replace(new RegExp(`\\.reject\\(${id}(?:\\.clone\\(\\))?,`, 'g'), '');
+        rest = rest.replace(new RegExp(`self\\.exception_message\\(${id}(?:\\.clone\\(\\))?,`, 'g'), '');
+        if (new RegExp(`(?<![A-Za-z0-9_.])${id}(?![A-Za-z0-9_])`).test(rest)) continue;
+        let typedBody = body;
+        for (const [rx, rep] of sinks) typedBody = typedBody.replace(rx, rep);
+        out += content.slice(last, m.index) + `let ${name}: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);` + typedBody;
+        last = k;
+        head.lastIndex = k;
+    }
+    return out + content.slice(last);
+}
+
+function rustTypedCaughtErrorsSelfTest(): string[] {
+    const p: string[] = [];
+    const arm = (body: string) => 'if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);\n' + body + '\n}\nlet z = e2;';
+    const a = rustTypedCaughtErrors(arm('if matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]")) { client.reject(e.clone(), h.as_str()); }\nif is_instance(&e, &Value::Str("NetworkError".into())) { panic!("{}", e); }'));
+    if (!a.includes('let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);') || !a.includes('e.names("BadSymbol")') || !a.includes('e.is_instance_of("NetworkError")') || !a.includes('client.reject(e.clone(), h.as_str())') || !a.includes('panic!("{}", e)') || !a.endsWith('let z = e2;')) p.push('typed caught error: sinks');
+    const keptSrc = arm('self.on_error(&[client, e]);');
+    if (rustTypedCaughtErrors(keptSrc) !== keptSrc) p.push('typed caught error: other use keeps Value');
+    const ins = arm('m.insert("error".into(), e.clone());');
+    if (rustTypedCaughtErrors(ins) !== ins) p.push('typed caught error: stored keeps Value');
+    const msg = rustTypedCaughtErrors(arm('panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", "x", self.exception_message(e, &[]))));'));
+    if (!msg.includes('CaughtError::from_panic') || !msg.includes('self.exception_message(e, &[])')) p.push('typed caught error: exception_message');
+    return p;
+}
+
 // ---- narrow str locals ----
 // `safe_string*` locals narrowed to a native `String` / `Option<String>`.
 // Text passes over the final Rust; neither touches `this`.
@@ -11398,6 +11463,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustVecPushInline(rustContent);
                 // And `instanceof <errorClass>` whose class has no subclass.
                 rustContent = this.rewriteNativeErrorClassChecks(rustContent);
+                // A catch binding read only as an error object is a typed `CaughtError`.
+                rustContent = rustTypedCaughtErrors(rustContent);
                 // Last: a `.clone()` in a by-value slot whose local is dead
                 // afterwards moves instead of copying (B-32).
                 rustContent = this.dropDeadValueSlotClones(rustContent);
@@ -12227,6 +12294,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = arrOnlyVecPush(finalFile);
         finalFile = rustVecPushInline(finalFile);
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
+        finalFile = rustTypedCaughtErrors(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
         finalFile = this.rustNativeTruthAndEquality(finalFile);
@@ -14694,7 +14762,7 @@ function rustPassesSelfTest(): string[] {
     const problems: string[] = [];
     const lists: Record<string, () => string[]> = {
         nativeContainerOpsSelfTest, nativeBoolScalarsSelfTest, arrOnlyVecPushSelfTest, rustTypedLocalsSelfTest,
-        nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest, rustStringNativesSelfTest,
+        nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest, rustStringNativesSelfTest, rustTypedCaughtErrorsSelfTest,
     };
     for (const [name, fn] of Object.entries(lists)) for (const p of fn()) problems.push(`${name}: ${p}`);
     if (mapParamDispatchSelfTest() !== 0) problems.push('mapParamDispatchSelfTest');
