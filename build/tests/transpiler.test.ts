@@ -226,5 +226,7 @@ describe ('cs-84c6-callee-returns-for-awaited-and-parse-locals', () => {
         const kucoin = (transpiler as any).transpileCSharpByPath ('./ts/src/kucoin.ts').content as string;
         assert.match (kucoin, /public override List<object> parseMarketLeverageTiers\(/);
         assert.match (kucoin, /List<object> tiers = this\.parseMarketLeverageTiers\(data\);/);
+        const deepcoin = (transpiler as any).transpileCSharpByPath ('./ts/src/deepcoin.ts').content as string;
+        assert.match (deepcoin, /IDictionary<string, object> result = base\.setMarkets\(markets, currencies\);/);
     });
 });

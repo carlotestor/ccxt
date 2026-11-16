@@ -19357,6 +19357,8 @@ Object.assign (CSHARP_LOCAL_WS_MEMBER_TYPES, {
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'signPredictfunOrder': 'Dictionary<string, object>',
 });
+// hand-written BaseExchange properties read by the 84c6 return proofs (Exchange.Options.cs)
+const CSHARP_84C6_MEMBER_TYPES = {};
 // (84c6-C) base parseFundingRateHistories (declared once, no override): its only return is
 // `this.filterBySymbolSinceLimit (...)`, whose generated signature is IList<object>, so the
 // retyped signature needs no boundary cast and a `rates` local reads natively (Count / [i]).
@@ -19366,6 +19368,10 @@ const CSHARP_84C6_COLLECTION_RETURNS = {
     // returns its `List<object> tiers` local, a list literal (mexc) or gate's
     // parseEmulatedLeverageTiers (List<object>); per-NAME so overrides stay signature-compatible
     'parseMarketLeverageTiers': 'List<object>',
+    // (84c6-F) setMarkets: base returns `this.markets` (Exchange.Options.cs `public
+    // IDictionary<string, object> markets`), deepcoin returns its `result` copy of
+    // super.setMarkets, the prediction base its `stored` copy of the same call
+    'setMarkets': 'IDictionary<string, object>',
 };
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS, CSHARP_84C6_COLLECTION_RETURNS);
 for (const [ name, type ] of Object.entries (CSHARP_84C6_COLLECTION_RETURNS)) {
@@ -19379,6 +19385,7 @@ for (const [ name, type ] of Object.entries (CSHARP_84C6_COLLECTION_RETURNS)) {
 // declaration, the signature prints Task<List<object>> and `object accounts = await
 // this.loadAccounts ()` callers take List<object>.
 Object.assign (CSHARP_LOCAL_WS_MEMBER_TYPES, { 'accounts': 'List<object>' });
+Object.assign (CSHARP_84C6_MEMBER_TYPES, { 'accounts': 'List<object>', 'markets': 'IDictionary<string, object>' });
 Object.assign (CSHARP_AWAITED_CORE_RETURNS, { 'loadAccounts': 'List<object>' });
 Object.assign (CSHARP_LOCAL_AWAIT_RETURN_TYPES, { 'loadAccounts': 'List<object>' });
 // the return wrappers above skip the boundary cast when the printed expression's own static type
@@ -19386,7 +19393,7 @@ Object.assign (CSHARP_LOCAL_AWAIT_RETURN_TYPES, { 'loadAccounts': 'List<object>'
 // declared with that type (CSHARP_LOCAL_WS_MEMBER_TYPES), or a `this.<name> (...)` call whose
 // generated signature names it (callCollectionReturnType). Limited to the 84c6 names so no other
 // method's emitted text moves.
-const CSHARP_84C6_RETURN_OWNERS = new Set ([ 'parseFundingRateHistories', 'loadAccounts', 'parseMarketLeverageTiers' ]);
+const CSHARP_84C6_RETURN_OWNERS = new Set ([ 'parseFundingRateHistories', 'loadAccounts', 'parseMarketLeverageTiers', 'setMarkets' ]);
 function csharp84c6ReturnIsTyped (csharp, expression, mapped) {
     const owner = ts.findAncestor (expression, ts.isFunctionLike);
     if (!CSHARP_84C6_RETURN_OWNERS.has (owner?.name?.text)) {
@@ -19400,7 +19407,7 @@ function csharp84c6ReturnIsTyped (csharp, expression, mapped) {
         return localIdentifierType (csharp, node) === mapped;
     }
     if (node?.kind === ts.SyntaxKind.PropertyAccessExpression && node.expression?.kind === ts.SyntaxKind.ThisKeyword) {
-        return CSHARP_LOCAL_WS_MEMBER_TYPES[node.name?.text] === mapped;
+        return CSHARP_84C6_MEMBER_TYPES[node.name?.text] === mapped;
     }
     return node?.kind === ts.SyntaxKind.CallExpression && (callReturnType (csharp, node) === mapped || callCollectionReturnType (csharp, node) === mapped);
 }
