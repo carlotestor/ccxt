@@ -1181,15 +1181,15 @@ impl Backpack {
         }
         }
         let mut symboltimeframecandlesVariable = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(&query, &["stock", "source"], &[])]).await;
-        let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
+        let mut symbol: Option<String> = get_value(&symboltimeframecandlesVariable, &Value::Int(0)).as_str().map(str::to_owned);
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Option<crate::pro::cache::Cache> = get_value(&symboltimeframecandlesVariable, &Value::Int(2)).into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
+            limitResolved = candles.get_limit(symbol.as_deref(), limit.as_i64());
         }
         let mut filtered: crate::value::List = self.filter_by_since_limit(&candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
-        return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
+        return self.create_ohlcv_object(symbol.map(Value::from).unwrap_or(Value::Null), timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
     }

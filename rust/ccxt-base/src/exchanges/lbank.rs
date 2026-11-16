@@ -4394,25 +4394,25 @@ impl Lbank {
                         let mut i: i64 = 0;
             let mut __for_first_926: bool = true;
             while { if !__for_first_926 { i += 1; } __for_first_926 = false; i < (response.len() as i64) } {
-            let mut fee: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut canWithdraw: bool = self.safe_bool_k(fee.clone(), "canWithDraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut fee: crate::value::Dict = response.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut canWithdraw: bool = self.safe_bool_k(&fee, "canWithDraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if canWithdraw {
-                let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(fee.clone(), "assetCode", &[]), None);
+                let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&fee, "assetCode", &[]), None);
                 if (code.is_some()) && ((codes == Value::Null) || self.in_array(&code, codes.clone())) {
-                    let mut withdrawFee: Option<f64> = self.safe_number_k(fee.clone(), "fee", &[]).as_f64();
+                    let mut withdrawFee: Option<f64> = self.safe_number_k(&fee, "fee", &[]).as_f64();
                     if (withdrawFee.is_some()) {
                         let mut resultValue: Option<crate::value::Dict> = self.safe_dict(&result, Value::from(code.as_deref()), &[]).into_opt_dict();
                         if (resultValue.is_none()) {
-                            result.insert(code.as_deref().unwrap_or("null").to_string(), self.deposit_withdraw_fee(Value::from(vec![fee.clone()])));
+                            result.insert(code.as_deref().unwrap_or("null").to_string(), self.deposit_withdraw_fee(Value::from(vec![Value::from(&fee)])));
                         }  else {
-                            let mut infoList: crate::value::List = self.array_concat(crate::value::KeyRead::key_read(&&resultValue, "info"), Value::from(vec![fee.clone()])).into_list();
+                            let mut infoList: crate::value::List = self.array_concat(crate::value::KeyRead::key_read(&&resultValue, "info"), Value::from(vec![Value::from(&fee)])).into_list();
                             result.insert(code.as_deref().unwrap_or("null").to_string(), self.extend(resultValue, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Arr(infoList));
     m
 })]));
                         }
-                        let mut networkCode: Option<String> = self.network_id_to_code(&[self.safe_string_k(fee, "chain", &[]), Value::from(code.as_deref())]);
+                        let mut networkCode: Option<String> = self.network_id_to_code(&[self.safe_string_k(&fee, "chain", &[]), Value::from(code.as_deref())]);
                         if (networkCode.is_some()) {
                             let mut networkFees: indexmap::IndexMap<String, Value> = ({
                                 let mut m = indexmap::IndexMap::new();
