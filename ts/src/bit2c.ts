@@ -729,7 +729,7 @@ export default class bit2c extends Exchange {
         //
         let orderUnified: NullableDict = undefined;
         let isNewOrder = false;
-        const newOrder = this.safeValue (order, 'NewOrder');
+        const newOrder = this.safeDict (order, 'NewOrder');
         if (newOrder !== undefined) {
             orderUnified = newOrder;
             isNewOrder = true;
