@@ -209,3 +209,17 @@ describe ('ral-77c8-literal-right-add-chain', () => {
         assert.match (xt, /string\? param = \(\(string\)\(add\(add\(name, "@"\), listenKey\)\)\);/);
     });
 });
+
+describe ('ral-84c8-guarded-concat-string-locals', () => {
+    test('gate / kraken: a safeString local read as the left of a guarded concat prints string? with native uses', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const gate = (transpiler as any).transpileCSharpByPath ('./ts/src/gate.ts').content as string;
+        assert.match (gate, /string\? price = this\.safeString\(paramsPaginate, "price"\);/);
+        assert.match (gate, /bool isMark = \(price == "mark"\);/);
+        assert.match (gate, /request\["contract"\] = \(price == null \? null : price \+ "_" \+ /);
+        const kraken = (transpiler as any).transpileCSharpByPath ('./ts/src/kraken.ts').content as string;
+        assert.match (kraken, /string\? part4 = this\.safeString\(parts, 4\);/);
+        assert.doesNotMatch (kraken, /object part4 = /);
+    });
+});

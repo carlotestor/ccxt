@@ -6344,6 +6344,9 @@ function isProvablyStringOperand (csharp, node) {
         // binding localIdentifierType() proves, so the enclosing add() resolves to
         // add(string, *) exactly as it does for the arm of a `c ? local : ...`; a parameter
         // the emitted signature narrows to `string` reads the same way
+        if (guardedConcatReads.has (node)) {
+            return false; // ral-84c8: printed as the `((object)(x == null ? null : ...))` box
+        }
         return isStringLocalRead (csharp, node) || (parameterArithmeticType (csharp, node) === 'string');
     case ts.SyntaxKind.CallExpression: {
         // `<receiver>.toString ()` prints `((object)<receiver>).ToString ()` whatever the
@@ -7413,7 +7416,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // cannot arise there.
             if (isString && isLeftPlusOperand (n)) {
                 if (!stringPlusOperandIsProvablyString (csharp, n, csharpType, context)
-                        && !stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, varName, n, csharpType, context)) {
+                        && !stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, varName, n, csharpType, context)
+                        && !guardedConcatLeftUse (csharp, n, csharpType, { declaration, context })) {
                     return false;
                 }
             }
@@ -10903,6 +10907,119 @@ function literalIsNeverNumeric (text) {
     return true;
 }
 
+// ===== ral-84c8: `string?` local as the LEFT of a guarded `+` chain =====
+// A `string?` local read as the left of `x + r1 + r2` (a plain `+`, never `+=`) whose right
+// operands have no side effects is printed by the printer's guarded form
+// `((object)(x == null ? null : x + r1 + ...))` (csharpObjectStringConcat, reached through the
+// csharpGuardedStringConcatLocal hook below). add(object, object) of a string-or-null box IS that
+// expression: null left -> null, string left -> `(string)x + (string)r` (a right the printer does
+// not prove a string is spelled `(string)(object)(r)`, the same cast and the same throw). So the
+// declaration may name `string?` and the read keeps its old value; the native concat rules (which
+// answer the RIGHT operand for a null left) are not used for such a read.
+function guardedConcatSpineRights (n) {
+    let current = n;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const rights = [];
+    while (current.parent?.kind === ts.SyntaxKind.BinaryExpression && current.parent.left === current
+            && current.parent.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        rights.push (current.parent.right);
+        current = current.parent;
+        while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            current = current.parent;
+        }
+    }
+    return rights;
+}
+
+function guardedConcatLeftUse (csharp, n, csharpType, scan) {
+    if (scan !== undefined && nonNullStringDefaultCall (csharp, scan.declaration.initializer, scan.context)) {
+        return false; // the stronger non-null `string` retry owns these (same gate as stringPlusOperandIsNonNullAtUse)
+    }
+    if (csharpType !== 'string?' || typeof csharp.csharpGuardedStringConcatLocal !== 'function'
+            || typeof csharp.csharpObjectStringConcat !== 'function' || typeof csharp.csharpEvaluationHasEffects !== 'function') {
+        return false;
+    }
+    if (n.kind !== ts.SyntaxKind.Identifier || n.parent?.kind !== ts.SyntaxKind.BinaryExpression || n.parent.left !== n
+            || n.parent.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return false;
+    }
+    if (scan !== undefined) {
+        // only a declaration that prints with no cast: its initializer is already a string-or-null call
+        const own = (scan.declaration.initializer?.kind === ts.SyntaxKind.CallExpression) ? callReturnType (csharp, scan.declaration.initializer) : undefined;
+        if (own !== 'string?' && own !== 'string') {
+            return false;
+        }
+    }
+    const rights = guardedConcatSpineRights (n);
+    const ok = rights.length > 0 && rights.every ((right) => !csharp.csharpEvaluationHasEffects (right));
+    if (ok && scan !== undefined) {
+        guardedConcatReads.add (n);
+    }
+    return ok;
+}
+
+// reads the retype scan accepted ONLY through guardedConcatLeftUse (every other proof refused)
+const guardedConcatReads = new WeakSet ();
+
+// the printer hook: a read whose declaration this module emits `string?` and whose `+` only the
+// guarded form keeps value-identical (same three proofs the retype scan asked, in the same order)
+function guardedConcatLocalRead (csharp, identifier) {
+    if (identifier?.kind !== ts.SyntaxKind.Identifier || !guardedConcatReads.has (identifier)) {
+        return false;
+    }
+    const declaration = resolveReference (csharp, identifier);
+    return declaration?.kind === ts.SyntaxKind.VariableDeclaration && retypedDeclarationTypes.get (declaration) === 'string?';
+}
+
+function guardedConcatLocalReadSafe (csharp, identifier) {
+    try {
+        return guardedConcatLocalRead (csharp, identifier);
+    } catch (e) {
+        return false;
+    }
+}
+
+function installCsharpGuardedConcatLocals (csharp) {
+    if (typeof csharp.csharpGuardedStringConcatLocal !== 'function' || csharp._guardedConcatLocalsPatched) {
+        return;
+    }
+    csharp.csharpGuardedStringConcatLocal = (identifier) => {
+        try {
+            return guardedConcatLocalRead (csharp, identifier);
+        } catch (e) {
+            return false;
+        }
+    };
+    csharp._guardedConcatLocalsPatched = true;
+}
+
+// installed at the end of installCsharpNonNullConcat (the last installer): the native-arithmetic / non-null-concat wrappers
+// installed after the local-types module run before the printer's own `+` branch, so the guarded
+// spelling of such a read is decided here, ahead of all of them
+function installCsharpGuardedConcatReads (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || csharp._guardedConcatReadsPatched || typeof csharp.printCustomBinaryExpressionIfAny !== 'function'
+            || typeof csharp.csharpPlusSpine !== 'function' || typeof csharp.csharpObjectStringConcat !== 'function') {
+        return;
+    }
+    const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        if (node?.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken?.kind === ts.SyntaxKind.PlusToken) {
+            const spine = csharp.csharpPlusSpine (node);
+            if (spine !== undefined && spine.base?.kind === ts.SyntaxKind.Identifier && csharp.csharpGuardedStringConcatLocal (spine.base)) {
+                const guarded = csharp.csharpObjectStringConcat (spine.base, spine.rights);
+                if (typeof guarded === 'string' && guarded.startsWith ('((object)(') && guarded.endsWith ('))')) {
+                    return guarded.slice ('((object)'.length, -1);
+                }
+            }
+        }
+        return upstream (node, identation);
+    };
+    csharp._guardedConcatReadsPatched = true;
+}
+
 function literalRightAddChainLocal (csharp, declaration, context) {
     if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1) {
         return undefined;
@@ -14330,6 +14447,7 @@ export function installCsharpLocalTypes (transpiler) {
     // installCsharpDictInOp); installed after the rewrite wrapper so it records the final line
     installCsharpDictInOp (csharp);
     installCsharpNullableInOpKeyGuard (csharp);
+    installCsharpGuardedConcatLocals (csharp);
     csharp._localTypesPatched = true;
     // the declared-type record has to wrap the rewrite above: it reads the line this
     // module actually emits, not the printer's `object ... = ` it replaced
@@ -18875,6 +18993,7 @@ export function installCsharpNonNullConcat (transpiler) {
         return upstreamBinary (node, identation);
     };
     csharp._nonNullConcatPatched = true;
+    installCsharpGuardedConcatReads (transpiler);
 }
 
 // ===== TS annotations -> C# return / string-parameter types =====
