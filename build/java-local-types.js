@@ -2127,6 +2127,10 @@ const VENUE_RETURN_KINDS = {
     'getMarketFromClientAndMessage': [ JAVA_ARRAY_TYPE_MAP () ],
     // `: Dict` returning this.omit (map, keys), which binds the Map overload
     'handleRouteAndParams': [ JAVA_ARRAY_TYPE_MAP () ],
+    // ral-87j5: annotated `: string` / `: string[]` with no other declaration in ts/src; every return is a
+    // string read / replace / string literal (pro binance) or a safeList read / own string[] accumulator
+    'getStockWsUrl': [ 'String' ], 'getAccountTypeFromSubscriptions': [ 'String' ],
+    'getSettlementCurrencies': [ 'java.util.List<Object>' ], 'findMessageHashes': [ 'java.util.List<Object>' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
