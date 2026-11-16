@@ -20004,6 +20004,27 @@ function r77j2IdentifierType (printer, identifier) {
     }
 }
 
+// a read of an unwritten parameter / const local that a test or an exiting `if` proves non-null
+function r77j2GuardedRead (printer, identifier) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isIdentifier (declaration.name) || typeof printer.javaNullGuardAdmitsRead !== 'function') {
+        return false;
+    }
+    const unwritten = ts.isParameterDeclaration (declaration) ? !parameterIsWritten (declaration)
+        : (ts.isVariableDeclaration (declaration) && ts.isVariableDeclarationList (declaration.parent)
+            && (declaration.parent.flags & ts.NodeFlags.Const) !== 0);
+    try {
+        return unwritten && printer.javaNullGuardAdmitsRead (identifier) === true;
+    } catch (e) {
+        return false;
+    }
+}
+
 // one leaf arm: { kind: 'null' } | { kind: 'int' } (an int literal / Integer read, promotable) |
 // { kind: 'typed', cast } (prints a `type` box, or Object when cast), else undefined
 function r77j2Leaf (printer, node, declaration, type) {
@@ -20022,10 +20043,12 @@ function r77j2Leaf (printer, node, declaration, type) {
             return undefined; // a self read in the initializer is not a value
         }
         const declared = r77j2IdentifierType (printer, value);
+        // an unboxed read is only safe where a guard proves the binding non-null
+        const nonNull = r77j2GuardedRead (printer, value);
         if (declared === type) {
-            return { kind: 'typed', cast: false };
+            return { kind: 'typed', cast: false, nonNull };
         }
-        return declared === 'Integer' && (type === 'Long' || type === 'Double') ? { kind: 'int' } : undefined;
+        return declared === 'Integer' && nonNull && (type === 'Long' || type === 'Double') ? { kind: 'int' } : undefined;
     }
     if (type === 'Long' || type === 'Double') {
         let native;
@@ -20035,7 +20058,7 @@ function r77j2Leaf (printer, node, declaration, type) {
             native = undefined;
         }
         if (native === type) {
-            return { kind: 'typed', cast: false };
+            return { kind: 'typed', cast: false, nonNull: true }; // a primitive long/double
         }
         if (ts.isBinaryExpression (value)) {
             return undefined; // Helpers.add/subtract/.. print Object
@@ -20085,15 +20108,16 @@ function r77j2Value (printer, node, declaration, type, depth = 0) {
         if (other.kind === 'int') {
             return undefined; // int/Integer on both sides is an Integer conditional
         }
-        if (other.kind !== 'typed' || other.cast) {
-            return undefined; // a reference conditional would box the int arm as Integer
+        if (other.kind !== 'typed' || other.cast || other.nonNull !== true) {
+            // a reference arm would box the int as Integer; a nullable box would be unboxed (NPE)
+            return undefined;
         }
-        return { kind: 'typed', cast: false };
+        return { kind: 'typed', cast: false, nonNull: true };
     }
     if (a.kind === 'null' && b.kind === 'null') {
         return { kind: 'null' };
     }
-    return { kind: 'typed', cast: (a.cast === true) || (b.cast === true) };
+    return { kind: 'typed', cast: (a.cast === true) || (b.cast === true), nonNull: a.nonNull === true && b.nonNull === true };
 }
 
 function r77j2Local (printer, declaration) {
