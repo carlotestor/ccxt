@@ -707,7 +707,7 @@ public partial class extended : Exchange
         double? maxCost = this.safeNumber(tradingConfig, "maxLimitOrderValue");
         Int64? created = this.safeInteger(market, "createdAt");
         string? category = this.safeStringLower(market, "category");
-        IDictionary<string, object> takerFees = ((IDictionary<string, object>)((category == "rwa") ? this.safeDict(this.fees, "rwa", new Dictionary<string, object>() {}) : this.fees));
+        object takerFees = (category == "rwa") ? this.safeDict(this.fees, "rwa", new Dictionary<string, object>() {}) : this.fees;
         string? settleId = null;
         string? settle = null;
         string symbol = ((bs + "/") + quote);

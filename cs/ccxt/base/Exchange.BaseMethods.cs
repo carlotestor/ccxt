@@ -6501,7 +6501,7 @@ public partial class BaseExchange
             rates.Add(this.parseFundingRateHistory(entry, market));
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        string? symbol = ((string)(((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null)));
+        object symbol = ((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
@@ -6545,7 +6545,7 @@ public partial class BaseExchange
             rates.Add(this.parseLongShortRatio(entry, market));
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        string? symbol = ((string)(((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null)));
+        object symbol = ((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 

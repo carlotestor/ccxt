@@ -2348,7 +2348,7 @@ public partial class aster : ccxt.aster
             { "executionReport", this.handleOrderUpdate },
             { "ORDER_TRADE_UPDATE", this.handleOrderUpdate },
         };
-        Delegate method = ((Delegate)(((eventVar == null)) ? null : this.safeValue(methods, eventVar)));
+        object method = ((eventVar == null)) ? null : this.safeValue(methods, eventVar);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, messageInner});

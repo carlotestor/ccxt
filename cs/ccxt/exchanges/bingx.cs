@@ -7311,7 +7311,7 @@ public partial class bingx : Exchange
         //         "makerCommissionRate": 0.001
         //     }
         //
-        string? symbol = ((string)(((market != null)) ? (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) : null));
+        object symbol = ((market != null)) ? (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) : null;
         return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", symbol },
