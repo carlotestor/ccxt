@@ -12718,7 +12718,9 @@ export function copyLocalSnippetChecks84c5 (): string[] {
         const out: string = (transpiler as any).transpileCSharp (pre + body + '\n}').content;
         if (!out.includes (expected)) { problems.push (`84c5 copy locals: ${name}: ${out.replace (/\n/g, ' | ').slice (0, 300)}`); }
     };
-    check ('copy of the typed params bag with an omit write', 'async fetchBalance (params = {}) { let q = params; if (q) { q = this.omit (params, "x"); } return this.safeString (q, "a"); }', 'IDictionary<string, object> q = parameters;');
+    check ('copy of the typed params bag with an omit write', 'async fetchBalance (params = {}) { let q = params; if (q) { q = this.omit (q, "x"); } return this.safeString (q, "a"); }', 'IDictionary<string, object> q = parameters;');
+    check ('copy of the typed params bag with an element write', 'async fetchBalance (params = {}) { const q = params; q["a"] = 1; return q; }', 'IDictionary<string, object> q = parameters;');
+    check ('copy of the typed params bag with only helper uses keeps object', 'async fetchBalance (params = {}) { let q = params; q = this.omit (params, "x"); return this.extend ({}, q); }', 'object q = parameters;');
     check ('params bag of an unlisted method keeps object', 'async fooBar (params = {}) { let q = params; return this.safeString (q, "a"); }', 'object q = parameters;');
     check ('written params bag keeps object', 'async fetchBalance (params = {}) { params = this.omit (params, "y"); let q = params; return this.safeString (q, "a"); }', 'object q = parameters;');
     return problems;

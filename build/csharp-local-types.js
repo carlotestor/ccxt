@@ -19364,3 +19364,45 @@ coreParameterCopyReadType = function (csharp, scope, identifier) {
     return c84UpstreamCoreParameterCopyReadType (csharp, scope, identifier) ?? dictParamsCopyReadType (csharp, scope, identifier);
 };
 
+// (R1 guard) the copy is typed only when the type buys a native operation: a use as the receiver of
+// `this.omit (q, k)` (binds the IDictionary overload, no IList pass-through test), an element read /
+// write `q[k]` (the indexer instead of getValue / the interface cast) or `k in q` (ContainsKey). A
+// copy whose every use is an `object`-taking helper argument keeps `object` (a declaration-only type).
+function dictParamsCopyHasNativeUse (csharp, scope, declaration) {
+    const name = declaration.name?.text;
+    for (const n of (indexScope (csharp, scope).identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        let use = n;
+        while (use.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            use = use.parent;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use) {
+            return true;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.right === use && parent.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            return true;
+        }
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.arguments.length === 2
+                && omitCallReceiver (parent) === use) {
+            return true;
+        }
+    }
+    return false;
+}
+const c84UpstreamLocalDeclaration = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = c84UpstreamLocalDeclaration (csharp, declaration, context);
+    const init = (info === undefined) ? undefined : stripParens (declaration.initializer);
+    if (init?.kind !== ts.SyntaxKind.Identifier) {
+        return info;
+    }
+    const scope = (context?.scope) ?? enclosingFunction (declaration);
+    if (dictParamsCopyReadType (csharp, scope, init) === undefined || c84UpstreamCoreParameterCopyReadType (csharp, scope, init) !== undefined) {
+        return info;
+    }
+    return dictParamsCopyHasNativeUse (csharp, scope, declaration) ? info : undefined;
+};
