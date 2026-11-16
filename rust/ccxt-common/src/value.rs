@@ -2030,6 +2030,26 @@ fn book_cache_at(id: i64, i: usize) -> Value {
     store_op(move |s| s.books.get(&id).and_then(|b| b.cache.get(i).cloned()).unwrap_or(Value::Null))
 }
 
+/// ral-66c: a copy of a book's delta buffer, as the JS `const messages = book.cache` holds the array itself:
+/// a later `book.cache = []` replaces the buffer and leaves the copy as it was. A non-book reads `[]`.
+pub(crate) fn book_cache_items(v: &Value) -> Vec<Value> {
+    match v {
+        Value::Dict(m) => match book_id_of(m) {
+            Some(id) => store_op(move |s| s.books.get(&id).map(|b| b.cache.clone()).unwrap_or_default()),
+            None => Vec::new(),
+        },
+        _ => Vec::new(),
+    }
+}
+
+/// ral-66c: `book.cache.push(v)` on a book: appends to the shared delta buffer (a non-book ignores it, as the
+/// boxed `append_to_object_array` route did for a book marker).
+pub(crate) fn book_cache_append(v: &Value, item: Value) {
+    if let Value::Dict(m) = v {
+        if let Some(id) = book_id_of(m) { book_cache_push(id, item); }
+    }
+}
+
 /// Replace a book's cache contents (from `book.cache = [...]`, usually to clear).
 pub(crate) fn book_cache_set(id: i64, items: Vec<Value>) {
     store_op(move |s| { s.books.entry(id).or_default().cache = items; });
