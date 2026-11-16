@@ -1107,7 +1107,7 @@ public partial class toobit : ccxt.toobit
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object trade = this.parseMyTrade(message);
+        IDictionary<string, object> trade = ((IDictionary<string, object>)this.parseMyTrade(message));
         myTrades.append(trade);
         string messageHash = ("myTrades:" + this.safeString(trade, "symbol", ""));
         client.resolve(myTrades, messageHash);

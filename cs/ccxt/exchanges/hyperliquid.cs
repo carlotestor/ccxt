@@ -1825,8 +1825,8 @@ public partial class hyperliquid : Exchange
     public virtual object actionHash(object action, object vaultAddress, object nonce, object expiresAfter = null)
     {
         byte[] dataBinary = this.packb(action);
-        object dataHex = this.binaryToBase16(dataBinary);
-        object data = (dataHex == null ? null : dataHex + "00000" + this.intToBase16(nonce));
+        string dataHex = this.binaryToBase16(dataBinary);
+        object data = ((dataHex + "00000") + this.intToBase16(nonce));
         if ((vaultAddress == null))
         {
             data = ((object)(data == null ? null : data + "00"));
@@ -4814,13 +4814,13 @@ public partial class hyperliquid : Exchange
             {
                 throw new NotSupported ((this.id + " transfer() only support spot <> swap transfer")) ;
             }
-            object strAmount = this.numberToString(amount);
+            string strAmount = this.numberToString(amount);
             string? vaultAddressRaw = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
             if ((vaultAddressRaw != null))
             {
-                strAmount = ((object)(strAmount == null ? null : strAmount + " subaccount:" + this.formatVaultAddress(vaultAddressRaw)));
+                strAmount = ((strAmount + " subaccount:") + this.formatVaultAddress(vaultAddressRaw));
             }
-            object strAmountFinal = strAmount; // java req
+            string strAmountFinal = strAmount; // java req
             bool toPerp = ((toAccount == "perp")) || ((toAccount == "swap"));
             Dictionary<string, object> transferPayload = new Dictionary<string, object>() {
                 { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },

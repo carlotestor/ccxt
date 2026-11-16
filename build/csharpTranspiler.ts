@@ -8650,7 +8650,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...nonNullStringCallSnippetChecks84c7 () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12703,5 +12703,27 @@ export function helperReturnLocalsSnippetChecks (): string[] {
     // a Sig builder whose return path is not a proven dict keeps object, and so does its caller
     const kept = print ('buildSendAssetSig (m: Dict): Dict { return m; }\n g (p) { const sig = this.buildSendAssetSig (p); return this.hash (sig, 1, 1); }');
     if (!kept.includes ('object sig = this.buildSendAssetSig(p);')) problems.push (`77c7 helper-return locals: unproven builder retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// ral-84c7: locals initialised by a helper whose result is a non-null string print `string` and
+// their `+` reads print the native concatenation (no null-guarded object concat)
+export function nonNullStringCallSnippetChecks84c7 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const print = (body: string) => (transpiler as any).transpileCSharp ('class Test {\n binaryToBase16 (b) { return \'\'; }\n hash (a, b, c) { return a; }\n' + body + '\n}').content as string;
+    const cases: [string, string, string][] = [
+        [ 'binaryToBase16 -> string', 'f (m) { const h = this.binaryToBase16 (m); const d = h + \'00\'; return this.hash (d, 1, 1); }', 'string d = (h + \"00\");' ],
+        [ 'same-file literal-concat helper', 'chan (id: string, deltas: boolean = false): string { if (deltas) { return \'book.\' + id + \'.d\'; } return \'book.\' + id; }\n g (id) { const c = this.chan (id, true); const k = c + \':requested\'; return this.hash (k, 1, 1); }', 'string c = this.chan(id, true);' ],
+    ];
+    for (const [ name, body, expected ] of cases) {
+        const out = print (body);
+        if (!out.includes (expected)) problems.push (`84c7 non-null string call locals: ${name}: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    }
+    // a helper with a non-literal return path keeps object
+    const kept = print ('chan (id) { if (id) { return \'a\'; } return id; }\n g (id) { const c = this.chan (id); const k = c + \':r\'; return this.hash (k, 1, 1); }');
+    if (!kept.includes ('object c = this.chan(id);')) problems.push (`84c7 non-null string call locals: unproven helper retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }

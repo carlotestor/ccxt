@@ -3592,8 +3592,8 @@ public partial class deepcoin : Exchange
         {
             this.checkRequiredCredentials();
             Int64 timestamp = this.milliseconds();
-            object dateTime = this.iso8601(timestamp);
-            object payload = (dateTime == null ? null : dateTime + (string)(object)(method) + "/" + requestPath);
+            string dateTime = this.iso8601(timestamp);
+            string payload = (((dateTime + method) + "/") + requestPath);
             Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "DC-ACCESS-KEY", this.apiKey },
                 { "DC-ACCESS-TIMESTAMP", dateTime },
@@ -3605,7 +3605,7 @@ public partial class deepcoin : Exchange
             {
                 requestBody = this.json(parameters);
                 privateHeaders["Content-Type"] = "application/json";
-                payload = ((object)(payload == null ? null : payload + requestBody));
+                payload = payload + requestBody;
             }
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             privateHeaders["DC-ACCESS-SIGN"] = signature;

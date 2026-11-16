@@ -5058,11 +5058,11 @@ public partial class weex : Exchange
                 throw new NotSupported ((((this.id + " ") + path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
-            object timestamp = this.numberToString(this.nonce());
-            object payload = (timestamp == null ? null : timestamp + (string)(object)(method) + "/" + (string)(object)(endpoint));
+            string timestamp = this.numberToString(this.nonce());
+            string payload = (((timestamp + method) + "/") + (endpoint));
             if (hasJsonBody)
             {
-                payload = ((object)(payload == null ? null : payload + requestBody));
+                payload = payload + requestBody;
             }
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             requestHeaders = new Dictionary<string, object>() {

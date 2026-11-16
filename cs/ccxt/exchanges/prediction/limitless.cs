@@ -3664,9 +3664,9 @@ public partial class limitless : PredictionExchange
                 }, headersValue);
             }
             this.checkRequiredCredentials();
-            object timestamp = this.iso8601(this.milliseconds());
+            string timestamp = this.iso8601(this.milliseconds());
             string newline = "\n"; // eslint-disable-line quotes
-            string? payload = ((string)((object)(timestamp == null ? null : timestamp + newline + (string)(object)(method) + newline + (string)(object)(url) + newline + bodyString)));
+            string payload = ((((((timestamp + newline) + method) + newline) + (url)) + newline) + bodyString);
             string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
             headersValue = this.extend(headersValue, new Dictionary<string, object>() {
                 { "lmts-timestamp", timestamp },

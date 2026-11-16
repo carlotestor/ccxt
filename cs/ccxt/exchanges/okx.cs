@@ -8282,26 +8282,26 @@ public partial class okx : Exchange
             }
             hasJsonBody = ((method != "GET")) && (isArray || (!this.isEmpty(query)));
             jsonBody = hasJsonBody ? this.json(query) : null;
-            object timestamp = this.iso8601(this.nonce());
+            string timestamp = this.iso8601(this.nonce());
             privateHeaders = new Dictionary<string, object>() {
                 { "OK-ACCESS-KEY", this.apiKey },
                 { "OK-ACCESS-PASSPHRASE", this.password },
                 { "OK-ACCESS-TIMESTAMP", timestamp },
             };
-            object auth = (timestamp == null ? null : timestamp + (string)(object)(method) + request);
+            string auth = ((timestamp + method) + request);
             if ((method == "GET"))
             {
                 if (!this.isEmpty(query))
                 {
                     string urlencodedQuery = ("?" + this.urlencode(query));
                     url = url + urlencodedQuery;
-                    auth = ((object)(auth == null ? null : auth + urlencodedQuery));
+                    auth = auth + urlencodedQuery;
                 }
             } else
             {
                 if (hasJsonBody)
                 {
-                    auth = ((object)(auth == null ? null : auth + jsonBody));
+                    auth = auth + jsonBody;
                 }
                 privateHeaders["Content-Type"] = "application/json";
             }

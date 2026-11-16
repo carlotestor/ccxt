@@ -14765,12 +14765,12 @@ public partial class bitget : Exchange
         if (signed)
         {
             this.checkRequiredCredentials();
-            object timestamp = this.numberToString(this.nonce());
-            object auth = (timestamp == null ? null : timestamp + (string)(object)(method) + payload);
+            string timestamp = this.numberToString(this.nonce());
+            string auth = ((timestamp + method) + payload);
             if ((method == "POST"))
             {
                 requestBody = this.json(parameters);
-                auth = ((object)(auth == null ? null : auth + requestBody));
+                auth = auth + requestBody;
             } else
             {
                 if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -14787,7 +14787,7 @@ public partial class bitget : Exchange
                     // signature must use the decoded values (e.g. non-ascii market ids).
                     // sort explicitly (true) so the signed order matches the url order in Go,
                     // where map iteration is not ordered (keysort's order is otherwise lost)
-                    auth = ((object)(auth == null ? null : auth + (string)(object)(("?" + this.rawencode(sortedParams, true)))));
+                    auth = auth + ("?" + this.rawencode(sortedParams, true));
                 }
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");

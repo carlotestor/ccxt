@@ -2877,8 +2877,8 @@ public partial class polymarket : PredictionExchange
         // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         // simple identifier) picks it up instead of leaking a padStart() function call
         string lenHex = (ctLenHex as String).PadLeft(Convert.ToInt32(4), Convert.ToChar("0"));
-        object orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
-        string wrappedSignature = ((((("0x" + innerSig) + this.remove0xPrefix(appDomainSep)) + this.remove0xPrefix(contentsHash)) + (orderTypeStringHex)) + lenHex);
+        string orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
+        string wrappedSignature = ((((("0x" + innerSig) + this.remove0xPrefix(appDomainSep)) + this.remove0xPrefix(contentsHash)) + orderTypeStringHex) + lenHex);
         // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
         // uppercase hex in some targets); the signature is case-insensitive bytes
         return wrappedSignature.ToLower();
