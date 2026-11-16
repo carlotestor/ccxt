@@ -2477,10 +2477,7 @@ export default class upbit extends Exchange {
             const token = jwt (request, this.encode (this.secret), sha256);
             headers['Authorization'] = 'Bearer ' + token;
         }
-        if (apiName === 'private') {
-            return { 'url': url, 'method': method, 'body': requestBody, 'headers': headers };
-        }
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': undefined };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': (apiName === 'private') ? headers : undefined };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
