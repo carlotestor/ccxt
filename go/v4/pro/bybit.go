@@ -1217,13 +1217,13 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	for i := 0; i < len(data); i++ {
 		var parsed any = this.ParseWsOHLCV(data[i], market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash string = "ohlcv::" + *symbol + "::" + *timeframe
 	var resolveData []any = []any{symbol, timeframe, stored}

@@ -596,9 +596,9 @@ func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -607,11 +607,11 @@ func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
-	var ohlcvCache any
+	var ohlcvCache ccxt.WsArrayCache
 	if symbol != nil {
-		ohlcvCache = this.Ohlcvs[*symbol][*timeframe]
+		ohlcvCache, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
-	ohlcvCache.(ccxt.Appender).Append(parsed)
+	ohlcvCache.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(ohlcvCache, topic)
 }
 

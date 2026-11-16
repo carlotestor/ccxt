@@ -1449,7 +1449,8 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	// fill the existing cache when there is one: replacing it would orphan
 	// consumers holding a reference to the old cache (they would never see
 	// candles appended after a re-subscription)
-	var stored any = this.Ohlcvs[symbol]["unknown"]
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[symbol]["unknown"].(ccxt.WsArrayCache)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -1460,7 +1461,7 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	var sorted []any = this.SortBy(data, 0)
 	for i := 0; i < len(sorted); i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ccxt.DerefScalar(sorted[i]), market))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1498,8 +1499,9 @@ func (this *Cex) HandleOHLCV1m(client any, message map[string]any) {
 	}
 	var messageHash string = "ohlcv:" + symbol
 	var ohlcv []any = []any{this.SafeTimestamp(data, "time"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
-	var stored any = this.Ohlcvs[symbol]["unknown"]
-	stored.(ccxt.Appender).Append(ohlcv)
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[symbol]["unknown"].(ccxt.WsArrayCache)
+	stored.Append(ohlcv)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Cex) HandleOHLCV(client any, message map[string]any) {
@@ -1520,10 +1522,11 @@ func (this *Cex) HandleOHLCV(client any, message map[string]any) {
 	}
 	var messageHash string = "ohlcv:" + symbol
 	// const stored = this.safeValue (this.ohlcvs, symbol)
-	var stored any = this.Ohlcvs[symbol]["unknown"]
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[symbol]["unknown"].(ccxt.WsArrayCache)
 	for i := 0; i < len(data); i++ {
 		var ohlcv []any = []any{this.SafeTimestamp(data[i], 0), this.SafeNumber(data[i], 1), this.SafeNumber(data[i], 2), this.SafeNumber(data[i], 3), this.SafeNumber(data[i], 4), this.SafeNumber(data[i], 5)}
-		stored.(ccxt.Appender).Append(ohlcv)
+		stored.Append(ohlcv)
 	}
 	var dataLength int = len(data)
 	if dataLength > 0 {

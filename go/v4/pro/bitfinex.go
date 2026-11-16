@@ -403,9 +403,9 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -417,7 +417,7 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	var ohlcvsLength int = ccxt.GetArrayLength(ohlcvs)
 	for i := 0; i < ohlcvsLength; i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeList(ohlcvs, (ohlcvsLength-i)-1), market))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }

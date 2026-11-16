@@ -247,13 +247,13 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 		var request map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		var timeframeId *string = this.SafeString(request, "granularity")
 		var timeframe *string = this.FindTimeframe(timeframeId)
-		var ohlcv any = this.SafeList(message, "price", []any{})
+		var ohlcv []any = ccxt.SafeListTypedDefault(message, "price", []any{})
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var stored any
+		var stored ccxt.WsArrayCache
 		if symbol != nil && timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
+			stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -262,7 +262,7 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 				this.Ohlcvs[*symbol][*timeframe] = stored
 			}
 		}
-		stored.(ccxt.Appender).Append(ohlcv)
+		stored.Append(ohlcv)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	} else if event == nil || *event != "subscribed" {
 		panic(ccxt.NotSupported(this.Id + " " + this.Json(message)))

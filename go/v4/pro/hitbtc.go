@@ -1265,9 +1265,9 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var stored any
+		var stored ccxt.WsArrayCache
 		if symbol != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
+			stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1280,7 +1280,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		var rawOhlcvs []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(rawOhlcvs); j++ {
 			var parsed any = this.ParseWsOHLCV(ccxt.DerefScalar(rawOhlcvs[j]), market)
-			stored.(ccxt.Appender).Append(parsed)
+			stored.Append(parsed)
 		}
 		var messageHash string = channel + "::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)

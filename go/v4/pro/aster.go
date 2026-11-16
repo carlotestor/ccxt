@@ -1817,12 +1817,12 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	var parsed any = this.ParseWsOHLCV(kline)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)

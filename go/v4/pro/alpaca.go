@@ -263,9 +263,9 @@ func (this *Alpaca) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil {
-		stored = this.Ohlcvs[*symbol]["1m"]
+		stored, _ = this.Ohlcvs[*symbol]["1m"].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -275,7 +275,7 @@ func (this *Alpaca) HandleOHLCV(client any, message map[string]any) {
 		}
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(message))
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var messageHash string = "ohlcv:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }

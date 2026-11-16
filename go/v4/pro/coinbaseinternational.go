@@ -1620,13 +1620,13 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]an
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var parsed any = this.ParseWsOHLCV(data, market)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var resolved []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolved, messageHash)
 }

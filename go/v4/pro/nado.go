@@ -2371,7 +2371,8 @@ func (this *Nado) HandleOHLCV(client any, message map[string]any) {
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any = this.Ohlcvs[*symbol][*timeframe]
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -2380,7 +2381,7 @@ func (this *Nado) HandleOHLCV(client any, message map[string]any) {
 		}
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(message, market))
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var messageHash string = "ohlcv:" + *timeframe + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, stored}, messageHash)
 }

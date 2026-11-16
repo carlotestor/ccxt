@@ -1616,9 +1616,9 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	if this.Ohlcvs[symbol] == nil {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[symbol][*timeframe]
+		stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1633,7 +1633,7 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 		baseVolumeIndex = 6 // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
 	}
 	var parsed []any = []any{this.SafeTimestamp(candles, 0), this.SafeNumber(candles, 1), this.SafeNumber(candles, 3), this.SafeNumber(candles, 4), this.SafeNumber(candles, 2), this.SafeNumber(candles, baseVolumeIndex)}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
@@ -1666,9 +1666,9 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	if this.Ohlcvs[symbol] == nil {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[symbol][*timeframe]
+		stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1678,7 +1678,7 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 		}
 	}
 	var parsed []any = []any{this.SafeIntegerProduct(data, "O", 1000), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 

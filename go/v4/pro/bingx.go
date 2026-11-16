@@ -1103,14 +1103,14 @@ func (this *Bingx) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && unifiedTimeframe != nil {
-		stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
+		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
 	for i := 0; i < len(candles); i++ {
 		var candle any = ccxt.GetValue(candles, i)
 		var parsed any = this.ParseWsOHLCV(candle, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
 	var messageHash string = this.GetMessageHash("ohlcv", symbol, unifiedTimeframe)

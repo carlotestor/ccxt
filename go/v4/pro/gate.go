@@ -1785,9 +1785,9 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var stored any
+		var stored ccxt.WsArrayCache
 		if symbol != nil && timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
+			stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1798,7 +1798,7 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 				}
 			}
 		}
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		ccxt.AddElementToObject(marketIds, symbol, timeframe)
 	}
 	var keys []string = nil
@@ -1813,9 +1813,9 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 		var timeframe any = marketIds[symbol]
 		var interval *string = this.FindTimeframe(timeframe)
 		var hash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("candles"+":", interval), ":"), symbol))
-		var symbolOhlcv any
+		var symbolOhlcv ccxt.WsArrayCache
 		if interval != nil {
-			symbolOhlcv = this.Ohlcvs[symbol][*interval]
+			symbolOhlcv, _ = this.Ohlcvs[symbol][*interval].(ccxt.WsArrayCache)
 		}
 		client.(ccxt.ClientInterface).Resolve(symbolOhlcv, hash)
 	}

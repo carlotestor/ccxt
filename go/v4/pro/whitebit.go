@@ -170,11 +170,11 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 				this.Ohlcvs[*symbol]["unknown"] = stored
 			}
 		}
-		var ohlcv any
+		var ohlcv ccxt.WsArrayCache
 		if symbol != nil {
-			ohlcv = this.Ohlcvs[*symbol]["unknown"]
+			ohlcv, _ = this.Ohlcvs[*symbol]["unknown"].(ccxt.WsArrayCache)
 		}
-		ohlcv.(ccxt.Appender).Append(parsed)
+		ohlcv.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 	}
 	return message

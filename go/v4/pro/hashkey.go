@@ -215,11 +215,12 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 		}
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var stored any = this.Ohlcvs[symbol][*timeframe]
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	for i := 0; i < len(data); i++ {
 		var candle map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var parsed any = this.ParseWsOHLCV(candle, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash string = "ohlcv:" + symbol + ":" + *timeframe
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

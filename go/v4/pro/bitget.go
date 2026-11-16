@@ -869,7 +869,8 @@ func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
-	var stored any = this.Ohlcvs[symbol][*timeframe]
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -880,7 +881,7 @@ func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var parsed any = this.ParseWsOHLCV(data[i], market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash string
 	if isUta {
