@@ -585,7 +585,7 @@ impl<V: RouterVenue> OrderRouter<V> {
         // Constructed through a temporary so the accessors — which are methods,
         // exactly as in the other five ports — are available while reading the
         // config that builds the real one.
-        let reader = OrderRouter {
+        let reader: Self = OrderRouter {
             api_key: String::new(),
             user_agent: String::new(),
             base_url: String::new(),
