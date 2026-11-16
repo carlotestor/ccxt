@@ -2973,8 +2973,8 @@ if _try_result.is_err() {
         let mut useTransfersEndpoint: bool = self.safe_bool_k(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if useTransfersEndpoint {
             let __ws_arg_9 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
-            let mut transfers: Value = self.internal_fetch_transfers(__ws_arg_9, &[crate::Value::from(currency.as_ref()), since.clone(), limit.clone()]).await;
-            let mut transactions: Value = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(transfers, "deposit", &[Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
+            let mut transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_9, &[crate::Value::from(currency.as_ref()), since.clone(), limit.clone()]).await.into_list();
+            let mut transactions: Value = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(&transfers, "deposit", &[Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
             return self.parse_transactions(transactions, currency.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
             let __ws_arg_10 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
@@ -3050,8 +3050,8 @@ if _try_result.is_err() {
         let mut useTransfersEndpoint: bool = self.safe_bool_k(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if useTransfersEndpoint {
             let __ws_arg_11 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
-            let mut transfers: Value = self.internal_fetch_transfers(__ws_arg_11, &[crate::Value::from(currency.as_ref()), since.clone(), limit.clone()]).await;
-            let mut transactions: Value = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(transfers, "withdrawal", &[Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
+            let mut transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_11, &[crate::Value::from(currency.as_ref()), since.clone(), limit.clone()]).await.into_list();
+            let mut transactions: Value = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(&transfers, "withdrawal", &[Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
             return self.parse_transactions(transactions, currency.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
             let __ws_arg_12 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
