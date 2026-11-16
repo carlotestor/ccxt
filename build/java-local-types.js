@@ -17648,6 +17648,9 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
     if (ts.isIdentifier (value)) {
         return value.text === declaration.name.text || javaOmitSourceIsMap (printer, value, 0) ? { cast: false } : undefined;
     }
+    if (javaUrlsApiRead (printer, value)) {
+        return { cast: true, needsElementRead: true }; // ral-84j5: `this.urls['api']`
+    }
     if (!ts.isCallExpression (value) || !isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
         return undefined;
     }
@@ -17683,6 +17686,42 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
     return undefined;
 }
 
+// ral-84j5: `this.urls['api']` (optionally `as Dict`): the base field `urls` is typed `{ api: Dict, .. }` in
+// ts/src/base/Exchange.ts and printed `Map<String, Object> urls`, so the read is a Map box (or null when a
+// venue's describe () leaves `api` out: the checkcast passes null). The local only moves the receiver cast
+// every `baseUrls['x']` read printed onto the declaration, so it is typed only with such a read.
+function javaUrlsApiRead (printer, node) {
+    let value = node;
+    while (value !== undefined && (ts.isParenthesizedExpression (value) || ts.isAsExpression (value))) {
+        if (ts.isAsExpression (value) && !(ts.isTypeReferenceNode (value.type) && ts.isIdentifier (value.type.typeName)
+            && value.type.typeName.text === 'Dict')) {
+            return false;
+        }
+        value = value.expression;
+    }
+    if (value === undefined || !ts.isElementAccessExpression (value) || !ts.isStringLiteral (value.argumentExpression)
+        || value.argumentExpression.text !== 'api' || !ts.isPropertyAccessExpression (value.expression)
+        || value.expression.expression.kind !== ts.SyntaxKind.ThisKeyword || value.expression.name.text !== 'urls') {
+        return false;
+    }
+    try {
+        const field = printer.getChecker ().getSymbolAtLocation (value.expression.name)?.valueDeclaration?.resolve ();
+        return field !== undefined && BASE_SOURCE_FILE.test (field.getSourceFile ().fileName);
+    } catch (e) {
+        return false;
+    }
+}
+
+function javaMapLocalHasElementRead (declaration) {
+    const scope = enclosingFunction (declaration);
+    return scope !== undefined && (identifierIndex (scope).get (declaration.name.text) ?? []).some ((n) => {
+        const host = unwrapParensUp (n);
+        const read = host.parent !== undefined && ts.isAsExpression (host.parent) ? unwrapParensUp (host.parent) : host;
+        return read.parent !== undefined && ts.isElementAccessExpression (read.parent) && read.parent.expression === read
+            && ts.isStringLiteral (read.parent.argumentExpression);
+    });
+}
+
 function javaMapLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
@@ -17690,7 +17729,7 @@ function javaMapLocal (printer, declaration) {
         return undefined;
     }
     const init = javaMapLocalValue (printer, declaration.initializer, declaration);
-    if (init === undefined) {
+    if (init === undefined || (init.needsElementRead === true && !javaMapLocalHasElementRead (declaration))) {
         return undefined;
     }
     const scope = enclosingFunction (declaration);

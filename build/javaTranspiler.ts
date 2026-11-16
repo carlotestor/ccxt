@@ -5857,10 +5857,12 @@ function javaR84j5CalleeReturnsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zz84j5selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
-        "import type { Strings } from './base/types.js';",
+        "import type { Strings, Dict } from './base/types.js';",
         `export default class zz84j5selftest${process.pid} extends Exchange {`,
         "    net (code: string, networkCode: string) { const request: any = {}; const nid = this.networkCodeToId (networkCode, code); if (nid !== undefined) { request['chain'] = nid.toUpperCase (); } return request; }",
         "    syms (symbols: Strings = undefined) { const sn: Strings = this.marketSymbols (symbols, undefined, false); const out = []; for (let i = 0; i < (sn as string[]).length; i++) { out.push (this.market ((sn as string[])[i])); } return out; }",
+        "    urlOf (g: string) { const bu = this.urls['api'] as Dict; return this.safeString (bu, g, bu['public']); }",
+        "    urlOnly (g: string) { const bu2 = this.urls['api'] as Dict; return this.safeString (bu2, g); }",
         '}',
     ].join('\n');
     try {
@@ -5871,6 +5873,9 @@ function javaR84j5CalleeReturnsSelfTest (): string[] {
         // `x as string[]` uses of a marketSymbols local: the List<String> local takes them as the identity
         if (!/List<String> sn = this\.marketSymbols\(/.test(out)) problems.push("ral-84j5: 'sn' (marketSymbols, used through `as string[]`) must print List<String>");
         if (/<\?>\)\(List<String>\)\(sn\)/.test(out)) problems.push("ral-84j5: '(sn as string[]).length' must print without the List<String> assertion cast");
+        // `this.urls['api']` locals read by a string key: Map local, native `.get`; with no element read they stay Object
+        if (!/(java\.util\.)?Map<String, Object> bu = \((java\.util\.)?Map<String, Object>\) this\.urls\.get\("api"\);/.test(out) || !/bu\.get\("public"\)/.test(out)) problems.push("ral-84j5: 'bu' (this.urls['api'] read by key) must print Map<String, Object> with a native .get");
+        if (!/Object bu2 = /.test(out)) problems.push("ral-84j5: 'bu2' (no element read) must stay Object");
     } catch (e: any) {
         problems.push(`ral-84j5 self-test threw: ${e.message}`);
     } finally {
