@@ -1052,7 +1052,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.microseconds())).into());
+            let mut nonce: String = format!("{}", self.microseconds());
             let mut timestamp: Value = Value::Str(format!("{}", self.get_timestamp()).into());
             let mut headers: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1064,7 +1064,7 @@ impl crate::exchange::DerivedExchange for Bullish {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("BX-TIMESTAMP".to_string(), timestamp.clone());
-                        m.insert("BX-NONCE".to_string(), nonce.clone());
+                        m.insert("BX-NONCE".to_string(), Value::from(nonce.as_str()));
                         m.insert("BX-SIGNATURE".to_string(), Value::from(signature));
                     m
                 });
@@ -1075,7 +1075,7 @@ impl crate::exchange::DerivedExchange for Bullish {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("BX-TIMESTAMP".to_string(), timestamp);
-                        m.insert("BX-NONCE".to_string(), nonce);
+                        m.insert("BX-NONCE".to_string(), Value::from(nonce));
                         m.insert("BX-SIGNATURE".to_string(), Value::from(signature));
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m

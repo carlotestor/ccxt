@@ -998,14 +998,14 @@ impl crate::exchange::DerivedExchange for Kraken {
             if isJsonBody {
                 let __ws_arg_29 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("nonce".to_string(), Value::from(nonce.clone()));
+        m.insert("nonce".to_string(), Value::from(nonce.as_str()));
     m
 }), &[params.clone()]);
                 bodySigned = self.json(__ws_arg_29).as_str().map(str::to_owned);
             }  else {
                 let __ws_arg_30 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("nonce".to_string(), Value::from(nonce.clone()));
+        m.insert("nonce".to_string(), Value::from(nonce.as_str()));
     m
 }), &[params]);
                 bodySigned = Some(self.urlencode_nested(__ws_arg_30, &[]));

@@ -328,7 +328,7 @@ impl Backpack {
         let mut channel: Option<String> = self.safe_string_k_opt(&query, "channel", &[]);
         let mut normalized: crate::value::List = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]).into_list();
         let mut symbolsResolved: Vec<Value> = Vec::new();
-        let mut topics: Value = Value::from(vec![]);
+        let mut topics: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -426,8 +426,8 @@ impl Backpack {
             let mut subscriptionHashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
             let mut subscriptionsLength: i64 = subscriptionHashes.len() as i64;
             if !unwatch || (subscriptionsLength == 0) {
-                if !self.in_array(&topic, topics.clone()) {
-                    if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(Value::from(topic)); };
+                if !self.in_array(&topic, &topics) {
+                    std::sync::Arc::make_mut(&mut topics).push(Value::from(topic));
                 }
             }
             symbolsResolved.push(Value::from(symbol));
@@ -444,15 +444,15 @@ impl Backpack {
                 let mut request: crate::value::Dict = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
-                        m.insert("params".to_string(), topics.clone());
+                        m.insert("params".to_string(), Value::Arr(topics.clone()));
                     m
                 }), &[&payload]).into_dict();
-                let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:marketData:".into()), Value::Str(topics.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:marketData:".into()), Value::Str(topics.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                 self.watch_multiple(url.as_str(), Value::from(vec![Value::from(messageHash.clone())]), &request, Value::Null, Value::Null).await;
                 client.resolve(Value::Bool(true), messageHash.as_str());
             }
         }  else {
-            self.watch_public(topics, Value::from(messageHashes), &[Value::Dict(payload)]).await;
+            self.watch_public(Value::Arr(topics), Value::from(messageHashes), &[Value::Dict(payload)]).await;
         }
         if bidAsk.as_bool() == Some(true) {
             return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);

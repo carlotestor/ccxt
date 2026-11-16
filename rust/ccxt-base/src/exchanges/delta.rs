@@ -1344,11 +1344,11 @@ impl crate::exchange::DerivedExchange for Delta {
             }
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.seconds())).into());
+            let mut timestamp: String = format!("{}", self.seconds());
             let mut privateHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("api-key".to_string(), self.apiKey.clone());
-                    m.insert("timestamp".to_string(), timestamp.clone());
+                    m.insert("timestamp".to_string(), Value::from(timestamp.as_str()));
                 m
             });
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath);

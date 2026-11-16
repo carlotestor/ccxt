@@ -2224,7 +2224,7 @@ impl crate::exchange::DerivedExchange for Bybit {
             let mut isV3UnifiedMargin: bool = url.contains("unified/v3");
             let mut isV3Contract: bool = url.contains("contract/v3");
             let mut isV5UnifiedAccount: bool = url.contains("v5");
-            let mut timestamp: Value = Value::Str(format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self)).into());
+            let mut timestamp: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
             if isOpenapi {
                 if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     requestBody = json_stringify(&params).as_str().map(str::to_owned);
@@ -2239,7 +2239,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m.insert("X-BAPI-API-KEY".to_string(), self.apiKey.clone());
-                        m.insert("X-BAPI-TIMESTAMP".to_string(), timestamp.clone());
+                        m.insert("X-BAPI-TIMESTAMP".to_string(), Value::from(timestamp.as_str()));
                         m.insert("X-BAPI-SIGN".to_string(), Value::from(signature));
                     m
                 });
@@ -2248,7 +2248,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m.insert("X-BAPI-API-KEY".to_string(), self.apiKey.clone());
-                        m.insert("X-BAPI-TIMESTAMP".to_string(), timestamp.clone());
+                        m.insert("X-BAPI-TIMESTAMP".to_string(), Value::from(timestamp.as_str()));
                         m.insert("X-BAPI-RECV-WINDOW".to_string(), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("".into())]));
                     m
                 });
@@ -2282,7 +2282,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("api_key".to_string(), self.apiKey.clone());
                         m.insert("recv_window".to_string(), __ws_arg_88);
-                        m.insert("timestamp".to_string(), timestamp);
+                        m.insert("timestamp".to_string(), Value::from(timestamp));
                     m
                 })]).into_dict();
                 let mut sortedQuery: crate::value::Dict = self.keysort(Value::from(&query), &[]).into_dict();
