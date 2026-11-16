@@ -8897,10 +8897,70 @@ function dictRowUsesAreConsistent (csharp, scope, declaration) {
     return true;
 }
 
+// ral-84c3: a row element local outside DICT_ROW_LOCAL_NAMES is admitted only when typing it makes a
+// use native: it is written by a string key (`row['k'] = v`, printed `((IDictionary<string,object>)row)[k] = v`
+// on an `object` local, a bare `row[k] = v` on the typed one), so the one declaration cast replaces at
+// least one use-site cast. Locals read only through this.safe* (object parameters) gain nothing and stay
+// `object` (77c3 was held for typing those). The market-row names keep `object` (their read arms print no
+// null test), and a local read by `in` keeps `object` (a declared dict prints a bare ContainsKey, where
+// inOp answered false on a null element).
+const DICT_ROW_VETO_NAMES = new Set ([ 'market', 'currency' ]);
+
+function dictRowNativeWriteLocal (csharp, declaration) {
+    const name = declaration?.name?.text;
+    if (name === undefined || declaration.name.kind !== ts.SyntaxKind.Identifier || DICT_ROW_VETO_NAMES.has (name)) {
+        return false;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    let writes = 0;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        let current = use;
+        while (current.parent && (current.parent.kind === ts.SyntaxKind.ParenthesizedExpression || current.parent.kind === ts.SyntaxKind.AsExpression)) {
+            current = current.parent;
+        }
+        const owner = current.parent;
+        if (owner?.kind === ts.SyntaxKind.BinaryExpression && owner.right === current && owner.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            return false;
+        }
+        const access = use.parent;
+        if (access?.kind === ts.SyntaxKind.ElementAccessExpression && access.expression === use
+                && access.parent?.kind === ts.SyntaxKind.BinaryExpression && access.parent.left === access
+                && access.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+        ) {
+            // the typed local prints `row[k] = v`: a non-literal key prints a `(string)` cast there
+            // (even a string local), so only literal-key writers admit the local
+            if (!ts.isStringLiteralLike (access.argumentExpression)) {
+                return false;
+            }
+            writes++;
+        }
+    }
+    return writes > 0;
+}
+
+// a local admitted only by dictRowNativeWriteLocal types its own declaration and uses, never a callee's
+// parameter: the call-site parameter proof sees it as `object`, so no method signature moves
+function widenedDictRowArgument (csharp, argument) {
+    if (argument === undefined || !ts.isIdentifier (argument) || DICT_ROW_LOCAL_NAMES.has (argument.text)) {
+        return false;
+    }
+    const declaration = csharpIdentifierDeclaration (csharp, argument);
+    return declaration?.kind === ts.SyntaxKind.VariableDeclaration && dictRowElementReadType (csharp, declaration) !== undefined;
+}
+const dictRowUpstreamArgumentType = csharpArgumentType;
+// eslint-disable-next-line no-func-assign
+csharpArgumentType = (csharp, argument, expected) => (widenedDictRowArgument (csharp, argument) ? 'object' : dictRowUpstreamArgumentType (csharp, argument, expected));
+
 // `IDictionary<string, object>` when the checker proves the element of `recv[key]` is a ccxt row
 // shape, or undefined (the read keeps the printer's `object`)
 function dictRowElementReadType (csharp, declaration) {
-    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text)) {
+    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text) && !dictRowNativeWriteLocal (csharp, declaration)) {
         return undefined;
     }
     // the generated tests hold the exchange in a parameter and call the BaseTest getValue
