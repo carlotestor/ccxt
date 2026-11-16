@@ -12531,7 +12531,70 @@ function nullInitFamilyName (declaration) {
 }
 
 function isNullInitFamilyString (declaration) {
-    return nullInitFamilyName (declaration) !== undefined && NULL_INIT_STRING_LOCAL_NAMES.has (declaration.name.text) && isNullInit (declaration);
+    return (nullInitFamilyName (declaration) !== undefined && NULL_INIT_STRING_LOCAL_NAMES.has (declaration.name.text) && isNullInit (declaration))
+        || nullSeedNativeStringLocal (declaration);
+}
+
+// ral-87c4: `let x: Str = undefined` (or `: string`) that the function then uses as a string RECEIVER
+// (`x.toLowerCase ()`, `x.replace (..)`, `x.indexOf (..)`, ...) or as `x as string`: today every such use
+// prints `((string)x).M(..)` over the object local. Declared `string?`, the same uses print natively, so
+// this joins the name-keyed family above (its market-row read and narrowed-copy writes, with the same
+// write cast) plus a same-file sync call whose printed return is `string`/`string?`. Decided from the
+// declaration's type node and the uses' AST parents only.
+const NULL_SEED_NATIVE_STRING_METHODS = [ 'toLowerCase', 'toUpperCase', 'replace', 'replaceAll', 'indexOf', 'slice', 'split', 'trim', 'startsWith', 'endsWith' ];
+const nullSeedNativeStringCache = new WeakMap ();
+
+function nullSeedNativeStringLocal (declaration) {
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier || !isNullInit (declaration)
+            || declaration.parent?.declarations?.length !== 1 || !isBlockScopedDeclaration (declaration)) {
+        return false;
+    }
+    const type = declaration.type;
+    const isStr = (type?.kind === ts.SyntaxKind.StringKeyword)
+        || (type?.kind === ts.SyntaxKind.TypeReference && type.typeArguments === undefined && type.typeName?.kind === ts.SyntaxKind.Identifier && type.typeName.text === 'Str');
+    if (!isStr) {
+        return false;
+    }
+    if (nullSeedNativeStringCache.has (declaration)) {
+        return nullSeedNativeStringCache.get (declaration);
+    }
+    const name = declaration.name.text;
+    const scope = enclosingFunction (declaration);
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name && n !== declaration.name) {
+            const parent = n.parent;
+            if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === n
+                    && NULL_SEED_NATIVE_STRING_METHODS.includes (parent.name?.text) && parent.parent?.kind === ts.SyntaxKind.CallExpression && parent.parent.expression === parent) {
+                found = true;
+            } else if (parent?.kind === ts.SyntaxKind.AsExpression && parent.type?.kind === ts.SyntaxKind.StringKeyword) {
+                found = true;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
+    nullSeedNativeStringCache.set (declaration, found);
+    return found;
+}
+
+// ral-87c4: a write `x = this.<m> (..)` into such a local whose same-file sync declaration prints a string
+function nullSeedNativeStringCallWriteType (csharp, declaration, node) {
+    if (!nullSeedNativeStringLocal (declaration)) {
+        return undefined;
+    }
+    const call = stripParens (node);
+    if (call?.kind !== ts.SyntaxKind.CallExpression || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const printed = sameFileSyncReturnType (csharp, call, call.expression.name?.text);
+    return (printed === 'string' || printed === 'string?') ? printed : undefined;
 }
 
 // `x = market['symbol']` as a write: the audited key table (MARKET_ROW_STRING_KEYS) plus the
@@ -12586,7 +12649,7 @@ function narrowedCopyWriteType (declaration, node) {
 
 // the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
 function nullInitWriteValueType (csharp, declaration, node) {
-    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node);
+    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node) ?? nullSeedNativeStringCallWriteType (csharp, declaration, node);
 }
 
 // the write-time record of a retyped name-keyed local (`scope -> Map<printed name, declaration>`), read
