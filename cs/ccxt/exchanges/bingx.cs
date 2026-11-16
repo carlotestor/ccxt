@@ -7331,8 +7331,8 @@ public partial class bingx : Exchange
         object result = null;
         for (int i = 0; i < rawKeysLength; i++)
         {
-            object key = (rawKeys != null && i < rawKeys.Count ? rawKeys[i] : null);
-            object value = (sortedParams != null && key != null && sortedParams.ContainsKey((string)key) ? sortedParams[(string)key] : null);
+            string key = ((string)(rawKeys != null && i < rawKeys.Count ? rawKeys[i] : null));
+            object value = (sortedParams != null && key != null && sortedParams.ContainsKey(key) ? sortedParams[key] : null);
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 object arrStr = null;
@@ -7365,10 +7365,10 @@ public partial class bingx : Exchange
             }
             if ((i == 0))
             {
-                result = ((object)(key == null ? null : key + "=" + (string)(object)(value)));
+                result = ((key + "=") + (value));
             } else
             {
-                result = ((object)(result == null ? null : result + (string)(object)(((("&" + (key)) + "=") + (value)))));
+                result = ((object)(result == null ? null : result + (string)(object)(((("&" + key) + "=") + (value)))));
             }
         }
         return ((string?)((object)(result)));

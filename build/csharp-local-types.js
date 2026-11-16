@@ -14164,7 +14164,78 @@ function boundedKeysElementInitializer (csharp, node) {
     if (!objectKeys && callee.name?.text !== 'split') {
         return false;
     }
-    return csharp.csharpIndexIsLoopBounded (node, node.expression, node.argumentExpression) === true;
+    return csharp.csharpIndexIsLoopBounded (node, node.expression, node.argumentExpression) === true
+        || lengthAliasLoopBounded (csharp, scope, node, declaration);
+}
+
+// ral-87c3 rule 2: `const n = keys.length; for (let i = 0; i < n; i++) { const k = keys[i]; .. }` —
+// the bound is a const alias of the receiver's length. The alias is a const declared once, before
+// the loop, from `<receiver>.length` of the same once-bound receiver (whose every write was refused
+// above), and the loop body never writes the index: the read is in range exactly as with `i < keys.length`.
+function lengthAliasLoopBounded (csharp, scope, read, receiverDeclaration) {
+    const index = read.argumentExpression;
+    let node = read;
+    while (node.parent !== undefined && node.parent !== scope) {
+        const parent = node.parent;
+        if (parent.kind === ts.SyntaxKind.FunctionExpression || parent.kind === ts.SyntaxKind.ArrowFunction || parent.kind === ts.SyntaxKind.FunctionDeclaration) {
+            return false; // a read under a nested function is not dominated by the condition
+        }
+        if (parent.kind === ts.SyntaxKind.ForStatement && parent.statement === node) {
+            const condition = parent.condition;
+            if (condition?.kind === ts.SyntaxKind.BinaryExpression && condition.operatorToken.kind === ts.SyntaxKind.LessThanToken
+                    && condition.left?.kind === ts.SyntaxKind.Identifier && condition.left.text === index.text
+                    && condition.right?.kind === ts.SyntaxKind.Identifier
+                    && lengthAliasOf (csharp, scope, condition.right, receiverDeclaration, parent)
+                    && !identifierWrittenUnder (parent.statement, index.text)) {
+                return true;
+            }
+        }
+        node = parent;
+    }
+    return false;
+}
+
+function lengthAliasOf (csharp, scope, bound, receiverDeclaration, forStatement) {
+    let declaration;
+    let bindings = 0;
+    for (const n of indexScope (csharp, scope).identifiers.get (bound.text) ?? []) {
+        if ((n.parent?.kind === ts.SyntaxKind.VariableDeclaration || n.parent?.kind === ts.SyntaxKind.Parameter) && n.parent.name === n) {
+            bindings++;
+            declaration = n.parent;
+        } else if (receiverUseIsWrite (n) || (n.parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || n.parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)) {
+            return false;
+        }
+    }
+    if (bindings !== 1 || declaration.kind !== ts.SyntaxKind.VariableDeclaration || declaration.getStart () > forStatement.getStart ()
+            || !(declaration.parent?.flags & ts.NodeFlags.Const)) {
+        return false;
+    }
+    const init = declaration.initializer;
+    return init?.kind === ts.SyntaxKind.PropertyAccessExpression && init.name?.text === 'length'
+        && init.expression?.kind === ts.SyntaxKind.Identifier && init.expression.text === receiverDeclaration.name?.text
+        && receiverDeclaration.getStart () < declaration.getStart ();
+}
+
+function identifierWrittenUnder (body, name) {
+    let written = false;
+    const visit = (n) => {
+        if (written) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name) {
+            const parent = n.parent;
+            if ((parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+                    || ((parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)
+                        && (parent.operator === ts.SyntaxKind.PlusPlusToken || parent.operator === ts.SyntaxKind.MinusMinusToken))
+                    || (parent?.kind === ts.SyntaxKind.VariableDeclaration && parent.name === n)) {
+                written = true;
+                return;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    visit (body);
+    return written;
 }
 
 function signApiElementInitializer (csharp, node) {

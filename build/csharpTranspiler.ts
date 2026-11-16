@@ -8676,6 +8676,10 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
         [ 'string? k = ((string)', 'string? k2 = ((string)' ], [ 'object k ', 'object k2' ]);
     check ('87c3 sibling-bound pushed list keeps object', 'q (f, a: Dict) { if (f) { const ks = Object.keys (a); ks.push (1); const k = ks[0]; return k; } else { const ks = Object.keys (a); return ks; } }',
         [ 'object k = ' ], [ 'string? k = ' ]);
+    check ('87c3 length-alias bounded keys element', 'v (a: Dict) { const ks = Object.keys (a); const n = ks.length; let r = 0; for (let i = 0; i < n; i++) { const k = ks[i]; r = k + "=" + a[k]; } return r; }',
+        [ 'string k = ((string)' ], [ 'object k = ' ]);
+    check ('87c3 length alias with a moved index keeps object', 'w (a: Dict) { const ks = Object.keys (a); const n = ks.length; let r = 0; for (let i = 0; i < n; i++) { i = i + 1; const k = ks[i]; r = k + "=" + a[k]; } return r; }',
+        [ 'object k = ' ], [ 'string k = ' ]);
     check ('keyed read into a local keeps object', 'n (data: Dict[]) { const row = data[0]; row["a"] = 1; const s = row["b"]; return s; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     return problems;
 }
