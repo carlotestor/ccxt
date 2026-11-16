@@ -373,6 +373,19 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
 // (base throws, 9 prediction venues) returns `this.safePredictionOrder (..)`. Joined into
 // JAVA_MAP_RETURN_METHODS below, so signatures, locals and `.put` writes follow.
 const JAVA_84J7_MAP_RETURN_METHODS = [ 'safePredictionOrder', 'parsePredictionOrder' ];
+// a long initializer calling one of them keeps Object: later core-argument coercions widen
+// the printed arguments, the declaration token grows by 13 characters, and the house limit
+// is no added line over 400 characters
+function j84j7InitWithinWidth (printer, initializer) {
+    const call = unwrapParens (initializer);
+    if (call === undefined || !ts.isCallExpression (call) || !isThisCall (call)
+        || !JAVA_84J7_MAP_RETURN_METHODS.includes (String (call.expression.name.text))) {
+        return true;
+    }
+    // an `x as any` argument into a typed core slot prints a switch-expression coercion blob
+    // (the two long polymarket sites); a plain argument list stays short
+    return !call.arguments.some ((a) => ts.isAsExpression (unwrapParens (a)) && unwrapParens (a).type.kind === ts.SyntaxKind.AnyKeyword);
+}
 
 // base methods whose every return is the own `symbols` parameter (checkcast) or a String
 // accumulator list (section 26) print `java.util.List<String>`; locals take it in section 31
@@ -3033,6 +3046,9 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         return receiverMethodLocalType (initializer);
     }
     const name = assertedCall.expression.name.text;
+    if (!j84j7InitWithinWidth (printer, assertedCall)) {
+        return undefined;
+    }
     if (!asserted && (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name))) {
         // the signature hook retypes real method declarations by name; a field of the
         // same name would print an untyped call and could not hold a String result
@@ -17681,7 +17697,7 @@ function javaMapLocal (printer, declaration) {
         return undefined;
     }
     const init = javaMapLocalValue (printer, declaration.initializer, declaration);
-    if (init === undefined) {
+    if (init === undefined || !j84j7InitWithinWidth (printer, declaration.initializer)) {
         return undefined;
     }
     const scope = enclosingFunction (declaration);
