@@ -8897,10 +8897,105 @@ function dictRowUsesAreConsistent (csharp, scope, declaration) {
     return true;
 }
 
+// ral-77c3: the row family for ANY local name. The market-row names keep `object` (their row reads
+// print without a null test, see elementRowLocalBox). A row element can be null (off the end of the
+// list, or a JSON null), and the printer's `k in x` arm prints a bare `x.ContainsKey (k)` for a
+// declared dictionary local, so a widened local read by `in` keeps `object` (inOp answers false on
+// null). A widened local never proves a callee's parameter: the call-site parameter proof
+// (csharpParameterCallSitesProve) sees it as `object`, so no signature moves with it.
+const DICT_ROW_VETO_NAMES = new Set ([ 'market', 'currency' ]);
+
+function dictRowLocalNameAdmitted (csharp, declaration) {
+    const name = declaration?.name?.text;
+    if (DICT_ROW_LOCAL_NAMES.has (name)) {
+        return true;
+    }
+    if (name === undefined || DICT_ROW_VETO_NAMES.has (name)) {
+        return false;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        let current = use;
+        while (current.parent && (current.parent.kind === ts.SyntaxKind.ParenthesizedExpression || current.parent.kind === ts.SyntaxKind.AsExpression)) {
+            current = current.parent;
+        }
+        const owner = current.parent;
+        if (owner?.kind === ts.SyntaxKind.BinaryExpression && owner.right === current && owner.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function widenedDictRowArgument (csharp, argument) {
+    if (argument === undefined || !ts.isIdentifier (argument) || DICT_ROW_LOCAL_NAMES.has (argument.text)) {
+        return false;
+    }
+    const declaration = csharpIdentifierDeclaration (csharp, argument);
+    return declaration?.kind === ts.SyntaxKind.VariableDeclaration && dictRowElementReadType (csharp, declaration) !== undefined;
+}
+// ral-77c3 rule 2: `const month = parts[1]` over a local string list (stringElementsProducer:
+// split / string literals / marketIds ...) that elementAccessElementType refuses only because a use
+// is (a) the receiver argument of a pure base reader (`this.safeString (parts, 0)`, reads the list
+// and never stores into it) or (b) a plain `parts = <another stringElementsProducer>` rebind (the
+// list stays a string list). Same `(string)` cast back and `string?` local as the upstream arm.
+const STRING_LIST_PURE_READERS = new Set ([ 'safeString', 'safeString2', 'safeStringN', 'safeStringLower', 'safeStringUpper', 'safeInteger', 'safeNumber', 'safeValue', 'safeBool' ]);
+
+function stringListReaderUse (use) {
+    const call = use.parent;
+    return call?.kind === ts.SyntaxKind.CallExpression && call.arguments?.[0] === use
+        && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
+        && STRING_LIST_PURE_READERS.has (call.expression.name?.text);
+}
+
+function relaxedStringListElementType (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const receiver = initializer.expression;
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const uses = indexScope (csharp, scope).identifiers.get (receiver.text) ?? [];
+    const bindings = uses.filter ((n) => (n.parent?.kind === ts.SyntaxKind.VariableDeclaration || n.parent?.kind === ts.SyntaxKind.Parameter) && n.parent.name === n);
+    if (bindings.length !== 1 || bindings[0].parent.kind !== ts.SyntaxKind.VariableDeclaration) {
+        return undefined;
+    }
+    const declaration = bindings[0].parent;
+    if (declaration.getStart () > initializer.getStart () || !stringElementsProducer (declaration.initializer)) {
+        return undefined;
+    }
+    for (const n of uses) {
+        if (n === receiver || n === declaration.name || stringListReaderUse (n)) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                && parent.parent?.kind === ts.SyntaxKind.ExpressionStatement && stringElementsProducer (parent.right)) {
+            continue;
+        }
+        if (receiverUseIsWrite (n) || enclosingFunction (n) !== scope) {
+            return undefined;
+        }
+    }
+    return 'string';
+}
+const stringListUpstreamElementType = elementAccessElementType;
+// eslint-disable-next-line no-func-assign
+elementAccessElementType = (csharp, initializer, context) => stringListUpstreamElementType (csharp, initializer, context) ?? relaxedStringListElementType (csharp, initializer);
+
+const dictRowUpstreamArgumentType = csharpArgumentType;
+// eslint-disable-next-line no-func-assign
+csharpArgumentType = (csharp, argument, expected) => (widenedDictRowArgument (csharp, argument) ? 'object' : dictRowUpstreamArgumentType (csharp, argument, expected));
+
 // `IDictionary<string, object>` when the checker proves the element of `recv[key]` is a ccxt row
 // shape, or undefined (the read keeps the printer's `object`)
 function dictRowElementReadType (csharp, declaration) {
-    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text)) {
+    if (!dictRowLocalNameAdmitted (csharp, declaration)) {
         return undefined;
     }
     // the generated tests hold the exchange in a parameter and call the BaseTest getValue

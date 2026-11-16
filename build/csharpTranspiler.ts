@@ -8648,9 +8648,39 @@ class NewTranspiler {
     }
 }
 
+// ral-77c3 snippet checks: element reads of a checker-proven row list (build/csharp-local-types.js
+// dictRowElementReadType) for any local name; market-row names and arithmetic uses keep `object`,
+// and a widened local never moves a callee's parameter type
+function dictRowElementReadSnippetChecks (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const check = (name: string, body: string, expected: string[], forbidden: string[]) => {
+        const src = 'type Dict = { [key: string]: any };\nclass Test {\n safeString (o, k, d = undefined): string { return d; }\n' + body + '\n}';
+        const out: string = (transpiler as any).transpileCSharp (src).content;
+        for (const e of expected) { if (!out.includes (e)) { problems.push (`dict-row element read: ${name}: missing ${e}`); } }
+        for (const f of forbidden) { if (out.includes (f)) { problems.push (`dict-row element read: ${name}: has ${f}`); } }
+    };
+    check ('any row name, native write',
+        'f (data: Dict[]) { const out = []; for (let i = 0; i < data.length; i++) { const entry = data[i]; entry["k"] = 1; out.push (this.safeString (entry, "a")); } return out; }',
+        [ 'IDictionary<string, object> entry = ((IDictionary<string, object>)(data != null && i < data.Count ? data[i] : null));', 'entry["k"] = 1;' ],
+        [ 'object entry', '((IDictionary<string,object>)entry)' ]);
+    check ('arithmetic use keeps object', 'g (data: Dict[]) { const entry = data[0]; return entry + 1; }', [ 'object entry = ' ], [ 'IDictionary<string, object> entry' ]);
+    check ('market name keeps object', 'h (data: Dict[]) { const market = data[0]; return this.safeString (market, "id"); }', [ 'object market = ' ], [ 'IDictionary<string, object> market' ]);
+    check ('in-tested row keeps object', 'k (data: Dict[]) { const row = data[0]; if ("a" in row) { return 1; } return this.safeString (row, "b"); }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('string list read by safeString', 'm (s: string) { const parts = s.split ("-"); const y = this.safeString (parts, 0); const month = parts[1]; return this.safeString (y, month); }', [ 'string? month = ((string)' ], [ 'object month' ]);
+    check ('string list rebound to literals', 'n (f) { let keys = [ "a", "b" ]; if (f) { keys = [ "c" ]; } for (let i = 0; i < keys.length; i++) { const key = keys[i]; this.safeString (f, key); } }', [ 'string? key = ((string)' ], [ 'object key' ]);
+    check ('string list pushed keeps object', 'o (s: string) { const parts = s.split ("-"); parts.push (1); const month = parts[1]; return month; }', [ 'object month' ], [ 'string? month' ]);
+    check ('callee parameter stays object',
+        'p (raw) { return this.safeString (raw, "a"); }\n q (data: Dict[]) { const raw = data[0]; return this.p (raw); }',
+        [ 'IDictionary<string, object> raw = ', 'p(object raw)' ], [ 'p(IDictionary<string, object> raw)' ]);
+    return problems;
+}
+
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...dictRowElementReadSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
