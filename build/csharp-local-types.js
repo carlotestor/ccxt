@@ -8868,7 +8868,10 @@ function dictRowUsesAreConsistent (csharp, scope, declaration) {
 // `IDictionary<string, object>` when the checker proves the element of `recv[key]` is a ccxt row
 // shape, or undefined (the read keeps the printer's `object`)
 function dictRowElementReadType (csharp, declaration) {
-    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text)) {
+    // ral-77c3: any local name, the market-row names excepted (their read arm prints no null
+    // test, see elementRowLocalBox); names outside the original list are recorded for the
+    // signature guard below
+    if (DICT_ROW_VETO_NAMES.has (declaration?.name?.text)) {
         return undefined;
     }
     // the generated tests hold the exchange in a parameter and call the BaseTest getValue
@@ -8926,6 +8929,24 @@ function dictRowElementReadType (csharp, declaration) {
     }
     return 'IDictionary<string, object>';
 }
+
+// ral-77c3: the market-row locals keep `object` (their row reads print without a null test)
+const DICT_ROW_VETO_NAMES = new Set ([ 'market', 'currency' ]);
+
+// ral-77c3: a row local typed only by the widened rule above (its name is not in
+// DICT_ROW_LOCAL_NAMES) types its own declaration and reads, never a callee's parameter: the
+// call-site parameter proof (csharpParameterCallSitesProve) sees such an argument as `object`,
+// so no method signature moves with it (signatures are another lane's)
+function widenedDictRowArgument (csharp, argument) {
+    if (argument === undefined || !ts.isIdentifier (argument) || DICT_ROW_LOCAL_NAMES.has (argument.text)) {
+        return false;
+    }
+    const declaration = csharpIdentifierDeclaration (csharp, argument);
+    return declaration?.kind === ts.SyntaxKind.VariableDeclaration && dictRowElementReadType (csharp, declaration) !== undefined;
+}
+const dictRowUpstreamArgumentType = csharpArgumentType;
+// eslint-disable-next-line no-func-assign
+csharpArgumentType = (csharp, argument, expected) => (widenedDictRowArgument (csharp, argument) ? 'object' : dictRowUpstreamArgumentType (csharp, argument, expected));
 
 // ==== typed dict element reads -> the static GetValue twin ====
 //
