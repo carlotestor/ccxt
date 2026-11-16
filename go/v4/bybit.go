@@ -3162,7 +3162,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		preLaunchMarkets = this.SafeDict(promises, 1, map[string]any{})
 	}
 	var data map[string]any = SafeMapTyped(response, "result")
-	var markets any = this.SafeList(data, "list", []any{})
+	var markets []any = SafeListTyped(data, "list")
 	var paginationCursor *string = this.SafeString(data, "nextPageCursor")
 	if paginationCursor != nil {
 		for paginationCursor != nil {
@@ -3242,8 +3242,8 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 	markets = this.ArrayConcat(markets, preLaunchMarketsList)
 	var result []any = []any{}
 	var category *string = this.SafeString(data, "category")
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = markets[i]
 		if category == nil {
 			category = this.SafeString(market, "category")
 		}
@@ -3396,7 +3396,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		response = r1.Value
 	}
 	var data map[string]any = SafeMapTyped(response, "result")
-	var markets any = this.SafeList(data, "list", []any{})
+	var markets []any = SafeListTyped(data, "list")
 	var loadAllOptions bool = this.HandleOption("fetchMarkets", "loadAllOptions") == true
 	if loadAllOptions == true {
 		request["limit"] = 1000
@@ -3467,8 +3467,8 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 	//     }
 	//
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = markets[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
