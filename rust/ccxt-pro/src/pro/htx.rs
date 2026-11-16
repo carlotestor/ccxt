@@ -2051,7 +2051,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             side = typeParts.get(0).and_then(Value::as_str).map(str::to_owned);
             type_var = typeParts.get(1).and_then(Value::as_str).map(str::to_owned);
         }
-        let mut aggressor: Option<bool> = self.safe_bool_k(trade.clone(), "aggressor", &[]).as_bool();
+        let mut aggressor: Option<bool> = self.safe_bool_k_opt(trade.clone(), "aggressor", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (aggressor.is_some()) {
             takerOrMaker = (if (aggressor == Some(true)) { Some("taker".to_string()) } else { Some("maker".to_string()) });
@@ -2365,7 +2365,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchBalance".into()), None, &[Value::from(&paramsMarketType), Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isUnifiedAccount: bool = self.safe_bool2(Value::from(&paramsSubType), Value::Str("isUnifiedAccount".into()), Value::Str("unified".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUnifiedAccount: bool = self.safe_bool2_opt(Value::from(&paramsSubType), Value::Str("isUnifiedAccount".into()), Value::Str("unified".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsSubType, &["isUnifiedAccount", "unified"], &[]).into_dict();
         let mut paramsRequest: crate::value::Dict = (if (type_var.as_deref() != Some("spot")) { self.omit(&paramsOmitted, &["currency", "symbol", "margin"], &[]).into_dict() } else { paramsOmitted.clone() });
         if (self.markets.clone() == Value::Null) {
@@ -3429,7 +3429,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut order: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("orderId".into()), Value::Str("order_id".into()), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("tradeTime".into()), Value::Str("updated_time".into()), Value::Str("created_time".into())]), &[]).as_i64();
         let mut orderType: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("orderType".into()), Value::Str("type".into()), &[]);
-        let mut aggressor: Option<bool> = self.safe_bool_k(trade.clone(), "aggressor", &[]).as_bool();
+        let mut aggressor: Option<bool> = self.safe_bool_k_opt(trade.clone(), "aggressor", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (aggressor.is_some()) {
             takerOrMaker = (if (aggressor == Some(true)) { Some("taker".to_string()) } else { Some("maker".to_string()) });
@@ -3656,7 +3656,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }));
         }
         let mut isLinear: bool = subtype.as_str() == Some("linear");
-        let mut isV5: bool = self.safe_bool_k(subscriptionParams, "isV5", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isV5: bool = self.safe_bool_k_opt(subscriptionParams, "isV5", &[Value::Bool(false)]).unwrap_or(false);
         let mut url: Option<String> = self.get_url_by_market_type(type_var.clone(), &[Value::Bool(isLinear), Value::Bool(true), Value::Bool(false), Value::Bool(isV5)]);
         let mut hostnames: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.urls.clone(), "hostnames", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

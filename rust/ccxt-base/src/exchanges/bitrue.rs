@@ -185,8 +185,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "orderId", &[]);
         let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[]);
         let mut side: Option<String> = None;
-        let mut buyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]).as_bool(); // ignore "m" until Bitrue fixes api
-        let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyer", &[]).as_bool();
+        let mut buyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyerMaker", &[]); // ignore "m" until Bitrue fixes api
+        let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
         if (buyerMaker.is_some()) {
             side = (if (buyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
@@ -203,7 +203,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
             }));
         }
         let mut takerOrMaker: Option<String> = None;
-        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
@@ -1077,7 +1077,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
         let mut parsedMessage: Value = Value::Null;
         if !success {
             let mut messageInner: Option<String> = self.safe_string_k_opt(response.clone(), "msg", &[]);
@@ -3195,7 +3195,7 @@ impl Bitrue {
                 request.insert("volume".into(), self.parse_to_numeric(amount.clone()));
             }
             request.insert("positionType".into(), Value::Int(1));
-            let mut reduceOnly: Option<bool> = self.safe_bool2(&paramsNoCost, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+            let mut reduceOnly: Option<bool> = self.safe_bool2_opt(&paramsNoCost, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
             request.insert("open".into(), (if (reduceOnly == Some(true)) { Value::Str("CLOSE".into()) } else { Value::Str("OPEN".into()) }));
             let mut leverage: String = self.safe_string_k(&paramsNoCost, "leverage", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             request.insert("leverage".into(), self.parse_to_numeric(Value::from(leverage)));

@@ -323,7 +323,7 @@ impl Backpack {
         let mut bidAsk = get_arg(optional_args, 2, Value::Bool(false));
         let unwatch: bool = get_arg(optional_args, 3, Value::Bool(false)).is_truthy();
         let mut query: crate::value::Dict = self.prepare_ws_stock_params(methodName.as_str().unwrap_or_default(), params).await.into_dict();
-        let mut stock: bool = self.safe_bool_k(&query, "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut stock: bool = self.safe_bool_k_opt(&query, "stock", &[Value::Bool(false)]).unwrap_or(false);
         let mut explicitSource: Option<String> = self.safe_string_k_opt(&query, "source", &[]);
         let mut channel: Option<String> = self.safe_string_k_opt(&query, "channel", &[]);
         let mut normalized: crate::value::List = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]).into_list();
@@ -350,7 +350,7 @@ impl Backpack {
                 continue;
             }
             let mut marketSelection: crate::value::List = self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), &query, &[(market).raw.clone()]).into_list();
-            let mut marketStock: bool = self.safe_bool(&marketSelection, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut marketStock: bool = self.safe_bool_opt(&marketSelection, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
             let mut marketParams: crate::value::Dict = self.safe_dict(&marketSelection, Value::Int(1), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1522,7 +1522,7 @@ impl Backpack {
         let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "t", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
         let mut side: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
@@ -2071,7 +2071,7 @@ impl Backpack {
     m
 }));
         let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchBalance", params).await.into_dict();
-        let mut stock: bool = self.safe_bool_k(&query, "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut stock: bool = self.safe_bool_k_opt(&query, "stock", &[Value::Bool(false)]).unwrap_or(false);
         if stock && (self.safe_list_k(self.options.clone(), "securities", &[]) == Value::Null) {
             self.parent.fetch_securities(&[]).await;
         }

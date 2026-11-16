@@ -1837,8 +1837,8 @@ impl Polymarket {
             let mut conditionId: Option<String> = self.safe_string_k_opt(&market, "conditionId", &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let mut marketSlug: Option<String> = self.safe_string_k_opt(&market, "slug", &[conditionId.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut active: bool = self.safe_bool_k(&market, "active", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut closed: bool = self.safe_bool_k(&market, "closed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut active: bool = self.safe_bool_k_opt(&market, "active", &[Value::Bool(false)]).unwrap_or(false);
+            let mut closed: bool = self.safe_bool_k_opt(&market, "closed", &[Value::Bool(false)]).unwrap_or(false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
             let mut marketResolved: Value = Value::Bool((closed || (self.safe_string_lower_k(&market, "umaResolutionStatus", &[]).as_str() == Some("resolved"))));
             let mut resolvedOutcome: Option<String> = None;
@@ -1847,7 +1847,7 @@ impl Polymarket {
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             let mut orderMinSize: Value = self.safe_number_k(&market, "orderMinSize", &[Value::Int(1)]);
             let mut priceMax: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(tickSize)))), &[]).as_f64();
-            let mut negRisk: bool = self.safe_bool_k(&market, "negRisk", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut negRisk: bool = self.safe_bool_k_opt(&market, "negRisk", &[Value::Bool(false)]).unwrap_or(false);
             let mut endDate: Option<String> = self.safe_string_k_opt(&market, "endDate", &[self.safe_string_k(&market, "end_date_iso", &[])]);
             // Gamma API returns these arrays as JSON-encoded strings
             let mut outcomeLabels: Value = Value::from(vec![]);
@@ -3530,7 +3530,7 @@ impl Polymarket {
         let mut tickSize: Option<String> = self.safe_string_k_opt(params.clone(), "tickSize", &[Value::from(self.number_to_string(self.safe_number_k(&outcomePrecision, "price", &[Value::Float(0.01)])))]);
         let mut negRisk: Option<bool> = self.safe_bool_k(params.clone(), "negRisk", &[self.safe_bool_k(&outcomeObj, "negRisk", &[Value::Bool(false)])]).as_bool();
         // maker-only: the CLOB rejects the order if it would immediately take
-        let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         let mut signatureType: Option<i64> = self.safe_integer2(params.clone(), Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(self.options.clone(), "signatureType", &[Value::Int(3)])]).as_i64();
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
@@ -3559,7 +3559,7 @@ impl Polymarket {
         if (builderRaw.is_some()) {
             let mut builderHex: Option<String> = self.remove0x_prefix(builderRaw.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             if ((builderHex.as_deref().unwrap_or_default().chars().count() as i64)) <= 40 {
-                let mut builderFeeEnabled: bool = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                let mut builderFeeEnabled: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(true)]).unwrap_or(true);
                 let mut feeRate: i64 = 0;
                 if builderFeeEnabled {
                     feeRate = self.safe_integer_k(self.options.clone(), "feeRate", &[Value::Int(0)]).as_i64().unwrap_or(0);
@@ -4354,7 +4354,7 @@ impl Polymarket {
         let mut closed: bool = self.safe_bool_k_opt(rawEvent.clone(), "closed", &[Value::Bool(false)]).unwrap_or(false);
         let mut active: Option<bool> = None;
         if (rawActive.is_some()) {
-            active = Some(rawActive == Some(true) && (!(closed)));
+            active = Some((rawActive == Some(true)) && (!closed));
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.

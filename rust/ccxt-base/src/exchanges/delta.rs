@@ -3441,7 +3441,7 @@ impl Delta {
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(&paramsOmitted, "reduceOnly", &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(&paramsOmitted, "reduceOnly", &[]);
         if (reduceOnly == Some(true)) {
             request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }

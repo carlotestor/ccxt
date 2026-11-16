@@ -1901,7 +1901,7 @@ impl Opinion {
         let mut takerAmount: Option<String> = self.safe_string_k_opt(&amounts, "takerAmount", &[]);
         let mut sideInt: i64 = (if (sideStr == "BUY") { 0 } else { 1 });
         let mut salt: Option<String> = self.number_to_string(Value::Int(self.milliseconds()));
-        let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut rest: crate::value::Dict = self.omit(params, &["postOnly"], &[]).into_dict();
         let mut maker: Option<String> = self.load_multi_sign_address().await.as_str().map(str::to_owned);
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
@@ -2005,7 +2005,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut canceled: bool = self.safe_bool_k(&result, "result", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut canceled: bool = self.safe_bool_k_opt(&result, "result", &[Value::Bool(false)]).unwrap_or(false);
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them

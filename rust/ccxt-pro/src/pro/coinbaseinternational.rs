@@ -2561,9 +2561,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             request.insert("price".into(), self.parse_number(Value::from(self.price_to_precision(symbol, price)), &[]));
         }
-        let mut postOnly: Option<bool> = self.safe_bool2(&paramsResolved, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool2_opt(&paramsResolved, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]);
         if (self.parent.is_native_deribit_credentials().as_bool() == Some(true)) {
-            let mut reduceOnly: Option<bool> = self.safe_bool2(&paramsResolved, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+            let mut reduceOnly: Option<bool> = self.safe_bool2_opt(&paramsResolved, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
             if (reduceOnly.is_some()) {
                 request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
             }

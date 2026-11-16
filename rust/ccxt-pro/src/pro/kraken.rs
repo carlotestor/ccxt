@@ -384,7 +384,7 @@ impl Kraken {
             priceType = "pct".to_string();
         }
         if (method.as_str() == Some("createOrderWs")) {
-            let mut reduceOnly: bool = self.safe_bool_k(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             if reduceOnly {
                 orderParams.insert("reduce_only".into(), Value::Bool(true));
             }

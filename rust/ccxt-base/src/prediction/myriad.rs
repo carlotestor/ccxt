@@ -1870,7 +1870,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         let mut sideLower: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
-        let mut isCostDenominated: bool = self.safe_bool_k(params.clone(), "costDenominated", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isCostDenominated: bool = self.safe_bool_k_opt(params.clone(), "costDenominated", &[Value::Bool(false)]).unwrap_or(false);
         if (sideLower == "buy") && (!isCostDenominated) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")));
         }
@@ -3259,7 +3259,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut active: bool = state == "open";
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
         let mut resolvedOutcomeId: String = self.safe_string_k(raw.clone(), "resolvedOutcomeId", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
-        let mut voided: bool = self.safe_bool_k(raw.clone(), "voided", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut voided: bool = self.safe_bool_k_opt(raw.clone(), "voided", &[Value::Bool(false)]).unwrap_or(false);
         let mut hasResolution: bool = (((resolvedOutcomeId != "-1") && (true)) && (resolvedOutcomeId != ""));
         let mut marketResolved: bool = (hasResolution || voided);
         let mut resolvedOutcome: Option<String> = None;
@@ -4308,7 +4308,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut allowUnscopedFetchEvents: bool = self.safe_bool_k(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut allowUnscopedFetchEvents: bool = self.safe_bool_k_opt(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]).unwrap_or(false);
         if !allowUnscopedFetchEvents {
             self.require_event_query(&[params.clone()]);
         }

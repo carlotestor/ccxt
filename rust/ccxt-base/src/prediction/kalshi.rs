@@ -403,7 +403,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         if (price.is_some()) && (amount.is_some()) {
             cost = (if let (Some(__l), Some(__r)) = (price, amount) { Some(__l * __r) } else { None });
         }
-        let mut isTaker: bool = self.safe_bool_k(fill.clone(), "is_taker", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut isTaker: bool = self.safe_bool_k_opt(fill.clone(), "is_taker", &[Value::Bool(true)]).unwrap_or(true);
         let mut takerOrMaker: String = "maker".to_string();
         if isTaker {
             takerOrMaker = "taker".to_string();
@@ -1795,7 +1795,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         //     { "exchange_active": true, "trading_active": true }
         //
-        let mut tradingActive: bool = self.safe_bool_k(&response, "trading_active", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut tradingActive: bool = self.safe_bool_k_opt(&response, "trading_active", &[Value::Bool(false)]).unwrap_or(false);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if tradingActive { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
@@ -3854,7 +3854,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if marketsCount > 0 {
             active = Some(anyActive);
         }
-        let mut resolved: Option<bool> = self.safe_bool_k(rawEvent.clone(), "resolved", &[]).as_bool();
+        let mut resolved: Option<bool> = self.safe_bool_k_opt(rawEvent.clone(), "resolved", &[]);
         if (resolved.is_none()) && (marketsCount > 0) {
             resolved = Some(allResolved);
         }

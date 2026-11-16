@@ -866,7 +866,7 @@ if _try_result.is_err() {
             }
         }
         }
-        let mut prefix: bool = self.safe_bool_k(subscription.clone(), "prefix", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut prefix: bool = self.safe_bool_k_opt(subscription.clone(), "prefix", &[Value::Bool(false)]).unwrap_or(false);
         let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;

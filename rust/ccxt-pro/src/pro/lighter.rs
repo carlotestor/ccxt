@@ -911,7 +911,7 @@ impl Lighter {
         let mut tradeId: Option<String> = self.safe_string_k_opt(trade.clone(), "trade_id", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
-        let mut isMakerAsk: bool = self.safe_bool_k(trade.clone(), "is_maker_ask", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMakerAsk: bool = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[Value::Bool(false)]).unwrap_or(false);
         let mut side: String = "sell".to_string();
         if isMakerAsk {
             side = "buy".to_string();
@@ -1120,7 +1120,7 @@ impl Lighter {
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
         let mut costString: Option<String> = self.safe_string_k_opt(trade.clone(), "usd_amount", &[]);
-        let mut isMakerAsk: bool = self.safe_bool_k(trade.clone(), "is_maker_ask", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMakerAsk: bool = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[Value::Bool(false)]).unwrap_or(false);
         let mut accountIndex: Option<i64> = self.safe_integer_k(trade.clone(), "accountIndex", &[]).as_i64();
         let mut bidAccountId: Option<i64> = self.safe_integer_k(trade.clone(), "bid_account_id", &[]).as_i64();
         let mut askAccountId: Option<i64> = self.safe_integer_k(trade.clone(), "ask_account_id", &[]).as_i64();
@@ -1392,7 +1392,7 @@ impl Lighter {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "timestamp", &[]).as_i64();
-        let mut isMakerAsk: bool = self.safe_bool_k(liquidation.clone(), "is_maker_ask", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMakerAsk: bool = self.safe_bool_k_opt(liquidation.clone(), "is_maker_ask", &[Value::Bool(false)]).unwrap_or(false);
         let mut side: String = "sell".to_string();
         if isMakerAsk {
             side = "buy".to_string();

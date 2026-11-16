@@ -232,7 +232,7 @@ impl crate::exchange::DerivedExchange for Kraken {
             symbol = self.safe_string_k_opt(marketResolved.clone(), "symbol", &[]);
         }
         let mut cost: Option<String> = self.safe_string_k_opt(trade.clone(), "cost", &[]);
-        let mut maker: Option<bool> = self.safe_bool_k(trade.clone(), "maker", &[]).as_bool();
+        let mut maker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (maker.is_some()) {
             takerOrMaker = (if (maker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
@@ -362,7 +362,7 @@ impl crate::exchange::DerivedExchange for Kraken {
         //         "oflags": "fciq"
         //     }
         //
-        let mut isUsingCost: bool = self.safe_bool_k(order.clone(), "usingCost", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUsingCost: bool = self.safe_bool_k_opt(order.clone(), "usingCost", &[Value::Bool(false)]).unwrap_or(false);
         let mut orderOmitted: Value = self.omit(order, Value::Str("usingCost".into()), &[]);
         let mut description: crate::value::Dict = self.safe_dict_k(orderOmitted.clone(), "descr", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3483,7 +3483,7 @@ impl Kraken {
         }  else if isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone()))); }
         }
-        let mut reduceOnly: Option<bool> = self.safe_bool2(&paramsOmitted2, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(&paramsOmitted2, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         if isStopLossOrTakeProfitTrigger {
             if isStopLossTriggerOrder {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }

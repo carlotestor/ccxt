@@ -165,7 +165,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCostString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
-        let mut taker: Option<bool> = self.safe_bool_k(trade.clone(), "taker", &[]).as_bool();
+        let mut taker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "taker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (taker.is_some()) {
             takerOrMaker = (if (taker == Some(true)) { Some("taker".to_string()) } else { Some("maker".to_string()) });
@@ -302,7 +302,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
-        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "post_only", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(order.clone(), "time_in_force", &[]);
         let mut rawTrades: Option<crate::value::List> = self.safe_list_k(order.clone(), "trades", &[]).into_opt_list();
         return self.safe_order(Value::Map({
@@ -818,7 +818,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
                 networkCode = self.safe_string_opt(self.networkAliases.clone(), networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null), &[networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null)]);
             }
             let mut withdrawFee: Option<f64> = self.safe_number_k(&networkEntry, "payout_fee", &[]).as_f64();
-            let mut isDefault: bool = self.safe_bool_k(&networkEntry, "default", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isDefault: bool = self.safe_bool_k_opt(&networkEntry, "default", &[Value::Bool(false)]).unwrap_or(false);
             let mut withdrawResult: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("fee".to_string(), Value::from(withdrawFee));
@@ -2249,7 +2249,7 @@ impl Hitbtc {
             let mut expiry: Option<i64> = self.safe_integer_k(&market, "expiry", &[]).as_i64();
             let mut contract: Value = (Value::Bool(marketType.as_deref() == Some("futures")));
             let mut spot: bool = marketType.as_deref() == Some("spot");
-            let mut marginTrading: bool = self.safe_bool_k(&market, "margin_trading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut marginTrading: bool = self.safe_bool_k_opt(&market, "margin_trading", &[Value::Bool(false)]).unwrap_or(false);
             let mut margin: bool = (spot && marginTrading);
             let mut future: Value = (Value::Bool(expiry.is_some()));
             let mut swap: Value = Value::Bool(matches!(&contract, Value::Bool(true)) && !(matches!(&future, Value::Bool(true))));
@@ -4040,7 +4040,7 @@ impl Hitbtc {
     m
 }));
         let mut isLimit: bool = type_var.as_str() == Some("limit");
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(params.clone(), "reduceOnly", &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(params.clone(), "timeInForce", &[]);
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_f64();
         let mut isPostOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Null, &[params.clone()]);
@@ -4336,7 +4336,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut includeFee: bool = self.safe_bool_k(&withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut includeFee: bool = self.safe_bool_k_opt(&withdrawOptions, "includeFee", &[Value::Bool(false)]).unwrap_or(false);
         if includeFee {
             request.insert("include_fee".into(), Value::Bool(true));
         }
@@ -5198,7 +5198,7 @@ impl Hitbtc {
          * @returns {Array} the marginMode in lowercase
          */
         let mut defaultType: Option<String> = self.safe_string_k_opt(self.options.clone(), "defaultType", &[]);
-        let mut isMargin: bool = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMargin: bool = self.safe_bool_k_opt(params.clone(), "margin", &[Value::Bool(false)]).unwrap_or(false);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.super_handle_margin_mode_and_params(methodName, params, defaultValue).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
