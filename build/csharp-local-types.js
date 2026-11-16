@@ -8865,13 +8865,54 @@ function dictRowUsesAreConsistent (csharp, scope, declaration) {
     return true;
 }
 
+// ral-77c3: the row family for ANY local name. The market-row names keep `object` (their row reads
+// print without a null test, see elementRowLocalBox). A row element can be null (off the end of the
+// list, or a JSON null), and the printer's `k in x` arm prints a bare `x.ContainsKey (k)` for a
+// declared dictionary local, so a widened local read by `in` keeps `object` (inOp answers false on
+// null). A widened local never proves a callee's parameter: the call-site parameter proof
+// (csharpParameterCallSitesProve) sees it as `object`, so no signature moves with it.
+const DICT_ROW_VETO_NAMES = new Set ([ 'market', 'currency' ]);
+
+function dictRowLocalNameAdmitted (csharp, declaration) {
+    const name = declaration?.name?.text;
+    if (DICT_ROW_LOCAL_NAMES.has (name)) {
+        return true;
+    }
+    if (name === undefined || DICT_ROW_VETO_NAMES.has (name)) {
+        return false;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        let current = use;
+        while (current.parent && (current.parent.kind === ts.SyntaxKind.ParenthesizedExpression || current.parent.kind === ts.SyntaxKind.AsExpression)) {
+            current = current.parent;
+        }
+        const owner = current.parent;
+        if (owner?.kind === ts.SyntaxKind.BinaryExpression && owner.right === current && owner.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function widenedDictRowArgument (csharp, argument) {
+    if (argument === undefined || !ts.isIdentifier (argument) || DICT_ROW_LOCAL_NAMES.has (argument.text)) {
+        return false;
+    }
+    const declaration = csharpIdentifierDeclaration (csharp, argument);
+    return declaration?.kind === ts.SyntaxKind.VariableDeclaration && dictRowElementReadType (csharp, declaration) !== undefined;
+}
+const dictRowUpstreamArgumentType = csharpArgumentType;
+// eslint-disable-next-line no-func-assign
+csharpArgumentType = (csharp, argument, expected) => (widenedDictRowArgument (csharp, argument) ? 'object' : dictRowUpstreamArgumentType (csharp, argument, expected));
+
 // `IDictionary<string, object>` when the checker proves the element of `recv[key]` is a ccxt row
 // shape, or undefined (the read keeps the printer's `object`)
 function dictRowElementReadType (csharp, declaration) {
-    // ral-77c3: any local name, the market-row names excepted (their read arm prints no null
-    // test, see elementRowLocalBox); names outside the original list are recorded for the
-    // signature guard below
-    if (DICT_ROW_VETO_NAMES.has (declaration?.name?.text)) {
+    if (!dictRowLocalNameAdmitted (csharp, declaration)) {
         return undefined;
     }
     // the generated tests hold the exchange in a parameter and call the BaseTest getValue
@@ -8929,24 +8970,6 @@ function dictRowElementReadType (csharp, declaration) {
     }
     return 'IDictionary<string, object>';
 }
-
-// ral-77c3: the market-row locals keep `object` (their row reads print without a null test)
-const DICT_ROW_VETO_NAMES = new Set ([ 'market', 'currency' ]);
-
-// ral-77c3: a row local typed only by the widened rule above (its name is not in
-// DICT_ROW_LOCAL_NAMES) types its own declaration and reads, never a callee's parameter: the
-// call-site parameter proof (csharpParameterCallSitesProve) sees such an argument as `object`,
-// so no method signature moves with it (signatures are another lane's)
-function widenedDictRowArgument (csharp, argument) {
-    if (argument === undefined || !ts.isIdentifier (argument) || DICT_ROW_LOCAL_NAMES.has (argument.text)) {
-        return false;
-    }
-    const declaration = csharpIdentifierDeclaration (csharp, argument);
-    return declaration?.kind === ts.SyntaxKind.VariableDeclaration && dictRowElementReadType (csharp, declaration) !== undefined;
-}
-const dictRowUpstreamArgumentType = csharpArgumentType;
-// eslint-disable-next-line no-func-assign
-csharpArgumentType = (csharp, argument, expected) => (widenedDictRowArgument (csharp, argument) ? 'object' : dictRowUpstreamArgumentType (csharp, argument, expected));
 
 // ==== typed dict element reads -> the static GetValue twin ====
 //

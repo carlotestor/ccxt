@@ -8668,6 +8668,7 @@ function dictRowElementReadSnippetChecks (): string[] {
         [ 'object entry', '((IDictionary<string,object>)entry)' ]);
     check ('arithmetic use keeps object', 'g (data: Dict[]) { const entry = data[0]; return entry + 1; }', [ 'object entry = ' ], [ 'IDictionary<string, object> entry' ]);
     check ('market name keeps object', 'h (data: Dict[]) { const market = data[0]; return this.safeString (market, "id"); }', [ 'object market = ' ], [ 'IDictionary<string, object> market' ]);
+    check ('in-tested row keeps object', 'k (data: Dict[]) { const row = data[0]; if ("a" in row) { return 1; } return this.safeString (row, "b"); }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     check ('callee parameter stays object',
         'p (raw) { return this.safeString (raw, "a"); }\n q (data: Dict[]) { const raw = data[0]; return this.p (raw); }',
         [ 'IDictionary<string, object> raw = ', 'p(object raw)' ], [ 'p(IDictionary<string, object> raw)' ]);
