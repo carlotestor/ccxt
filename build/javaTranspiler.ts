@@ -6908,6 +6908,7 @@ function javaNullSeedJoinSelfTest (): string[] {
         "    signed (action: any, nonce: any, vault: string = undefined): Dict { return { 'r': action, 'n': nonce, 'v': vault }; }",
         "    built (payload: any): Dict { return { 'r': payload }; }",
         "    send (p: Dict, flag: boolean) { let sent: Dict; if (flag) { sent = this.signed (p, 1); } else { sent = this.built (p); } return { 'signature': sent }; }",
+        "    netw (p: Dict, flag: boolean) { let net = undefined; if (flag) { net = this.networkIdToCode (this.safeString (p, 'n')); } return { 'net': net }; }",
         "    mixed (p: Dict, flag: boolean) { const a = this.safeString (p, 'a'); let m = undefined; if (flag) { m = a; } else { m = p; } return { 'm': m }; }",
         '}',
     ].join('\n');
@@ -6915,6 +6916,7 @@ function javaNullSeedJoinSelfTest (): string[] {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/Map<String, Object> sent = null/.test(out)) problems.push("'sent' (sync cores returning Map on every write) must print Map<String, Object>");
+        if (!/String net = null/.test(out)) problems.push("'net' (base core printed String) must print String");
         if (!/String c = null/.test(out)) problems.push("'c' (copies of String locals) must print String");
         if (!/\bObject m = null/.test(out)) problems.push("'m' (String and Map writes) must stay Object");
     } catch (e: any) {

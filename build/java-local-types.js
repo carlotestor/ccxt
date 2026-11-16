@@ -12397,10 +12397,11 @@ function nullScalarWriteType (printer, node) {
         if (isThisCall (value) && (dataflowThisCallType (printer, value) ?? joinBaseProducerType (printer, value)) === JAVA_DATAFLOW_STRING) {
             return JAVA_DATAFLOW_STRING;
         }
-        // r77-j4: a sync core whose printed signature already returns the Map / List box (no cast)
-        const container = nullContainerSpelling (isThisCall (value) ? syncCoreCallType (printer, value) : undefined);
-        if (container !== undefined) {
-            return container;
+        // r77-j4: a sync core whose printed signature already returns the box (no cast)
+        const core = isThisCall (value) ? syncCoreCallType (printer, value) : undefined;
+        const container = nullContainerSpelling (core);
+        if (container !== undefined || NULL_SCALAR_COPY_TYPES.has (core)) {
+            return container ?? core;
         }
     }
     return undefined;
