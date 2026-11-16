@@ -5857,8 +5857,10 @@ function javaR84j5CalleeReturnsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zz84j5selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
+        "import type { Strings } from './base/types.js';",
         `export default class zz84j5selftest${process.pid} extends Exchange {`,
         "    net (code: string, networkCode: string) { const request: any = {}; const nid = this.networkCodeToId (networkCode, code); if (nid !== undefined) { request['chain'] = nid.toUpperCase (); } return request; }",
+        "    syms (symbols: Strings = undefined) { const sn: Strings = this.marketSymbols (symbols, undefined, false); const out = []; for (let i = 0; i < (sn as string[]).length; i++) { out.push (this.market ((sn as string[])[i])); } return out; }",
         '}',
     ].join('\n');
     try {
@@ -5866,6 +5868,9 @@ function javaR84j5CalleeReturnsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/String nid = this\.networkCodeToId\(/.test(out)) problems.push("ral-84j5: 'nid' (networkCodeToId, every return String) must print String");
         if (!/nid\.toUpperCase\(\)/.test(out) || /\(\(String\)nid\)/.test(out)) problems.push("ral-84j5: 'nid.toUpperCase ()' must print natively with no (String) receiver cast");
+        // `x as string[]` uses of a marketSymbols local: the List<String> local takes them as the identity
+        if (!/List<String> sn = this\.marketSymbols\(/.test(out)) problems.push("ral-84j5: 'sn' (marketSymbols, used through `as string[]`) must print List<String>");
+        if (/<\?>\)\(List<String>\)\(sn\)/.test(out)) problems.push("ral-84j5: '(sn as string[]).length' must print without the List<String> assertion cast");
     } catch (e: any) {
         problems.push(`ral-84j5 self-test threw: ${e.message}`);
     } finally {

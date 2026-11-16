@@ -13369,6 +13369,9 @@ function stringListJoinLocal (printer, declaration, seen) {
         if (stringListFeedsJoinedLocal (printer, host, seen)) {
             continue;
         }
+        if (stringListStringArrayAssertion (host.parent)) {
+            continue; // ral-84j5: `(x as string[])` printed `(java.util.List<String>)(x)`; the typed local prints bare, same static type
+        }
         if (stringListReturnUse (n, scope) || stringListStoredAsValue (host) || stringListAnyParamArgument (printer, host)
             || objectKeysUseIsSafe (n)) {
             continue;
@@ -13376,6 +13379,13 @@ function stringListJoinLocal (printer, declaration, seen) {
         return false;
     }
     return true;
+}
+
+// ral-84j5: `x as string[]`: printAsExpression prints `(java.util.List<String>)(x)`, an expression whose static
+// type is List<String> whatever x's declaration; on a List<String> local the same expression prints `x` (identity)
+function stringListStringArrayAssertion (node) {
+    return node !== undefined && ts.isAsExpression (node) && node.type?.kind === ts.SyntaxKind.ArrayType
+        && node.type.elementType?.kind === ts.SyntaxKind.StringKeyword;
 }
 
 // linked locals (a = b, b feeds a) are decided together: an in-progress local is assumed
@@ -13466,6 +13476,16 @@ export function patchJavaStringListReturnLocals (transpiler) {
                 ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
         };
     }
+    // ral-84j5: drop the identity `(java.util.List<String>)` assertion on a local this section retyped
+    const upstreamAs = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        const operand = node?.expression;
+        if (stringListStringArrayAssertion (node) && operand !== undefined && ts.isIdentifier (operand)
+            && typed.has (stringListLocalDeclaration (printer, operand))) {
+            return printer.printNode (operand, identation);
+        }
+        return upstreamAs (node, identation);
+    };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
 
