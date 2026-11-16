@@ -339,10 +339,10 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
 //     the safeString reads, the `code` local) already prints String — no cast.
 export const JAVA_STRING_RETURN_METHODS_CAST = new Set ([
     'getExtendedCurrencyCodeById', 'marketId', 'safeCurrencyCode', 'safeSymbol',
-    // ral-84j5: base `: Str` methods never redeclared in ts/src whose every return is null, a safeString
-    // read, a String-declared local / parameter, a String concat, or an element read (the one checkcast):
-    //   networkCodeToId (Exchange.ts), safeOutcomeSymbol / slugToMarketSymbol (PredictionExchange.ts)
-    'networkCodeToId', 'safeOutcomeSymbol', 'slugToMarketSymbol',
+    // ral-84j5: networkCodeToId (Exchange.ts, never redeclared in ts/src): every return is null, a safeString read,
+    // the String param, or an element read of options.networks (the one checkcast; every venue table maps to string literals).
+    // safeOutcomeSymbol / slugToMarketSymbol prove the same way but their locals only feed Object slots: left out
+    'networkCodeToId',
 ]);
 
 // listed names that additionally carry `this.safeStringUpper/Lower (...)` return sites:
