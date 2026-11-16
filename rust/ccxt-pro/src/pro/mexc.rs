@@ -1262,7 +1262,7 @@ impl Mexc {
         //      }
         // }
         //
-        let mut data: Value = self.safe_dict_n(message.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreDepths".into())]), &[]);
+        let mut data: Option<crate::value::Dict> = self.safe_dict_n(message.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreDepths".into())]), &[]).into_opt_dict();
         let mut marketId: Option<String> = self.safe_string2_opt(message.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
@@ -1283,11 +1283,11 @@ impl Mexc {
                     m
                 })]);
             }
-            storedOrderBook.cache_push(data);
+            storedOrderBook.cache_push(data.clone().map_or(Value::Null, Value::Dict));
             return;
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_book_delta(Value::from(&storedOrderBook), data);
+            self.handle_book_delta(Value::from(&storedOrderBook), data.map_or(Value::Null, Value::Dict));
             let mut timestamp: Option<i64> = self.safe_integer_n(message, Value::from(vec![Value::Str("t".into()), Value::Str("ts".into()), Value::Str("sendTime".into())]), &[]).as_i64();
             storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
             storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));

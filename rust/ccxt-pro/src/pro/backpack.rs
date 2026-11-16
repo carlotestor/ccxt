@@ -1745,23 +1745,20 @@ impl Backpack {
         //         "stream": "depth.ETH_USDC"
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
-        let mut deltaNonce: Option<i64> = self.safe_integer_k(data.clone(), "u", &[]).as_i64();
+        let mut deltaNonce: Option<i64> = self.safe_integer_k(&data, "u", &[]).as_i64();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         if (nonce.is_none()) {
             let mut cacheLength: Value = Value::Int(storedOrderBook.book_field("cache").len() as i64);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
-            storedOrderBook.cache_push(data);
+            storedOrderBook.cache_push(Value::from(&data));
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut isStockMarket: bool = ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) || ((marketId.is_some()) && ((marketId.as_deref().unwrap_or_default().contains(".US_")) || (marketId.as_deref().unwrap_or_default().contains(".HK_"))));
@@ -1777,7 +1774,7 @@ impl Backpack {
         }  else if (deltaNonce.is_some()) && ((nonce.is_some() && deltaNonce.is_some() && nonce > deltaNonce)) {
             return;
         }
-        self.handle_book_delta(Value::from(&storedOrderBook), data);
+        self.handle_book_delta(Value::from(&storedOrderBook), Value::Dict(data));
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 

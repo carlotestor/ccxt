@@ -1118,10 +1118,10 @@ impl Gate {
         if isSpot {
             marketType = "spot".to_string();
         }
-        let mut delta: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut deltaStart: Option<i64> = self.safe_integer_k(delta.clone(), "U", &[]).as_i64();
-        let mut deltaEnd: Option<i64> = self.safe_integer_k(delta.clone(), "u", &[]).as_i64();
-        let mut marketId: Option<String> = self.safe_string_k_opt(delta.clone(), "s", &[]);
+        let mut delta: Option<crate::value::Dict> = __pro_message.get("result").cloned().unwrap_or_default().into_opt_dict();
+        let mut deltaStart: Option<i64> = self.safe_integer_k(&delta, "U", &[]).as_i64();
+        let mut deltaEnd: Option<i64> = self.safe_integer_k(&delta, "u", &[]).as_i64();
+        let mut marketId: Option<String> = self.safe_string_k_opt(&delta, "s", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::from(marketType)]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         let mut storedOrderBook: Option<crate::pro::order_book::Book> = Some(self.orderbooks.lookup_or(&symbol, self.order_book(&[Value::Map({
@@ -1149,12 +1149,12 @@ impl Gate {
                     m
                 })]); // needed for c#, number of args needs to match
             }
-            storedOrderBook.cache_push(delta);
+            storedOrderBook.cache_push(delta.clone().map_or(Value::Null, Value::Dict));
             return;
         }  else if (deltaEnd.is_some()) && ((nonce.is_some() && deltaEnd.is_some() && nonce >= deltaEnd)) {
             return;
         }  else if (deltaStart.is_some()) && (nonce.is_some()) && (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) {
-            self.handle_book_delta(Value::from(&storedOrderBook), delta);
+            self.handle_book_delta(Value::from(&storedOrderBook), delta.map_or(Value::Null, Value::Dict));
         }  else {
             __ch.remove_subscription(messageHash.as_str());
             storedOrderBook.set_book_meta("nonce", Value::Null);
