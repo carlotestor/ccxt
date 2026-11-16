@@ -3496,13 +3496,8 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, o
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var marginMode any = nil
-		var marginModePtr *string = nil
-		marginModePtr, paramsLoop = this.HandleMarginModeAndParams("createOrder", paramsLoop)
-		marginMode = nil
-		if marginModePtr != nil {
-			marginMode = *marginModePtr
-		}
+		var marginMode *string = nil
+		marginMode, paramsLoop = this.HandleMarginModeAndParams("createOrder", paramsLoop)
 		var orderRequest map[string]any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}

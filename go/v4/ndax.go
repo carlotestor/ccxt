@@ -3378,13 +3378,13 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	var id *string = this.SafeString(transaction, "DepositId")
 	var currencyId *string = this.SafeString(transaction, "ProductId")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	var typeVar any = nil
+	var typeVar *string = nil
 	if id != nil {
-		typeVar = "deposit"
+		typeVar = SafeStringPtr("deposit")
 	} else {
 		id = this.SafeString(transaction, "WithdrawId")
 		if id != nil {
-			typeVar = "withdrawal"
+			typeVar = SafeStringPtr("withdrawal")
 		}
 	}
 	var templateForm any = this.ParseJson(this.SafeString2(transaction, "TemplateForm", "DepositInfo"))

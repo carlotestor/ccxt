@@ -121,7 +121,7 @@ func (this *Bingx) unWatchBody(ch chan ccxt.AsyncResult[bool], messageHash strin
 	var marketType *string = nil
 	var subType *string = nil
 	var url any = nil
-	var query any = nil
+	var query map[string]any = nil
 	marketType, query = this.HandleMarketTypeAndParams(methodName, market, params)
 	subType, query = this.HandleSubTypeAndParams(methodName, market, query, "linear")
 	if marketType != nil && *marketType == "swap" {
@@ -158,7 +158,7 @@ func (this *Bingx) unWatchBody(ch chan ccxt.AsyncResult[bool], messageHash strin
 	var symbolsAndTimeframes any = this.SafeList(query, "symbolsAndTimeframes")
 	if symbolsAndTimeframes != nil {
 		subscription["symbolsAndTimeframes"] = symbolsAndTimeframes
-		query = this.Omit(query, "symbolsAndTimeframes")
+		query = this.OmitDict(query, "symbolsAndTimeframes")
 	}
 
 	r := <-this.Watch(url, messageHash, this.Extend(request, query), subscribeHash, subscription)

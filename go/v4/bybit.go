@@ -12055,7 +12055,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 			panic(r.Err)
 		}
 	}
-	var symbol any = nil
+	var symbol *string = nil
 	if symbols != nil {
 		var market map[string]any = this.Market(func() any {
 			if 0 >= 0 && 0 < len(symbols) {
@@ -12066,7 +12066,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
-		symbol = DerefScalar(this.SafeString(market, "symbol"))
+		symbol = this.SafeString(market, "symbol")
 	}
 
 	r1 := <-this.GetLeverageTiersPaginatedAsync(symbol, this.Extend(map[string]any{

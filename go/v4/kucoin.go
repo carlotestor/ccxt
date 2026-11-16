@@ -5862,12 +5862,8 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 		accountMode = *accountModePtr
 	}
 	var isUnified bool = (accountMode == "unified")
-	var marginMode any = nil
-	var marginModePtr *string = nil
-	marginModePtr, paramsRequest = this.HandleMarginModeAndParams("createOrder", paramsRequest)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
+	var marginMode *string = nil
+	marginMode, paramsRequest = this.HandleMarginModeAndParams("createOrder", paramsRequest)
 	var tradeType *string = this.HandleTradeType(isContract, marginMode, isUnified, paramsRequest)
 	var clientOrderId *string = this.SafeString2(paramsRequest, "clientOid", "clientOrderId", this.Uuid())
 	paramsRequest = this.Omit(paramsRequest, []any{"clientOid", "clientOrderId"})
@@ -5929,8 +5925,8 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 	if isContract != nil && *isContract == true {
 		if !isUnified {
 			if marginMode != nil {
-				request["marginMode"] = ToUpper(marginMode)
-				if marginMode == "isolated" {
+				request["marginMode"] = strings.ToUpper(*marginMode)
+				if marginMode != nil && *marginMode == "isolated" {
 					var leverage *int64 = this.SafeInteger(paramsOmitted, "leverage")
 					if leverage == nil {
 						request["leverage"] = 1
@@ -6944,12 +6940,8 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan AsyncResult[Order], id string, op
 		accountMode = *accountModePtr
 	}
 	request["accountMode"] = accountMode
-	var marginMode any = nil
-	var marginModePtr *string = nil
-	marginModePtr, paramsOmitted = this.HandleMarginModeAndParams("cancelOrder", paramsOmitted)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
+	var marginMode *string = nil
+	marginMode, paramsOmitted = this.HandleMarginModeAndParams("cancelOrder", paramsOmitted)
 	var isUnified bool = (accountMode == "unified")
 	var tradeType *string = this.HandleTradeType(market["contract"], marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
@@ -8531,12 +8523,8 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id string, opt
 		accountMode = *accountModePtr
 	}
 	request["accountMode"] = accountMode
-	var marginMode any = nil
-	var marginModePtr *string = nil
-	marginModePtr, paramsOmitted = this.HandleMarginModeAndParams("fetchOrder", paramsOmitted)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
+	var marginMode *string = nil
+	marginMode, paramsOmitted = this.HandleMarginModeAndParams("fetchOrder", paramsOmitted)
 	var isUnified bool = (accountMode == "unified")
 	var tradeType *string = this.HandleTradeType(market["contract"], marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
@@ -9645,12 +9633,8 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		accountMode = *accountModePtr
 	}
 	request["accountMode"] = accountMode
-	var marginMode any = nil
-	var marginModePtr *string = nil
-	marginModePtr, paramsOmitted = this.HandleMarginModeAndParams("fetchMyTrades", paramsOmitted)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
+	var marginMode *string = nil
+	marginMode, paramsOmitted = this.HandleMarginModeAndParams("fetchMyTrades", paramsOmitted)
 	var isUnified bool = (accountMode == "unified")
 	var tradeType *string = this.HandleTradeType(isContract, marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
@@ -14920,12 +14904,8 @@ func (this *Kucoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 			accountMode = *accountModePtr
 		}
 		request["accountMode"] = accountMode
-		var marginMode any = nil
-		var marginModePtr *string = nil
-		marginModePtr, paramsRequest = this.HandleMarginModeAndParams("cancelOrders", paramsRequest)
-		if marginModePtr != nil {
-			marginMode = *marginModePtr
-		}
+		var marginMode *string = nil
+		marginMode, paramsRequest = this.HandleMarginModeAndParams("cancelOrders", paramsRequest)
 		var isUnified bool = (accountMode == "unified")
 		var tradeType *string = this.HandleTradeType(isContractMarket, marginMode, isUnified, paramsRequest)
 		request["tradeType"] = tradeType

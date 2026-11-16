@@ -2966,12 +2966,12 @@ func (this *Bitget) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	var isStockOrUta bool = (stock || uta)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, paramsStock)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchBalance", paramsMarketType)
-	var instTypeDefault any = nil
+	var instTypeDefault *string = nil
 	var channel string = "account"
 	if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
-		instTypeDefault = "USDT-FUTURES"
+		instTypeDefault = ccxt.SafeStringPtr("USDT-FUTURES")
 	} else if marginMode != nil {
-		instTypeDefault = "MARGIN"
+		instTypeDefault = ccxt.SafeStringPtr("MARGIN")
 		if !isStockOrUta {
 			if marginMode != nil && *marginMode == "isolated" {
 				channel = "account-isolated"
@@ -2980,7 +2980,7 @@ func (this *Bitget) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 			}
 		}
 	} else if !isStockOrUta {
-		instTypeDefault = "SPOT"
+		instTypeDefault = ccxt.SafeStringPtr("SPOT")
 	}
 	instTypeOption, paramsInstType := this.HandleOptionStringAndParams(paramsMarginMode, "watchBalance", "instType", instTypeDefault)
 	var instType *string = instTypeOption

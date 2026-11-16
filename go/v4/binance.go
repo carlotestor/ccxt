@@ -5751,14 +5751,10 @@ func (this *Binance) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	subType, paramsSubType = this.HandleSubTypeAndParams("fetchBalance", nil, params)
 	var isPortfolioMargin bool
 	isPortfolioMargin, paramsSubType = this.HandleOptionBoolAndParams2(paramsSubType, "fetchBalance", "papi", "portfolioMargin", false)
-	var marginMode any = nil
-	var query any = nil
-	var marginModePtr *string = nil
-	marginModePtr, query = this.HandleMarginModeAndParams("fetchBalance", paramsSubType)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
-	query = this.Omit(query, "type")
+	var marginMode *string = nil
+	var query map[string]any = nil
+	marginMode, query = this.HandleMarginModeAndParams("fetchBalance", paramsSubType)
+	query = this.OmitDict(query, "type")
 	var response any = nil
 	var request map[string]any = map[string]any{}
 	if isPortfolioMargin || (typeVar != nil && *typeVar == "papi") {
@@ -5802,9 +5798,9 @@ func (this *Binance) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 			panic(r4.Err)
 		}
 		response = r4.Raw
-	} else if marginMode == "isolated" {
+	} else if marginMode != nil && *marginMode == "isolated" {
 		var paramSymbols any = this.SafeList(paramsSubType, "symbols")
-		query = this.Omit(query, "symbols")
+		query = this.OmitDict(query, "symbols")
 		if paramSymbols != nil {
 			var symbols any = ""
 			if paramSymbols != nil {
@@ -5829,7 +5825,7 @@ func (this *Binance) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 			panic(r5.Err)
 		}
 		response = r5.Raw
-	} else if (typeVar != nil && *typeVar == "margin") || (marginMode == "cross") {
+	} else if (typeVar != nil && *typeVar == "margin") || (marginMode != nil && *marginMode == "cross") {
 
 		r6 := <-this.SapiGetMarginAccount(this.Extend(request, query))
 		if r6.Err != nil {
@@ -6769,7 +6765,7 @@ func (this *Binance) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	}
 	var market map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	typeVar, paramsMarketType = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var subType *string = nil
 	subType, paramsMarketType = this.HandleSubTypeAndParams("fetchTickers", market, paramsMarketType)
@@ -6790,7 +6786,7 @@ func (this *Binance) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		response = r2.Value
 	} else if typeVar != nil && *typeVar == "spot" {
 		var rolling *bool = this.SafeBool(paramsMarketType, "rolling", false)
-		paramsMarketType = this.Omit(paramsMarketType, "rolling")
+		paramsMarketType = this.OmitDict(paramsMarketType, "rolling")
 		if rolling != nil && *rolling {
 			symbolsNormalized = this.MarketSymbols(symbolsNormalized)
 			var request map[string]any = map[string]any{
@@ -10259,7 +10255,7 @@ func (this *Binance) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var stock bool = false
-	var paramsStock any = nil
+	var paramsStock map[string]any = nil
 	stock, paramsStock = this.HandleOptionBoolAndParams(params, "fetchOrder", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -10300,7 +10296,7 @@ func (this *Binance) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	} else {
 		request["orderId"] = id
 	}
-	paramsStock = this.Omit(paramsStock, []any{"clientOrderId", "origClientOrderId", "stop", "trigger", "conditional", "clientAlgoId"})
+	paramsStock = this.OmitDict(paramsStock, []any{"clientOrderId", "origClientOrderId", "stop", "trigger", "conditional", "clientAlgoId"})
 	var response map[string]any = nil
 	if isOptionType {
 
@@ -10452,7 +10448,7 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		}
 	}
 	var paginate bool = false
-	var paramsPaginate any = nil
+	var paramsPaginate map[string]any = nil
 	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	if paginate {
 
@@ -10500,7 +10496,7 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		}
 	}
 	var until *int64 = this.SafeIntegerN(paramsPaginate, []any{"until", "till", "endTime"})
-	paramsPaginate = this.Omit(paramsPaginate, []any{"stop", "trigger", "conditional", "until", "till", "endTime"})
+	paramsPaginate = this.OmitDict(paramsPaginate, []any{"stop", "trigger", "conditional", "until", "till", "endTime"})
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -10910,7 +10906,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var typeVar *string = nil
 	var request map[string]any = map[string]any{}
 	var marginMode *string = nil
-	var paramsMarginMode any = nil
+	var paramsMarginMode map[string]any = nil
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("fetchOpenOrders", params)
 	var isPortfolioMargin bool
 	isPortfolioMargin, paramsMarginMode = this.HandleOptionBoolAndParams2(paramsMarginMode, "fetchOpenOrders", "papi", "portfolioMargin", false)
@@ -10936,7 +10932,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	typeVar, paramsMarginMode = this.HandleMarketTypeAndParams("fetchOpenOrders", market, paramsMarginMode, "spot")
 	var subType *string = nil
 	subType, paramsMarginMode = this.HandleSubTypeAndParams("fetchOpenOrders", market, paramsMarginMode)
-	paramsMarginMode = this.Omit(paramsMarginMode, []any{"stop", "trigger", "conditional"})
+	paramsMarginMode = this.OmitDict(paramsMarginMode, []any{"stop", "trigger", "conditional"})
 	var response []any = nil
 	if typeVar != nil && *typeVar == "option" {
 		if since != nil {
@@ -11591,7 +11587,7 @@ func (this *Binance) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var stock bool = false
-	var paramsStock any = nil
+	var paramsStock map[string]any = nil
 	stock, paramsStock = this.HandleOptionBoolAndParams(params, "cancelOrder", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -11645,7 +11641,7 @@ func (this *Binance) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 			request["orderId"] = id
 		}
 	}
-	paramsStock = this.Omit(paramsStock, []any{"origClientOrderId", "clientOrderId", "newClientStrategyId", "stop", "trigger", "conditional", "clientAlgoId"})
+	paramsStock = this.OmitDict(paramsStock, []any{"origClientOrderId", "clientOrderId", "newClientStrategyId", "stop", "trigger", "conditional", "clientAlgoId"})
 	var response map[string]any = nil
 	if isOptionType {
 
@@ -11810,7 +11806,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var stock bool = false
-	var paramsStock any = nil
+	var paramsStock map[string]any = nil
 	stock, paramsStock = this.HandleOptionBoolAndParams(params, "cancelAllOrders", "stock", false)
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -11834,7 +11830,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var isOptionType bool = (typeVar != nil && *typeVar == "option")
 	var isLinearType bool = this.IsLinear(typeVar, subType)
 	var isInverseType bool = this.IsInverse(typeVar, subType)
-	paramsStock = this.Omit(paramsStock, []any{"stop", "trigger", "conditional"})
+	paramsStock = this.OmitDict(paramsStock, []any{"stop", "trigger", "conditional"})
 	var marginMode *string = nil
 	marginMode, paramsStock = this.HandleMarginModeAndParams("cancelAllOrders", paramsStock)
 	var response any = nil
@@ -12185,7 +12181,7 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		}
 	}
 	var paginate bool = false
-	var paramsPaginate any = nil
+	var paramsPaginate map[string]any = nil
 	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	if paginate {
 
@@ -12243,7 +12239,7 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	}
 	if endTime != nil {
 		request["endTime"] = endTime
-		paramsPaginate = this.Omit(paramsPaginate, []any{"endTime", "until"})
+		paramsPaginate = this.OmitDict(paramsPaginate, []any{"endTime", "until"})
 	}
 	var isContractLimit bool = (typeVar != nil && *typeVar == "option") || (*this.SafeBool(market, "contract", false))
 	// above 1000, returns error
@@ -12858,7 +12854,7 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		}
 	}
 	var paginate bool = false
-	var paramsPaginate any = nil
+	var paramsPaginate map[string]any = nil
 	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
 	if paginate {
 
@@ -12876,11 +12872,11 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	}
 	var legalMoney map[string]any = SafeMapTyped(this.Options, "legalMoney")
 	var fiatOnly *bool = this.SafeBool(paramsPaginate, "fiat", false)
-	paramsPaginate = this.Omit(paramsPaginate, "fiatOnly")
+	paramsPaginate = this.OmitDict(paramsPaginate, "fiatOnly")
 	var request map[string]any = map[string]any{}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	if until != nil {
-		paramsPaginate = this.Omit(paramsPaginate, "until")
+		paramsPaginate = this.OmitDict(paramsPaginate, "until")
 		request["endTime"] = until
 	}
 	var response any = nil
@@ -16000,11 +15996,11 @@ func (this *Binance) fetchPositionsRiskBody(ch chan AsyncResult[[]Position], opt
 	defaultType = DerefScalar(this.SafeString(this.Options, "defaultType", defaultType))
 	var typeVar *string = this.SafeString(params, "type", defaultType)
 	var subType *string = nil
-	var paramsSubType any = nil
+	var paramsSubType map[string]any = nil
 	subType, paramsSubType = this.HandleSubTypeAndParams("fetchPositionsRisk", nil, params, "linear")
 	var isPortfolioMargin bool
 	isPortfolioMargin, paramsSubType = this.HandleOptionBoolAndParams2(paramsSubType, "fetchPositionsRisk", "papi", "portfolioMargin", false)
-	paramsSubType = this.Omit(paramsSubType, "type")
+	paramsSubType = this.OmitDict(paramsSubType, "type")
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin {
@@ -17048,7 +17044,7 @@ func (this *Binance) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 		}
 	}
 	var paginate bool = false
-	var paramsPaginate any = nil
+	var paramsPaginate map[string]any = nil
 	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	if paginate {
 
@@ -17081,7 +17077,7 @@ func (this *Binance) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	if until != nil {
-		paramsPaginate = this.Omit(paramsPaginate, "until")
+		paramsPaginate = this.OmitDict(paramsPaginate, "until")
 		request["endTime"] = until
 	}
 	var isPortfolioMargin bool

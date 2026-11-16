@@ -1427,7 +1427,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var paginate bool = false
-	var query any = nil
+	var query map[string]any = nil
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
@@ -1462,7 +1462,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var until *int64 = this.SafeInteger(query, "until")
 	if until != nil {
 		request["after"] = until
-		query = this.Omit(query, "until")
+		query = this.OmitDict(query, "until")
 	}
 
 	r2 := <-this.PublicGetMarketCandles(this.Extend(request, query))
@@ -1516,7 +1516,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		}
 	}
 	var paginate bool = false
-	var query any = nil
+	var query map[string]any = nil
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
@@ -1545,7 +1545,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var until *int64 = this.SafeInteger(query, "until")
 	if until != nil {
 		request["after"] = until
-		query = this.Omit(query, "until")
+		query = this.OmitDict(query, "until")
 	}
 
 	r2 := <-this.PublicGetMarketFundingRateHistory(this.Extend(request, query))
@@ -3362,7 +3362,7 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagValue *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	tagValue, query = this.HandleParamString(params, "tag")
 
 	r := <-this.LoadMarketsAsync()
@@ -3377,7 +3377,7 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var dest *string = this.SafeString(query, "dest", "onchain")
 	request["dest"] = dest
-	query = this.Omit(query, "dest")
+	query = this.OmitDict(query, "dest")
 	if dest != nil && *dest == "onchain" {
 		this.CheckAddress(address, code, tagValue)
 		// the doc's Request Parameters table marks addrType "Required:
@@ -3385,7 +3385,7 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		// it (152001 "Parameter addrType cannot be empty") - default to
 		// 1 = wallet address, callers can override for other kinds
 		request["addrType"] = this.SafeString(query, "addrType", "1")
-		query = this.Omit(query, "addrType")
+		query = this.OmitDict(query, "addrType")
 	}
 	if tagValue != nil {
 		request["tag"] = *tagValue
