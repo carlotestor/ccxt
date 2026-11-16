@@ -8666,6 +8666,7 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
     check ('identifier-key write keeps object', 'h (data: Dict[], k: string) { const row = data[0]; row[k] = 1; return data; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     check ('in-tested local keeps object', 'k (data: Dict[]) { const row = data[0]; if ("a" in row) { row["a"] = 2; } return data; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     check ('market name keeps object', 'm (data: Dict[]) { const market = data[0]; market["a"] = 1; return data; }', [ 'object market = ' ], [ 'IDictionary<string, object> market' ]);
+    check ('keyed read into a local keeps object', 'n (data: Dict[]) { const row = data[0]; row["a"] = 1; const s = row["b"]; return s; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     return problems;
 }
 

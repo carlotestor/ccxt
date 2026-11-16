@@ -8930,6 +8930,12 @@ function dictRowNativeWriteLocal (csharp, declaration) {
         }
         const access = use.parent;
         if (access?.kind === ts.SyntaxKind.ElementAccessExpression && access.expression === use
+                && access.parent?.kind === ts.SyntaxKind.VariableDeclaration && access.parent.initializer === access) {
+            // `const s = row['k']` would follow the typed row into a cast-backed `string?` local
+            // (typedDictStringReadType): one cast more, no native use; keep the row `object`
+            return false;
+        }
+        if (access?.kind === ts.SyntaxKind.ElementAccessExpression && access.expression === use
                 && access.parent?.kind === ts.SyntaxKind.BinaryExpression && access.parent.left === access
                 && access.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
         ) {
