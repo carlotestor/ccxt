@@ -14,7 +14,7 @@
 //
 //   cargo run --features ws --bin multi_sub -- [secs]   (default 20)
 use ccxt::Params;
-use ccxt_pro::{Binance, ExchangeBase, ExchangeRuntime};
+use ccxt_pro::{Binance, ExchangeRuntime};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
