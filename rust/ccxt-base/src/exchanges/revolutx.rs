@@ -1606,9 +1606,9 @@ impl Revolutx {
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(params.clone(), "takeProfitPrice", &[]);
         let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
         let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "takeProfit", &[]).into_opt_dict();
-        let mut hasStopLoss: bool = (stopLossPrice.is_some()) || (stopLoss.is_some());
-        let mut hasTakeProfit: bool = (takeProfitPrice.is_some()) || (takeProfit.is_some());
-        let mut isTpsl: bool = hasStopLoss || hasTakeProfit;
+        let mut hasStopLoss: bool = ((stopLossPrice.is_some()) || (stopLoss.is_some()));
+        let mut hasTakeProfit: bool = ((takeProfitPrice.is_some()) || (takeProfit.is_some()));
+        let mut isTpsl: bool = (hasStopLoss || hasTakeProfit);
         if (triggerPrice.is_some()) || isTpsl {
             if (type_var.as_str() != Some("limit")) && (type_var.as_str() != Some("market")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support order type ").into()), type_var)));
