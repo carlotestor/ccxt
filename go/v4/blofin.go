@@ -3235,10 +3235,10 @@ func (this *Blofin) fetchDepositBody(ch chan AsyncResult[Transaction], id any, o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	// only accept a row that matches the requested id, in case the
 	// venue ignores the filter and returns the latest records instead
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if IsEqual(this.SafeString(entry, "depositId"), id) {
@@ -3297,10 +3297,10 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	// only accept a row that matches the requested id (or clientId), in
 	// case the venue ignores the filter and returns the latest records
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var matches bool = false

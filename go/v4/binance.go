@@ -5018,7 +5018,7 @@ func (this *Binance) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		// for backward-compatibility
 		rawFetchMarkets = this.SafeList(this.Options, "fetchMarkets", defaultTypes)
 	}
-	var loadAllOptions any = this.HandleOption("fetchMarkets", "loadAllOptions", false)
+	var loadAllOptions bool = this.HandleOption("fetchMarkets", "loadAllOptions", false) == true
 	if loadAllOptions == true {
 		if !this.InArray("option", rawFetchMarkets) {
 			AppendToArray(&rawFetchMarkets, "option")

@@ -1532,7 +1532,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	}
 	orderbook.Limit()
 	// checksum temporarily disabled because the exchange checksum was not reliable
-	var checksum any = this.HandleOption("watchOrderBook", "checksum", false)
+	var checksum bool = this.HandleOption("watchOrderBook", "checksum", false) == true
 	if checksum == true {
 		var payloadArray []string = []string{}
 		if c != nil {

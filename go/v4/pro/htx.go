@@ -994,7 +994,7 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	}
 	var orderbookNonce int64 = *this.SafeInteger(orderbook, "nonce", 0)
 	if (prevSeqNum != nil) && (*prevSeqNum > orderbookNonce) {
-		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
+		var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 		if checksum == true {
 			panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
 		}

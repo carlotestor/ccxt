@@ -3895,8 +3895,8 @@ func (this *Kucoin) watchPositionBody(ch chan ccxt.AsyncResult[ccxt.Position], o
 	var messageHash string = "position:" + *this.SafeString(market, "symbol", "")
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionCache(client, symbol)
-	var fetchPositionSnapshot any = this.HandleOption("watchPosition", "fetchPositionSnapshot", true)
-	var awaitPositionSnapshot any = this.HandleOption("watchPosition", "awaitPositionSnapshot", true)
+	var fetchPositionSnapshot bool = this.HandleOption("watchPosition", "fetchPositionSnapshot", true) == true
+	var awaitPositionSnapshot bool = this.HandleOption("watchPosition", "awaitPositionSnapshot", true) == true
 	var currentPosition any = this.GetCurrentPosition(symbol)
 	if (fetchPositionSnapshot == true) && (awaitPositionSnapshot == true) && (ccxt.IsEqual(currentPosition, nil)) {
 
@@ -3990,8 +3990,8 @@ func (this *Kucoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	url := r2.Value
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, utaOption)
-	var fetchPositionSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	var cache ccxt.WsArrayCache = this.Positions
 	if (fetchPositionSnapshot == true) && (awaitPositionSnapshot == true) && (cache == nil) {
 
@@ -4051,7 +4051,7 @@ func (this *Kucoin) SetPositionsCache(client any, uta any) {
 	if !(this.IsEmpty(this.Positions)) {
 		return
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -4096,7 +4096,7 @@ func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	return nil
 }
 func (this *Kucoin) SetPositionCache(client any, symbol any) {
-	var fetchPositionSnapshot any = this.HandleOption("watchPosition", "fetchPositionSnapshot", false)
+	var fetchPositionSnapshot bool = this.HandleOption("watchPosition", "fetchPositionSnapshot", false) == true
 	if fetchPositionSnapshot == true {
 		var messageHash any = ccxt.Add("fetchPositionSnapshot:", symbol)
 		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
