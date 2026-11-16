@@ -11,6 +11,7 @@ import { installJavaMapLocalTypes } from './java-local-types.js';
 import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
+import { installJavaJ8CopyLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import log from 'ololog'
@@ -152,6 +153,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaListLocals (cachedTranspiler);
         installJavaScalarLocals (cachedTranspiler);
         installJavaStringReturns (cachedTranspiler);
+        installJavaJ8CopyLocals (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
