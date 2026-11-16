@@ -16,6 +16,7 @@ import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
 import { installJ6ReaderLocals } from './java-local-types.js';
+import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
 import log from 'ololog'
 import { readFileSync, existsSync } from 'fs';
 import { dirname, resolve as resolvePath } from 'path';
@@ -158,6 +159,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaR77j2ConditionalLocals (cachedTranspiler);
         installJ6ReaderLocals (cachedTranspiler);
         installJavaJ8CopyLocals (cachedTranspiler);
+        installJ84j6TrueOnlyLocals (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

@@ -20868,3 +20868,115 @@ export function installJavaJ8CopyLocals (transpiler) {
         return info === undefined || info.cast === '' ? printed : accumulatorCastWrite (printer, node, printed, { cast: info.cast });
     };
 }
+
+// ===== 84j6. reader / handle* results compared only against `true` =====
+// `const x = this.handleOption (..)` (any reader result) whose every use is `x === true` / `x !== true`
+// (either operand order) and which is never written: `Objects.equals (o, true)` is exactly
+// `Boolean.TRUE.equals (o)`, so the local prints `boolean x = Boolean.TRUE.equals (<init>);` (the
+// initializer still runs once, at the same place) and each compare prints the native `x` / `!x`.
+// Decided from the TS AST: one binding, no write, every reference the operand of a strict / loose
+// equality whose other operand is the `true` keyword.
+function j84j6TrueCompare (node) {
+    const parent = node.parent;
+    if (parent === undefined || !ts.isBinaryExpression (parent)) {
+        return undefined;
+    }
+    const op = parent.operatorToken.kind;
+    const negated = op === ts.SyntaxKind.ExclamationEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken;
+    if (!negated && op !== ts.SyntaxKind.EqualsEqualsToken && op !== ts.SyntaxKind.EqualsEqualsEqualsToken) {
+        return undefined;
+    }
+    const other = parent.left === node ? parent.right : (parent.right === node ? parent.left : undefined);
+    return other !== undefined && other.kind === ts.SyntaxKind.TrueKeyword ? { negated } : undefined;
+}
+
+function j84j6TrueOnlyLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined || declaration.type !== undefined || isNullishInitializer (declaration.initializer)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, 'boolean')) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let uses = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name) {
+            continue;
+        }
+        if (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n) {
+            continue; // `obj.<name>` member read
+        }
+        if (ts.isPropertyAssignment (n.parent) && n.parent.name === n) {
+            continue; // `{ <name>: .. }` key
+        }
+        if (checker.getSymbolAtLocation (n) !== symbol) {
+            return false;
+        }
+        if (j84j6TrueCompare (n) === undefined) {
+            return false;
+        }
+        uses++;
+    }
+    return uses > 0;
+}
+
+export function installJ84j6TrueOnlyLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function'
+        || typeof printer.printNativeEqualityIfProvable !== 'function' || printer._j84j6TrueOnlyLocalsPatched) {
+        return;
+    }
+    printer._j84j6TrueOnlyLocalsPatched = true;
+    const typed = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = j84j6TrueOnlyLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        const rest = printed.slice (marker.length);
+        const semi = rest.endsWith (';') ? ';' : '';
+        const value = semi === '' ? rest : rest.slice (0, -1);
+        typed.add (declaration);
+        return marker.replace (/Object (\S+) = $/, 'boolean $1 = ') + `Boolean.TRUE.equals(${value})${semi}`;
+    };
+    const upstreamEquality = printer.printNativeEqualityIfProvable.bind (printer);
+    printer.printNativeEqualityIfProvable = function (node, leftText, rightText) {
+        try {
+            for (const [ side, text ] of [ [ node.left, leftText ], [ node.right, rightText ] ]) {
+                if (!ts.isIdentifier (side) || text !== side.text) {
+                    continue;
+                }
+                const compare = j84j6TrueCompare (side);
+                const declaration = compare === undefined ? undefined : printer.getChecker ().getSymbolAtLocation (side)?.valueDeclaration?.resolve ();
+                if (declaration !== undefined && typed.has (declaration)) {
+                    return compare.negated ? `!${text}` : text;
+                }
+            }
+        } catch (e) {
+            // fall through to the upstream compare
+        }
+        return upstreamEquality (node, leftText, rightText);
+    };
+}
