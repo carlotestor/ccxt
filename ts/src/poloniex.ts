@@ -3561,7 +3561,7 @@ export default class poloniex extends Exchange {
         const currencyId = this.safeString (transactionValue, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const rawStatus = this.safeString (transactionValue, 'status', 'pending');
-        const status = this.parseTransactionStatus (rawStatus) as string;
+        const status = this.parseTransactionStatus (rawStatus);
         const txid = this.safeString (transactionValue, 'txid');
         let type: Str = 'deposit';
         if (this.safeString (transactionValue, 'withdrawalRequestsId') !== undefined) {
