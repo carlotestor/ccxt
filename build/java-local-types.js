@@ -20869,7 +20869,9 @@ export function installJavaJ8CopyLocals (transpiler) {
     };
 }
 
-// ===== 84j6. reader / handle* results compared only against `true` =====
+// ===== 84j6. reader / handle* results compared only against `true` (R1) or only against undefined (R2) =====
+// R2: every use is `x === undefined` / `x !== undefined` (or `== null`): the local prints
+// `boolean x = (<init>) != null;` and each test prints `!x` / `x` (Objects.equals (o, null) is o == null).
 // `const x = this.handleOption (..)` (any reader result) whose every use is `x === true` / `x !== true`
 // (either operand order) and which is never written: `Objects.equals (o, true)` is exactly
 // `Boolean.TRUE.equals (o)`, so the local prints `boolean x = Boolean.TRUE.equals (<init>);` (the
@@ -20887,25 +20889,34 @@ function j84j6TrueCompare (node) {
         return undefined;
     }
     const other = parent.left === node ? parent.right : (parent.right === node ? parent.left : undefined);
-    return other !== undefined && other.kind === ts.SyntaxKind.TrueKeyword ? { negated } : undefined;
+    if (other === undefined) {
+        return undefined;
+    }
+    if (other.kind === ts.SyntaxKind.TrueKeyword) {
+        return { negated, mode: 'true' };
+    }
+    // `x === undefined` / `x == null` (either operand order): the local holds `<init> != null`
+    return isNullishInitializer (other) ? { negated: !negated, mode: 'defined' } : undefined;
 }
 
 function j84j6TrueOnlyLocal (printer, declaration) {
+    // the mode ('true' | 'defined') every use agrees on, else undefined
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
         || declaration.initializer === undefined || declaration.type !== undefined || isNullishInitializer (declaration.initializer)) {
-        return false;
+        return undefined;
     }
     const scope = enclosingFunction (declaration);
     const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
     const name = String (declaration.name.text);
     if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
         || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, 'boolean')) {
-        return false;
+        return undefined;
     }
     const checker = printer.getChecker ();
     const symbol = checker.getSymbolAtLocation (declaration.name);
     let uses = 0;
+    let mode;
     for (const n of identifierIndex (scope).get (name) ?? []) {
         if (n === declaration.name) {
             continue;
@@ -20917,14 +20928,16 @@ function j84j6TrueOnlyLocal (printer, declaration) {
             continue; // `{ <name>: .. }` key
         }
         if (checker.getSymbolAtLocation (n) !== symbol) {
-            return false;
+            return undefined;
         }
-        if (j84j6TrueCompare (n) === undefined) {
-            return false;
+        const compare = j84j6TrueCompare (n);
+        if (compare === undefined || (mode !== undefined && compare.mode !== mode)) {
+            return undefined;
         }
+        mode = compare.mode;
         uses++;
     }
-    return uses > 0;
+    return uses > 0 ? mode : undefined;
 }
 
 export function installJ84j6TrueOnlyLocals (transpiler) {
@@ -20946,20 +20959,21 @@ export function installJ84j6TrueOnlyLocals (transpiler) {
         if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
             return printed;
         }
-        let ok = false;
+        let mode;
         try {
-            ok = j84j6TrueOnlyLocal (printer, declaration);
+            mode = j84j6TrueOnlyLocal (printer, declaration);
         } catch (e) {
-            ok = false;
+            mode = undefined;
         }
-        if (!ok) {
+        if (mode === undefined) {
             return printed;
         }
         const rest = printed.slice (marker.length);
         const semi = rest.endsWith (';') ? ';' : '';
         const value = semi === '' ? rest : rest.slice (0, -1);
         typed.add (declaration);
-        return marker.replace (/Object (\S+) = $/, 'boolean $1 = ') + `Boolean.TRUE.equals(${value})${semi}`;
+        const test = mode === 'true' ? `Boolean.TRUE.equals(${value})` : `(${value}) != null`;
+        return marker.replace (/Object (\S+) = $/, 'boolean $1 = ') + test + semi;
     };
     const upstreamEquality = printer.printNativeEqualityIfProvable.bind (printer);
     printer.printNativeEqualityIfProvable = function (node, leftText, rightText) {
