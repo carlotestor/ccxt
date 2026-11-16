@@ -2098,7 +2098,7 @@ export default class blofin extends Exchange {
             const parts = chainId.split ('(');
             const tail = this.safeString (parts, 1, '');
             const tailParts = tail.split (')');
-            const suffix = this.safeString (tailParts, 0, '');
+            const suffix = this.safeString (tailParts, 0);
             const suffixCode = this.safeString (this.options['networkCodesBySuffix'], suffix);
             if (suffixCode !== undefined) {
                 return suffixCode;
