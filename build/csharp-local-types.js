@@ -6643,7 +6643,14 @@ function conditionalArmType (csharp, node, context) {
         return undefined;
     }
     return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm) ?? stringParameterArmType (csharp, arm)
-        ?? (element1ParamsRead (csharp, arm) ? CSHARP_ELEMENT_1_TYPE : undefined);
+        ?? (element1ParamsRead (csharp, arm) ? CSHARP_ELEMENT_1_TYPE : undefined) ?? dictParameterArmType (csharp, arm);
+}
+
+// a parameter arm the emitted signature prints `IDictionary<string, object>` (the parse* `market`
+// row positions, retypeParseMarketParams — parameterArithmeticType's proof): beside a Dictionary
+// arm (`this.safeMarket (…)`) the conditional's natural type is the interface (collectionArmWidening)
+function dictParameterArmType (csharp, arm) {
+    return (parameterArithmeticType (csharp, arm) === 'IDictionary<string, object>') ? 'IDictionary<string, object>' : undefined;
 }
 
 // an arm `this.omit (<Dictionary / IDictionary box>, keys)`: the two-argument call binds a
