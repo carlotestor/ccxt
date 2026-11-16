@@ -1218,8 +1218,9 @@ export default class bybit extends bybitRest {
         //         ]
         //     }
         //
-        const trades = this.safeList (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const topic = this.safeString (message, 'topic', '');
+        const trades = data;
         const parts = topic.split ('.');
         const isSpot = client.url.indexOf ('spot') >= 0;
         let marketType: Str = 'contract';
