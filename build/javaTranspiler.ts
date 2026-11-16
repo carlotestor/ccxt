@@ -6818,6 +6818,7 @@ function javaListLocalsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj13selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
         'export default class zzj13selftest extends Exchange {',
         "    acc (r: any) { let a = []; for (let i = 0; i < 3; i++) { a = this.arrayConcat (a, [ i ]); } return [ a.length, a[0] ]; }",
         "    lst (r: any) { let b = this.safeList (r, 'k', []); if (b.length === 0) { b = this.safeList (r, 'z', []); } return b[0]; }",
@@ -6832,6 +6833,12 @@ function javaListLocalsSelfTest (): string[] {
         "    strs (r: any) { const q = this.safeList (r, 'k', []) as string[]; return q.length; }",
         "    anyCast (r: any) { const s = this.toArray (r) as any; let t = s; t = this.sortBy (t, 'x'); return t.length; }",
         "    fbl (r: any) { let o = this.filterBySinceLimit (r, 1, 2); if (o.length > 1) { o = this.sortBy (o, 'x'); } return o[0]; }",
+        "    async j77rows (r: any): Promise<Dict[]> { return [ r ]; }",
+        "    async j77use (r: any) { const u = await this.j77rows (r); return [ u.length, u[0] ]; }",
+        "    async j77str (r: any): Promise<string> { return 'x'; }",
+        "    async j77use2 (r: any) { const w = await this.j77str (r); return w; }",
+        "    async j77dict (r: any): Promise<Dict> { return { 'a': r }; }",
+        "    async j77use3 (r: any) { const v = await this.j77dict (r); return this.safeString (v, 'a'); }",
         '}',
     ].join('\n');
     try {
@@ -6852,6 +6859,11 @@ function javaListLocalsSelfTest (): string[] {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default and must stay Object`);
         }
         if (/List<Object> g = /.test(out)) problems.push("'g' has no List write and must not print List<Object>");
+        // ral-77j7: an awaited callee whose checker type is an array and whose Java future is CompletableFuture<Object>
+        if (!/List<Object> u = \(java\.util\.List<Object>\) \(this\.j77rows\(/.test(out)) problems.push("'u' (await of a Dict[] callee printed CompletableFuture<Object>) must print List<Object> with a checkcast");
+        if (/Helpers\.getArrayLength\(u\)/.test(out)) problems.push("'u' length must go native");
+        if (!/\bObject w = /.test(out)) problems.push("'w' (await of a string callee) is not a list and must stay Object");
+        if (!/Map<String, Object> v = \(java\.util\.Map<String, Object>\) \(this\.j77dict\(/.test(out)) problems.push("'v' (await of a Dict callee printed CompletableFuture<Object>) must print Map<String, Object> with a checkcast");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);

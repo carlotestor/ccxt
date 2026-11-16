@@ -17998,6 +17998,104 @@ function javaFreshListMethod (call) {
     return declarations.every ((d) => javaFreshListBody (d));
 }
 
+// ral-77j7: `await this.m (..)` / sync `this.m (..)` whose checker type is an array while every Java
+// declaration the call can bind (on-disk generated core / api stub / hand-written base, plus the
+// callee's own printed signature for a sync venue method) returns Object or List<Object>: the value
+// is a java.util.List at runtime, so the declaration takes the List box (checkcast unless every
+// spelling is already List<Object>). A typed structure list (List<Order>, ..) is inconvertible: declined.
+// kind 'map': the same for a json-box (Dict / Dictionary<T>, nullable allowed) callee and Map<String, Object>.
+function j77CheckedArrayCallValue (printer, value, kind = 'list') {
+    const awaited = value !== undefined && ts.isAwaitExpression (value);
+    const call = awaited ? unwrapParens (value.expression) : value;
+    if (!isThisOrSuperCall (call) || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    const async = isAsyncMethodCall (printer, call);
+    if (async !== awaited) {
+        return undefined; // a bare future, or an await of a sync value
+    }
+    const checker = printer.getChecker ();
+    let type;
+    try {
+        type = checker.getTypeAtLocation (value);
+    } catch (e) {
+        return undefined;
+    }
+    if (type === undefined) {
+        return undefined;
+    }
+    if (kind === 'list' ? !checker.isArrayType (type) : !(typeof printer.javaJsonBoxType === 'function' && printer.javaJsonBoxType (checker.getNonNullableType (type)))) {
+        return undefined;
+    }
+    const name = String (call.expression.name.text);
+    if (/^safe[A-Z]/.test (name) || JAVA_SAFE_LIST_DEFAULT_AT.has (name)) {
+        return undefined; // the readers hand back an unproven default untouched (their own family proves it)
+    }
+    const spellings = new Set ();
+    if (awaited) {
+        const api = awaitedApiReturnTypes (sourceExchangeId (value), javaCoreTierOf (value) === 'prediction')?.get (name);
+        if (api !== undefined) {
+            spellings.add (api);
+        }
+        for (const t of (javaCoreReturnTypes (value)?.get (name) ?? [])) {
+            spellings.add (t);
+        }
+    } else {
+        if (JAVA_CORE_SYNC_DECLINED.has (name)) {
+            return undefined;
+        }
+        const emitted = printer.javaVenueCalleeReturnType?.(call);
+        if (emitted !== undefined) {
+            spellings.add (emitted);
+        }
+        const entry = javaCoreDeclarationTable (call)?.get (name);
+        if (entry === undefined || entry.future) {
+            return undefined;
+        }
+        for (const t of entry.types) {
+            spellings.add (t);
+        }
+    }
+    // the callee this run prints (a venue method) must agree too: its signature, not the previous generation
+    let declaration;
+    try {
+        declaration = checker.getResolvedSignature (call)?.declaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration !== undefined && declaration.kind === ts.SyntaxKind.MethodDeclaration && declaration.body !== undefined
+        && /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/]|prediction[\\/])?[a-z0-9_]+\.ts$/.test (declaration.getSourceFile ().fileName)) {
+        const printed = String (printer.printFunctionType (declaration) ?? '').replace (/\s+/g, '');
+        const inner = /^(?:java\.util\.concurrent\.)?CompletableFuture(?:<(.+)>)?$/.exec (printed);
+        if (awaited !== (inner !== null)) {
+            return undefined;
+        }
+        spellings.add (awaited ? (inner[1] ?? 'Object') : printed);
+    }
+    const normal = [ ...spellings ].map ((t) => String (t).replace (/\s+/g, '').replace (/^java\.util\./, ''));
+    const own = kind === 'list' ? 'List<Object>' : 'Map<String,Object>';
+    if (normal.length === 0 || !normal.every ((t) => t === 'Object' || t === own)) {
+        return undefined;
+    }
+    return { cast: normal.includes ('Object') };
+}
+
+// both joined-local families (Map locals, List locals) and their write proofs read these two values
+const j77BaseMapLocalValue = javaMapLocalValue;
+const j77BaseListLocalValue = javaListLocalValue;
+// eslint-disable-next-line no-func-assign
+javaMapLocalValue = function (printer, node, declaration, depth = 0) {
+    // the Map arm answers an awaited initializer only; writes keep the family's own proofs
+    const value = unwrapParens (node);
+    const own = depth === 0 && value !== undefined && ts.isAwaitExpression (value) && value === unwrapParens (declaration?.initializer)
+        ? j77CheckedArrayCallValue (printer, value, 'map') : undefined;
+    return own ?? j77BaseMapLocalValue (printer, node, declaration, depth);
+};
+// eslint-disable-next-line no-func-assign
+javaListLocalValue = function (printer, node, declaration, depth = 0) {
+    return j77CheckedArrayCallValue (printer, unwrapParens (node), 'list') ?? j77BaseListLocalValue (printer, node, declaration, depth);
+};
+
 // { cast } when the printed value is a List<Object> (or null) on every path, else undefined
 function javaListLocalValue (printer, node, declaration, depth = 0) {
     let value = unwrapParens (node);
