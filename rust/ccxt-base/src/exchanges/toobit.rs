@@ -3976,8 +3976,8 @@ impl Toobit {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(results), Value::Str("timestamp".into()), &[]).into_list();
-        let mut currencyCode: Value = (if (currency.is_some()) { crate::value::KeyRead::key_read(&&currency, "code") } else { Value::Null });
-        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[currencyCode, since, limit]);
+        let mut currencyCode: Option<String> = (if (currency.is_some()) { crate::value::KeyRead::key_read(&&currency, "code").into_opt_string() } else { None });
+        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[currencyCode.map(Value::from).unwrap_or(Value::Null), since, limit]);
 
     Value::Null
 }

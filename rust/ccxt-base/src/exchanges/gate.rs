@@ -6638,7 +6638,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol") } else { Value::Null });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string() } else { None });
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchFundingHistory".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6663,7 +6663,7 @@ if _try_result.is_err() {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchFundingHistory() only support swap & future market type")));
         }
-        return self.parse_funding_histories(&response, symbolResolved.as_str(), since.as_i64(), limit.as_i64());
+        return self.parse_funding_histories(&response, symbolResolved.as_deref(), since.as_i64(), limit.as_i64());
         Value::Null
         }).await?))
     }

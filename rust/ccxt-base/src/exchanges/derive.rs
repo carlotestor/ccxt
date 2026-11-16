@@ -2833,8 +2833,8 @@ impl Derive {
         let mut settlements: crate::value::List = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]).into_list();
         let mut parsed: crate::value::List = self.parse_settlements(Value::Arr(settlements), market.as_ref()).into_list();
         let mut sorted: crate::value::List = self.sort_by(Value::Arr(parsed), Value::Str("timestamp".into()), &[]).into_list();
-        let mut symbolResolved: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol") } else { Value::Null });
-        return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string() } else { None });
+        return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }

@@ -1479,7 +1479,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             subType = self.safe_string2_opt(self.options.clone(), Value::Str("subType".into()), Value::Str("defaultSubType".into()), &[Value::Str("linear".into())]);
             subType = self.safe_string_k_opt(params.clone(), "subType", &[subType.map(Value::from).unwrap_or(Value::Null)]);
         }
-        let mut symbolResolved: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol") } else { symbol.clone() });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string() } else { symbol.as_str().map(str::to_owned) });
         let mut paramsRequest: Value = (if (symbol != Value::Null) { params.clone() } else { self.omit(params, &["type", "subType"], &[]) });
         let mut linear: bool = subType.as_deref() == Some("linear");
         let mut swap: bool = type_var.as_deref() == Some("swap");
@@ -1511,7 +1511,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut orders: Value = self.subscribe_private(channel.as_deref(), messageHash.as_deref(), type_var.as_deref(), subType.as_deref(), &[paramsRequest, Value::Map(subscriptionParams)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
         return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
