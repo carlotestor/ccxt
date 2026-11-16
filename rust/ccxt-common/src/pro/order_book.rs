@@ -169,9 +169,9 @@ impl Book {
     /// `book['nonce'|'timestamp'|..] = v`: the shared-store write.
     pub fn set_book_meta(&mut self, k: &str, v: Value) { self.0.set_book_meta(k, v) }
     /// ral-66c: `const m = book.cache`: a copy of the delta buffer (a later `book.cache = []` leaves it as it was).
-    pub fn cache_items(&self) -> crate::value::List { std::sync::Arc::new(crate::value::book_cache_items(&self.0)) }
-    /// ral-66c: `book.cache.push(v)`: append to the shared delta buffer.
-    pub fn cache_push(&mut self, v: Value) { crate::value::book_cache_append(&self.0, v) }
+    pub fn cache_items(&self) -> crate::value::List { crate::value::cache_entries_as_value(&self.0.book_field("cache")).unwrap_or_default().into_list() }
+    /// ral-66c: `book.cache.push(v)`: append to the shared delta buffer (the store the boxed handle appends to).
+    pub fn cache_push(&mut self, v: Value) { crate::value::try_book_cache_push(&self.0.book_field("cache"), &v); }
 }
 
 impl From<Book> for Value { fn from(b: Book) -> Value { b.0 } }
@@ -249,7 +249,7 @@ mod side_tests {
         book.set_book_meta("cache", Value::from(Vec::<Value>::new()));
         assert_eq!(items.len(), 2);
         assert_eq!(book.cache_items().len(), 0);
-        let mut slot: Option<Book> = Some(book.clone());
+        let mut slot: Option<Book> = Some(book);
         slot.cache_push(Value::Int(3));
         assert_eq!(slot.cache_items().as_ref(), &vec![Value::Int(3)]);
         let mut none: Option<Book> = None;
