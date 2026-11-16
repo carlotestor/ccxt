@@ -222,4 +222,11 @@ describe ('ral-84c8-guarded-concat-string-locals', () => {
         assert.match (kraken, /string\? part4 = this\.safeString\(parts, 4\);/);
         assert.doesNotMatch (kraken, /object part4 = /);
     });
+    test('okx: `x += r` on a safeString local prints the guarded write into string?', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const okx = (transpiler as any).transpileCSharpByPath ('./ts/src/okx.ts').content as string;
+        assert.match (okx, /string\? bar = this\.safeString\(this\.timeframes, timeframe, timeframe\);/);
+        assert.match (okx, /bar = \(bar == null \? null : bar \+ timezone\.ToLower\(\)\);/);
+    });
 });

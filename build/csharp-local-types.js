@@ -7395,7 +7395,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                     // (stringPlusOperandIsProvablyString), and the selected add(string, *)
                     // overload is declared `string`, so the write is assignable by
                     // construction. Every other compound operator stays `object`.
-                    if (!(op === ts.SyntaxKind.PlusEqualsToken && (stringPlusOperandIsProvablyString (csharp, n, csharpType, context) || stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, varName, n, csharpType, context)))) {
+                    if (!(op === ts.SyntaxKind.PlusEqualsToken && (stringPlusOperandIsProvablyString (csharp, n, csharpType, context) || stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, varName, n, csharpType, context)
+                            || guardedConcatLeftUse (csharp, n, csharpType, { declaration, context })))) {
                         return false;
                     }
                 }
@@ -10943,8 +10944,9 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
             || typeof csharp.csharpObjectStringConcat !== 'function' || typeof csharp.csharpEvaluationHasEffects !== 'function') {
         return false;
     }
+    const plusOp = n.parent?.operatorToken?.kind;
     if (n.kind !== ts.SyntaxKind.Identifier || n.parent?.kind !== ts.SyntaxKind.BinaryExpression || n.parent.left !== n
-            || n.parent.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+            || (plusOp !== ts.SyntaxKind.PlusToken && plusOp !== ts.SyntaxKind.PlusEqualsToken)) {
         return false;
     }
     if (scan !== undefined) {
@@ -10954,7 +10956,8 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
             return false;
         }
     }
-    const rights = guardedConcatSpineRights (n);
+    // R2: `x += r` prints `x = add(x, r)`: the same guarded value, written back into the string? local
+    const rights = (plusOp === ts.SyntaxKind.PlusEqualsToken) ? [ n.parent.right ] : guardedConcatSpineRights (n);
     const ok = rights.length > 0 && rights.every ((right) => !csharp.csharpEvaluationHasEffects (right));
     if (ok && scan !== undefined) {
         guardedConcatReads.add (n);
@@ -11016,6 +11019,13 @@ function installCsharpGuardedConcatReads (transpiler) {
     }
     const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
     csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        if (node?.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken?.kind === ts.SyntaxKind.PlusEqualsToken
+                && node.left?.kind === ts.SyntaxKind.Identifier && csharp.csharpGuardedStringConcatLocal (node.left)) {
+            const guarded = csharp.csharpObjectStringConcat (node.left, [ node.right ]);
+            if (typeof guarded === 'string' && guarded.startsWith ('((object)(') && guarded.endsWith ('))')) {
+                return csharp.printNode (node.left, 0) + ' = ' + guarded.slice ('((object)'.length, -1);
+            }
+        }
         if (node?.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken?.kind === ts.SyntaxKind.PlusToken) {
             const spine = csharp.csharpPlusSpine (node);
             if (spine !== undefined && spine.base?.kind === ts.SyntaxKind.Identifier && csharp.csharpGuardedStringConcatLocal (spine.base)) {
