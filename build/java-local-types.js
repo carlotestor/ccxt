@@ -20868,3 +20868,220 @@ export function installJavaJ8CopyLocals (transpiler) {
         return info === undefined || info.cast === '' ? printed : accumulatorCastWrite (printer, node, printed, { cast: info.cast });
     };
 }
+
+// ===== ral-84j1. String element locals of String-only lists =====
+// `const k = keys[i]` (counter index) / `const r = sig['r']` where the TS checker types the local a
+// plain `string` and the list's PRINTED Java holds only String instances: `Object.keys (m)` (a copy of a
+// String-keyed key set), `this.findMessageHashes (..)` (futures key set), `x.split (..)`, a string-literal
+// array, or the `r` / `s` slot of a base `ecdsa (..)` result (Crypto.Ecdsa puts hex Strings). The
+// declaration takes the one `(String)` checkcast and is published, so the printer prints every String
+// method on it, its `delete m[k]` / `m[k] = v` key, its String core arguments and `===` with no cast.
+// Admitted only when isSafeToNarrow accepts every use AND at least one use gains a native form.
+const R84J1_KEY_SET_CALLEES = new Set ([ 'findMessageHashes' ]);
+
+function r84j1StringOnlyList (printer, receiver, scope) {
+    if (!ts.isIdentifier (receiver)) {
+        return false;
+    }
+    const symbol = printer.getChecker ().getSymbolAtLocation (receiver);
+    const declaration = symbol?.valueDeclaration?.resolve ();
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer === undefined
+        || !ts.isIdentifier (declaration.name) || enclosingFunction (declaration) !== scope) {
+        return false;
+    }
+    let init = unwrapParens (declaration.initializer);
+    while (init !== undefined && (ts.isAsExpression (init) || init.kind === ts.SyntaxKind.TypeAssertionExpression)) {
+        init = unwrapParens (init.expression);
+    }
+    let producer = false;
+    if (init !== undefined && ts.isCallExpression (init) && ts.isPropertyAccessExpression (init.expression)) {
+        const callee = init.expression;
+        const method = String (callee.name.text);
+        producer = (method === 'keys' && ts.isIdentifier (callee.expression) && callee.expression.text === 'Object')
+            || (method === 'split' && init.arguments.length === 1)
+            || (isThisCall (init) && R84J1_KEY_SET_CALLEES.has (method) && resolvesToBaseOrStrippedAccessor (printer, init, method));
+    } else if (init !== undefined && stringElementsProducer (init)) {
+        producer = true;
+    }
+    if (!producer) {
+        return false;
+    }
+    // the list itself is never written, re-bound, mutated or handed out before the read
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        if (n === declaration.name || printer.getChecker ().getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const parent = n.parent;
+        if (ts.isPropertyAccessExpression (parent) && parent.expression === n && LIST_MUTATING_METHODS.has (String (parent.name.text))) {
+            return false;
+        }
+        if (ts.isBinaryExpression (parent) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)
+            && (parent.left === n || (ts.isElementAccessExpression (parent.left) && parent.left.expression === n))) {
+            return false;
+        }
+        if (parent.kind === ts.SyntaxKind.DeleteExpression || (ts.isElementAccessExpression (parent) && parent.expression === n && parent.parent?.kind === ts.SyntaxKind.DeleteExpression)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// `sig['r']` / `sig['s']` where sig is a const local bound to the base crypto `ecdsa (..)` call
+function r84j1EcdsaSlot (printer, read, scope) {
+    if (!ts.isIdentifier (read.expression) || !ts.isStringLiteralLike (read.argumentExpression)
+        || ![ 'r', 's' ].includes (read.argumentExpression.text)) {
+        return false;
+    }
+    const symbol = printer.getChecker ().getSymbolAtLocation (read.expression);
+    const declaration = symbol?.valueDeclaration?.resolve ();
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || (declaration.parent.flags & ts.NodeFlags.Const) === 0
+        || enclosingFunction (declaration) !== scope) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isCallExpression (init) || !ts.isIdentifier (init.expression) || init.expression.text !== 'ecdsa') {
+        return false;
+    }
+    // the base crypto helper (prints the hand-written static BaseExchange.ecdsa -> Crypto.Ecdsa,
+    // whose `r` / `s` entries are left-padded hex Strings on every path)
+    let target;
+    try {
+        target = printer.getChecker ().getResolvedSignature (init)?.declaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return target !== undefined && /[\\/]ts[\\/]src[\\/]base[\\/]functions[\\/]crypto\.ts$/.test (target.getSourceFile ().fileName);
+}
+
+// does this use print differently (natively) once the local is a declared Java String?
+function r84j1NativeUse (printer, n) {
+    let child = n;
+    let parent = n.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    if (parent === undefined) {
+        return false;
+    }
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === child) {
+        const method = String (parent.name.text);
+        if (method === 'length') {
+            return true;
+        }
+        return ts.isCallExpression (parent.parent) && parent.parent.expression === parent
+            && [ 'indexOf', 'startsWith', 'endsWith', 'split', 'toLowerCase', 'toUpperCase', 'trim', 'search', 'padStart' ].includes (method);
+    }
+    if (ts.isCallExpression (parent) && ts.isPropertyAccessExpression (parent.expression) && parent.arguments.indexOf (child) === 0
+        && [ 'startsWith', 'endsWith', 'indexOf' ].includes (String (parent.expression.name.text))) {
+        return true;
+    }
+    if (ts.isElementAccessExpression (parent) && parent.argumentExpression === child) {
+        // `delete m[k]` key or `m[k] = v` key: remove((String)k) / put((String)k, ..)
+        return parent.parent?.kind === ts.SyntaxKind.DeleteExpression
+            || (ts.isBinaryExpression (parent.parent) && parent.parent.left === parent
+                && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken);
+    }
+    if (ts.isCallExpression (parent) && parent.arguments.indexOf (child) !== -1 && typeof printer.javaNativeCallParameterTypes === 'function') {
+        try {
+            const types = printer.javaNativeCallParameterTypes (parent);
+            if (types[parent.arguments.indexOf (child)] === 'String') {
+                return true;
+            }
+        } catch (e) {
+            return false;
+        }
+    }
+    return false;
+}
+
+function r84j1StringElementLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement) {
+        return false;
+    }
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read)) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const type = checker.getTypeAtLocation (declaration.name);
+    if (type === undefined || type.flags !== ts.TypeFlags.String) {
+        return false; // plain `string` only: no union, alias with undefined, any
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const counterRead = ts.isIdentifier (read.expression) && typeof printer.javaPrimitiveCounterIndex === 'function'
+        && printer.javaPrimitiveCounterIndex (read.argumentExpression) && r84j1StringOnlyList (printer, read.expression, scope);
+    if (!counterRead && !r84j1EcdsaSlot (printer, read, scope)) {
+        return false;
+    }
+    const name = String (declaration.name.text);
+    const index = dataflowIndex (printer, scope);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+        return false;
+    }
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let native = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            return false; // never written
+        }
+        if (r84j1NativeUse (printer, n)) {
+            native++;
+        }
+    }
+    if (native === 0) {
+        return false;
+    }
+    const info = { type: 'String', nonNull: false, strictPlus: true, stringListElement: true };
+    return isSafeToNarrow (printer, declaration, name, 'String', /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info);
+}
+
+export function installJavaR84j1StringElementLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j1StringElementPatched) {
+        return;
+    }
+    printer._javaR84j1StringElementPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return upstream (node, identation);
+        }
+        // decide BEFORE printing the initializer so nothing printed later sees a stale answer
+        let ok = typed.has (declaration);
+        if (!ok) {
+            try {
+                ok = r84j1StringElementLocal (printer, declaration);
+            } catch (e) {
+                ok = false;
+            }
+        }
+        if (ok) {
+            typed.set (declaration, 'String');
+        }
+        const printed = upstream (node, identation);
+        if (!ok) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            typed.delete (declaration);
+            return printed;
+        }
+        const head = marker.replace (/Object (\S+) = $/, 'String $1 = (String) ');
+        return printed.slice (0, at) + head + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
