@@ -10694,7 +10694,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -19337,3 +19337,120 @@ Object.assign (CSHARP_LOCAL_WS_MEMBER_TYPES, {
     'features': 'Dictionary<string, object>',
     'networkAliases': 'Dictionary<string, object>',
 });
+
+// ===== 84c2: conditional initialisers over cast-proven arms =====
+//
+// `const symbol = (market === undefined) ? undefined : market['symbol']`,
+// `const stored = isTrigger ? this.triggerOrders : this.orders`,
+// `const tradesArray = (symbol === undefined) ? undefined : this.safeValue (this.trades, symbol)`.
+// An arm whose C# static type is `object` but whose BOX one of the whole-initialiser families
+// already proves (the market-row string / bool / dict keys, a typed dictionary's string key, a
+// proven-list element, the ws cache member / bucket reads, a same-file handler table, the ws
+// `triggerOrders` field whose every write in the file stores an ArrayCache, the member dict reads)
+// holds exactly that box or null. The other arm is null, a statically typed value
+// (conditionalArmType) or another such arm. The conditional is not target-typed: its natural
+// type stays `object`, so the declaration names the join behind ONE cast on the whole
+// conditional (castWhole) -- the same value, no use-site cast; csharpLocalIsSafeToRetype then
+// re-checks every later read and write. Decided from the TS AST only.
+function castProvenArmType (csharp, arm, context) {
+    const node = stripParens (arm);
+    if (node === undefined) {
+        return undefined;
+    }
+    if (node.kind === ts.SyntaxKind.NullKeyword || (node.kind === ts.SyntaxKind.Identifier && node.text === 'undefined')) {
+        return { type: 'null', proven: false };
+    }
+    if (marketRowStringReadType (csharp, node) === 'string' || typedDictStringReadType (csharp, node) === 'string'
+            || elementAccessStringReadType (csharp, node) === 'string') {
+        return { type: 'string?', proven: true };
+    }
+    if (marketRowBoolReadType (csharp, node) === 'bool') {
+        return { type: 'bool?', proven: true };
+    }
+    if (marketRowDictReadType (csharp, node) === 'dict') {
+        return { type: 'IDictionary<string, object>', proven: true };
+    }
+    if (thisMemberAccess (node, 'triggerOrders') && !isPredictionSource (node)
+            && wsCacheFieldFileCensus (node.getSourceFile?.(), 'triggerOrders')) {
+        return { type: WS_CACHE_FIELD_CAST, proven: true };
+    }
+    const cached = wsCacheMemberReadType (csharp, node) ?? wsCacheBucketReadType (csharp, node) ?? handlerTableReadType (csharp, node, context)
+        ?? memberDictReadCastType (node);
+    if (cached !== undefined) {
+        return { type: cached, proven: true };
+    }
+    const element = elementAccessElementType (csharp, node, context);
+    if (element !== undefined) {
+        return { type: (element === 'string') ? 'string?' : element, proven: true };
+    }
+    const direct = conditionalArmType (csharp, arm, context);
+    return (direct === undefined) ? undefined : { type: direct, proven: false };
+}
+
+const CAST_PROVEN_NULLABLE_SPELLINGS = [ 'string?', 'bool?', 'Int64?', 'double?', 'int?' ];
+
+function castProvenArmConditionalLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const conditional = stripParens (declaration.initializer);
+    if (conditional?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const sourceFile = declaration.getSourceFile?.()?.fileName ?? '';
+    if (/(^|[\\/])test[\\/]/.test (sourceFile)) {
+        return undefined; // the generated tests call the BaseTest getValue shim
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const whenTrue = castProvenArmType (csharp, conditional.whenTrue, ctx);
+    const whenFalse = castProvenArmType (csharp, conditional.whenFalse, ctx);
+    if (whenTrue === undefined || whenFalse === undefined || !(whenTrue.proven || whenFalse.proven)) {
+        return undefined;
+    }
+    let type = unifyArms (whenTrue.type, whenFalse.type, true);
+    // a reference type beside a null arm keeps its own spelling (the families above declare
+    // `Delegate` / `ccxt.pro.ArrayCache`, never the annotated form); only scalars and string take `?`
+    if (type !== undefined && type.endsWith ('?') && !CAST_PROVEN_NULLABLE_SPELLINGS.includes (type)) {
+        type = type.slice (0, -1);
+    }
+    if (type === undefined || type === 'object' || type === csharp.VAR_TOKEN) {
+        return undefined;
+    }
+    const cast = (type === 'string?') ? 'string' : type;
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast, castWhole: true } : undefined;
+}
+
+// ===== 84c2: the printer's null-guard string concat =====
+//
+// `const symbol = base + '/' + quote` over an `object` local the PRINTER proves holds a string or
+// null (csharpObjectStringLocal) prints `(bs == null ? null : bs + "/" + quote)`: the C# type of
+// that conditional is already `string` (null beside an object + string concatenation), so the
+// declaration names it with no cast (the printer's `((object)…)` box around the guard goes, as
+// for the `as any` copies: stripObjectBox). The same printer predicates decide (base local proof, an
+// effect-free right operand each), so the declaration and the printed initializer agree; every
+// later read and write is re-checked by csharpLocalIsSafeToRetype.
+function nullGuardStringConcatLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    if (typeof csharp.csharpPlusSpine !== 'function' || typeof csharp.csharpObjectStringLocal !== 'function'
+            || typeof csharp.csharpEvaluationHasEffects !== 'function') {
+        return undefined;
+    }
+    const initializer = stripParens (declaration.initializer);
+    if (initializer?.kind !== ts.SyntaxKind.BinaryExpression || initializer.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    const spine = csharp.csharpPlusSpine (initializer);
+    const base = stripParens (spine?.base);
+    if (base?.kind !== ts.SyntaxKind.Identifier || !csharp.csharpObjectStringLocal (base)
+            || spine.rights.some ((right) => csharp.csharpEvaluationHasEffects (right))) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'string?', ctx) ? { type: 'string?', stripObjectBox: true } : undefined;
+}
