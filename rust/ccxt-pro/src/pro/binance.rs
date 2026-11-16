@@ -3550,11 +3550,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 std::sync::Arc::make_mut(&mut unsubscribeMessageHashes).push(Value::Str(format!("{}{}", "unsubscribe::", channel).into()));
             }
         }
-        let mut streamHash: Value = channelName;
+        let mut streamHash: String = channelName.as_str().unwrap_or_default().to_string();
         if (symbolsNormalized.is_some()) {
-            streamHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, "::").into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into())).into());
+            streamHash = format!("{}{}", Value::Str(format!("{}{}", channel, "::").into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(rawMarketType.clone(), self.get_future_ws_category(Value::from(channel.clone())).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(rawMarketType, streamHash, &[]).map(Value::from).unwrap_or(Value::Null));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(rawMarketType.clone(), self.get_future_ws_category(Value::from(channel.clone())).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(rawMarketType, Value::from(streamHash), &[]).map(Value::from).unwrap_or(Value::Null));
         let mut requestId: i64 = self.request_id(Value::from(url.clone()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4054,7 +4054,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subscriptionId: Option<i64> = self.safe_integer_k(&result, "subscriptionId", &[]).as_i64();
         if (subscriptionId.is_none()) {
             __ch.remove_subscription(accountType.as_deref());
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " user data stream subscribe failed ").into()), json_stringify(&message))));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " user data stream subscribe failed ").into()), json_stringify(&message))));
             client.reject(error.clone(), accountType.as_deref());
             client.reject(error, messageHash.as_deref());
             return;
@@ -7790,7 +7790,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         if !rejected {
-            let mut feedback = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
+            let mut feedback: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
             client.reject(feedback, id.as_deref());
         }
         // reset connection if 5xx error
@@ -7817,7 +7817,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut accountType: Option<String> = self.get_account_type_from_subscriptions(&subscriptionsKeys);
         if (event.as_deref() == Some("eventStreamTerminated")) {
             __ch.remove_subscription(accountType.as_deref());
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " user data event stream terminated ").into()), json_stringify(&message))));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " user data event stream terminated ").into()), json_stringify(&message))));
             client.reject(error.clone(), accountType.as_deref());
         }
 }
