@@ -19337,3 +19337,30 @@ Object.assign (CSHARP_LOCAL_WS_MEMBER_TYPES, {
     'features': 'Dictionary<string, object>',
     'networkAliases': 'Dictionary<string, object>',
 });
+
+
+// ===== 84c5: copies of typed parameters and their extend / omit results =====
+// (R1) a read of the trailing `params` bag that dictionaryParameterType proves is printed
+// `IDictionary<string, object> parameters` (PARAMETERS_ARG_TYPED_METHODS, never written in the body) has
+// that static type, so `let q = params` starts its join at the interface. Like the 77c5 core-parameter
+// rule it answers nothing while a call-site parameter proof runs (c5ParameterProofDepth), so no
+// signature moves (lane 84c1 owns signatures); later writes and uses of q are joined and scanned as usual.
+function dictParamsCopyReadType (csharp, scope, identifier) {
+    if (c5ParameterProofDepth > 0 || scope?.kind !== ts.SyntaxKind.MethodDeclaration || enclosingFunction (identifier) !== scope) {
+        return undefined;
+    }
+    const parameter = (scope.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === identifier.text);
+    // the printer must agree it prints the bag typed (csharpIsDictParamsBag reads the same table
+    // through config.dictParamsMethods): a transpile without that config keeps `object parameters`
+    if (parameter === undefined || parameterIsRefSunk (csharp, identifier)
+            || typeof csharp.csharpIsDictParamsBag !== 'function' || !csharp.csharpIsDictParamsBag (parameter)) {
+        return undefined;
+    }
+    return dictionaryParameterType (csharp, parameter);
+}
+const c84UpstreamCoreParameterCopyReadType = coreParameterCopyReadType;
+// eslint-disable-next-line no-func-assign
+coreParameterCopyReadType = function (csharp, scope, identifier) {
+    return c84UpstreamCoreParameterCopyReadType (csharp, scope, identifier) ?? dictParamsCopyReadType (csharp, scope, identifier);
+};
+

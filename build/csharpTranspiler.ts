@@ -8650,7 +8650,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...copyLocalSnippetChecks84c5 (), ...helperReturnLocalsSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12703,5 +12703,23 @@ export function helperReturnLocalsSnippetChecks (): string[] {
     // a Sig builder whose return path is not a proven dict keeps object, and so does its caller
     const kept = print ('buildSendAssetSig (m: Dict): Dict { return m; }\n g (p) { const sig = this.buildSendAssetSig (p); return this.hash (sig, 1, 1); }');
     if (!kept.includes ('object sig = this.buildSendAssetSig(p);')) problems.push (`77c7 helper-return locals: unproven builder retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// 84c5: copies of typed parameters and their extend / omit results (build/csharp-local-types.js,
+// block "84c5"); each case fails on the parent, each keep holds there
+export function copyLocalSnippetChecks84c5 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { dictParamsMethods: [ 'fetchBalance' ], parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const pre = 'type Dict = { [key: string]: any }; type Int = number; type Str = string | undefined;\nclass Test {\n omit (o, k): Dict { return o; }\n extend (a, b = undefined): Dict { return a; }\n safeString (o, k, d = undefined): Str { return d; }\n';
+    const check = (name: string, body: string, expected: string) => {
+        const out: string = (transpiler as any).transpileCSharp (pre + body + '\n}').content;
+        if (!out.includes (expected)) { problems.push (`84c5 copy locals: ${name}: ${out.replace (/\n/g, ' | ').slice (0, 300)}`); }
+    };
+    check ('copy of the typed params bag with an omit write', 'async fetchBalance (params = {}) { let q = params; if (q) { q = this.omit (params, "x"); } return this.safeString (q, "a"); }', 'IDictionary<string, object> q = parameters;');
+    check ('params bag of an unlisted method keeps object', 'async fooBar (params = {}) { let q = params; return this.safeString (q, "a"); }', 'object q = parameters;');
+    check ('written params bag keeps object', 'async fetchBalance (params = {}) { params = this.omit (params, "y"); let q = params; return this.safeString (q, "a"); }', 'object q = parameters;');
     return problems;
 }
