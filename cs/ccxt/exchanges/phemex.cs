@@ -1702,7 +1702,7 @@ public partial class phemex : Exchange
         {
             maxLimit = 2000;
         }
-        object limitResolved = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);
+        Int64 limitResolved = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);
         request["limit"] = limitResolved;
         double? sinceSeconds = null;
         Dictionary<string, object> response = null;

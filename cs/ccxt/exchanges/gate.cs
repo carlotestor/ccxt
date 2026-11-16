@@ -4491,7 +4491,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)requestparamsRequestVariable[1]);
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         int maxLimit = (this.safeBool(market, "contract", false) == true) ? 1999 : 1000;
-        object limitValue = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);
+        Int64 limitValue = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);
         Int64? untilMs = this.safeInteger(paramsRequest, "until");
         Int64? until = null;
         if ((untilMs != null))
@@ -4504,10 +4504,10 @@ public partial class gate : Exchange
             int duration = this.parseTimeframe(timeframeVar);
             Int64? fromTimestamp = this.parseToInt(((double?)since / 1000));
             request["from"] = fromTimestamp;
-            object distance = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(limitValue, 1)), duration);
-            object toTimestamp = this.sum(fromTimestamp, distance);
+            Int64 distance = (((limitValue - 1)) * duration);
+            Int64 toTimestamp = this.sum(fromTimestamp, distance);
             Int64 currentTimestamp = this.seconds();
-            object to = mathMin(toTimestamp, currentTimestamp);
+            Int64 to = ((Int64)Math.Min(toTimestamp, currentTimestamp));
             if ((until != null))
             {
                 request["to"] = mathMin(to, until);

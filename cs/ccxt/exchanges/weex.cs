@@ -1829,7 +1829,7 @@ public partial class weex : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsHistorical, new List<object>() {"historical", "until", "price"});
         List<object> response = null;
         // hardcap threshold
-        object limitResolved = ((limit == null)) ? null : Math.Min(limit.Value, 1000);
+        Int64? limitResolved = ((limit == null)) ? null : Math.Min(limit.Value, 1000);
         // the recent-klines endpoints ignore startTime and endTime and only ever return the
         // latest candles, so a request bounded by since or until has to go through the history
         // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
@@ -1886,7 +1886,7 @@ public partial class weex : Exchange
             response = await this.contractGetCapiV3MarketHistoryKlines(this.extend(request, paramsOmitted));
         } else
         {
-            if (!(limitResolved == null))
+            if ((limitResolved != null))
             {
                 request["limit"] = limitResolved;
             }
