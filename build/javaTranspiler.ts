@@ -33,6 +33,7 @@ import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
 import { installJavaJ8CopyLocals } from './java-local-types.js';
+import { installJavaR84j2ContainerLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2485,6 +2486,7 @@ class NewTranspiler {
         installJavaR77j2ConditionalLocals(this.transpiler);
         installJ6ReaderLocals(this.transpiler);
         installJavaJ8CopyLocals(this.transpiler);
+        installJavaR84j2ContainerLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5812,7 +5814,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -9696,6 +9698,38 @@ function j6ReaderLocalsSelfTest (): string[] {
         if (!/\bObject ids = /.test(out)) problems.push("j6 reader: 'ids' (.join receiver) must stay Object");
     } catch (e: any) {
         problems.push(`j6 reader self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r84j2: element-read locals used at once as a List (push) / Map (string-key write) print the box with one checkcast
+function javaR84j2ContainerLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j2selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzr84j2selftest extends Exchange {',
+        "    push (m: Dict, k: string, v: any) { const a = m[k]; a.push (v); return m; }",
+        "    put (m: Dict, k: string) { const b = m[k]; b['id'] = 'x'; return m; }",
+        "    nul (m: Dict, k: string, v: any) { const c = m[k]; c['id'] = v; return m; }",
+        "    late (m: Dict, k: string, v: any) { const d = m[k]; const e = 1; d.push (v); return e; }",
+        "    arg (m: Dict, k: string, v: any) { const f = m[k]; f.push (v); return this.safeString (f, 0); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> a = \(java\.util\.List<Object>\) \(/.test(out) || !/\ba\.add\(v\)/.test(out)) problems.push("'a' (m[k] then a.push) must print List<Object> with a native add");
+        if (!/Map<String, Object> b = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bb\.put\("id", "x"\)/.test(out)) problems.push("'b' (m[k] then b['id'] = string) must print Map with a native put");
+        for (const name of [ 'c', 'd', 'f' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (nullable put value / late first use / call argument) must stay Object`);
+        }
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
