@@ -20899,11 +20899,25 @@ function j84j6TrueCompare (node) {
     return isNullishInitializer (other) ? { negated: !negated, mode: 'defined' } : undefined;
 }
 
+// R3: a TS annotation (`const x: Bool = this.handleOption (..)`) leaves the printed declaration `Object`;
+// accept boolean / number / string scalar annotations (aliases resolved by the checker), whose value the
+// boolean local's `Boolean.TRUE.equals` / `!= null` reads exactly as the Object compare did
+function j84j6AnnotationIsScalar (printer, typeNode) {
+    const type = printer.getChecker ().getTypeFromTypeNode (typeNode);
+    if (type === undefined) {
+        return false;
+    }
+    const parts = type.isUnionType () ? ts.typeParts (type) : [ type ];
+    const scalar = ts.TypeFlags.BooleanLike | ts.TypeFlags.NumberLike | ts.TypeFlags.StringLike | ts.TypeFlags.Undefined | ts.TypeFlags.Null;
+    return parts.length > 0 && parts.every ((t) => (t.flags & scalar) !== 0);
+}
+
 function j84j6TrueOnlyLocal (printer, declaration) {
     // the mode ('true' | 'defined') every use agrees on, else undefined
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
-        || declaration.initializer === undefined || declaration.type !== undefined || isNullishInitializer (declaration.initializer)) {
+        || declaration.initializer === undefined || isNullishInitializer (declaration.initializer)
+        || (declaration.type !== undefined && !j84j6AnnotationIsScalar (printer, declaration.type))) {
         return undefined;
     }
     const scope = enclosingFunction (declaration);
