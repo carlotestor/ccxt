@@ -9712,14 +9712,14 @@ function javaR84j8LocalsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j8selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
-        "import type { Dict } from './base/types.js';",
+        "import type { Dict, Int } from './base/types.js';",
         'export default class zzr84j8selftest extends Exchange {',
         "    bal (response: any, code: string) { let result: Dict = { 'info': response }; result[code] = this.account (); result = this.mergeBalanceAccount (result, code, this.account ()); return this.safeBalance (result); }",
         "    other (response: any, code: string, x: Dict) { let r: Dict = { 'info': response }; r = this.mergeBalanceAccount (x, code, this.account ()); return r; }",
         "    later (response: any, stock: boolean) { let xs: Dict[] = []; if (stock) { const rows = this.safeList (response, 'rows', []); xs = rows; } return xs.length; }",
         "    laterBad (response: any, stock: boolean) { let ys: Dict[] = []; if (stock) { const rows = this.safeValue (response, 'rows'); ys = rows; } return ys.length; }",
         "    asserted (s: string) { let zs: any[] = []; const parsed = this.parseJson (s); if (parsed !== undefined) { zs = parsed as any[]; } return zs.length; }",
-        "    until (params = {}) { let request: Dict = {}; let paramsUntil: Dict = {}; [ request, paramsUntil ] = this.handleUntilOption ('endTime', request, params); request['x'] = 1; return [ request, paramsUntil ]; }",
+        "    until (since: Int = undefined, params = {}) { let request: Dict = {}; if (since !== undefined) { request['startTime'] = since; } let paramsUntil: Dict = {}; [ request, paramsUntil ] = this.handleUntilOption ('endTime', request, params); if (since === undefined) { request = this.omit (request, 'count'); } request['x'] = 1; return this.extend (request, paramsUntil); }",
         "    keys2 (a: Dict, b: Dict, f: boolean) { if (f) { const keys = Object.keys (a); throw new Error ('one of ' + keys.join (', ')); } else { const keys = Object.keys (b); throw new Error ('one of ' + keys.join (', ')); } }",
         '}',
     ].join('\n');
