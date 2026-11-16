@@ -39,6 +39,7 @@ import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
 import { installJ6ReaderLocals } from './java-local-types.js';
 import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
+import { installJ84j6StringListLocals } from './java-local-types.js';
 import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose, javaTypedCoreDirectReturnSelfTest } from "./javaTypedCore.js";
@@ -2487,6 +2488,7 @@ class NewTranspiler {
         installJ6ReaderLocals(this.transpiler);
         installJavaJ8CopyLocals(this.transpiler);
         installJ84j6TrueOnlyLocals(this.transpiler);
+        installJ84j6StringListLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -9710,11 +9712,12 @@ function j84j6TrueOnlyLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zz84j6selftest${process.pid}.ts`);
     const body = [
-        "import Exchange from './abstract/binance.js';",
+        "import Exchange from './abstract/binance.js';", "import type { Strings } from './base/types.js';",
         `export default class zz84j6selftest${process.pid} extends Exchange {`,
         "    pos (params = {}) { const qq = this.handleOption ('createOrder', 'quoteOrderQty', true); const ff = this.safeValue (params, 'f'); const r = {}; if (qq === true) { r['x'] = 1; } if (true !== ff) { r['y'] = 1; } return r; }",
         "    def (params = {}) { const dd = this.safeValue (params, 'd'); const r = {}; if (dd !== undefined) { r['x'] = 1; } if (undefined === dd) { r['y'] = 1; } const mm = this.safeValue (params, 'm'); if (mm === undefined || mm === true) { r['z'] = 1; } return r; }",
         "    ann (params = {}) { const aa: boolean = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true); const md: any[] = this.safeValue (params, 'md'); const r = {}; if (aa === true) { r['x'] = 1; } if (md !== undefined) { r['y'] = 1; } return r; }",
+        "    sl (params = {}) { const r = {}; const ss: Strings = this.safeList2 (params, 'a', 'b'); if (ss !== undefined) { r['s'] = ss.join (','); } const bb: Strings = this.safeList (params, 'c', []); if (bb !== undefined) { r['b'] = bb.join (','); } return r; }",
         "    neg (params = {}) { const nn = this.handleOption ('createOrder', 'x', false); let ww = this.handleOption ('createOrder', 'w', false); const r = {}; if (nn === true) { r['n'] = nn; } if (ww === true) { ww = false; } return [ r, ww ]; }",
         '}',
     ].join('\n');
@@ -9727,6 +9730,8 @@ function j84j6TrueOnlyLocalsSelfTest (): string[] {
         if (!/\bObject mm = /.test(out)) problems.push("ral-84j6: 'mm' mixes an undefined and a true compare and must stay Object");
         if (!/boolean aa = Boolean\.TRUE\.equals\(this\.handleOption\(/.test(out) || !/if \(aa\)/.test(out)) problems.push("ral-84j6: 'aa' (a `boolean`-annotated handleOption result compared only to true) must print boolean");
         if (!/\bObject md = /.test(out)) problems.push("ral-84j6: 'md' (a list-annotated local) must stay Object");
+        if (!/java\.util\.List<String> ss = \(java\.util\.List<String>\) this\.safeList2\(/.test(out) || !/String\.join\(",", ss\)/.test(out)) problems.push("ral-84j6: 'ss' (Strings reader, nullish tests + join) must print List<String> with a cast-free String.join");
+        if (!/\bObject bb = /.test(out)) problems.push("ral-84j6: 'bb' (non-null list default) must stay Object");
         if (!/\bObject nn = /.test(out)) problems.push("ral-84j6: 'nn' has a value use and must stay Object");
         if (!/\bObject ww = /.test(out)) problems.push("ral-84j6: 'ww' is written and must stay Object");
     } catch (e: any) {

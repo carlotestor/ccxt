@@ -21008,3 +21008,121 @@ export function installJ84j6TrueOnlyLocals (transpiler) {
         return upstreamEquality (node, leftText, rightText);
     };
 }
+
+// R4: `const x: Strings | string[] = this.safeList* (..)` (base reader, no / nullish default, never written)
+// whose every use is a nullish compare or the receiver of `x.join (sep)`: prints
+// `java.util.List<String> x = (java.util.List<String>) this.safeList2 (..);` (an erased checkcast that cannot
+// fail) and each `x.join (sep)` prints `String.join (sep, x)` with no receiver cast. A non-String element
+// fails inside String.join exactly as it did under the old `(java.util.List<String>) x` receiver cast.
+const J84J6_STRING_LIST_TYPE = 'java.util.List<String>';
+function j84j6StringListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.type === undefined || declaration.initializer === undefined) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const annotated = checker.getTypeFromTypeNode (declaration.type);
+    const parts = (annotated.isUnionType () ? ts.typeParts (annotated) : [ annotated ])
+        .filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+    if (parts.length === 0 || !parts.every ((t) => checker.isArrayType (t)
+        && (checker.getTypeArguments (t)[0]?.flags & ts.TypeFlags.StringLike) !== 0)) {
+        return false;
+    }
+    const value = unwrapParens (declaration.initializer);
+    if (!isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const reader = String (value.expression.name.text);
+    const defaultAt = J6_READER_FAMILIES.list.accessors.get (reader);
+    if (defaultAt === undefined || value.arguments.length > defaultAt + 1
+        || (value.arguments.length === defaultAt + 1 && !isNullishInitializer (value.arguments[defaultAt]))
+        || !resolvesToBaseOrStrippedAccessor (printer, value, reader)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name)) {
+        return false;
+    }
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let joins = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+            || (ts.isPropertyAssignment (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        if (checker.getSymbolAtLocation (n) !== symbol) {
+            return false;
+        }
+        const compare = j84j6TrueCompare (n);
+        if (compare !== undefined && compare.mode === 'defined') {
+            continue;
+        }
+        if (j84j6JoinReceiver (n)) {
+            joins++;
+            continue;
+        }
+        return false;
+    }
+    return joins > 0;
+}
+
+function j84j6JoinReceiver (n) {
+    const access = n.parent;
+    return access !== undefined && ts.isPropertyAccessExpression (access) && access.expression === n
+        && access.name.text === 'join' && access.parent !== undefined && ts.isCallExpression (access.parent)
+        && access.parent.expression === access && access.parent.arguments.length === 1;
+}
+
+export function installJ84j6StringListLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function'
+        || typeof printer.printJoinCall !== 'function' || printer._j84j6StringListLocalsPatched) {
+        return;
+    }
+    printer._j84j6StringListLocalsPatched = true;
+    const typed = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = j84j6StringListLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        typed.add (declaration);
+        return marker.replace (/Object (\S+) = $/, `${J84J6_STRING_LIST_TYPE} $1 = (${J84J6_STRING_LIST_TYPE}) `) + printed.slice (marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? J84J6_STRING_LIST_TYPE : undefined));
+    const upstreamJoin = printer.printJoinCall.bind (printer);
+    printer.printJoinCall = function (node, identation, name, parsedArg) {
+        const out = upstreamJoin (node, identation, name, parsedArg);
+        try {
+            const receiver = node?.expression?.expression;
+            const declaration = receiver !== undefined && ts.isIdentifier (receiver) && name === receiver.text
+                ? printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve () : undefined;
+            const cast = `, (java.util.List<String>)${name})`;
+            if (declaration !== undefined && typed.has (declaration) && typeof out === 'string' && out.startsWith ('String.join(') && out.endsWith (cast)) {
+                return out.slice (0, -cast.length) + `, ${name})`;
+            }
+        } catch (e) {
+            // keep the upstream print
+        }
+        return out;
+    };
+}
