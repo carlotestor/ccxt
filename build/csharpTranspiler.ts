@@ -8669,6 +8669,9 @@ function dictRowElementReadSnippetChecks (): string[] {
     check ('arithmetic use keeps object', 'g (data: Dict[]) { const entry = data[0]; return entry + 1; }', [ 'object entry = ' ], [ 'IDictionary<string, object> entry' ]);
     check ('market name keeps object', 'h (data: Dict[]) { const market = data[0]; return this.safeString (market, "id"); }', [ 'object market = ' ], [ 'IDictionary<string, object> market' ]);
     check ('in-tested row keeps object', 'k (data: Dict[]) { const row = data[0]; if ("a" in row) { return 1; } return this.safeString (row, "b"); }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('string list read by safeString', 'm (s: string) { const parts = s.split ("-"); const y = this.safeString (parts, 0); const month = parts[1]; return this.safeString (y, month); }', [ 'string? month = ((string)' ], [ 'object month' ]);
+    check ('string list rebound to literals', 'n (f) { let keys = [ "a", "b" ]; if (f) { keys = [ "c" ]; } for (let i = 0; i < keys.length; i++) { const key = keys[i]; this.safeString (f, key); } }', [ 'string? key = ((string)' ], [ 'object key' ]);
+    check ('string list pushed keeps object', 'o (s: string) { const parts = s.split ("-"); parts.push (1); const month = parts[1]; return month; }', [ 'object month' ], [ 'string? month' ]);
     check ('callee parameter stays object',
         'p (raw) { return this.safeString (raw, "a"); }\n q (data: Dict[]) { const raw = data[0]; return this.p (raw); }',
         [ 'IDictionary<string, object> raw = ', 'p(object raw)' ], [ 'p(IDictionary<string, object> raw)' ]);
