@@ -367,6 +367,11 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>' };
+// ral-84j7 R3: prediction order structures. safePredictionOrder returns its fresh
+// Map<String, Object> `result` on its one path; every parsePredictionOrder declaration
+// (base throws, 9 prediction venues) returns `this.safePredictionOrder (..)`. Joined into
+// JAVA_MAP_RETURN_METHODS below, so signatures, locals and `.put` writes follow.
+const JAVA_84J7_MAP_RETURN_METHODS = [ 'safePredictionOrder', 'parsePredictionOrder' ];
 
 // base methods whose every return is the own `symbols` parameter (checkcast) or a String
 // accumulator list (section 26) print `java.util.List<String>`; locals take it in section 31
@@ -649,7 +654,7 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 // Structure accessors whose Java return is declared Map<String, Object> on every declaration
 // (base + overrides): each return is a literal/null, a markets/currencies row, super./this. call
 // of the same family or createExpiredOptionMarket (a row) - checkcast at the return site only.
-const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket' ]);
+const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS ]);
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
@@ -6189,7 +6194,10 @@ export function installJavaLocalTypes (transpiler) {
             if (expression === undefined || at === -1 || enclosingFunction (node) !== method
                 || ts.isObjectLiteralExpression (expression) || expression.kind === ts.SyntaxKind.NullKeyword
                 || (ts.isIdentifier (expression) && expression.text === 'undefined')
-                || (isThisOrSuperCall (expression) && JAVA_MAP_RETURN_METHODS.has (expression.expression.name.text))) {
+                || (isThisOrSuperCall (expression) && JAVA_MAP_RETURN_METHODS.has (expression.expression.name.text))
+                || (JAVA_84J7_MAP_RETURN_METHODS.includes (methodName) && ts.isIdentifier (expression)
+                    && typeof printer.javaDeclaredTypeOf === 'function'
+                    && /^(java\.util\.)?Map<String, ?Object>$/.test (printer.javaDeclaredTypeOf (expression) ?? ''))) {
                 return printed;
             }
             const tail = printed.slice (at + 'return '.length);
