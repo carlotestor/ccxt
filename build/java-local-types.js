@@ -18100,6 +18100,17 @@ function j77CheckedArrayCallValue (printer, value, kind = 'list') {
     if (normal.length === 0 || !normal.every ((t) => t === 'Object' || t === own)) {
         return undefined;
     }
+    // house limit (no added line over 400 chars): the later core-argument coercions can triple an argument's
+    // width, so a long initializer keeps its Object declaration
+    let width;
+    try {
+        width = String (printer.printNode (value, 0)).length;
+    } catch (e) {
+        return undefined;
+    }
+    if (width > 100) {
+        return undefined;
+    }
     return { cast: normal.includes ('Object') };
 }
 
