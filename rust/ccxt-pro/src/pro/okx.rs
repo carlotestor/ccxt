@@ -3690,8 +3690,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut msg: Option<String> = (match __pro_message.get("msg") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 if (msg.is_some()) && (msg.as_deref().unwrap_or_default().starts_with("Illegal request: {")) {
                     let mut stringifiedJson: Option<String> = (if let Some(__s) = msg.as_deref() { Some(__s.replace("Illegal request: ", "")) } else { None });
-                    let mut parsedJson: Value = self.parse_json_value(stringifiedJson.map(Value::from).unwrap_or(Value::Null));
-                    id = self.safe_string_k_opt(parsedJson, "id", &[]);
+                    let mut parsedJson: crate::value::Dict = self.parse_json_value(stringifiedJson.map(Value::from).unwrap_or(Value::Null)).into_dict();
+                    id = self.safe_string_k_opt(&parsedJson, "id", &[]);
                 }
             }
             if (id.is_some()) {

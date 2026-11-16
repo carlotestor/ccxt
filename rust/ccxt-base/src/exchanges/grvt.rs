@@ -806,14 +806,14 @@ impl crate::exchange::DerivedExchange for Grvt {
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut metaData: Option<String> = self.omit_zero(self.safe_string_k(transaction.clone(), "transfer_metadata", &[]));
         if (metaData.is_some()) {
-            let mut parsedMeta: Value = self.parse_json_value(metaData.map(Value::from).unwrap_or(Value::Null));
-            direction = self.safe_string_lower_k_opt(parsedMeta.clone(), "direction", &[]);
-            txId = self.safe_string_k_opt(parsedMeta.clone(), "provider_tx_id", &[]);
-            networkCode = self.network_id_to_code(&[self.safe_string_k(parsedMeta.clone(), "chainid", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut parsedMeta: crate::value::Dict = self.parse_json_value(metaData.map(Value::from).unwrap_or(Value::Null)).into_dict();
+            direction = self.safe_string_lower_k_opt(&parsedMeta, "direction", &[]);
+            txId = self.safe_string_k_opt(&parsedMeta, "provider_tx_id", &[]);
+            networkCode = self.network_id_to_code(&[self.safe_string_k(&parsedMeta, "chainid", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (direction.as_deref() == Some("withdrawal")) {
-                addressTo = self.safe_string_k_opt(parsedMeta.clone(), "endpoint", &[]);
+                addressTo = self.safe_string_k_opt(&parsedMeta, "endpoint", &[]);
             }  else if (direction.as_deref() == Some("deposit")) {
-                addressFrom = self.safe_string_k_opt(parsedMeta, "endpoint", &[]);
+                addressFrom = self.safe_string_k_opt(&parsedMeta, "endpoint", &[]);
             }
         }
         let mut timestamp: Option<i64> = self.safe_integer_product2(transaction.clone(), Value::Str("event_time".into()), Value::Str("initiated_time".into()), Value::Float(0.000001), &[]).as_i64();
@@ -3235,8 +3235,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]), "transfer_metadata", &[]);
-                let mut parsedMetadata: Value = self.parse_json_value(metadata.map(Value::from).unwrap_or(Value::Null));
-                let mut direction: Option<String> = self.safe_string_k_opt(parsedMetadata, "direction", &[]);
+                let mut parsedMetadata: crate::value::Dict = self.parse_json_value(metadata.map(Value::from).unwrap_or(Value::Null)).into_dict();
+                let mut direction: Option<String> = self.safe_string_k_opt(&parsedMetadata, "direction", &[]);
                 if (direction.as_deref() == Some(transferType.as_str().unwrap_or_default().to_string().as_str())) {
                     matchedResults.push(Value::from(&transfer));
                 }  else {
