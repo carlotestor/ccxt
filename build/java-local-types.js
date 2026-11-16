@@ -20932,7 +20932,13 @@ function r84j8BalanceMapLocal (printer, declaration) {
             balanceWrites += info === undefined ? 0 : 1;
             return info !== undefined;
         },
-        destructureOk: (assignment, at) => mapLocalDestructureOk (printer, assignment, at),
+        // `[ m, p ] = this.handleUntilOption (..)`: both Pair slots are Map<String, Object> (`.first()` / `.second()`)
+        destructureOk: (assignment, at) => {
+            const types = pairCallTypes (printer, assignment.right);
+            const slot = types !== undefined && (at === 0 || at === 1) && pairSameType (types[at], PAIR_MAP);
+            balanceWrites += slot ? 1 : 0;
+            return slot;
+        },
     });
     return ok && balanceWrites > 0;
 }
