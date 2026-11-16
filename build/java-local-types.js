@@ -18004,6 +18004,28 @@ function javaFreshListMethod (call) {
 // is a java.util.List at runtime, so the declaration takes the List box (checkcast unless every
 // spelling is already List<Object>). A typed structure list (List<Order>, ..) is inconvertible: declined.
 // kind 'map': the same for a json-box (Dict / Dictionary<T>, nullable allowed) callee and Map<String, Object>.
+// a json box (Dict / Dictionary<T>) or a plain structure interface of ts/src/base/types.ts (Trade, Order,
+// Market, ..): every Java print of those is a java.util.Map (a HashMap or a TypedMap DTO). Classes, arrays,
+// callables and unions decline.
+function j77MapShapedType (printer, type) {
+    if (type === undefined || typeof printer.javaJsonBoxType !== 'function') {
+        return false;
+    }
+    if (printer.javaJsonBoxType (type)) {
+        return true;
+    }
+    try {
+        if (!(type.flags & ts.TypeFlags.Object) || typeof printer.isJavaMapType !== 'function' || !printer.isJavaMapType (type)) {
+            return false;
+        }
+        const declarations = (type.getSymbol?.()?.declarations ?? []).map ((d) => d.resolve ());
+        return declarations.length > 0 && declarations.every ((d) => d.kind === ts.SyntaxKind.InterfaceDeclaration
+            && /(^|[\\/])ts[\\/]src[\\/]base[\\/]types\.ts$/.test (d.getSourceFile ().fileName));
+    } catch (e) {
+        return false;
+    }
+}
+
 function j77CheckedArrayCallValue (printer, value, kind = 'list') {
     const awaited = value !== undefined && ts.isAwaitExpression (value);
     const call = awaited ? unwrapParens (value.expression) : value;
@@ -18024,7 +18046,7 @@ function j77CheckedArrayCallValue (printer, value, kind = 'list') {
     if (type === undefined) {
         return undefined;
     }
-    if (kind === 'list' ? !checker.isArrayType (type) : !(typeof printer.javaJsonBoxType === 'function' && printer.javaJsonBoxType (checker.getNonNullableType (type)))) {
+    if (kind === 'list' ? !checker.isArrayType (type) : !j77MapShapedType (printer, checker.getNonNullableType (type))) {
         return undefined;
     }
     const name = String (call.expression.name.text);
@@ -18048,11 +18070,12 @@ function j77CheckedArrayCallValue (printer, value, kind = 'list') {
         if (emitted !== undefined) {
             spellings.add (emitted);
         }
+        // an absent entry is a callee not generated yet: its own printed signature below decides
         const entry = javaCoreDeclarationTable (call)?.get (name);
-        if (entry === undefined || entry.future) {
+        if (entry?.future === true) {
             return undefined;
         }
-        for (const t of entry.types) {
+        for (const t of (entry?.types ?? [])) {
             spellings.add (t);
         }
     }
@@ -18085,9 +18108,9 @@ const j77BaseMapLocalValue = javaMapLocalValue;
 const j77BaseListLocalValue = javaListLocalValue;
 // eslint-disable-next-line no-func-assign
 javaMapLocalValue = function (printer, node, declaration, depth = 0) {
-    // the Map arm answers an awaited initializer only; writes keep the family's own proofs
+    // the Map arm answers the initializer only; writes keep the family's own proofs
     const value = unwrapParens (node);
-    const own = depth === 0 && value !== undefined && ts.isAwaitExpression (value) && value === unwrapParens (declaration?.initializer)
+    const own = depth === 0 && value !== undefined && value === unwrapParens (declaration?.initializer)
         ? j77CheckedArrayCallValue (printer, value, 'map') : undefined;
     return own ?? j77BaseMapLocalValue (printer, node, declaration, depth);
 };

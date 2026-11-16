@@ -6818,7 +6818,7 @@ function javaListLocalsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj13selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
-        "import type { Dict } from './base/types.js';",
+        "import type { Dict, Trade } from './base/types.js';",
         'export default class zzj13selftest extends Exchange {',
         "    acc (r: any) { let a = []; for (let i = 0; i < 3; i++) { a = this.arrayConcat (a, [ i ]); } return [ a.length, a[0] ]; }",
         "    lst (r: any) { let b = this.safeList (r, 'k', []); if (b.length === 0) { b = this.safeList (r, 'z', []); } return b[0]; }",
@@ -6839,6 +6839,8 @@ function javaListLocalsSelfTest (): string[] {
         "    async j77use2 (r: any) { const w = await this.j77str (r); return w; }",
         "    async j77dict (r: any): Promise<Dict> { return { 'a': r }; }",
         "    async j77use3 (r: any) { const v = await this.j77dict (r); return this.safeString (v, 'a'); }",
+        "    j77trade (r: any): Trade { return this.safeTrade ({ 'id': r }); }",
+        "    j77use4 (r: any) { const x = this.j77trade (r); return this.safeString (x, 'id'); }",
         '}',
     ].join('\n');
     try {
@@ -6863,6 +6865,7 @@ function javaListLocalsSelfTest (): string[] {
         if (!/List<Object> u = \(java\.util\.List<Object>\) \(this\.j77rows\(/.test(out)) problems.push("'u' (await of a Dict[] callee printed CompletableFuture<Object>) must print List<Object> with a checkcast");
         if (/Helpers\.getArrayLength\(u\)/.test(out)) problems.push("'u' length must go native");
         if (!/\bObject w = /.test(out)) problems.push("'w' (await of a string callee) is not a list and must stay Object");
+        if (!/Map<String, Object> x = (\(java\.util\.Map<String, Object>\) )?this\.j77trade\(/.test(out)) problems.push("'x' (a sync Trade interface callee) must print Map<String, Object>");
         if (!/Map<String, Object> v = \(java\.util\.Map<String, Object>\) \(this\.j77dict\(/.test(out)) problems.push("'v' (await of a Dict callee printed CompletableFuture<Object>) must print Map<String, Object> with a checkcast");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
