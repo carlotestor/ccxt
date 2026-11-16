@@ -1711,25 +1711,25 @@ impl Bithumb {
                 let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "market", &[]);
                 let mut baseId: Option<String> = None;
                 let mut quoteId: Option<String> = None;
-                let mut base: Value = Value::Null;
-                let mut quote: Value = Value::Null;
+                let mut base: Option<String> = None;
+                let mut quote: Option<String> = None;
                 if (marketId.is_some()) {
                     let mut parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = parts.get(1).and_then(Value::as_str).map(str::to_owned);
                     quoteId = parts.get(0).and_then(Value::as_str).map(str::to_owned);
-                    base = self.safe_currency_code(Value::from(baseId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
-                    quote = self.safe_currency_code(Value::from(quoteId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
+                    base = self.safe_currency_code(Value::from(baseId.as_deref()), None);
+                    quote = self.safe_currency_code(Value::from(quoteId.as_deref()), None);
                 }
-                if (base == Value::Null) || (quote == Value::Null) {
+                if (base.is_none()) || (quote.is_none()) {
                     continue;
                 }
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote).into()));
-                        m.insert("base".to_string(), base);
-                        m.insert("quote".to_string(), quote);
+                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
+                        m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
+                        m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                         m.insert("settle".to_string(), Value::Null);
                         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
