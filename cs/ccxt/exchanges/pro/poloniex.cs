@@ -923,7 +923,7 @@ public partial class poloniex : ccxt.poloniex
                 string? symbol = trade.symbol;
                 string type = "trades";
                 string messageHash = ((type + "::") + this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", ""));
-                object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
+                ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)(((symbol == null)) ? null : this.safeValue(this.trades, symbol)));
                 if ((tradesArray == null))
                 {
                     Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -933,7 +933,7 @@ public partial class poloniex : ccxt.poloniex
                         this.trades[(string)symbol] = tradesArray;
                     }
                 }
-                ccxt.pro.BaseCache.appendTo(tradesArray, ccxt.BaseExchange.FromTrade(trade));
+                tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
                 client.resolve(tradesArray, messageHash);
             }
         }

@@ -2597,8 +2597,8 @@ public partial class polymarket : PredictionExchange
                 object feeHex = this.intToBase16(feeRate);
                 feeHex = (feeHex as String).PadLeft(Convert.ToInt32(24), Convert.ToChar("0"));
                 string addressHex = (builderHex as String).PadLeft(Convert.ToInt32(40), Convert.ToChar("0"));
-                object packedHex = (feeHex == null ? null : feeHex + addressHex);
-                builderBytes32 = ("0x" + (packedHex));
+                string? packedHex = (feeHex == null ? null : feeHex + addressHex);
+                builderBytes32 = ("0x" + packedHex);
             } else
             {
                 string paddedHex = (builderHex as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));

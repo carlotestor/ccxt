@@ -3648,7 +3648,7 @@ public partial class gate : Exchange
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = ((string)(((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null));
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);

@@ -2146,7 +2146,7 @@ public partial class bitget : ccxt.bitget
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
         bool isTrigger = (channel == "orders-algo") || (channel == "ordersAlgo");
-        object stored = isTrigger ? this.triggerOrders : this.orders;
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(isTrigger ? this.triggerOrders : this.orders));
         string messageHash = "order";
         if (isTrigger)
         {
@@ -2159,7 +2159,7 @@ public partial class bitget : ccxt.bitget
             string? marketId = this.safeString2(order, "instId", "symbol", argInstId);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
             ccxt.Order parsed = this.parseWsOrder(order, market);
-            ccxt.pro.BaseCache.appendTo(stored, ccxt.BaseExchange.FromOrder(parsed));
+            stored.append(ccxt.BaseExchange.FromOrder(parsed));
             string? symbol = parsed.symbol;
             if ((symbol != null))
             {

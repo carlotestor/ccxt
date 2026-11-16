@@ -4334,7 +4334,7 @@ public partial class okx : Exchange
         {
             if (margin)
             {
-                object defaultCurrency = ((side == "buy")) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null);
+                string? defaultCurrency = ((string)(((side == "buy")) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null)));
                 string? currency = this.safeString(parameters, "ccy", defaultCurrency);
                 request["ccy"] = this.safeCurrencyCode(currency);
             }
@@ -9183,7 +9183,7 @@ public partial class okx : Exchange
         string? amount = Precise.stringAbs(amountRaw);
         string? marketId = this.safeString(data, "instId");
         Dictionary<string, object> responseMarket = this.safeMarket(marketId, market);
-        object code = (this.safeBool(responseMarket, "inverse", false) == true) ? (responseMarket != null && responseMarket.ContainsKey("base") ? responseMarket["base"] : null) : (responseMarket != null && responseMarket.ContainsKey("quote") ? responseMarket["quote"] : null);
+        string? code = ((string)((this.safeBool(responseMarket, "inverse", false) == true) ? (responseMarket != null && responseMarket.ContainsKey("base") ? responseMarket["base"] : null) : (responseMarket != null && responseMarket.ContainsKey("quote") ? responseMarket["quote"] : null)));
         Int64? timestamp = this.safeInteger(data, "ts");
         return new Dictionary<string, object>() {
             { "info", data },

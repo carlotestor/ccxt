@@ -2423,13 +2423,13 @@ public partial class okx : ccxt.okx
                 this.orders = new ArrayCacheBySymbolById(limit);
                 this.triggerOrders = new ArrayCacheBySymbolById(limit);
             }
-            object stored = (channel == "orders-algo") ? this.triggerOrders : this.orders;
+            ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)((channel == "orders-algo") ? this.triggerOrders : this.orders));
             List<object> marketIds = new List<object>() {};
             IList<object> parsed = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
             for (int i = 0; i < (parsed?.Count ?? 0); i++)
             {
                 IDictionary<string, object> order = ((IDictionary<string, object>)parsed[i]);
-                ccxt.pro.BaseCache.appendTo(stored, order);
+                stored.append(order);
                 string? symbol = this.safeString(order, "symbol", "");
                 Dictionary<string, object> market = this.market(symbol);
                 marketIds.Add((market.ContainsKey("id") ? market["id"] : null));

@@ -3932,7 +3932,7 @@ public partial class digifinex : Exchange
         string? leverageString = this.safeString(info, "leverage_ratio");
         string? amountInvested = Precise.stringDiv(amountString, leverageString);
         string? amountBorrowed = Precise.stringSub(amountString, amountInvested);
-        object currency = ((market == null)) ? null : (market != null && market.ContainsKey("base") ? market["base"] : null);
+        string? currency = ((string)(((market == null)) ? null : (market != null && market.ContainsKey("base") ? market["base"] : null)));
         string? symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
             { "info", info },

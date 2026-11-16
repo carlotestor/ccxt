@@ -2536,7 +2536,7 @@ public partial class kucoin : ccxt.kucoin
             this.orders = new ArrayCacheBySymbolById(limit);
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
-        object cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
+        ccxt.pro.ArrayCache cachedOrders = ((ccxt.pro.ArrayCache)(isTriggerOrder ? this.triggerOrders : this.orders));
         IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
         IDictionary<string, object> order = this.safeDict(orders, orderId);
         if ((order != null))
@@ -2578,7 +2578,7 @@ public partial class kucoin : ccxt.kucoin
                 parsed["average"] = this.parseNumber(Precise.stringDiv(costString, filledString));
             }
         }
-        ccxt.pro.BaseCache.appendTo(cachedOrders, parsed);
+        cachedOrders.append(parsed);
         string messageHash = "orders";
         string? topic = this.safeString(message, "topic");
         string suffix = this.getOrdersMessageHashSuffix(topic);

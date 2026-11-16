@@ -13673,18 +13673,18 @@ public partial class binance : Exchange
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             string? marketId = this.safeString(position, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
-            object code = (this.safeBool(market, "linear", false) == true) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null);
+            string? code = ((string)((this.safeBool(market, "linear", false) == true) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null)));
             string? maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             bool isPositionOpen = (maintenanceMargin != "0") && (maintenanceMargin != "0.00000000");
             if (filterClosed != true || isPositionOpen)
             {
                 // sometimes not all the codes are correctly returned...
-                if ((code is string inOpKey3 && balances.ContainsKey(inOpKey3)))
+                if ((balances != null && code != null && balances.ContainsKey(code)))
                 {
                     Dictionary<string, object> parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
-                        { "crossMargin", this.safeValue((balances != null && code != null && balances.ContainsKey((string)code) ? balances[(string)code] : null), "crossMargin") },
-                        { "crossWalletBalance", this.safeValue((balances != null && code != null && balances.ContainsKey((string)code) ? balances[(string)code] : null), "crossWalletBalance") },
+                        { "crossMargin", this.safeValue((code != null && balances.ContainsKey(code) ? balances[code] : null), "crossMargin") },
+                        { "crossWalletBalance", this.safeValue((code != null && balances.ContainsKey(code) ? balances[code] : null), "crossWalletBalance") },
                     }), market);
                     result.Add(parsed);
                 }

@@ -1580,7 +1580,7 @@ public partial class derive : Exchange
         List<object> settlements = this.safeList(result, "settlements", new List<object>() {});
         List<object> parsed = this.parseSettlements(settlements, market);
         List<object> sorted = this.sortBy(parsed, "timestamp");
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = ((string)(((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null));
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
     }
 

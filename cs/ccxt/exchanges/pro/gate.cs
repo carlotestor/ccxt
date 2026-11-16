@@ -2030,7 +2030,7 @@ public partial class gate : ccxt.gate
             this.orders = new ArrayCacheBySymbolById(limit);
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
-        object stored = isTrigger ? this.triggerOrders : this.orders;
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(isTrigger ? this.triggerOrders : this.orders));
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
@@ -2051,7 +2051,7 @@ public partial class gate : ccxt.gate
                     ((IDictionary<string,object>)parsed)["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
                 }
             }
-            ccxt.pro.BaseCache.appendTo(stored, parsed);
+            stored.append(parsed);
             object symbol = getValue(parsed, "symbol");
             Dictionary<string, object> market = this.market(symbol);
             if (!((market.ContainsKey("id") ? market["id"] : null) == null))
