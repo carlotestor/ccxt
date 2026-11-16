@@ -4798,8 +4798,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return self.parse_orders(Value::from(vec![response]), None, &[]);
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return self.parse_orders(Value::from(vec![Value::Dict(response)]), None, &[]);
         Value::Null
         }).await?))
     }

@@ -3068,8 +3068,8 @@ impl Paradex {
 
     pub async fn get_system_config(&mut self) -> Value {
         if (self.safe_dict_k(self.options.clone(), "systemConfig", &[]) == Value::Null) {
-            let mut response: Value = self.public_get_system_config(&[]).await;
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("systemConfig".into(), response); }
+            let mut response: crate::value::Dict = self.public_get_system_config(&[]).await.into_dict();
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("systemConfig".into(), Value::Dict(response)); }
         }
         return self.safe_dict_k(self.options.clone(), "systemConfig", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

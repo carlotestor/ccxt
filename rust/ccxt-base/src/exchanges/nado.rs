@@ -3217,10 +3217,10 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsRequest: Value = self.gateway_public_get_symbols(&[params.clone()]).await;
-        let mut pairsRequest: Value = self.gateway_v2_public_get_pairs(&[params.clone()]).await;
-        let mut assetsRequest: Value = self.gateway_v2_public_get_assets(&[params]).await;
-        let mut responses: crate::value::List = promise_all(&Value::from(vec![symbolsRequest, pairsRequest, assetsRequest])).await.into_list();
+        let mut symbolsRequest: crate::value::List = self.gateway_public_get_symbols(&[params.clone()]).await.into_list();
+        let mut pairsRequest: crate::value::List = self.gateway_v2_public_get_pairs(&[params.clone()]).await.into_list();
+        let mut assetsRequest: crate::value::List = self.gateway_v2_public_get_assets(&[params]).await.into_list();
+        let mut responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(symbolsRequest), Value::Arr(pairsRequest), Value::Arr(assetsRequest)])).await.into_list();
         let mut symbols: crate::value::List = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
         let mut pairs: crate::value::List = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         let mut assets: crate::value::List = self.safe_list(&responses, Value::Int(2), &[Value::from(vec![])]).into_list();

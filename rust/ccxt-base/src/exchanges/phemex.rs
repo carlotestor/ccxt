@@ -3025,7 +3025,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut v2ProductsPromise: Value = self.v2_get_public_products(&[params.clone()]).await;
+        let mut v2ProductsPromise: crate::value::Dict = self.v2_get_public_products(&[params.clone()]).await.into_dict();
         //
         //     {
         //         "code":0,
@@ -3175,8 +3175,8 @@ impl Phemex {
         //         }
         //     }
         //
-        let mut v1ProductsPromise: Value = self.v1_get_exchange_public_products(&[params]).await;
-        let v2Productsv1ProductsVariable: Vec<Value> = promise_all(&Value::from(vec![v2ProductsPromise, v1ProductsPromise])).await.as_array().cloned().unwrap_or_default();
+        let mut v1ProductsPromise: crate::value::Dict = self.v1_get_exchange_public_products(&[params]).await.into_dict();
+        let v2Productsv1ProductsVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(v2ProductsPromise), Value::Dict(v1ProductsPromise)])).await.as_array().cloned().unwrap_or_default();
         let mut v2Products: crate::value::Dict = v2Productsv1ProductsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut v1Products: crate::value::Dict = v2Productsv1ProductsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut v1ProductsData: crate::value::List = self.safe_list_k(&v1Products, "data", &[Value::from(vec![])]).into_list();

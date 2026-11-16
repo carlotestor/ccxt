@@ -5300,9 +5300,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut marginPromise: Value = self.public_margin_get_currency_pairs(&[params.clone()]).await;
-        let mut spotMarketsPromise: Value = self.public_spot_get_currency_pairs(&[params]).await;
-        let marginResponsespotMarketsResponseVariable: Vec<Value> = promise_all(&Value::from(vec![marginPromise, spotMarketsPromise])).await.as_array().cloned().unwrap_or_default();
+        let mut marginPromise: crate::value::List = self.public_margin_get_currency_pairs(&[params.clone()]).await.into_list();
+        let mut spotMarketsPromise: crate::value::List = self.public_spot_get_currency_pairs(&[params]).await.into_list();
+        let marginResponsespotMarketsResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Arr(marginPromise), Value::Arr(spotMarketsPromise)])).await.as_array().cloned().unwrap_or_default();
         let mut marginResponse: Value = marginResponsespotMarketsResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut spotMarketsResponse: crate::value::List = marginResponsespotMarketsResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_list();
         let mut marginMarkets: crate::value::Dict = self.index_by(marginResponse, Value::Str("id".into())).into_dict();

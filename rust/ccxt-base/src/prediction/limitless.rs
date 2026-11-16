@@ -3136,8 +3136,8 @@ impl Limitless {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.limitless_private_get_profiles_me(&[params]).await;
-        let mut responseList: crate::value::List = std::sync::Arc::new(vec![response]);
+        let mut response: crate::value::Dict = self.limitless_private_get_profiles_me(&[params]).await.into_dict();
+        let mut responseList: crate::value::List = std::sync::Arc::new(vec![Value::Dict(response)]);
         return self.parse_accounts(&responseList, &[]);
         Value::Null
         }).await?))

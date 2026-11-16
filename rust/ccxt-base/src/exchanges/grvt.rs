@@ -2390,7 +2390,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut marketsPromise: Value = self.public_market_post_full_v1_all_instruments(&[params]).await;
+        let mut marketsPromise: crate::value::Dict = self.public_market_post_full_v1_all_instruments(&[params]).await.into_dict();
         //
         //    {
         //        "result": [
@@ -2417,7 +2417,7 @@ if _try_result.is_err() {
         //            },
         //            ...
         //
-        let mut promises: Vec<Value> = vec![marketsPromise];
+        let mut promises: Vec<Value> = vec![Value::Dict(marketsPromise)];
         if !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true)) || !(self.is_empty_string(self.privateKey.clone()).as_bool() == Some(true)) {
             promises.push(self.sign_in(&[]).await);
         }

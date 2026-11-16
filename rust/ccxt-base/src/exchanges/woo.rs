@@ -3084,7 +3084,7 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tokenResponsePromise: Value = self.v1_public_get_token(&[params.clone()]).await;
+        let mut tokenResponsePromise: crate::value::Dict = self.v1_public_get_token(&[params.clone()]).await.into_dict();
         //
         //    {
         //      "rows": [
@@ -3130,7 +3130,7 @@ impl Woo {
         // }
         //
         // only make one request for currencies...
-        let mut tokenNetworkResponsePromise: Value = self.v1_public_get_token_network(&[params]).await;
+        let mut tokenNetworkResponsePromise: crate::value::Dict = self.v1_public_get_token_network(&[params]).await.into_dict();
         //
         // {
         //     "rows": [
@@ -3159,7 +3159,7 @@ impl Woo {
         //     "success": true
         // }
         //
-        let tokenResponsetokenNetworkResponseVariable: Vec<Value> = promise_all(&Value::from(vec![tokenResponsePromise, tokenNetworkResponsePromise])).await.as_array().cloned().unwrap_or_default();
+        let tokenResponsetokenNetworkResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tokenResponsePromise), Value::Dict(tokenNetworkResponsePromise)])).await.as_array().cloned().unwrap_or_default();
         let mut tokenResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut tokenNetworkResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tokenRows: crate::value::List = self.safe_list_k(&tokenResponse, "rows", &[Value::from(vec![])]).into_list();
@@ -4635,7 +4635,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut mainAccountPromise: Value = self.v3_private_get_account_info(&[params.clone()]).await;
+        let mut mainAccountPromise: crate::value::Dict = self.v3_private_get_account_info(&[params.clone()]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -4665,7 +4665,7 @@ impl Woo {
         //         "timestamp": 1752062807915
         //     }
         //
-        let mut subAccountPromise: Value = self.v3_private_get_account_sub_accounts_all(&[params.clone()]).await;
+        let mut subAccountPromise: crate::value::Dict = self.v3_private_get_account_sub_accounts_all(&[params.clone()]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -4681,7 +4681,7 @@ impl Woo {
         //         "timestamp": 1721295317627
         //     }
         //
-        let mainAccountResponsesubAccountResponseVariable: Vec<Value> = promise_all(&Value::from(vec![mainAccountPromise, subAccountPromise])).await.as_array().cloned().unwrap_or_default();
+        let mainAccountResponsesubAccountResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(mainAccountPromise), Value::Dict(subAccountPromise)])).await.as_array().cloned().unwrap_or_default();
         let mut mainAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut subAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut mainData: crate::value::Dict = self.safe_dict_k(&mainAccountResponse, "data", &[Value::Map({

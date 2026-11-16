@@ -2546,9 +2546,9 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_api_v1_securities(&[params]).await;
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("securities".into(), response.clone()); }
-        return response;
+        let mut response: crate::value::List = self.public_get_api_v1_securities(&[params]).await.into_list();
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("securities".into(), Value::from(&response)); }
+        return Value::Arr(response);
 
     Value::Null
 }
