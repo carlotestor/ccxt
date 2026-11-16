@@ -1443,12 +1443,12 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 		return nil
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}() // default 100, max 100
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	} // default 100, max 100
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 		"bar":    this.SafeString(this.Timeframes, timeframe, timeframe),

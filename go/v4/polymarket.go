@@ -1253,12 +1253,12 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		} else {
 			end = this.Milliseconds()
 		}
-		var requestedLimit int64 = func() int64 {
-			if limit != nil {
-				return *limit
-			}
-			return 100
-		}()
+		var requestedLimit int64
+		if limit != nil {
+			requestedLimit = *limit
+		} else {
+			requestedLimit = 100
+		}
 		request["start_timestamp"] = (end - ((requestedLimit - 1) * duration))
 	}
 

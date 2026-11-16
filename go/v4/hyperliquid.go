@@ -4095,12 +4095,12 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	if since != nil {
 		request["startTime"] = since
 	} else {
-		var maxLimit int64 = func() int64 {
-			if limit == nil {
-				return 500
-			}
-			return *limit
-		}()
+		var maxLimit int64
+		if limit == nil {
+			maxLimit = 500
+		} else {
+			maxLimit = *limit
+		}
 		request["startTime"] = (this.Milliseconds() - (((maxLimit * 60) * 60) * 1000))
 	}
 	var until *int64 = this.SafeInteger(params, "until")

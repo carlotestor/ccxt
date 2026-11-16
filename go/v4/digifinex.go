@@ -2090,12 +2090,12 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 			} else {
 				endTime = this.Milliseconds()
 			}
-			var startLimit int64 = func() int64 {
-				if limit != nil {
-					return *limit
-				}
-				return 200
-			}()
+			var startLimit int64
+			if limit != nil {
+				startLimit = *limit
+			} else {
+				startLimit = 200
+			}
 			var startTime int64
 			if since != nil {
 				startTime = this.ParseToInt(float64(*since) / 1000)

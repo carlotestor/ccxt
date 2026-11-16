@@ -18014,12 +18014,12 @@ func (this *Binance) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 			panic(r.Err)
 		}
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 93
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 93
+	} else {
+		limitResolved = *limit
+	}
 	if (limit != nil) && (*limit > 93) {
 		panic(BadRequest(this.Id + " fetchBorrowRateHistory() limit parameter cannot exceed 92"))
 	}
@@ -18763,12 +18763,12 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInte
 		request["endTime"] = endTime
 	} else if (since != nil) && (since == nil || *since != 0) {
 		// exchange default
-		var limitDefault int64 = func() int64 {
-			if limit == nil {
-				return 30
-			}
-			return *limit
-		}()
+		var limitDefault int64
+		if limit == nil {
+			limitDefault = 30
+		} else {
+			limitDefault = *limit
+		}
 		var duration int64 = this.ParseTimeframe(timeframe)
 		request["endTime"] = this.Sum(since, ((duration * limitDefault) * 1000))
 	}
@@ -20251,12 +20251,12 @@ func (this *Binance) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversi
 	var request map[string]any = map[string]any{}
 	var msInThirtyDays int = 2592000000
 	var now int64 = this.Milliseconds()
-	var startTime any = func() any {
-		if since != nil {
-			return since
-		}
-		return (now - int64(msInThirtyDays))
-	}()
+	var startTime int64
+	if since != nil {
+		startTime = *since
+	} else {
+		startTime = (now - int64(msInThirtyDays))
+	}
 	request["startTime"] = startTime
 	var endTime *int64 = this.SafeInteger2(params, "endTime", "until")
 	var endTimeResolved int64
@@ -20287,7 +20287,7 @@ func (this *Binance) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversi
 		}
 		response = r1.Value
 	} else {
-		if IsGreaterThan((Subtract(endTimeResolved, startTime)), msInThirtyDays) {
+		if (endTimeResolved - startTime) > int64(msInThirtyDays) {
 			panic(BadRequest(this.Id + " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days."))
 		}
 		if limit != nil {

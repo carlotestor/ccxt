@@ -4312,12 +4312,12 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	}
 	var isContract bool = (market["contract"] == true)
 	var marketType *string = SafeStringPtr(market["type"])
-	var contractLimit any = func() any {
-		if limit != nil {
-			return limit
-		}
-		return 2000
-	}() // only used for from/to calculation
+	var contractLimit int64
+	if limit != nil {
+		contractLimit = *limit
+	} else {
+		contractLimit = 2000
+	} // only used for from/to calculation
 	var rangeLimit any = limit
 	if isContract {
 		rangeLimit = contractLimit
@@ -4331,12 +4331,12 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 			var calcualtedEnd any = nil
 			if since == nil {
 				var now int64 = this.Seconds()
-				request["from"] = Subtract(now, Multiply(duration, (Subtract(contractLimit, 1))))
+				request["from"] = now - duration*(contractLimit-1)
 				calcualtedEnd = now
 			} else {
 				var start int64 = this.ParseToInt(float64(*since) / 1000)
 				request["from"] = start
-				calcualtedEnd = this.Sum(start, Multiply(duration, (Subtract(contractLimit, 1))))
+				calcualtedEnd = this.Sum(start, duration*(contractLimit-1))
 			}
 			request["to"] = func() any {
 				if untilSeconds != nil {

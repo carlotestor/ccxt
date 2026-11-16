@@ -1408,12 +1408,12 @@ func (this *Coinsph) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		"symbol":   market["id"],
 		"interval": interval,
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 1000
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	if since != nil {
 		request["startTime"] = since
 		// since work properly only when it is "younger" than last "limit" candle

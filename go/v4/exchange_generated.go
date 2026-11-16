@@ -5817,13 +5817,13 @@ func (this *BaseExchange) RequireValue(value any, optionalArgs ...any) any {
 	var message *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = message
 	if IsEqual(value, nil) {
-		var errorMessage any = func() any {
-			if message != nil {
-				return message
-			}
-			return "value is required"
-		}()
-		panic(ArgumentsRequired(Add(this.Id+" ", errorMessage)))
+		var errorMessage string
+		if message != nil {
+			errorMessage = *message
+		} else {
+			errorMessage = "value is required"
+		}
+		panic(ArgumentsRequired(this.Id + " " + errorMessage))
 	}
 	return value
 }

@@ -1070,12 +1070,12 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 	var startTime any = since
 	if since == nil {
 		var tf int64 = this.ParseTimeframe(timeframe)
-		var candleCount int64 = func() int64 {
-			if limit != nil {
-				return *limit
-			}
-			return 100
-		}()
+		var candleCount int64
+		if limit != nil {
+			candleCount = *limit
+		} else {
+			candleCount = 100
+		}
 		var startOffset int64 = ((tf * candleCount) * int64(-1000))
 		var shiftedStart any = this.Sum(until, startOffset)
 		startTime = shiftedStart

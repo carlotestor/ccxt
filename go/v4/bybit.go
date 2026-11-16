@@ -10381,12 +10381,12 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]a
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	var sinceResolved any = func() any {
-		if since == nil {
-			return this.Milliseconds() - 2592000000
-		}
-		return since
-	}() // last 30 days
+	var sinceResolved int64
+	if since == nil {
+		sinceResolved = this.Milliseconds() - 2592000000
+	} else {
+		sinceResolved = *since
+	} // last 30 days
 	request["startTime"] = sinceResolved
 	var endTime any = DerefScalar(this.SafeInteger2(params, "until", "endTime"))
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})

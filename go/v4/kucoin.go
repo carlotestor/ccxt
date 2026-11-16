@@ -4264,25 +4264,25 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	var denominator int = 1000
 	// For each query, the system would return at most 1500 pieces of data.
 	// To obtain more data, please page the data by time.
-	var windowLimit any = func() any {
-		if limit == nil {
-			return this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
-		if since != nil {
-			return windowLimit
-		}
-		return limit
-	}()
+	var windowLimit *int64
+	if limit == nil {
+		windowLimit = this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
+	} else {
+		windowLimit = limit
+	}
+	var limitResolved *int64
+	if since != nil {
+		limitResolved = windowLimit
+	} else {
+		limitResolved = limit
+	}
 	var sinceResolved any = since
 	if (since == nil) && (limit != nil) {
 		sinceResolved = now - (*limit * duration)
 	}
 	var endAt int64
 	if since != nil {
-		endAt = this.ParseToInt(this.Sum(since, Multiply(windowLimit, duration)))
+		endAt = this.ParseToInt(this.Sum(since, *windowLimit*duration))
 	} else {
 		endAt = now
 	}
@@ -4401,25 +4401,25 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	var denominator int = 1000
 	// For each query, the system would return at most 1500 pieces of data.
 	// To obtain more data, please page the data by time.
-	var windowLimit any = func() any {
-		if limit == nil {
-			return this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
-		if since != nil {
-			return windowLimit
-		}
-		return limit
-	}()
+	var windowLimit *int64
+	if limit == nil {
+		windowLimit = this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
+	} else {
+		windowLimit = limit
+	}
+	var limitResolved *int64
+	if since != nil {
+		limitResolved = windowLimit
+	} else {
+		limitResolved = limit
+	}
 	var sinceResolved any = since
 	if (since == nil) && (limit != nil) {
 		sinceResolved = now - (*limit * duration)
 	}
 	var endAt int64
 	if since != nil {
-		endAt = this.ParseToInt(this.Sum(since, Multiply(windowLimit, duration)))
+		endAt = this.ParseToInt(this.Sum(since, *windowLimit*duration))
 	} else {
 		endAt = now
 	}
@@ -4519,18 +4519,18 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol 
 	var now int64 = this.Milliseconds() // required param
 	// For each query, the system would return at most 200 pieces of data.
 	// To obtain more data, please page the data by time.
-	var windowLimit any = func() any {
-		if limit == nil {
-			return this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
-		if since != nil {
-			return windowLimit
-		}
-		return limit
-	}()
+	var windowLimit *int64
+	if limit == nil {
+		windowLimit = this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
+	} else {
+		windowLimit = limit
+	}
+	var limitResolved *int64
+	if since != nil {
+		limitResolved = windowLimit
+	} else {
+		limitResolved = limit
+	}
 	var sinceResolved any = since
 	if (since == nil) && (limit != nil) {
 		sinceResolved = now - (*limit * duration)
@@ -4538,7 +4538,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol 
 	var endAt any = now
 	if since != nil {
 		request["from"] = since
-		endAt = this.Sum(since, Multiply(windowLimit, duration))
+		endAt = this.Sum(since, *windowLimit*duration)
 	} else if limit != nil {
 		request["from"] = sinceResolved
 	}

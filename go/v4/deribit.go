@@ -4485,12 +4485,12 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var now int64 = this.Milliseconds()
 	var month int64 = (30 * 24) * 60 * 60 * 1000
 	var defaultSince int64 = now - month
-	var sinceResolved int64 = func() int64 {
-		if since == nil {
-			return defaultSince
-		}
-		return *since
-	}()
+	var sinceResolved int64
+	if since == nil {
+		sinceResolved = defaultSince
+	} else {
+		sinceResolved = *since
+	}
 	var time int64 = now
 	if since != nil {
 		time = this.ParseToInt(*since + month)
