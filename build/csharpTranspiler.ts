@@ -8666,6 +8666,12 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
     check ('identifier-key write keeps object', 'h (data: Dict[], k: string) { const row = data[0]; row[k] = 1; return data; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     check ('in-tested local keeps object', 'k (data: Dict[]) { const row = data[0]; if ("a" in row) { row["a"] = 2; } return data; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     check ('market name keeps object', 'm (data: Dict[]) { const market = data[0]; market["a"] = 1; return data; }', [ 'object market = ' ], [ 'IDictionary<string, object> market' ]);
+    check ('use-proven dict element of an any list', 'r (data: any[], c) { const last = data[data.length - 1]; last["next"] = c; data[data.length - 1] = last; return data; }',
+        [ 'IDictionary<string, object> last = ((IDictionary<string, object>)', 'last["next"] = c;' ], [ 'object last', '((IDictionary<string,object>)last)' ]);
+    check ('use-proven list element of an any list', 's (rows: any[], v) { const row = rows[0]; row.push (v); return rows; }',
+        [ 'IList<object> row = ((IList<object>)', 'row.Add(v);' ], [ 'object row', '((IList<object>)row)' ]);
+    check ('conditional write does not prove the box', 't (rows: any[], v, f) { const row = rows[0]; if (f) { row["a"] = v; } return rows; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('statement before the write does not prove the box', 'u (rows: any[], v) { const row = rows[0]; this.safeString (v, "a"); row["a"] = v; return rows; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     check ('keyed read into a local keeps object', 'n (data: Dict[]) { const row = data[0]; row["a"] = 1; const s = row["b"]; return s; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     return problems;
 }
