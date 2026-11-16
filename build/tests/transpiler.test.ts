@@ -230,3 +230,13 @@ describe ('ral-84c8-guarded-concat-string-locals', () => {
         assert.match (okx, /bar = \(bar == null \? null : bar \+ timezone\.ToLower\(\)\);/);
     });
 });
+
+describe ('ral-84c8-nonnull-default-rewrite', () => {
+    test('bybit: a safeString-with-literal-default local rewritten from another such call prints string with native compares', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const bybit = (transpiler as any).transpileCSharpByPath ('./ts/src/bybit.ts').content as string;
+        assert.match (bybit, /string baseName = (\(\(string\))?this\.safeString\(optionParts, 0, ""\)\)?;/);
+        assert.match (bybit, /if \(baseName == "BTC"\)/);
+    });
+});

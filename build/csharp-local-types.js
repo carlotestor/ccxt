@@ -7385,7 +7385,11 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         const selfTernaryCollection = (written === undefined) && safeCollectionFamilyLocal (declaration.initializer)
                             && assignable (csharpType, selfTernaryCollectionWriteType (csharp, context, declaration, parent.right));
                         const selfTernary = ((selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType)) || selfTernaryString || selfTernaryCollection;
-                        if (!selfConcat && !selfStringWrite && !nonNullWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
+                        // ral-84c8 R3: `x = this.safeString (o, k, '<literal>')` into a `string` local whose own
+                        // initializer is such a call too: the reader hands back the value or the non-null default
+                        const nonNullDefaultWrite = (csharpType === 'string') && nonNullStringDefaultCall (csharp, declaration.initializer, context)
+                            && nonNullStringDefaultCall (csharp, parent.right, context);
+                        if (!selfConcat && !selfStringWrite && !nonNullWrite && !nonNullDefaultWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
                             return false;
                         }
                     }
