@@ -21055,6 +21055,56 @@ function r84j8ConstCopyListLocal (printer, declaration) {
     return ok && copies > 0 ? { cast: init.cast } : undefined;
 }
 
+// (d) a local whose initializer and every write is a native `<string>.split (<string>)` (the printer's
+//     `new ArrayList<Object>(Arrays.asList(((String)s).split(..)))`, a String[] copy) prints List<String>;
+//     uses are section 19's audit (join / length / element reads / Object-taking arguments)
+function r84j8NativeSplit (printer, node) {
+    const value = unwrapParens (node);
+    return value !== undefined && ts.isCallExpression (value) && typeof printer.javaNativeSplitCall === 'function'
+        && printer.javaNativeSplitCall (value, 'r', 's') !== undefined;
+}
+
+function r84j8SplitListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement || !r84j8NativeSplit (printer, declaration.initializer)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const checker = printer.getChecker ();
+    const own = checker.getSymbolAtLocation (declaration.name);
+    if (scope === undefined || own === undefined) {
+        return false;
+    }
+    for (const n of (identifierIndex (scope).get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+            || (ts.isPropertyAssignment (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        if (ts.isVariableDeclaration (n.parent) && n.parent.name === n) {
+            continue; // a sibling binding: its uses resolve to another symbol
+        }
+        if (checker.getSymbolAtLocation (n) !== own) {
+            continue;
+        }
+        if (enclosingFunction (n) !== scope) {
+            return false;
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host
+            && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !r84j8NativeSplit (printer, parent.right)) {
+                return false;
+            }
+            continue;
+        }
+        if (!objectKeysUseIsSafe (n)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 export function installJavaR84j8Locals (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j8LocalsPatched) {
@@ -21101,6 +21151,16 @@ export function installJavaR84j8Locals (transpiler) {
         if (ok) {
             typed.set (declaration, JAVA_MAP_TYPE);
             return printed.slice (0, at) + `${iden}${JAVA_MAP_TYPE} ${name} = ` + printed.slice (at + marker.length);
+        }
+        let split = false;
+        try {
+            split = printed.startsWith (STRING_LIST_ARRAY_OPEN, at + marker.length) && r84j8SplitListLocal (printer, declaration);
+        } catch (e) {
+            split = false;
+        }
+        if (split) {
+            typed.set (declaration, JAVA_STRING_LIST_TYPE);
+            return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${name} = ` + stringListRetypeValue (printed.slice (at + marker.length));
         }
         let list;
         try {
@@ -21159,6 +21219,11 @@ export function installJavaR84j8Locals (transpiler) {
             declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
         } catch (e) {
             return printed;
+        }
+        if (declaration !== undefined && typed.get (declaration) === JAVA_STRING_LIST_TYPE) {
+            const marker = `${printer.printNode (node.left, 0)} = `;
+            const where = printed.indexOf (marker);
+            return where === -1 ? printed : printed.slice (0, where + marker.length) + stringListRetypeValue (printed.slice (where + marker.length));
         }
         if (declaration !== undefined && typed.get (declaration) === JAVA_LIST_LOCAL_TYPE) {
             const info = javaListLocalValue (printer, node.right, declaration);

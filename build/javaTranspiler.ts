@@ -9720,6 +9720,7 @@ function javaR84j8LocalsSelfTest (): string[] {
         "    laterBad (response: any, stock: boolean) { let ys: Dict[] = []; if (stock) { const rows = this.safeValue (response, 'rows'); ys = rows; } return ys.length; }",
         "    asserted (s: string) { let zs: any[] = []; const parsed = this.parseJson (s); if (parsed !== undefined) { zs = parsed as any[]; } return zs.length; }",
         "    until (since: Int = undefined, params = {}) { let request: Dict = {}; if (since !== undefined) { request['startTime'] = since; } let paramsUntil: Dict = {}; [ request, paramsUntil ] = this.handleUntilOption ('endTime', request, params); if (since === undefined) { request = this.omit (request, 'count'); } request['x'] = 1; return this.extend (request, paramsUntil); }",
+        "    splitJoin (s: string, v: string) { const parts = s.split ('-'); let more = v.split (','); const w: string = more.join (''); more = w.split (' '); return parts.join ('') + this.safeString (more, 0); }",
         "    keys2 (a: Dict, b: Dict, f: boolean) { if (f) { const keys = Object.keys (a); throw new Error ('one of ' + keys.join (', ')); } else { const keys = Object.keys (b); throw new Error ('one of ' + keys.join (', ')); } }",
         '}',
     ].join('\n');
@@ -9734,6 +9735,8 @@ function javaR84j8LocalsSelfTest (): string[] {
         if (!/List<Object> xs = /.test(out) || !/\bxs = rows;/.test(out)) problems.push("'xs' (copy of a later safeList const) must print List<Object> and copy rows without a cast");
         if (!/List<Object> zs = /.test(out) || !/\bzs = \(java\.util\.List<Object>\)\(parsed\);/.test(out)) problems.push("'zs' (as any[] write) must print List<Object> with only the assertion's own cast");
         if (!/Map<String, Object> request = /.test(out)) problems.push("'request' (handleUntilOption Pair slot 0) must print Map<String, Object>");
+        if (!/List<String> parts = new java\.util\.ArrayList<String>\(/.test(out) || !/String\.join\("", parts\)/.test(out)) problems.push("'parts' (native split joined) must print List<String> and join without a checkcast");
+        if (!/List<String> more = /.test(out) || !/more = new java\.util\.ArrayList<String>\(/.test(out)) problems.push("'more' (split write) must print List<String> with a List<String> write");
         if (!/\bObject ys = /.test(out)) problems.push("'ys' (copy of a safeValue const) must stay Object");
         if (/\(java\.util\.List<String>\)keys\)/.test(out) || !/String\.join\(", ", keys\)/.test(out)) problems.push("'keys' join must read the declared List<String> without a checkcast");
         if (problems.length) problems.push('output:\n' + out);
