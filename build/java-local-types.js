@@ -20969,8 +20969,24 @@ function r84j1NativeUse (printer, n) {
         if (method === 'length') {
             return true;
         }
-        return ts.isCallExpression (parent.parent) && parent.parent.expression === parent
-            && [ 'indexOf', 'startsWith', 'endsWith', 'split', 'toLowerCase', 'toUpperCase', 'trim', 'search', 'padStart' ].includes (method);
+        if (!ts.isCallExpression (parent.parent) || parent.parent.expression !== parent) {
+            return false;
+        }
+        if (method === 'indexOf') {
+            // the printer's native String.indexOf needs a literal or a plain-string identifier / field
+            // argument (javaNativeIndexOfCall); anything else keeps Helpers.getIndexOf
+            const arg = parent.parent.arguments[0];
+            if (arg === undefined || parent.parent.arguments.length !== 1) {
+                return false;
+            }
+            if (ts.isStringLiteralLike (arg)) {
+                return true;
+            }
+            const argType = printer.getChecker ().getTypeAtLocation (arg);
+            return (ts.isIdentifier (arg) || ts.isPropertyAccessExpression (arg)) && argType?.flags === ts.TypeFlags.String
+                && argType.getAliasSymbol?.() === undefined;
+        }
+        return [ 'startsWith', 'endsWith', 'split', 'toLowerCase', 'toUpperCase', 'trim', 'search', 'padStart' ].includes (method);
     }
     if (ts.isCallExpression (parent) && ts.isPropertyAccessExpression (parent.expression) && parent.arguments.indexOf (child) === 0
         && [ 'startsWith', 'endsWith', 'indexOf' ].includes (String (parent.expression.name.text))) {
@@ -21081,6 +21097,167 @@ export function installJavaR84j1StringElementLocals (transpiler) {
             return printed;
         }
         const head = marker.replace (/Object (\S+) = $/, 'String $1 = (String) ');
+        return printed.slice (0, at) + head + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// ===== ral-84j1 (2). json-box elements of counter-indexed lists, with a native use =====
+// `const e = xs[i]` where the checker types xs as `T[]` with T the json box `Dict` (javaJsonBoxType) and i
+// the printed int counter: declared `java.util.Map<String, Object>` with the one checkcast and published,
+// ONLY when at least one use turns native on the typed local: an element read / write with a literal or
+// identifier key (printed .get / .put), or an argument of a printed core whose parameter is the json box
+// (the argument checkcast goes). Every other use must be one the Map declaration leaves unchanged: a value
+// position, a list push, or an Object slot of a base safe* reader. Never written.
+const R84J1_OBJECT_ARG_READERS = new Set ([
+    'safeString', 'safeString2', 'safeStringN', 'safeStringLower', 'safeStringLower2', 'safeStringLowerN',
+    'safeStringUpper', 'safeStringUpper2', 'safeStringUpperN', 'safeInteger', 'safeInteger2', 'safeIntegerN',
+    'safeIntegerProduct', 'safeIntegerProduct2', 'safeIntegerProductN', 'safeTimestamp', 'safeTimestamp2',
+    'safeNumber', 'safeNumber2', 'safeNumberN', 'safeBool', 'safeBool2', 'safeBoolN', 'safeDict', 'safeDict2',
+    'safeDictN', 'safeList', 'safeList2', 'safeListN', 'safeValue', 'safeValue2', 'safeValueN',
+]);
+
+// 'native' | 'same' | undefined (= refuse)
+function r84j1BoxUse (printer, n) {
+    let child = n;
+    let parent = n.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    if (parent === undefined) {
+        return undefined;
+    }
+    if (ts.isPropertyAccessExpression (parent) && parent.name === child) {
+        return 'same';
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === child) {
+        const grand = parent.parent;
+        if (grand?.kind === ts.SyntaxKind.DeleteExpression || (grand !== undefined && ts.isCallExpression (grand) && grand.expression === parent)) {
+            return undefined;
+        }
+        const key = parent.argumentExpression;
+        return key !== undefined && (ts.isStringLiteralLike (key) || ts.isIdentifier (key)) ? 'native' : undefined;
+    }
+    if ((ts.isReturnStatement (parent) && parent.expression === child)
+        || (ts.isVariableDeclaration (parent) && parent.initializer === child)
+        || (ts.isPropertyAssignment (parent) && parent.initializer === child)
+        || (ts.isBinaryExpression (parent) && parent.right === child && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && (ts.isElementAccessExpression (parent.left) || ts.isIdentifier (parent.left)))) {
+        return 'same';
+    }
+    if (ts.isCallExpression (parent) && parent.arguments.indexOf (child) !== -1 && !parent.arguments.some ((a) => ts.isSpreadElement (a))) {
+        const at = parent.arguments.indexOf (child);
+        if (ts.isPropertyAccessExpression (parent.expression)) {
+            const method = String (parent.expression.name.text);
+            if (method === 'push' && parent.arguments.length === 1 && !isThisOrSuperCall (parent)) {
+                return 'same';
+            }
+            if (isThisCall (parent) && R84J1_OBJECT_ARG_READERS.has (method) && resolvesToBaseOrStrippedAccessor (printer, parent, method)) {
+                return 'same';
+            }
+        }
+        // a fixed parameter the printer declares the json box: the `(Map) (e)` argument cast goes
+        if (isThisOrSuperCall (parent) && typeof printer.javaNativeCallParameterTypes === 'function') {
+            let types;
+            try {
+                types = printer.javaNativeCallParameterTypes (parent);
+            } catch (e) {
+                return undefined;
+            }
+            if (types[at] === 'java.util.Map<String, Object>') {
+                return 'native';
+            }
+        }
+    }
+    return undefined;
+}
+
+function r84j1BoxElementLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || typeof printer.javaJsonBoxType !== 'function' || typeof printer.javaPrimitiveCounterIndex !== 'function') {
+        return false;
+    }
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || !printer.javaPrimitiveCounterIndex (read.argumentExpression)) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const listType = checker.getTypeAtLocation (read.expression);
+    if (!checker.isArrayType (listType)) {
+        return false;
+    }
+    const element = checker.getTypeArguments (listType)?.[0];
+    if (element === undefined || !printer.javaJsonBoxType (element)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, 'java.util.Map<String, Object>')) {
+        return false;
+    }
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    if (symbol === undefined) {
+        return false;
+    }
+    let native = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            return false;
+        }
+        const verdict = r84j1BoxUse (printer, n);
+        if (verdict === undefined) {
+            return false;
+        }
+        native += verdict === 'native' ? 1 : 0;
+    }
+    return native > 0;
+}
+
+export function installJavaR84j1BoxElementLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j1BoxElementPatched) {
+        return;
+    }
+    printer._javaR84j1BoxElementPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return upstream (node, identation);
+        }
+        let ok = typed.has (declaration);
+        if (!ok) {
+            try {
+                ok = r84j1BoxElementLocal (printer, declaration);
+            } catch (e) {
+                ok = false;
+            }
+        }
+        if (ok) {
+            typed.set (declaration, 'java.util.Map<String, Object>');
+        }
+        const printed = upstream (node, identation);
+        if (!ok) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            typed.delete (declaration);
+            return printed;
+        }
+        const head = marker.replace (/Object (\S+) = $/, 'java.util.Map<String, Object> $1 = (java.util.Map<String, Object>) ');
         return printed.slice (0, at) + head + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
