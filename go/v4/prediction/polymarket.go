@@ -2976,7 +2976,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	var requests []any = []any{}
 	for i := 0; i < len(orders); i++ {
 		var o map[string]any = ccxt.SafeMapTyped(orders, i)
-		var orderParams any = this.SafeDict(o, "params", map[string]any{})
+		var orderParams map[string]any = this.SafeDictMap(o, "params", map[string]any{})
 		if this.SafeString(orderParams, "salt") == nil {
 			// a distinct salt per order so two identical orders don't collide, within a batch or across calls
 			var orderSalt int64 = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
