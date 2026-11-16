@@ -373,6 +373,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
 // (base throws, 9 prediction venues) returns `this.safePredictionOrder (..)`. Joined into
 // JAVA_MAP_RETURN_METHODS below, so signatures, locals and `.put` writes follow.
 const JAVA_84J7_MAP_RETURN_METHODS = [ 'safePredictionOrder', 'parsePredictionOrder' ];
+// awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
+const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>' };
 // a long initializer calling one of them keeps Object: later core-argument coercions widen
 // the printed arguments, the declaration token grows by 13 characters, and the house limit
 // is no added line over 400 characters
@@ -1669,6 +1671,11 @@ function awaitedCoreCallType (node) {
     const methodName = call.expression.name?.text;
     if (methodName === undefined) {
         return undefined;
+    }
+    // ral-84j7: typed cores javaTypedCore.ts BASE_ASYNC_HELPERS retypes in the same pass (the
+    // on-disk chain still says Object during a full regen, so read the entry, not the file)
+    if (Object.hasOwn (J84J7_TYPED_CORES, methodName)) {
+        return J84J7_TYPED_CORES[methodName];
     }
     const types = javaCoreReturnTypes (node)?.get (methodName);
     if (types === undefined || types.size !== 1) {
