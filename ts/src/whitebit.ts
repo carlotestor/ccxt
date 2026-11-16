@@ -1086,12 +1086,11 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        const markets = this.markets;
-        const marketIds = Object.keys (markets);
+        const marketIds = Object.keys (this.markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeValue (markets, marketId);
-            const marketSymbol = this.safeString (market, 'symbol');
+            const market: NullableDict = this.safeDict (this.markets, marketId);
+            const marketSymbol: Str = this.safeString (market, 'symbol');
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
@@ -3171,7 +3170,7 @@ export default class whitebit extends Exchange {
             request['memo'] = tag;
         }
         if (this.isFiat (code)) {
-            const provider = this.safeValue (paramsWithdrawTag, 'provider');
+            const provider = this.safeString (paramsWithdrawTag, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
@@ -4328,11 +4327,10 @@ export default class whitebit extends Exchange {
         if (isPrivate) {
             requestBody = privateBody;
         }
-        let requestHeaders: Dict = publicHeaders;
         if (isPrivate) {
-            requestHeaders = privateHeaders;
+            return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': publicHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
@@ -4378,14 +4376,14 @@ export default class whitebit extends Exchange {
                 const errMsg = this.safeDict (response, 'message', {});
                 const errKeys = Object.keys (errMsg);
                 const errKeysLength = errKeys.length;
-                let errorInfo = body;
+                let errMsgInfo: string = body;
                 if (errKeysLength > 0) {
                     const errorKey = this.safeString (errKeys, 0, '');
                     const errorMessageArray = this.safeList (errMsg, errorKey, []);
-                    errorInfo = this.safeString (errorMessageArray, 0, body);
+                    errMsgInfo = this.safeString (errorMessageArray, 0, body);
                 }
                 const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorInfo, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errMsgInfo, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 throw new ExchangeError (feedback);
             }
