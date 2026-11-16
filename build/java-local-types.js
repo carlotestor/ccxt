@@ -21007,6 +21007,13 @@ function r84j8ConstListSource (printer, right, depth = 0) {
     return javaListLocalValue (printer, init, declaration) !== undefined;
 }
 
+// `v as any[]` prints `(java.util.List<Object>)(v)`: the write is statically List<Object> already
+function r84j8AnyArrayAssertion (right) {
+    const value = unwrapParens (right);
+    return value !== undefined && ts.isAsExpression (value) && value.type.kind === ts.SyntaxKind.ArrayType
+        && value.type.elementType.kind === ts.SyntaxKind.AnyKeyword;
+}
+
 function r84j8ConstCopyListLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
@@ -21033,7 +21040,7 @@ function r84j8ConstCopyListLocal (printer, declaration) {
             if (javaListLocalValue (printer, right, declaration) !== undefined) {
                 return true;
             }
-            const copy = r84j8ConstListSource (printer, right);
+            const copy = r84j8ConstListSource (printer, right) || r84j8AnyArrayAssertion (right);
             copies += copy ? 1 : 0;
             return copy;
         },
@@ -21148,7 +21155,8 @@ export function installJavaR84j8Locals (transpiler) {
         }
         if (declaration !== undefined && typed.get (declaration) === JAVA_LIST_LOCAL_TYPE) {
             const info = javaListLocalValue (printer, node.right, declaration);
-            const needsCast = info !== undefined ? info.cast : !javaDeclaredListLocal (printer, unwrapParens (node.right));
+            const needsCast = info !== undefined ? info.cast
+                : !(javaDeclaredListLocal (printer, unwrapParens (node.right)) || r84j8AnyArrayAssertion (node.right));
             return needsCast ? accumulatorCastWrite (printer, node, printed, { cast: JAVA_LIST_LOCAL_CAST }) : printed;
         }
         if (declaration === undefined || typed.get (declaration) !== JAVA_MAP_TYPE) {
