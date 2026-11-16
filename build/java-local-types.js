@@ -360,6 +360,13 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'parseBorrowInterests', 'parseMarginModifications', 'parseConversions', 'parseIncomes',
     'parseLiquidations', 'parseFundingRateHistories', 'parseLongShortRatioHistory', 'parseOpenInterestsHistory',
     'arraySlice',
+    // ral-84j7: every return path is a List (no override in ts/src): parsePositions ->
+    // filterByArrayPositions -> this.toArray(..); parseDepositAddresses returns its own
+    // List<Object> local (toArray writes); parseTransfers / parsePredictionTrades ->
+    // List-declared filters; parsePredictionPositions returns its List<Object> local;
+    // parsePredictionOrders -> filterByOutcomeSinceLimit -> filterByValueSinceLimit
+    'parsePositions', 'filterByArrayPositions', 'parseDepositAddresses', 'parseTransfers',
+    'parsePredictionPositions', 'parsePredictionTrades', 'parsePredictionOrders', 'filterByOutcomeSinceLimit',
 ]);
 
 // base methods whose every return is the own `symbols` parameter (checkcast) or a String
