@@ -35,6 +35,7 @@ import { installJavaListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
+import { installJ6ReaderLocals } from './java-local-types.js';
 import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose, javaTypedCoreDirectReturnSelfTest } from "./javaTypedCore.js";
@@ -2479,6 +2480,7 @@ class NewTranspiler {
         installJavaScalarLocals(this.transpiler);
         installJavaParamTypesPreScan(this.transpiler);
         installJavaStringReturns(this.transpiler);
+        installJ6ReaderLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
