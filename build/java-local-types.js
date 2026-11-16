@@ -20868,3 +20868,190 @@ export function installJavaJ8CopyLocals (transpiler) {
         return info === undefined || info.cast === '' ? printed : accumulatorCastWrite (printer, node, printed, { cast: info.cast });
     };
 }
+
+// ===== 84j8. balance-map literals and per-binding Object.keys lists =====
+// (a) `let result = { .. }` whose other writes are the base `this.mergeBalanceAccount (result, ..)`
+//     (every Java return path hands back its own `result` Map argument; printed Object, so the
+//     write takes a checkcast) or `this.safeBalance (..)` (declared Balances, a TypedMap, so a
+//     Map<String, Object> without a cast). The local then prints Map<String, Object> and its
+//     `.put` / argument uses go native. Neither callee has a venue override in ts/src (checked by
+//     resolving the call to ts/src/base).
+// (b) `const keys = Object.keys (m)` that section 19 refuses only because a sibling block declares
+//     another `keys`: the uses are resolved through the checker symbol, so each binding is decided
+//     alone with section 19's use audit.
+const R84J8_MAP_SELF_WRITERS = new Map ([ [ 'mergeBalanceAccount', true ], [ 'safeBalance', false ] ]);
+
+function r84j8BalanceWrite (printer, right, declaration) {
+    const value = unwrapParens (right);
+    if (value === undefined || !ts.isCallExpression (value) || !isThisCall (value) || value.arguments.length === 0
+        || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    const name = String (value.expression.name.text);
+    if (!R84J8_MAP_SELF_WRITERS.has (name) || !resolvesToMethodNamed (printer, value, name)) {
+        return undefined;
+    }
+    const file = resolvedSignatureFile (printer, value);
+    if (file === undefined || !BASE_SOURCE_FILE.test (file)) {
+        return undefined;
+    }
+    const first = unwrapParens (value.arguments[0]);
+    if (name === 'mergeBalanceAccount' && !(ts.isIdentifier (first) && first.text === declaration.name.text)) {
+        return undefined; // the returned Map is the first argument: only a self merge keeps the Map proof
+    }
+    return { cast: R84J8_MAP_SELF_WRITERS.get (name) };
+}
+
+function r84j8BalanceMapLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (!ts.isObjectLiteralExpression (init) || !literalObjectLiteralIsPlain (init)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_MAP_TYPE)) {
+        return false;
+    }
+    let balanceWrites = 0;
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_MAP_TYPE, isProFile, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: (right) => {
+            if (javaMapLocalValue (printer, right, declaration) !== undefined) {
+                return true;
+            }
+            const info = r84j8BalanceWrite (printer, right, declaration);
+            balanceWrites += info === undefined ? 0 : 1;
+            return info !== undefined;
+        },
+        destructureOk: (assignment, at) => mapLocalDestructureOk (printer, assignment, at),
+    });
+    return ok && balanceWrites > 0;
+}
+
+function r84j8KeysListLocal (printer, declaration) {
+    const initializer = unwrapParens (declaration.initializer);
+    if (initializer === undefined || !ts.isCallExpression (initializer) || initializer.arguments?.length !== 1
+        || !ts.isPropertyAccessExpression (initializer.expression) || initializer.expression.name.text !== 'keys'
+        || !ts.isIdentifier (initializer.expression.expression) || initializer.expression.expression.text !== 'Object'
+        || !ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !(declaration.parent.flags & ts.NodeFlags.Const)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const own = checker.getSymbolAtLocation (declaration.name);
+    if (own === undefined) {
+        return false;
+    }
+    let siblings = 0;
+    for (const n of (identifierIndex (scope).get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+            || (ts.isPropertyAssignment (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        if (ts.isVariableDeclaration (n.parent) && n.parent.name === n) {
+            siblings++;
+            continue;
+        }
+        if (checker.getSymbolAtLocation (n) !== own) {
+            continue; // a use of the sibling binding, decided with that binding
+        }
+        if (enclosingFunction (n) !== scope || !objectKeysUseIsSafe (n)) {
+            return false;
+        }
+    }
+    return siblings > 0; // section 19 already decides the single-binding case
+}
+
+export function installJavaR84j8Locals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j8LocalsPatched) {
+        return;
+    }
+    printer._javaR84j8LocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}Object ${name} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            // (b) section 19 prints the key copy under `var` / List<Object>
+            for (const token of [ JAVA_ARRAY_TYPE, printer.VAR_TOKEN ]) {
+                const head = `${iden}${token} ${name} = `;
+                const where = printed.lastIndexOf (head);
+                const match = where === -1 ? null : OBJECT_KEYS_NATIVE_COPY.exec (printed.slice (where + head.length));
+                let ok = false;
+                try {
+                    ok = match !== null && r84j8KeysListLocal (printer, declaration);
+                } catch (e) {
+                    ok = false;
+                }
+                if (ok) {
+                    typed.set (declaration, JAVA_STRING_LIST_TYPE);
+                    return printed.slice (0, where) + `${iden}${JAVA_STRING_LIST_TYPE} ${name} = new java.util.ArrayList<String>(${match[1]}.keySet())${match[2]}`;
+                }
+            }
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = r84j8BalanceMapLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (ok) {
+            typed.set (declaration, JAVA_MAP_TYPE);
+            return printed.slice (0, at) + `${iden}${JAVA_MAP_TYPE} ${name} = ` + printed.slice (at + marker.length);
+        }
+        // (b) on the Object path: section 19 left the native copy under an Object head
+        const match = OBJECT_KEYS_NATIVE_COPY.exec (printed.slice (at + marker.length));
+        try {
+            ok = match !== null && r84j8KeysListLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        typed.set (declaration, JAVA_STRING_LIST_TYPE);
+        return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${name} = new java.util.ArrayList<String>(${match[1]}.keySet())${match[2]}`;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+        } catch (e) {
+            return printed;
+        }
+        if (declaration === undefined || typed.get (declaration) !== JAVA_MAP_TYPE) {
+            return printed;
+        }
+        const info = r84j8BalanceWrite (printer, node.right, declaration);
+        return info?.cast ? accumulatorCastWrite (printer, node, printed, { cast: JAVA_MAP_LOCAL_CAST }) : printed;
+    };
+}
