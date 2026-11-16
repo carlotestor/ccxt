@@ -3531,7 +3531,7 @@ export default class woofipro extends Exchange {
             const ts = this.nonce ().toString ();
             url += pathWithParams;
             const hasKeyPrefix = this.apiKey.indexOf ('ed25519:') >= 0;
-            const apiKey = hasKeyPrefix ? this.apiKey : 'ed25519:' + this.apiKey;
+            const apiKey = (hasKeyPrefix) ? this.apiKey : ('ed25519:' + this.apiKey);
             const authHeaders: Dict = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
