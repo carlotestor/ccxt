@@ -6525,7 +6525,7 @@ export function csharpTypeOfValue (csharp, node, context) {
         break;
     }
     case ts.SyntaxKind.CallExpression: {
-        const own = callReturnType (csharp, node);
+        const own = callReturnType (csharp, node) ?? omitDictionaryWriteType (csharp, node);
         if (own !== undefined) {
             return own;
         }
@@ -7106,7 +7106,7 @@ function destructuredElementReadType (csharp, context, identifier) {
     if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.getStart () >= identifier.getStart () || context.depth >= MAX_RESOLVE_DEPTH) {
         return undefined;
     }
-    return destructuredSlotType (csharp, context.scope, declaration, element.parent.elements.indexOf (element), context);
+    return copiedElement1ReadType (element) ?? destructuredSlotType (csharp, context.scope, declaration, element.parent.elements.indexOf (element), context);
 }
 
 // A read of a string-list parameter typeCoreArgs prints `IList<object>` (CORE_LIST_ARGS position,
@@ -7146,7 +7146,7 @@ function resolveLocalReadType (csharp, context, identifier) {
     const declarations = index.declarations.get (name);
     if (!declarations || declarations.length === 0) {
         if (index.parameterNames.has (name)) {
-            return listCoreParameterReadType (csharp, context.scope, name);
+            return listCoreParameterReadType (csharp, context.scope, name) ?? coreParameterCopyReadType (csharp, context.scope, identifier);
         }
         return destructuredElementReadType (csharp, context, identifier); // not a plain local
     }
@@ -18644,3 +18644,40 @@ function registerListProducerReturnTypes () {
     }
 }
 registerListProducerReturnTypes ();
+
+// ===== 77c5: copies of a typed params binding and their omit writes =====
+// (1) `const [ x, paramsX ] = this.handle*AndParams (...)` whose element-1 declaration line was
+// printed `IDictionary<string, object> paramsX = ((IDictionary<string, object>)tmp[1])`
+// (retypeElement1Params records it in element1TypedBindings): a later READ of paramsX has that
+// static type, so a copy `let q = paramsX` starts its join at the interface.
+function copiedElement1ReadType (element) {
+    const pattern = element?.parent;
+    return (pattern?.kind === ts.SyntaxKind.ArrayBindingPattern && pattern.elements.indexOf (element) === 1
+        && element1TypedBindings.has (element)) ? CSHARP_ELEMENT_1_TYPE : undefined;
+}
+
+// (2) a later write `q = this.omit (<dict receiver>, keys)` of such a copy: the two-argument call
+// binds a dict-receiver overload of Exchange.Functions.cs (omitReceiverIsDictionary, the proof the
+// omitDictionaryProducer initialiser family uses), whose every path returns the fresh outDict, so
+// the write contributes Dictionary<string, object>; joinTypes then widens it into the interface
+// only along the box-identical edge (copy edges), and the retype scan re-checks every use.
+function omitDictionaryWriteType (csharp, value) {
+    const node = stripParens (value);
+    const receiver = omitCallReceiver (node);
+    return (receiver !== undefined && omitReceiverIsDictionary (csharp, receiver)) ? 'Dictionary<string, object>' : undefined;
+}
+
+// (3) a read of a core parameter the signature prints typed (coreArgParamType: CORE_NUMERIC_ARGS /
+// CORE_STRING_ARGS / SIGNATURE_ARG_TYPES / the string-param table) that the body never writes and
+// never hands to a `ref` sink: typeCoreArgs then emits no `<name>Var` shadow, so the read IS the
+// signature's type and `let x = limit` names it (the copy's own later writes and uses are still
+// joined and scanned by the caller). Only a read inside the parameter's own method body.
+function coreParameterCopyReadType (csharp, scope, identifier) {
+    const parameter = (scope?.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === identifier.text);
+    if (parameter === undefined || scope.kind !== ts.SyntaxKind.MethodDeclaration || enclosingFunction (identifier) !== scope
+            || csharpParameterIsWritten (csharp, scope, parameter) || parameterIsRefSunk (csharp, identifier)) {
+        return undefined;
+    }
+    const type = coreArgParamType (csharp, identifier);
+    return (type === undefined || type === 'object') ? undefined : type;
+}
