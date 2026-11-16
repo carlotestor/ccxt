@@ -7571,8 +7571,8 @@ impl Kucoin {
         let mut quoteAmount: Option<f64> = self.safe_number2(&paramsOmitted, Value::Str("cost".into()), Value::Str("funds".into()), &[]).as_f64();
         let mut amountString: Option<String> = None;
         let mut costString: Option<String> = None;
-        let mut marginMode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut marginMode: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (type_var.as_str() == Some("market")) {
             if (quoteAmount.is_some()) {
                 paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["cost", "funds"], &[]).into_dict();
@@ -7594,7 +7594,7 @@ impl Kucoin {
         let mut stopLossPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "stopLossPrice", &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "takeProfitPrice", &[]).as_f64();
         let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
-        let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
+        let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode.is_some());
         paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"], &[]).into_dict();
         if isTriggerOrder {
             if (triggerPrice.is_some()) {
@@ -7608,17 +7608,17 @@ impl Kucoin {
                     request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitPrice))));
                 }
             }
-            if (marginMode.as_str() == Some("isolated")) {
+            if (marginMode.as_deref() == Some("isolated")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder does not support isolated margin for stop orders")));
-            }  else if (marginMode.as_str() == Some("cross")) {
+            }  else if (marginMode.as_deref() == Some("cross")) {
                 let mut marginModes: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "marginModes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-                request.insert("tradeType".into(), marginModes.get(marginMode.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                request.insert("tradeType".into(), marginModes.get(marginMode.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
         }  else if isMarginOrder {
-            if (marginMode.as_str() == Some("isolated")) {
+            if (marginMode.as_deref() == Some("isolated")) {
                 request.insert("isIsolated".into(), Value::Bool(true));
             }
         }

@@ -626,15 +626,15 @@ impl crate::exchange::DerivedExchange for Gemini {
             m
         });
         let mut networkId: Option<String> = self.safe_string_opt(rawCurrency.clone(), Value::Int(9), &[]);
-        let mut networkCode: Value = Value::Null;
+        let mut networkCode: Option<String> = None;
         if (networkId.is_some()) {
-            networkCode = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            networkCode = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), networkCode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);

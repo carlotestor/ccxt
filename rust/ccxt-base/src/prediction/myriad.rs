@@ -5451,17 +5451,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut deltaShares: Option<String> = crate::precise::Precise::stringDiv(&deltaStr, &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
         let mut contracts: Option<f64> = None;
-        let mut posId: Value = Value::Null;
+        let mut posId: Option<String> = None;
         if (networkId.is_some()) && (marketId.is_some()) && (outcomeId.is_some()) {
-            posId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null")).into()), "/").into()), outcomeId.as_deref().unwrap_or("null")).into());
+            posId = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null")).into()), "/").into()), outcomeId.as_deref().unwrap_or("null")));
             let mut balances: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "positionBalances", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-            let mut prior: String = self.safe_string(&balances, posId.clone(), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
+            let mut prior: String = self.safe_string(&balances, posId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             let mut updated: Option<String> = crate::precise::Precise::stringAdd(&prior, &deltaShares).as_str().map(str::to_owned);
-            if (posId != Value::Null) {
-                balances.insert(crate::runtime::stringify_param(&posId), updated.clone().map(Value::from).unwrap_or(Value::Null));
+            if (posId.is_some()) {
+                balances.insert(posId.as_deref().unwrap_or("null").to_string(), updated.clone().map(Value::from).unwrap_or(Value::Null));
             }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("positionBalances".into(), Value::Map(balances)); }
             contracts = self.parse_number(updated.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
@@ -5469,9 +5469,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut parsed: Value = self.safe_prediction_position(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), data);
-                m.insert("id".to_string(), posId.clone());
+                m.insert("id".to_string(), posId.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("outcome".to_string(), sym.map(Value::from).unwrap_or(Value::Null));
-                m.insert("outcomeId".to_string(), posId);
+                m.insert("outcomeId".to_string(), posId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
                 m.insert("timestamp".to_string(), Value::from(ts));

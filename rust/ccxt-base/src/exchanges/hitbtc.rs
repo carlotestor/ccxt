@@ -519,18 +519,18 @@ impl crate::exchange::DerivedExchange for Hitbtc {
             let mut networkId: Option<String> = self.safe_string2_opt(&rawNetwork, Value::Str("protocol".into()), Value::Str("network".into()), &[]);
             let mut rawNetworkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
-            let mut networkCode: Value = Value::Null;
+            let mut networkCode: Option<String> = None;
             if (networkCodeUpper.is_some()) {
-                networkCode = self.safe_string(self.networkAliases.clone(), networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null), &[networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null)]);
+                networkCode = self.safe_string_opt(self.networkAliases.clone(), networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null), &[networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null)]);
             }  else {
-                networkCode = code.clone().map(Value::from).unwrap_or(Value::Null); // as hitbtc is white label, ensure we safeguard from possible bugs
+                networkCode = code.clone(); // as hitbtc is white label, ensure we safeguard from possible bugs
             }
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&rawNetwork));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), networkCode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(&rawNetwork, "payout_fee", &[]));
         m.insert("deposit".to_string(), self.safe_bool_k(&rawNetwork, "payin_enabled", &[]));
