@@ -6625,6 +6625,10 @@ function conditionalArmType (csharp, node, context) {
     if (omitZeroStringProducer (csharp, node, context)) {
         return 'string?';
     }
+    const omitArm = omitDictionaryArmType (csharp, node, context);
+    if (omitArm !== undefined) {
+        return omitArm;
+    }
     let arm = node;
     while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
         arm = arm.expression;
@@ -6639,6 +6643,14 @@ function conditionalArmType (csharp, node, context) {
         return undefined;
     }
     return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm) ?? stringParameterArmType (csharp, arm);
+}
+
+// an arm `this.omit (<Dictionary / IDictionary box>, keys)`: the two-argument call binds a
+// dict-receiver overload of Exchange.Functions.cs, statically `Dictionary<string, object>` (the
+// whole-initialiser proof omitDictionaryProducer). Beside a typed dictionary local arm the
+// conditional's natural type is that pair's (collectionArmWidening), so no cast is printed.
+function omitDictionaryArmType (csharp, node, context) {
+    return omitDictionaryProducer (csharp, node, context) ? 'Dictionary<string, object>' : undefined;
 }
 
 // a parameter arm whose emitted signature prints `string` / `string?` (typeCoreArgs core position,

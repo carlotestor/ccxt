@@ -9418,6 +9418,9 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('77c2 c ? "lit" : <string parameter> -> string?',
             'async fetchTicker (symbol: string, params = {}) { const s = (symbol === undefined) ? "BTC/USDT" : symbol; return s; }',
             'string? s = ((symbol == null)) ? "BTC/USDT" : symbol;');
+        check ('77c2 c ? this.omit (<Dictionary local>, k) : <same local> -> Dictionary',
+            omitHost + ' f (o) { const d = this.extend (o, {}); const p = (o !== undefined) ? this.omit (d, "x") : d; return p; }',
+            'Dictionary<string, object> p = ((o != null)) ? this.omit(d, "x") : d;');
         check ('77c2 c ? "lit" : <untyped parameter> keeps object',
             'f (x) { const s = (x === undefined) ? "BTC/USDT" : x; return s; }',
             'object s = ');
