@@ -1117,7 +1117,6 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "encode_time_in_force" => self.encode_time_in_force(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "fetch_all_greeks" => crate::types::IntoRaw::into_raw(self.fetch_all_greeks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -3301,7 +3300,7 @@ impl Paradex {
         return crate::precise::Precise::stringMul(&num, &Value::Str("100000000".into())).as_str().map(str::to_owned);
 }
 
-    pub fn encode_time_in_force(&self, timeInForce: Option<&str>) -> Value {
+    pub fn encode_time_in_force(&self, timeInForce: Option<&str>) -> Option<String> {
         let mut timeInForce: Value = timeInForce.into();
         let mut timeInForces: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3316,9 +3315,7 @@ impl Paradex {
         if (instruction.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support timeInForce ").into()), timeInForce).into()), ", supported values are GTC, IOC, PO and RPI")));
         }
-        return instruction.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return instruction;
 }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -3356,14 +3353,14 @@ impl Paradex {
         let mut isStopOrder: bool = (triggerPrice.is_some()) || isTakeProfitOrder || isStopLossOrder;
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(params.clone(), "timeInForce", &[]);
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]);
-        let mut instruction: Value = Value::Str("GTC".into());
+        let mut instruction: Option<String> = Some("GTC".to_string());
         if (timeInForce.is_some()) {
             instruction = self.encode_time_in_force(timeInForce.as_deref());
         }
-        if postOnly && (instruction.as_str() != Some("RPI")) {
-            instruction = Value::Str("POST_ONLY".into());
+        if postOnly && (instruction.as_deref() != Some("RPI")) {
+            instruction = Some("POST_ONLY".to_string());
         }
-        if (instruction.as_str() == Some("POST_ONLY")) || (instruction.as_str() == Some("RPI")) {
+        if (instruction.as_deref() == Some("POST_ONLY")) || (instruction.as_deref() == Some("RPI")) {
             // both instructions only rest on the book, the exchange rejects them on market and trigger orders
             if isMarket {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() market orders cannot be post only or RPI")));
@@ -3372,7 +3369,7 @@ impl Paradex {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() trigger, stop loss and take profit orders cannot be post only or RPI")));
             }
         }
-        request.insert("instruction".into(), instruction);
+        request.insert("instruction".into(), instruction.map(Value::from).unwrap_or(Value::Null));
         // the exchange requires the price to be omitted for every market order type
         if (price != Value::Null) && !isMarket {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));

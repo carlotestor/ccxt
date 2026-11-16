@@ -360,7 +360,6 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "hex_to_decimal_string" => self.hex_to_decimal_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_amm_event_to_order" => self.parse_amm_event_to_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -3111,12 +3110,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn hex_to_decimal_string(&self, hexValue: &str) -> Value {
+    pub fn hex_to_decimal_string(&self, hexValue: &str) -> Option<String> {
         let mut hexValue: Value = hexValue.into();
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         let mut stripped: Option<String> = self.remove0x_prefix(hexValue).as_str().map(str::to_owned);
         if (stripped.as_deref() == Some("")) {
-            return Value::Null;
+            return None;
         }
         let mut chars: Vec<Value> = self.string_to_chars_array(stripped.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
         let mut n: i64 = chars.len() as i64;
@@ -3134,14 +3133,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        return result.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return result;
 }
 
     pub fn from_wei_with_decimals(&self, mut hexValue: Value, decimals: Option<i64>) -> Option<String> {
         let mut decimals: Value = decimals.into();
-        let mut decimalString: Option<String> = self.hex_to_decimal_string(hexValue.as_str().unwrap_or_default()).as_str().map(str::to_owned);
+        let mut decimalString: Option<String> = self.hex_to_decimal_string(hexValue.as_str().unwrap_or_default());
         if (decimalString.is_none()) {
             return None;
         }

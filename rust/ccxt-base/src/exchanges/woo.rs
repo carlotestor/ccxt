@@ -1297,7 +1297,6 @@ impl crate::exchange_generated::ExchangeBase for Woo {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).and_then(crate::Value::as_f64), args.get(7).cloned().unwrap_or_default()).await),
                 "create_trailing_percent_order" => crate::types::IntoRaw::into_raw(self.create_trailing_percent_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).and_then(crate::Value::as_f64), args.get(7).cloned().unwrap_or_default()).await),
-                "default_network_code_for_currency" => self.default_network_code_for_currency(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
@@ -6591,7 +6590,7 @@ impl Woo {
     }
 
 
-    pub fn default_network_code_for_currency(&self, code: &str) -> Value {
+    pub fn default_network_code_for_currency(&self, code: &str) -> Option<String> {
         let mut code: Value = code.into();
         let mut currencyItem: crate::types::Currency = self.currency(code);
         let mut networks: Value = crate::value::KeyRead::key_read(&&currencyItem, "networks");
@@ -6602,13 +6601,11 @@ impl Woo {
             while { if !__for_first_1175 { i += 1; } __for_first_1175 = false; i < (networkKeys.len() as i64) } {
             let mut network: Option<String> = networkKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (network.as_deref() == Some("ERC20")) {
-                return network.map(Value::from).unwrap_or(Value::Null);
+                return network;
             }
         }
         }
-        return self.safe_string(&networkKeys, Value::Int(0), &[]);
-
-    Value::Null
+        return self.safe_string_opt(&networkKeys, Value::Int(0), &[]);
 }
 
     pub fn set_sandbox_mode(&mut self, enable: bool) -> crate::Result<()> {

@@ -871,7 +871,6 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "cancel_orders_request" => self.cancel_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_appendix" => self.create_order_appendix(args.get(0).is_some_and(crate::Value::is_truthy), &args[1.min(args.len())..]),
                 "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
@@ -1688,11 +1687,11 @@ impl Nado {
             placeOrder.insert("trigger".into(), trigger);
         }
         let mut rawAppendix: Option<String> = self.safe_string_k_opt(&paramsRecvWindow, "appendix", &[]);
-        let mut appendix: Value = rawAppendix.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut appendix: Option<String> = rawAppendix.clone();
         if (rawAppendix.is_none()) {
             appendix = self.create_order_appendix(isTriggerOrder, &[Value::from(&paramsRecvWindow)]);
         }
-        order.insert("appendix".into(), appendix);
+        order.insert("appendix".into(), appendix.map(Value::from).unwrap_or(Value::Null));
         let mut contracts: crate::value::Dict = self.query_contracts(&[]).await.into_dict();
         let mut chainId: Option<String> = self.safe_string_k_opt(&contracts, "chain_id", &[]);
         let mut signature: Option<String> = self.sign_order(Value::Map(order.clone()), productId, chainId.as_deref());
@@ -1845,7 +1844,7 @@ impl Nado {
         let mut cancelNonce: Option<String> = self.create_order_nonce(recvWindow);
         let mut orderNonce: Option<String> = crate::precise::Precise::stringAdd(&cancelNonce, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut rawAppendix: Option<String> = self.safe_string_k_opt(&paramsRecvWindow, "appendix", &[]);
-        let mut appendix: Value = rawAppendix.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut appendix: Option<String> = rawAppendix.clone();
         if (rawAppendix.is_none()) {
             appendix = self.create_order_appendix(false, &[Value::from(&paramsRecvWindow)]);
         }
@@ -1869,7 +1868,7 @@ impl Nado {
                 m.insert("amount".to_string(), amountX18.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiration".to_string(), expiration.map(Value::from).unwrap_or(Value::Null));
                 m.insert("nonce".to_string(), orderNonce.map(Value::from).unwrap_or(Value::Null));
-                m.insert("appendix".to_string(), appendix);
+                m.insert("appendix".to_string(), appendix.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut contracts: crate::value::Dict = self.query_contracts(&[]).await.into_dict();
@@ -4141,7 +4140,7 @@ impl Nado {
         return crate::precise::Precise::stringAdd(&highBits.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(Value::from(entropy)))).as_str().map(str::to_owned);
 }
 
-    pub fn create_order_appendix(&self, isTriggerOrder: bool, optional_args: &[Value]) -> Value {
+    pub fn create_order_appendix(&self, isTriggerOrder: bool, optional_args: &[Value]) -> Option<String> {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4179,9 +4178,7 @@ impl Nado {
         if isTriggerOrder {
             appendix = crate::precise::Precise::stringAdd(&appendix, &Value::Str("4096".into())).as_str().map(str::to_owned);
         }
-        return appendix.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return appendix;
 }
 
     pub fn create_subaccount(&self, walletAddress: Option<&str>, optional_args: &[Value]) -> Option<String> {
