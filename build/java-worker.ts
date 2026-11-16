@@ -13,6 +13,7 @@ import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
 import { installJavaJ8CopyLocals } from './java-local-types.js';
 import { installJavaR84j2ContainerLocals } from './java-local-types.js';
+import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
@@ -160,6 +161,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJ6ReaderLocals (cachedTranspiler);
         installJavaJ8CopyLocals (cachedTranspiler);
         installJavaR84j2ContainerLocals (cachedTranspiler);
+        installJavaR84j2GuardedListLocals (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

@@ -34,6 +34,7 @@ import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
 import { installJavaJ8CopyLocals } from './java-local-types.js';
 import { installJavaR84j2ContainerLocals } from './java-local-types.js';
+import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2487,6 +2488,7 @@ class NewTranspiler {
         installJ6ReaderLocals(this.transpiler);
         installJavaJ8CopyLocals(this.transpiler);
         installJavaR84j2ContainerLocals(this.transpiler);
+        installJavaR84j2GuardedListLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5814,7 +5816,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -9726,6 +9728,37 @@ function javaR84j2ContainerLocalsSelfTest (): string[] {
         if (!/Map<String, Object> b = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bb\.put\("id", "x"\)/.test(out)) problems.push("'b' (m[k] then b['id'] = string) must print Map with a native put");
         for (const name of [ 'c', 'd', 'f' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (nullable put value / late first use / call argument) must stay Object`);
+        }
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r84j2 R2: List conditionals whose Object arm an Array.isArray guard or a T[] parameter proves print List<Object>
+function javaR84j2GuardedListLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j2listselftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Strings } from './base/types.js';",
+        'export default class zzr84j2listselftest extends Exchange {',
+        "    guarded (r: any) { const isArr = Array.isArray (r); const a = isArr ? r : this.safeList (r, 'data', []); let n = 0; for (let i = 0; i < 2; i++) { n = n + (a[i] === undefined ? 0 : 1); } return n; }",
+        "    param (o: Strings = undefined) { const b = (o === undefined) ? [] : o; let s = ''; for (let i = 0; i < 2; i++) { s = b[i]; } return s; }",
+        "    unguarded (r: any, f: boolean) { const c = f ? r : []; let n = 0; for (let i = 0; i < 2; i++) { n = n + (c[i] === undefined ? 0 : 1); } return n; }",
+        "    noread (r: any) { const isArr = Array.isArray (r); const d = isArr ? r : []; return this.safeValue (d, 0); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> a = \(java\.util\.List<Object>\) \(/.test(out)) problems.push("'a' (isArray-guarded r : safeList) must print List<Object> with a checkcast");
+        if (!/List<Object> b = \(java\.util\.List<Object>\) \(/.test(out)) problems.push("'b' ([] : Strings param) must print List<Object> with a checkcast");
+        for (const name of [ 'c', 'd' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (unguarded any arm / no element read) must stay Object`);
         }
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {

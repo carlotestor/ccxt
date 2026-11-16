@@ -21054,3 +21054,164 @@ export function installJavaR84j2ContainerLocals (transpiler) {
             ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
     };
 }
+
+// ===== 84j2 R2. List conditionals whose Object arm a guard or a TS array annotation proves =====
+// `c ? r : this.safeList (..)` where c is `Array.isArray (r)` (or a const bound to it) and r is an
+// unwritten binding: the Java test prints `r instanceof List`, so r is a List on that arm and the
+// one checkcast on the whole conditional cannot fail there. An unwritten parameter annotated `T[]`
+// in TS takes the same checkcast (the j6 default-argument rule). Every other arm goes through the
+// r77j2 proofs; the uses pass the same isSafeToNarrow gate as section r77j2.
+function r84j2UnwrittenBinding (printer, identifier) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !ts.isIdentifier (declaration.name) || declaration.name.text !== identifier.text) {
+        return undefined;
+    }
+    if (ts.isParameterDeclaration (declaration)) {
+        return ts.isMethodDeclaration (declaration.parent) && enclosingFunction (identifier) === declaration.parent
+            && declaration.dotDotDotToken === undefined && !parameterIsWritten (declaration) ? declaration : undefined;
+    }
+    return ts.isVariableDeclaration (declaration) && ts.isVariableDeclarationList (declaration.parent)
+        && (declaration.parent.flags & ts.NodeFlags.Const) !== 0 ? declaration : undefined;
+}
+
+// the identifier `Array.isArray (x)` tests in `test` (directly or through a const bound to it), else undefined
+function r84j2IsArrayTestOperand (printer, test) {
+    let value = unwrapParens (test);
+    if (value !== undefined && ts.isIdentifier (value)) {
+        const declaration = r84j2UnwrittenBinding (printer, value);
+        if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer === undefined) {
+            return undefined;
+        }
+        value = unwrapParens (declaration.initializer);
+    }
+    if (value === undefined || !ts.isCallExpression (value) || value.arguments.length !== 1
+        || !ts.isPropertyAccessExpression (value.expression) || !ts.isIdentifier (value.expression.expression)
+        || value.expression.expression.text !== 'Array' || value.expression.name.text !== 'isArray') {
+        return undefined;
+    }
+    const operand = unwrapParens (value.arguments[0]);
+    return operand !== undefined && ts.isIdentifier (operand) && r84j2UnwrittenBinding (printer, operand) !== undefined ? operand : undefined;
+}
+
+function r84j2ListArm (printer, node, guarded, declaration) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (ts.isIdentifier (value) && value.text !== declaration.name.text && printer.printNode (value, 0) === value.text) {
+        if (guarded !== undefined && value.text === guarded.text) {
+            return { kind: 'typed', cast: true };
+        }
+        const binding = r84j2UnwrittenBinding (printer, value);
+        if (binding !== undefined && ts.isParameterDeclaration (binding) && binding.type !== undefined
+            && (binding.initializer === undefined || isNullishInitializer (binding.initializer)) && j6TsShapeIs (printer, binding.name, 'list')) {
+            const declared = r77j2Normalize (printer.javaDeclaredTypeOf (value));
+            if (declared === JAVA_LIST_LOCAL_TYPE) {
+                return { kind: 'typed', cast: false };
+            }
+            // only an Object-printed parameter takes the checkcast (a List<String> one is another box)
+            return declared === '' || declared === 'Object' ? { kind: 'typed', cast: true } : undefined;
+        }
+    }
+    return r77j2Value (printer, value, declaration, JAVA_LIST_LOCAL_TYPE);
+}
+
+function r84j2ListValue (printer, node, declaration) {
+    const value = unwrapParens (node);
+    if (value === undefined || !ts.isConditionalExpression (value)) {
+        return undefined;
+    }
+    const guarded = r84j2IsArrayTestOperand (printer, value.condition);
+    const a = r84j2ListArm (printer, value.whenTrue, guarded, declaration);
+    const b = r84j2ListArm (printer, value.whenFalse, undefined, declaration);
+    if (a === undefined || b === undefined || a.kind === 'int' || b.kind === 'int' || (a.kind === 'null' && b.kind === 'null')) {
+        return undefined;
+    }
+    return { kind: 'typed', cast: a.cast === true || b.cast === true };
+}
+
+function r84j2ListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const value = r84j2ListValue (printer, declaration.initializer, declaration);
+    if (value === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_LIST_LOCAL_TYPE)) {
+        return undefined;
+    }
+    // a lift needs a native use: an element read `x[i]` (the printer's declared-List read drops the casts)
+    const reads = (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name
+        && ts.isElementAccessExpression (n.parent) && n.parent.expression === n
+        && !(ts.isBinaryExpression (n.parent.parent) && n.parent.parent.left === n.parent
+            && ASSIGNMENT_OPERATORS.includes (n.parent.parent.operatorToken.kind)));
+    if (!reads) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_LIST_LOCAL_TYPE, isProFile, {
+        writeOnly: true,
+        noCastAssertions: true,
+        writeOk: (right) => {
+            const write = javaListLocalValue (printer, right, declaration);
+            return write !== undefined; // the List family's write hook is not installed for this local: no cast writes
+        },
+    });
+    return ok ? { cast: value.cast } : undefined;
+}
+
+export function installJavaR84j2GuardedListLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j2GuardedListPatched) {
+        return;
+    }
+    printer._javaR84j2GuardedListPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = r84j2ListLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        let rest = printed.slice (at + marker.length);
+        if (info.cast) {
+            const semi = rest.lastIndexOf (';');
+            const body = semi === -1 ? rest : rest.slice (0, semi);
+            const tail = semi === -1 ? '' : rest.slice (semi);
+            if (body.indexOf ('\n') !== -1 || (tail !== '' && tail.trim () !== ';')) {
+                return printed;
+            }
+            rest = `${R84J2_LIST_CAST} (${body})${tail}`;
+        }
+        typed.set (declaration, JAVA_LIST_LOCAL_TYPE);
+        return printed.slice (0, at) + marker.replace (/Object (\S+) = $/, `${JAVA_LIST_LOCAL_TYPE} $1 = `) + rest;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
