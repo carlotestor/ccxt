@@ -329,9 +329,12 @@ export default class independentreserve extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        // base currencies: ['Xbt', 'Eth', 'Usdt', ...]
-        // quote currencies: ['Aud', 'Usd', 'Nzd', 'Sgd']
-        const responses: List = await Promise.all ([ this.publicGetGetValidPrimaryCurrencyCodes (params), this.publicGetGetValidSecondaryCurrencyCodes (params), this.publicGetGetOrderMinimumVolumes (params) ]);
+        const baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes (params);
+        //     ['Xbt', 'Eth', 'Usdt', ...]
+        const quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes (params);
+        //     ['Aud', 'Usd', 'Nzd', 'Sgd']
+        const limitsPromise = this.publicGetGetOrderMinimumVolumes (params);
+        const responses: List = await Promise.all ([ baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise ]);
         const limits = this.safeDict (responses, 2);
         //
         //     {
