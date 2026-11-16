@@ -2752,10 +2752,10 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 					}
 				}
 				if shouldParseFees {
-					var tradeFees any = this.SafeList(trade, "fees")
+					var tradeFees []any = SafeListTyped(trade, "fees")
 					if tradeFees != nil {
-						for j := 0; j < GetArrayLength(tradeFees); j++ {
-							var tradeFee any = GetValue(tradeFees, j)
+						for j := 0; j < len(tradeFees); j++ {
+							var tradeFee any = DerefScalar(tradeFees[j])
 							AppendToArray(&fees, this.Extend(map[string]any{}, tradeFee))
 						}
 					} else {

@@ -3859,10 +3859,10 @@ func (this *Myriad) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	}
 	// price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
 	var chart any = nil
-	var chartsList any = this.SafeList(selectedOutcome, "price_charts")
+	var chartsList []any = ccxt.SafeListTyped(selectedOutcome, "price_charts")
 	if chartsList != nil {
-		for i := 0; i < ccxt.GetArrayLength(chartsList); i++ {
-			var chartObj any = ccxt.GetValue(chartsList, i)
+		for i := 0; i < len(chartsList); i++ {
+			var chartObj any = chartsList[i]
 			if this.SafeString(chartObj, "timeframe") == bucketKey || (this.SafeString(chartObj, "timeframe") != nil && bucketKey != nil && *this.SafeString(chartObj, "timeframe") == *bucketKey) {
 				chart = chartObj
 				break

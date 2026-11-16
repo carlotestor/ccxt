@@ -2643,12 +2643,12 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 				var order map[string]any = this.SafeDictMap(orders, orderId)
 				if order != nil {
 					// accumulate order fees
-					var fees any = this.SafeList(order, "fees", []any{})
+					var fees []any = ccxt.SafeListTyped(order, "fees")
 					var fee map[string]any = this.SafeDictMap(order, "fee")
 					if !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
-						for i := 0; i < ccxt.GetArrayLength(fees); i++ {
-							var orderFee map[string]any = ccxt.MapTyped(ccxt.GetValue(fees, i))
+						for i := 0; i < len(fees); i++ {
+							var orderFee map[string]any = ccxt.MapTyped(fees[i])
 							if this.SafeString(orderFee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(orderFee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(orderFee, "currency") == *this.SafeString(tradeFee, "currency")) {
 								var feeCost any = this.Sum(tradeFee["cost"], orderFee["cost"])
 								var feeCostString any = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
