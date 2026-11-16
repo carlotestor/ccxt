@@ -733,7 +733,7 @@ func (this *Hibachi) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//     ]
 	// }
 	//
-	var trades any = this.SafeList(response, "trades", []any{})
+	var trades []any = SafeListTypedDefault(response, "trades", []any{})
 	var tradesList []any = []any{}
 	if trades != nil {
 		tradesList = ArrayTyped(trades)

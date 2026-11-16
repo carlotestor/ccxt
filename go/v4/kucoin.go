@@ -9554,7 +9554,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan AsyncResult[[]Trade], opti
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "items", []any{})
+	var trades []any = SafeListTypedDefault(data, "items", []any{})
 	var tradesList []any = []any{}
 	if trades != nil {
 		tradesList = ArrayTyped(trades)
@@ -9695,7 +9695,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "items", []any{})
+	var trades []any = SafeListTypedDefault(data, "items", []any{})
 	var tradesList []any = []any{}
 	if trades != nil {
 		tradesList = ArrayTyped(trades)

@@ -679,12 +679,12 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 		var offset int64 = this.Sum(110000, secondPart).(int64)
 		AddElementToObject(perpDexesOffset, this.SafeString(dex, "name", ""), offset)
 	}
-	var fetchDexesList any = []any{}
+	var fetchDexesList []any = []any{}
 	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var hip3 map[string]any = SafeMapTyped(options, "hip3")
-	var dexesProvided any = this.SafeList(hip3, "dexes", []any{}) // let users provide their own list of dexes to load
+	var dexesProvided []any = SafeListTypedDefault(hip3, "dexes", []any{}) // let users provide their own list of dexes to load
 	var maxLimit *int64 = this.SafeInteger(hip3, "limit", 10)
-	var userProvidedDexesLength int = GetArrayLength(dexesProvided)
+	var userProvidedDexesLength int = len(dexesProvided)
 	if userProvidedDexesLength > 0 {
 		if userProvidedDexesLength > 0 {
 			fetchDexesList = dexesProvided
@@ -706,11 +706,11 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 				continue
 			}
 			var dexName *string = this.SafeString(dex, "name")
-			AppendToArray(&fetchDexesList, dexName)
+			fetchDexesList = append(fetchDexesList, dexName)
 		}
 	}
 	var rawPromises []any = []any{}
-	for i := 0; i < GetArrayLength(fetchDexesList); i++ {
+	for i := 0; i < len(fetchDexesList); i++ {
 		var request map[string]any = map[string]any{
 			"type": "metaAndAssetCtxs",
 			"dex":  this.SafeString(fetchDexesList, i),
@@ -726,7 +726,12 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 	this.Options["hip3TokensByName"] = map[string]any{}
 	var markets []any = []any{}
 	for i := 0; i < len(promises); i++ {
-		var dexName any = GetValue(fetchDexesList, i)
+		var dexName any = func() any {
+			if i >= 0 && i < len(fetchDexesList) {
+				return DerefScalar(fetchDexesList[i])
+			}
+			return nil
+		}()
 		var offset *int64 = this.SafeInteger(perpDexesOffset, dexName)
 		var response []any = SafeListTyped(promises, i)
 		var meta map[string]any = SafeMapTyped(response, 0)

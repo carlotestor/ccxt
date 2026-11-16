@@ -4726,7 +4726,7 @@ func (this *Whitebit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	//         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
 	//     }
 	//
-	var records any = this.SafeList(response, "records", []any{})
+	var records []any = SafeListTypedDefault(response, "records", []any{})
 	var recordsList []any = []any{}
 	if records != nil {
 		recordsList = ArrayTyped(records)

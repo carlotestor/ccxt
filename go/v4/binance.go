@@ -12501,10 +12501,10 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//             }
 	//         ]
 	//     }
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if response != nil {
 		if stock == true {
-			var rows any = this.SafeList(response, "rows", []any{})
+			var rows []any = SafeListTypedDefault(response, "rows", []any{})
 			responseList = rows
 		} else {
 			responseList = this.ToArray(response)
