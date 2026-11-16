@@ -9828,8 +9828,8 @@ impl Binance {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_0]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_0]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -9862,8 +9862,8 @@ impl Binance {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_1]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_1]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -9895,8 +9895,8 @@ impl Binance {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_get_equity_tokenized_convert_status(&[__ws_arg_2]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_get_equity_tokenized_convert_status(&[__ws_arg_2]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -9937,8 +9937,8 @@ impl Binance {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_3 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.sapi_get_equity_tokenized_history(&[__ws_arg_3]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_get_equity_tokenized_history(&[__ws_arg_3]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -16959,7 +16959,7 @@ impl Binance {
                 let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
                 let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]).as_str().map(str::to_owned);
                 let mut brackets: crate::value::List = self.safe_list_k(&entry, "brackets", &[Value::from(vec![])]).into_list();
-                let mut result: Value = Value::from(vec![]);
+                let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_304: bool = true;
@@ -16967,10 +16967,10 @@ impl Binance {
                     let mut bracket: crate::value::Dict = self.safe_dict(&brackets, Value::Int(j), &[]).into_dict();
                     let mut floorValue: Option<String> = self.safe_string2_opt(&bracket, Value::Str("notionalFloor".into()), Value::Str("qtyFloor".into()), &[]);
                     let mut maintenanceMarginPercentage: Option<String> = self.safe_string_k_opt(&bracket, "maintMarginRatio", &[]);
-                    if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::from(vec![floorValue.map(Value::from).unwrap_or(Value::Null), maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null)])); }
+                    std::sync::Arc::make_mut(&mut result).push(Value::from(vec![floorValue.map(Value::from).unwrap_or(Value::Null), maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null)]));
                 }
                 }
-                if let Value::Dict(__bf03d0) = &mut self.options { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("leverageBrackets".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(symbol.as_deref().unwrap_or("null").to_string(), result); } }
+                if let Value::Dict(__bf03d0) = &mut self.options { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("leverageBrackets".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Arr(result)); } }
             }
             }
         }
@@ -18899,8 +18899,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_195 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_giftcard_redeem_code(&[__ws_arg_195]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_post_giftcard_redeem_code(&[__ws_arg_195]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -18926,8 +18926,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_196 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_get_giftcard_verify(&[__ws_arg_196]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_get_giftcard_verify(&[__ws_arg_196]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

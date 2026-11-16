@@ -2239,7 +2239,7 @@ impl Grvt {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_edge_post_auth_api_key_login(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.private_edge_post_auth_api_key_login(&[__ws_arg_0]).await.into_dict();
         //
         //    {
         //        "location": "",
@@ -2247,7 +2247,7 @@ impl Grvt {
         //    }
         //
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), Value::Int((now + 86400000))); }; // 24 hours
-        return response;
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -2276,7 +2276,7 @@ impl Grvt {
             m
         });
         let __ws_arg_1 = self.extend(self.create_signed_request(&mut request, "EIP712_WALLETLOGIN_TYPE", &[]), &[params]);
-        let mut response: Value = self.private_edge_post_auth_wallet_login(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.private_edge_post_auth_wallet_login(&[__ws_arg_1]).await.into_dict();
         //
         //    {
         //        "location": "",
@@ -2284,7 +2284,7 @@ impl Grvt {
         //    }
         //
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), Value::Int((now + 86400000))); }; // 24 hours
-        return response;
+        return Value::Dict(response);
 
     Value::Null
 }

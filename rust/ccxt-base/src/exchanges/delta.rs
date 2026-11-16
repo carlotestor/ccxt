@@ -1345,7 +1345,7 @@ impl crate::exchange::DerivedExchange for Delta {
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.seconds())).into());
-            let mut privateHeaders: Value = Value::Map({
+            let mut privateHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("api-key".to_string(), self.apiKey.clone());
                     m.insert("timestamp".to_string(), timestamp.clone());
@@ -1361,11 +1361,11 @@ impl crate::exchange::DerivedExchange for Delta {
             }  else {
                 requestBody = json_stringify(&query).as_str().map(str::to_owned);
                 auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath).into()), requestBody.as_deref().unwrap_or("null"));
-                if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+                privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
             }
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("signature".into(), Value::from(signature)); }
-            requestHeaders = privateHeaders.into_opt_dict();
+            privateHeaders.insert("signature".into(), Value::from(signature));
+            requestHeaders = Some(crate::value::Dict::new(privateHeaders));
         }
         let mut bodyResult: Option<String> = requestBody;
         let mut headersResult: Option<crate::value::Dict> = requestHeaders;
@@ -3680,10 +3680,10 @@ impl Delta {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_orders_all(&[__ws_arg_8]).await;
+        let mut response: crate::value::Dict = self.private_delete_orders_all(&[__ws_arg_8]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null

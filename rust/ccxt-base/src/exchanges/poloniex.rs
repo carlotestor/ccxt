@@ -3475,8 +3475,8 @@ impl Poloniex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut entryMarket: Value = ordersMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-            results.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, &entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(entryMarket).as_ref()));
+            let mut entryMarket: crate::value::Dict = ordersMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            results.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, &entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(Value::Dict(entryMarket)).as_ref()));
         }
         }
         return Value::from(results);
@@ -4734,8 +4734,8 @@ impl Poloniex {
             m
         });
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_wallets_activity(&[__ws_arg_39]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_get_wallets_activity(&[__ws_arg_39]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -5093,8 +5093,8 @@ impl Poloniex {
             m
         });
         let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsHedged]);
-        let mut response: Value = self.swap_private_post_v3_position_leverage(&[__ws_arg_42]).await;
-        return response;
+        let mut response: crate::value::Dict = self.swap_private_post_v3_position_leverage(&[__ws_arg_42]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -5213,8 +5213,8 @@ impl Poloniex {
             m
         });
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.swap_private_post_v3_position_mode(&[__ws_arg_44]).await;
-        return response;
+        let mut response: crate::value::Dict = self.swap_private_post_v3_position_mode(&[__ws_arg_44]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

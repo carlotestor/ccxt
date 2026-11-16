@@ -2974,7 +2974,7 @@ impl Bitstamp {
         let mut expires: i64 = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut now: i64 = self.milliseconds();
         if (timestamp.is_none()) || ((true) && (((if let Some(__r) = timestamp { Some(now - __r) } else { None })) > Some(expires))) {
-            let mut response: Value = self.public_get_markets(&[params]).await;
+            let mut response: crate::value::List = self.public_get_markets(&[params]).await.into_list();
             //
             //    [
             //        {
@@ -2994,7 +2994,7 @@ impl Bitstamp {
             //
             { let __be_tmp = self.extend(options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("response".to_string(), response);
+        m.insert("response".to_string(), Value::Arr(response));
         m.insert("timestamp".to_string(), Value::from(now));
     m
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("fetchMarkets".into(), __be_tmp); } }

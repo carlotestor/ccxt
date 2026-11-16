@@ -8434,9 +8434,9 @@ impl Htx {
                                         let mut i: i64 = 0;
                     let mut __for_first_781: bool = true;
                     while { if !__for_first_781 { i += 1; } __for_first_781 = false; i < (self.accounts.len() as i64) } {
-                    let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                    if (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("spot")) {
-                        accountId = self.safe_string_k_opt(account, "id", &[]);
+                    let mut account: crate::value::Dict = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    if (self.safe_string_k(&account, "type", &[]).as_str() == Some("spot")) {
+                        accountId = self.safe_string_k_opt(&account, "id", &[]);
                         if (accountId.is_some()) {
                             break;
                         }
@@ -10374,8 +10374,8 @@ impl Htx {
             m
         });
         let __ws_arg_110 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v2_private_post_algo_orders_cancel_all_after(&[__ws_arg_110]).await;
-        return response;
+        let mut response: crate::value::Dict = self.v2_private_post_algo_orders_cancel_all_after(&[__ws_arg_110]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -13187,8 +13187,8 @@ impl Htx {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " setPositionMode can only be used for linear markets")));
         }
         let __ws_arg_165 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.contract_private_post_v5_position_mode(&[__ws_arg_165]).await;
-        return response;
+        let mut response: crate::value::Dict = self.contract_private_post_v5_position_mode(&[__ws_arg_165]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

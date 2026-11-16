@@ -4263,10 +4263,10 @@ impl Hitbtc {
             m
         });
         let __ws_arg_55 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_wallet_convert(&[__ws_arg_55]).await;
+        let mut response: crate::value::List = self.private_post_wallet_convert(&[__ws_arg_55]).await.into_list();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Arr(response));
     m
 });
 

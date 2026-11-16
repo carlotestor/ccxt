@@ -4282,8 +4282,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("timeout".into(), Value::Str("null".into()));
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.v4_private_post_order_kill_switch(&[__ws_arg_19]).await;
-        return response;
+        let mut response: crate::value::Dict = self.v4_private_post_order_kill_switch(&[__ws_arg_19]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

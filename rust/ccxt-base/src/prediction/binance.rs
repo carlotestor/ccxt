@@ -2049,10 +2049,10 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1224: bool = true;
             while { if !__for_first_1224 { i += 1; } __for_first_1224 = false; i < positionsLength } {
-            let mut position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut positionOutcome: Option<String> = self.safe_string_k_opt(position.clone(), "outcome", &[]);
+            let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut positionOutcome: Option<String> = self.safe_string_k_opt(&position, "outcome", &[]);
             if (positionOutcome.is_some()) && (matches!(positionOutcome.as_deref(), Some(__k) if requestedOutcomeSymbols.contains_key(__k))) {
-                filtered.push(position);
+                filtered.push(Value::Dict(position));
             }
         }
         }
@@ -2310,8 +2310,8 @@ impl Binance {
     m
 }));
         let __ws_arg_13 = self.extend(request, &[params]);
-        let mut response: Value = self.sapi_private_post_trade_get_quote(&[__ws_arg_13]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_private_post_trade_get_quote(&[__ws_arg_13]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

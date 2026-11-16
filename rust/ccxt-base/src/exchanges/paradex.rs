@@ -3164,8 +3164,8 @@ impl Paradex {
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(&account, "address", &[])); }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("public_key".into(), self.safe_string_k(&account, "publicKey", &[])); }
-        let mut response: Value = self.private_post_onboarding(&[params]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_onboarding(&[params]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -3931,10 +3931,10 @@ impl Paradex {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_orders(&[__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.private_delete_orders(&[__ws_arg_11]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null

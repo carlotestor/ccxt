@@ -2023,8 +2023,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), newTxInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -4862,8 +4862,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

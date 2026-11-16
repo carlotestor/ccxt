@@ -4852,8 +4852,8 @@ impl Blofin {
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut response: Value = self.private_post_account_set_leverage(&[__ws_arg_32]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_account_set_leverage(&[__ws_arg_32]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

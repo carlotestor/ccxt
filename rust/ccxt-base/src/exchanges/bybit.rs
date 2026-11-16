@@ -8968,8 +8968,8 @@ impl Bybit {
         let mut product: Option<String> = self.safe_string_opt(&productMap, Value::from(type_var.as_deref()), &[Value::from(type_var.as_deref())]);
         request.insert("product".into(), product.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: Value = self.private_post_v5_order_disconnected_cancel_all(&[__ws_arg_26]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_v5_order_disconnected_cancel_all(&[__ws_arg_26]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -11200,8 +11200,8 @@ impl Bybit {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " setLeverage() only support linear and inverse market")));
         }
         let __ws_arg_52 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_v5_position_set_leverage(&[__ws_arg_52]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_v5_position_set_leverage(&[__ws_arg_52]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -11256,8 +11256,8 @@ impl Bybit {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(query, Value::Str("type".into()), &[]).into_dict();
         let __ws_arg_53 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_v5_position_switch_mode(&[__ws_arg_53]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_v5_position_switch_mode(&[__ws_arg_53]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

@@ -1209,7 +1209,7 @@ impl crate::exchange::DerivedExchange for Woo {
             let mut ts: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
             let mut authBase: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), pathWithParams);
             url = format!("{}{}", urlPrefix, pathWithParams);
-            let mut signedHeaders: Value = Value::Map({
+            let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("x-api-key".to_string(), self.apiKey.clone());
                     m.insert("x-api-timestamp".to_string(), Value::from(ts.as_str()));
@@ -1221,7 +1221,7 @@ impl crate::exchange::DerivedExchange for Woo {
                     let mut jsonBody: Option<String> = json_stringify(&paramsSigned).as_str().map(str::to_owned);
                     requestBody = jsonBody.clone();
                     auth = format!("{}{}", authBase, jsonBody.as_deref().unwrap_or("null"));
-                    if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/json".into())); }
+                    signedHeaders.insert("content-type".into(), Value::Str("application/json".into()));
                 }  else {
                     if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                         let mut query: String = self.urlencode(paramsSigned.clone(), &[]);
@@ -1240,10 +1240,10 @@ impl crate::exchange::DerivedExchange for Woo {
                     }
                 }
                 auth = format!("{}{}", Value::Str(format!("{}{}", encodedParams, "|").into()), ts);
-                if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into())); }
+                signedHeaders.insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into()));
             }
-            if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("x-api-signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]))); }
-            requestHeaders = signedHeaders.into_opt_dict();
+            signedHeaders.insert("x-api-signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
+            requestHeaders = Some(crate::value::Dict::new(signedHeaders));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3873,8 +3873,8 @@ impl Woo {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_trade_cancel_all_after(&[__ws_arg_10]).await;
-        return response;
+        let mut response: crate::value::Dict = self.v3_private_post_trade_cancel_all_after(&[__ws_arg_10]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -5805,8 +5805,8 @@ impl Woo {
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_put_futures_position_mode(&[__ws_arg_37]).await;
-        return response;
+        let mut response: crate::value::Dict = self.v3_private_put_futures_position_mode(&[__ws_arg_37]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

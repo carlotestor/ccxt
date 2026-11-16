@@ -2883,9 +2883,9 @@ impl Coinbase {
                                 let mut i: i64 = 0;
                 let mut __for_first_533: bool = true;
                 while { if !__for_first_533 { i += 1; } __for_first_533 = false; i < (self.accounts.len() as i64) } {
-                let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                if (self.safe_string_k(account.clone(), "code", &[]).as_str() == code.as_str()) && (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("wallet")) {
-                    accountId = self.safe_string_k_opt(account, "id", &[]);
+                let mut account: crate::value::Dict = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                if (self.safe_string_k(&account, "code", &[]).as_str() == code.as_str()) && (self.safe_string_k(&account, "type", &[]).as_str() == Some("wallet")) {
+                    accountId = self.safe_string_k_opt(&account, "id", &[]);
                     break;
                 }
             }
@@ -3941,12 +3941,12 @@ if _try_result.is_err() {
             //
             let mut fiatData: crate::value::List = self.safe_list_k(&fiatResponse, "data", &[Value::from(vec![])]).into_list();
             let mut cryptoData: crate::value::List = self.safe_list_k(&cryptoResponse, "data", &[Value::from(vec![])]).into_list();
-            let mut exchangeRates: Value = self.v2_public_get_exchange_rates(&[params]).await;
+            let mut exchangeRates: crate::value::Dict = self.v2_public_get_exchange_rates(&[params]).await.into_dict();
             let __ws_arg_11 = self.array_concat(&fiatData, &cryptoData);
             { let __be_tmp = self.extend(options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currencies".to_string(), __ws_arg_11);
-        m.insert("exchangeRates".to_string(), exchangeRates);
+        m.insert("exchangeRates".to_string(), Value::Dict(exchangeRates));
         m.insert("timestamp".to_string(), Value::from(now));
     m
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".into(), __be_tmp); } }
@@ -4796,9 +4796,9 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_545: bool = true;
             while { if !__for_first_545 { i += 1; } __for_first_545 = false; i < (self.accounts.len() as i64) } {
-            let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if (self.safe_string_k(account.clone(), "code", &[]).as_str() == code.as_str()) {
-                return self.safe_string_k(account, "id", &[]);
+            let mut account: crate::value::Dict = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            if (self.safe_string_k(&account, "code", &[]).as_str() == code.as_str()) {
+                return self.safe_string_k(&account, "id", &[]);
             }
         }
         }

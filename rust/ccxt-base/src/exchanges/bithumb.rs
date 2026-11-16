@@ -4009,8 +4009,8 @@ impl Bithumb {
         if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchWithdrawalWhitelist() is only supported for the generation 2 API")));
         }
-        let mut response: Value = self.private_get_v1_withdraws_coin_addresses(&[Value::Dict(paramsGeneration)]).await;
-        return response;
+        let mut response: crate::value::List = self.private_get_v1_withdraws_coin_addresses(&[Value::Dict(paramsGeneration)]).await.into_list();
+        return Value::Arr(response);
 
     Value::Null
 }

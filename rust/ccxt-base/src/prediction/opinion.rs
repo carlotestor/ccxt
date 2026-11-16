@@ -2475,14 +2475,14 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1402: bool = true;
             while { if !__for_first_1402 { i += 1; } __for_first_1402 = false; i < (parsed.len() as i64) } {
-            let mut position: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut info: crate::value::Dict = self.safe_dict_k(position.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut info: crate::value::Dict = self.safe_dict_k(&position, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut tokenId: Option<String> = self.safe_string_k_opt(&info, "tokenId", &[]);
             if (tokenId.is_some()) && (matches!(tokenId.as_deref(), Some(__k) if wantedTokenIds.contains_key(__k))) {
-                filtered.push(position);
+                filtered.push(Value::Dict(position));
             }
         }
         }
@@ -2638,14 +2638,14 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.opinion_private_delete_auth_api_key(&[params]).await;
+        let mut response: crate::value::Dict = self.opinion_private_delete_auth_api_key(&[params]).await.into_dict();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("apiKey".into(), Value::Null); }
         // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.
         // an empty string, not undefined: the strict base types the credential as string, and
         // sign() treats an empty key as absent
         self.apiKey = Value::Str("".into());
-        return response;
+        return Value::Dict(response);
 
     Value::Null
 }
