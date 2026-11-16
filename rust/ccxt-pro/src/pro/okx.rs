@@ -359,11 +359,11 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsRequested: Value = symbols.clone();
+        let mut symbolsRequested: Option<crate::value::List> = symbols.clone().into_opt_list();
         if (symbols == Value::Null) {
-            symbolsRequested = Value::Arr(self.symbols.clone());
+            symbolsRequested = Value::Arr(self.symbols.clone()).into_opt_list();
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested.map_or(Value::Null, Value::Arr)]).into_opt_list();
         let mut url: Option<String> = self.get_url(channel.clone(), &[access]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
