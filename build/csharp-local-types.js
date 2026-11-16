@@ -6638,7 +6638,19 @@ function conditionalArmType (csharp, node, context) {
     if (arm?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
     }
-    return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm);
+    return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm) ?? stringParameterArmType (csharp, arm);
+}
+
+// a parameter arm whose emitted signature prints `string` / `string?` (typeCoreArgs core position,
+// CSHARP_STRING_PARAMS table, unwritten and without a literal default — parameterArithmeticType's
+// proof): the read's C# static type is that string, so `c ? this.safeString (…) : symbol` and
+// `c ? 'taker' : takerOrMaker` have a string natural type. Both arms are string references (or
+// null), so a `string?` declaration holds the very box the `object` one held.
+function stringParameterArmType (csharp, arm) {
+    const type = parameterArithmeticType (csharp, arm);
+    // always the nullable spelling: a `string` parameter still receives null from a caller, and the
+    // non-null `string` answer would let a later `+` rule treat the local as never null
+    return (type === 'string' || type === 'string?') ? 'string?' : undefined;
 }
 
 // a parameter arm (`(limit === undefined) ? 100 : limit`) has the numeric type its emitted
@@ -18563,8 +18575,27 @@ for (const [ name, positions ] of Object.entries (CSHARP_EXCHANGE_LOCAL_STRING_P
 // Dictionary, so the cast names that box. Implicit-API list bodies only reach sign/request/fetch2.
 const CSHARP_OMIT_LIST_PARAMS_METHODS = [ 'sign', 'request', 'fetch2' ];
 
+// `const x = c ? this.omit (params, …) : params` (either arm order): the conditional's arms are
+// the same `params` read and an omit of it, so every box the local can hold is the fresh omit
+// Dictionary or the `params` box itself — the one the plain omit proof below names. The C#
+// conditional is not target-typed (both arms print `object`), so the cast covers the whole value.
+function omitParamsConditionalCall (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const whenTrue = stripParens (initializer.whenTrue);
+    const whenFalse = stripParens (initializer.whenFalse);
+    const call = (whenTrue?.kind === ts.SyntaxKind.CallExpression) ? whenTrue : whenFalse;
+    const other = (call === whenTrue) ? whenFalse : whenTrue;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || other?.kind !== ts.SyntaxKind.Identifier || other.text !== 'params') {
+        return undefined;
+    }
+    return (resolveReference (csharp, other) === resolveReference (csharp, stripParens (call.arguments?.[0]))) ? call : undefined;
+}
+
 function omitParamsLocal (csharp, declaration, context) {
-    const initializer = stripParens (declaration.initializer);
+    const conditionalCall = omitParamsConditionalCall (csharp, stripParens (declaration.initializer));
+    const initializer = conditionalCall ?? stripParens (declaration.initializer);
     if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
             || !isBlockScopedDeclaration (declaration) || initializer?.kind !== ts.SyntaxKind.CallExpression) {
         return undefined;
@@ -18592,7 +18623,10 @@ function omitParamsLocal (csharp, declaration, context) {
     const type = 'IDictionary<string, object>';
     const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : owner);
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
-    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type } : undefined;
+    if (!csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx)) {
+        return undefined;
+    }
+    return (conditionalCall === undefined) ? { type, cast: type } : { type, cast: type, castWhole: true };
 }
 
 // per-method verdict: any `params` write target in the method (closures included)
