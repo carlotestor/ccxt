@@ -1540,10 +1540,11 @@ export default class apex extends Exchange {
             const response = await this.privatePostV3ContractTransferOut (this.extend (request, paramsOmitted));
             const data = this.safeDict (response, 'data', {});
             const currentTime = this.milliseconds ();
+            const parsedAmount = this.parseNumber (amount);
             return this.extend (this.parseTransfer (data, this.currency (code)), {
                 'timestamp': currentTime,
                 'datetime': this.iso8601 (currentTime),
-                'amount': this.parseNumber (amount),
+                'amount': parsedAmount,
                 'fromAccount': 'contract',
                 'toAccount': 'spot',
             });
