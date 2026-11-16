@@ -1920,7 +1920,7 @@ export default class hollaex extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        let addressWithTag: string = address;
+        let addressWithTag = address;
         if (tagWithdrawTag !== undefined) {
             addressWithTag = address + ':' + tagWithdrawTag;
         }
