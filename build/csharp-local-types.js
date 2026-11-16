@@ -19373,8 +19373,41 @@ function castProvenArmType (csharp, arm, context) {
     if (cached !== undefined && cached.startsWith ('ccxt.pro.ArrayCache')) {
         return { type: cached, proven: true };
     }
+    const minMax = nativeIntegralMinMaxArmType (csharp, node);
+    if (minMax !== undefined) {
+        return { type: minMax, proven: true, natural: true };
+    }
     const direct = conditionalArmType (csharp, arm, context);
     return (direct === undefined) ? undefined : { type: direct, proven: false };
+}
+
+// `Math.min (limit, 1000)` that the printer itself prints natively (csharpNativeMathMinMax:
+// `Math.Min(limit.Value, 1000)` over integral operands): its C# type is `long` when an operand is
+// Int64 / Int64?, else `int`. Beside an `int` arm the conditional's natural type is that `long`, so
+// the `object` declaration already stores an Int64 box in BOTH arms (the int arm converts before
+// boxing) and naming `Int64` moves no value and needs no cast. The mathMin helper form is never
+// accepted (it hands back the original operand box).
+function nativeIntegralMinMaxArmType (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.CallExpression || node.arguments?.length !== 2) {
+        return undefined;
+    }
+    const callee = node.expression;
+    const name = callee?.name?.text;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.Identifier
+            || callee.expression.text !== 'Math' || (name !== 'min' && name !== 'max')) {
+        return undefined;
+    }
+    if (typeof csharp.csharpNativeIntegralMinMax !== 'function' || typeof csharp.csharpIntegralOperand !== 'function') {
+        return undefined;
+    }
+    if (csharp.csharpNativeIntegralMinMax (node, (name === 'min') ? 'Min' : 'Max', 'a', 'b') === undefined) {
+        return undefined;
+    }
+    const kinds = node.arguments.map ((argument) => csharp.csharpIntegralOperand (argument));
+    if (kinds.some ((kind) => kind === undefined)) {
+        return undefined;
+    }
+    return kinds.some ((kind) => !kind.literal && kind.kind.replace ('?', '') === 'Int64') ? 'Int64' : undefined;
 }
 
 const CAST_PROVEN_NULLABLE_SPELLINGS = [ 'string?', 'bool?', 'Int64?', 'double?', 'int?' ];
@@ -19398,6 +19431,14 @@ function castProvenArmConditionalLocal (csharp, declaration, context) {
     const whenFalse = castProvenArmType (csharp, conditional.whenFalse, ctx);
     if (whenTrue === undefined || whenFalse === undefined || !(whenTrue.proven || whenFalse.proven)) {
         return undefined;
+    }
+    // an int arm beside a native Int64 Math.Min / Math.Max arm: the conditional's own type is long
+    // (see nativeIntegralMinMaxArmType), so the declaration names it with no cast
+    const natural = whenTrue.natural === true || whenFalse.natural === true;
+    if (natural) {
+        const other = (whenTrue.natural === true) ? whenFalse : whenTrue;
+        const type = (other.type === 'int' || other.type === 'Int64') ? 'Int64' : (other.type === 'null') ? 'Int64?' : undefined;
+        return (type !== undefined && csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx)) ? { type } : undefined;
     }
     let type = unifyArms (whenTrue.type, whenFalse.type, true);
     // a reference type beside a null arm keeps its own spelling (the families above declare

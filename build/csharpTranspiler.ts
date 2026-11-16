@@ -9439,6 +9439,12 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('84c2 null-guard concat over a string-or-null local -> string?',
             'f (o, d: string) { let m = undefined; if (o) { m = \'x\'; } const md = m + d; return md; }',
             'string? md = (m == null ? null : m + (string)(object)(d));', 'object md = ');
+        check ('84c2 c ? <int literal> : <native Int64 Math.Min> -> Int64 with no cast',
+            'async fetchOHLCV (symbol: string, timeframe = \'1m\', since: Int = undefined, limit: Int = undefined, params = {}) { const request = {}; const n = (limit === undefined) ? 100 : Math.min (limit, 1000); request[\'limit\'] = n; const d = n * 60; return d; }',
+            'Int64 n = ((limit == null)) ? 100 : Math.Min(limit.Value, 1000);', 'object n = ');
+        check ('84c2 c ? <int literal> : <mathMin helper> keeps object',
+            'f (limit: Int = undefined) { const n = (limit === undefined) ? 100 : Math.min (limit, 1000); return n; }',
+            'object n = ((limit == null)) ? 100 : mathMin(limit, 1000);');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {
