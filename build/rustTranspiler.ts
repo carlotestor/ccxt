@@ -9323,7 +9323,7 @@ export class RustTranspilerBuilder {
         const sigs = this.collectExchangeMethodSignatures(table, content, /* allowNoPub */ true);
         // Qualify only genuinely-ambiguous names (also in ExchangeBase /
         // DerivedExchange); a bare call for a prediction-only method avoids the
-        // async-trait-fn lifetime error (E0792).
+        // async-fn-in-trait lifetime error (E0792).
         const exBase = new Set<string>();
         try {
             const src = fs.readFileSync(BASE_METHODS_FILE, 'utf8');
@@ -10980,7 +10980,7 @@ impl std::ops::DerefMut for ${coreName} {
             // Only qualify a call when it is genuinely AMBIGUOUS — i.e. the name
             // exists in BOTH PredictionBase and (ExchangeBase or DerivedExchange).
             // Qualifying a prediction-only method (load_outcomes, fetch_events)
-            // is unnecessary and, on an async-trait-fn recursion, triggers a
+            // is unnecessary and, on an async-fn-in-trait recursion, triggers a
             // lifetime error (E0792). Read the Exchange base method names once.
             const exBase = new Set<string>();
             try {
