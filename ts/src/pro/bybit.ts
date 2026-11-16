@@ -1218,9 +1218,8 @@ export default class bybit extends bybitRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const trades = this.safeList (message, 'data', []);
         const topic = this.safeString (message, 'topic', '');
-        const trades = data;
         const parts = topic.split ('.');
         const isSpot = client.url.indexOf ('spot') >= 0;
         let marketType: Str = 'contract';
@@ -1497,10 +1496,7 @@ export default class bybit extends bybitRest {
         const topic = this.safeString (message, 'topic', '');
         const spot = topic === 'ticketInfo';
         const executionFast = topic === 'execution.fast';
-        let data = this.safeList (message, 'data', []);
-        if (!Array.isArray (data)) {
-            data = this.safeList (data, 'result', []);
-        }
+        const data = this.safeList (message, 'data', []);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
@@ -2068,13 +2064,7 @@ export default class bybit extends bybitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        let rawOrders = this.safeList (message, 'data', []);
-        const first = this.safeDict (rawOrders, 0, {});
-        const category = this.safeString (first, 'category');
-        const isSpot = category === 'spot';
-        if (!isSpot) {
-            rawOrders = this.safeValue (rawOrders, 'result', rawOrders);
-        }
+        const rawOrders = this.safeList (message, 'data', []);
         const symbols: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const parsed = this.parseOrder (rawOrders[i]);
