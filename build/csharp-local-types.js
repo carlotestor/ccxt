@@ -11173,8 +11173,39 @@ function guardedConcatNonNullRetryCandidate (csharp, declaration, context) {
     const init = declaration.initializer;
     return signApiElementInitializer (csharp, init) || boundedKeysElementInitializer (csharp, init)
         || nonNullStringDefaultCall (csharp, init, context) || tupleElement0LiteralDefault (init)
-        || nonNullStringValue (csharp, declaration, init, 0) || sameFileGuardedStringCall (csharp, init);
+        || nonNullStringValue (csharp, declaration, init, 0) || sameFileGuardedStringCall (csharp, init)
+        // ral-87c7: the 84c7 non-null string calls (numberToString of a value type, iso8601 of a clock)
+        || nonNullStringRetry87c7 (csharp, declaration, context);
 }
+
+// ral-87c7: a local the 84c7 non-null `string` rule would take (numberToString of a value type,
+// iso8601 of a clock, ...; not a call argument; every write keeps a non-null string; every read
+// and write passes the `string` retype scan) belongs to the `string` retry, not to the guarded `string?` spelling: decided from the declaration's AST only
+function nonNullStringRetry87c7 (csharp, declaration, context) {
+    const call = stripParens (declaration?.initializer);
+    if (call?.kind !== ts.SyntaxKind.CallExpression || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return false;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    if (!nonNullStringCall84c7 (csharp, call, ctx) || localIsCallArgument84c7 (csharp, scope, declaration)
+            || !writesKeepNonNullString84c7 (csharp, scope, declaration, ctx)) {
+        return false;
+    }
+    if (nonNullStringRetry87c7Busy.has (declaration)) {
+        return false; // re-entered from the retype scan below: the guarded spelling answers that probe
+    }
+    nonNullStringRetry87c7Busy.add (declaration);
+    try {
+        return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'string', ctx);
+    } finally {
+        nonNullStringRetry87c7Busy.delete (declaration);
+    }
+}
+const nonNullStringRetry87c7Busy = new WeakSet ();
 
 // reads the retype scan accepted ONLY through guardedConcatLeftUse (every other proof refused)
 const guardedConcatReads = new WeakSet ();

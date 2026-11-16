@@ -12803,5 +12803,10 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
     // a helper with a non-literal return path keeps object
     const kept = print ('chan (id) { if (id) { return \'a\'; } return id; }\n g (id) { const c = this.chan (id); const k = c + \':r\'; return this.hash (k, 1, 1); }');
     if (!kept.includes ('object c = this.chan(id);')) problems.push (`84c7 non-null string call locals: unproven helper retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    // ral-87c7: the clock string seeding a guarded `+` chain takes the non-null `string`, so the chain local is native too
+    const signed = print ('sign (method, path) { const ts = this.numberToString (this.milliseconds ()); let auth = ts + method + path; if (path) { auth = auth + \'?\'; } return this.hash (auth, 1, 1); }');
+    for (const expected of [ 'string ts = callDynamically(this, "numberToString"', 'string auth = ((ts + method) + (path));', 'auth = (auth + "?");' ]) {
+        if (!signed.includes (expected)) problems.push (`87c7 clock-string seed of a guarded concat: ${expected}: ${signed.replace (/\n/g, ' | ').slice (-400)}`);
+    }
     return problems;
 }
