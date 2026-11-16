@@ -18069,6 +18069,138 @@ function javaFreshListMethod (call) {
     return declarations.every ((d) => javaFreshListBody (d));
 }
 
+// ral-77j7: `await this.m (..)` / sync `this.m (..)` whose checker type is an array while every Java
+// declaration the call can bind (on-disk generated core / api stub / hand-written base, plus the
+// callee's own printed signature for a sync venue method) returns Object or List<Object>: the value
+// is a java.util.List at runtime, so the declaration takes the List box (checkcast unless every
+// spelling is already List<Object>). A typed structure list (List<Order>, ..) is inconvertible: declined.
+// kind 'map': the same for a json-box (Dict / Dictionary<T>, nullable allowed) callee and Map<String, Object>.
+// a json box (Dict / Dictionary<T>) or a plain structure interface of ts/src/base/types.ts (Trade, Order,
+// Market, ..): every Java print of those is a java.util.Map (a HashMap or a TypedMap DTO). Classes, arrays,
+// callables and unions decline.
+function j77MapShapedType (printer, type) {
+    if (type === undefined || typeof printer.javaJsonBoxType !== 'function') {
+        return false;
+    }
+    if (printer.javaJsonBoxType (type)) {
+        return true;
+    }
+    try {
+        if (!(type.flags & ts.TypeFlags.Object) || typeof printer.isJavaMapType !== 'function' || !printer.isJavaMapType (type)) {
+            return false;
+        }
+        const declarations = (type.getSymbol?.()?.declarations ?? []).map ((d) => d.resolve ());
+        return declarations.length > 0 && declarations.every ((d) => d.kind === ts.SyntaxKind.InterfaceDeclaration
+            && /(^|[\\/])ts[\\/]src[\\/]base[\\/]types\.ts$/.test (d.getSourceFile ().fileName));
+    } catch (e) {
+        return false;
+    }
+}
+
+function j77CheckedArrayCallValue (printer, value, kind = 'list') {
+    const awaited = value !== undefined && ts.isAwaitExpression (value);
+    const call = awaited ? unwrapParens (value.expression) : value;
+    if (!isThisOrSuperCall (call) || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    const async = isAsyncMethodCall (printer, call);
+    if (async !== awaited) {
+        return undefined; // a bare future, or an await of a sync value
+    }
+    const checker = printer.getChecker ();
+    let type;
+    try {
+        type = checker.getTypeAtLocation (value);
+    } catch (e) {
+        return undefined;
+    }
+    if (type === undefined) {
+        return undefined;
+    }
+    if (kind === 'list' ? !checker.isArrayType (type) : !j77MapShapedType (printer, checker.getNonNullableType (type))) {
+        return undefined;
+    }
+    const name = String (call.expression.name.text);
+    if (/^safe[A-Z]/.test (name) || JAVA_SAFE_LIST_DEFAULT_AT.has (name)) {
+        return undefined; // the readers hand back an unproven default untouched (their own family proves it)
+    }
+    const spellings = new Set ();
+    if (awaited) {
+        const api = awaitedApiReturnTypes (sourceExchangeId (value), javaCoreTierOf (value) === 'prediction')?.get (name);
+        if (api !== undefined) {
+            spellings.add (api);
+        }
+        for (const t of (javaCoreReturnTypes (value)?.get (name) ?? [])) {
+            spellings.add (t);
+        }
+    } else {
+        if (JAVA_CORE_SYNC_DECLINED.has (name)) {
+            return undefined;
+        }
+        const emitted = printer.javaVenueCalleeReturnType?.(call);
+        if (emitted !== undefined) {
+            spellings.add (emitted);
+        }
+        // an absent entry is a callee not generated yet: its own printed signature below decides
+        const entry = javaCoreDeclarationTable (call)?.get (name);
+        if (entry?.future === true) {
+            return undefined;
+        }
+        for (const t of (entry?.types ?? [])) {
+            spellings.add (t);
+        }
+    }
+    // the callee this run prints (a venue method) must agree too: its signature, not the previous generation
+    let declaration;
+    try {
+        declaration = checker.getResolvedSignature (call)?.declaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration !== undefined && declaration.kind === ts.SyntaxKind.MethodDeclaration && declaration.body !== undefined
+        && /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/]|prediction[\\/])?[a-z0-9_]+\.ts$/.test (declaration.getSourceFile ().fileName)) {
+        const printed = String (printer.printFunctionType (declaration) ?? '').replace (/\s+/g, '');
+        const inner = /^(?:java\.util\.concurrent\.)?CompletableFuture(?:<(.+)>)?$/.exec (printed);
+        if (awaited !== (inner !== null)) {
+            return undefined;
+        }
+        spellings.add (awaited ? (inner[1] ?? 'Object') : printed);
+    }
+    const normal = [ ...spellings ].map ((t) => String (t).replace (/\s+/g, '').replace (/^java\.util\./, ''));
+    const own = kind === 'list' ? 'List<Object>' : 'Map<String,Object>';
+    if (normal.length === 0 || !normal.every ((t) => t === 'Object' || t === own)) {
+        return undefined;
+    }
+    // house limit (no added line over 400 chars): the later core-argument coercions can triple an argument's
+    // width, so a long initializer keeps its Object declaration
+    let width;
+    try {
+        width = String (printer.printNode (value, 0)).length;
+    } catch (e) {
+        return undefined;
+    }
+    if (width > 100) {
+        return undefined;
+    }
+    return { cast: normal.includes ('Object') };
+}
+
+// both joined-local families (Map locals, List locals) and their write proofs read these two values
+const j77BaseMapLocalValue = javaMapLocalValue;
+const j77BaseListLocalValue = javaListLocalValue;
+// eslint-disable-next-line no-func-assign
+javaMapLocalValue = function (printer, node, declaration, depth = 0) {
+    // the Map arm answers the initializer only; writes keep the family's own proofs
+    const value = unwrapParens (node);
+    const own = depth === 0 && value !== undefined && value === unwrapParens (declaration?.initializer)
+        ? j77CheckedArrayCallValue (printer, value, 'map') : undefined;
+    return own ?? j77BaseMapLocalValue (printer, node, declaration, depth);
+};
+// eslint-disable-next-line no-func-assign
+javaListLocalValue = function (printer, node, declaration, depth = 0) {
+    return j77CheckedArrayCallValue (printer, unwrapParens (node), 'list') ?? j77BaseListLocalValue (printer, node, declaration, depth);
+};
+
 // { cast } when the printed value is a List<Object> (or null) on every path, else undefined
 function javaListLocalValue (printer, node, declaration, depth = 0) {
     let value = unwrapParens (node);
