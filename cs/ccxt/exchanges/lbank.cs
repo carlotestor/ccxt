@@ -3257,7 +3257,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object fee = (response != null && i < response.Count ? response[i] : null);
+            IDictionary<string, object> fee = ((IDictionary<string, object>)(response != null && i < response.Count ? response[i] : null));
             bool? canWithdraw = this.safeBool(fee, "canWithDraw", false);
             if ((canWithdraw == true))
             {

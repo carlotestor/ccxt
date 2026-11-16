@@ -855,7 +855,7 @@ public partial class coinbase : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < portfolios.Count; i++)
         {
-            object portfolio = portfolios[i];
+            IDictionary<string, object> portfolio = ((IDictionary<string, object>)portfolios[i]);
             result.Add(new Dictionary<string, object>() {
                 { "id", this.safeString(portfolio, "uuid") },
                 { "type", this.safeString(portfolio, "type") },
@@ -1626,7 +1626,7 @@ public partial class coinbase : Exchange
             {
                 for (int j = 0; j < data.Count; j++)
                 {
-                    object quoteCurrency = data[j];
+                    IDictionary<string, object> quoteCurrency = ((IDictionary<string, object>)data[j]);
                     string? quoteId = this.safeString(quoteCurrency, "id");
                     string? quote = this.safeCurrencyCode(quoteId);
                     if (((quote == null)) || ((quoteId == null)))
@@ -2493,7 +2493,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "product_id");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             string? symbol = this.safeString(market, "symbol", "");

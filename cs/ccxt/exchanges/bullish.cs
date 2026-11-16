@@ -1696,7 +1696,7 @@ public partial class bullish : Exchange
         IList<object> result = this.toArray(response);
         for (int i = 0; i < (result?.Count ?? 0); i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? datetime = this.safeString(entry, "updatedAtDatetime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },

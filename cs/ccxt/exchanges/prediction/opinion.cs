@@ -226,7 +226,7 @@ public partial class opinion : PredictionExchange
             Int64? total = this.safeInteger(result, "total");
             for (int i = 0; i < rawMarketsLength; i++)
             {
-                object raw = (rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null);
+                IDictionary<string, object> raw = ((IDictionary<string, object>)(rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
                 fetchedRawRows.Add(raw);
                 Int64? marketType = this.safeInteger(raw, "marketType");
                 if ((marketType == 1))
@@ -1008,7 +1008,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> quoteTokens = new Dictionary<string, object>() {};
         for (int i = 0; i < listLength; i++)
         {
-            object entry = (list != null && i < list.Count ? list[i] : null);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(list != null && i < list.Count ? list[i] : null));
             string? address = this.safeStringLower(entry, "quoteTokenAddress");
             if ((address != null))
             {

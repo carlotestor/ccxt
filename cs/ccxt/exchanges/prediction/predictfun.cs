@@ -593,7 +593,7 @@ public partial class predictfun : PredictionExchange
             int parsedMarketsLength = parsedMarkets.Count;
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
-                object m = (parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null);
+                IDictionary<string, object> m = ((IDictionary<string, object>)(parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null));
                 // prediction market rows are keyed by the unified 'market' handle
                 string? handle = this.safeString(m, "market");
                 if ((handle != null))
@@ -740,7 +740,7 @@ public partial class predictfun : PredictionExchange
             int rawMarketsLength = rawMarkets.Count;
             for (int mi = 0; mi < rawMarketsLength; mi++)
             {
-                object rawMarket = (rawMarkets != null && mi < rawMarkets.Count ? rawMarkets[mi] : null);
+                IDictionary<string, object> rawMarket = ((IDictionary<string, object>)(rawMarkets != null && mi < rawMarkets.Count ? rawMarkets[mi] : null));
                 string? marketSlug = this.safeString(rawMarket, "categorySlug");
                 if ((marketSlug != null))
                 {
@@ -1217,7 +1217,7 @@ public partial class predictfun : PredictionExchange
         int rawOutcomesLength = rawOutcomes.Count;
         for (int oi = 0; oi < rawOutcomesLength; oi++)
         {
-            object rawOutcome = (rawOutcomes != null && oi < rawOutcomes.Count ? rawOutcomes[oi] : null);
+            IDictionary<string, object> rawOutcome = ((IDictionary<string, object>)(rawOutcomes != null && oi < rawOutcomes.Count ? rawOutcomes[oi] : null));
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             string? rawLabel = this.safeStringUpper(rawOutcome, "name");
@@ -1504,11 +1504,11 @@ public partial class predictfun : PredictionExchange
         Int64? indexSet = this.safeInteger(info, "indexSet");
         List<object> rawOutcomes = this.safeList(ticker, "outcomes", new List<object>() {});
         int rawOutcomesLength = rawOutcomes.Count;
-        object rawOutcome = new Dictionary<string, object>() {};
+        IDictionary<string, object> rawOutcome = new Dictionary<string, object>() {};
         bool outcomeFound = false;
         for (int i = 0; i < rawOutcomesLength; i++)
         {
-            object candidate = (rawOutcomes != null && i < rawOutcomes.Count ? rawOutcomes[i] : null);
+            IDictionary<string, object> candidate = ((IDictionary<string, object>)(rawOutcomes != null && i < rawOutcomes.Count ? rawOutcomes[i] : null));
             Int64? candidateIndexSet = this.safeInteger(candidate, "indexSet");
             if ((candidateIndexSet == indexSet))
             {
@@ -1600,7 +1600,7 @@ public partial class predictfun : PredictionExchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = (data != null && i < data.Count ? data[i] : null);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(data != null && i < data.Count ? data[i] : null));
             IDictionary<string, object> taker = this.safeDict(entry, "taker", new Dictionary<string, object>() {});
             string? takerSigner = this.safeStringLower(taker, "signer");
             if ((takerSigner == wallet))
@@ -1618,7 +1618,7 @@ public partial class predictfun : PredictionExchange
             int makersLength = makers.Count;
             for (int j = 0; j < makersLength; j++)
             {
-                object maker = (makers != null && j < makers.Count ? makers[j] : null);
+                IDictionary<string, object> maker = ((IDictionary<string, object>)(makers != null && j < makers.Count ? makers[j] : null));
                 string? makerSigner = this.safeStringLower(maker, "signer");
                 if ((makerSigner == wallet))
                 {
@@ -1707,7 +1707,7 @@ public partial class predictfun : PredictionExchange
             IDictionary<string, object> takerOutcome = this.safeDict(taker, "outcome", new Dictionary<string, object>() {});
             Int64? takerIndexSet = this.safeInteger(takerOutcome, "indexSet");
             Int64? outcomeIndexSet = this.safeInteger(info, "indexSet");
-            object partyToParse = this.safeDict(entry, "taker", new Dictionary<string, object>() {});
+            IDictionary<string, object> partyToParse = this.safeDict(entry, "taker", new Dictionary<string, object>() {});
             if ((takerIndexSet == outcomeIndexSet))
             {
                 // a public print carries no takerOrMaker: the unified fetchTrades contract allows
@@ -1732,7 +1732,7 @@ public partial class predictfun : PredictionExchange
                 };
                 for (int j = 0; j < makersLength; j++)
                 {
-                    object maker = (makers != null && j < makers.Count ? makers[j] : null);
+                    IDictionary<string, object> maker = ((IDictionary<string, object>)(makers != null && j < makers.Count ? makers[j] : null));
                     IDictionary<string, object> makerOutcome = this.safeDict(maker, "outcome", new Dictionary<string, object>() {});
                     Int64? makerIndexSet = this.safeInteger(makerOutcome, "indexSet");
                     if ((makerIndexSet == outcomeIndexSet))

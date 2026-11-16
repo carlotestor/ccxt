@@ -632,7 +632,7 @@ public partial class bitbank : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < pairs.Count; i++)
         {
-            object pair = pairs[i];
+            IDictionary<string, object> pair = ((IDictionary<string, object>)pairs[i]);
             string? marketId = this.safeString(pair, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = this.safeString(market, "symbol", "");
@@ -1111,7 +1111,7 @@ public partial class bitbank : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> tagAndParams = this.handleParamString(parameters, "tag");
         string? tagWithdrawTag = ((string)(tagAndParams != null && 0 < tagAndParams.Count ? tagAndParams[0] : null));
-        object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)(tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null));
         this.checkAddress(address, code, tagWithdrawTag);
         if (!(((IDictionary<string, object>)parameters).ContainsKey("uuid")))
         {

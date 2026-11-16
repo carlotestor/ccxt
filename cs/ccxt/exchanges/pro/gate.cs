@@ -1050,7 +1050,7 @@ public partial class gate : ccxt.gate
         bool isTicker = ((objectName == "ticker")); // whether ticker or bid-ask
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
-            object rawTicker = results[i];
+            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)results[i]);
             string? marketId = this.safeString(rawTicker, "s");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "_", marketType);
             ccxt.Ticker parsedItem = this.parseTicker(rawTicker, market);
@@ -1373,7 +1373,7 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < (result?.Count ?? 0); i++)
         {
-            object ohlcv = result[i];
+            IDictionary<string, object> ohlcv = ((IDictionary<string, object>)result[i]);
             string? subscription = this.safeString(ohlcv, "n", "");
             List<object> parts = subscription.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? timeframeId = this.safeString(parts, 0);
@@ -2035,24 +2035,24 @@ public partial class gate : ccxt.gate
         IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
         {
-            object parsed = parsedOrders[i];
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)parsedOrders[i]);
             // inject order status
             IDictionary<string, object> info = this.safeDict(parsed, "info");
             string? eventVar = this.safeString(info, "event");
             if (eventVar == "put" || eventVar == "update")
             {
-                ((IDictionary<string,object>)parsed)["status"] = "open";
+                parsed["status"] = "open";
             } else if (eventVar == "finish")
             {
                 string? status = this.safeString(parsed, "status");
                 if ((status == null))
                 {
                     string? left = this.safeString(info, "left");
-                    ((IDictionary<string,object>)parsed)["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
+                    parsed["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
                 }
             }
             ccxt.pro.BaseCache.appendTo(stored, parsed);
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             Dictionary<string, object> market = this.market(symbol);
             if (!((market.ContainsKey("id") ? market["id"] : null) == null))
             {
@@ -2209,7 +2209,7 @@ public partial class gate : ccxt.gate
         ccxt.pro.ArrayCache cache = this.liquidations;
         for (int i = 0; i < rawLiquidations.Count; i++)
         {
-            object rawLiquidation = rawLiquidations[i];
+            IDictionary<string, object> rawLiquidation = ((IDictionary<string, object>)rawLiquidations[i]);
             Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidation);
             cache.append(liquidation);
             string? symbol = this.safeString(liquidation, "symbol");

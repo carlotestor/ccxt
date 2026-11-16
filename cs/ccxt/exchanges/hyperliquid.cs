@@ -5424,7 +5424,7 @@ public partial class hyperliquid : Exchange
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < (records?.Count ?? 0); i++)
         {
-            object record = records[i];
+            IDictionary<string, object> record = ((IDictionary<string, object>)records[i]);
             if ((this.safeString(record, "type") == "vaultDeposit"))
             {
                 IDictionary<string, object> delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
@@ -5508,7 +5508,7 @@ public partial class hyperliquid : Exchange
         List<object> withdrawals = new List<object>() {};
         for (int i = 0; i < (records?.Count ?? 0); i++)
         {
-            object record = records[i];
+            IDictionary<string, object> record = ((IDictionary<string, object>)records[i]);
             if ((this.safeString(record, "type") == "vaultWithdraw"))
             {
                 IDictionary<string, object> delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});

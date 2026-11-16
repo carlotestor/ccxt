@@ -2632,7 +2632,7 @@ public partial class paradex : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
-            object result = results[i];
+            IDictionary<string, object> result = ((IDictionary<string, object>)results[i]);
             string? marketId = this.safeString(result, "market");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? status = this.safeString(result, "status");
@@ -2839,8 +2839,8 @@ public partial class paradex : Exchange
         int ordersLength = (orders?.Count ?? 0);
         if (((paginationCursor != null)) && (ordersLength > 0))
         {
-            object first = (orders != null && 0 < orders.Count ? orders[0] : null);
-            ((IDictionary<string,object>)first)["next"] = paginationCursor;
+            IDictionary<string, object> first = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
+            first["next"] = paginationCursor;
             orders[Convert.ToInt32(0)] = first;
         }
         return this.parseOrders(orders, market, since, limit);
@@ -3351,7 +3351,7 @@ public partial class paradex : Exchange
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object row = rows[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
             if ((allKinds == true) || ((this.safeString(row, "kind") == "DEPOSIT")))
             {
                 deposits.Add(row);
@@ -3439,7 +3439,7 @@ public partial class paradex : Exchange
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object row = rows[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
             if ((allKinds == true) || ((this.safeString(row, "kind") == "WITHDRAWAL")))
             {
                 deposits.Add(row);
@@ -4191,7 +4191,7 @@ public partial class paradex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
-            object rate = results[i];
+            IDictionary<string, object> rate = ((IDictionary<string, object>)results[i]);
             Int64? timestamp = this.safeInteger(rate, "created_at");
             string? datetime = this.iso8601(timestamp);
             rates.Add(new Dictionary<string, object>() {

@@ -5035,7 +5035,7 @@ public partial class mexc : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < resultList.Count; i++)
         {
-            object entry = resultList[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)resultList[i]);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
             result.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -5219,7 +5219,7 @@ public partial class mexc : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
@@ -6563,7 +6563,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object entry = (response != null && i < response.Count ? response[i] : null);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(response != null && i < response.Count ? response[i] : null));
             string? currencyId = this.safeString(entry, "coin");
             Dictionary<string, object> currency = this.safeCurrency(currencyId);
             string? code = this.safeString(currency, "code");

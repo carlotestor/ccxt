@@ -1330,7 +1330,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < (networkList?.Count ?? 0); j++)
         {
-            object rawNetwork = networkList[j];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)networkList[j]);
             string? network = this.safeString(rawNetwork, "network");
             string? networkCode = this.networkIdToCode(network, code);
             Dictionary<string, object> limits = new Dictionary<string, object>() {

@@ -1041,7 +1041,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < rawNetworks.Count; j++)
         {
-            object rawNetwork = rawNetworks[j];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[j]);
             string? networkId = this.safeString2(rawNetwork, "protocol", "network");
             string? rawNetworkCode = this.networkIdToCode(networkId, code);
             string? networkCodeUpper = ((rawNetworkCode != null)) ? rawNetworkCode.ToUpper() : null;
@@ -3325,7 +3325,7 @@ public partial class hitbtc : Exchange
             List<object> fundingRateData = this.safeList(response, marketId, new List<object>() {});
             for (int j = 0; j < fundingRateData.Count; j++)
             {
-                object entry = fundingRateData[j];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)fundingRateData[j]);
                 string? symbolInner = this.safeSymbol((marketInner != null && marketInner.ContainsKey("symbol") ? marketInner["symbol"] : null));
                 double? fundingRate = this.safeNumber(entry, "funding_rate");
                 string? datetime = this.safeString(entry, "timestamp");

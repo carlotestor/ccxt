@@ -291,7 +291,7 @@ public partial class myriad : PredictionExchange
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
-            object raw = getValue(rawMarkets, i);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)getValue(rawMarkets, i));
             Dictionary<string, object> m = this.parseMyriadMarket(raw);
             flatMarkets.Add(m);
             Dictionary<string, object> ev = this.parseMarketToEvent(raw, m);
@@ -337,7 +337,7 @@ public partial class myriad : PredictionExchange
             object found = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
             for (int j = 0; j < getArrayLength(found); j++)
             {
-                object raw = getValue(found, j);
+                IDictionary<string, object> raw = ((IDictionary<string, object>)getValue(found, j));
                 string networkId = this.safeString(raw, "networkId", "");
                 string? marketId = this.safeString(raw, "id", "");
                 string key = ((networkId + ":") + marketId);
@@ -539,7 +539,7 @@ public partial class myriad : PredictionExchange
             object found = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
             for (int j = 0; j < getArrayLength(found); j++)
             {
-                object raw = getValue(found, j);
+                IDictionary<string, object> raw = ((IDictionary<string, object>)getValue(found, j));
                 string? questionId = this.safeString(raw, "id");
                 if (((questionId != null)) && !(((questionId != null) && seen.ContainsKey(questionId))))
                 {
@@ -591,7 +591,7 @@ public partial class myriad : PredictionExchange
             }
             for (int i = 0; i < rawQuestionsLength; i++)
             {
-                object rawQuestion = getValue(rawQuestions, i);
+                IDictionary<string, object> rawQuestion = ((IDictionary<string, object>)getValue(rawQuestions, i));
                 string? questionId = this.safeString(rawQuestion, "id");
                 if (((questionId != null)) && (((questionId != null) && seen.ContainsKey(questionId))))
                 {
@@ -1743,7 +1743,7 @@ public partial class myriad : PredictionExchange
         int rowsLength = rows.Count;
         for (int i = 0; i < rowsLength; i++)
         {
-            object row = (rows != null && i < rows.Count ? rows[i] : null);
+            IDictionary<string, object> row = ((IDictionary<string, object>)(rows != null && i < rows.Count ? rows[i] : null));
             string? action = this.safeStringLower(row, "action");
             if ((action != "buy") && (action != "sell"))
             {
@@ -3096,10 +3096,10 @@ public partial class myriad : PredictionExchange
         //     }
         //
         List<object> outcomes = this.safeList(response, "outcomes", new List<object>() {});
-        object selectedOutcome = null;
+        IDictionary<string, object> selectedOutcome = null;
         for (int i = 0; i < outcomes.Count; i++)
         {
-            object oc = outcomes[i];
+            IDictionary<string, object> oc = ((IDictionary<string, object>)outcomes[i]);
             string? currentId = this.safeString(oc, "id", this.safeString(oc, "outcomeId"));
             string? currentTitle = this.safeString(oc, "title", this.safeString(oc, "label"));
             if (((outcomeId != null)) && ((currentId == outcomeId)))
@@ -3143,7 +3143,7 @@ public partial class myriad : PredictionExchange
         List<object> usablePoints = new List<object>() {};
         for (int i = 0; i < (points?.Count ?? 0); i++)
         {
-            object point = points[i];
+            IDictionary<string, object> point = ((IDictionary<string, object>)points[i]);
             double? pointOpen = this.safeNumber(point, "open");
             double? pointPrice = this.safeNumber(point, "price", this.safeNumber(point, "value"));
             Int64? pointTs = this.safeInteger(point, "timestamp");
@@ -3461,7 +3461,7 @@ public partial class myriad : PredictionExchange
         int rawQuestionsLength = (rawQuestions?.Count ?? 0);
         for (int i = 0; i < rawQuestionsLength; i++)
         {
-            object rawQuestion = (rawQuestions != null && i < rawQuestions.Count ? rawQuestions[i] : null);
+            IDictionary<string, object> rawQuestion = ((IDictionary<string, object>)(rawQuestions != null && i < rawQuestions.Count ? rawQuestions[i] : null));
             Dictionary<string, object> ev = this.parseEvent(rawQuestion);
             List<object> evMarkets = this.safeList(ev, "markets", new List<object>() {});
             int evMarketsLength = evMarkets.Count;
@@ -3493,7 +3493,7 @@ public partial class myriad : PredictionExchange
         int rawMarketsLength = (rawMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            object raw = (rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)(rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
             Dictionary<string, object> m = this.parseMyriadMarket(raw);
             string? marketHandle = this.safeString(m, "market");
             if (((marketHandle != null)) && (((marketHandle != null) && seenMarketHandles.ContainsKey(marketHandle))))
@@ -3533,7 +3533,7 @@ public partial class myriad : PredictionExchange
         List<object> marketsList = new List<object>() {};
         for (int i = 0; i < rawMarkets.Count; i++)
         {
-            object rawMarket = rawMarkets[i];
+            IDictionary<string, object> rawMarket = ((IDictionary<string, object>)rawMarkets[i]);
             marketsList.Add(this.parseMyriadMarket(rawMarket, questionSlug));
         }
         string? endDate = this.safeString(rawEvent, "expiresAt", this.safeString(rawEvent, "endDate"));
@@ -3953,7 +3953,7 @@ public partial class myriad : PredictionExchange
             int makersLength = makers.Count;
             for (int i = 0; i < makersLength; i++)
             {
-                object maker = (makers != null && i < makers.Count ? makers[i] : null);
+                IDictionary<string, object> maker = ((IDictionary<string, object>)(makers != null && i < makers.Count ? makers[i] : null));
                 string? makerTrader = this.safeStringLower(maker, "trader");
                 if ((makerTrader == myWallet))
                 {
@@ -4113,7 +4113,7 @@ public partial class myriad : PredictionExchange
         IDictionary<string, object> cachedTickers = this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {});
         for (int i = 0; i < outcomesLength; i++)
         {
-            object oc = (outcomes != null && i < outcomes.Count ? outcomes[i] : null);
+            IDictionary<string, object> oc = ((IDictionary<string, object>)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             string? outcomeId = this.safeString(oc, "outcome");
             string? sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
             if ((sym == null))

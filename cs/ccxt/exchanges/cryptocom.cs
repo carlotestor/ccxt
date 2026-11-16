@@ -3794,7 +3794,7 @@ public partial class cryptocom : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "t");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -3921,7 +3921,7 @@ public partial class cryptocom : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            object entry = positions[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)positions[i]);
             string? marketId = this.safeString(entry, "instrument_name");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             result.Add(this.parsePosition(entry, marketInner));

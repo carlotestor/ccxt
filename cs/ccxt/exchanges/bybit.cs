@@ -2342,8 +2342,8 @@ public partial class bybit : Exchange
         int dataLength = data.Count;
         if (((paginationCursor != null)) && (dataLength > 0))
         {
-            object first = (data != null && 0 < data.Count ? data[0] : null);
-            ((IDictionary<string,object>)first)["nextPageCursor"] = paginationCursor;
+            IDictionary<string, object> first = ((IDictionary<string, object>)(data != null && 0 < data.Count ? data[0] : null));
+            first["nextPageCursor"] = paginationCursor;
             ((List<object>)data)[Convert.ToInt32(0)] = first;
         }
         return data;
@@ -4199,7 +4199,7 @@ public partial class bybit : Exchange
         List<object> resultList = this.safeList(result, "list", new List<object>() {});
         for (int i = 0; i < resultList.Count; i++)
         {
-            object entry = resultList[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)resultList[i]);
             Int64? timestamp = this.safeInteger(entry, "fundingRateTimestamp");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -5848,7 +5848,7 @@ public partial class bybit : Exchange
         // extend the error with the unsuccessful orders
         for (int i = 0; i < codes.Count; i++)
         {
-            object code = codes[i];
+            IDictionary<string, object> code = ((IDictionary<string, object>)codes[i]);
             Int64? retCode = this.safeInteger(code, "code");
             if ((retCode != 0))
             {
@@ -6087,7 +6087,7 @@ public partial class bybit : Exchange
         // extend the error with the unsuccessful orders
         for (int i = 0; i < codes.Count; i++)
         {
-            object code = codes[i];
+            IDictionary<string, object> code = ((IDictionary<string, object>)codes[i]);
             Int64? retCode = this.safeInteger(code, "code");
             if ((retCode != 0))
             {
@@ -11207,7 +11207,7 @@ public partial class bybit : Exchange
         List<object> coins = this.safeList(data, "coins", new List<object>() {});
         for (int i = 0; i < coins.Count; i++)
         {
-            object entry = coins[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)coins[i]);
             string? id = this.safeString(entry, "coin");
             bool? disableFrom = this.safeBool(entry, "disableFrom", false);
             bool? disableTo = this.safeBool(entry, "disableTo", false);

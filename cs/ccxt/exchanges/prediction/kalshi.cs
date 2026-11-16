@@ -415,7 +415,7 @@ public partial class kalshi : PredictionExchange
             int rawMarketsLength = rawMarkets.Count;
             for (int i = 0; i < rawMarkets.Count; i++)
             {
-                object raw = rawMarkets[i];
+                IDictionary<string, object> raw = ((IDictionary<string, object>)rawMarkets[i]);
                 List<object> parsed = this.parseBinaryMarketToOutcomes(raw);
                 string? eventTicker = this.safeString(raw, "event_ticker");
                 string? eventTitle = this.safeString(raw, "title", eventTicker);
@@ -1259,7 +1259,7 @@ public partial class kalshi : PredictionExchange
             List<object> rawMarkets = this.safeList(response, "markets", new List<object>() {});
             for (int i = 0; i < rawMarkets.Count; i++)
             {
-                object raw = rawMarkets[i];
+                IDictionary<string, object> raw = ((IDictionary<string, object>)rawMarkets[i]);
                 string? marketTicker = this.safeString(raw, "ticker");
                 if (((marketTicker == null)) || !(((marketTicker != null) && outcomesByTicker.ContainsKey(marketTicker))))
                 {
@@ -1478,7 +1478,7 @@ public partial class kalshi : PredictionExchange
         List<object> usableCandles = new List<object>() {};
         for (int i = 0; i < candles.Count; i++)
         {
-            object candle = candles[i];
+            IDictionary<string, object> candle = ((IDictionary<string, object>)candles[i]);
             IDictionary<string, object> priceObj = this.safeDict(candle, "price", new Dictionary<string, object>() {});
             double? openPrice = this.safeNumber(priceObj, "open_dollars");
             double? previousPrice = this.safeNumber(priceObj, "previous_dollars");
@@ -2537,7 +2537,7 @@ public partial class kalshi : PredictionExchange
         List<object> canceledOrders = new List<object>() {};
         for (int i = 0; i < restingOrdersLength; i++)
         {
-            object restingOrder = (restingOrders != null && i < restingOrders.Count ? restingOrders[i] : null);
+            IDictionary<string, object> restingOrder = ((IDictionary<string, object>)(restingOrders != null && i < restingOrders.Count ? restingOrders[i] : null));
             string? orderId = this.safeString(restingOrder, "order_id");
             if ((orderId != null))
             {
@@ -2641,8 +2641,8 @@ public partial class kalshi : PredictionExchange
             int parsedMarketsLength = getArrayLength(parsedMarkets);
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
-                object m = getValue(parsedMarkets, mi);
-                this.markets[(string)getValue(m, "market")] = m;
+                IDictionary<string, object> m = ((IDictionary<string, object>)getValue(parsedMarkets, mi));
+                this.markets[(string)(m != null && m.ContainsKey("market") ? m["market"] : null)] = m;
             }
         }
         this.populateOutcomes();
@@ -3008,7 +3008,7 @@ public partial class kalshi : PredictionExchange
         Int64? latestClose = this.parse8601(this.safeString(firstMarket, "close_time"));
         for (int i = 0; i < rawMarkets.Count; i++)
         {
-            object rawMarket = rawMarkets[i];
+            IDictionary<string, object> rawMarket = ((IDictionary<string, object>)rawMarkets[i]);
             Dictionary<string, object> parsed = this.parseMarket(rawMarket);
             marketsList.Add(parsed);
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));

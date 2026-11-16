@@ -184,7 +184,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> result = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object data = tickers[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)tickers[i]);
             string? marketId = this.safeString(data, "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             ccxt.Ticker ticker = this.parseTicker(data, market);
@@ -229,7 +229,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> result = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object data = tickers[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)tickers[i]);
             Dictionary<string, object> ticker = this.parseWsBidAsk(data);
             string? symbol = this.safeString(ticker, "symbol", "");
             this.bidsasks[(string)symbol] = ticker;
@@ -514,7 +514,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         for (int i = 0; i < candles.Count; i++)
         {
-            object candle = candles[i];
+            IDictionary<string, object> candle = ((IDictionary<string, object>)candles[i]);
             IList<object> parsed = this.parseOHLCV(candle, market);
             stored.append(parsed);
         }

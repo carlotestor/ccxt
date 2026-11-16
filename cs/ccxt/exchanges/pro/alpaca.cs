@@ -739,7 +739,7 @@ public partial class alpaca : ccxt.alpaca
     {
         for (int i = 0; i < getArrayLength(message); i++)
         {
-            object data = getValue(message, i);
+            IDictionary<string, object> data = ((IDictionary<string, object>)getValue(message, i));
             string? T = this.safeString(data, "T");
             string? msg = this.safeString(data, "msg");
             if (T == "subscription")

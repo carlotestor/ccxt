@@ -1110,7 +1110,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < responseOrders.Count; i++)
         {
-            object responseOrder = responseOrders[i];
+            IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[i]);
             ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -1225,7 +1225,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < responseOrders.Count; i++)
         {
-            object responseOrder = responseOrders[i];
+            IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[i]);
             ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -1303,7 +1303,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < responseOrders.Count; i++)
         {
-            object responseOrder = responseOrders[i];
+            IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[i]);
             ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -2590,7 +2590,7 @@ public partial class hibachi : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },

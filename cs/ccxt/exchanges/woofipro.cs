@@ -1037,7 +1037,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> indexedChains = this.indexBy(chainRows, "chain_id");
         for (int i = 0; i < tokenRows.Count; i++)
         {
-            object token = tokenRows[i];
+            IDictionary<string, object> token = ((IDictionary<string, object>)tokenRows[i]);
             Dictionary<string, object> parsed = this.parseCurrency(new Dictionary<string, object>() {
                 { "_token", token },
                 { "_indexedChains", indexedChains },
@@ -1538,7 +1538,7 @@ public partial class woofipro : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object row = rows[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
             string? marketId = this.safeString(row, "symbol", "");
             if (((this.markets_by_id == null)) || !(((marketId != null) && (this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
             {
@@ -1662,7 +1662,7 @@ public partial class woofipro : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object row = rows[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
             string? marketId = this.safeString(row, "symbol", "");
             if (((this.markets_by_id == null)) || !(((marketId != null) && (this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
             {
@@ -1743,7 +1743,7 @@ public partial class woofipro : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "funding_rate_timestamp");
             rates.Add(new Dictionary<string, object>() {

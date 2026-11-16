@@ -854,7 +854,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < networkDetails.Count; j++)
         {
-            object entry = networkDetails[j];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)networkDetails[j]);
             string? networkId = this.safeString(entry, "chain");
             string? network = this.networkIdToCode(networkId, code);
             if ((network != null))

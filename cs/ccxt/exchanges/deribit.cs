@@ -2140,7 +2140,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> optionFee = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            object feeEntry = fees[i];
+            IDictionary<string, object> feeEntry = ((IDictionary<string, object>)fees[i]);
             string? instrumentType = this.safeString(feeEntry, "instrument_type");
             if (instrumentType == "future")
             {

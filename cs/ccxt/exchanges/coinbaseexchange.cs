@@ -713,7 +713,7 @@ public partial class coinbaseexchange : Exchange
         List<object> supportedNetworks = this.safeList(rawCurrency, "supported_networks", new List<object>() {});
         for (int j = 0; j < supportedNetworks.Count; j++)
         {
-            object network = supportedNetworks[j];
+            IDictionary<string, object> network = ((IDictionary<string, object>)supportedNetworks[j]);
             string? networkId = this.safeString(network, "id");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))

@@ -957,7 +957,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> schedulesByUid = new Dictionary<string, object>() {};
         for (int i = 0; i < feeSchedules.Count; i++)
         {
-            object schedule = feeSchedules[i];
+            IDictionary<string, object> schedule = ((IDictionary<string, object>)feeSchedules[i]);
             string? uid = this.safeString(schedule, "uid");
             if ((uid != null))
             {
@@ -2614,7 +2614,7 @@ public partial class krakenfutures : Exchange
             List<object> executions = new List<object>() {};
             for (int i = 0; i < orderEvents.Count; i++)
             {
-                object item = orderEvents[i];
+                IDictionary<string, object> item = ((IDictionary<string, object>)orderEvents[i]);
                 if ((this.safeString(item, "type") == "EXECUTION"))
                 {
                     executions.Add(item);
@@ -2913,7 +2913,7 @@ public partial class krakenfutures : Exchange
         List<object> rows = new List<object>() {};
         for (int i = 0; i < logs.Count; i++)
         {
-            object row = logs[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)logs[i]);
             string? asset = this.safeString(row, "asset");
             string? contract = this.safeString(row, "contract");
             if (((asset != null)) && ((asset != contract)))

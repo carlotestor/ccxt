@@ -261,7 +261,7 @@ public partial class mudrex : ccxt.mudrex
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object t = data[i];
+            IDictionary<string, object> t = ((IDictionary<string, object>)data[i]);
             string? s = this.safeString(t, "s");
             if ((s == null))
             {

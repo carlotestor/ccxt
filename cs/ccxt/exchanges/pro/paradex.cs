@@ -1860,7 +1860,7 @@ public partial class paradex : ccxt.paradex
         IList<object> cached = this.filterBySymbolSinceLimit(cache, symbol, null, null, true);
         for (int i = 0; i < (cached?.Count ?? 0); i++)
         {
-            object previous = cached[i];
+            IDictionary<string, object> previous = ((IDictionary<string, object>)cached[i]);
             string? previousSide = this.safeString(previous, "side");
             string? previousContracts = this.safeString(previous, "contracts");
             bool isOpposite = ((side != null)) && ((previousSide != null)) && ((previousSide != side));

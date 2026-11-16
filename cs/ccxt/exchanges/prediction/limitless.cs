@@ -334,7 +334,7 @@ public partial class limitless : PredictionExchange
                 List<object> found = this.safeList(response, "markets", new List<object>() {});
                 for (int j = 0; j < found.Count; j++)
                 {
-                    object raw = found[j];
+                    IDictionary<string, object> raw = ((IDictionary<string, object>)found[j]);
                     string? slug = this.safeString(raw, "slug");
                     if (((slug != null) && slug != "") && !(((slug != null) && seen.ContainsKey(slug))))
                     {
@@ -418,7 +418,7 @@ public partial class limitless : PredictionExchange
         List<object> expandedRaw = this.expandGroupRows(allRaw);
         for (int i = 0; i < (expandedRaw?.Count ?? 0); i++)
         {
-            object raw = expandedRaw[i];
+            IDictionary<string, object> raw = ((IDictionary<string, object>)expandedRaw[i]);
             string? groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
             string? eventKey = null;
             if ((groupId != null) && groupId != "")
@@ -1071,7 +1071,7 @@ public partial class limitless : PredictionExchange
     { "slug", slug },
 })};
         List<object> responses = new List<object>(await Task.WhenAll(promises));
-        object response = (responses != null && 0 < responses.Count ? responses[0] : null);
+        IDictionary<string, object> response = ((IDictionary<string, object>)(responses != null && 0 < responses.Count ? responses[0] : null));
         //
         //     {
         //         "id": "36814",
@@ -1467,7 +1467,7 @@ public partial class limitless : PredictionExchange
         List<object> filtered = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object row = rows[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
             string? rowTokenId = this.safeString(row, "tokenId");
             if (((tokenId != null)) && ((rowTokenId != null)) && ((rowTokenId != tokenId)))
             {
@@ -3385,7 +3385,7 @@ public partial class limitless : PredictionExchange
                 List<object> found = this.safeList(response, "markets", new List<object>() {});
                 for (int j = 0; j < found.Count; j++)
                 {
-                    object raw = found[j];
+                    IDictionary<string, object> raw = ((IDictionary<string, object>)found[j]);
                     string? rawSlug = this.safeString(raw, "slug");
                     if (((rawSlug != null) && rawSlug != "") && !(((rawSlug != null) && seen.ContainsKey(rawSlug))))
                     {
@@ -3427,7 +3427,7 @@ public partial class limitless : PredictionExchange
         int rawMarketsLength = (expandedMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            object raw = (expandedMarkets != null && i < expandedMarkets.Count ? expandedMarkets[i] : null);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)(expandedMarkets != null && i < expandedMarkets.Count ? expandedMarkets[i] : null));
             string? groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
             string? eventKey = null;
             if ((groupId != null) && groupId != "")
@@ -3603,7 +3603,7 @@ public partial class limitless : PredictionExchange
             int categoryMarketsLength = (categoryMarkets?.Count ?? 0);
             for (int mi = 0; mi < categoryMarketsLength; mi++)
             {
-                object raw = (categoryMarkets != null && mi < categoryMarkets.Count ? categoryMarkets[mi] : null);
+                IDictionary<string, object> raw = ((IDictionary<string, object>)(categoryMarkets != null && mi < categoryMarkets.Count ? categoryMarkets[mi] : null));
                 string? slug = this.safeString(raw, "slug");
                 if (((slug != null)) && !(((slug != null) && seen.ContainsKey(slug))))
                 {

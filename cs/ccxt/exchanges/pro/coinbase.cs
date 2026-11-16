@@ -629,11 +629,11 @@ public partial class coinbase : ccxt.coinbase
         string timeframe = "5m";
         for (int i = 0; i < events.Count; i++)
         {
-            object eventVar = events[i];
+            IDictionary<string, object> eventVar = ((IDictionary<string, object>)events[i]);
             List<object> candles = this.safeList(eventVar, "candles", new List<object>() {});
             for (int j = 0; j < candles.Count; j++)
             {
-                object candle = candles[j];
+                IDictionary<string, object> candle = ((IDictionary<string, object>)candles[j]);
                 string? marketId = this.safeString(candle, "product_id");
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -923,7 +923,7 @@ public partial class coinbase : ccxt.coinbase
             int tradesLength = currentTrades.Count;
             for (Int64 j = 0; j < tradesLength; j++)
             {
-                object item = (currentTrades != null && ((tradesLength - j) - 1) < currentTrades.Count ? currentTrades[(int)((tradesLength - j) - 1)] : null);
+                IDictionary<string, object> item = ((IDictionary<string, object>)(currentTrades != null && ((tradesLength - j) - 1) < currentTrades.Count ? currentTrades[(int)((tradesLength - j) - 1)] : null));
                 tradesArray.append(ccxt.BaseExchange.FromTrade(this.parseTrade(item)));
             }
         }
@@ -982,7 +982,7 @@ public partial class coinbase : ccxt.coinbase
             }
             for (int j = 0; j < responseOrders.Count; j++)
             {
-                object responseOrder = responseOrders[j];
+                IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[j]);
                 ccxt.Order parsed = this.parseWsOrder(responseOrder);
                 ccxt.pro.ArrayCache cachedOrders = this.orders;
                 string? marketId = this.safeString(responseOrder, "product_id");

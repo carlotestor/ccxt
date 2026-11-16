@@ -1313,7 +1313,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < currenciesData.Count; i++)
         {
-            object entry = currenciesData[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)currenciesData[i]);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             IDictionary<string, object> networkEntry = this.safeDict(chainsDataIndexed, currencyId, new Dictionary<string, object>() {});
@@ -1321,7 +1321,7 @@ public partial class xt : Exchange
             Dictionary<string, object> networks = new Dictionary<string, object>() {};
             for (int j = 0; j < rawNetworks.Count; j++)
             {
-                object rawNetwork = rawNetworks[j];
+                IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[j]);
                 string? networkId = this.safeString(rawNetwork, "chain");
                 string? networkCode = this.networkIdToCode(networkId, code);
                 if ((networkCode != null))
@@ -2376,7 +2376,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object rawTicker = tickers[i];
+            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)tickers[i]);
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             string? marketId = this.safeString(rawTicker, "s");
@@ -5665,7 +5665,7 @@ public partial class xt : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < items.Count; i++)
         {
-            object entry = items[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)items[i]);
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId, market);
             Int64? timestamp = this.safeInteger(entry, "createdTime");
@@ -6086,7 +6086,7 @@ public partial class xt : Exchange
         Dictionary<string, object> breakBySymbolSide = new Dictionary<string, object>() {};
         for (int i = 0; i < (breakList?.Count ?? 0); i++)
         {
-            object breakEntry = (breakList != null && i < breakList.Count ? breakList[i] : null);
+            IDictionary<string, object> breakEntry = ((IDictionary<string, object>)(breakList != null && i < breakList.Count ? breakList[i] : null));
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
@@ -6198,7 +6198,7 @@ public partial class xt : Exchange
         Dictionary<string, object> breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
         for (int i = 0; i < positions.Count; i++)
         {
-            object entry = positions[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)positions[i]);
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             string? positionSize = this.safeString(entry, "positionSize");
@@ -6291,7 +6291,7 @@ public partial class xt : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            object entry = positions[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)positions[i]);
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);

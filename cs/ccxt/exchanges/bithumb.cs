@@ -1223,7 +1223,7 @@ public partial class bithumb : Exchange
                 }
                 for (int j = 0; j < getArrayLength(tickers); j++)
                 {
-                    object entry = getValue(tickers, j);
+                    IDictionary<string, object> entry = ((IDictionary<string, object>)getValue(tickers, j));
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
                     if ((marketId == null))
                     {

@@ -444,7 +444,7 @@ public partial class binance : ccxt.binance
         }
         List<object> resolvedAuth = this.resolveAuthType("watchLiquidationsForSymbols", firstMarket, parameters);
         string? type = ((string)(resolvedAuth != null && 0 < resolvedAuth.Count ? resolvedAuth[0] : null));
-        object paramsValue = (resolvedAuth != null && 2 < resolvedAuth.Count ? resolvedAuth[2] : null);
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)(resolvedAuth != null && 2 < resolvedAuth.Count ? resolvedAuth[2] : null));
         // the spot check runs on the RESOLVED type: a spot default combined
         // with a linear or inverse defaultSubType means the caller wants the
         // matching derivatives stream, so the rewrite is allowed to route it
@@ -3547,7 +3547,7 @@ public partial class binance : ccxt.binance
         Int64 time = this.milliseconds();
         List<object> resolvedAuth = this.resolveAuthType("authenticate", null, parameters);
         string? type = ((string)(resolvedAuth != null && 0 < resolvedAuth.Count ? resolvedAuth[0] : null));
-        object paramsAuth = (resolvedAuth != null && 2 < resolvedAuth.Count ? resolvedAuth[2] : null);
+        IDictionary<string, object> paramsAuth = ((IDictionary<string, object>)(resolvedAuth != null && 2 < resolvedAuth.Count ? resolvedAuth[2] : null));
         (bool?, object) isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2(paramsAuth, "authenticate", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.Item1;
         IDictionary<string, object> paramsPortfolioMargin = ((IDictionary<string, object>)isPortfolioMarginparamsPortfolioMarginVariable.Item2);
@@ -4305,7 +4305,7 @@ public partial class binance : ccxt.binance
             }
             for (int i = 0; i < B.Count; i++)
             {
-                object entry = B[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)B[i]);
                 string? currencyId = this.safeString(entry, "a");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();

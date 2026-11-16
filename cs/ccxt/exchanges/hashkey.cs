@@ -1313,7 +1313,7 @@ public partial class hashkey : Exchange
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < (networks?.Count ?? 0); j++)
         {
-            object network = networks[j];
+            IDictionary<string, object> network = ((IDictionary<string, object>)networks[j]);
             string? networkId = this.safeString(network, "chainType");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -4023,7 +4023,7 @@ public partial class hashkey : Exchange
         IList<object> rows = this.toArray(response);
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object entry = rows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },

@@ -2943,7 +2943,7 @@ public partial class okx : Exchange
         List<object> marketsWithoutTest = new List<object>() {};
         for (int i = 0; i < (dataResponse?.Count ?? 0); i++)
         {
-            object data = dataResponse[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)dataResponse[i]);
             string? instId = this.safeString(data, "instId", "");
             if (instId == "")
             {
@@ -3886,7 +3886,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rate = data[i];
+            IDictionary<string, object> rate = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", rate },
@@ -5677,7 +5677,7 @@ public partial class okx : Exchange
         List<object> attachAlgoOrds = this.safeList(order, "attachAlgoOrds", new List<object>() {});
         for (int i = 0; i < attachAlgoOrds.Count; i++)
         {
-            object attached = attachAlgoOrds[i];
+            IDictionary<string, object> attached = ((IDictionary<string, object>)attachAlgoOrds[i]);
             if ((stopLossPrice == null))
             {
                 stopLossPrice = this.safeNumber(attached, "slTriggerPx");
@@ -8600,7 +8600,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "ts");
             string? instId = this.safeString(entry, "instId");
             Dictionary<string, object> marketInner = this.safeMarket(instId);
@@ -10397,7 +10397,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? entryMarketId = this.safeString(entry, "instId");
             if ((entryMarketId == marketId))
             {
@@ -11114,7 +11114,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))

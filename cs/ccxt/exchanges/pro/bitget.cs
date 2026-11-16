@@ -111,7 +111,7 @@ public partial class bitget : ccxt.bitget
             productTypeAndParams = new List<object>() {"SPOT", parameters};
         }
         object instTypeDefault = (productTypeAndParams != null && 0 < productTypeAndParams.Count ? productTypeAndParams[0] : null);
-        object paramsProductType = (productTypeAndParams != null && 1 < productTypeAndParams.Count ? productTypeAndParams[1] : null);
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)(productTypeAndParams != null && 1 < productTypeAndParams.Count ? productTypeAndParams[1] : null));
         (string?, object) instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams(paramsProductType, methodName, "instType", instTypeDefault);
         string? instTypeOption = instTypeOptionparamsInstTypeVariable.Item1;
         IDictionary<string, object> paramsInstType = ((IDictionary<string, object>)instTypeOptionparamsInstTypeVariable.Item2);

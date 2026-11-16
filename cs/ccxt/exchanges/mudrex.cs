@@ -489,7 +489,7 @@ public partial class mudrex : Exchange
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object t = rows[i];
+            IDictionary<string, object> t = ((IDictionary<string, object>)rows[i]);
             string? sym = this.safeString(t, "symbol");
             if ((sym == null))
             {
@@ -1231,7 +1231,7 @@ public partial class mudrex : Exchange
         List<object> outPos = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object p = rows[i];
+            IDictionary<string, object> p = ((IDictionary<string, object>)rows[i]);
             string? symRaw = this.safeString(p, "symbol");
             Dictionary<string, object> m = this.safeMarket(symRaw);
             Dictionary<string, object> pos = this.parsePosition(p, m);
@@ -1384,7 +1384,7 @@ public partial class mudrex : Exchange
             int numCandidates = (candidates?.Count ?? 0);
             if (numCandidates > 0)
             {
-                object found = (candidates != null && 0 < candidates.Count ? candidates[0] : null);
+                IDictionary<string, object> found = ((IDictionary<string, object>)(candidates != null && 0 < candidates.Count ? candidates[0] : null));
                 positionId = this.safeString(found, "id");
             }
         }
@@ -1442,7 +1442,7 @@ public partial class mudrex : Exchange
             int numMatches = (matches?.Count ?? 0);
             if (numMatches > 0)
             {
-                object found = (matches != null && 0 < matches.Count ? matches[0] : null);
+                IDictionary<string, object> found = ((IDictionary<string, object>)(matches != null && 0 < matches.Count ? matches[0] : null));
                 positionId = this.safeString(found, "id");
             }
         }
@@ -1524,7 +1524,7 @@ public partial class mudrex : Exchange
             int dataLength = data.Count;
             for (int i = 0; i < data.Count; i++)
             {
-                object entry = data[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
                 allRows.Add(entry);
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
@@ -1555,7 +1555,7 @@ public partial class mudrex : Exchange
         List<object> transactionKeys = new List<object>() {};
         for (int i = 0; i < (allRows?.Count ?? 0); i++)
         {
-            object entry = allRows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)allRows[i]);
             string? feeType = this.safeString(entry, "fee_type");
             string pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
             if (feeType == "TRANSACTION")

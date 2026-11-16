@@ -472,7 +472,7 @@ public partial class polymarket : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < instruments.Count; i++)
         {
-            object instrument = instruments[i];
+            IDictionary<string, object> instrument = ((IDictionary<string, object>)instruments[i]);
             string? baseId = this.safeString(instrument, "base_asset");
             if ((baseId == null))
             {
@@ -517,7 +517,7 @@ public partial class polymarket : Exchange
         });
         for (int i = 0; i < assets.Count; i++)
         {
-            object asset = assets[i];
+            IDictionary<string, object> asset = ((IDictionary<string, object>)assets[i]);
             string? currencyId = this.safeString(asset, "asset");
             if ((currencyId == null))
             {
@@ -741,7 +741,7 @@ public partial class polymarket : Exchange
         List<object> statistics = this.safeList(responses, 1, new List<object>() {});
         for (int i = 0; i < statistics.Count; i++)
         {
-            object entry = statistics[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)statistics[i]);
             string? instrumentId = this.safeString(entry, "instrument_id");
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             merged[(string)instrumentId] = this.omit(entry, "klines");
@@ -749,7 +749,7 @@ public partial class polymarket : Exchange
         List<object> bbos = this.safeList(responses, 2, new List<object>() {});
         for (int i = 0; i < bbos.Count; i++)
         {
-            object entry = bbos[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)bbos[i]);
             string? instrumentId = this.safeString(entry, "instrument_id");
             IDictionary<string, object> previous = this.safeDict(merged, instrumentId, new Dictionary<string, object>() {});
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
@@ -759,7 +759,7 @@ public partial class polymarket : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object entry = tickers[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)tickers[i]);
             string? instrumentId = this.safeString(entry, "instrument_id");
             IDictionary<string, object> previous = this.safeDict(merged, instrumentId, new Dictionary<string, object>() {});
             result.Add(this.extend(previous, entry));
@@ -1219,7 +1219,7 @@ public partial class polymarket : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "timestamp");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2333,7 +2333,7 @@ public partial class polymarket : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "instrument_id");
             Int64? timestamp = this.safeInteger(entry, "timestamp");
             result.Add(new Dictionary<string, object>() {

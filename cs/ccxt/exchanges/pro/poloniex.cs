@@ -1318,7 +1318,7 @@ public partial class poloniex : ccxt.poloniex
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object item = data[i];
+            IDictionary<string, object> item = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(item, "symbol");
             if ((marketId != null))
             {

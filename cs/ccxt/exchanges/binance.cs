@@ -4860,7 +4860,7 @@ public partial class binance : Exchange
         bool isETF = false;
         for (int j = 0; j < networkList.Count; j++)
         {
-            object networkItem = networkList[j];
+            IDictionary<string, object> networkItem = ((IDictionary<string, object>)networkList[j]);
             string? network = this.safeString(networkItem, "network");
             string? networkCode = this.networkIdToCode(network, code);
             isETF = (network == "ETF"); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
@@ -9185,11 +9185,11 @@ public partial class binance : Exchange
                 List<object> checkedBatchOrders = new List<object>() {};
                 for (int i = 0; i < batchOrders.Count; i++)
                 {
-                    object batchOrder = batchOrders[i];
+                    IDictionary<string, object> batchOrder = ((IDictionary<string, object>)batchOrders[i]);
                     string? batchClientOrderId = this.safeString(batchOrder, batchClientOrderIdKey);
                     if ((batchClientOrderId == null))
                     {
-                        ((IDictionary<string,object>)batchOrder)[batchClientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                        batchOrder[(string)batchClientOrderIdKey] = this.generateClientOrderId(null, api, path);
                     }
                     checkedBatchOrders.Add(batchOrder);
                 }
@@ -14427,7 +14427,7 @@ public partial class binance : Exchange
         List<object> tiers = new List<object>() {};
         for (int j = 0; j < brackets.Count; j++)
         {
-            object bracket = brackets[j];
+            IDictionary<string, object> bracket = ((IDictionary<string, object>)brackets[j]);
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeNumber(bracket, "bracket") },
                 { "symbol", this.safeSymbol(marketId, marketResolved) },
@@ -18054,7 +18054,7 @@ public partial class binance : Exchange
         IList<object> assets = this.toArray(response);
         for (int i = 0; i < (assets?.Count ?? 0); i++)
         {
-            object entry = assets[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)assets[i]);
             string? id = this.safeString(entry, "asset");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))

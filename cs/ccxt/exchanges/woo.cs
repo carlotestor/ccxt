@@ -2762,7 +2762,7 @@ public partial class woo : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object row = rows[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
             string? marketId = this.safeString(row, "symbol");
             if ((marketId == null))
             {
@@ -4340,7 +4340,7 @@ public partial class woo : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object entry = rows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "fundingRateTimestamp");
             rates.Add(new Dictionary<string, object>() {
@@ -5091,7 +5091,7 @@ public partial class woo : Exchange
         List<object> data = this.safeList(response, "rows", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(entry, "token");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))
@@ -5236,8 +5236,8 @@ public partial class woo : Exchange
     public virtual string? defaultNetworkCodeForCurrency(string code)
     {
         Dictionary<string, object> currencyItem = this.currency(code);
-        object networks = (currencyItem != null && currencyItem.ContainsKey("networks") ? currencyItem["networks"] : null);
-        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        IDictionary<string, object> networks = ((IDictionary<string, object>)(currencyItem != null && currencyItem.ContainsKey("networks") ? currencyItem["networks"] : null));
+        List<object> networkKeys = new List<object>(networks.Keys);
         for (int i = 0; i < networkKeys.Count; i++)
         {
             object network = networkKeys[i];

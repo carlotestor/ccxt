@@ -911,7 +911,7 @@ public partial class toobit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < coins.Count; i++)
         {
-            object coin = coins[i];
+            IDictionary<string, object> coin = ((IDictionary<string, object>)coins[i]);
             Dictionary<string, object> parsed = this.parseCurrency(coin);
             if ((parsed != null))
             {
@@ -930,7 +930,7 @@ public partial class toobit : Exchange
         List<object> rawNetworks = this.safeList(rawCurrency, "chainTypes", new List<object>() {});
         for (int j = 0; j < rawNetworks.Count; j++)
         {
-            object rawNetwork = rawNetworks[j];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[j]);
             string? networkId = this.safeString(rawNetwork, "chainType");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -2113,7 +2113,7 @@ public partial class toobit : Exchange
         }
         List<object> values = this.handleTriggerPricesAndParams(symbol, paramsPostOnly);
         object triggerPrice = (values != null && 0 < values.Count ? values[0] : null);
-        object paramsTrigger = (values != null && 3 < values.Count ? values[3] : null);
+        IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)(values != null && 3 < values.Count ? values[3] : null));
         if ((triggerPrice != null))
         {
             request["stopPrice"] = triggerPrice;
@@ -2156,7 +2156,7 @@ public partial class toobit : Exchange
                 request["tpTriggerBy"] = this.safeString(triggerPriceTypes, triggerPriceType, triggerPriceType);
             }
         }
-        object paramsOmitted = this.omit(paramsTrigger, new List<object>() {"stopLoss", "takeProfit"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsTrigger, new List<object>() {"stopLoss", "takeProfit"});
         if ((this.safeString(paramsOmitted, "newClientOrderId") == null))
         {
             request["newClientOrderId"] = this.uuid();

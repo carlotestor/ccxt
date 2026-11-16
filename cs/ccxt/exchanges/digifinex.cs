@@ -3983,10 +3983,10 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "list", new List<object>() {});
-        object result = null;
+        IDictionary<string, object> result = null;
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             if ((this.safeString(entry, "currency") == code))
             {
                 result = entry;
@@ -4245,7 +4245,7 @@ public partial class digifinex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(data, "instrument_id");
             string? symbolInner = this.safeSymbol(marketId);
             Int64? timestamp = this.safeInteger(entry, "time");

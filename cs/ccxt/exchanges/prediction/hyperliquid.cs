@@ -1740,8 +1740,8 @@ public partial class hyperliquid : PredictionExchange
         }
         for (int i = 0; i < getArrayLength(historicalOrders); i++)
         {
-            object raw = getValue(historicalOrders, i);
-            object entry = this.safeDict(raw, "order");
+            IDictionary<string, object> raw = ((IDictionary<string, object>)getValue(historicalOrders, i));
+            IDictionary<string, object> entry = this.safeDict(raw, "order");
             if ((entry == null))
             {
                 entry = raw;
@@ -2184,7 +2184,7 @@ public partial class hyperliquid : PredictionExchange
         int lowerQueriesLength = (lowerQueries?.Count ?? 0);
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
-            object mkt = marketValues[i];
+            IDictionary<string, object> mkt = ((IDictionary<string, object>)marketValues[i]);
             if (!(this.safeBool(mkt, "prediction", false) == true))
             {
                 continue;

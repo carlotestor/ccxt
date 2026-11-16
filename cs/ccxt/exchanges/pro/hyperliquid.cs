@@ -132,7 +132,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             // not sure why but it is happening sometimes
             return this.safeOrder(new Dictionary<string, object>() {});
         }
-        object parsedOrder = (orders != null && 0 < orders.Count ? orders[0] : null);
+        IDictionary<string, object> parsedOrder = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
         return ccxt.BaseExchange.ToOrder(parsedOrder);
     }
 
@@ -847,7 +847,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         List<object> newLiquidations = new List<object>() {};
         for (int i = 0; i < fills.Count; i++)
         {
-            object fill = fills[i];
+            IDictionary<string, object> fill = ((IDictionary<string, object>)fills[i]);
             IDictionary<string, object> liquidation = this.safeDict(fill, "liquidation", new Dictionary<string, object>() {});
             // liquidator fills carry the liquidated counterparty here
             if ((this.safeStringLower(liquidation, "liquidatedUser") == user))
@@ -864,9 +864,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; i < newLiquidationsLength; i++)
         {
-            object liquidation = (newLiquidations != null && i < newLiquidations.Count ? newLiquidations[i] : null);
+            IDictionary<string, object> liquidation = ((IDictionary<string, object>)(newLiquidations != null && i < newLiquidations.Count ? newLiquidations[i] : null));
             cache.append(liquidation);
-            symbols[(string)((string)getValue(liquidation, "symbol"))] = true;
+            symbols[(string)((string)(liquidation != null && liquidation.ContainsKey("symbol") ? liquidation["symbol"] : null))] = true;
         }
         List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)

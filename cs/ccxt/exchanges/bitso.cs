@@ -1235,7 +1235,7 @@ public partial class bitso : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            object fee = fees[i];
+            IDictionary<string, object> fee = ((IDictionary<string, object>)fees[i]);
             string? marketId = this.safeString(fee, "book");
             string? symbol = this.safeSymbol(marketId, null, "_");
             result[(string)symbol] = new Dictionary<string, object>() {
@@ -1404,7 +1404,7 @@ public partial class bitso : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < payload.Count; i++)
         {
-            object id = payload[i];
+            IDictionary<string, object> id = ((IDictionary<string, object>)payload[i]);
             orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(id, market)));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
@@ -1808,7 +1808,7 @@ public partial class bitso : Exchange
         List<object> depositFees = this.safeList(payload, "deposit_fees", new List<object>() {});
         for (int i = 0; i < depositFees.Count; i++)
         {
-            object depositFee = depositFees[i];
+            IDictionary<string, object> depositFee = ((IDictionary<string, object>)depositFees[i]);
             string? currencyId = this.safeString(depositFee, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             if (((codes != null)) && !this.inArray(code, codes))
@@ -1963,7 +1963,7 @@ public partial class bitso : Exchange
         IDictionary<string, object> withdrawalResponse = this.safeDict(response, "withdrawal_fees", new Dictionary<string, object>() {});
         for (int i = 0; i < depositResponse.Count; i++)
         {
-            object entry = depositResponse[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)depositResponse[i]);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             if (((codes == null)) || (((code != null)) && this.inArray(code, codes)))

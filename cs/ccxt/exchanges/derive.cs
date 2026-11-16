@@ -2123,7 +2123,7 @@ public partial class derive : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "timestamp");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },

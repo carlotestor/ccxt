@@ -3214,7 +3214,7 @@ public partial class gate : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < addresses.Count; i++)
         {
-            object entry = addresses[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)addresses[i]);
             //
             //    {
             //        "chain": "ETH",

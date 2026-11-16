@@ -4352,7 +4352,7 @@ public partial class htx : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < chains.Count; j++)
         {
-            object chainEntry = chains[j];
+            IDictionary<string, object> chainEntry = ((IDictionary<string, object>)chains[j]);
             string? uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
             string? title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if ((code != null) && (title != null))
@@ -7859,7 +7859,7 @@ public partial class htx : Exchange
         List<object> addresses = new List<object>() {};
         for (int i = 0; i < (allAddresses?.Count ?? 0); i++)
         {
-            object address = allAddresses[i];
+            IDictionary<string, object> address = ((IDictionary<string, object>)allAddresses[i]);
             bool noteMatch = ((note == null)) || (isEqual(this.safeString(address, "note"), note));
             bool networkMatch = ((networkCode == null)) || (isEqual(this.safeString(address, "network"), networkCode));
             if (noteMatch && networkMatch)
@@ -8663,8 +8663,8 @@ public partial class htx : Exchange
             List<object> result = this.safeList(data, "data", new List<object>() {});
             for (int i = 0; i < result.Count; i++)
             {
-                object entry = result[i];
-                ((IDictionary<string,object>)entry)["current_page"] = cursor;
+                IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
+                entry["current_page"] = cursor;
                 string? marketId = this.safeString(entry, "contract_code");
                 string? symbolInner = this.safeSymbol(marketId);
                 Int64? timestamp = this.safeInteger(entry, "funding_time");
@@ -9753,13 +9753,13 @@ public partial class htx : Exchange
         }
         object omitted = this.omit(account, new List<object>() {"positions"});
         List<object> positions = this.safeList(account, "positions", new List<object>() {});
-        object position = null;
+        IDictionary<string, object> position = null;
         if ((this.safeBool(market, "future", false) == true) && (this.safeBool(market, "inverse", false) == true))
         {
             string? marketId = this.safeString(market, "id");
             for (int i = 0; i < positions.Count; i++)
             {
-                object entry = positions[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)positions[i]);
                 if ((this.safeString(entry, "contract_code") == marketId))
                 {
                     position = entry;
@@ -9986,7 +9986,7 @@ public partial class htx : Exchange
             List<object> ladders = this.safeList(item, "ladders", new List<object>() {});
             for (int k = 0; k < ladders.Count; k++)
             {
-                object bracket = ladders[k];
+                IDictionary<string, object> bracket = ((IDictionary<string, object>)ladders[k]);
                 string? adjustFactor = this.safeString(bracket, "adjust_factor");
                 tiers.Add(new Dictionary<string, object>() {
                     { "tier", this.safeInteger(bracket, "ladder") },

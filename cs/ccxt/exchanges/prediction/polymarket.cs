@@ -595,7 +595,7 @@ public partial class polymarket : PredictionExchange
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
         for (int rei = 0; rei < getArrayLength(rawEvents); rei++)
         {
-            object rawEvent = getValue(rawEvents, rei);
+            IDictionary<string, object> rawEvent = ((IDictionary<string, object>)getValue(rawEvents, rei));
             List<object> ccxtMarkets = this.parseEventToMarkets(rawEvent);
             for (int mi = 0; mi < (ccxtMarkets?.Count ?? 0); mi++)
             {
@@ -726,7 +726,7 @@ public partial class polymarket : PredictionExchange
             }
             for (int ei = 0; ei < (allEvents?.Count ?? 0); ei++)
             {
-                object rawEvent = allEvents[ei];
+                IDictionary<string, object> rawEvent = ((IDictionary<string, object>)allEvents[ei]);
                 string? eventId = this.safeString(rawEvent, "id");
                 if (((eventId != null) && eventId != "") && !(((eventId != null) && seen.ContainsKey(eventId))))
                 {
@@ -832,7 +832,7 @@ public partial class polymarket : PredictionExchange
                 List<Dictionary<string, object>> tagEvents = await this.FetchRawEventsList(singleTagParams);
                 for (int ei = 0; ei < (tagEvents?.Count ?? 0); ei++)
                 {
-                    object rawEvent = tagEvents[ei];
+                    IDictionary<string, object> rawEvent = ((IDictionary<string, object>)tagEvents[ei]);
                     string? eventId = this.safeString(rawEvent, "id");
                     if (((eventId != null)) && !(((eventId != null) && seen.ContainsKey(eventId))))
                     {
@@ -1450,7 +1450,7 @@ public partial class polymarket : PredictionExchange
             int lastTradesLength = getArrayLength(lastTrades);
             for (int li = 0; li < lastTradesLength; li++)
             {
-                object lastTradeEntry = getValue(lastTrades, li);
+                IDictionary<string, object> lastTradeEntry = ((IDictionary<string, object>)getValue(lastTrades, li));
                 string? lastTradeTokenId = this.safeString(lastTradeEntry, "token_id");
                 if ((lastTradeTokenId != null))
                 {
@@ -1460,7 +1460,7 @@ public partial class polymarket : PredictionExchange
             int booksLength = getArrayLength(books);
             for (int i = 0; i < booksLength; i++)
             {
-                object book = getValue(books, i);
+                IDictionary<string, object> book = ((IDictionary<string, object>)getValue(books, i));
                 string? tokenId = this.safeString(book, "asset_id");
                 if (((tokenId == null)) || !(((tokenId != null) && outcomesByTokenId.ContainsKey(tokenId))))
                 {
@@ -3052,8 +3052,8 @@ public partial class polymarket : PredictionExchange
         List<object> result = new List<object>() {};
         for (int rei = 0; rei < getArrayLength(rawEvents); rei++)
         {
-            object rawEvent = getValue(rawEvents, rei);
-            object eventForParsing = rawEvent;
+            IDictionary<string, object> rawEvent = ((IDictionary<string, object>)getValue(rawEvents, rei));
+            IDictionary<string, object> eventForParsing = rawEvent;
             List<object> ccxtMarkets = this.parseEventToMarkets(eventForParsing);
             int ccxtMarketsLength = (ccxtMarkets?.Count ?? 0);
             if ((ccxtMarketsLength == 0))

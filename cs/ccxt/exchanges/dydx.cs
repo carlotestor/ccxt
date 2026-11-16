@@ -980,7 +980,7 @@ public partial class dydx : Exchange
         List<object> rows = this.safeList(response, "historicalFunding", new List<object>() {});
         for (int i = 0; i < rows.Count; i++)
         {
-            object entry = rows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
             Int64? timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
             string? marketId = this.safeString(entry, "ticker");
             rates.Add(new Dictionary<string, object>() {
@@ -1756,7 +1756,7 @@ public partial class dydx : Exchange
         });
         List<object> orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
         Dictionary<string, object> orderId = ((Dictionary<string, object>)(orderRequestRes != null && 0 < orderRequestRes.Count ? orderRequestRes[0] : null));
-        object orderRequest = (orderRequestRes != null && 1 < orderRequestRes.Count ? orderRequestRes[1] : null);
+        IDictionary<string, object> orderRequest = ((IDictionary<string, object>)(orderRequestRes != null && 1 < orderRequestRes.Count ? orderRequestRes[1] : null));
         string? chainName = this.safeString(this.options, "chainName");
         string? signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), orderRequest, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {

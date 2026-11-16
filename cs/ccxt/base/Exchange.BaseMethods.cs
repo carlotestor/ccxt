@@ -7696,7 +7696,7 @@ public partial class BaseExchange
         Dictionary<string, object> uniqueResult = new Dictionary<string, object>() {};
         for (int i = 0; i < (input?.Count ?? 0); i++)
         {
-            object entry = (input != null && i < input.Count ? input[i] : null);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(input != null && i < input.Count ? input[i] : null));
             object id = this.safeString(entry, "id");
             if ((id == null))
             {
@@ -7788,7 +7788,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (liquidations?.Count ?? 0); i++)
         {
-            object entry = (liquidations != null && i < liquidations.Count ? liquidations[i] : null);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(liquidations != null && i < liquidations.Count ? liquidations[i] : null));
             IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseLiquidation(entry, market));
             result.Add(parsed);
         }

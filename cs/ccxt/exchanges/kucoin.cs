@@ -11637,7 +11637,7 @@ public partial class kucoin : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "symbol");
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
             bool isFundingIndex = ((marketId != null)) && (marketId.StartsWith("."));
@@ -11940,7 +11940,7 @@ public partial class kucoin : Exchange
         List<object> fees = new List<object>() {};
         for (int i = 0; i < (dataList?.Count ?? 0); i++)
         {
-            object listItem = dataList[i];
+            IDictionary<string, object> listItem = ((IDictionary<string, object>)dataList[i]);
             Int64? timestamp = this.safeInteger2(listItem, "timePoint", "settlementTime");
             string? marketId = this.safeString(listItem, "symbol");
             fees.Add(new Dictionary<string, object>() {

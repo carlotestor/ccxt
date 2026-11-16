@@ -763,7 +763,7 @@ public partial class coinsph : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < networkList.Count; j++)
         {
-            object networkItem = networkList[j];
+            IDictionary<string, object> networkItem = ((IDictionary<string, object>)networkList[j]);
             string? network = this.safeString(networkItem, "network");
             string? networkCode = this.networkIdToCode(network, code);
             if ((networkCode != null))

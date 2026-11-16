@@ -952,7 +952,7 @@ public partial class bitstamp : ccxt.bitstamp
         IList<object> entries = this.toArray(cache);
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
-            object entry = entries[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)entries[i]);
             string? entrySymbol = this.safeString(entry, "symbol");
             if (!this.inArray(entrySymbol, symbols))
             {

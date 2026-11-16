@@ -1197,7 +1197,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> settingsBySymbol = new Dictionary<string, object>() {};
         for (int i = 0; i < settingsLen; i++)
         {
-            object setting = (settings != null && i < settings.Count ? settings[i] : null);
+            IDictionary<string, object> setting = ((IDictionary<string, object>)(settings != null && i < settings.Count ? settings[i] : null));
             string? marketId = this.safeString(setting, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -2478,7 +2478,7 @@ public partial class pacifica : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "created_at");
             result.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2535,7 +2535,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object info = data[i];
+            IDictionary<string, object> info = ((IDictionary<string, object>)data[i]);
             ccxt.Ticker ticker = this.parseTicker(info);
             string? symbol = ticker.symbol;
             if ((symbol != null))
@@ -2799,9 +2799,9 @@ public partial class pacifica : Exchange
         {
             if (((paginationCursor != null)) && (dataLength > 0))
             {
-                object first = (data != null && 0 < data.Count ? data[0] : null);
-                ((IDictionary<string,object>)first)["next_cursor"] = paginationCursor;
-                ((IDictionary<string,object>)first)["has_more"] = hasMore;
+                IDictionary<string, object> first = ((IDictionary<string, object>)(data != null && 0 < data.Count ? data[0] : null));
+                first["next_cursor"] = paginationCursor;
+                first["has_more"] = hasMore;
                 ((List<object>)data)[Convert.ToInt32(0)] = first;
             }
         }

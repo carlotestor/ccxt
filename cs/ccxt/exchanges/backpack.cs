@@ -732,7 +732,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; j++)
         {
-            object network = networks[j];
+            IDictionary<string, object> network = ((IDictionary<string, object>)networks[j]);
             string? networkId = this.safeString(network, "blockchain");
             string? networkIdLowerCase = this.safeStringLower(network, "blockchain");
             string? networkCode = this.networkIdToCode(networkIdLowerCase, code);
@@ -887,7 +887,7 @@ public partial class backpack : Exchange
         {
             for (int i = 0; i < getArrayLength(securities); i++)
             {
-                object security = getValue(securities, i);
+                IDictionary<string, object> security = ((IDictionary<string, object>)getValue(securities, i));
                 string? assetId = this.safeString(security, "asset");
                 if ((assetId == null))
                 {
@@ -1635,7 +1635,7 @@ public partial class backpack : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(entries); i++)
         {
-            object entry = getValue(entries, i);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)getValue(entries, i));
             string? symbol = this.safeString(entry, "symbol");
             IDictionary<string, object> market = this.safeDict(this.markets, symbol);
             if ((this.safeBool(market, "stock", false) == true))
@@ -2169,7 +2169,7 @@ public partial class backpack : Exchange
         IList<object> rawRates = this.toArray(response);
         for (int i = 0; i < (rawRates?.Count ?? 0); i++)
         {
-            object rate = rawRates[i];
+            IDictionary<string, object> rate = ((IDictionary<string, object>)rawRates[i]);
             string? datetime = this.safeString(rate, "intervalEndTimestamp");
             Int64? timestamp = this.parse8601(datetime);
             rates.Add(new Dictionary<string, object>() {
