@@ -1782,7 +1782,8 @@ export default class alpaca extends Exchange {
         }
         const currency = this.currency (code);
         const tagSuffix = this.safeString (params, 'tag', '');
-        const addressValue = (tagSuffix !== '') ? (address + ':' + tagSuffix) : address;
+        const taggedAddress = address + ':' + tagSuffix;
+        const addressValue = (tagSuffix !== '') ? taggedAddress : address;
         const request: Dict = {
             'asset': currency['id'],
             'address': addressValue,
