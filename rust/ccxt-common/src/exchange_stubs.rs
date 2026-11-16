@@ -3544,12 +3544,22 @@ mod cased_reader_opt_twin_tests {
         Value::Dict(Arc::new(m))
     }
 
+    const KEYS: [&str; 6] = ["s", "n", "f", "b", "e", "missing"];
+
+    fn key(k: &str) -> Value {
+        Value::Str(k.into())
+    }
+
     fn keys() -> Vec<Value> {
         let mut out = Vec::new();
-        for k in ["s", "n", "f", "b", "e", "missing"] {
-            out.push(Value::Str(k.into()));
+        for k in KEYS {
+            out.push(key(k));
         }
         out
+    }
+
+    fn three(a: &str, b: &str) -> Value {
+        Value::Array(vec![key(a), key(b), key("s")])
     }
 
     fn defaults() -> Vec<Vec<Value>> {
@@ -3563,14 +3573,12 @@ mod cased_reader_opt_twin_tests {
     #[test]
     fn one_key_twins_match_the_long_form() {
         let ex = Exchange::default();
-        for k in keys() {
+        for k in KEYS {
             for d in defaults() {
-                assert_eq!(ex.safe_string_lower_opt(row(), k.clone(), &d), long(ex.safe_string_lower(row(), k.clone(), &d)));
-                assert_eq!(ex.safe_string_upper_opt(row(), k.clone(), &d), long(ex.safe_string_upper(row(), k.clone(), &d)));
-                if let Value::Str(ks) = &k {
-                    assert_eq!(ex.safe_string_lower_k_opt(row(), ks, &d), long(ex.safe_string_lower_k(row(), ks, &d)));
-                    assert_eq!(ex.safe_string_upper_k_opt(row(), ks, &d), long(ex.safe_string_upper_k(row(), ks, &d)));
-                }
+                assert_eq!(ex.safe_string_lower_opt(row(), key(k), &d), long(ex.safe_string_lower(row(), key(k), &d)));
+                assert_eq!(ex.safe_string_upper_opt(row(), key(k), &d), long(ex.safe_string_upper(row(), key(k), &d)));
+                assert_eq!(ex.safe_string_lower_k_opt(row(), k, &d), long(ex.safe_string_lower_k(row(), k, &d)));
+                assert_eq!(ex.safe_string_upper_k_opt(row(), k, &d), long(ex.safe_string_upper_k(row(), k, &d)));
             }
         }
         assert_eq!(ex.safe_string_lower_opt(row(), Value::Str("s".into()), &[]), Some("mixed".to_string()));
@@ -3580,14 +3588,13 @@ mod cased_reader_opt_twin_tests {
     #[test]
     fn two_key_and_n_key_twins_match_the_long_form() {
         let ex = Exchange::default();
-        for a in keys() {
-            for b in keys() {
+        for a in KEYS {
+            for b in KEYS {
                 for d in defaults() {
-                    assert_eq!(ex.safe_string_lower2_opt(row(), a.clone(), b.clone(), &d), long(ex.safe_string_lower2(row(), a.clone(), b.clone(), &d)));
-                    assert_eq!(ex.safe_string_upper2_opt(row(), a.clone(), b.clone(), &d), long(ex.safe_string_upper2(row(), a.clone(), b.clone(), &d)));
-                    let ks: Vec<Value> = vec![a.clone(), b.clone(), Value::Str("s".into())];
-                    assert_eq!(ex.safe_string_lower_n_opt(row(), Value::Array(ks.clone()), &d), long(ex.safe_string_lower_n(row(), Value::Array(ks.clone()), &d)));
-                    assert_eq!(ex.safe_string_upper_n_opt(row(), Value::Array(ks.clone()), &d), long(ex.safe_string_upper_n(row(), Value::Array(ks), &d)));
+                    assert_eq!(ex.safe_string_lower2_opt(row(), key(a), key(b), &d), long(ex.safe_string_lower2(row(), key(a), key(b), &d)));
+                    assert_eq!(ex.safe_string_upper2_opt(row(), key(a), key(b), &d), long(ex.safe_string_upper2(row(), key(a), key(b), &d)));
+                    assert_eq!(ex.safe_string_lower_n_opt(row(), three(a, b), &d), long(ex.safe_string_lower_n(row(), three(a, b), &d)));
+                    assert_eq!(ex.safe_string_upper_n_opt(row(), three(a, b), &d), long(ex.safe_string_upper_n(row(), three(a, b), &d)));
                 }
             }
         }
