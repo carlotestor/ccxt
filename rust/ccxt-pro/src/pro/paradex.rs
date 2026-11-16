@@ -1280,7 +1280,7 @@ if _try_result.is_err() {
             while { if !__for_first_594 { i += 1; } __for_first_594 = false; i < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut deltasChannel: Option<String> = self.get_order_book_channel(Value::from((market).id.as_deref()), &[Value::Bool(true)]);
-            let mut snapshotChannel: Option<String> = self.get_order_book_channel(Value::from((market).id.as_deref()), &[Value::Bool(false)]);
+            let mut snapshotChannel: Value = self.get_order_book_channel(Value::from((market).id.as_deref()), &[Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -1290,15 +1290,15 @@ if _try_result.is_err() {
             if isDeltas {
                 __ch.add_subscription(deltasHash.as_str(), Value::Bool(true));
             }
-            if isDeltas && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &Value::from(&snapshotChannel))) {
+            if isDeltas && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &snapshotChannel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
                 // arrives once the reply is in
-                let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(Value::from(snapshotChannel.as_deref())).into_dict();
-                __ch.remove_subscription(snapshotChannel.as_deref());
+                let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(snapshotChannel.clone()).into_dict();
+                __ch.remove_subscription(&snapshotChannel);
                 self.send_request(url.as_deref().unwrap_or_default(), &unsubscribe, None).await;
             }
-            let mut channel: Option<String> = (if (isDeltas) { deltasChannel } else { snapshotChannel });
-            channels.push(channel.map(Value::from).unwrap_or(Value::Null));
+            let mut channel: Value = (if (isDeltas) { deltasChannel.map(Value::from).unwrap_or(Value::Null) } else { snapshotChannel });
+            channels.push(channel);
             messageHashes.push(Value::Str(format!("{}{}", "orderbook:", Value::from((market).symbol.clone())).into()));
         }
         }
