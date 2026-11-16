@@ -1913,7 +1913,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 		}))
 	}
 	var parsed []any = this.ParsePredictionOrders(ordersWithStatus, nil, since)
-	var outcomeHandle *string = nil
+	var outcomeHandle any = nil
 	if outcome != nil {
 
 		r1 := <-this.LoadOutcomeAsync(outcome)
@@ -1921,7 +1921,11 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 			panic(r1.Err)
 		}
 		var outcomeObj map[string]any = this.Outcome(outcome)
-		outcomeHandle = this.SafeString(outcomeObj, "outcome")
+		if derefPtr := this.SafeString(outcomeObj, "outcome"); derefPtr != nil {
+			outcomeHandle = *derefPtr
+		} else {
+			outcomeHandle = nil
+		}
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit))}
@@ -2007,7 +2011,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		}
 	}
 	var parsed []any = this.ParsePredictionOrders(dedupedValues, nil, since)
-	var outcomeHandle *string = nil
+	var outcomeHandle any = nil
 	if outcome != nil {
 
 		r1 := <-this.LoadOutcomeAsync(outcome)
@@ -2015,7 +2019,11 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			panic(r1.Err)
 		}
 		var outcomeObj map[string]any = this.Outcome(outcome)
-		outcomeHandle = this.SafeString(outcomeObj, "outcome")
+		if derefPtr := this.SafeString(outcomeObj, "outcome"); derefPtr != nil {
+			outcomeHandle = *derefPtr
+		} else {
+			outcomeHandle = nil
+		}
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit))}
@@ -2318,7 +2326,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var outcomeHandle *string = nil
+	var outcomeHandle any = nil
 	if outcome != nil {
 
 		r := <-this.LoadOutcomeAsync(outcome)
@@ -2326,7 +2334,11 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 			panic(r.Err)
 		}
 		var outcomeObj map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)
-		outcomeHandle = this.SafeString(outcomeObj, "outcome")
+		if derefPtr := this.SafeString(outcomeObj, "outcome"); derefPtr != nil {
+			outcomeHandle = *derefPtr
+		} else {
+			outcomeHandle = nil
+		}
 	} else {
 		// fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
 		// cache (one market load) so parsePredictionTrade can resolve the unified outcome identity

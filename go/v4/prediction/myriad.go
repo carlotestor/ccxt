@@ -2084,7 +2084,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		"address": trader,
 	}
 	var outcomeObj any = nil
-	var outcomeSymbol *string = nil
+	var outcomeSymbol any = nil
 	var rowOutcomeId *string = nil
 	if outcome != nil {
 
@@ -2097,7 +2097,11 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		} else {
 			outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 		}
-		outcomeSymbol = this.SafeString(outcomeObj, "outcome", outcome)
+		if derefPtr := this.SafeString(outcomeObj, "outcome", outcome); derefPtr != nil {
+			outcomeSymbol = *derefPtr
+		} else {
+			outcomeSymbol = nil
+		}
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		request["market_id"] = this.SafeString(info, "marketId")
 		request["network_id"] = this.SafeString(info, "networkId")
@@ -2569,7 +2573,7 @@ func (this *Myriad) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 	var requestedTradingModel *string = this.SafeStringLower2(params, "tradingModel", "trading_model")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"tradingModel", "trading_model"})
 	var outcomeObj any = nil
-	var outcomeSymbol *string = nil
+	var outcomeSymbol any = nil
 	if outcome != nil {
 
 		r := <-this.LoadOutcomeAsync(outcome)
@@ -2581,7 +2585,11 @@ func (this *Myriad) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 		} else {
 			outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 		}
-		outcomeSymbol = this.SafeString(outcomeObj, "outcome", outcome)
+		if derefPtr := this.SafeString(outcomeObj, "outcome", outcome); derefPtr != nil {
+			outcomeSymbol = *derefPtr
+		} else {
+			outcomeSymbol = nil
+		}
 		if requestedTradingModel == nil {
 			var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 			requestedTradingModel = this.SafeStringLower(info, "tradingModel")

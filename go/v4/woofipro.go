@@ -1925,10 +1925,14 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var symbolResolved *string = nil
+	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = this.SafeString(market, "symbol")
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		request["symbol"] = market["id"]
 	}
 	if since != nil {

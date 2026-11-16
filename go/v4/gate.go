@@ -9138,15 +9138,15 @@ func (this *Gate) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 		}
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", market, params)
-	var typeVar *string = marketType
+	var typeVar any = marketType
 	if (marketType == nil) || (marketType != nil && *marketType == "spot") {
-		typeVar = SafeStringPtr("swap") // default to swap
+		typeVar = "swap" // default to swap
 	}
 	// prepareRequest leaves request empty and params untouched for options
 	requestqueryVariable := this.PrepareRequest(nil, typeVar, paramsMarketType)
 	var request map[string]any = requestqueryVariable[0].(map[string]any)
 	var query map[string]any = requestqueryVariable[1].(map[string]any)
-	if typeVar != nil && *typeVar == "option" {
+	if IsEqual(typeVar, "option") {
 		if symbolsNormalized != nil {
 			var marketId *string = this.SafeString(market, "id")
 			var optionParts []string = strings.Split(*marketId, "-")
@@ -9159,21 +9159,21 @@ func (this *Gate) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 		}
 	}
 	var response any = nil
-	if typeVar != nil && *typeVar == "swap" {
+	if IsEqual(typeVar, "swap") {
 
 		r1 := <-this.PrivateFuturesGetSettlePositions(this.Extend(request, query))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Raw
-	} else if typeVar != nil && *typeVar == "future" {
+	} else if IsEqual(typeVar, "future") {
 
 		r2 := <-this.PrivateDeliveryGetSettlePositions(this.Extend(request, query))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
 		response = r2.Raw
-	} else if typeVar != nil && *typeVar == "option" {
+	} else if IsEqual(typeVar, "option") {
 
 		r3 := <-this.PrivateOptionsGetPositions(this.Extend(request, query))
 		if r3.Err != nil {

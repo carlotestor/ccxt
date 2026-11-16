@@ -3336,9 +3336,9 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 		}())
 	}
 	var userDefaultType *string = this.SafeString(this.Options, "defaultType")
-	var defaultMarket *string = nil
+	var defaultMarket any = nil
 	if isMarkPrice && (userDefaultType == nil || *userDefaultType != "option") {
-		defaultMarket = ccxt.SafeStringPtr("swap")
+		defaultMarket = "swap"
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket)
 	subType, paramsSubType := this.HandleSubTypeAndParams(methodName, firstMarket, paramsMarketType)

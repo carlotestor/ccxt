@@ -2176,8 +2176,8 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var symbol any = nil
 	var fee map[string]any = nil
 	var typeVar any = nil
-	var side *string = nil
-	var takerOrMaker *string = nil
+	var side any = nil
+	var takerOrMaker any = nil
 	var priceString *string = nil
 	var amountString *string = nil
 	var costString *string = nil
@@ -2202,7 +2202,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		priceString = this.SafeString(trade, "p")
 		amountString = this.SafeString(trade, "v")
 		side = this.ParseOrderSide(this.SafeString(trade, "T"))
-		takerOrMaker = SafeStringPtr("taker")
+		takerOrMaker = "taker"
 	} else {
 		//
 		// spot: fetchTrades (for aggTrades)
@@ -2270,12 +2270,12 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 				"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
 			}
 			var isTaker *bool = this.SafeBool2(trade, "isTaker", "taker", false)
-			takerOrMaker = SafeStringPtr(func() string {
+			takerOrMaker = func() string {
 				if isTaker != nil && *isTaker {
 					return "taker"
 				}
 				return "maker"
-			}())
+			}()
 		} else {
 			timestamp = this.SafeInteger2(trade, "time", "T")
 			amountString = this.SafeString2(trade, "qty", "q")
@@ -2284,29 +2284,29 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 			var isMaker *bool = this.SafeBool(trade, "isMaker")
 			var buyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
 			if isMaker != nil {
-				takerOrMaker = SafeStringPtr(func() string {
+				takerOrMaker = func() string {
 					if isMaker != nil && *isMaker {
 						return "maker"
 					}
 					return "taker"
-				}())
+				}()
 			}
 			if isBuyer != nil {
-				side = SafeStringPtr(func() string {
+				side = func() string {
 					if isBuyer != nil && *isBuyer {
 						return "buy"
 					}
 					return "sell"
-				}())
+				}()
 			}
 			if buyerMaker != nil {
-				side = SafeStringPtr(func() string {
+				side = func() string {
 					if buyerMaker != nil && *buyerMaker {
 						return "sell"
 					}
 					return "buy"
-				}())
-				takerOrMaker = SafeStringPtr("taker")
+				}()
+				takerOrMaker = "taker"
 			}
 			var feeAsset *string = this.SafeString(trade, "commissionAsset")
 			if feeAsset != nil {

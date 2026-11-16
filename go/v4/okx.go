@@ -3378,14 +3378,14 @@ func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var instType *string = this.SafeString(ticker, "instType")
-	var marketType *string = nil
+	var marketType any = nil
 	if instType != nil {
-		marketType = SafeStringPtr(func() string {
+		marketType = func() string {
 			if instType != nil && *instType == "SPOT" {
 				return "spot"
 			}
 			return "swap"
-		}())
+		}()
 	}
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")

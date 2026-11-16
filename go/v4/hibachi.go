@@ -2941,11 +2941,15 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[stri
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
-	var symbolResolved *string = nil
+	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["contractId"] = market["numericId"]
-		symbolResolved = this.SafeString(market, "symbol")
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 	}
 	if since != nil {
 		request["startTime"] = this.ParseToInt(float64(*since) / 1000)

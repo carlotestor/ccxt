@@ -5440,16 +5440,20 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	var isContract bool = (InOp(order, "tpslMode"))
-	var marketType *string = nil
+	var marketType any = nil
 	if market != nil {
-		marketType = this.SafeString(market, "type")
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			marketType = *derefPtr
+		} else {
+			marketType = nil
+		}
 	} else {
-		marketType = SafeStringPtr(func() string {
+		marketType = func() string {
 			if isContract {
 				return "contract"
 			}
 			return "spot"
-		}())
+		}()
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -12055,7 +12059,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 			panic(r.Err)
 		}
 	}
-	var symbol *string = nil
+	var symbol any = nil
 	if symbols != nil {
 		var market map[string]any = this.Market(func() any {
 			if 0 >= 0 && 0 < len(symbols) {
@@ -12066,7 +12070,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
-		symbol = this.SafeString(market, "symbol")
+		symbol = DerefScalar(this.SafeString(market, "symbol"))
 	}
 
 	r1 := <-this.GetLeverageTiersPaginatedAsync(symbol, this.Extend(map[string]any{
