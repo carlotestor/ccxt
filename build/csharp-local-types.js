@@ -10934,8 +10934,10 @@ function guardedConcatSpineRights (n) {
 }
 
 function guardedConcatLeftUse (csharp, n, csharpType, scan) {
-    if (scan !== undefined && nonNullStringDefaultCall (csharp, scan.declaration.initializer, scan.context)) {
-        return false; // the stronger non-null `string` retry owns these (same gate as stringPlusOperandIsNonNullAtUse)
+    if (scan !== undefined && guardedConcatNonNullRetryCandidate (csharp, scan.declaration, scan.context)) {
+        // the non-null `string` retries at the end of csharpLocalTypeOf own these initializers:
+        // accepting the nullable spelling here would set `safe` and skip them
+        return false;
     }
     if (csharpType !== 'string?' || typeof csharp.csharpGuardedStringConcatLocal !== 'function'
             || typeof csharp.csharpObjectStringConcat !== 'function' || typeof csharp.csharpEvaluationHasEffects !== 'function') {
@@ -10958,6 +10960,14 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
         guardedConcatReads.add (n);
     }
     return ok;
+}
+
+// the initializer predicates of the `string?` -> `string` retries in csharpLocalTypeOf
+function guardedConcatNonNullRetryCandidate (csharp, declaration, context) {
+    const init = declaration.initializer;
+    return signApiElementInitializer (csharp, init) || boundedKeysElementInitializer (csharp, init)
+        || nonNullStringDefaultCall (csharp, init, context) || tupleElement0LiteralDefault (init)
+        || nonNullStringValue (csharp, declaration, init, 0) || sameFileGuardedStringCall (csharp, init);
 }
 
 // reads the retype scan accepted ONLY through guardedConcatLeftUse (every other proof refused)
