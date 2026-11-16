@@ -5808,7 +5808,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), j6ReaderLocalsSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -9510,3 +9510,33 @@ function x22SelfTest (): string[] {
     return problems;
 }
 
+
+// 77j6: a base safeDict / safeList local whose default argument is a proven Map / List prints the box
+function j6ReaderLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj6readerselftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';", "import type { Dict } from './base/types.js';",
+        'export default class zzj6readerselftest extends Exchange {',
+        "    dictParam (ticker: Dict) { const stats = this.safeDict (ticker, 'stats', ticker); return this.safeString (stats, 'a'); }",
+        "    listParam (response: Dict[]) { const rows = this.safeList (response, 'rows', response); return rows.length; }",
+        "    safeDictionary () { const opts = this.safeDict (this.options, 'requestId', this.createSafeDictionary ()); return this.safeInteger (opts, 'x'); }",
+        "    anyParam (ticker: any) { const inner = this.safeDict (ticker, 'stats', ticker); return this.safeString (inner, 'a'); }",
+        "    joined (response: Dict[]) { const ids = this.safeList (response, 'ids', response); return ids.join (','); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> stats = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("j6 reader: 'stats' (Dict default) must print Map<String, Object> with a checkcast");
+        if (!/List<Object> rows = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("j6 reader: 'rows' (Dict[] default) must print List<Object> with a checkcast");
+        if (!/Map<String, Object> opts = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("j6 reader: 'opts' (createSafeDictionary default) must print Map<String, Object>");
+        if (!/\bObject inner = /.test(out)) problems.push("j6 reader: 'inner' (any default) must stay Object");
+        if (!/\bObject ids = /.test(out)) problems.push("j6 reader: 'ids' (.join receiver) must stay Object");
+    } catch (e: any) {
+        problems.push(`j6 reader self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
