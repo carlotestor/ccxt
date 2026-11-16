@@ -21215,3 +21215,134 @@ export function installJavaR84j2GuardedListLocals (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
+
+// ===== 84j2 R3. Map conditionals whose arms are base Map fields, Dict parameters or proven Map values =====
+// `c ? this.timeframes : timeframes` / `c ? this.outcomes : {}`: a base field the hand-written header
+// declares Map<String, Object> prints that box; an unwritten parameter annotated with a string-keyed
+// dict in TS (printed Object) or a base field typed so in TS but printed Object takes one checkcast
+// on the whole conditional, the exact cast its Map uses carried. Other arms go through the r77j2 Map
+// proofs. Lifted only with a native use (element read, Object.keys, `in`), uses via isSafeToNarrow.
+function r84j2MapArm (printer, node, declaration) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (ts.isPropertyAccessExpression (value) && value.expression.kind === ts.SyntaxKind.ThisKeyword) {
+        if (javaBaseMapField (printer, value)) {
+            return { kind: 'typed', cast: false };
+        }
+        let fieldDeclarations;
+        try {
+            fieldDeclarations = (printer.getChecker ().getSymbolAtLocation (value.name)?.declarations ?? []).map ((d) => d.resolve ());
+        } catch (e) {
+            return undefined;
+        }
+        // a base property whose TS type is a string-keyed dict (or undefined) printed as an Object field
+        return fieldDeclarations.length > 0 && fieldDeclarations.every ((d) => d !== undefined && ts.isPropertyDeclaration (d)
+            && BASE_SOURCE_FILE.test (d.getSourceFile ().fileName)) && j6TsShapeIs (printer, value, 'map') ? { kind: 'typed', cast: true } : undefined;
+    }
+    if (ts.isIdentifier (value) && value.text !== declaration.name.text && printer.printNode (value, 0) === value.text) {
+        const binding = r84j2UnwrittenBinding (printer, value);
+        if (binding !== undefined && ts.isParameterDeclaration (binding) && binding.type !== undefined
+            && (binding.initializer === undefined || isNullishInitializer (binding.initializer)) && j6TsShapeIs (printer, binding.name, 'map')) {
+            const declared = r77j2Normalize (printer.javaDeclaredTypeOf (value));
+            if (declared === JAVA_MAP_TYPE) {
+                return { kind: 'typed', cast: false };
+            }
+            return declared === '' || declared === 'Object' ? { kind: 'typed', cast: true } : undefined;
+        }
+    }
+    return r77j2Value (printer, value, declaration, JAVA_MAP_TYPE);
+}
+
+function r84j2MapLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isConditionalExpression (init)) {
+        return undefined;
+    }
+    const a = r84j2MapArm (printer, init.whenTrue, declaration);
+    const b = r84j2MapArm (printer, init.whenFalse, declaration);
+    if (a === undefined || b === undefined || a.kind !== 'typed' && b.kind !== 'typed' || a.kind === 'int' || b.kind === 'int') {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_MAP_TYPE)) {
+        return undefined;
+    }
+    const native = (identifierIndex (scope).get (name) ?? []).some ((n) => {
+        if (n === declaration.name) {
+            return false;
+        }
+        const parent = n.parent;
+        if (ts.isElementAccessExpression (parent) && parent.expression === n) {
+            return !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent);
+        }
+        if (ts.isCallExpression (parent) && parent.arguments[0] === n && ts.isPropertyAccessExpression (parent.expression)
+            && ts.isIdentifier (parent.expression.expression) && parent.expression.expression.text === 'Object') {
+            return true; // Object.keys / Object.values
+        }
+        return ts.isBinaryExpression (parent) && parent.right === n && parent.operatorToken.kind === ts.SyntaxKind.InKeyword;
+    });
+    if (!native) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_MAP_TYPE, isProFile, {
+        writeOnly: true,
+        noCastAssertions: true,
+        writeOk: (right) => javaMapLocalValue (printer, right, declaration) !== undefined && javaMapLocalValue (printer, right, declaration).cast !== true,
+    });
+    return ok ? { cast: a.cast === true || b.cast === true } : undefined;
+}
+
+export function installJavaR84j2MapConditionalLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j2MapCondPatched) {
+        return;
+    }
+    printer._javaR84j2MapCondPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = r84j2MapLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        let rest = printed.slice (at + marker.length);
+        if (info.cast) {
+            const semi = rest.lastIndexOf (';');
+            const body = semi === -1 ? rest : rest.slice (0, semi);
+            const tail = semi === -1 ? '' : rest.slice (semi);
+            if (body.indexOf ('\n') !== -1 || (tail !== '' && tail.trim () !== ';')) {
+                return printed;
+            }
+            rest = `${JAVA_MAP_LOCAL_CAST} (${body})${tail}`;
+        }
+        typed.set (declaration, JAVA_MAP_TYPE);
+        return printed.slice (0, at) + marker.replace (/Object (\S+) = $/, `${JAVA_MAP_TYPE} $1 = `) + rest;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
