@@ -21021,7 +21021,8 @@ function r84j8ConstCopyListLocal (printer, declaration) {
         return undefined;
     }
     const init = javaListLocalValue (printer, declaration.initializer, declaration);
-    if (init === undefined || isNullishInitializer (unwrapParens (declaration.initializer))) {
+    // only an initializer that is List<Object> without a checkcast: a cast at the declaration would add a conversion
+    if (init === undefined || init.cast || isNullishInitializer (unwrapParens (declaration.initializer))) {
         return undefined;
     }
     const scope = enclosingFunction (declaration);
