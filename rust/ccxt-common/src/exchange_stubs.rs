@@ -3544,9 +3544,9 @@ mod cased_reader_opt_twin_tests {
         Value::Dict(Arc::new(m))
     }
 
-    const KEYS: [&str; 6] = ["s", "n", "f", "b", "e", "missing"];
+    const KEYS: [&'static str; 6] = ["s", "n", "f", "b", "e", "missing"];
 
-    fn key(k: &str) -> Value {
+    fn key(k: &'static str) -> Value {
         Value::Str(k.into())
     }
 
@@ -3558,7 +3558,7 @@ mod cased_reader_opt_twin_tests {
         out
     }
 
-    fn three(a: &str, b: &str) -> Value {
+    fn three(a: &'static str, b: &'static str) -> Value {
         Value::Array(vec![key(a), key(b), key("s")])
     }
 
