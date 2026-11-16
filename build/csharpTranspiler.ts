@@ -9445,6 +9445,13 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('84c2 c ? <int literal> : <mathMin helper> keeps object',
             'f (limit: Int = undefined) { const n = (limit === undefined) ? 100 : Math.min (limit, 1000); return n; }',
             'object n = ((limit == null)) ? 100 : mathMin(limit, 1000);');
+        const rowHost = 'safeMarket (id, m = undefined, d = undefined, t = undefined): MarketInterface { return m; }\n safeBool (o, k, d = undefined): boolean { return d; }\n';
+        check ('84c2 c ? market[quote] : market[base] read as a key -> string?',
+            rowHost + ' f (marketId, balances: Dict) { const market = this.safeMarket (marketId, undefined, undefined, \'contract\'); const code = (this.safeBool (market, \'linear\', false)) ? market[\'quote\'] : market[\'base\']; if (code in balances) { return balances[code]; } return code; }',
+            'string? code = ((string)((this.safeBool(market, "linear", false) == true) ? ', 'object code = ');
+        check ('84c2 c ? market[quote] : market[base] never a key keeps object',
+            rowHost + ' f (marketId) { const market = this.safeMarket (marketId, undefined, undefined, \'contract\'); const code = (this.safeBool (market, \'linear\', false)) ? market[\'quote\'] : market[\'base\']; return { \'code\': code }; }',
+            'object code = ');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {

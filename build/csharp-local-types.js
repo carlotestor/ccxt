@@ -19365,6 +19365,11 @@ function castProvenArmType (csharp, arm, context) {
     if (marketRowBoolReadType (csharp, node) === 'bool') {
         return { type: 'bool?', proven: true };
     }
+    // a market-row / typed-dict string read: proven, but only native where the local is a key
+    // (castProvenArmConditionalLocal checks that use before accepting a string? join)
+    if (marketRowStringReadType (csharp, node) === 'string' || typedDictStringReadType (csharp, node) === 'string') {
+        return { type: 'string?', proven: true, keyOnly: true };
+    }
     if (thisMemberAccess (node, 'triggerOrders') && !isPredictionSource (node)
             && wsCacheFieldFileCensus (node.getSourceFile?.(), 'triggerOrders')) {
         return { type: WS_CACHE_FIELD_CAST, proven: true };
@@ -19410,6 +19415,24 @@ function nativeIntegralMinMaxArmType (csharp, node) {
     return kinds.some ((kind) => !kind.literal && kind.kind.replace ('?', '') === 'Int64') ? 'Int64' : undefined;
 }
 
+function localIsReadAsKey (csharp, scope, declaration) {
+    if (scope === undefined) {
+        return false;
+    }
+    const index = indexScope (csharp, scope);
+    for (const n of (index.identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
+            continue;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.argumentExpression === n)
+                || (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.InKeyword)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 const CAST_PROVEN_NULLABLE_SPELLINGS = [ 'string?', 'bool?', 'Int64?', 'double?', 'int?' ];
 
 function castProvenArmConditionalLocal (csharp, declaration, context) {
@@ -19439,6 +19462,12 @@ function castProvenArmConditionalLocal (csharp, declaration, context) {
         const other = (whenTrue.natural === true) ? whenFalse : whenTrue;
         const type = (other.type === 'int' || other.type === 'Int64') ? 'Int64' : (other.type === 'null') ? 'Int64?' : undefined;
         return (type !== undefined && csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx)) ? { type } : undefined;
+    }
+    // a string join is accepted only when some read of the local is a dictionary key (`obj[x]`,
+    // `x in obj`): the printer's `(string)x` key cast and `is string` key guard then go native;
+    // any other string? local would only gain the declaration cast
+    if ((whenTrue.keyOnly === true || whenFalse.keyOnly === true) && !localIsReadAsKey (csharp, scope, declaration)) {
+        return undefined;
     }
     let type = unifyArms (whenTrue.type, whenFalse.type, true);
     // a reference type beside a null arm keeps its own spelling (the families above declare
