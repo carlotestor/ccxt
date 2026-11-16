@@ -20975,6 +20975,72 @@ function r84j8KeysListLocal (printer, declaration) {
     return siblings > 0; // section 19 already decides the single-binding case
 }
 
+// (c) `let xs = [..]` whose other writes copy a const local declared LATER in the source or in a
+//     sibling block (so its published type is not known yet when xs prints), proven List from the
+//     const's own initializer (safeList* with a list default, Object.keys, a literal). The copy takes
+//     a `(java.util.List<Object>)` checkcast unless the source already printed List<Object>.
+function r84j8ConstListSource (printer, right, depth = 0) {
+    const value = unwrapParens (right);
+    if (value === undefined || !ts.isIdentifier (value) || depth > 2) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)
+        || declaration.initializer === undefined || !(declaration.parent?.flags & ts.NodeFlags.Const)
+        || isNullishInitializer (declaration.initializer)) {
+        return false;
+    }
+    // a List<String> source (section 19 / 31 decide those from the AST) cannot be checkcast to List<Object>
+    if (objectKeysDeclaredType (printer, declaration) !== undefined || stringListLocalType (printer, declaration) !== undefined
+        || /List<String>/.test (String (printer.javaDeclaredTypeOf (value) ?? ''))) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (ts.isIdentifier (init)) {
+        return r84j8ConstListSource (printer, init, depth + 1);
+    }
+    return javaListLocalValue (printer, init, declaration) !== undefined;
+}
+
+function r84j8ConstCopyListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = javaListLocalValue (printer, declaration.initializer, declaration);
+    if (init === undefined || isNullishInitializer (unwrapParens (declaration.initializer))) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_LIST_LOCAL_TYPE)) {
+        return undefined;
+    }
+    let copies = 0;
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_LIST_LOCAL_TYPE, isProFile, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: (right) => {
+            if (javaListLocalValue (printer, right, declaration) !== undefined) {
+                return true;
+            }
+            const copy = r84j8ConstListSource (printer, right);
+            copies += copy ? 1 : 0;
+            return copy;
+        },
+    });
+    return ok && copies > 0 ? { cast: init.cast } : undefined;
+}
+
 export function installJavaR84j8Locals (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j8LocalsPatched) {
@@ -21022,6 +21088,17 @@ export function installJavaR84j8Locals (transpiler) {
             typed.set (declaration, JAVA_MAP_TYPE);
             return printed.slice (0, at) + `${iden}${JAVA_MAP_TYPE} ${name} = ` + printed.slice (at + marker.length);
         }
+        let list;
+        try {
+            list = r84j8ConstCopyListLocal (printer, declaration);
+        } catch (e) {
+            list = undefined;
+        }
+        if (list !== undefined) {
+            typed.set (declaration, JAVA_LIST_LOCAL_TYPE);
+            return printed.slice (0, at) + `${iden}${JAVA_LIST_LOCAL_TYPE} ${name} = ` + (list.cast ? JAVA_LIST_LOCAL_CAST + ' ' : '')
+                + printed.slice (at + marker.length);
+        }
         // (b) on the Object path: section 19 left the native copy under an Object head
         const match = OBJECT_KEYS_NATIVE_COPY.exec (printed.slice (at + marker.length));
         try {
@@ -21036,6 +21113,27 @@ export function installJavaR84j8Locals (transpiler) {
         return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${name} = new java.util.ArrayList<String>(${match[1]}.keySet())${match[2]}`;
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // `keys.join (sep)` on a List<String> this section declared needs no receiver checkcast
+    if (typeof printer.printJoinCall === 'function') {
+        const upstreamJoin = printer.printJoinCall.bind (printer);
+        printer.printJoinCall = function (node, identation, name, parsedArg) {
+            const out = upstreamJoin (node, identation, name, parsedArg);
+            const receiver = node?.expression?.expression;
+            const tail = `, (java.util.List<String>)${name})`;
+            if (typeof out !== 'string' || !out.startsWith ('String.join(') || !out.endsWith (tail)
+                || receiver === undefined || !ts.isIdentifier (receiver) || printer.printNode (receiver, 0) !== name) {
+                return out;
+            }
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+            } catch (e) {
+                return out;
+            }
+            return declaration !== undefined && typed.get (declaration) === JAVA_STRING_LIST_TYPE
+                ? out.slice (0, out.length - tail.length) + `, ${name})` : out;
+        };
+    }
     const upstreamBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node, identation) {
         const printed = upstreamBinary (node, identation);
@@ -21047,6 +21145,11 @@ export function installJavaR84j8Locals (transpiler) {
             declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
         } catch (e) {
             return printed;
+        }
+        if (declaration !== undefined && typed.get (declaration) === JAVA_LIST_LOCAL_TYPE) {
+            const info = javaListLocalValue (printer, node.right, declaration);
+            const needsCast = info !== undefined ? info.cast : !javaDeclaredListLocal (printer, unwrapParens (node.right));
+            return needsCast ? accumulatorCastWrite (printer, node, printed, { cast: JAVA_LIST_LOCAL_CAST }) : printed;
         }
         if (declaration === undefined || typed.get (declaration) !== JAVA_MAP_TYPE) {
             return printed;
