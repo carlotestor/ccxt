@@ -21160,6 +21160,28 @@ export function installJavaJ8CopyLocals (transpiler) {
 // method on it, its `delete m[k]` / `m[k] = v` key, its String core arguments and `===` with no cast.
 // Admitted only when isSafeToNarrow accepts every use AND at least one use gains a native form.
 const R84J1_KEY_SET_CALLEES = new Set ([ 'findMessageHashes' ]);
+// (r4) hand-written BaseExchange methods declared `List<String>` (marketIds, marketSymbols): every element
+// is a String or null by the Java declaration itself
+const R84J1_STRING_LIST_CALLEES = new Set ([ 'marketIds', 'marketSymbols' ]);
+
+function r84j1StringOnlyProducer (printer, value) {
+    let init = unwrapParens (value);
+    while (init !== undefined && (ts.isAsExpression (init) || init.kind === ts.SyntaxKind.TypeAssertionExpression)) {
+        init = unwrapParens (init.expression);
+    }
+    if (init === undefined) {
+        return false;
+    }
+    if (ts.isCallExpression (init) && ts.isPropertyAccessExpression (init.expression)) {
+        const callee = init.expression;
+        const method = String (callee.name.text);
+        return (method === 'keys' && ts.isIdentifier (callee.expression) && callee.expression.text === 'Object')
+            || (method === 'split' && init.arguments.length === 1)
+            || (isThisCall (init) && (R84J1_KEY_SET_CALLEES.has (method) || R84J1_STRING_LIST_CALLEES.has (method))
+                && resolvesToBaseOrStrippedAccessor (printer, init, method));
+    }
+    return stringElementsProducer (init);
+}
 
 function r84j1StringOnlyList (printer, receiver, scope) {
     if (!ts.isIdentifier (receiver)) {
@@ -21171,24 +21193,14 @@ function r84j1StringOnlyList (printer, receiver, scope) {
         || !ts.isIdentifier (declaration.name) || enclosingFunction (declaration) !== scope) {
         return false;
     }
-    let init = unwrapParens (declaration.initializer);
-    while (init !== undefined && (ts.isAsExpression (init) || init.kind === ts.SyntaxKind.TypeAssertionExpression)) {
-        init = unwrapParens (init.expression);
-    }
-    let producer = false;
-    if (init !== undefined && ts.isCallExpression (init) && ts.isPropertyAccessExpression (init.expression)) {
-        const callee = init.expression;
-        const method = String (callee.name.text);
-        producer = (method === 'keys' && ts.isIdentifier (callee.expression) && callee.expression.text === 'Object')
-            || (method === 'split' && init.arguments.length === 1)
-            || (isThisCall (init) && R84J1_KEY_SET_CALLEES.has (method) && resolvesToBaseOrStrippedAccessor (printer, init, method));
-    } else if (init !== undefined && stringElementsProducer (init)) {
-        producer = true;
-    }
-    if (!producer) {
+    // a `let xs = undefined` / producer seed is fine when EVERY write is a String-only producer (r4)
+    const seed = unwrapParens (declaration.initializer);
+    const seedIsNull = seed.kind === ts.SyntaxKind.UndefinedKeyword || (ts.isIdentifier (seed) && seed.text === 'undefined');
+    if (!seedIsNull && !r84j1StringOnlyProducer (printer, declaration.initializer)) {
         return false;
     }
-    // the list itself is never written, re-bound, mutated or handed out before the read
+    let writes = seedIsNull ? 0 : 1;
+    // the list is never mutated or deleted from; every re-binding is itself a String-only producer
     for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
         if (n === declaration.name || printer.getChecker ().getSymbolAtLocation (n) !== symbol) {
             continue;
@@ -21196,6 +21208,11 @@ function r84j1StringOnlyList (printer, receiver, scope) {
         const parent = n.parent;
         if (ts.isPropertyAccessExpression (parent) && parent.expression === n && LIST_MUTATING_METHODS.has (String (parent.name.text))) {
             return false;
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && r84j1StringOnlyProducer (printer, parent.right)) {
+            writes++;
+            continue;
         }
         if (ts.isBinaryExpression (parent) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)
             && (parent.left === n || (ts.isElementAccessExpression (parent.left) && parent.left.expression === n))) {
@@ -21205,7 +21222,7 @@ function r84j1StringOnlyList (printer, receiver, scope) {
             return false;
         }
     }
-    return true;
+    return writes > 0;
 }
 
 // `sig['r']` / `sig['s']` where sig is a const local bound to the base crypto `ecdsa (..)` call
