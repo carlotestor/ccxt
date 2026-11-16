@@ -2415,7 +2415,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual object actionHash(object action, object vaultAddress, object nonce)
     {
-        object dataBinary = this.packb(action);
+        byte[] dataBinary = this.packb(action);
         object dataHex = this.binaryToBase16(dataBinary);
         object data = dataHex;
         data = ((object)(data == null ? null : data + ("00000" + this.intToBase16(nonce))));
@@ -2456,7 +2456,7 @@ public partial class hyperliquid : PredictionExchange
         return this.signMessage(msg, this.privateKey);
     }
 
-    public virtual object signUserSignedAction(object messageTypes, object message)
+    public virtual Dictionary<string, object> signUserSignedAction(object messageTypes, object message)
     {
         string? zeroAddress = this.safeString(this.options, "zeroAddress");
         int chainId = 421614;
@@ -2471,7 +2471,7 @@ public partial class hyperliquid : PredictionExchange
         return signature;
     }
 
-    public virtual object buildApproveBuilderFeeSig(object message)
+    public virtual Dictionary<string, object> buildApproveBuilderFeeSig(object message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:ApproveBuilderFee", new List<object>() {new Dictionary<string, object>() {
@@ -2510,7 +2510,7 @@ public partial class hyperliquid : PredictionExchange
             { "builder", builder },
             { "nonce", nonce },
         };
-        object sig = this.buildApproveBuilderFeeSig(payload);
+        Dictionary<string, object> sig = this.buildApproveBuilderFeeSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },

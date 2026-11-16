@@ -730,12 +730,12 @@ public partial class lighter : Exchange
             this.checkRequiredCredentials();
             throw new AuthenticationError ((this.id + " could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")) ;
         }
-        object token = this.lighterCreateAuthToken(signer, request);
+        string token = this.lighterCreateAuthToken(signer, request);
         this.setAuthEntry(accountIndex, apiKeyIndex, new Dictionary<string, object>() {
             { "deadline", deadline },
             { "token", token },
         });
-        return ((string?)((object)(token)));
+        return token;
     }
 
     public virtual string? pow(string? n, object m)
@@ -764,7 +764,7 @@ public partial class lighter : Exchange
     public virtual string? hashMessage(object message)
     {
         string? binaryMessage = this.encode(message);
-        object binaryMessageLength = this.binaryLength(binaryMessage);
+        int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));

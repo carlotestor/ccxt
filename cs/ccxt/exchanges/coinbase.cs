@@ -5872,7 +5872,7 @@ public partial class coinbase : Exchange
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
-        object nonce = this.randomBytes(16);
+        string nonce = this.randomBytes(16);
         string aud = "retail_rest_api_proxy";
         if (useEddsa == true)
         {

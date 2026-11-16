@@ -1824,7 +1824,7 @@ public partial class hyperliquid : Exchange
 
     public virtual object actionHash(object action, object vaultAddress, object nonce, object expiresAfter = null)
     {
-        object dataBinary = this.packb(action);
+        byte[] dataBinary = this.packb(action);
         object dataHex = this.binaryToBase16(dataBinary);
         object data = (dataHex == null ? null : dataHex + "00000" + this.intToBase16(nonce));
         if ((vaultAddress == null))
@@ -1891,7 +1891,7 @@ public partial class hyperliquid : Exchange
         return signature;
     }
 
-    public virtual object signUserSignedAction(object messageTypes, object message)
+    public virtual Dictionary<string, object> signUserSignedAction(object messageTypes, object message)
     {
         string? zeroAddress = this.safeString(this.options, "zeroAddress");
         int chainId = 421614; // check this out
@@ -1926,7 +1926,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildUsdClassSendSig(IDictionary<string, object> message)
+    public virtual Dictionary<string, object> buildUsdClassSendSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:UsdClassTransfer", new List<object>() {new Dictionary<string, object>() {
@@ -1946,7 +1946,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildSendAssetSig(IDictionary<string, object> message)
+    public virtual Dictionary<string, object> buildSendAssetSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:SendAsset", new List<object>() {new Dictionary<string, object>() {
@@ -1998,7 +1998,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildUserDexAbstractionSig(IDictionary<string, object> message)
+    public virtual Dictionary<string, object> buildUserDexAbstractionSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:UserDexAbstraction", new List<object>() {new Dictionary<string, object>() {
@@ -2018,7 +2018,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildUserAbstractionSig(IDictionary<string, object> message)
+    public virtual Dictionary<string, object> buildUserAbstractionSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:UserSetAbstraction", new List<object>() {new Dictionary<string, object>() {
@@ -2038,7 +2038,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildApproveBuilderFeeSig(object message)
+    public virtual Dictionary<string, object> buildApproveBuilderFeeSig(object message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:ApproveBuilderFee", new List<object>() {new Dictionary<string, object>() {
@@ -2098,7 +2098,7 @@ public partial class hyperliquid : Exchange
             { "builder", builder },
             { "nonce", nonce },
         };
-        object sig = this.buildApproveBuilderFeeSig(payload);
+        Dictionary<string, object> sig = this.buildApproveBuilderFeeSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
@@ -2255,7 +2255,7 @@ public partial class hyperliquid : Exchange
             { "abstraction", abstraction },
             { "nonce", nonce },
         };
-        object sig = this.buildUserAbstractionSig(payload);
+        Dictionary<string, object> sig = this.buildUserAbstractionSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
@@ -2305,7 +2305,7 @@ public partial class hyperliquid : Exchange
             { "enabled", enabled },
             { "nonce", nonce },
         };
-        object sig = this.buildUserDexAbstractionSig(payload);
+        Dictionary<string, object> sig = this.buildUserDexAbstractionSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
@@ -4828,7 +4828,7 @@ public partial class hyperliquid : Exchange
                 { "toPerp", toPerp },
                 { "nonce", nonce },
             };
-            object transferSig = this.buildUsdClassSendSig(transferPayload);
+            Dictionary<string, object> transferSig = this.buildUsdClassSendSig(transferPayload);
             Dictionary<string, object> transferRequest = new Dictionary<string, object>() {
                 { "action", new Dictionary<string, object>() {
                     { "hyperliquidChain", transferPayload["hyperliquidChain"] },
@@ -4906,7 +4906,7 @@ public partial class hyperliquid : Exchange
                 { "fromSubAccount", isDeposit ? "" : subAccountAddress },
                 { "nonce", nonce },
             };
-            object sendAssetSig = this.buildSendAssetSig(sendAssetPayload);
+            Dictionary<string, object> sendAssetSig = this.buildSendAssetSig(sendAssetPayload);
             Dictionary<string, object> sendAssetRequest = new Dictionary<string, object>() {
                 { "action", new Dictionary<string, object>() {
                     { "hyperliquidChain", sendAssetPayload["hyperliquidChain"] },

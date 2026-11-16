@@ -1871,7 +1871,7 @@ public partial class predictfun : PredictionExchange
     public virtual string? hashMessage(string message)
     {
         string? binaryMessage = this.encode(message);
-        object binaryMessageLength = this.binaryLength(binaryMessage);
+        int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));

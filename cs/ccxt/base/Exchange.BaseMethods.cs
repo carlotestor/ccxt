@@ -1667,7 +1667,7 @@ public partial class BaseExchange
             return;
         }
         // reconstruct
-        object initialFeatures = this.features;
+        Dictionary<string, object> initialFeatures = this.features;
         this.features = new Dictionary<string, object>() {};
         List<object> unifiedMarketTypes = new List<object>() {"spot", "swap", "future", "option"};
         List<object> subTypes = new List<object>() {"linear", "inverse"};
@@ -1676,7 +1676,7 @@ public partial class BaseExchange
         {
             string? marketType = ((string)unifiedMarketTypes[i]);
             // if marketType is not filled for this exchange, don't add that in `features`
-            if (!(inOp(initialFeatures, marketType)))
+            if (!(((marketType != null) && (initialFeatures?.ContainsKey(marketType) == true))))
             {
                 this.features[(string)marketType] = null;
             } else
@@ -3735,12 +3735,12 @@ public partial class BaseExchange
             return ((string?)((object)(networkId)));
         }
         // options.networks may still be keyed by an alias of the unified code
-        object aliases = this.networkAliases;
-        List<object> aliasKeys = new List<object>(((IDictionary<string,object>)aliases).Keys);
+        Dictionary<string, object> aliases = this.networkAliases;
+        List<object> aliasKeys = new List<object>(aliases.Keys);
         for (int i = 0; i < aliasKeys.Count; i++)
         {
             string? alias = ((string)aliasKeys[i]);
-            if ((isEqual(getValue(aliases, alias), unifiedCode)) && (((alias != null) && (networkIdsByCodes?.ContainsKey(alias) == true))))
+            if ((isEqual((aliases != null && alias != null && aliases.ContainsKey(alias) ? aliases[alias] : null), unifiedCode)) && (((alias != null) && (networkIdsByCodes?.ContainsKey(alias) == true))))
             {
                 return ((string?)((object)((alias != null && networkIdsByCodes.ContainsKey(alias) ? networkIdsByCodes[alias] : null))));
             }
