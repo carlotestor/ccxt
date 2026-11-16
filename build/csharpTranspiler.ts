@@ -9431,13 +9431,11 @@ export function csharpNativeEmissionSelfTest (): string[] {
             'f (x) { const s = (x === undefined) ? "BTC/USDT" : x; return s; }',
             'object s = ');
         // 84c2: conditional initialisers over cast-proven arms / the printer's null-guard concat
-        const tableHost = 'safeValue (o, k, d = undefined) { return d; }\n safeString (o, k, d = undefined): string { return d; }\n handleA (client, message) { return 1; }\n';
-        check ('84c2 c ? undefined : <handler table read> -> Delegate',
-            tableHost + ' handleMessage (client, message) { const methods = { \'a\': this.handleA }; const e = this.safeString (message, \'e\'); const method = (e === undefined) ? undefined : this.safeValue (methods, e); if (method !== undefined) { method.call (this, client, message); } }',
-            'Delegate method = ((Delegate)(((e == null)) ? null : this.safeValue(methods, e)));', 'object method = ');
-        check ('84c2 c ? undefined : <untabled safeValue> keeps object',
-            tableHost + ' handleMessage (client, message) { const e = this.safeString (message, \'e\'); const method = (e === undefined) ? undefined : this.safeValue (message, e); return method; }',
-            'object method = ');
+        const cacheBody = 'handleOrder (client, message, isTrigger) { if (this.orders === undefined) { this.orders = new ArrayCacheBySymbolById (10); this.triggerOrders = new ArrayCacheBySymbolById (10); } const stored = isTrigger ? this.triggerOrders : this.orders; stored.append (message); client.resolve (stored, \'x\'); }';
+        check ('84c2 c ? this.triggerOrders : this.orders -> ArrayCache with a native append',
+            cacheBody, 'ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(isTrue(isTrigger) ? this.triggerOrders : this.orders));', 'object stored = ');
+        check ('84c2 triggerOrders written with a non-cache value keeps object',
+            cacheBody.replace ('client.resolve', 'this.triggerOrders = message; client.resolve'), 'object stored = ');
         check ('84c2 null-guard concat over a string-or-null local -> string?',
             'f (o, d: string) { let m = undefined; if (o) { m = \'x\'; } const md = m + d; return md; }',
             'string? md = (m == null ? null : m + (string)(object)(d));', 'object md = ');

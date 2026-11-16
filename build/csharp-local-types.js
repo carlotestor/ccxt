@@ -19340,14 +19340,12 @@ Object.assign (CSHARP_LOCAL_WS_MEMBER_TYPES, {
 
 // ===== 84c2: conditional initialisers over cast-proven arms =====
 //
-// `const symbol = (market === undefined) ? undefined : market['symbol']`,
-// `const stored = isTrigger ? this.triggerOrders : this.orders`,
+// `const isSpot = c ? flag : market['spot']`, `const stored = isTrigger ? this.triggerOrders : this.orders`,
 // `const tradesArray = (symbol === undefined) ? undefined : this.safeValue (this.trades, symbol)`.
 // An arm whose C# static type is `object` but whose BOX one of the whole-initialiser families
-// already proves (the market-row string / bool / dict keys, a typed dictionary's string key, a
-// proven-list element, the ws cache member / bucket reads, a same-file handler table, the ws
-// `triggerOrders` field whose every write in the file stores an ArrayCache, the member dict reads)
-// holds exactly that box or null. The other arm is null, a statically typed value
+// already proves (the market-row bool keys, the ws cache member / bucket reads, the ws
+// `triggerOrders` field whose every write in the file stores an ArrayCache) holds exactly that box
+// or null. The other arm is null, a statically typed value
 // (conditionalArmType) or another such arm. The conditional is not target-typed: its natural
 // type stays `object`, so the declaration names the join behind ONE cast on the whole
 // conditional (castWhole) -- the same value, no use-site cast; csharpLocalIsSafeToRetype then
@@ -19360,28 +19358,20 @@ function castProvenArmType (csharp, arm, context) {
     if (node.kind === ts.SyntaxKind.NullKeyword || (node.kind === ts.SyntaxKind.Identifier && node.text === 'undefined')) {
         return { type: 'null', proven: false };
     }
-    if (marketRowStringReadType (csharp, node) === 'string' || typedDictStringReadType (csharp, node) === 'string'
-            || elementAccessStringReadType (csharp, node) === 'string') {
-        return { type: 'string?', proven: true };
-    }
+    // only the boxes whose reads print natively once named: a bool? row tests `== true` instead of
+    // `is true`, an ArrayCache receiver calls `.append` instead of BaseCache.appendTo. A string /
+    // dict / Delegate arm would only gain the declaration cast (its uses are object-taking helpers),
+    // so those keep `object` (84c2 per-local accounting).
     if (marketRowBoolReadType (csharp, node) === 'bool') {
         return { type: 'bool?', proven: true };
-    }
-    if (marketRowDictReadType (csharp, node) === 'dict') {
-        return { type: 'IDictionary<string, object>', proven: true };
     }
     if (thisMemberAccess (node, 'triggerOrders') && !isPredictionSource (node)
             && wsCacheFieldFileCensus (node.getSourceFile?.(), 'triggerOrders')) {
         return { type: WS_CACHE_FIELD_CAST, proven: true };
     }
-    const cached = wsCacheMemberReadType (csharp, node) ?? wsCacheBucketReadType (csharp, node) ?? handlerTableReadType (csharp, node, context)
-        ?? memberDictReadCastType (node);
-    if (cached !== undefined) {
+    const cached = wsCacheMemberReadType (csharp, node) ?? wsCacheBucketReadType (csharp, node);
+    if (cached !== undefined && cached.startsWith ('ccxt.pro.ArrayCache')) {
         return { type: cached, proven: true };
-    }
-    const element = elementAccessElementType (csharp, node, context);
-    if (element !== undefined) {
-        return { type: (element === 'string') ? 'string?' : element, proven: true };
     }
     const direct = conditionalArmType (csharp, arm, context);
     return (direct === undefined) ? undefined : { type: direct, proven: false };
