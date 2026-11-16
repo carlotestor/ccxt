@@ -7106,7 +7106,7 @@ function destructuredElementReadType (csharp, context, identifier) {
     if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.getStart () >= identifier.getStart () || context.depth >= MAX_RESOLVE_DEPTH) {
         return undefined;
     }
-    return copiedElement1ReadType (element) ?? destructuredSlotType (csharp, context.scope, declaration, element.parent.elements.indexOf (element), context);
+    return copiedElement1ReadType (csharp, element) ?? destructuredSlotType (csharp, context.scope, declaration, element.parent.elements.indexOf (element), context);
 }
 
 // A read of a string-list parameter typeCoreArgs prints `IList<object>` (CORE_LIST_ARGS position,
@@ -18648,12 +18648,15 @@ registerListProducerReturnTypes ();
 // ===== 77c5: copies of a typed params binding and their omit writes =====
 // (1) `const [ x, paramsX ] = this.handle*AndParams (...)` whose element-1 declaration line was
 // printed `IDictionary<string, object> paramsX = ((IDictionary<string, object>)tmp[1])`
-// (retypeElement1Params records it in element1TypedBindings): a later READ of paramsX has that
+// (retypeElement1Params): a later READ of paramsX has that
 // static type, so a copy `let q = paramsX` starts its join at the interface.
-function copiedElement1ReadType (element) {
+// The proof is element1ParamsBinding itself (AST + checker), not the element1TypedBindings record:
+// that set only fills once the destructuring line is printed, so a declaration printed earlier
+// and a reader printed later would disagree. retypeElement1Params prints exactly these slots.
+function copiedElement1ReadType (csharp, element) {
     const pattern = element?.parent;
     return (pattern?.kind === ts.SyntaxKind.ArrayBindingPattern && pattern.elements.indexOf (element) === 1
-        && element1TypedBindings.has (element)) ? CSHARP_ELEMENT_1_TYPE : undefined;
+        && element1ParamsBinding (csharp, element)) ? CSHARP_ELEMENT_1_TYPE : undefined;
 }
 
 // (2) a later write `q = this.omit (<dict receiver>, keys)` of such a copy: the two-argument call
