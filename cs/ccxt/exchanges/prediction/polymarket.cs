@@ -3321,7 +3321,7 @@ public partial class polymarket : PredictionExchange
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
         object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "gamma"));
+        string? baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "gamma"));
         object url = (baseUrl == null ? null : baseUrl + "/" + this.implodeParams(path, parameters));
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"

@@ -2409,7 +2409,7 @@ public partial class bittrade : Exchange
         {
             request["addr-tag"] = tagWithdrawTag; // only for XRP?
         }
-        object network = this.safeStringUpper(paramsWithdrawTag, "network");
+        string? network = this.safeStringUpper(paramsWithdrawTag, "network");
         if ((network != null))
         {
             network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
@@ -2418,12 +2418,12 @@ public partial class bittrade : Exchange
         if ((network != null))
         {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
-            if ((network is "erc20"))
+            if (network == "erc20")
             {
                 request["chain"] = add((currency.ContainsKey("id") ? currency["id"] : null), network);
             } else
             {
-                request["chain"] = ((object)(network == null ? null : network + (string)(object)((currency.ContainsKey("id") ? currency["id"] : null))));
+                request["chain"] = (network == null ? null : network + (string)(object)((currency.ContainsKey("id") ? currency["id"] : null)));
             }
         }
         IDictionary<string, object> paramsNetwork = ((network != null)) ? this.omit(paramsWithdrawTag, "network") : paramsWithdrawTag;

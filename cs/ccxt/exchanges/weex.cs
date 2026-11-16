@@ -5058,7 +5058,7 @@ public partial class weex : Exchange
                 throw new NotSupported ((((this.id + " ") + path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
-            object timestamp = this.numberToString(this.nonce());
+            string? timestamp = this.numberToString(this.nonce());
             object payload = (timestamp == null ? null : timestamp + (string)(object)(method) + "/" + (string)(object)(endpoint));
             if (hasJsonBody)
             {

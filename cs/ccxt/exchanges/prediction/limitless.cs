@@ -3640,7 +3640,7 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
+        string? baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
         object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencodeWithArrayRepeat(query);
@@ -3664,9 +3664,9 @@ public partial class limitless : PredictionExchange
                 }, headersValue);
             }
             this.checkRequiredCredentials();
-            object timestamp = this.iso8601(this.milliseconds());
+            string? timestamp = this.iso8601(this.milliseconds());
             string newline = "\n"; // eslint-disable-line quotes
-            string? payload = ((string)((object)(timestamp == null ? null : timestamp + newline + (string)(object)(method) + newline + (string)(object)(url) + newline + bodyString)));
+            string? payload = ((string)(timestamp == null ? null : timestamp + newline + (string)(object)(method) + newline + (string)(object)(url) + newline + bodyString));
             string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
             headersValue = this.extend(headersValue, new Dictionary<string, object>() {
                 { "lmts-timestamp", timestamp },
@@ -3677,7 +3677,7 @@ public partial class limitless : PredictionExchange
             headersKey[(string)headerKey] = this.apiKey;
             headersValue = this.extend(headersValue, headersKey);
         }
-        url = ((object)(baseUrl == null ? null : baseUrl + (string)(object)(url)));
+        url = (baseUrl == null ? null : baseUrl + (string)(object)(url));
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

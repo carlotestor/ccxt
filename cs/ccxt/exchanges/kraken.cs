@@ -2262,14 +2262,14 @@ public partial class kraken : Exchange
                 cost = this.safeString(parts, 1);
             }
             marketId = this.safeString(parts, 2);
-            object part4 = this.safeString(parts, 4);
+            string? part4 = this.safeString(parts, 4);
             string? part5 = this.safeString(parts, 5);
-            if ((part4 is "limit") || (part4 is "market"))
+            if (part4 == "limit" || part4 == "market")
             {
                 descriptionType = part4; // eg, limit, market
             } else
             {
-                descriptionType = ((object)(part4 == null ? null : part4 + " " + part5)); // eg. stop loss, take profit, trailing stop
+                descriptionType = (part4 == null ? null : part4 + " " + part5); // eg. stop loss, take profit, trailing stop
             }
             if ((descriptionType is "stop loss") || (descriptionType is "take profit"))
             {

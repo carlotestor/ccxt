@@ -3947,7 +3947,7 @@ public partial class bitget : Exchange
         string? quoteId = this.safeString(market, "quoteCoin");
         string? baseId = this.safeString(market, "baseCoin");
         string? quote = this.safeCurrencyCode(quoteId);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         List<object> supportMarginCoins = this.safeList(market, "supportMarginCoins", new List<object>() {});
         string? settleId = null;
         if (this.inArray(baseId, supportMarginCoins))
@@ -4001,7 +4001,7 @@ public partial class bitget : Exchange
             {
                 type = "swap";
                 swap = true;
-                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle));
+                symbol = (bs == null ? null : bs + "/" + quote + ":" + settle);
             } else if (symbolType == "delivery")
             {
                 expiry = this.safeInteger(market, "deliveryTime");
@@ -4010,17 +4010,17 @@ public partial class bitget : Exchange
                 List<object> expiryParts = expiryIso.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 string? yearPart = this.safeString(expiryParts, 0, "");
                 string? dayPart = this.safeString(expiryParts, 2, "");
-                object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
+                string? year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
                 object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
                 object monthDay = (month == null ? null : month + day);
-                string? expiryString = ((string)((object)(year == null ? null : year + (string)(object)(monthDay))));
+                string? expiryString = ((string)(year == null ? null : year + (string)(object)(monthDay)));
                 type = "future";
                 future = true;
-                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString));
+                symbol = (bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString);
             }
             contract = true;
-            inverse = (isEqual(bs, settle));
+            inverse = ((bs == settle));
             linear = inverse != true;
             Int64? pricePlaces = this.safeInteger(market, "pricePlace");
             Int64? volumePlaces = this.safeInteger(market, "volumePlace");
@@ -4254,8 +4254,8 @@ public partial class bitget : Exchange
         string? quoteId = this.safeString(market, "quoteCoin");
         string? baseId = this.safeString(market, "baseCoin");
         string? quote = this.safeCurrencyCode(quoteId);
-        object bs = this.safeCurrencyCode(baseId);
-        object settleId = null;
+        string? bs = this.safeCurrencyCode(baseId);
+        string? settleId = null;
         if (category == "USDT-FUTURES")
         {
             settleId = "USDT";
@@ -4306,7 +4306,7 @@ public partial class bitget : Exchange
             {
                 type = "swap";
                 swap = true;
-                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle));
+                symbol = (bs == null ? null : bs + "/" + quote + ":" + settle);
             } else if (symbolType == "delivery")
             {
                 expiry = this.safeInteger(market, "deliveryTime");
@@ -4315,17 +4315,17 @@ public partial class bitget : Exchange
                 List<object> expiryParts = expiryIso.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 string? yearPart = this.safeString(expiryParts, 0, "");
                 string? dayPart = this.safeString(expiryParts, 2, "");
-                object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
+                string? year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
                 object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
                 object monthDay = (month == null ? null : month + day);
-                string? expiryString = ((string)((object)(year == null ? null : year + (string)(object)(monthDay))));
+                string? expiryString = ((string)(year == null ? null : year + (string)(object)(monthDay)));
                 type = "future";
                 future = true;
-                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString));
+                symbol = (bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString);
             }
             contract = true;
-            inverse = (isEqual(bs, settle));
+            inverse = ((bs == settle));
             linear = inverse != true;
             marginModes = new Dictionary<string, object>() {
                 { "cross", true },
@@ -14765,7 +14765,7 @@ public partial class bitget : Exchange
         if (signed)
         {
             this.checkRequiredCredentials();
-            object timestamp = this.numberToString(this.nonce());
+            string? timestamp = this.numberToString(this.nonce());
             object auth = (timestamp == null ? null : timestamp + (string)(object)(method) + payload);
             if ((method == "POST"))
             {

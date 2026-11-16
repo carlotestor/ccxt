@@ -11831,10 +11831,10 @@ public partial class binance : Exchange
         string? orderId = this.safeString(trade, "transId");
         Int64? timestamp = this.safeInteger(trade, "operateTime");
         string? currencyId = this.safeString(trade, "fromAsset");
-        object tradedCurrency = this.safeCurrencyCode(currencyId);
+        string? tradedCurrency = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> bnb = this.currency("BNB");
         object earnedCurrency = (bnb != null && bnb.ContainsKey("code") ? bnb["code"] : null);
-        string? applicantSymbol = ((string)(((object)(earnedCurrency == null ? null : earnedCurrency + "/" + (string)(object)(tradedCurrency)))));
+        string? applicantSymbol = ((string)(((object)(earnedCurrency == null ? null : earnedCurrency + "/" + tradedCurrency))));
         bool tradedCurrencyIsQuote = false;
         if (((this.markets != null)) && (((applicantSymbol != null) && (this.markets != null && applicantSymbol != null && this.markets.ContainsKey(applicantSymbol)))))
         {
@@ -11857,7 +11857,7 @@ public partial class binance : Exchange
             side = "buy";
         } else
         {
-            symbol = ((object)(tradedCurrency == null ? null : tradedCurrency + "/" + (string)(object)(earnedCurrency)));
+            symbol = (tradedCurrency == null ? null : tradedCurrency + "/" + (string)(object)(earnedCurrency));
             amountString = this.safeString(trade, "amount");
             costString = this.safeString(trade, "transferedAmount");
             side = "sell";

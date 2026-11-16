@@ -2949,9 +2949,9 @@ public partial class kucoin : ccxt.kucoin
         }
         Dictionary<string, object> paramsOmitted = this.omit(paramsUta, "type");
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-        object uniformType = this.safeString(accountsByType, type, type);
-        bool isClassicFuturesMethod = ((uniformType is "contract"));
-        object subscriptionHash = "/account/balance";
+        string? uniformType = this.safeString(accountsByType, type, type);
+        bool isClassicFuturesMethod = (uniformType == "contract");
+        string? subscriptionHash = "/account/balance";
         if (isClassicFuturesMethod)
         {
             subscriptionHash = "/contractAccount/wallet";
@@ -2972,9 +2972,9 @@ public partial class kucoin : ccxt.kucoin
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
-            await client.future(((object)(uniformType == null ? null : uniformType + ":fetchBalanceSnapshot")));
+            await client.future((uniformType == null ? null : uniformType + ":fetchBalanceSnapshot"));
         }
-        string? messageHash = ((string)((object)(uniformType == null ? null : uniformType + ":balance")));
+        string? messageHash = ((string)(uniformType == null ? null : uniformType + ":balance"));
         if ((utaOption == true))
         {
             Dictionary<string, object> extendedParams = new Dictionary<string, object>() {
@@ -2993,7 +2993,7 @@ public partial class kucoin : ccxt.kucoin
                 { "privateChannel", true },
             };
             Dictionary<string, object> message = this.extend(request, paramsOmitted);
-            if (!((client.subscriptions != null && subscriptionHash is string inOpKey5 && client.subscriptions.ContainsKey(inOpKey5))))
+            if (!(((subscriptionHash != null) && (client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))))
             {
                 ((IDictionary<string,object>)client.subscriptions)[requestId] = subscriptionHash;
             }
@@ -3001,9 +3001,9 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type)
+    public virtual void setBalanceCache(WebSocketClient client, string type)
     {
-        if (((client.subscriptions != null && type is string inOpKey6 && client.subscriptions.ContainsKey(inOpKey6))) && ((this.balance != null && type is string inOpKey7 && this.balance.ContainsKey(inOpKey7))))
+        if (((client.subscriptions != null && type != null && client.subscriptions.ContainsKey(type))) && ((this.balance != null && this.balance.ContainsKey(type))))
         {
             return;
         }
@@ -3011,8 +3011,8 @@ public partial class kucoin : ccxt.kucoin
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if ((fetchBalanceSnapshot == true))
         {
-            string? messageHash = ((string)(add(type, ":fetchBalanceSnapshot")));
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
+            string messageHash = (type + ":fetchBalanceSnapshot");
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});

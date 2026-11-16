@@ -356,11 +356,11 @@ public partial class sxbet : PredictionExchange
         //     }
         //
         string marketHash = this.safeString(raw, "marketHash", "");
-        object teamOneName = this.safeString(raw, "teamOneName");
+        string? teamOneName = this.safeString(raw, "teamOneName");
         string? teamTwoName = this.safeString(raw, "teamTwoName");
         string? outcomeOneName = this.safeString(raw, "outcomeOneName");
         string? outcomeTwoName = this.safeString(raw, "outcomeTwoName");
-        string eventSlug = this.shortenSlug(((object)(teamOneName == null ? null : teamOneName + " " + teamTwoName)));
+        string eventSlug = this.shortenSlug((teamOneName == null ? null : teamOneName + " " + teamTwoName));
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,

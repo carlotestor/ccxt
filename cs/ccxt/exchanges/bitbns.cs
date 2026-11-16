@@ -1448,8 +1448,8 @@ public partial class bitbns : Exchange
         {
             requestHeaders["X-BITBNS-APIKEY"] = this.apiKey;
         }
-        string baseUrl = this.implodeHostname(baseApiUrl);
-        string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
+        string? baseUrl = this.implodeHostname(baseApiUrl);
+        object url = (baseUrl == null ? null : baseUrl + "/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string? nonce = this.numberToString(this.nonce());
         int queryLength = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
@@ -1463,7 +1463,7 @@ public partial class bitbns : Exchange
         {
             if (queryLength > 0)
             {
-                url = url + ("?" + this.urlencode(query));
+                url = ((object)(url == null ? null : url + (string)(object)(("?" + this.urlencode(query)))));
             }
         } else if ((method == "POST"))
         {

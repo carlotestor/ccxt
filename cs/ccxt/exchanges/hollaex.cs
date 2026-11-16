@@ -415,11 +415,11 @@ public partial class hollaex : Exchange
             IDictionary<string, object> market = this.safeDict(pairs, key);
             string? baseId = this.safeString(market, "pair_base");
             string? quoteId = this.safeString(market, "pair_2");
-            object baseCode = this.commonCurrencyCode(baseId.ToUpper());
+            string? baseCode = this.commonCurrencyCode(baseId.ToUpper());
             string? quoteCode = this.commonCurrencyCode(quoteId.ToUpper());
             result.Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "name") },
-                { "symbol", ((object)(baseCode == null ? null : baseCode + "/" + quoteCode)) },
+                { "symbol", (baseCode == null ? null : baseCode + "/" + quoteCode) },
                 { "base", baseCode },
                 { "quote", quoteCode },
                 { "settle", null },

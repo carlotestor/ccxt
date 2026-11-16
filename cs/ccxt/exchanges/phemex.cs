@@ -928,20 +928,20 @@ public partial class phemex : Exchange
         string? baseId = this.safeString(market, "baseCurrency", contractUnderlyingAssets);
         string? quoteId = this.safeString(market, "quoteCurrency");
         string? settleId = this.safeString(market, "settleCurrency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        bs = ((string)bs).Replace(" ", (string)""); // replace space for junction codes, eg. `1000 SHIB`
+        bs = bs.Replace(" ", (string)""); // replace space for junction codes, eg. `1000 SHIB`
         string? settle = this.safeCurrencyCode(settleId);
         bool inverse = false;
         if ((settleId != quoteId))
         {
             inverse = true;
             // some unhandled cases
-            if (!((market != null && ((IDictionary<string, object>)market).ContainsKey("baseCurrency"))) && isEqual(bs, quote))
+            if (!((market != null && ((IDictionary<string, object>)market).ContainsKey("baseCurrency"))) && (bs == quote))
             {
                 bs = settle;
             }
@@ -973,7 +973,7 @@ public partial class phemex : Exchange
         bool isLinear = !inverse;
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", ((object)(bs == null ? null : bs + "/" + quote + ":" + settle)) },
+            { "symbol", (bs == null ? null : bs + "/" + quote + ":" + settle) },
             { "base", bs },
             { "quote", quote },
             { "settle", settle },

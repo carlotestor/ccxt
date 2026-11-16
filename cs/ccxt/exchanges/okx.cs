@@ -8282,7 +8282,7 @@ public partial class okx : Exchange
             }
             hasJsonBody = ((method != "GET")) && (isArray || (!this.isEmpty(query)));
             jsonBody = hasJsonBody ? this.json(query) : null;
-            object timestamp = this.iso8601(this.nonce());
+            string? timestamp = this.iso8601(this.nonce());
             privateHeaders = new Dictionary<string, object>() {
                 { "OK-ACCESS-KEY", this.apiKey },
                 { "OK-ACCESS-PASSPHRASE", this.password },

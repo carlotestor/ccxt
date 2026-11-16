@@ -1742,7 +1742,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        object channel = this.safeString(arg, "channel");
+        string? channel = this.safeString(arg, "channel");
         string? action = this.safeString(message, "action");
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string? marketId = this.safeString(arg, "instId");
@@ -1757,7 +1757,7 @@ public partial class okx : ccxt.okx
             { "books50-l2-tbt", 50 },
         };
         Int64? limit = this.safeInteger(depths, channel);
-        string? messageHash = ((string)((object)(channel == null ? null : channel + ":" + symbol)));
+        string? messageHash = ((string)(channel == null ? null : channel + ":" + symbol));
         if (action == "snapshot")
         {
             for (int i = 0; i < data.Count; i++)
@@ -1802,7 +1802,7 @@ public partial class okx : ccxt.okx
                     client.resolve(updatedBook, messageHash);
                 }
             }
-        } else if (((channel is "books5")) || ((channel is "bbo-tbt")))
+        } else if ((channel == "books5") || (channel == "bbo-tbt"))
         {
             // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             // shared order-book cache when watchOrderBook subscribed to this
@@ -1824,7 +1824,7 @@ public partial class okx : ccxt.okx
                 }
             }
         }
-        if ((channel is "bbo-tbt"))
+        if (channel == "bbo-tbt")
         {
             this.handleBidAsk(client, message);
         }

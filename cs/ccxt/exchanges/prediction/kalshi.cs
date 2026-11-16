@@ -742,7 +742,7 @@ public partial class kalshi : PredictionExchange
         //    "yes_bid_size_fp":"",
         //    "yes_sub_title":"During Trump's term"
         // }
-        object ticker = this.safeString(raw, "ticker");
+        string? ticker = this.safeString(raw, "ticker");
         string? eventTicker = this.safeString(raw, "event_ticker");
         string? subtitle = this.safeString(raw, "subtitle", this.safeString(raw, "title"));
         // markets use status 'active' while events use 'open'
@@ -768,7 +768,7 @@ public partial class kalshi : PredictionExchange
             }
         }
         // market symbol (no outcome suffix)
-        object subtitleOrTicker = ticker;
+        string? subtitleOrTicker = ticker;
         if ((subtitle != null))
         {
             subtitleOrTicker = subtitle;
@@ -791,7 +791,7 @@ public partial class kalshi : PredictionExchange
         };
         // Build outcomes
         List<object> outcomeLabels = new List<object>() {"YES", "NO"};
-        List<object> outcomeIds = new List<object>() {ticker, ((object)(ticker == null ? null : ticker + "-NO"))};
+        List<object> outcomeIds = new List<object>() {ticker, (ticker == null ? null : ticker + "-NO")};
         List<object> outcomes = new List<object>() {};
         string? resolvedOutcome = null;
         for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); oi++)
@@ -1954,7 +1954,7 @@ public partial class kalshi : PredictionExchange
      */
     public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
     {
-        object ticker = this.safeString(settlement, "ticker");
+        string? ticker = this.safeString(settlement, "ticker");
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         double? yesCount = this.safeNumber2(settlement, "yes_count_fp", "yes_count", 0);
         double? noCount = this.safeNumber2(settlement, "no_count_fp", "no_count", 0);
@@ -1972,7 +1972,7 @@ public partial class kalshi : PredictionExchange
             heldTicker = ticker;
         } else
         {
-            heldTicker = (((object)(ticker == null ? null : ticker + "-NO")));
+            heldTicker = ((ticker == null ? null : ticker + "-NO"));
         }
         IDictionary<string, object> mkt = this.safeOutcome(heldTicker, market);
         // which leg won; market_result is yes or no
@@ -3108,7 +3108,7 @@ public partial class kalshi : PredictionExchange
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
         object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        object baseUrl = this.safeString(baseUrls, apiGroup, this.safeString(baseUrls, "kalshi", ""));
+        string? baseUrl = this.safeString(baseUrls, apiGroup, this.safeString(baseUrls, "kalshi", ""));
         string? implodedPath = this.implodeParams(path, parameters);
         object url = (baseUrl == null ? null : baseUrl + "/" + implodedPath);
         object query = this.omit(parameters, this.extractParams(path));
@@ -3130,9 +3130,9 @@ public partial class kalshi : PredictionExchange
             // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
-            int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
-            object versionPrefix = ((baseUrl == null) ? null : ((string)baseUrl).Substring(Math.Max(Math.Min((tradeApiIndex < 0 ? ((string)baseUrl).Length + (tradeApiIndex) : tradeApiIndex), ((string)baseUrl).Length), 0)));
-            string? pathForSigning = ((string)((object)(versionPrefix == null ? null : versionPrefix + "/" + implodedPath)));
+            int tradeApiIndex = (baseUrl?.IndexOf("/trade-api", StringComparison.Ordinal) ?? -1);
+            string? versionPrefix = ((baseUrl == null) ? null : baseUrl.Substring(Math.Max(Math.Min((tradeApiIndex < 0 ? baseUrl.Length + (tradeApiIndex) : tradeApiIndex), baseUrl.Length), 0)));
+            string? pathForSigning = ((string)(versionPrefix == null ? null : versionPrefix + "/" + implodedPath));
             string payload = ((timestamp + method) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             List<object> keyParts = this.privateKey.Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();

@@ -1415,12 +1415,12 @@ public partial class bitfinex : Exchange
         List<object> underlying = this.safeList(info, 4, new List<object>() {});
         if ((type == "derivatives"))
         {
-            object derivativesId = this.safeString(underlying, 0, this.safeString(info, 0, ""));
-            if (!((string)derivativesId).EndsWith("F0"))
+            string? derivativesId = this.safeString(underlying, 0, this.safeString(info, 0, ""));
+            if (!derivativesId.EndsWith("F0"))
             {
-                return ((string?)((object)(((object)(derivativesId == null ? null : derivativesId + "F0")))));
+                return ((string?)((object)((derivativesId == null ? null : derivativesId + "F0"))));
             }
-            return ((string?)((object)(derivativesId)));
+            return derivativesId;
         } else if (!(type == "margin"))
         {
             return this.safeString(underlying, 1, transferId);

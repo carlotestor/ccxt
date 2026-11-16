@@ -544,7 +544,7 @@ public partial class bithumb : Exchange
         {
             return marketId;
         }
-        object quoteId = this.safeString(market, "quoteId");
+        string? quoteId = this.safeString(market, "quoteId");
         if ((quoteId == null))
         {
             quoteId = this.safeString(market, "quote", "");
@@ -554,7 +554,7 @@ public partial class bithumb : Exchange
         {
             baseId = this.safeString(market, "base", "");
         }
-        return ((string?)((object)(((object)(quoteId == null ? null : quoteId + "-" + baseId)))));
+        return ((string?)((object)((quoteId == null ? null : quoteId + "-" + baseId))));
     }
 
     /**

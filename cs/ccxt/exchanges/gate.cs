@@ -4485,7 +4485,7 @@ public partial class gate : Exchange
         {
             return await this.FetchOptionOHLCV(symbol,timeframeVar, since, limit, paramsPaginate);
         }
-        object price = this.safeString(paramsPaginate, "price");
+        string? price = this.safeString(paramsPaginate, "price");
         var requestparamsRequestVariable = this.prepareRequest(market, null, paramsPaginate);
         Dictionary<string, object> request = (Dictionary<string, object>)requestparamsRequestVariable[0];
         IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)requestparamsRequestVariable[1]);
@@ -4526,11 +4526,11 @@ public partial class gate : Exchange
         List<object> response = new List<object>() {};
         if ((this.safeBool(market, "contract", false) == true))
         {
-            bool isMark = ((price is "mark"));
-            bool isIndex = ((price is "index"));
+            bool isMark = (price == "mark");
+            bool isIndex = (price == "index");
             if (isMark || isIndex)
             {
-                request["contract"] = ((object)(price == null ? null : price + "_" + (string)(object)((market.ContainsKey("id") ? market["id"] : null))));
+                request["contract"] = (price == null ? null : price + "_" + (string)(object)((market.ContainsKey("id") ? market["id"] : null)));
             }
             Dictionary<string, object> paramsContract = paramsOmitted;
             if (isMark || isIndex)

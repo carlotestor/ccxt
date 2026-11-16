@@ -98,12 +98,12 @@ public partial class bullish : ccxt.bullish
             { "params", request },
             { "id", id },
         };
-        object wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public");
+        string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchPublic() has no public websocket url")) ;
         }
-        return await this.watch(((object)(wsUrl == null ? null : wsUrl + (string)(object)(url))), messageHash, this.deepExtend(message, parameters), messageHash);
+        return await this.watch((wsUrl == null ? null : wsUrl + (string)(object)(url)), messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
     public async virtual Task<object> watchPrivate(object messageHash, object subscribeHash, object request = null, object parameters = null)

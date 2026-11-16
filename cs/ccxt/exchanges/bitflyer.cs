@@ -293,7 +293,7 @@ public partial class bitflyer : Exchange
     {
         string? day = ((expiry == null) ? null : expiry.Substring(0, Math.Min(2, expiry.Length)));
         string? monthName = ((expiry == null) ? null : expiry.Substring(Math.Min(2, expiry.Length), Math.Min(5, expiry.Length) - Math.Min(2, expiry.Length)));
-        object expiryYear = ((expiry == null) ? null : expiry.Substring(Math.Min(5, expiry.Length), Math.Min(9, expiry.Length) - Math.Min(5, expiry.Length)));
+        string? expiryYear = ((expiry == null) ? null : expiry.Substring(Math.Min(5, expiry.Length), Math.Min(9, expiry.Length) - Math.Min(5, expiry.Length)));
         Dictionary<string, object> months = new Dictionary<string, object>() {
             { "JAN", "01" },
             { "FEB", "02" },
@@ -313,7 +313,7 @@ public partial class bitflyer : Exchange
         {
             return ((Int64?)((object)(null)));
         }
-        return this.parse8601(((object)(expiryYear == null ? null : expiryYear + "-" + month + "-" + day + "T00:00:00Z")));
+        return this.parse8601((expiryYear == null ? null : expiryYear + "-" + month + "-" + day + "T00:00:00Z"));
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)

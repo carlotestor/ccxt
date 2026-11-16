@@ -532,11 +532,11 @@ public partial class hyperliquid : PredictionExchange
         string? name = this.safeString(outcomeInfo, "name", "");
         List<object> sideSpecs = this.safeList(outcomeInfo, "sideSpecs", new List<object>() {});
         Dictionary<string, object> desc = this.parseOutcomeDescription(description);
-        object parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
+        string? parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
         object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         object noEncoding = this.outcomeEncoding(outcomeId, 1);
-        string? yesOutcomeSymbol = ((string)((object)(parentSymbol == null ? null : parentSymbol + ":YES")));
-        string? noOutcomeSymbol = ((string)((object)(parentSymbol == null ? null : parentSymbol + ":NO")));
+        string? yesOutcomeSymbol = ((string)(parentSymbol == null ? null : parentSymbol + ":YES"));
+        string? noOutcomeSymbol = ((string)(parentSymbol == null ? null : parentSymbol + ":NO"));
         // Parse expiry from description
         string? expiry = this.safeString(desc, "expiry");
         Int64? expiryMs = null;
@@ -611,7 +611,7 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> marketRow = this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", outcomeId.ToString() },
             { "market", parentSymbol },
-            { "base", getValue(((string)parentSymbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0) },
+            { "base", getValue(parentSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0) },
             { "quote", quoteCurrency },
             { "settle", null },
             { "baseId", outcomeId.ToString() },

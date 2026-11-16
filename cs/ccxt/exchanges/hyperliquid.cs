@@ -954,9 +954,9 @@ public partial class hyperliquid : Exchange
             IDictionary<string, object> spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
             string? mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
             string? mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
-            object mappedBase = this.safeCurrencyCode(mappedBaseName);
+            string? mappedBase = this.safeCurrencyCode(mappedBaseName);
             string? mappedQuote = this.safeCurrencyCode(mappedQuoteId);
-            string? mappedSymbol = ((string)((object)(mappedBase == null ? null : mappedBase + "/" + mappedQuote)));
+            string? mappedSymbol = ((string)(mappedBase == null ? null : mappedBase + "/" + mappedQuote));
             IDictionary<string, object> innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             string? amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");

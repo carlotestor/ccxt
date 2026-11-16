@@ -590,13 +590,13 @@ public partial class polymarket : Exchange
         string? settleId = this.safeString(market, "quote_asset");
         List<object> parts = venueSymbol.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         string? quoteId = this.safeString(parts, 1, "USD");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? settle = this.safeCurrencyCode(settleId);
         bool crossAllowed = !(this.safeBool(market, "isolated_only", false) == true);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", numericId },
-            { "symbol", ((object)(bs == null ? null : bs + "/" + quote + ":" + settle)) },
+            { "symbol", (bs == null ? null : bs + "/" + quote + ":" + settle) },
             { "base", bs },
             { "quote", quote },
             { "settle", settle },

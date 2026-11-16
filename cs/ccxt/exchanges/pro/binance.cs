@@ -2006,7 +2006,7 @@ public partial class binance : ccxt.binance
             string? timeframeString = this.safeString(symAndTf, 1, "");
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             Dictionary<string, object> market = this.market(symbolString);
-            object marketId = this.safeString(market, "lowercaseId");
+            string? marketId = this.safeString(market, "lowercaseId");
             if ((marketId == null))
             {
                 throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() marketId is required")) ;
@@ -2014,7 +2014,7 @@ public partial class binance : ccxt.binance
             if ((klineType == "indexPriceKline"))
             {
                 // weird behavior for index price kline we can't use the perp suffix
-                marketId = ((string)marketId).Replace("_perp", (string)"");
+                marketId = marketId.Replace("_perp", (string)"");
             }
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
@@ -2023,7 +2023,7 @@ public partial class binance : ccxt.binance
             {
                 utcSuffix = suffix;
             }
-            rawHashes.Add(((object)(marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix)));
+            rawHashes.Add((marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix));
             messageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             subscribeHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
@@ -2105,7 +2105,7 @@ public partial class binance : ccxt.binance
             string? timeframeString = this.safeString(symAndTf, 1, "");
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             Dictionary<string, object> market = this.market(symbolString);
-            object marketId = this.safeString(market, "lowercaseId");
+            string? marketId = this.safeString(market, "lowercaseId");
             if ((marketId == null))
             {
                 throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() marketId is required")) ;
@@ -2113,7 +2113,7 @@ public partial class binance : ccxt.binance
             if ((klineType == "indexPriceKline"))
             {
                 // weird behavior for index price kline we can't use the perp suffix
-                marketId = ((string)marketId).Replace("_perp", (string)"");
+                marketId = marketId.Replace("_perp", (string)"");
             }
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
@@ -2122,7 +2122,7 @@ public partial class binance : ccxt.binance
             {
                 utcSuffix = suffix;
             }
-            rawHashes.Add(((object)(marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix)));
+            rawHashes.Add((marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix));
             subMessageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             messageHashes.Add(((("unsubscribe::ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
@@ -2705,8 +2705,8 @@ public partial class binance : ccxt.binance
             List<object> stockMessageHashes = new List<object>() {};
             for (int i = 0; i < (stockSymbols?.Count ?? 0); i++)
             {
-                object stockTicker = this.getStockTickerFromSymbol(stockSymbols[i]);
-                stockStreams.Add(((object)(stockTicker == null ? null : stockTicker + "@quote")));
+                string? stockTicker = this.getStockTickerFromSymbol(stockSymbols[i]);
+                stockStreams.Add((stockTicker == null ? null : stockTicker + "@quote"));
                 stockMessageHashes.Add(("stock:quote:" + (stockSymbols[i])));
             }
             object stockResult = await this.watchStockMarketStream(stockStreams, stockMessageHashes, paramsStock);
@@ -4264,11 +4264,11 @@ public partial class binance : ccxt.binance
         // each account is connected to a different endpoint
         IDictionary<string, object> subscriptions = client.subscriptions;
         List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
-        string accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        string messageHash = (accountType + ":balance");
+        string? accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        string? messageHash = ((string)(accountType == null ? null : accountType + ":balance"));
         if (((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
         {
-            this.balance[accountType] = new Dictionary<string, object>() {};
+            this.balance[(string)accountType] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         string? eventVar = this.safeString(message, "e");
@@ -4321,7 +4321,7 @@ public partial class binance : ccxt.binance
         Int64? timestamp = this.safeInteger(balanceMessage, "E");
         ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
         ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        this.balance[(string)accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
         client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
     }
 
@@ -6019,10 +6019,10 @@ public partial class binance : ccxt.binance
         // and has exactly one subscriptionhash which is the account type
         IDictionary<string, object> subscriptions = client.subscriptions;
         List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
-        string accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        if (!((this.positionsByType != null && this.positionsByType.ContainsKey(accountType))))
+        string? accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        if (!(((accountType != null) && (this.positionsByType != null && accountType != null && this.positionsByType.ContainsKey(accountType)))))
         {
-            this.positionsByType[accountType] = new ArrayCacheBySymbolBySide();
+            this.positionsByType[(string)accountType] = new ArrayCacheBySymbolBySide();
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.positionsByType != null && accountType != null && this.positionsByType.ContainsKey(accountType) ? this.positionsByType[accountType] : null));
         IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
@@ -6038,7 +6038,7 @@ public partial class binance : ccxt.binance
             newPositions.Add(position);
             cache.append(position);
         }
-        List<object> messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
+        List<object> messageHashes = this.findMessageHashes(client, (accountType == null ? null : accountType + ":positions::"));
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             string? messageHash = ((string)messageHashes[i]);
@@ -6051,7 +6051,7 @@ public partial class binance : ccxt.binance
                 client.resolve(positions, messageHash);
             }
         }
-        client.resolve(newPositions, (accountType + ":positions"));
+        client.resolve(newPositions, (accountType == null ? null : accountType + ":positions"));
     }
 
     public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)

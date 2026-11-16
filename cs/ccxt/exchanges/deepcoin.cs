@@ -3592,7 +3592,7 @@ public partial class deepcoin : Exchange
         {
             this.checkRequiredCredentials();
             Int64 timestamp = this.milliseconds();
-            object dateTime = this.iso8601(timestamp);
+            string? dateTime = this.iso8601(timestamp);
             object payload = (dateTime == null ? null : dateTime + (string)(object)(method) + "/" + requestPath);
             Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "DC-ACCESS-KEY", this.apiKey },
