@@ -4376,14 +4376,14 @@ export default class whitebit extends Exchange {
                 const errMsg = this.safeDict (response, 'message', {});
                 const errKeys = Object.keys (errMsg);
                 const errKeysLength = errKeys.length;
-                let errMsgInfo: string = body;
+                let errorInfo = body;
                 if (errKeysLength > 0) {
                     const errorKey = this.safeString (errKeys, 0, '');
                     const errorMessageArray = this.safeList (errMsg, errorKey, []);
-                    errMsgInfo = this.safeString (errorMessageArray, 0, body);
+                    errorInfo = this.safeString (errorMessageArray, 0, body);
                 }
                 const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (this.exceptions['exact'], errMsgInfo, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorInfo, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 throw new ExchangeError (feedback);
             }
