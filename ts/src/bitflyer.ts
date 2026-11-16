@@ -355,8 +355,8 @@ export default class bitflyer extends Exchange {
                 continue;
             }
             let symbol = base + '/' + quote;
-            let taker = this.safeNumber (this.fees['trading'], 'taker');
-            let maker = this.safeNumber (this.fees['trading'], 'maker');
+            let taker: Num = this.safeNumber (this.fees['trading'], 'taker');
+            let maker: Num = this.safeNumber (this.fees['trading'], 'maker');
             const contract = swap || future;
             if (contract) {
                 maker = 0.0;
