@@ -19396,13 +19396,63 @@ const c84UpstreamLocalDeclaration = csharpLocalDeclaration;
 // eslint-disable-next-line no-func-assign
 csharpLocalDeclaration = function (csharp, declaration, context) {
     const info = c84UpstreamLocalDeclaration (csharp, declaration, context);
-    const init = (info === undefined) ? undefined : stripParens (declaration.initializer);
-    if (init?.kind !== ts.SyntaxKind.Identifier) {
+    if (info === undefined || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
         return info;
     }
     const scope = (context?.scope) ?? enclosingFunction (declaration);
-    if (dictParamsCopyReadType (csharp, scope, init) === undefined || c84UpstreamCoreParameterCopyReadType (csharp, scope, init) !== undefined) {
-        return info;
+    const init = stripParens (declaration.initializer);
+    const bagCopy = init?.kind === ts.SyntaxKind.Identifier && dictParamsCopyReadType (csharp, scope, init) !== undefined
+        && c84UpstreamCoreParameterCopyReadType (csharp, scope, init) === undefined;
+    // R1 / R2 typings stand only with a native use (see dictParamsCopyHasNativeUse)
+    if ((bagCopy || c84SlotWrittenDeclarations.has (declaration)) && !dictParamsCopyHasNativeUse (csharp, scope, declaration)) {
+        return undefined;
     }
-    return dictParamsCopyHasNativeUse (csharp, scope, declaration) ? info : undefined;
+    // `const x = this.omit (params, k)` over the bag the signature prints IDictionary: the call binds the
+    // IDictionary-receiver overload, whose static type is Dictionary<string, object>, so the interface
+    // declaration needs no cast (omitParamsLocal casts for the untyped `object parameters` print)
+    const receiver = (init?.kind === ts.SyntaxKind.CallExpression && info.cast === 'IDictionary<string, object>' && info.castWhole !== true)
+        ? stripParens (omitCallReceiver (init)) : undefined;
+    if (receiver?.kind === ts.SyntaxKind.Identifier && dictParamsCopyReadType (csharp, scope, receiver) !== undefined) {
+        return Object.assign ({}, info, { cast: undefined });
+    }
+    // a slot-written local (R2) whose declaration would still need a `((IDictionary<string, object>)…)`
+    // cast back keeps object: the R2 typing must not add that conversion spelling
+    if (c84SlotWrittenDeclarations.has (declaration) && info.cast !== undefined) {
+        return undefined;
+    }
+    return info;
+};
+
+// (R2) `[ x, q ] = this.handle*AndParams (q', ...)` written into a local this module already types
+// IDictionary<string, object> (a typed params-bag copy, an omit result): slot 1 of the audited
+// element-1 helpers (nullSeedElement1Call / nullSeedAwaitedSlotCall: CSHARP_ELEMENT_1_PARAMS with a
+// statically Dict argument, or a proven tuple-dict slot) is the caller's params, its omit or an extend,
+// i.e. a dict box, so the element read takes the interface cast installDestructuredCasts prints for the
+// recorded type, exactly as for the element-1 bindings and the null-seed slot family (77c4). Only a
+// non-null-initialised local here (the null seeds stay 77c4's), same function, after the declaration.
+function c84Element1SlotWrite (csharp, index, declaration, idNode, assignment) {
+    const pattern = idNode?.parent;
+    if (pattern?.kind !== ts.SyntaxKind.ArrayLiteralExpression || pattern.elements.length !== 2 || pattern.elements[1] !== idNode
+            || declaration?.initializer === undefined || isNullInit (declaration)) {
+        return false;
+    }
+    const right = stripParens (assignment?.right);
+    const awaited = (right?.kind === ts.SyntaxKind.AwaitExpression) ? stripParens (right.expression) : undefined;
+    if (right === undefined || !((awaited === undefined) ? nullSeedElement1Call (csharp, declaration, right) : nullSeedAwaitedSlotCall (csharp, declaration, awaited))) {
+        return false;
+    }
+    if (enclosingFunction (idNode) !== enclosingFunction (declaration) || assignment.getStart () <= declaration.getStart ()) {
+        return false;
+    }
+    return (index.bindingCounts.get (csharp.printNode (idNode, 0)) ?? 0) === 1;
+}
+const c84SlotWrittenDeclarations = new WeakSet ();
+const c84UpstreamDestructuredWriteIsCastable = destructuredWriteIsCastable;
+// eslint-disable-next-line no-func-assign
+destructuredWriteIsCastable = function (csharp, scope, index, declaration, idNode, assignment, csharpType, context) {
+    if (csharpType === 'IDictionary<string, object>' && c5ParameterProofDepth === 0 && c84Element1SlotWrite (csharp, index, declaration, idNode, assignment)) {
+        c84SlotWrittenDeclarations.add (declaration);
+        return true;
+    }
+    return c84UpstreamDestructuredWriteIsCastable (csharp, scope, index, declaration, idNode, assignment, csharpType, context);
 };
