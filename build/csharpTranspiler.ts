@@ -12722,6 +12722,7 @@ export function copyLocalSnippetChecks84c5 (): string[] {
     check ('copy of the typed params bag with an element write', 'async fetchBalance (params = {}) { const q = params; q["a"] = 1; return q; }', 'IDictionary<string, object> q = parameters;');
     check ('copy of the typed params bag with only helper uses keeps object', 'async fetchBalance (params = {}) { let q = params; q = this.omit (params, "x"); return this.extend ({}, q); }', 'object q = parameters;');
     check ('params bag of an unlisted method keeps object', 'async fooBar (params = {}) { let q = params; return this.safeString (q, "a"); }', 'object q = parameters;');
+    check ('R3 keeps a plain Dictionary omit result Dictionary', 'async fetchBalance (params = {}) { const q = this.omit ({}, "x"); return this.extend ({}, q); }', 'Dictionary<string, object> q = this.omit(');
     // R2 (slot-1 writes into a typed bag copy) proves through the base Exchange.ts / ts/src corpus tables
     // (nullSeedElement1Call / tupleDictSlotCall), which an in-memory snippet cannot reach: farm-gated only.
     check ('written params bag keeps object', 'async fetchBalance (params = {}) { params = this.omit (params, "y"); let q = params; return this.safeString (q, "a"); }', 'object q = parameters;');

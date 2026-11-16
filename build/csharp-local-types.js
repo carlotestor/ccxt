@@ -19395,7 +19395,10 @@ function dictParamsCopyHasNativeUse (csharp, scope, declaration) {
 const c84UpstreamLocalDeclaration = csharpLocalDeclaration;
 // eslint-disable-next-line no-func-assign
 csharpLocalDeclaration = function (csharp, declaration, context) {
-    const info = c84UpstreamLocalDeclaration (csharp, declaration, context);
+    let info = c84UpstreamLocalDeclaration (csharp, declaration, context);
+    if (info === undefined) {
+        info = c84DictionarySlotWidening (csharp, declaration, context);
+    }
     if (info === undefined || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
         return info;
     }
@@ -19456,3 +19459,83 @@ destructuredWriteIsCastable = function (csharp, scope, index, declaration, idNod
     }
     return c84UpstreamDestructuredWriteIsCastable (csharp, scope, index, declaration, idNode, assignment, csharpType, context);
 };
+
+// (R3) a local whose initialiser is a proven Dictionary<string, object> with no cast (an omit of a
+// dict receiver, a copy of such a local) and that is later written from slot 1 of an audited
+// element-1 helper (R2): the slot is a dict box but not necessarily the concrete class, so the
+// declaration names the interface Dictionary implements (an implicit reference conversion of the
+// same box) and the slot reads take the interface cast. Only when the retype scan accepts the
+// interface for every write and use, at least one slot write exists, and some use is native.
+const c84WideningInProgress = new Set ();
+function c84DictionarySlotWidening (csharp, declaration, context) {
+    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer === undefined || isNullInit (declaration)
+            || classifyInProgress.has (declaration) || c84WideningInProgress.size > 0 || c5ParameterProofDepth > 0
+            || !c84HasSlotWriteShape (declaration)) {
+        return undefined;
+    }
+    c84WideningInProgress.add (declaration);
+    try {
+        return c84DictionarySlotWideningInner (csharp, declaration, context);
+    } finally {
+        c84WideningInProgress.delete (declaration);
+    }
+}
+
+// cheap AST pre-check: some `[ a, <name> ] = ...` in the enclosing function
+function c84HasSlotWriteShape (declaration) {
+    const name = declaration.name.text;
+    let found = false;
+    const visit = (node) => {
+        if (found) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.ArrayLiteralExpression && node.elements.length === 2 && node.elements[1].kind === ts.SyntaxKind.Identifier
+                && node.elements[1].text === name && node.parent?.kind === ts.SyntaxKind.BinaryExpression && node.parent.left === node) {
+            found = true;
+            return;
+        }
+        node.forEachChild (visit);
+    };
+    enclosingFunction (declaration)?.forEachChild (visit);
+    return found;
+}
+
+function c84DictionarySlotWideningInner (csharp, declaration, context) {
+    const scope = context?.scope ?? enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    let initial;
+    classifyInProgress.add (declaration);
+    try {
+        initial = csharpTypeOfValue (csharp, declaration.initializer, ctx);
+    } finally {
+        classifyInProgress.delete (declaration);
+    }
+    if (initial !== 'Dictionary<string, object>') {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    const name = declaration.name.text;
+    let slotWrites = 0;
+    for (const n of (index.identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression && parent.parent?.kind === ts.SyntaxKind.BinaryExpression
+                && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            if (!c84Element1SlotWrite (csharp, index, declaration, n, parent.parent)) {
+                return undefined;
+            }
+            slotWrites++;
+        }
+    }
+    const type = 'IDictionary<string, object>';
+    if (slotWrites === 0 || !csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx)
+            || !dictParamsCopyHasNativeUse (csharp, scope, declaration)) {
+        return undefined;
+    }
+    return { type };
+}
