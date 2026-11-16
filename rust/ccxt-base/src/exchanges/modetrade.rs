@@ -861,17 +861,17 @@ impl crate::exchange::DerivedExchange for Modetrade {
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut version: Option<&str> = section.get(0).and_then(Value::as_str);
         let mut access: Option<&str> = section.get(1).and_then(Value::as_str);
-        let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
+        let mut pathWithParams: String = self.implode_params(path.clone(), params.clone());
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(access.as_deref()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), version.as_deref().unwrap_or("null")).into()), "/");
         let mut paramsSorted: crate::value::Dict = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]).into_dict();
         if (access.as_deref() == Some("public")) {
-            url = Value::Str(format!("{}{}", url, pathWithParams).into());
+            url.push_str(&pathWithParams);
             if ((Value::Array(paramsSorted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsSorted, &[])).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsSorted, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -910,7 +910,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
                 paramsSigned = self.keysort(Value::Dict(paramsSorted), &[]);
             }
             let mut ts: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-            url = Value::Str(format!("{}{}", url, pathWithParams).into());
+            url.push_str(&pathWithParams);
             let mut apiKey: Value = self.apiKey.clone();
             if !self.apiKey.as_str().unwrap_or("").contains("ed25519:") {
                 apiKey = Value::Str(format!("{}{}", "ed25519:", self.apiKey.clone()).into());
@@ -930,7 +930,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
                 signedHeaders.insert("content-type".into(), Value::Str("application/json".into()));
             }  else {
                 if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsSigned.clone(), &[])).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsSigned.clone(), &[])));
                     auth.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(paramsSigned, &[])));
                 }
                 signedHeaders.insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -945,7 +945,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
             signedHeaders.insert("orderly-signature".into(), self.urlencode_base64(self.base64_to_binary(Value::from(signature), &[]), &[]));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), signedBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(signedHeaders));
@@ -954,7 +954,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), Value::Null);

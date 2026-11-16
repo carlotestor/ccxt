@@ -959,7 +959,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut endpointPath: Value = Value::from(self.implode_params(path.clone(), params.clone()));
+        let mut endpointPath: String = self.implode_params(path.clone(), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), endpointPath);
         if !(((type_var.as_deref() == Some("api")) && (version.as_deref() == Some("kline"))) || ((type_var.as_deref() == Some("open")) && path.as_str().unwrap_or("").contains("listenKey"))) {
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), endpointPath);

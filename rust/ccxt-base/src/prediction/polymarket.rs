@@ -4788,7 +4788,7 @@ if _try_result.is_err() {
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str()).as_i64();
         let mut changes: crate::value::List = __pro_message.get("price_changes").cloned().unwrap_or_default().into_list();
-        let mut updated: Value = Value::Map({
+        let mut updated: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4812,10 +4812,10 @@ if _try_result.is_err() {
             sideRef.store_array(Value::from(vec![Value::from(price), Value::from(size)]));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
-            if let Value::Dict(__d) = &mut updated { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), Value::Bool(true)); }
+            updated.insert(crate::runtime::stringify_param(&outcome), Value::Bool(true));
         }
         }
-        let mut updatedSymbols: Vec<Value> = Value::Array(updated.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut updatedSymbols: Vec<Value> = Value::Array(updated.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut k: i64 = 0;
             let mut __for_first_1456: bool = true;

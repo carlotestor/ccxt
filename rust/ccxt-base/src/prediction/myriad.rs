@@ -4769,7 +4769,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut ts: Option<i64> = (match data.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut changes: crate::value::List = data.get("changes").cloned().unwrap_or_default().into_list();
         let mut changesLength: i64 = changes.len() as i64;
-        let mut updated: Value = Value::Map({
+        let mut updated: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4794,10 +4794,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             bookSide.store_array(Value::from(vec![Value::from(price), Value::from(amount)]));
             orderbook.set_book_meta("timestamp", Value::from(ts));
             orderbook.set_book_meta("datetime", self.iso8601(ts));
-            if let Value::Dict(__d) = &mut updated { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), Value::Bool(true)); }
+            updated.insert(crate::runtime::stringify_param(&sym), Value::Bool(true));
         }
         }
-        let mut updatedSymbols: Vec<Value> = Value::Array(updated.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut updatedSymbols: Vec<Value> = Value::Array(updated.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut updatedLength: i64 = updatedSymbols.len() as i64;
         {
                         let mut k: i64 = 0;

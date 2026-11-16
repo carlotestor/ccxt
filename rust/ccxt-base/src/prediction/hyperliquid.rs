@@ -2497,7 +2497,7 @@ impl Hyperliquid {
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
         let mut response: Value = self.public_post_info(&[__ws_arg_9]).await;
         // Deduplicate by oid keeping most recent statusTimestamp
-        let mut deduped: Value = Value::Map({
+        let mut deduped: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2516,19 +2516,19 @@ impl Hyperliquid {
             }
             let mut oid: Option<String> = self.safe_string_k_opt(entry, "oid", &[]);
             if (oid.is_some()) {
-                if !(matches!((&deduped, oid.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                    if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), raw.clone()); }
+                if !(matches!(oid.as_deref(), Some(__k) if deduped.contains_key(__k))) {
+                    deduped.insert(oid.as_deref().unwrap_or("null").to_string(), raw.clone());
                 }  else {
-                    let mut existingTs: Option<i64> = self.safe_integer((if let (Some(__m), Some(__k)) = (deduped.as_map(), oid.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]).as_i64();
+                    let mut existingTs: Option<i64> = self.safe_integer(deduped.get(oid.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]).as_i64();
                     let mut currentTs: Option<i64> = self.safe_integer_k(raw.clone(), "statusTimestamp", &[]).as_i64();
                     if (currentTs.is_some()) && ((existingTs.is_none()) || (currentTs.is_some() && existingTs.is_some() && currentTs > existingTs)) {
-                        if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), raw); }
+                        deduped.insert(oid.as_deref().unwrap_or("null").to_string(), raw);
                     }
                 }
             }
         }
         }
-        let mut dedupedValues: Value = Value::Array(deduped.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
+        let mut dedupedValues: Value = Value::Array(deduped.values().cloned().collect());
         let mut parsed: Value = self.parse_prediction_orders(dedupedValues, &[Value::Null, since.clone()]);
         let mut outcomeHandle: Option<String> = None;
         if (outcome != Value::Null) {
@@ -2825,7 +2825,7 @@ impl Hyperliquid {
         let mut marketsDict: crate::types::Markets = (match self.load_markets(false, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketValues: crate::value::List = self.to_array(crate::types::IntoRaw::into_raw(marketsDict)).into_list();
         // Group markets by parentSymbol
-        let mut groupMap: Value = Value::Map({
+        let mut groupMap: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2896,29 +2896,29 @@ impl Hyperliquid {
             if (parentSymbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing parentSymbol")));
             }
-            if !(matches!((&groupMap, &parentSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!(&parentSymbol, Value::Str(__k) if groupMap.contains_key(__k.as_ref()))) {
                 if (parentSymbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut groupMap { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parentSymbol), Value::from(vec![])); }
+                    groupMap.insert(crate::runtime::stringify_param(&parentSymbol), Value::from(vec![]));
                 }
             }
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            let mut parentMarkets: Value = self.safe_list(groupMap.clone(), parentSymbol.clone(), &[Value::from(vec![])]);
+            let mut parentMarkets: Value = self.safe_list(&groupMap, parentSymbol.clone(), &[Value::from(vec![])]);
             if let Value::Arr(__a) = &mut parentMarkets { std::sync::Arc::make_mut(__a).push(Value::Dict(mkt)); }
             if (parentSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut groupMap { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parentSymbol), parentMarkets); }
+                groupMap.insert(crate::runtime::stringify_param(&parentSymbol), parentMarkets);
             }
         }
         }
         let mut events: Vec<Value> = Vec::new();
-        let mut groupKeys: Vec<Value> = Value::Array(groupMap.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut groupKeys: Vec<Value> = Value::Array(groupMap.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut gi: i64 = 0;
             let mut __for_first_1257: bool = true;
             while { if !__for_first_1257 { gi += 1; } __for_first_1257 = false; gi < (groupKeys.len() as i64) } {
             let mut key: Option<&str> = groupKeys.get(gi as usize).and_then(Value::as_str);
-            let mut groupMarkets: Value = (if let (Some(__m), Some(__k)) = (groupMap.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut groupMarkets: Value = groupMap.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut event: crate::value::Dict = self.parse_event(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("parentSymbol".to_string(), Value::from(key.as_deref()));

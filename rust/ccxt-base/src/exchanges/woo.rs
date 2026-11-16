@@ -1170,7 +1170,7 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut requestBody: Option<String> = None;
         let mut version: Option<&str> = section.get(0).and_then(Value::as_str);
         let mut access: Option<&str> = section.get(1).and_then(Value::as_str);
-        let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
+        let mut pathWithParams: String = self.implode_params(path.clone(), params.clone());
         let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(access.as_deref()), &[]);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));

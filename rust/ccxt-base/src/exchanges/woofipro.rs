@@ -860,7 +860,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut version: Option<&str> = section.get(0).and_then(Value::as_str);
         let mut access: Option<&str> = section.get(1).and_then(Value::as_str);
-        let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
+        let mut pathWithParams: String = self.implode_params(path.clone(), params.clone());
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(access.as_deref()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
@@ -870,7 +870,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (access.as_deref() == Some("public")) {
-            url.push_str(&pathWithParams.to_string());
+            url.push_str(&pathWithParams);
             if ((Value::Array(requestParams.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map(requestParams.clone()), &[])));
             }
@@ -897,7 +897,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
             }
             let mut auth: String = "".to_string();
             let mut ts: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-            url.push_str(&pathWithParams.to_string());
+            url.push_str(&pathWithParams);
             let mut hasKeyPrefix: bool = self.apiKey.as_str().unwrap_or("").contains("ed25519:");
             let mut apiKey: Option<String> = (if (hasKeyPrefix) { self.apiKey.as_str().map(str::to_owned) } else { Some(format!("{}{}", "ed25519:", self.apiKey.clone())) });
             let mut authHeaders: indexmap::IndexMap<String, Value> = ({

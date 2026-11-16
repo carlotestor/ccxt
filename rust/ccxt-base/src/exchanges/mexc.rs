@@ -1250,7 +1250,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         let mut requestBody: Option<String> = None;
         let mut section: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut access: Option<&str> = api.get(1).and_then(Value::as_str);
-        let mut pathValue: Value = Value::from(self.implode_params(path.clone(), params.clone()));
+        let mut pathValue: String = self.implode_params(path.clone(), params.clone());
         let mut paramsValue: Value = self.omit(params, self.extract_params(path), &[]);
         let mut url: String = "".to_string();
         if (section.as_deref() == Some("spot")) || (section.as_deref() == Some("broker")) {
@@ -1315,8 +1315,8 @@ impl crate::exchange::DerivedExchange for Mexc {
             if (apiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
-            url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(pathValue.clone(), paramsValue.clone()));
-            let mut paramsOmitted: Value = self.omit(paramsValue, self.extract_params(pathValue), &[]);
+            url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(pathValue.clone()), paramsValue.clone()));
+            let mut paramsOmitted: Value = self.omit(paramsValue, self.extract_params(Value::from(pathValue)), &[]);
             if (access.as_deref() == Some("public")) {
                 if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
