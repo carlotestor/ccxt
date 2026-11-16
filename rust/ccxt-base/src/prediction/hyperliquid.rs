@@ -2817,7 +2817,7 @@ impl Hyperliquid {
     m
 }));
         self.require_event_query(&[params.clone()]);
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
         // markets. use the cached load so the handles advertised here always match the
         // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
@@ -2829,7 +2829,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (queries == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut lowerQueries: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -2837,7 +2837,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_1253: bool = true;
             while { if !__for_first_1253 { i += 1; } __for_first_1253 = false; i < (queries.len() as i64) } {
-            let mut queryString: Value = queries.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut queryString: Value = crate::value::KeyRead::read(&&queries, &Value::Int(i));
             std::sync::Arc::make_mut(&mut lowerQueries).push((if let Some(__s) = queryString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         }
         }
@@ -2928,7 +2928,7 @@ impl Hyperliquid {
             events.push(Value::Dict(event));
         }
         }
-        return self.apply_event_fetch_params(Value::from(events), &[params, queries]);
+        return self.apply_event_fetch_params(Value::from(events), &[params, Value::Arr(queries)]);
         Value::Null
         }).await?))
     }

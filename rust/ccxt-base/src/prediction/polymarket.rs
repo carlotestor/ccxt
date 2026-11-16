@@ -4126,9 +4126,9 @@ impl Polymarket {
         self.require_event_query(&[params.clone()]);
         let mut requestedEventId: Option<String> = self.safe_string_k_opt(params.clone(), "eventId", &[]);
         let mut requestedSlug: Option<String> = self.safe_string_k_opt(params.clone(), "slug", &[]);
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut rest: crate::value::Dict = self.omit(params.clone(), &["query", "queries", "eventId", "slug"], &[]).into_dict();
-        if (queries == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut queriesLength: i64 = queries.len() as i64;
@@ -4148,7 +4148,7 @@ impl Polymarket {
             let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
             rawEvents = (if (responseIsArray) { response } else { Value::from(vec![]) }).into_list();
         }  else if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[Value::from(&rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_by_search(Value::from(&queries), &[Value::from(&rest)]).await.into_list();
         }  else {
             rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await.into_list();
         }
@@ -4226,7 +4226,7 @@ impl Polymarket {
             add_element_to_object(&mut effectiveParams, &Value::Str("status".into()), self.safe_string_k(params.clone(), "status", &[Value::Str("active".into())]));
             add_element_to_object(&mut effectiveParams, &Value::Str("searchIn".into()), self.safe_string_k(params, "searchIn", &[Value::Str("title".into())]));
         }
-        return self.apply_event_fetch_params(Value::from(result), &[effectiveParams, queries]);
+        return self.apply_event_fetch_params(Value::from(result), &[effectiveParams, Value::Arr(queries)]);
         Value::Null
         }).await?))
     }

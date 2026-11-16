@@ -3893,8 +3893,8 @@ impl Blofin {
         //
         // one row per currency + chain pair, group them per currency
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut dataByCurrencyId: Value = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]);
-        let mut currencies: crate::value::List = Value::Array(dataByCurrencyId.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        let mut dataByCurrencyId: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]).into_dict();
+        let mut currencies: crate::value::List = Value::Array(dataByCurrencyId.values().cloned().collect()).into_list();
         return self.parse_currencies(&currencies);
         Value::Null
         }).await?))

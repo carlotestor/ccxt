@@ -994,24 +994,24 @@ impl crate::exchange::DerivedExchange for Phemex {
         let mut networkId: Option<String> = self.safe_string_k_opt(transaction.clone(), "chainName", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_n(transaction.clone(), Value::from(vec![Value::Str("createdAt".into()), Value::Str("submitedAt".into()), Value::Str("submittedAt".into())]), &[]).as_i64();
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(transaction.clone(), "type", &[]);
-        let mut feeCost: Value = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "feeEv", &[]), (self.safe_integer_k(&currencyResolved, "valueScale", &[])).as_i64()).map(Value::from).unwrap_or(Value::Null), &[]);
-        if (feeCost == Value::Null) {
-            feeCost = self.safe_number_k(transaction.clone(), "feeRv", &[]);
+        let mut feeCost: Option<f64> = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "feeEv", &[]), (self.safe_integer_k(&currencyResolved, "valueScale", &[])).as_i64()).map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        if (feeCost.is_none()) {
+            feeCost = self.safe_number_k(transaction.clone(), "feeRv", &[]).as_f64();
         }
         let mut fee: Option<crate::value::Dict> = None;
-        if (feeCost != Value::Null) {
+        if (feeCost.is_some()) {
             type_var = Some("withdrawal".to_string());
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCost);
+                    m.insert("cost".to_string(), Value::from(feeCost));
                     m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
-        let mut amount: Value = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "amountEv", &[]), (self.safe_integer_k(&currencyResolved, "valueScale", &[])).as_i64()).map(Value::from).unwrap_or(Value::Null), &[]);
-        if (amount == Value::Null) {
-            amount = self.safe_number_k(transaction.clone(), "amountRv", &[]);
+        let mut amount: Option<f64> = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "amountEv", &[]), (self.safe_integer_k(&currencyResolved, "valueScale", &[])).as_i64()).map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        if (amount.is_none()) {
+            amount = self.safe_number_k(transaction.clone(), "amountRv", &[]).as_f64();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1028,7 +1028,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         m.insert("tagTo".to_string(), Value::from(tag.as_deref()));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
