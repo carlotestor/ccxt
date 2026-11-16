@@ -1159,12 +1159,12 @@ impl Sxbet {
             let mut __for_first_1502: bool = true;
             while { if !__for_first_1502 { i += 1; } __for_first_1502 = false; i < rawMarketsLength } {
             let mut raw: crate::value::Dict = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut parsed: Value = self.parse_sxbet_market(Value::from(&raw));
-            if (parsed == Value::Null) {
+            let mut parsed: crate::value::Dict = self.parse_sxbet_market(Value::from(&raw)).into_dict();
+            if (false) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseEvent() could not resolve parsed market")));
             }
-            marketsList.push(parsed.clone());
-            if matches!(self.safe_bool_k(parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
+            marketsList.push(Value::from(&parsed));
+            if matches!(self.safe_bool_k(&parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
                 anyActive = true;
             }
             if (teamOneName.is_none()) {

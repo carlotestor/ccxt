@@ -2771,11 +2771,11 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { response.map_or(Value::Null, Value::Dict) });
-        let mut balanceResult: Value = <Self as crate::exchange::DerivedExchange>::parse_balance(self, balanceResponse);
-        if (balanceResult == Value::Null) {
+        let mut balanceResult: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_balance(self, balanceResponse).into_dict();
+        if (false) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " fetchBalance() returned empty response")));
         }
-        return balanceResult;
+        return Value::Dict(balanceResult);
         Value::Null
         }).await?))
     }

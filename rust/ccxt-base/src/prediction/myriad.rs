@@ -4312,9 +4312,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if !allowUnscopedFetchEvents {
             self.require_event_query(&[params.clone()]);
         }
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut rest: crate::value::Dict = self.omit(params.clone(), &["query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags"], &[]).into_dict();
-        if (queries == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut queriesLength: i64 = queries.len() as i64;
@@ -4326,7 +4326,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut rawQuestions: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // some markets are only discoverable through the questions search endpoint
-            let mut responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(queries.clone(), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(queries.clone(), &[Value::from(&rest)]).await])).await.into_list();
+            let mut responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(Value::from(&queries), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(Value::from(&queries), &[Value::from(&rest)]).await])).await.into_list();
             rawMarkets = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
             rawQuestions = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         }  else if (eventId.is_some()) {
@@ -4435,7 +4435,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // tags were already applied server-side (mapped to keyword searches); strip them before
         // the client-side pass — raw markets don't carry a matching event-level tags field
         let mut postParams: crate::value::Dict = self.omit(params, &["tags"], &[]).into_dict();
-        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), queries]);
+        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), Value::Arr(queries)]);
         Value::Null
         }).await?))
     }

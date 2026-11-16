@@ -3314,8 +3314,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        if (queries == Value::Null) {
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
+        if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut queriesLength: i64 = queries.len() as i64;
@@ -3348,7 +3348,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
-            rawEvents = self.fetch_events_by_query(queries, Value::from(fetchCap), &[Value::from(&rest)]).await.into_list();
+            rawEvents = self.fetch_events_by_query(Value::Arr(queries), Value::from(fetchCap), &[Value::from(&rest)]).await.into_list();
         }  else if (eventId.is_some()) {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
             let mut fullEvent: crate::value::Dict = self.fetch_raw_event_by_ticker(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await.into_dict();

@@ -10085,20 +10085,20 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_270: bool = true;
             while { if !__for_first_270 { i += 1; } __for_first_270 = false; i < (responseCurrencies.len() as i64) } {
-            let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_currency(self, responseCurrencies.get(i as usize).cloned().unwrap_or(Value::Null));
-            if (parsed == Value::Null) {
+            let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, responseCurrencies.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            if (false) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrenciesCustom() could not resolve parsed")));
             }
             let mut code: Option<String> = crate::value::KeyRead::key_read(&&parsed, "code").as_str().map(str::to_owned);
-            if (parsed == Value::Null) {
+            if (false) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrenciesCustom() could not resolve parsed")));
             }
-            let mut marginEntry: crate::value::Dict = self.safe_dict(marginablesById.clone(), parsed.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]).into_dict();
-            if (parsed == Value::Null) {
+            let mut marginEntry: crate::value::Dict = self.safe_dict(marginablesById.clone(), crate::value::KeyRead::key_read(&&parsed, "id"), &[]).into_dict();
+            if (false) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrenciesCustom() could not resolve parsed")));
             }
-            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("margin".to_string(), self.safe_bool_k(&marginEntry, "isBorrowable", &[])); }
-            result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
+            std::sync::Arc::make_mut(&mut parsed).insert("margin".into(), self.safe_bool_k(&marginEntry, "isBorrowable", &[]));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
         }
         }
         return Value::Map(result);

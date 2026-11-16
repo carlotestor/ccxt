@@ -2164,10 +2164,10 @@ impl Toobit {
             let mut __for_first_1130: bool = true;
             while { if !__for_first_1130 { i += 1; } __for_first_1130 = false; i < (coins.len() as i64) } {
             let mut coin: crate::value::Dict = coins.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_currency(self, &coin);
-            if (parsed != Value::Null) {
+            let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, &coin).into_dict();
+            if (true) {
                 let mut code: Option<String> = crate::value::KeyRead::key_read(&&parsed, "code").as_str().map(str::to_owned);
-                result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
             }
         }
         }
