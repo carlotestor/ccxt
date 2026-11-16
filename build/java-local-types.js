@@ -22661,3 +22661,123 @@ export function installJavaR84j8Locals (transpiler) {
         return info?.cast ? accumulatorCastWrite (printer, node, printed, { cast: JAVA_MAP_LOCAL_CAST }) : printed;
     };
 }
+
+// ===== 87j2 R1. ws order-book sides and guarded ws cache conditionals =====
+// `const side = book['bids']` / `c ? book['bids'] : book['asks']` where `book` is a local the
+// declaration layer typed io.github.ccxt.ws.WsOrderBook: WsOrderBook.get answers its `bids` /
+// `asks` fields, declared OrderBookSide, so one checkcast on the read cannot fail (null passes).
+// `c ? undefined : this.safeValue (this.trades, k)` (or the ohlcvs timeframe read): the ws cache
+// family's own ArrayCache read under a nullish arm. Decided from the TS AST and the published
+// declaration types only; the declaration is printed here from the initializer's own print, and
+// published so the printer binds `.store (..)` / `.append (..)` on the typed receiver.
+const R87J2_BOOK_SIDE_KEYS = new Set ([ 'bids', 'asks' ]);
+
+function r87j2BookSideRead (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined || !ts.isElementAccessExpression (value) || !ts.isIdentifier (value.expression)
+        || !ts.isStringLiteralLike (value.argumentExpression) || !R87J2_BOOK_SIDE_KEYS.has (value.argumentExpression.text)) {
+        return false;
+    }
+    const declared = r77j2Normalize (printer.javaDeclaredTypeOf (value.expression) ?? '');
+    return declared === ORDERBOOK_TYPE || declared === 'WsOrderBook';
+}
+
+function r87j2WsArm (printer, node, type) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (ts.isConditionalExpression (value)) {
+        const a = r87j2WsArm (printer, value.whenTrue, type);
+        const b = r87j2WsArm (printer, value.whenFalse, type);
+        return a === undefined || b === undefined ? undefined : (a === 'typed' || b === 'typed' ? 'typed' : 'null');
+    }
+    if (isNullishInitializer (value)) {
+        return 'null';
+    }
+    if (type === ORDERBOOKSIDE_TYPE) {
+        return r87j2BookSideRead (printer, value) ? 'typed' : undefined;
+    }
+    return wsMapReadType (value) === type ? 'typed' : undefined;
+}
+
+function r87j2WsLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const file = declaration.getSourceFile ().fileName;
+    const isProFile = /[\\/]pro[\\/]/.test (file);
+    if (!isProFile && !isPredictionWsFile (declaration)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name)) {
+        return undefined;
+    }
+    for (const type of [ ORDERBOOKSIDE_TYPE, ARRAYCACHE_TYPE ]) {
+        if (r87j2WsArm (printer, declaration.initializer, type) !== 'typed') {
+            continue;
+        }
+        // a lift needs a native use: a statement call the typed receiver binds (store / storeArray / append)
+        const native = (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name
+            && ts.isPropertyAccessExpression (n.parent) && n.parent.expression === n && ts.isCallExpression (n.parent.parent)
+            && n.parent.parent.expression === n.parent && n.parent.parent.parent?.kind === ts.SyntaxKind.ExpressionStatement
+            && (type === ORDERBOOKSIDE_TYPE ? [ 'store', 'storeArray' ] : [ 'append' ]).includes (n.parent.name.text));
+        if (!native || dataflowTypeTokenCollides (index, type)) {
+            return undefined;
+        }
+        const ok = isSafeToNarrow (printer, declaration, name, type, isProFile, {
+            writeOnly: true,
+            // a write is a fresh ArrayCache* constructor (prints a subclass, no cast) or a nullish value
+            writeOk: (right) => {
+                const write = unwrapParens (right);
+                return write !== undefined && (isNullishInitializer (write) || (type === ARRAYCACHE_TYPE && ts.isNewExpression (write)
+                    && ts.isIdentifier (write.expression) && ARRAYCACHE_CONSTRUCTORS.has (String (write.expression.text))));
+            },
+        });
+        return ok ? { type } : undefined;
+    }
+    return undefined;
+}
+
+export function installJavaR87j2WsLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR87j2WsPatched) {
+        return;
+    }
+    printer._javaR87j2WsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        // the sections installed before this one publish what they typed while printing: decide only
+        // for a declaration none of them typed (the table, not the printed head, says so)
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined || ![ undefined, 'Object' ].includes (printer.javaDeclaredTypeOfDeclaration (declaration))) {
+            return printed;
+        }
+        let info;
+        try {
+            info = r87j2WsLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        // fail closed on any head other than the plain untyped one this rule replaces
+        const head = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (head) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        return `${printer.getIden (identation)}${info.type} ${printer.printNode (declaration.name, 0)} = (${info.type}) (${printed.slice (head.length)})`;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
