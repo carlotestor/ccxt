@@ -1732,11 +1732,12 @@ export default class mexc extends mexcRest {
         }
         const market = this.market (symbol);
         const messageHash = 'unsubscribe:fundingRate:' + market['symbol'];
-        const url = this.urls['api']['ws']['swap'];
+        let url: Str = undefined;
         const channel = 'unsub.funding.rate';
         const requestParams: Dict = {
             'symbol': market['id'],
         };
+        url = this.urls['api']['ws']['swap'];
         this.spawn (this.watchSwapPublic, channel, messageHash, requestParams, params);
         const client = this.client (url);
         this.handleUnsubscriptions (client, [ messageHash ]);
