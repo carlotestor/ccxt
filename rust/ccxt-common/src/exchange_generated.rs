@@ -6561,8 +6561,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn require_value(&self, mut value: Value, optional_args: &[Value]) -> Value {
         let mut message = get_arg(optional_args, 0, Value::Null);
         if (value == Value::Null) {
-            let mut errorMessage: Value = (if (message != Value::Null) { message } else { Value::Str("value is required".into()) });
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorMessage)));
+            let mut errorMessage: Option<String> = (if (message != Value::Null) { message.as_str().map(str::to_owned) } else { Some("value is required".to_string()) });
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorMessage.as_deref().unwrap_or("null"))));
         }
         return value;
 
