@@ -836,18 +836,10 @@ func (this *Sxbet) loadSxObv3MetadataBody(ch chan ccxt.AsyncResult[map[string]an
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	this.Options["sxObv3Metadata"] = data
 
-	var resolved map[string]any
-	switch resolvedBox := data.(type) {
-	case map[string]any:
-		resolved = resolvedBox
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
-	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: data}
 	return nil
 }
 
@@ -1244,7 +1236,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 	if r1.Value != nil {
 		obv3 = r1.Value
 	}
-	var domain any = this.SafeDict(obv3, "domain", map[string]any{})
+	var domain map[string]any = this.SafeDictMap(obv3, "domain", map[string]any{})
 	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
 	var baseToken *string = this.SafeString(activeAsset, "baseToken")
 	var oddsLadderStepSize *string = this.NumberToString(this.SafeInteger(obv3, "oddsLadderStepSize", 125))
@@ -2811,8 +2803,8 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) map[strin
 	var outcomeId *string = this.SafeString(outcomeObj, "outcomeId")
 	var marketHash *string = this.SafeString(raw, "marketHash")
 	var isOutcomeOne bool = (outcomeId == marketHash || (outcomeId != nil && marketHash != nil && *outcomeId == *marketHash))
-	var outcomeOneOdds any = this.SafeDict(raw, "outcomeOne", map[string]any{})
-	var outcomeTwoOdds any = this.SafeDict(raw, "outcomeTwo", map[string]any{})
+	var outcomeOneOdds map[string]any = this.SafeDictMap(raw, "outcomeOne", map[string]any{})
+	var outcomeTwoOdds map[string]any = this.SafeDictMap(raw, "outcomeTwo", map[string]any{})
 	var ownOdds any = outcomeTwoOdds
 	if isOutcomeOne {
 		ownOdds = outcomeOneOdds
@@ -3210,7 +3202,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 		return
 	}
 	var requestIdString *string = this.SafeString(msg, "id")
-	var pendingRequests any = this.SafeDict(this.Options, "wsPendingRequests", map[string]any{})
+	var pendingRequests map[string]any = this.SafeDictMap(this.Options, "wsPendingRequests", map[string]any{})
 	var pendingEntry map[string]any = ccxt.SafeMapTyped(pendingRequests, requestIdString)
 	var errorReply map[string]any = ccxt.SafeMapTyped(msg, "error")
 	if errorReply != nil {

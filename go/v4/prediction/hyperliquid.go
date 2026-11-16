@@ -448,7 +448,7 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.Market
 	var questionsList []any = ccxt.SafeListTyped(response, "questions")
 	var outcomesToQuestions map[string]any = map[string]any{}
 	for qi := 0; qi < len(questionsList); qi++ {
-		var question any = this.SafeDict(questionsList, qi, map[string]any{})
+		var question map[string]any = this.SafeDictMap(questionsList, qi, map[string]any{})
 		var fallbackOutcome *int64 = this.SafeInteger(question, "fallbackOutcome")
 		if fallbackOutcome != nil {
 			var fallbackKey string = strconv.FormatInt(*fallbackOutcome, 10)
@@ -473,13 +473,13 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.Market
 	for i := 0; i < len(outcomesList); i++ {
 		var outcomeInfo map[string]any = this.SafeDictMap(outcomesList, i, map[string]any{})
 		var outcomeId *int64 = this.SafeInteger(outcomeInfo, "outcome", i)
-		var linkedQuestion any = this.SafeDict(outcomesToQuestions, strconv.FormatInt(*outcomeId, 10), map[string]any{})
+		var linkedQuestion map[string]any = this.SafeDictMap(outcomesToQuestions, strconv.FormatInt(*outcomeId, 10), map[string]any{})
 		var market any = this.ParseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion)
 		markets = append(markets, market)
 		// Build outcomes dictionary from market outcomes
 		var marketOutcomes []any = ccxt.SafeListTyped(market, "outcomes")
 		for oi := 0; oi < len(marketOutcomes); oi++ {
-			var outcome any = this.SafeDict(marketOutcomes, oi, map[string]any{})
+			var outcome map[string]any = this.SafeDictMap(marketOutcomes, oi, map[string]any{})
 			var outcomeSymbol *string = this.SafeString2(outcome, "outcome", "symbol")
 			var outcomeId_ *string = this.SafeString2(outcome, "outcomeId", "id")
 			if outcomeSymbol != nil {
@@ -754,7 +754,7 @@ func (this *Hyperliquid) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	//     }
 	//
 	// l2Book returns null for coins without an order book; coerce to an empty dict
-	var tickerData any = this.SafeDict(map[string]any{
+	var tickerData map[string]any = this.SafeDictMap(map[string]any{
 		"book": response,
 	}, "book", map[string]any{})
 
@@ -837,7 +837,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 		if _, ok := requestedOutcomeSymbols[outcomeHandle]; (outcomes != nil) && !ok {
 			continue
 		}
-		var outcomeObj any = this.SafeDict(outcomesMap, outcomeHandle, map[string]any{})
+		var outcomeObj map[string]any = this.SafeDictMap(outcomesMap, outcomeHandle, map[string]any{})
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var coin *string = this.SafeString(info, "coinName")
 		var mid *float64 = this.SafeNumber(mids, coin)
@@ -1294,7 +1294,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	var mids any = this.SafeDict(allMids, "mids", allMids)
 	var positions []any = []any{}
 	for i := 0; i < len(balances); i++ {
-		var balance any = this.SafeDict(balances, i, map[string]any{})
+		var balance map[string]any = this.SafeDictMap(balances, i, map[string]any{})
 		var coin *string = this.SafeString(balance, "coin", "")
 		// outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
 		if strings.Index(*coin, "+") != 0 {

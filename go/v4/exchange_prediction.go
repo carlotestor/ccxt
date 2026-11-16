@@ -1842,7 +1842,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 					lastTradeTimestamp = tradeTimestamp
 				}
 			}
-			var tradeFee any = this.SafeDict(trade, "fee")
+			var tradeFee map[string]any = this.SafeDictMap(trade, "fee")
 			if tradeFee != nil {
 				feeList = append(feeList, tradeFee)
 			}
