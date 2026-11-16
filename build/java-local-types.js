@@ -20964,6 +20964,10 @@ function r84j1NativeUse (printer, n) {
     if (parent === undefined) {
         return false;
     }
+    // `(x as string)` prints `((String)x)`: on a String local the printer drops that checkcast
+    if (ts.isAsExpression (parent) && parent.expression === child && parent.type?.kind === ts.SyntaxKind.StringKeyword) {
+        return true;
+    }
     if (ts.isPropertyAccessExpression (parent) && parent.expression === child) {
         const method = String (parent.name.text);
         if (method === 'length') {
@@ -21022,17 +21026,24 @@ function r84j1StringElementLocal (printer, declaration) {
     }
     const checker = printer.getChecker ();
     const type = checker.getTypeAtLocation (declaration.name);
-    if (type === undefined || type.flags !== ts.TypeFlags.String) {
-        return false; // plain `string` only: no union, alias with undefined, any
-    }
     const scope = enclosingFunction (declaration);
-    if (scope === undefined) {
+    if (type === undefined || scope === undefined) {
         return false;
     }
-    const counterRead = ts.isIdentifier (read.expression) && typeof printer.javaPrimitiveCounterIndex === 'function'
-        && printer.javaPrimitiveCounterIndex (read.argumentExpression) && r84j1StringOnlyList (printer, read.expression, scope);
-    if (!counterRead && !r84j1EcdsaSlot (printer, read, scope)) {
-        return false;
+    if (type.flags !== ts.TypeFlags.String) {
+        // (r3) `x = s['symbol']` of a structure whose base types.ts field is declared `Str` / `string`:
+        // the box holds a String or null, so a String declaration (nullable) is exact
+        const nullableString = (type.flags & ts.TypeFlags.Union) !== 0
+            && ts.typeParts (type).every ((t) => t.flags === ts.TypeFlags.String || (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0);
+        if (!nullableString || !structureStringFieldRead (printer, read)) {
+            return false;
+        }
+    } else {
+        const counterRead = ts.isIdentifier (read.expression) && typeof printer.javaPrimitiveCounterIndex === 'function'
+            && printer.javaPrimitiveCounterIndex (read.argumentExpression) && r84j1StringOnlyList (printer, read.expression, scope);
+        if (!counterRead && !r84j1EcdsaSlot (printer, read, scope) && !structureStringFieldRead (printer, read)) {
+            return false;
+        }
     }
     const name = String (declaration.name.text);
     const index = dataflowIndex (printer, scope);
@@ -21056,7 +21067,7 @@ function r84j1StringElementLocal (printer, declaration) {
     if (native === 0) {
         return false;
     }
-    const info = { type: 'String', nonNull: false, strictPlus: true, stringListElement: true };
+    const info = { type: 'String', nonNull: false, strictPlus: true, stringListElement: true, stringAsCast: true };
     return isSafeToNarrow (printer, declaration, name, 'String', /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info);
 }
 

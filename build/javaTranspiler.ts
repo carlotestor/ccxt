@@ -9713,8 +9713,9 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j1selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
-        "import type { Dict } from './base/types.js';",
+        "import type { Dict, Ticker } from './base/types.js';",
         'export default class zzr84j1selftest extends Exchange {',
+        "    tick (t: Ticker, m: Dict) { const symbol = t['symbol']; m[(symbol as string)] = t; return m; }",
         "    keys (m: any) { const ks = Object.keys (m); const out: Dict = {}; for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k.startsWith ('x')) { delete m[k]; } out[k] = this.currency (k); } return out; }",
         "    box (m: Dict) { const rows: Dict[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < rows.length; i++) { const row = rows[i]; row['seen'] = true; out.push (this.safeString (row, 'id')); const ro = rows[i]; out.push (this.safeString (ro, 'id')); } return out; }",
         "    neg (m: Dict, xs: string[]) { const vs: any[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < vs.length; i++) { const a = vs[i]; out.push (a.length); const b = xs[i]; out.push (b.toUpperCase ()); } return out; }",
@@ -9726,6 +9727,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if (!/String k = \(String\) \(ks == null \|\| i < 0/.test(out)) problems.push("84j1: 'k' (Object.keys element) must print String with one checkcast");
         if (!/\bk\.startsWith\(/.test(out) || /\(\(String\)k\)/.test(out) || /\(String\)k\b/.test(out)) problems.push("84j1: 'k' uses must print with no (String) cast");
         if (!/Map<String, Object> row = \(java\.util\.Map<String, Object>\) \(rows == null/.test(out) || !/\brow\.put\("seen"/.test(out)) problems.push("84j1: 'row' (Dict element with an element write) must print Map<String, Object> and a native put");
+        if (!/String symbol = \(String\) [^;]*\.get\("symbol"\)/.test(out) || /\(\(String\)symbol\)/.test(out)) problems.push("84j1: 'symbol' (Str structure field) must print String and its `as string` key no cast");
         for (const name of [ 'a', 'b', 'ro' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);
         }
