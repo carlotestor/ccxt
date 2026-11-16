@@ -1428,12 +1428,12 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 			return 500
 		}()
 	}
-	var limit int64 = func() int64 {
-		if limitParam == nil {
-			return int64(defaultLimit)
-		}
-		return *limitParam
-	}()
+	var limit int64
+	if limitParam == nil {
+		limit = int64(defaultLimit)
+	} else {
+		limit = *limitParam
+	}
 	channel += strconv.FormatInt(limit, 10)
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}

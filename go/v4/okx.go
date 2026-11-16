@@ -3271,22 +3271,22 @@ func (this *Okx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 		}
 		return 100
 	}()
-	var requestedLimit any = func() any {
-		if limit == nil {
-			return defaultLimit
-		}
-		return limit
-	}()
+	var requestedLimit int64
+	if limit == nil {
+		requestedLimit = int64(defaultLimit)
+	} else {
+		requestedLimit = *limit
+	}
 	// the rpi book hard-errors with 51000 "Parameter sz error." above 400,
 	// including the 5000 that publicGetMarketBooksFull defaults to
 	var isFullBook bool = (method != nil && *method == "publicGetMarketBooksFull")
 	var largeLimit bool = ((limit == nil) && isFullBook) || ((limit != nil) && (*limit > 400))
-	var limitResolved any = func() any {
-		if rpi && largeLimit {
-			return 400
-		}
-		return requestedLimit
-	}()
+	var limitResolved int64
+	if rpi && largeLimit {
+		limitResolved = 400
+	} else {
+		limitResolved = requestedLimit
+	}
 	request["sz"] = limitResolved // max 400
 	var response map[string]any = nil
 	if rpi {

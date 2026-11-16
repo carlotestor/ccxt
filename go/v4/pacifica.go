@@ -1665,7 +1665,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	since := GetArg(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1695,12 +1695,12 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		}
 		return nil
 	}
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return int64(defaultMaxLimit)
-		}
-		return *limit
-	}()
+	var limitValue int64
+	if limit == nil {
+		limitValue = int64(defaultMaxLimit)
+	} else {
+		limitValue = *limit
+	}
 	var tf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var nowMs int64 = this.Milliseconds()
 	var duration int64 = this.ParseTimeframe(tf) * 1000

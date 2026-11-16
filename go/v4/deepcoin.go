@@ -952,13 +952,13 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			// the exchange do not have a since param for this endpoint
 			// we calculate until (after) for correct pagination
 			var duration int64 = this.ParseTimeframe(timeframe)
-			var numberOfCandles int64 = func() int64 {
-				if limit == nil {
-					return int64(maxLimit)
-				}
-				return *limit
-			}()
-			var endTime any = this.ParseToInt(Add(since, ((duration * numberOfCandles) * 1000)))
+			var numberOfCandles int64
+			if limit == nil {
+				numberOfCandles = int64(maxLimit)
+			} else {
+				numberOfCandles = *limit
+			}
+			var endTime any = this.ParseToInt(Add(since, (duration*numberOfCandles)*1000))
 			if until != nil {
 				endTime = mathMin(endTime, until)
 			}

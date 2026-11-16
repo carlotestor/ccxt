@@ -2038,12 +2038,12 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var now int64 = this.Milliseconds()
 	// at max, it provides 5000 bars, but we set generous default here
 	var defaultLimit int = 1000
-	var windowLimit int64 = func() int64 {
-		if limit == nil {
-			return int64(defaultLimit)
-		}
-		return *limit
-	}()
+	var windowLimit int64
+	if limit == nil {
+		windowLimit = int64(defaultLimit)
+	} else {
+		windowLimit = *limit
+	}
 	var limitResolved any = func() any {
 		if (since == nil) && (limit == nil) {
 			return defaultLimit
