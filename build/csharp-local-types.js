@@ -19362,6 +19362,10 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
 // retyped signature needs no boundary cast and a `rates` local reads natively (Count / [i]).
 const CSHARP_84C6_COLLECTION_RETURNS = {
     'parseFundingRateHistories': 'IList<object>',
+    // (84c6-E) every parseMarketLeverageTiers declaration (base `throw` stub + 14 venue overrides)
+    // returns its `List<object> tiers` local, a list literal (mexc) or gate's
+    // parseEmulatedLeverageTiers (List<object>); per-NAME so overrides stay signature-compatible
+    'parseMarketLeverageTiers': 'List<object>',
 };
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS, CSHARP_84C6_COLLECTION_RETURNS);
 for (const [ name, type ] of Object.entries (CSHARP_84C6_COLLECTION_RETURNS)) {
@@ -19382,13 +19386,19 @@ Object.assign (CSHARP_LOCAL_AWAIT_RETURN_TYPES, { 'loadAccounts': 'List<object>'
 // declared with that type (CSHARP_LOCAL_WS_MEMBER_TYPES), or a `this.<name> (...)` call whose
 // generated signature names it (callCollectionReturnType). Limited to the 84c6 names so no other
 // method's emitted text moves.
-const CSHARP_84C6_RETURN_OWNERS = new Set ([ 'parseFundingRateHistories', 'loadAccounts' ]);
+const CSHARP_84C6_RETURN_OWNERS = new Set ([ 'parseFundingRateHistories', 'loadAccounts', 'parseMarketLeverageTiers' ]);
 function csharp84c6ReturnIsTyped (csharp, expression, mapped) {
     const owner = ts.findAncestor (expression, ts.isFunctionLike);
     if (!CSHARP_84C6_RETURN_OWNERS.has (owner?.name?.text)) {
         return false;
     }
     const node = unwrapPassthroughExpression (expression);
+    if (node?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+        return mapped === 'List<object>';
+    }
+    if (node?.kind === ts.SyntaxKind.Identifier) {
+        return localIdentifierType (csharp, node) === mapped;
+    }
     if (node?.kind === ts.SyntaxKind.PropertyAccessExpression && node.expression?.kind === ts.SyntaxKind.ThisKeyword) {
         return CSHARP_LOCAL_WS_MEMBER_TYPES[node.name?.text] === mapped;
     }

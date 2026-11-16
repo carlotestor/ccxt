@@ -223,5 +223,8 @@ describe ('cs-84c6-callee-returns-for-awaited-and-parse-locals', () => {
         assert.match (htx, /List<object> accounts = await this\.loadAccounts\(\);/);
         const pf = (transpiler as any).transpileCSharpByPath ('./ts/src/prediction/predictfun.ts').content as string;
         assert.match (pf, /Dictionary<string, object> signed = this\.signPredictfunOrder\(/);
+        const kucoin = (transpiler as any).transpileCSharpByPath ('./ts/src/kucoin.ts').content as string;
+        assert.match (kucoin, /public override List<object> parseMarketLeverageTiers\(/);
+        assert.match (kucoin, /List<object> tiers = this\.parseMarketLeverageTiers\(data\);/);
     });
 });
