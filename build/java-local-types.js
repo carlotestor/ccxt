@@ -19907,3 +19907,191 @@ function x21BaseOnlyDispatch (call) {
     return declarations !== undefined && declarations.length > 0
         && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
 }
+
+// ===== 77j1. json-box elements of a counter-indexed list print java.util.Map<String, Object> =====
+// `const e = xs[i]` where the checker types the element a json box (`Dict`, the generic Dictionary of
+// ts/src/base/types.ts: string index, no numeric one) and `i` is the printed int loop counter. The read
+// prints the guarded native `xs.get(i)` (or the helper), both Object, so the declaration carries the one
+// checkcast and is published: the printer's declared-Map arms then print every `e['k']` / `e[k]` as a
+// native get. Uses are audited fail-closed: element reads/writes with a literal or identifier key, value
+// positions (return, copy, assignment right side, object literal value, push), and arguments of base
+// readers whose every Java overload takes Object at that slot (no overload can rebind). Never written.
+const J77J1_BOX_TYPE = 'java.util.Map<String, Object>';
+const J77J1_BOX_CAST = '(java.util.Map<String, Object>)';
+const J77J1_OBJECT_ARG_READERS = new Set ([
+    'safeString', 'safeString2', 'safeStringN', 'safeStringLower', 'safeStringLower2', 'safeStringLowerN',
+    'safeStringUpper', 'safeStringUpper2', 'safeStringUpperN', 'safeInteger', 'safeInteger2', 'safeIntegerN',
+    'safeIntegerProduct', 'safeIntegerProduct2', 'safeIntegerProductN', 'safeTimestamp', 'safeTimestamp2',
+    'safeNumber', 'safeNumber2', 'safeNumberN', 'safeBool', 'safeBool2', 'safeBoolN', 'safeDict', 'safeDict2',
+    'safeDictN', 'safeList', 'safeList2', 'safeListN', 'safeValue', 'safeValue2', 'safeValueN',
+]);
+
+function j77j1ElementIsJsonBox (printer, read) {
+    if (typeof printer.javaJsonBoxType !== 'function') {
+        return false;
+    }
+    try {
+        const checker = printer.getChecker ();
+        const listType = checker.getTypeAtLocation (read.expression);
+        if (!checker.isArrayType (listType)) {
+            return false;
+        }
+        const element = checker.getTypeArguments (listType)?.[0];
+        return element !== undefined && printer.javaJsonBoxType (element);
+    } catch (e) {
+        return false;
+    }
+}
+
+// 'ok' when the use keeps the printed Java valid and unchanged in meaning on a Map-declared local
+function j77j1UseIsSafe (printer, n) {
+    let child = n;
+    let parent = n.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    if (parent === undefined) {
+        return false;
+    }
+    if (ts.isPropertyAccessExpression (parent) && parent.name === child) {
+        return true;
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === child) {
+        const grand = parent.parent;
+        if (grand?.kind === ts.SyntaxKind.DeleteExpression || (grand !== undefined && ts.isCallExpression (grand) && grand.expression === parent)) {
+            return false;
+        }
+        const key = parent.argumentExpression;
+        return key !== undefined && (ts.isStringLiteralLike (key) || ts.isIdentifier (key));
+    }
+    if ((ts.isReturnStatement (parent) && parent.expression === child)
+        || (ts.isVariableDeclaration (parent) && parent.initializer === child)
+        || (ts.isPropertyAssignment (parent) && parent.initializer === child)
+        || (ts.isBinaryExpression (parent) && parent.right === child && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && (ts.isElementAccessExpression (parent.left) || ts.isIdentifier (parent.left)))) {
+        return true;
+    }
+    if (ts.isCallExpression (parent) && parent.arguments.indexOf (child) !== -1 && ts.isPropertyAccessExpression (parent.expression)) {
+        const method = String (parent.expression.name.text);
+        if (method === 'push' && parent.arguments.length === 1 && !isThisOrSuperCall (parent)) {
+            return true;
+        }
+        if (isThisCall (parent) && J77J1_OBJECT_ARG_READERS.has (method) && resolvesToBaseOrStrippedAccessor (printer, parent, method)
+            && !parent.arguments.some ((a) => ts.isSpreadElement (a))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function j77j1BoxElementLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement) {
+        return false;
+    }
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || typeof printer.javaPrimitiveCounterIndex !== 'function' || !printer.javaPrimitiveCounterIndex (read.argumentExpression)
+        || !j77j1ElementIsJsonBox (printer, read)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, J77J1_BOX_TYPE)) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    if (symbol === undefined) {
+        return false;
+    }
+    let uses = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === n
+            && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            return false; // never written
+        }
+        if (!j77j1UseIsSafe (printer, n)) {
+            return false;
+        }
+        uses++;
+    }
+    return uses > 0;
+}
+
+export function installJavaJ77j1BoxElementLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaJ77j1BoxElementPatched) {
+        return;
+    }
+    printer._javaJ77j1BoxElementPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let ok;
+        try {
+            ok = j77j1BoxElementLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        typed.set (declaration, J77J1_BOX_TYPE);
+        const head = marker.replace (/Object (\S+) = $/, `${J77J1_BOX_TYPE} $1 = ${J77J1_BOX_CAST} `);
+        return printed.slice (0, at) + head + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// self-test (javaTranspiler.ts --audit-string-types --self-test): `transpile (path)` prints one ts/src probe
+export function j77j1BoxElementLocalsSelfTest (transpile) {
+    const problems = [];
+    const probe = path.join (process.cwd (), 'ts', 'src', `zzj77j1selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzj77j1selftest extends Exchange {',
+        "    pos (r: Dict) { const rows: Dict[] = this.safeList (r, 'l', []); const out = []; for (let i = 0; i < rows.length; i++) { const row = rows[i]; out.push (this.safeString (row, 'id')); out.push (row['k']); } return out; }",
+        "    neg (r: Dict) { const rows: Dict[] = this.safeList (r, 'l', []); const out = []; for (let i = 0; i < rows.length; i++) { const a = rows[i]; out.push (this.parseTicker (a)); const b = rows[i]; out.push (b === undefined); const c: any = this.safeList (r, 'x', [])[i]; out.push (c['k']); } return out; }",
+        '}',
+    ].join ('\n');
+    try {
+        fs.writeFileSync (probe, body);
+        const out = String (transpile (probe));
+        if (!/Map<String, Object> row = \(java\.util\.Map<String, Object>\) \(rows == null \|\| i < 0/.test (out)) {
+            problems.push ("77j1: 'row' (Dict element of a counter-indexed Dict[]) must print Map<String, Object> with one checkcast");
+        }
+        if (/Helpers\.GetValue\(row, /.test (out)) {
+            problems.push ("77j1: 'row' element reads must go native");
+        }
+        for (const name of [ 'a', 'b' ]) {
+            if (!new RegExp (`\\bObject ${name} = `).test (out)) {
+                problems.push (`77j1: '${name}' has an unaudited use and must stay Object`);
+            }
+        }
+    } catch (e) {
+        problems.push (`77j1 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync (probe, { force: true });
+    }
+    return problems;
+}
