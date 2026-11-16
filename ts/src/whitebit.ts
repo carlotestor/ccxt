@@ -4327,10 +4327,7 @@ export default class whitebit extends Exchange {
         if (isPrivate) {
             requestBody = privateBody;
         }
-        if (isPrivate) {
-            return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
-        }
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': publicHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': (isPrivate) ? privateHeaders : publicHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
