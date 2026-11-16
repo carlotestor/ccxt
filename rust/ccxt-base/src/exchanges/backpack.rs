@@ -3162,10 +3162,10 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut request: crate::value::Dict = self.stock_data_request("fetchTicker", params, &[market.clone()]).into_dict();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut request: crate::value::Dict = self.stock_data_request("fetchTicker", params, &[(market).raw.clone()]).into_dict();
         let mut response: crate::value::Dict = self.public_get_api_v1_ticker(&[Value::Dict(request)]).await.into_dict();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3283,10 +3283,10 @@ impl Backpack {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut maxLimit: i64 = 2000;
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
-        let mut dataRequest: crate::value::Dict = self.stock_data_request("fetchOHLCV", params, &[market.clone()]).into_dict();
+        let mut dataRequest: crate::value::Dict = self.stock_data_request("fetchOHLCV", params, &[(market).raw.clone()]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_string_k(&dataRequest, "symbol", &[]));
@@ -3329,7 +3329,7 @@ impl Backpack {
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_api_v1_klines(&[__ws_arg_6]).await.into_list();
         let mut ohlcvs: crate::value::List = self.to_array(&response).into_list();
-        return self.parse_ohlc_vs(&ohlcvs, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3652,10 +3652,10 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_254: bool = true;
                 while { if !__for_first_254 { i += 1; } __for_first_254 = false; i < (rfqTrades.len() as i64) } {
-                let mut trade: Value = rfqTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
+                let mut trade: crate::value::Dict = rfqTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut timestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
                 if (until.is_none()) || ((timestamp.is_some()) && ((timestamp.is_some() && until.is_some() && timestamp <= until))) {
-                    filtered.push(trade);
+                    filtered.push(Value::Dict(trade));
                 }
             }
             }
@@ -4094,8 +4094,8 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut selection: crate::value::List = self.handle_stock_params("createOrder", params, &[market.clone()]).into_list();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut selection: crate::value::List = self.handle_stock_params("createOrder", params, &[(market).raw.clone()]).into_list();
         let mut query: crate::value::Dict = self.safe_dict(&selection, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4106,7 +4106,7 @@ impl Backpack {
                 m.insert("stock".to_string(), __ws_arg_19);
             m
         })]).into_dict();
-        if (self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketType".into()), &[]).as_str() == Some("RFQ")) {
+        if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
             let mut rfqResponse: crate::value::Dict = self.create_rfq_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), price.as_f64(), &[Value::from(&orderParams)]).await.into_dict();
             let mut rfqOrder: Option<crate::value::Dict> = self.safe_dict(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4117,7 +4117,7 @@ impl Backpack {
         }
         let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(orderParams)]).into_dict();
         let mut response: crate::value::Dict = self.private_post_api_v1_order(&[Value::Dict(orderRequest)]).await.into_dict();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -4280,13 +4280,13 @@ impl Backpack {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut selection: crate::value::List = self.handle_stock_params("acceptRfqQuote", params, &[market.clone()]).into_list();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut selection: crate::value::List = self.handle_stock_params("acceptRfqQuote", params, &[(market).raw.clone()]).into_list();
         let mut query: crate::value::Dict = self.safe_dict(&selection, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        if (self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketType".into()), &[]).as_str() != Some("RFQ")) {
+        if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() != Some("RFQ")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " acceptRfqQuote() requires an RFQ market")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4297,7 +4297,7 @@ impl Backpack {
         });
         let __ws_arg_21 = self.extend(query, &[Value::Map(request)]);
         let mut response: crate::value::Dict = self.private_post_api_v1_rfq_accept(&[__ws_arg_21]).await.into_dict();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
 
     Value::Null
 }

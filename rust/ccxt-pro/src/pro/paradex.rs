@@ -706,7 +706,7 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         if (self.safe_string_k(&unsubscription, "id", &[]).as_str() == requestId.as_str()) {
-            let mut error = Value::from(crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), unsubHash).into()), " was not acknowledged")));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), unsubHash).into()), " was not acknowledged")));
             client.reject(error, &unsubHash);
             // the subscriptions are forgotten, so that the next watch subscribes them again
             self.clean_unsubscribed(client, unsubHash, &unsubscription);
@@ -1108,14 +1108,14 @@ if _try_result.is_err() {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(liquidation.clone(), "market", &[]);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "created_at", &[]).as_i64();
         let mut contracts: Option<String> = self.safe_string_k_opt(liquidation.clone(), "size", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(liquidation.clone(), "price", &[]);
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("contracts".to_string(), self.parse_number(contracts.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("price".to_string(), self.parse_number(price.clone().map(Value::from).unwrap_or(Value::Null), &[]));
@@ -1125,7 +1125,7 @@ if _try_result.is_err() {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-}), &[marketResolved]);
+}), &[crate::Value::from(&marketResolved)]);
 
     Value::Null
 }

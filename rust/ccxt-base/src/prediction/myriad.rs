@@ -815,7 +815,7 @@ impl Myriad {
             rawMarkets = self.fetch_raw_markets_list(&[Value::Dict(rest)]).await.into_list();
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
-        let mut eventsDict: Value = Value::Map({
+        let mut eventsDict: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -829,11 +829,11 @@ impl Myriad {
             let mut ev: crate::value::Dict = self.parse_market_to_event(&raw, &m).into_dict();
             let mut evKey: Option<String> = self.safe_string_k_opt(&ev, "event", &[]);
             if (evKey.is_some()) {
-                if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(evKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ev)); }
+                eventsDict.insert(evKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ev));
             }
         }
         }
-        self.exchange.events = eventsDict.clone();
+        self.exchange.events = Value::Map(eventsDict);
         return Value::from(flatMarkets);
         Value::Null
         }).await?))
@@ -2997,8 +2997,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1354: bool = true;
             while { if !__for_first_1354 { i += 1; } __for_first_1354 = false; i < ordersLength } {
-            let mut order: Value = orders.get(i as usize).map(crate::Value::from).unwrap_or_default();
-            trades.push(self.order_to_trade(order));
+            let mut order: crate::value::Dict = orders.get(i as usize).map(crate::Value::from).unwrap_or_default().into_dict();
+            trades.push(self.order_to_trade(Value::Dict(order)));
         }
         }
         return self.filter_by_value_since_limit(Value::from(trades), Value::Str("outcome".into()), outcome, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -4920,7 +4920,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (sym == Value::Null) {
             return;
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(sym.clone(), None, &[]));
+        let mut market: crate::types::Market = self.safe_market(sym.clone(), None, &[]);
         let mut outcomeObj: Option<crate::types::Market> = self.safe_outcome(sym.clone(), None);
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
@@ -4948,11 +4948,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(&fees, "total", &[]));
-        m.insert("currency".to_string(), self.safe_string_k(market.clone(), "quote", &[]));
+        m.insert("currency".to_string(), self.safe_string_k(&market, "quote", &[]));
     m
 }));
     m
-}), &[market]);
+}), &[crate::Value::from(&market)]);
         if (false) {
             self.trades = crate::pro::cache::CacheMap::new();
         }
@@ -4981,7 +4981,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut makerTrader: Option<String> = self.safe_string_lower_k_opt(&maker, "trader", &[]);
                 if (makerTrader == myWallet) {
                     let mut makerSym: Option<String> = self.market_outcome_to_symbol(networkId.as_deref(), marketId.as_deref(), (self.safe_string_k(&maker, "outcome", &[])).as_str());
-                    let mut makerMarket: Value = crate::types::IntoRaw::into_raw(self.safe_market(Value::from(makerSym.as_deref()), None, &[]));
+                    let mut makerMarket: crate::types::Market = self.safe_market(Value::from(makerSym.as_deref()), None, &[]);
                     let mut makerOutcomeObj: Option<crate::types::Market> = self.safe_outcome(Value::from(makerSym.as_deref()), None);
                     let mut makerFees: crate::value::Dict = self.safe_dict_k(&maker, "fees", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -5007,11 +5007,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(&makerFees, "total", &[]));
-        m.insert("currency".to_string(), self.safe_string_k(makerMarket.clone(), "quote", &[]));
+        m.insert("currency".to_string(), self.safe_string_k(&makerMarket, "quote", &[]));
     m
 }));
     m
-}), &[makerMarket]);
+}), &[crate::Value::from(&makerMarket)]);
                     myLegs.push(makerTrade);
                 }
             }
