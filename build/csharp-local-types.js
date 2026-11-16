@@ -6642,7 +6642,8 @@ function conditionalArmType (csharp, node, context) {
     if (arm?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
     }
-    return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm) ?? stringParameterArmType (csharp, arm);
+    return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm) ?? stringParameterArmType (csharp, arm)
+        ?? (element1ParamsRead (csharp, arm) ? CSHARP_ELEMENT_1_TYPE : undefined);
 }
 
 // an arm `this.omit (<Dictionary / IDictionary box>, keys)`: the two-argument call binds a
