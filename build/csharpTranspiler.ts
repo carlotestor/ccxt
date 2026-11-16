@@ -12722,6 +12722,11 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
         const out = print (body);
         if (!out.includes (expected)) problems.push (`84c7 non-null string call locals: ${name}: ${out.replace (/\n/g, ' | ').slice (-400)}`);
     }
+    // ral-84c7 R2: pass-through helpers keep the argument's collection type
+    const passThrough = (transpiler as any).transpileCSharp ('class Test {\n clone (o) { return o; }\n requireValue (v, m) { return v; }\n hash (a, b, c) { return a; }\n'
+        + ' f (p) { const position = { \'a\': 1 }; const s = this.clone (position); s[\'side\'] = \'short\'; const r = this.requireValue (position, \'m\'); r[\'x\'] = 1; return this.hash (s, r, 1); }\n}').content as string;
+    if (!passThrough.includes ('Dictionary<string, object> s = ((Dictionary<string, object>)this.clone(position));')) problems.push (`84c7 pass-through clone: ${passThrough.replace (/\n/g, ' | ').slice (-400)}`);
+    if (!passThrough.includes ('Dictionary<string, object> r = ((Dictionary<string, object>)this.requireValue(position, "m"));')) problems.push (`84c7 pass-through requireValue: ${passThrough.replace (/\n/g, ' | ').slice (-400)}`);
     // a helper with a non-literal return path keeps object
     const kept = print ('chan (id) { if (id) { return \'a\'; } return id; }\n g (id) { const c = this.chan (id); const k = c + \':r\'; return this.hash (k, 1, 1); }');
     if (!kept.includes ('object c = this.chan(id);')) problems.push (`84c7 non-null string call locals: unproven helper retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);

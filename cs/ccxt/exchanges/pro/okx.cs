@@ -2258,8 +2258,8 @@ public partial class okx : ccxt.okx
             if ((contracts == 0) && (this.safeString(rawPosition, "posSide") == "net"))
             {
                 position["side"] = "long";
-                object shortPosition = this.clone(position);
-                ((IDictionary<string,object>)shortPosition)["side"] = "short";
+                Dictionary<string, object> shortPosition = ((Dictionary<string, object>)this.clone(position));
+                shortPosition["side"] = "short";
                 cache.append(shortPosition);
                 newPositions.Add(shortPosition);
             }

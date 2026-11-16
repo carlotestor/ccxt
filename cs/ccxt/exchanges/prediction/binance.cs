@@ -709,7 +709,7 @@ public partial class binance : PredictionExchange
         string? vendor = this.safeString(rawTopic, "vendor");
         string? collateral = this.safeString(rawTopic, "collateral", "USDT");
         string? title = this.safeString(rawMarket, "title", marketId);
-        object marketSymbol = this.slugToMarketSymbol(topicSlug, title);
+        string marketSymbol = this.slugToMarketSymbol(topicSlug, title);
         string? tradingStatus = this.safeString(rawMarket, "tradingStatus");
         string? status = this.safeString(rawMarket, "status");
         bool active = (tradingStatus == "OPEN");
@@ -738,7 +738,7 @@ public partial class binance : PredictionExchange
             IDictionary<string, object> rawOutcome = this.safeDict(rawOutcomes, oi);
             string? label = this.safeStringUpper(rawOutcome, "name");
             string? tokenId = this.safeString(rawOutcome, "tokenId");
-            string? outcomeHandle = ((string)((object)(marketSymbol == null ? null : marketSymbol + ":" + label)));
+            string outcomeHandle = ((marketSymbol + ":") + label);
             string? price = this.safeString(rawOutcome, "price");
             bool? winnerRaw = null;
             int? settleFractionRaw = null;

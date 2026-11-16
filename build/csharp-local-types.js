@@ -10694,7 +10694,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -19349,8 +19349,9 @@ Object.assign (CSHARP_LOCAL_WS_MEMBER_TYPES, {
 //   (b) this.iso8601 (this.milliseconds () | this.seconds () | this.nonce ()): an Int64 clock
 //       value (Exchange.Time.cs / the `virtual Int64 nonce` slot every override keeps) is a
 //       finite integer far inside Iso8601's [0, 8.64e15] range, the only null exits;
-//   (c) this.binaryToBase16 (…): Exchange.Encode.cs `string binaryToBase16` (binaryToHex);
-//   (d) a sync method declared exactly once in the same source file whose every return path
+//   (c) this.binaryToBase16 / intToBase16 (…): Exchange.Encode.cs, never null;
+//   (d) a sync method declared exactly once in all of ts/src (same file, or the base class the
+//       checker binds) whose every return path
 //       prints a statically non-null `string` (stringReturnExpressionProves: a literal, a
 //       `'lit' + …` chain, padStart) — paradex getOrderBookChannel / sbeReadAddress.
 // A local passed as a call argument is left `object`: a typed argument feeds the call-site
@@ -19375,22 +19376,16 @@ function nonNullStringCall84c7 (csharp, call, context) {
     if (name === 'iso8601') {
         return args.length === 1 && clockValue84c7 (csharp, args[0], 0);
     }
-    if (name === 'binaryToBase16') {
+    if (name === 'binaryToBase16' || name === 'intToBase16') {
+        // Exchange.Encode.cs: binaryToHex of the bytes / Convert.ToInt64 (n).ToString ("x") — never null
         return args.length === 1;
     }
-    const sourceFile = call.getSourceFile?.();
-    if (sourceFile === undefined || name === undefined) {
-        return false;
+    if (name === undefined || call.getSourceFile?.() === undefined || tsSourceMethodDeclarationCount (name) > 1) {
+        return false; // at most one declaration in all of ts/src: no override can answer differently
     }
-    const found = [];
-    const visit = (node) => {
-        if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.kind === ts.SyntaxKind.Identifier && node.name.text === name) {
-            found.push (node);
-        }
-        node?.forEachChild (visit);
-    };
-    visit (sourceFile);
-    if (found.length !== 1 || found[0].body === undefined || (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (found[0]))) {
+    const found = [ boundCollectionDeclaration (csharp, call, name) ];
+    if (found[0]?.kind !== ts.SyntaxKind.MethodDeclaration || found[0].name?.text !== name || found[0].body === undefined
+            || (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (found[0]))) {
         return false;
     }
     let returns = 0;
@@ -19523,4 +19518,51 @@ function clockValue84c7 (csharp, node, depth) {
             && binding.initializer !== undefined && clockValue84c7 (csharp, binding.initializer, depth + 1);
     }
     return false;
+}
+
+// ===== 84c7: pass-through base helpers =====
+// `this.requireValue (v, msg)` (Exchange.BaseMethods.cs) throws on a null v and otherwise returns v
+// itself, and `this.clone (v)` (Exchange.cs) returns a new Dictionary<string, object> for a
+// Dictionary<string, object> box, a new List<object> for a List<object> box and any other box as
+// is. When v's printed C# type is exactly Dictionary<string, object> / List<object>, the result
+// holds a box of that type (interface-typed arguments are left out: their declaration cast would
+// add one of the census-counted ((IDictionary…) / ((IList…) spellings), so the declaration names it behind the
+// exact cast back; csharpLocalIsSafeToRetype re-checks every use and write.
+const CSHARP_84C7_PASS_THROUGH_TYPES = {
+    'requireValue': [ 'Dictionary<string, object>', 'List<object>' ],
+    'clone': [ 'Dictionary<string, object>', 'List<object>' ],
+};
+
+function passThroughHelperLocal84c7 (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined) {
+        return undefined;
+    }
+    const call = stripParens (declaration.initializer);
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const name = callee.name?.text;
+    const allowed = Object.prototype.hasOwnProperty.call (CSHARP_84C7_PASS_THROUGH_TYPES, name) ? CSHARP_84C7_PASS_THROUGH_TYPES[name] : undefined;
+    const args = call.arguments ?? [];
+    // requireValue carries one overload signature beside its body in Exchange.ts (two
+    // MethodDeclarations, one implementation); clone has no TS declaration at all (hand-written)
+    if (allowed === undefined || args.length !== ((name === 'clone') ? 1 : 2) || tsSourceMethodDeclarationCount (name) > ((name === 'requireValue') ? 2 : 0)) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    let type;
+    try {
+        type = csharpTypeOfValue (csharp, args[0], ctx);
+    } catch (e) {
+        return undefined;
+    }
+    if (!allowed.includes (type) || typeFromValueOrWrites (csharp, scope, declaration, declaration.name.text, type, ctx) !== type) {
+        return undefined;
+    }
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type } : undefined;
 }
