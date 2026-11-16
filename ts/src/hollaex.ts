@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, NullableList, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -699,7 +699,7 @@ export default class hollaex extends Exchange {
         const keys = Object.keys (tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const ticker = this.safeValue (tickers, key);
+            const ticker = this.safeDict (tickers, key, {});
             const marketId = this.safeString (ticker, 'symbol', key);
             const market = this.safeMarket (marketId, undefined, '-');
             const symbol = market['symbol'];
@@ -1620,12 +1620,7 @@ export default class hollaex extends Exchange {
         //     }
         //
         const wallet = this.safeList (response, 'wallet', []);
-        let addresses: NullableList = undefined;
-        if (network === undefined) {
-            addresses = wallet;
-        } else {
-            addresses = this.filterBy (wallet, 'network', this.networkCodeToId (network));
-        }
+        const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', this.networkCodeToId (network));
         return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
 
@@ -1925,7 +1920,7 @@ export default class hollaex extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        let addressWithTag = address;
+        let addressWithTag: string = address;
         if (tagWithdrawTag !== undefined) {
             addressWithTag = address + ':' + tagWithdrawTag;
         }
