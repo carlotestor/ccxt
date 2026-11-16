@@ -8650,7 +8650,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...nullSeedTypedCallChecks84c4 (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12713,3 +12713,27 @@ export function helperReturnLocalsSnippetChecks (): string[] {
     if (!kept.includes ('object sig = this.buildSendAssetSig(p);')) problems.push (`77c7 helper-return locals: unproven builder retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
+
+// 84c4 snippet checks (part of `csharpTranspiler.ts --self-test`): null-seeded locals whose writes bind a
+// hand-written typed twin (omitZero (string?) / sum (Int64?, Int64?)) take that twin's type; an unproven
+// argument keeps object
+export function nullSeedTypedCallChecks84c4 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const pre = 'type Str = string | undefined; type Int = number;\nclass Test {\n omitZero (v) { return v; }\n safeString (o, k, d = undefined): Str { return d; }\n safeValue (o, k, d = undefined) { return d; }\n sum (a, b) { return a; }\n';
+    const check = (name: string, body: string, expected: string) => {
+        const out: string = (transpiler as any).transpileCSharp (pre + body + '\n}').content;
+        if (!out.includes (expected)) { problems.push (`84c4 null-seed typed call: ${name}: ${out.replace (/\n/g, ' | ').slice (-400)}`); }
+    };
+    check ('omitZero of a safeString write', 'f (o) { let x: Str = undefined; if (o) { x = this.omitZero (this.safeString (o, "a")); } return x; }', 'string? x = null;');
+    check ('omitZero of an untyped read keeps object', 'f (o) { let x: Str = undefined; if (o) { x = this.omitZero (this.safeValue (o, "a")); } return x; }', 'object x = null;');
+    // the sum twin needs the corpus' typed core parameters (since / limit): a real venue method
+    const lighter: string = (transpiler as any).transpileCSharpByPath ('./ts/src/lighter.ts').content;
+    const start = lighter.indexOf (' fetchOHLCV(');
+    const body = (start < 0) ? '' : lighter.slice (start, lighter.indexOf ('\n    }\n', start));
+    if (!body.includes ('Int64? endTs = null;')) { problems.push ('84c4 null-seed typed call: lighter fetchOHLCV endTs (sum twin) not Int64?'); }
+    return problems;
+}
+

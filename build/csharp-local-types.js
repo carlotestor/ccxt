@@ -7352,7 +7352,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             if (parent.left === n) {
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
-                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right);
+                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedTypedCallWriteType (csharp, declaration, parent.right, context);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
@@ -19150,6 +19150,23 @@ function nullSeedAwaitedSlotCall (csharp, declaration, call) {
         return false;
     }
     return true;
+}
+
+// 84c4: a write into a null-seeded local (`let x = undefined` / `let x: T = undefined` / `let x: T;`)
+// whose value is a base call with a hand-written typed twin the argument types select:
+//   - `this.omitZero (<string box>)` binds `string? omitZero (string?)` (omitZeroStringProducer);
+//   - `this.sum (a, b)` over integer-or-null operands binds `Int64 sum (Int64?, Int64?)`
+//     (integerBoxCastType: the same proof the declaration initialiser family uses).
+// The call's C# static type is then the box itself, so the write needs no cast; only the
+// null-seeded declarations ask (the join for these takes the annotation, the scan checks the write).
+function nullSeedTypedCallWriteType (csharp, declaration, node, context) {
+    if (declaration?.initializer !== undefined && !isNullInit (declaration)) {
+        return undefined;
+    }
+    if (omitZeroStringProducer (csharp, node, context)) {
+        return 'string?';
+    }
+    return integerBoxCastType (csharp, stripParens (node), context);
 }
 
 // 84c4: the seed shapes of the family: `let p = undefined` (77c4), plus an annotated seed whose
