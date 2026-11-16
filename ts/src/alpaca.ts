@@ -808,7 +808,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         query = this.omit (query, [ 'loc', 'method' ]);
-        let ohlcvs: List = [];
+        let ohlcvs: NullableList = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
                 request['limit'] = limit;
