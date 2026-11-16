@@ -12494,6 +12494,9 @@ function nullSeedNativeStringSlice (printer, value) {
 }
 
 function nullSeedWriteType (printer, value) {
+    if (nullSeedSplitElementWrite (printer, value)) {
+        return JAVA_DATAFLOW_STRING;
+    }
     if (value.kind === ts.SyntaxKind.AwaitExpression) {
         // `(this.m (..)).join()` of a core declared CompletableFuture<String/Long/..>: that box, no cast
         const t = awaitedCoreCallType (value) ?? awaitedThisCallType (value);
@@ -12533,6 +12536,22 @@ function nullSeedWriteType (printer, value) {
         return JAVA_DATAFLOW_STRING;
     }
     return undefined;
+}
+
+// r87-j4: `x = parts[N]` (numeric literal index) of a const native-split local that section r87-j4 /
+// 84j8 declares List<String>: the element read prints `parts.get(N)` on a List<String>, statically String
+function nullSeedSplitElementWrite (printer, value) {
+    if (!ts.isElementAccessExpression (value) || !ts.isIdentifier (value.expression)
+        || !ts.isNumericLiteral (value.argumentExpression) || !/^\d+$/.test (value.argumentExpression.text)) {
+        return false;
+    }
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (value.expression)?.valueDeclaration?.resolve ();
+        return declaration !== undefined && ts.isVariableDeclaration (declaration) && (declaration.parent.flags & ts.NodeFlags.Const) !== 0
+            && enclosingFunction (declaration) === enclosingFunction (value) && r84j8SplitListLocal (printer, declaration);
+    } catch (e) {
+        return false;
+    }
 }
 
 function nullScalarLocalType (printer, declaration) {
@@ -22660,4 +22679,70 @@ export function installJavaR84j8Locals (transpiler) {
         const info = r84j8BalanceWrite (printer, node.right, declaration);
         return info?.cast ? accumulatorCastWrite (printer, node, printed, { cast: JAVA_MAP_LOCAL_CAST }) : printed;
     };
+}
+
+// ===== r87-j4. const native-split locals already printed List<Object> =====
+// `const parts = s.split (sep)` that an earlier section declared `java.util.List<Object>` holds only the
+// Strings of `String.split`: when 84j8's split audit accepts every use, declare it List<String> (the
+// array opener follows) so `parts[N]` reads print a statically String `parts.get(N)` and section 24's
+// null seeds written from them go String with no checkcast
+export function installJavaR87j4SplitLists (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR87j4SplitListsPatched) {
+        return;
+    }
+    printer._javaR87j4SplitListsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || (node.flags & ts.NodeFlags.Const) === 0) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${JAVA_ARRAY_TYPE} ${name} = `;
+        const at = printed.indexOf (marker);
+        if ((at !== 0 && !(at > 0 && printed[at - 1] === '\n')) || !printed.startsWith (STRING_LIST_ARRAY_OPEN, at + marker.length)) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = r87j4FeedsNullSeed (printer, declaration) && r84j8SplitListLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        typed.set (declaration, JAVA_STRING_LIST_TYPE);
+        return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${name} = ` + stringListRetypeValue (printed.slice (at + marker.length));
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// only lists whose literal-index element is written into a `let x = undefined` seed of the same function
+function r87j4FeedsNullSeed (printer, declaration) {
+    const scope = enclosingFunction (declaration);
+    const checker = printer.getChecker ();
+    const own = checker.getSymbolAtLocation (declaration.name);
+    for (const n of (identifierIndex (scope).get (String (declaration.name.text)) ?? [])) {
+        const read = n.parent;
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== own || !ts.isElementAccessExpression (read) || read.expression !== n) {
+            continue;
+        }
+        const host = unwrapParensUp (read);
+        const write = host.parent;
+        if (write === undefined || !ts.isBinaryExpression (write) || write.right !== host || write.operatorToken.kind !== ts.SyntaxKind.EqualsToken
+            || !ts.isIdentifier (write.left)) {
+            continue;
+        }
+        const target = checker.getSymbolAtLocation (write.left)?.valueDeclaration?.resolve ();
+        if (target !== undefined && ts.isVariableDeclaration (target) && isNullishInitializer (target.initializer)) {
+            return true;
+        }
+    }
+    return false;
 }
