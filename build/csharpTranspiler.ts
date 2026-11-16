@@ -12661,6 +12661,14 @@ export function nullSeedParamsSlotChecks (): string[] {
         'IDictionary<string, object> paramsMarginMode = null;',
         'paramsMarginMode = (IDictionary<string, object>)((IList<object>)utaparamsMarginModeVariable)[1];',
     ]);
+    // 84c4: `let p: NullableDict = undefined` and the uninitialised `let p: Dict;` seeds of the same slot family
+    expect ('binance fetchBalance (NullableDict seed)', method ('./ts/src/binance.ts', 'fetchBalance'), [
+        'IDictionary<string, object> query = null;',
+        'query = (IDictionary<string, object>)marginModequeryVariable[1];',
+    ]);
+    expect ('kucoin setLeverage (uninitialised Dict seed)', method ('./ts/src/kucoin.ts', 'setLeverage'), [
+        'IDictionary<string, object> paramsRequest = null;',
+    ]);
     return problems;
 }
 

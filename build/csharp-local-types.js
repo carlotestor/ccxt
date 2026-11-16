@@ -19152,11 +19152,28 @@ function nullSeedAwaitedSlotCall (csharp, declaration, call) {
     return true;
 }
 
+// 84c4: the seed shapes of the family: `let p = undefined` (77c4), plus an annotated seed whose
+// TS type is the params bag or its nullable form — `let p: NullableDict = undefined` and the
+// uninitialised `let p: Dict;` (the printer's own `= null`). The annotation names no C# box (the
+// slot writes do); the annotation must be exactly one of those two alias names, so no list /
+// scalar can be the TS value either (decided from the declaration's type node).
+function nullSeedSlotDeclaration (declaration) {
+    if (declaration?.initializer !== undefined && !isNullInit (declaration)) {
+        return false;
+    }
+    const type = declaration?.type;
+    if (type === undefined) {
+        return declaration?.initializer !== undefined;
+    }
+    return type.kind === ts.SyntaxKind.TypeReference && type.typeArguments === undefined
+        && type.typeName?.kind === ts.SyntaxKind.Identifier && (type.typeName.text === 'NullableDict' || type.typeName.text === 'Dict');
+}
+
 // is `[ …, p ] = <call>` (p in slot 1 of a two-slot pattern) an audited element-1 write of p?
 function nullSeedParamsSlotWrite (csharp, index, declaration, idNode, assignment) {
     const pattern = idNode?.parent;
     if (pattern?.kind !== ts.SyntaxKind.ArrayLiteralExpression || pattern.elements.length !== 2 || pattern.elements[1] !== idNode
-            || !isNullInit (declaration) || declaration.type !== undefined) {
+            || !nullSeedSlotDeclaration (declaration)) {
         return false;
     }
     const right = stripParens (assignment?.right);
@@ -19175,7 +19192,7 @@ function nullSeedParamsSlotWrite (csharp, index, declaration, idNode, assignment
 // keeps every called-parameter proof exactly where it was)
 function nullSeedParamsSlotShape (declaration) {
     if (!(declaration?.kind === ts.SyntaxKind.VariableDeclaration && declaration.name?.kind === ts.SyntaxKind.Identifier
-            && isNullInit (declaration) && declaration.type === undefined && isBlockScopedDeclaration (declaration))) {
+            && nullSeedSlotDeclaration (declaration) && isBlockScopedDeclaration (declaration))) {
         return false;
     }
     const name = declaration.name.text;
@@ -19197,7 +19214,7 @@ function nullSeedParamsSlotShape (declaration) {
 
 function nullSeedParamsSlotLocal (csharp, declaration, context) {
     if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
-            || !isBlockScopedDeclaration (declaration) || !isNullInit (declaration) || declaration.type !== undefined) {
+            || !isBlockScopedDeclaration (declaration) || !nullSeedSlotDeclaration (declaration)) {
         return undefined;
     }
     const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
