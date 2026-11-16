@@ -526,8 +526,7 @@ export default class gemini extends geminiRest {
         // read-modify-write: the cached entry is copied out, updated, and stored back whole
         let currentBidAsk: Dict = {};
         if (symbol in this.bidsasks) {
-            const cachedBidAsk = this.bidsasks[symbol];
-            currentBidAsk = this.extend ({}, cachedBidAsk);
+            currentBidAsk = this.extend ({}, this.bidsasks[symbol]);
         } else {
             currentBidAsk = this.extend (this.parseTicker ({}));
             currentBidAsk['symbol'] = symbol;
