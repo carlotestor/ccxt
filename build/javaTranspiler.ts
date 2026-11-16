@@ -5820,6 +5820,7 @@ function javaBaseProducerLocalsSelfTest (): string[] {
         "    sink (m: any, k: string): string { return k; }",
         "    typed (m: string): string { return m; }",
         "    pos (d: any, t: any, p: any) { const enc = this.ethEncodeStructuredData (d, t, p); const bin = this.encode ('x'); const n = this.binaryLength (bin); const r = this.randNumber (6); const q = this.precisionFromString ('0.01'); return [ this.sink (enc, 'k'), this.hash (bin, undefined, 'hex'), this.numberToString (n), this.numberToString (r), q ]; }",
+        "    str (x: string) { const pp = this.parsePrecision (x); return { 'p': pp }; }",
         "    neg (d: any, t: any, p: any) { const enc2 = this.ethEncodeStructuredData (d, t, p); const r2 = this.randNumber (6); const u = (d === undefined) ? r2 : 0; return [ this.typed (enc2 as any), u ]; }",
         '}',
     ].join('\n');
@@ -5833,6 +5834,8 @@ function javaBaseProducerLocalsSelfTest (): string[] {
         }
         if (!/\bObject enc2 = /.test(out)) problems.push("base producers: 'enc2' feeds a typed String slot and must stay Object");
         if (!/\bObject r2 = /.test(out)) problems.push("base producers: 'r2' is a ternary arm and must stay Object");
+        // base-tier `: Str` methods printed below the transpile delimiter: a String-returning, never redeclared one prints String
+        if (!/String pp = this\.parsePrecision\(/.test(out)) problems.push("base producers: 'pp' (base-tier String method) must print String with no checkcast");
     } catch (e: any) {
         problems.push(`base producers self-test threw: ${e.message}`);
     } finally {
@@ -9434,7 +9437,7 @@ function x21SelfTest (): string[] {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/String a = \(String\) this\.currencyToPrecision\(/.test(out)) problems.push("'a' (currencyToPrecision + literal write) must print String with a checkcast");
-        if (!/String b = \(String\) this\.parsePrecision\(/.test(out)) problems.push("'b' (parsePrecision) must print String");
+        if (!/String b = (\(String\) )?this\.parsePrecision\(/.test(out)) problems.push("'b' (parsePrecision) must print String");
         if (!/Map<String, Object> d = /.test(out)) problems.push("'d' (venue omit-of-Map-param callee) must print Map");
         if (!/Map<String, Object> e = /.test(out)) problems.push("'e' (venue omit-of-handle-element-1 callee) must print Map");
         // a venue method's proven Dict return is typed, so a local off zzxLoose is a Map too

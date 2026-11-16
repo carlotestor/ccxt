@@ -18923,6 +18923,44 @@ export function installJavaBaseProducerLocals (transpiler) {
         }
         return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, `${type} `) + printed.slice (at + marker.length);
     };
+    // a printed base-tier `: Str` method (below the transpile delimiter of ts/src/base/(Prediction)Exchange.ts)
+    // the ast keeps `Object` for every non-Boolean base target; it prints String when every return site
+    // prints String, no ts/src class redeclares it (Java return types are covariant only), it overrides
+    // nothing, and no ts/src call sits in a String-hazard position (Helpers.add left operand, omitZero)
+    const upstreamReturnType = printer.javaNativeReturnType.bind (printer);
+    const baseStringMemo = new Map ();
+    printer.javaNativeReturnType = function (node) {
+        const own = upstreamReturnType (node);
+        if (own !== undefined || node === undefined || node.kind !== ts.SyntaxKind.MethodDeclaration || node.body === undefined
+            || node.type === undefined || !/(^|[\\/])ts[\\/]src[\\/]base[\\/](Prediction)?Exchange(\.nooverloads[^\\/]*)?\.ts$/.test (node.getSourceFile ().fileName)) {
+            return own;
+        }
+        if (baseStringMemo.has (node)) {
+            return baseStringMemo.get (node);
+        }
+        baseStringMemo.set (node, undefined); // a recursive chain reads as unproven
+        let type;
+        const outerUsed = printer.javaReturnTypeUsedDeclaredLocals;
+        try {
+            printer.javaReturnTypeUsedDeclaredLocals = false;
+            type = printer.javaIsPrintedMethod (node) && !printer.isAsyncFunction (node)
+                && printer.javaNativeReturnTypeTarget (node) === 'String'
+                && printer.getMethodOverride (node) === undefined
+                && !javaRedeclaredByDescendant (node) && !javaNumericCallHazard (node, 'stringHazards')
+                && printer.javaReturnSitesPrintType (node, 'String') ? 'String' : undefined;
+            // a proof that read locals published while printing depends on which file the worker printed first:
+            // the base printer and the venue workers must agree, so only an order-free proof counts
+            if (printer.javaReturnTypeUsedDeclaredLocals) {
+                type = undefined;
+            }
+        } catch (e) {
+            type = undefined;
+        } finally {
+            printer.javaReturnTypeUsedDeclaredLocals = outerUsed;
+        }
+        baseStringMemo.set (node, type);
+        return type;
+    };
 }
 
 // setLeverage / cancelAllOrdersAfter / handleErrors / Opinion.parseWsOrderStatus (first param) and Hyperliquid.buildOutcomeSymbol
