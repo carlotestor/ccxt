@@ -320,7 +320,8 @@ export default class zebpay extends Exchange {
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const promisesUnresolved: List = [];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
-        const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap' ]);
+        const defaultMarkets = [ 'spot', 'swap' ];
+        const types = this.safeList (fetchMarketsOptions, 'types', defaultMarkets);
         for (let i = 0; i < types.length; i++) {
             const type = this.safeString (types, i, '');
             if (type === 'spot') {
