@@ -1694,7 +1694,7 @@ function javaRepoMethodUsesIndex (): any {
                 }
                 continue;
             }
-            const text = isTsIndexSource (entry.name) ? readTsIndexSource (full) : undefined;
+            const text = isTsIndexSource (entry.name) && !/\.nooverloads\.\d+\.ts$/.test (entry.name) ? readTsIndexSource (full) : undefined;
             if (text === undefined) {
                 continue;
             }

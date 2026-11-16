@@ -482,10 +482,11 @@ import { fileURLToPath } from 'node:url';
 import { csharpStructReturns } from './csharp-struct-returns.js';
 import * as astTranspilerUtils from 'ast-transpiler/tsUtils';
 
-// ts/src index scans read real sources only: sibling transpilers create and delete temp copies
-// (`*.nooverloads.<pid>.ts`, `.__ExchangeNoOverloads*.ts`) in ts/src/base while this one lists it
+// ts/src index scans read real sources plus this process's own stripped base copy; sibling transpilers
+// create and delete their temp copies (`*.nooverloads.<pid>.ts`, `.__ExchangeNoOverloads*.ts`) meanwhile
 export function isTsIndexSource (name) {
-    return name.endsWith ('.ts') && !name.endsWith ('.d.ts') && !name.startsWith ('.') && !/\.nooverloads\.\d+\.ts$/.test (name);
+    const temp = /\.nooverloads\.(\d+)\.ts$/.exec (name);
+    return name.endsWith ('.ts') && !name.endsWith ('.d.ts') && !name.startsWith ('.') && (temp === null || temp[1] === String (process.pid));
 }
 
 // a file gone between listing and reading is skipped; any other failure ends the transpile
