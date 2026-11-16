@@ -2087,8 +2087,8 @@ public partial class nado : ccxt.nado
             List<object> symbols = new List<object>(this.tickers.Keys);
             for (int i = 0; i < symbols.Count; i++)
             {
-                object tickerSymbol = symbols[i];
-                this.tickers.Remove((string)tickerSymbol);
+                string? tickerSymbol = ((string)symbols[i]);
+                this.tickers.Remove(tickerSymbol);
             }
         } else if ((messageHash.IndexOf("bidask:", StringComparison.Ordinal) == 0))
         {
@@ -2102,8 +2102,8 @@ public partial class nado : ccxt.nado
             List<object> symbols = new List<object>(this.bidsasks.Keys);
             for (int i = 0; i < symbols.Count; i++)
             {
-                object bidaskSymbol = symbols[i];
-                this.bidsasks.Remove((string)bidaskSymbol);
+                string? bidaskSymbol = ((string)symbols[i]);
+                this.bidsasks.Remove(bidaskSymbol);
             }
         } else if ((messageHash.IndexOf("orders", StringComparison.Ordinal) == 0))
         {

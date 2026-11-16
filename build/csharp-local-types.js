@@ -8805,6 +8805,43 @@ function elementAccessElementType (csharp, initializer, context) {
     return producer.elementType;
 }
 
+// ral-87c3 rule 1 (84c3 rule 2 re-measured): `const k = keys[i]` where the receiver name has several sibling bindings in the
+// function (two `const symbols = Object.keys (..)` in different branches). elementAccessElementType
+// counts bindings by name and refuses; here the checker resolves the read's own declaration, and that
+// one declaration must be a string-elements producer declared before the read and never written
+// (assigned, pushed, element-written) in the function. Same `string?` local behind the `(string)`
+// cast as the upstream arm; the use-site `(string)` casts go.
+function siblingBoundStringListElementType (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const receiver = initializer.expression;
+    const declaration = csharpIdentifierDeclaration (csharp, receiver);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || declaration.getStart () > initializer.getStart () || !stringElementsProducer (declaration.initializer)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+    if (scope === undefined || enclosingFunction (declaration) !== enclosingFunction (initializer)) {
+        return undefined;
+    }
+    for (const n of indexScope (csharp, scope).identifiers.get (receiver.text) ?? []) {
+        if (n === receiver || n === declaration.name) {
+            continue;
+        }
+        if (n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && n.parent.name === n) {
+            continue; // a member name, not the local
+        }
+        if (csharpIdentifierDeclaration (csharp, n) !== declaration) {
+            continue; // a sibling binding's own use
+        }
+        if (receiverUseIsWrite (n)) {
+            return undefined;
+        }
+    }
+    return 'string';
+}
+
 // `market['symbol']` — a MARKET ROW read by a literal key. getValue hands back the raw box, so
 // naming the value `string?` needs the `(string)` cast back (see the MARKET_ROW_* header).
 // Keys outside the set (booleans / numerics / dicts) keep the local `object`.
@@ -11358,7 +11395,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `const x = recv[key]`: the runtime element is a proven box, but the call's C# type
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
-        const elementType = (integerBox === undefined) ? elementAccessElementType (csharp, declaration.initializer, ctx) : undefined;
+        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer)) : undefined;
         // `const key = keys[i]` over a receiver whose PRINTED declaration head is a scalar list
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back

@@ -1994,8 +1994,8 @@ public partial class htx : ccxt.htx
             List<object> messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
             for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
             {
-                object messageHash = messageHashes[j];
-                List<object> parts = ((string)messageHash).Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
+                string? messageHash = ((string)messageHashes[j]);
+                List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
                 string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
                 List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
                 IList<object> positions = ((IList<object>)this.filterByArray(marginModePositions, "symbol", symbols, false));

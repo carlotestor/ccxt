@@ -13295,8 +13295,8 @@ public partial class binance : Exchange
             double? taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
             for (int i = 0; i < symbols.Count; i++)
             {
-                object symbol = symbols[i];
-                object market = (markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null);
+                string? symbol = ((string)symbols[i]);
+                object market = (markets != null && symbol != null && markets.ContainsKey(symbol) ? markets[symbol] : null);
                 if ((this.safeBool(market, "linear", false) == true))
                 {
                     linearFees[(string)symbol] = new Dictionary<string, object>() {
@@ -13334,8 +13334,8 @@ public partial class binance : Exchange
             double? taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
             for (int i = 0; i < symbols.Count; i++)
             {
-                object symbol = symbols[i];
-                object market = (markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null);
+                string? symbol = ((string)symbols[i]);
+                object market = (markets != null && symbol != null && markets.ContainsKey(symbol) ? markets[symbol] : null);
                 if ((this.safeBool(market, "inverse", false) == true))
                 {
                     inverseFees[(string)symbol] = new Dictionary<string, object>() {
