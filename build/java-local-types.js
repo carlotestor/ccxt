@@ -11371,11 +11371,13 @@ const JAVA_VENUE_RETURN_MAP = {
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];
+const javaVenueTupleNames = new Set ();
 
 // self-test hook: drop the ts/src indexes so a probe file written after they were built is seen
 export function resetJavaVenueIndexes () {
     javaVenueReturnTable = undefined;
     javaVenueListFiles.length = 0;
+    javaVenueTupleNames.clear ();
     javaFreshMapMethodIndex = undefined;
 }
 
@@ -11484,6 +11486,7 @@ function javaVenueListReturnsProven (file, name, listNames = new Set ()) {
                 const value = unwrapParens (node.expression);
                 const awaited = value !== undefined && value.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (value.expression) : undefined;
                 ok = value !== undefined && (ts.isIdentifier (value)
+                    || (javaVenueTupleNames.has (name) && ts.isArrayLiteralExpression (value))
                     || (isThisCall (value) && value.expression.name.text === 'arraySlice')
                     || (isThisCall (awaited) && listNames.has (awaited.expression.name.text)));
                 return;
@@ -11530,7 +11533,12 @@ export function javaVenueAsyncReturnTable () {
             javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )(\w+) \(/, (m, line) => {
                 const full = /^ {4}(async )?\w+ \(.*\)\s*(?::\s*(.+?))?\s*\{\s*$/.exec (line);
                 const promise = full === null ? undefined : /^Promise<(\w+(?:\[\])?)>$/.exec (full[2] ?? '');
-                const spelling = (full !== null && full[1] !== undefined && promise) ? JAVA_VENUE_RETURN_MAP[promise[1]] : undefined;
+                // a `Promise<[A, B]>` tuple core prints List<Object> when every return is an array literal
+                const tuple = full !== null && full[1] !== undefined && /^Promise<\[[^\]]*\]>$/.test (full[2] ?? '');
+                if (tuple) {
+                    javaVenueTupleNames.add (m[2]);
+                }
+                const spelling = (full !== null && full[1] !== undefined && promise) ? JAVA_VENUE_RETURN_MAP[promise[1]] : tuple ? 'List<Object>' : undefined;
                 const set = seen.get (m[2]) ?? new Set ();
                 if (spelling === 'List<Object>') {
                     javaVenueListFiles.push ([ m[2], path.join (JAVA_VENUE_TS_ROOT, dir, f) ]);
