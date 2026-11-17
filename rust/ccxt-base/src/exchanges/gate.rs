@@ -1101,13 +1101,13 @@ impl crate::exchange::DerivedExchange for Gate {
         let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "currency", &[]);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut type_var: Option<String> = self.safe_string_k_opt(item.clone(), "type", &[]);
-        let mut rawTimestamp: Value = self.safe_string_k(item.clone(), "time", &[]);
+        let mut rawTimestamp: Option<String> = self.safe_string_k_opt(item.clone(), "time", &[]);
         let mut timestamp: Option<i64> = None;
-        if ((rawTimestamp.len() as i64) as f64) > ((10i64) as f64) {
-            timestamp = (match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }).as_i64();
+        if ((rawTimestamp.as_deref().unwrap_or_default().chars().count() as i64)) > 10 {
+            timestamp = (match rawTimestamp.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null }).as_i64();
         }  else {
-            timestamp = (match (&((match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }).as_i64();
+            timestamp = (match (&((match rawTimestamp.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }).as_i64();
         }
         let mut balanceString: Option<String> = self.safe_string_k_opt(item.clone(), "balance", &[]);
         let mut changeString: Option<String> = self.safe_string_k_opt(item.clone(), "change", &[]);
