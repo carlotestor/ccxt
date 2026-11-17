@@ -25759,3 +25759,124 @@ function r92j2InstallSlotHandOff (transpiler, type, flag) {
 export function installJavaR92j2MapSlotHandOff (transpiler) {
     r92j2InstallSlotHandOff (transpiler, JAVA_MAP_TYPE, '_javaR92j2MapSlotHandOffPatched');
 }
+
+// ===== 92j2 R4. `Str` conditionals handed only to String slots =====
+// `const code = (currency !== undefined) ? currency['code'] : undefined` (TS `string | undefined`, never
+// written) whose every use (checker symbol of this binding) is an argument of a printed String slot: the
+// printer converts each one there (`java.util.Objects.toString(x, null)` for a defaulted core slot,
+// `(String) (x)` for a fixed one; uses of both kinds refuse). The local takes that same conversion once
+// on its declaration (nothing runs in between that could differ), and every String slot takes it bare.
+function r92j2StringSlotUse (printer, n) {
+    let host = n;
+    while (host.parent !== undefined && ts.isParenthesizedExpression (host.parent)) {
+        host = host.parent;
+    }
+    const call = host.parent;
+    if (call === undefined || !ts.isCallExpression (call) || !isThisCall (call) || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const at = call.arguments.indexOf (host);
+    if (at === -1) {
+        return false;
+    }
+    if (nullSeedCoreSlotType (printer, call, at) === 'String') {
+        return 'core';
+    }
+    try {
+        const method = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.();
+        const param = method?.parameters?.[at];
+        return param !== undefined && param.initializer === undefined && param.questionToken === undefined
+            && printer.javaNativeCallParameterTypes?.(call)?.[at] === 'String' ? 'fixed' : false;
+    } catch (e) {
+        return false;
+    }
+}
+
+function r92j2StringSlotLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || !ts.isVariableStatement (declaration.parent.parent)
+        || (declaration.parent.flags & ts.NodeFlags.Const) === 0 || declaration.initializer === undefined) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isConditionalExpression (init)) {
+        return false;
+    }
+    const type = printer.getChecker ().getTypeAtLocation (declaration.name);
+    const parts = (type.isUnionType () ? ts.typeParts (type) : [ type ]).filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+    if (parts.length === 0 || !parts.every ((t) => (t.flags & ts.TypeFlags.StringLike) !== 0)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || dataflowTypeTokenCollides (index, 'String')) {
+        return false;
+    }
+    const uses = r90j2BindingUses (printer, declaration);
+    if (uses === undefined || uses.length === 0) {
+        return false;
+    }
+    // each slot kind keeps its own conversion: `Objects.toString(x, null)` (core) or `(String)` (fixed)
+    const kinds = new Set (uses.map ((n) => r92j2StringSlotUse (printer, n)));
+    return kinds.size === 1 && !kinds.has (false) ? [ ...kinds ][0] : false;
+}
+
+export function installJavaR92j2StringSlotLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || typeof printer.javaNativeArgumentAlreadyTyped !== 'function'
+        || printer._javaR92j2StringSlotLocalsPatched) {
+        return;
+    }
+    printer._javaR92j2StringSlotLocalsPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = (typed.has (declaration) || r87j6HeadIsObject (printer, declaration, upto)) ? r92j2StringSlotLocal (printer, declaration) : false;
+        } catch (e) {
+            ok = false;
+        }
+        if (ok === false) {
+            return printed;
+        }
+        const rest = printed.slice (marker.length);
+        const semi = rest.lastIndexOf (';');
+        const body = semi === -1 ? rest : rest.slice (0, semi);
+        const tail = semi === -1 ? '' : rest.slice (semi);
+        if (tail !== '' && tail.trim () !== ';') {
+            return printed;
+        }
+        typed.set (declaration, 'String');
+        return r87j6Head (printer, declaration, identation, 'String')
+            + (ok === 'core' ? `java.util.Objects.toString(${body}, null)${tail}` : `(String) (${body})${tail}`);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, slotType) {
+        if (upstreamTyped (arg, slotType)) {
+            return true;
+        }
+        if (arg === undefined || !ts.isIdentifier (arg) || slotType !== 'String') {
+            return false;
+        }
+        try {
+            const declaration = printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve ();
+            return declaration !== undefined && typed.get (declaration) === 'String' && printer.printNode (arg, 0) === arg.text;
+        } catch (e) {
+            return false;
+        }
+    };
+}
