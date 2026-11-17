@@ -16701,9 +16701,9 @@ export const PARSE_MARKET_IDICT_PARAMS = {
     // ral-90c1: the trade / ticker / ohlcv row builders and their forwarders, admitted as one closed set
     // (a member fed an `object market` from outside the set is dropped, never cast at the call)
     'fromEp': 1, 'fromEv': 1,
-    'handleStockParams': 2, 'parseContractTicker': 1,
-    'parseDustTrade': 1, 'parseMyUtaTrade': 1, 'parseOHLCV': 1,
-    'parseTrade': 1, 'parseTrades': 1, 'parseTradesHelper': 2,
+    'handleStockParams': 2,
+    'parseDustTrade': 1, 'parseMyUtaTrade': 1,
+    'parseTradesHelper': 2,
     'resolveMarketByAltnameOrId': 1,
     'stockDataRequest': 2,
 };
