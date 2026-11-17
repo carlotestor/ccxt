@@ -24141,3 +24141,76 @@ export function installJavaR90j2ElementListLocals (transpiler) {
             ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
     };
 }
+
+// ===== 90j2 R2. `await Promise.all (xs)` List locals decided per checker binding =====
+// r77j2 types `const r = await Promise.all (xs)` (the printer's inline stream, statically List<Object>,
+// no cast) only when the name has one binding in the method. Bithumb fetchTickers declares `responses`
+// in two sibling branches: each binding is decided alone through its checker symbol (r90j2BindingUses).
+// Lifted only with a native use (`.length` or `r[i]`); a use that is not a read, an element read or a
+// call argument (no writes at all) refuses.
+function r90j2PromiseAllLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || !ts.isVariableStatement (declaration.parent.parent)
+        || (declaration.parent.flags & ts.NodeFlags.Const) === 0 || !r77j2PromiseAllList (unwrapParens (declaration.initializer))) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || dataflowTypeTokenCollides (index, JAVA_LIST_LOCAL_TYPE)) {
+        return undefined;
+    }
+    const uses = r90j2BindingUses (printer, declaration);
+    if (uses === undefined || uses.length === 0) {
+        return undefined;
+    }
+    let native = false;
+    for (const n of uses) {
+        const kind = r90j2ListUse (n);
+        if (kind === 'native') {
+            native = true;
+            continue;
+        }
+        const parent = n.parent;
+        if (ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)) {
+            continue; // an Object parameter of a this-call takes the List as it took the Object
+        }
+        return undefined;
+    }
+    return native ? { type: JAVA_LIST_LOCAL_TYPE } : undefined;
+}
+
+export function installJavaR90j2PromiseAllLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR90j2PromiseAllPatched) {
+        return;
+    }
+    printer._javaR90j2PromiseAllPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let info;
+        try {
+            info = (typed.has (declaration) || r87j6HeadIsObject (printer, declaration, upto)) ? r90j2PromiseAllLocal (printer, declaration) : undefined;
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        return r87j6Head (printer, declaration, identation, info.type) + printed.slice (marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}

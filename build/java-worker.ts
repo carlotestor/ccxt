@@ -24,6 +24,7 @@ import { installJavaR87j4SplitLists } from './java-local-types.js';
 import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
 import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
 import { installJavaR90j2ElementListLocals } from './java-local-types.js';
+import { installJavaR90j2PromiseAllLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
@@ -187,6 +188,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaR87j5CalleeStringArgs (cachedTranspiler);
         installJavaR87j8CopyStringResolver (cachedTranspiler);
         installJavaR90j2ElementListLocals (cachedTranspiler);
+        installJavaR90j2PromiseAllLocals (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
