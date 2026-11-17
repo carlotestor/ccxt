@@ -23870,6 +23870,12 @@ function r87j8StringElement (printer, node, depth = 0, internalCalls = true) {
         && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
         return true;
     }
+    // ral-90j8: `const id = market['id']` on a structure local whose DTO declares the key String (section 1's
+    // structure-key arm prints `String id = (String) market.get("id")`)
+    if (structureKeyReadLocalType (printer, unwrapParens (declaration.initializer))?.type === 'String'
+        && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
+        return true;
+    }
     return r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true;
 }
 
