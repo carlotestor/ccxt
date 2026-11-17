@@ -4102,7 +4102,7 @@ function wsCacheFieldReadType (node) {
         return undefined;
     }
     const member = node.name?.text;
-    if (!WS_CACHE_FIELD_READ_TYPES.includes (member) || isPredictionSource (node)) {
+    if (!WS_CACHE_FIELD_READ_TYPES.includes (member) || (isPredictionSource (node) && !predictionCacheFieldRead92c7 (node, member))) {
         return undefined;
     }
     const source = node.getSourceFile?.();
@@ -7406,7 +7406,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                             && nonNullStringDefaultCall (csharp, parent.right, context))
                             // ral-87c4 R3: the uninitialised `let x: string;` whose every write is such a call
                             || definiteStringDefaultWrites87c4 (csharp, scope, declaration, varName, context));
-                        const guardedSelfWrite = guardedSelfConcatWrite (csharp, declaration, parent.right, csharpType, context);
+                        const guardedSelfWrite = guardedSelfConcatWrite (csharp, declaration, parent.right, csharpType, context) || selfPadWrite92c7 (parent.right, varName, csharpType);
                         if (!selfConcat && !selfStringWrite && !nonNullWrite && !nonNullDefaultWrite && !selfOmit && !selfTernary && !guardedSelfWrite && !assignable (csharpType, selfRead)) {
                             return false;
                         }
@@ -21267,7 +21267,7 @@ function nonNullStringCallLocal84c7 (csharp, declaration, context) {
         return undefined;
     }
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
-    if (!nonNullStringCall84c7 (csharp, call, ctx) || localIsCallArgument84c7 (csharp, scope, declaration)) {
+    if (!nonNullStringCall84c7 (csharp, call, ctx) || (localIsCallArgument84c7 (csharp, scope, declaration) && !stringReceiverArgumentLocal92c7 (csharp, scope, declaration))) {
         return undefined;
     }
     if (!writesKeepNonNullString84c7 (csharp, scope, declaration, ctx)) {
@@ -22298,3 +22298,49 @@ stringValueIsNonNullAtUse = function (csharp, scope, declaration, name, read, co
     return c90UpstreamStringValueIsNonNullAtUse (csharp, scope, declaration, name, read, context)
         || c90DereferenceDominates (csharp, scope, declaration, name, read);
 };
+
+// ===== ral-92c7: field and helper results whose consumer is already typed =====
+// R1: `const c = this.positions` in a prediction file: the member is the hand-written
+// `public ccxt.pro.ArrayCache positions` (Exchange.Options.cs, hidden by no prediction class), so
+// the same file census as the pro tree proves the box; `c.append (..)` then binds the cache method.
+function predictionCacheFieldRead92c7 (node, member) {
+    return member === 'positions' && node.parent?.kind === ts.SyntaxKind.VariableDeclaration && node.parent.initializer === node;
+}
+
+// R2: `x = x.padStart (n, c)` / `x.padEnd (..)` on a `string` candidate prints
+// `(x as String).PadLeft (..)`, a non-null string (a null receiver throws in both spellings)
+function selfPadWrite92c7 (value, varName, csharpType) {
+    const v = stripParens (value);
+    const callee = v?.kind === ts.SyntaxKind.CallExpression ? v.expression : undefined;
+    return csharpType === 'string' && callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && (callee.name?.text === 'padStart' || callee.name?.text === 'padEnd')
+        && stripParens (callee.expression)?.kind === ts.SyntaxKind.Identifier && stripParens (callee.expression).text === varName;
+}
+
+// R3: a non-null string helper result that is also handed to calls stays typed only outside the
+// call-site parameter proofs (so no signature moves) and only when it is read as `x.length` or a
+// string-method receiver, which then prints natively instead of through `((string)x)`
+function stringReceiverArgumentLocal92c7 (csharp, scope, declaration) {
+    if (c5ParameterProofDepth > 0) {
+        return false;
+    }
+    const name = declaration.name.text;
+    let hit = false;
+    const visit = (node) => {
+        if (hit) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.PropertyAccessExpression && node !== declaration.name) {
+            const receiver = stripParens (node.expression);
+            const member = node.name?.text;
+            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.text === name
+                    && (member === 'length' || (DICT_ROW_STRING_METHODS.has (member) && node.parent?.kind === ts.SyntaxKind.CallExpression && node.parent.expression === node))) {
+                hit = true;
+                return;
+            }
+        }
+        node.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    return hit;
+}
