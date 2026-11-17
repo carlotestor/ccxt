@@ -24661,8 +24661,17 @@ function r90j2MapUse (printer, n) {
             return undefined;
         }
         if (ts.isBinaryExpression (grand) && grand.left === parent) {
-            return grand.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isExpressionStatement (grand.parent)
-                && printer.javaPrintsNonNullValue?.(grand.right) === true ? 'write' : undefined;
+            if (grand.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isExpressionStatement (grand.parent)) {
+                return undefined;
+            }
+            // ral-92j2 R3: a write the printer already prints as a cast Map put binds on the declared Map
+            let mapPut = false;
+            try {
+                mapPut = printer.elementWriteTargetsMap?.(n, n, [ parent.argumentExpression ], grand.right) === true;
+            } catch (e) {
+                mapPut = false;
+            }
+            return printer.javaPrintsNonNullValue?.(grand.right) === true || mapPut ? 'write' : undefined;
         }
         return 'read';
     }
