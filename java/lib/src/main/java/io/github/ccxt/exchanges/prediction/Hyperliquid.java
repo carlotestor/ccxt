@@ -2708,7 +2708,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             normalized = (normalized == null ? null : ((String)normalized).substring(Math.min(2, ((String)normalized).length())));
         }
-        return ((String)normalized).toLowerCase();
+        return normalized.toLowerCase();
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)

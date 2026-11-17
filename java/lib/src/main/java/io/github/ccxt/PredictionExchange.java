@@ -804,12 +804,12 @@ public Map<String, Object> describe()
                     if ((!java.util.Objects.equals(existingId, null)) && (!java.util.Objects.equals(ocId, null)) && (!java.util.Objects.equals(existingId, ocId)))
                     {
                         Integer idLen = ocId.length();
-                        Object suffix = ocId;
+                        String suffix = ocId;
                         if ((idLen != null && idLen > 6))
                         {
                             suffix = (ocId == null ? null : ocId.substring((int) Math.min(Math.max(((((long) idLen) - 6L)) < 0 ? ocId.length() + ((((long) idLen) - 6L)) : ((((long) idLen) - 6L)), 0), ocId.length())));
                         }
-                        ocSymbol = ((ocSymbol + "_") + ((String)suffix).toUpperCase());
+                        ocSymbol = ((ocSymbol + "_") + suffix.toUpperCase());
                     }
                 }
                 Helpers.addElementToObject(oc, "outcome", ocSymbol);
