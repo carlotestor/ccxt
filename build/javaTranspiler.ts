@@ -5978,6 +5978,7 @@ function mapLocalsSelfTest (): string[] {
             "    arg (p: Dict) { let k = 0; k = this.sum (k, 1); return this.safeValue (p, k); }",
             "    cap (xs: any[], p: Dict) { const n = xs.length; const a = this.safeInteger (p, 'a', 1); let e = this.sum (a, 2); if (e > n) { e = n; } return e; }",
             "    left (s: string) { let d = 0; if (s.length < 5) { d = 5 - s.length; } return d > 2; }",
+            "    async step (xs: any[]) { let r = 0; for (let q = 0; q < xs.length; q++) { try { await this.loadMarkets (); } catch (e) { r = r + 1; } } return r; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j3b).content as string;
@@ -5986,6 +5987,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/Object k = 0;/.test(out)) problems.push("ral-87j3: 'k' (no comparison / arithmetic use) must stay Object");
         if (!/Long e = \(Long\) this\.sum\(a, 2\);/.test(out) || !/e = Long\.valueOf\(n\)/.test(out)) problems.push("ral-87j3 R3: 'e' (sum initializer, length-const write) must print Long");
         if (!/Long d = 0L;/.test(out)) problems.push("ral-87j3 R3: 'd' (native long write) must print Long");
+        if (!/Long r = 0L;/.test(out) || !/r = \(r \+ 1L\);/.test(out)) problems.push("ral-87j3 R4: 'r' (self step write) must print Long with a native add");
     } catch (e: any) {
         problems.push(`ral-87j3 R2 self-test threw: ${e.message}`);
     } finally {

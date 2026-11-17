@@ -22832,6 +22832,21 @@ function r87j3LengthConst (printer, node) {
         && ts.isPropertyAccessExpression (target.initializer) && target.initializer.name.text === 'length';
 }
 
+// ral-87j3 R4: `x = x + <int literal>` / `x = x - <int literal>` on the counter being classified: once x
+// prints Long (a non-null box, the checker type is the plain `number` of an int-literal seed) the
+// printer's native long arithmetic prints `(x + NL)`, which autoboxes back to Long. The write itself
+// stops printing the inline add blob, so it is a native use.
+function r87j3SelfStep (printer, declaration, node) {
+    const n = unwrapParens (node);
+    if (n === undefined || !ts.isBinaryExpression (n) || !r87j3IntLiteral (n.right)
+        || (n.operatorToken.kind !== ts.SyntaxKind.PlusToken && n.operatorToken.kind !== ts.SyntaxKind.MinusToken)) {
+        return false;
+    }
+    const left = unwrapParens (n.left);
+    return left !== undefined && ts.isIdentifier (left)
+        && printer.getChecker ().getSymbolAtLocation (left)?.valueDeclaration?.resolve () === declaration;
+}
+
 function r87j3SumCounter (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || !(r87j3IntLiteral (declaration.initializer) || r87j3LongValue (printer, declaration.initializer)
         || r87j3SumWrite (printer, declaration, declaration.initializer))
@@ -22846,6 +22861,8 @@ function r87j3SumCounter (printer, declaration) {
     const name = declaration.name.text;
     const checker = printer.getChecker ();
     let sumWrites = 0;
+    let selfSteps = 0;
+    let mapValueRead = false;
     let nativeUse = false;
     for (const n of identifierIndex (scope).get (name) ?? []) {
         if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)) {
@@ -22854,11 +22871,17 @@ function r87j3SumCounter (printer, declaration) {
         if (checker.getSymbolAtLocation (n)?.valueDeclaration?.resolve () !== declaration) {
             return false; // a shadowing binding
         }
+        if (enclosingFunction (n) !== scope) {
+            return false; // captured by a nested function
+        }
         const parent = n.parent;
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
-                if (r87j3SumWrite (printer, declaration, parent.right) || r87j3LongValue (printer, parent.right)
+                if (r87j3SelfStep (printer, declaration, parent.right)) {
+                    sumWrites++;
+                    selfSteps++;
+                } else if (r87j3SumWrite (printer, declaration, parent.right) || r87j3LongValue (printer, parent.right)
                     || r87j3LengthConst (printer, parent.right)) {
                     sumWrites++;
                 } else if (!r87j3IntLiteral (parent.right)) {
@@ -22873,6 +22896,14 @@ function r87j3SumCounter (printer, declaration) {
         if (ts.isBinaryExpression (parent) && R87J3_ARITH_OPS.has (parent.operatorToken.kind)) {
             nativeUse = true;
         }
+        if (ts.isPropertyAssignment (parent) && parent.initializer === n) {
+            mapValueRead = true; // an untyped map-literal sink
+        }
+    }
+    // R4: the self step `x = x + 1` is itself native long arithmetic on the local, unless the
+    // value only ends up in a map literal
+    if (selfSteps > 0 && !mapValueRead) {
+        nativeUse = true;
     }
     if ((sumWrites === 0 && !r87j3SumWrite (printer, declaration, declaration.initializer)) || !nativeUse) {
         return false;
@@ -22882,7 +22913,7 @@ function r87j3SumCounter (printer, declaration) {
         nonNull: true,
         writeOnly: true,
         writeOk: (rhs) => r87j3IntLiteral (rhs) || r87j3SumWrite (printer, declaration, rhs) || r87j3LongValue (printer, rhs)
-            || r87j3LengthConst (printer, rhs),
+            || r87j3LengthConst (printer, rhs) || r87j3SelfStep (printer, declaration, rhs),
     });
 }
 
@@ -22951,6 +22982,9 @@ export function installJavaR87j3SumCounterLocals (transpiler) {
                 }
                 if (r87j3LengthConst (printer, node.right)) {
                     return `${left} = Long.valueOf(${printer.printNode (node.right, 0)})`;
+                }
+                if (r87j3SelfStep (printer, declaration, node.right)) {
+                    return `${left} = ${printer.printNode (node.right, 0)}`;
                 }
                 return `${left} = (Long) ${printer.printNode (node.right, 0)}`;
             }
