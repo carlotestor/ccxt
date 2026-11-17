@@ -24214,3 +24214,117 @@ export function installJavaR90j2PromiseAllLocals (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
+
+// ===== 90j2 R3. element-read Map locals the printer's own Map-structure proof covers =====
+// `const t = tickers[symbol]` whose checker type the printer proves a Map structure
+// (isJavaMapStructureType: it prints every literal-key read `((Map<String, Object>)t).get("k")`) and
+// whose next statement reads `t['k']`: the declaration takes that same checkcast once and every
+// literal-key read binds on the declared Map (javaDeclaredMapReceiver), so the cast count does not rise.
+// Uses of THIS binding (checker symbol) may only be literal-key reads, literal-key writes of a value the
+// printer proves non-null, or arguments of this-calls; anything else refuses.
+function r90j2MapUse (printer, n) {
+    const parent = n.parent;
+    if (ts.isElementAccessExpression (parent) && parent.expression === n && ts.isStringLiteralLike (parent.argumentExpression)) {
+        const grand = parent.parent;
+        if (grand?.kind === ts.SyntaxKind.DeleteExpression || ts.isPostfixUnaryExpression (grand) || ts.isPrefixUnaryExpression (grand)) {
+            return undefined;
+        }
+        if (ts.isBinaryExpression (grand) && grand.left === parent) {
+            return grand.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isExpressionStatement (grand.parent)
+                && printer.javaPrintsNonNullValue?.(grand.right) === true ? 'write' : undefined;
+        }
+        return 'read';
+    }
+    if (ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)) {
+        return 'arg';
+    }
+    return undefined;
+}
+
+function r90j2ElementMapLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || !ts.isVariableStatement (declaration.parent.parent)
+        || (declaration.parent.flags & ts.NodeFlags.Const) === 0 || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isElementAccessExpression (init) || ts.isStringLiteralLike (init.argumentExpression)
+        || ts.isNumericLiteral (init.argumentExpression) || typeof printer.isJavaMapStructureType !== 'function') {
+        return undefined;
+    }
+    let mapType = false;
+    try {
+        mapType = printer.isJavaMapStructureType (printer.getChecker ().getTypeAtLocation (declaration.name)) === true;
+    } catch (e) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (!mapType || index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || dataflowTypeTokenCollides (index, JAVA_MAP_TYPE)) {
+        return undefined;
+    }
+    const uses = r90j2BindingUses (printer, declaration);
+    if (uses === undefined || uses.length === 0) {
+        return undefined;
+    }
+    const kinds = uses.map ((n) => r90j2MapUse (printer, n));
+    if (kinds.some ((k) => k === undefined)) {
+        return undefined;
+    }
+    // the first literal-key read sits in the very next statement, so the moved checkcast runs where it ran
+    const statement = declaration.parent.parent;
+    const block = statement.parent;
+    const next = block?.statements?.[block.statements.indexOf (statement) + 1];
+    const first = uses.find ((n, i) => kinds[i] === 'read');
+    if (first === undefined || next === undefined || uses.indexOf (first) !== 0) {
+        return undefined;
+    }
+    let current = first;
+    while (current !== undefined && current !== next && current !== block) {
+        current = current.parent;
+    }
+    return current === next ? { type: JAVA_MAP_TYPE, cast: JAVA_MAP_LOCAL_CAST } : undefined;
+}
+
+export function installJavaR90j2ElementMapLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR90j2ElementMapPatched) {
+        return;
+    }
+    printer._javaR90j2ElementMapPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let info;
+        try {
+            info = (typed.has (declaration) || r87j6HeadIsObject (printer, declaration, upto)) ? r90j2ElementMapLocal (printer, declaration) : undefined;
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const rest = printed.slice (marker.length);
+        const semi = rest.lastIndexOf (';');
+        const body = semi === -1 ? rest : rest.slice (0, semi);
+        const tail = semi === -1 ? '' : rest.slice (semi);
+        if (tail !== '' && tail.trim () !== ';') {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        return r87j6Head (printer, declaration, identation, info.type) + `${info.cast} (${body})${tail}`;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}

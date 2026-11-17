@@ -46,6 +46,7 @@ import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
 import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
 import { installJavaR90j2ElementListLocals } from './java-local-types.js';
 import { installJavaR90j2PromiseAllLocals } from './java-local-types.js';
+import { installJavaR90j2ElementMapLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2516,6 +2517,7 @@ class NewTranspiler {
         installJavaR87j8CopyStringResolver(this.transpiler);
         installJavaR90j2ElementListLocals(this.transpiler);
         installJavaR90j2PromiseAllLocals(this.transpiler);
+        installJavaR90j2ElementMapLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5843,7 +5845,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10344,6 +10346,32 @@ function javaR90j2PromiseAllLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<Object> rs = /.test(out) || !/= rs\.size\(\)/.test(out)) problems.push("ral-90j2 R2: the first 'rs' (.length use) must print List<Object> with a native size()");
         if (!/\bObject rs = /.test(out)) problems.push("ral-90j2 R2: the second 'rs' (only a safe* argument) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-90j2 R3: an element-read Map-structure local read by a literal key in the next statement prints Map with one checkcast
+function javaR90j2ElementMapLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr90j2em${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Ticker } from './base/types.js';",
+        `export default class zzr90j2em${process.pid} extends Exchange {`,
+        "    read (ts: Record<string, Ticker>, s: string) { const t = ts[s]; return this.parseTicker (t['info']); }",
+        "    argOnly (ts: Record<string, Ticker>, s: string) { const u = ts[s]; return this.parseTicker (u); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> t = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bt\.get\("info"\)/.test(out)) problems.push("ral-90j2 R3: 't' (ts[s] then t['info']) must print Map with a native get");
+        if (!/\bObject u = /.test(out)) problems.push("ral-90j2 R3: 'u' (only a call argument) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
