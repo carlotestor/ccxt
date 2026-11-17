@@ -1116,3 +1116,9 @@ func (this *BaseExchange) SafeList2Strings(dictionaryOrList any, key1 any, key2 
 func (this *BaseExchange) SafeListNStrings(dictionaryOrList any, keys any) []string {
 	return joinListValue(this.SafeListN(dictionaryOrList, keys))
 }
+
+// SafeListSlice is SafeList read as a []any: the member or default list, nil where that answer is
+// not a list (GetArrayLength of such a box was 0, so a length-bounded read sees nothing either way).
+func (this *BaseExchange) SafeListSlice(dictionaryOrList any, key any, defaultValue any) []any {
+	return listValueToTypedSlice(this.SafeList(dictionaryOrList, key, defaultValue))
+}
