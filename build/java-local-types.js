@@ -21644,11 +21644,46 @@ function r84j1StringOnlyProducer (printer, value) {
     return stringElementsProducer (init);
 }
 
+// (R1, ral-90j1) a parameter or local whose own annotation is `string[]` (checker: every non-nullish part
+// an array of plain `string`), owned by this function and never re-bound, element-written or deleted
+// from: its elements are String or null on every path the type checker admits
+function r90j1AnnotatedStringList (printer, receiver, symbol, declaration, scope) {
+    if (declaration === undefined || declaration.type === undefined || !ts.isIdentifier (declaration.name)
+        || !(ts.isParameterDeclaration (declaration) || ts.isVariableDeclaration (declaration)) || enclosingFunction (declaration) !== scope) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const annotated = checker.getTypeFromTypeNode (declaration.type);
+    const parts = ((annotated.flags & ts.TypeFlags.Union) !== 0 ? ts.typeParts (annotated) : [ annotated ])
+        .filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+    if (parts.length === 0 || !parts.every ((t) => checker.isArrayType (t)
+        && checker.getTypeArguments (t)?.[0]?.flags === ts.TypeFlags.String)) {
+        return false;
+    }
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const parent = n.parent;
+        if (ts.isBinaryExpression (parent) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)
+            && (parent.left === n || (ts.isElementAccessExpression (parent.left) && parent.left.expression === n))) {
+            return false;
+        }
+        if (parent.kind === ts.SyntaxKind.DeleteExpression || (ts.isElementAccessExpression (parent) && parent.expression === n && parent.parent?.kind === ts.SyntaxKind.DeleteExpression)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function r84j1StringOnlyList (printer, receiver, scope) {
     if (!ts.isIdentifier (receiver)) {
         return false;
     }
     const symbol = printer.getChecker ().getSymbolAtLocation (receiver);
+    if (r90j1AnnotatedStringList (printer, receiver, symbol, symbol?.valueDeclaration?.resolve (), scope)) {
+        return true;
+    }
     const declaration = symbol?.valueDeclaration?.resolve ();
     if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer === undefined
         || !ts.isIdentifier (declaration.name) || enclosingFunction (declaration) !== scope) {

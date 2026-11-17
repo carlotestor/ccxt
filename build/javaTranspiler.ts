@@ -9938,7 +9938,8 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if (!/String sym = \(String\) \(syms == null/.test(out) || !/out\.put\(sym, /.test(out)) problems.push("87j1 r4 (stack-87j): 'sym' (element of a list re-bound only by Object.keys / marketSymbols, backpack fetchTickers shape) must print String with a native put key");
         if ((out.match(/String c = (\(String\) )?\((cs|ds) == null/g) || []).length !== 2 || /put\(\(String\)c,/.test(out)) problems.push("87j1 r5: both sibling 'c' bindings (const element reads of String-only lists) must print String with a native put key");
         if (!/String head = \(String\) (\(splitEntry == null \|\| 0 >= |Helpers\.GetValue\(splitEntry, 0\))/.test(out) || /safeCurrencyCode\(\(String\) \(head\)/.test(out)) problems.push("87j1 r6: 'head' (literal-index read of a split list) must print String with no core-argument cast");
-        for (const name of [ 'a', 'b', 'ro' ]) {
+        if (!/String b = \(String\) \(xs == null/.test(out) || !/\bb\.toUpperCase\(/.test(out)) problems.push("90j1 r1: 'b' (element of an unwritten `string[]` parameter) must print String with a native toUpperCase");
+        for (const name of [ 'a', 'ro' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);
         }
         if (problems.length) problems.push('output:\n' + out);
