@@ -65,6 +65,7 @@ import { installJavaR92j1StringRowLocals } from './java-local-types.js';
 import { installJavaR92j2MarketTypeParams } from './java-local-types.js';
 import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
+import { installJavaR93j2ListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2568,6 +2569,7 @@ class NewTranspiler {
         installJavaR92j2MarketTypeParams(this.transpiler);
         installJavaR92j2MapSlotHandOff(this.transpiler);
         installJavaR92j2StringSlotLocals(this.transpiler);
+        installJavaR93j2ListLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
