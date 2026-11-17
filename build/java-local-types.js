@@ -13060,9 +13060,31 @@ function nullSeedMarketParamKeyRead (printer, value) {
     }
     try {
         const declaration = printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
-        return declaration !== undefined && ts.isParameterDeclaration (declaration) && declaration.type !== undefined
-            && ts.isTypeReferenceNode (declaration.type) && declaration.type.getText () === 'Market'
-            && enclosingFunction (declaration) === enclosingFunction (value) && printer.javaParameterIsWritten?.(declaration) === false;
+        if (declaration === undefined || declaration.type === undefined || !ts.isTypeReferenceNode (declaration.type)
+            || declaration.type.getText () !== 'Market' || enclosingFunction (declaration) !== enclosingFunction (value)) {
+            return false;
+        }
+        if (ts.isParameterDeclaration (declaration)) {
+            return printer.javaParameterIsWritten?.(declaration) === false;
+        }
+        // a `let market: Market` local: every write is undefined or this.market (..) / this.safeMarket (..)
+        if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || !isNullishInitializer (declaration.initializer)) {
+            return false;
+        }
+        const symbol = printer.getChecker ().getSymbolAtLocation (declaration.name);
+        return (identifierIndex (enclosingFunction (declaration)).get (String (declaration.name.text)) ?? []).every ((n) => {
+            if (n === declaration.name || printer.getChecker ().getSymbolAtLocation (n) !== symbol) {
+                return true;
+            }
+            const host = unwrapParensUp (n);
+            const parent = host.parent;
+            if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host) {
+                const right = unwrapParens (parent.right);
+                return parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && (isNullishInitializer (right)
+                    || (isThisCall (right) && [ 'market', 'safeMarket' ].includes (String (right.expression.name.text))));
+            }
+            return !(parent !== undefined && (ts.isArrayLiteralExpression (parent) || ts.isPrefixUnaryExpression (parent) || ts.isPostfixUnaryExpression (parent)));
+        });
     } catch (e) {
         return false;
     }
