@@ -13912,6 +13912,8 @@ function javaTupleElementReadForms (list, k) {
         `(${list} == null || ${k} >= ((java.util.List<?>)${list}).size() ? null : ((java.util.List<?>)${list}).get(${k}))`,
         `(${list} == null || ${k} >= ${list}.size() ? null : ${list}.get(${k}))`,
         `Helpers.GetValue(${list}, ${k})`,
+        // a holder declared List<Object> (proven venue tuple core result) reads with no cast
+        `${list}.get(${k})`,
     ];
 }
 
