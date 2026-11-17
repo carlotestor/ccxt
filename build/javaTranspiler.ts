@@ -10708,9 +10708,9 @@ function javaR92j2SlotHandOffSelfTest (): string[] {
         "import type { Dict, Balances } from './base/types.js';",
         `export default class zzr92j2so${process.pid} extends Exchange {`,
         "    zzBal (response: Dict): Balances { return this.safeBalance (response); }",
-        "    a (response: any) { const balanceResponse = (response === undefined) ? {} : response; const r = this.zzBal (balanceResponse); return r; }",
+        "    async a (params: Dict = {}) { const response = await this.publicGetPing (params); const balanceResponse = (response === undefined) ? {} : response; const r = this.zzBal (balanceResponse); return r; }",
         "    b (groups: Dict, k: string) { const g = groups[k]; const r = this.zzBal (g); return r; }",
-        "    d (response: any) { const later = (response === undefined) ? {} : response; const x = 1; return this.zzBal (later); }",
+        "    async d (params: Dict = {}) { const response = await this.publicGetPing (params); const later = (response === undefined) ? {} : response; const x = 1; return this.zzBal (later); }",
         '}',
     ].join('\n');
     try {
@@ -10758,12 +10758,12 @@ function javaR92j2StringSlotLocalsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2ss${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
-        "import type { Currency, Market, Str, Int } from './base/types.js';",
+        "import type { Currency, Dict, Market, Str, Int } from './base/types.js';",
         `export default class zzr92j2ss${process.pid} extends Exchange {`,
         "    zzFixed (s: Str, n: Int) { return [ s, n ]; }",
-        "    a (rows: any[], currency: Currency = undefined) { const code = (currency !== undefined) ? currency['code'] : undefined; return this.filterByCurrencySinceLimit (rows, code, undefined, undefined); }",
+        "    a (rows: Dict[], currency: Currency = undefined) { const code = (currency !== undefined) ? currency['code'] : undefined; return this.filterByCurrencySinceLimit (rows, code, undefined, undefined); }",
         "    b (market: Market = undefined) { const sym = (market !== undefined) ? market['symbol'] : undefined; return this.zzFixed (sym, 1); }",
-        "    c (rows: any[], currency: Currency = undefined) { const both = (currency !== undefined) ? currency['code'] : undefined; this.zzFixed (both, 1); return this.filterByCurrencySinceLimit (rows, both, undefined, undefined); }",
+        "    c (rows: Dict[], currency: Currency = undefined) { const both = (currency !== undefined) ? currency['code'] : undefined; this.zzFixed (both, 1); return this.filterByCurrencySinceLimit (rows, both, undefined, undefined); }",
         '}',
     ].join('\n');
     try {
