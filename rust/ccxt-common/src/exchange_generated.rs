@@ -4533,29 +4533,29 @@ pub trait ExchangeBase:
             return symbols;
         }
         let mut result: Vec<Value> = Vec::new();
-        let mut marketType: Value = Value::Null;
-        let mut isLinearSubType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
+        let mut isLinearSubType: Option<bool> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_111: bool = true;
             while { if !__for_first_111 { i += 1; } __for_first_111 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, (symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if sameTypeOnly.as_bool() == Some(true) && (marketType != Value::Null) {
-                if (Value::from((market).market_type.clone()).as_str() != marketType.as_str()) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " symbols must be of the same type, either ").into()), marketType).into()), " or ").into()), Value::from((market).market_type.clone())).into()), ".")));
+            if sameTypeOnly.as_bool() == Some(true) && (marketType.is_some()) {
+                if ((Some((market).market_type.as_str()) != marketType.as_deref())) {
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " symbols must be of the same type, either ").into()), marketType.as_deref().unwrap_or("null")).into()), " or ").into()), Value::from((market).market_type.clone())).into()), ".")));
                 }
             }
-            if sameSubTypeOnly.as_bool() == Some(true) && (isLinearSubType != Value::Null) {
-                if ((market).linear.map(Value::Bool).unwrap_or_default().as_bool() != isLinearSubType.as_bool()) {
+            if sameSubTypeOnly.as_bool() == Some(true) && (isLinearSubType.is_some()) {
+                if (((market).linear != isLinearSubType)) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " symbols must be of the same subType, either linear or inverse.")));
                 }
             }
             if (type_var != Value::Null) && (Value::from((market).market_type.clone()).as_str() != type_var.as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " symbols must be of the same type ").into()), type_var).into()), ". If the type is incorrect you can change it in options or the params of the request")));
             }
-            marketType = Value::from((market).market_type.clone());
+            marketType = Value::from((market).market_type.clone()).as_str().map(str::to_owned);
             if !(market).spot {
-                isLinearSubType = crate::value::KeyRead::key_read(&&market, "linear");
+                isLinearSubType = crate::value::KeyRead::key_read(&&market, "linear").as_bool();
             }
             let mut symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
             result.push(symbol.map(Value::from).unwrap_or(Value::Null));

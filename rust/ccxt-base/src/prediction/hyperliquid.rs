@@ -1932,7 +1932,7 @@ impl Hyperliquid {
         if (outcomeInput == Value::Null) || (outcomeInput.as_str() == Some("")) {
             return None;
         }
-        let mut colonIndex: i64 = (if let (Some(__h), Some(__n)) = (Some(outcomeInput.as_str().unwrap_or_default().to_string().as_str()), Some(":")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+        let mut colonIndex: i64 = outcomeInput.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1);
         if colonIndex > -1 && colonIndex < ((((outcomeInput.as_str().unwrap_or_default().to_string().chars().count() as i64)) - 1)) {
             let mut side: Value = ((match (&(outcomeInput), (match &(Value::Int((colonIndex + 1))) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(Value::Null) { Value::Int(__n) => Some(*__n),
                 Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
