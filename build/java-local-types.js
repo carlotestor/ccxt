@@ -11001,6 +11001,39 @@ export function resetJavaVenueIndexes () {
     javaFreshMapMethodIndex = undefined;
 }
 
+function javaVenueSafeListSeededWrites () {
+    const names = new Set ();
+    for (const file of new Set (javaVenueListFiles.map (([ , f ]) => f))) {
+        const text = readTsIndexSource (file);
+        if (text === undefined) {
+            continue;
+        }
+        const sf = ts.createSourceFile (file, text);
+        const seeded = new Set ();
+        const collect = (node) => {
+            if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && isThisCall (unwrapParens (node.initializer))
+                && unwrapParens (node.initializer).expression.name.text === 'safeList') {
+                seeded.add (node.name.text);
+            }
+            node.forEachChild (collect);
+        };
+        collect (sf);
+        const writes = (node) => {
+            if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (node.left)
+                && seeded.has (node.left.text)) {
+                const right = unwrapParens (node.right);
+                const call = right !== undefined && right.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (right.expression) : undefined;
+                if (isThisCall (call)) {
+                    names.add (call.expression.name.text);
+                }
+            }
+            node.forEachChild (writes);
+        };
+        writes (sf);
+    }
+    return names;
+}
+
 function javaVenueListReturnsProven (file, name) {
     const text = readTsIndexSource (file);
     if (text === undefined) {
@@ -11088,6 +11121,13 @@ export function javaVenueAsyncReturnTable () {
     // need a checkcast at the return, so those names stay out (parsed from the TS AST of each file)
     for (const [ name, file ] of javaVenueListFiles) {
         if (javaVenueReturnTable.get (name) === 'List<Object>' && !javaVenueListReturnsProven (file, name)) {
+            javaVenueReturnTable.delete (name);
+        }
+    }
+    // a `x = await this.m (..)` write into a local seeded from this.safeList (..) would make that
+    // local List with a declaration checkcast and no native use: keep such names Object
+    for (const name of javaVenueSafeListSeededWrites ()) {
+        if (javaVenueReturnTable.get (name) === 'List<Object>') {
             javaVenueReturnTable.delete (name);
         }
     }
