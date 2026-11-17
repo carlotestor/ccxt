@@ -1817,7 +1817,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})
 			}
-			ccxt.AppendToArray(orderbook.GetCache(), data)
+			orderbook.AppendCache(data)
 			return
 		}
 		if obAsks != nil {
