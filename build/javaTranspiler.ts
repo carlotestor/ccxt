@@ -6378,6 +6378,23 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r93j7c, { force: true });
     }
+    // prediction parseEvent (returns this.extend (..)) prints Map: its result is read and written natively
+    const r93j7d = path.join(process.cwd(), 'ts', 'src', 'prediction', `zz93j7dselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7d, [
+            "import Exchange from './myriad.js';",
+            "import type { Dict } from '../base/types.js';",
+            'export default class zz93j7dselftest extends Exchange {',
+            "    zzEv (raw: Dict) { const ev = this.parseEvent (raw); ev['markets'] = []; return ev; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7d).content as string;
+        if (!/Map<String, ?Object> ev = this\.parseEvent\(/.test(out) || !/\bev\.put\("markets"/.test(out)) problems.push("ral-93j7: a parseEvent result must print Map<String, Object> with a native put\n" + out.split('\n').filter((l) => /\bev\b/.test(l)).join('\n'));
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7d, { force: true });
+    }
     return problems;
 }
 

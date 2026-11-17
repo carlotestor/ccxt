@@ -2480,6 +2480,8 @@ const VENUE_RETURN_KINDS = {
     // base `convertMarketIdExpireDate (date: Str): Str` (no override in ts/src): returns undefined or its String
     // concat; the bybit / deribit `expiry` seeds it writes are handed to String slots (convertExpireDate*)
     'convertMarketIdExpireDate': [ 'String' ],
+    // prediction `parseEvent (..): PredictionEvent`: every declaration returns this.extend (..), a fresh map
+    'parseEvent': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
