@@ -82,6 +82,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "fetch_positions_ws" => crate::types::IntoRaw::into_raw(self.fetch_positions_ws(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_ticker_ws" => crate::types::IntoRaw::into_raw(self.fetch_ticker_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades_ws" => crate::types::IntoRaw::into_raw(self.fetch_trades_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "get_account_type_from_subscriptions" => crate::Value::from(self.get_account_type_from_subscriptions(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "get_stock_unified_symbol" => crate::Value::from(self.get_stock_unified_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
                 "get_stock_ws_url" => self.get_stock_ws_url(&args[..]),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -167,6 +168,7 @@ impl Binance {
             "fetch_positions_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_positions_ws", args.to_vec()); crate::Value::Null },
             "fetch_ticker_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_ticker_ws", args.to_vec()); crate::Value::Null },
             "fetch_trades_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_trades_ws", args.to_vec()); crate::Value::Null },
+            "get_account_type_from_subscriptions" => crate::Value::from(self.get_account_type_from_subscriptions(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "get_stock_unified_symbol" => crate::Value::from(self.get_stock_unified_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
             "get_stock_ws_url" => self.get_stock_ws_url(&args[..]),
             "handle_account_status_ws" => { self.handle_account_status_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -5110,19 +5112,19 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut subscriptions: Value = subscriptions.into();
         let __subscriptions_empty = Vec::new();
         let subscriptions = subscriptions.as_array().unwrap_or(&__subscriptions_empty);
-        let mut accountType: Value = Value::Str("".into());
+        let mut accountType: Option<String> = Some("".to_string());
         {
                         let mut i: i64 = 0;
             let mut __for_first_77: bool = true;
             while { if !__for_first_77 { i += 1; } __for_first_77 = false; i < (subscriptions.len() as i64) } {
-            let mut subscription: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (subscription.as_str() == Some("spot")) || (subscription.as_str() == Some("margin")) || (subscription.as_str() == Some("linear")) || (subscription.as_str() == Some("inverse")) || (subscription.as_str() == Some("option")) {
+            let mut subscription: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if (subscription.as_deref() == Some("spot")) || (subscription.as_deref() == Some("margin")) || (subscription.as_deref() == Some("linear")) || (subscription.as_deref() == Some("inverse")) || (subscription.as_deref() == Some("option")) {
                 accountType = subscription;
                 break;
             }
         }
         }
-        return accountType.as_str().map(str::to_owned);
+        return accountType;
 }
 
     pub fn resolve_auth_type(&self, mut methodName: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
