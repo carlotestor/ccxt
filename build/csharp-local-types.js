@@ -2602,6 +2602,18 @@ function wsWatchAwaitMethodName (declaration) {
     return (typeof name === 'string' && CSHARP_WS_WATCH_METHOD_NAMES.includes (name)) ? name : undefined;
 }
 
+// `await this.<m> (...)` where <m> is a same-file method whose every return is an awaited
+// watch / watchMultiple chain (the wrapper hands the watched future's value back unchanged)
+function wsSameFileWatchWrapperCall (declaration) {
+    const initializer = declaration?.initializer;
+    const call = (initializer?.kind === ts.SyntaxKind.AwaitExpression) ? initializer.expression : undefined;
+    const fileName = (declaration?.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (call?.kind !== ts.SyntaxKind.CallExpression || !fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/')) {
+        return false;
+    }
+    return wsWrapperWatchedPrefixes (call, enclosingFunction (declaration), undefined, 0) !== undefined;
+}
+
 // `<name>.limit ()` (also `(<name> as OrderBook).limit ()`) anywhere in the statement
 function statementCallsLimitOn (statement, name) {
     let found = false;
@@ -2642,7 +2654,7 @@ function statementAfter (declaration) {
 // the C# type of the ws order book subscriber local, or undefined when the immediate next
 // statement does not dereference it through `limit ()`
 function wsOrderBookWatchType (declaration) {
-    if (wsWatchAwaitMethodName (declaration) === undefined) {
+    if (wsWatchAwaitMethodName (declaration) === undefined && !wsSameFileWatchWrapperCall (declaration)) {
         return undefined;
     }
     const name = declaration.name?.text;
