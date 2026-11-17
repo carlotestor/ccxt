@@ -7359,7 +7359,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             if (parent.left === n) {
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
-                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right);
+                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
@@ -12580,6 +12580,47 @@ function nullSeedNativeStringLocal (declaration) {
         visit (scope.body);
     }
     nullSeedNativeStringCache.set (declaration, found);
+    return found;
+}
+
+// ral-87c4 R2 (the sum half of 84c4 R2): a write `x = this.sum (a, b)` into a null-seeded local
+// (`let x = undefined` / `let x: Int = undefined`) over integer-or-null operands binds the hand-written
+// `Int64 sum (Int64?, Int64?)` twin (integerBoxCastType, the declaration-initialiser proof), so the write
+// stores that Int64 box with no cast and the local's `<` / `==` reads bind the native Int64? operators.
+// Only a seed the function also reads as a `<` / `>` / `<=` / `>=` operand asks: that read is the use the
+// Int64? spelling makes native (a seed only stored or handed to object parameters keeps object).
+function nullSeedSumWriteType87c4 (csharp, declaration, node, context) {
+    if (!isNullInit (declaration) || declaration.name?.kind !== ts.SyntaxKind.Identifier || !nullSeedRelationalRead87c4 (declaration)) {
+        return undefined;
+    }
+    return integerBoxCastType (csharp, stripParens (node), context);
+}
+
+const NULL_SEED_RELATIONAL_OPERATORS = [ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanEqualsToken ];
+
+function nullSeedRelationalRead87c4 (declaration) {
+    const name = declaration.name.text;
+    const scope = enclosingFunction (declaration);
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name && n !== declaration.name) {
+            let operand = n;
+            while (operand.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                operand = operand.parent;
+            }
+            const parent = operand.parent;
+            if (parent?.kind === ts.SyntaxKind.BinaryExpression && NULL_SEED_RELATIONAL_OPERATORS.includes (parent.operatorToken.kind)) {
+                found = true;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
     return found;
 }
 

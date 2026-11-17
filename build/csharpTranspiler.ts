@@ -12820,5 +12820,10 @@ export function nullSeedNativeStringChecks87c4 (): string[] {
     if (!out.includes ('string? x = null;') || out.includes ('((string)x)')) problems.push (`87c4 null-seed native string: ${out.replace (/\n/g, ' | ').slice (-400)}`);
     const kept = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = this.signed (a); } return x; }');
     if (!kept.includes ('object x = null;')) problems.push (`87c4 null-seed native string: seed with no string use retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    // R2: a null seed written by `this.sum (a, b)` over integer operands and read by `<` is Int64? (needs the corpus' typed until/since)
+    const whitebit: string = (transpiler as any).transpileCSharpByPath ('./ts/src/whitebit.ts').content;
+    const start = whitebit.indexOf (' fetchOHLCV(');
+    const body = (start < 0) ? '' : whitebit.slice (start, whitebit.indexOf ('\n    }\n', start));
+    if (!body.includes ('Int64? endTime = null;')) problems.push ('87c4 R2 null-seed sum write: whitebit fetchOHLCV endTime not Int64?');
     return problems;
 }

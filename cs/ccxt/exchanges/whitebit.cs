@@ -2291,7 +2291,7 @@ public partial class whitebit : Exchange
             // It refuses an end past its own clock, which may be behind this one, so an end within a
             // timeframe of now is left out, and the latest candles it then returns cover the range
             int duration = this.parseTimeframe(timeframeVar);
-            object endTime = null;
+            Int64? endTime = null;
             if ((until != null))
             {
                 endTime = this.sum(this.parseToInt(((double?)until / 1000)), duration);
@@ -2301,12 +2301,12 @@ public partial class whitebit : Exchange
                 Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
                 Int64 rangeEnd = this.sum(start, (duration * cappedLimit));
-                if (((endTime == null)) || (isLessThan(rangeEnd, endTime)))
+                if (((endTime == null)) || ((rangeEnd < endTime)))
                 {
                     endTime = rangeEnd;
                 }
             }
-            if ((!(endTime == null)) && (isLessThan(this.sum(endTime, duration), this.seconds())))
+            if (((endTime != null)) && (isLessThan(this.sum(endTime, duration), this.seconds())))
             {
                 request["end"] = endTime;
             }
