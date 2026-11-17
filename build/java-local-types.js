@@ -12665,8 +12665,29 @@ function nullSeedHasNativeUse (printer, declaration, type) {
                 return true;
             }
         }
+        // r90-j4: a String slot of a printed typed core (defaulted tail): the conversion
+        // `java.util.Objects.toString(x, null)` drops once the argument is declared String
+        if (type === JAVA_DATAFLOW_STRING && parent !== undefined && ts.isCallExpression (parent) && nullSeedCoreSlotType (printer, parent, parent.arguments.indexOf (host)) === 'String') {
+            return true;
+        }
     }
     return false;
+}
+
+function nullSeedCoreSlotType (printer, call, at) {
+    if (at === -1 || typeof printer.javaCoreParameterTypes !== 'function' || typeof printer.hasDefaultedTail !== 'function') {
+        return undefined;
+    }
+    try {
+        const declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        if (declaration === undefined || !Array.isArray (declaration.parameters) || !printer.hasDefaultedTail (declaration)
+            || declaration.parameters.some ((p) => p.dotDotDotToken !== undefined) || at >= declaration.parameters.length) {
+            return undefined;
+        }
+        return printer.javaCoreParameterTypes (declaration)[at];
+    } catch (e) {
+        return undefined;
+    }
 }
 
 function nullSeedCheckerIs (printer, node, test) {
@@ -12856,6 +12877,15 @@ function nullScalarLocalType (printer, declaration) {
             r84Write = r84Write || NULL_SEED_R84_WRITES.has (parent.right);
             type = (written === 'null') ? type : written;
         }
+        // r90-j4: `[ x, p ] = this.handle*AndParams (..)`: the typed Pair slot the printer reads with `.first()`
+        const slot = nullSeedPairSlotWrite (printer, host);
+        if (slot === null || (slot !== undefined && type !== undefined && slot !== type)) {
+            return undefined;
+        }
+        if (slot !== undefined) {
+            r84Write = true;
+            type = slot;
+        }
     }
     if (type === undefined || literalTypeTokenShadowed (scope, type)) {
         return undefined;
@@ -12875,7 +12905,23 @@ function nullScalarLocalType (printer, declaration) {
     // r77-j4: a Map / List box joined from sync-core / copy writes has no write hook, so its own
     // writeOk decides every write and casts on the local decline it
     const container = NULL_CONTAINER_TYPES.has (type);
-    return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk, noCastAssertions: container, writeOnly: container }) ? type : undefined;
+    const destructureOk = (assignment, at) => nullSeedPairSlotWrite (printer, assignment.left.elements[at]) === type;
+    return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk, noCastAssertions: container, writeOnly: container, destructureOk }) ? type : undefined;
+}
+
+// r90-j4: a seed written as element 0 or 1 of `[ a, b ] = <call>` where the printer binds the call's
+// typed Pair (PAIR_ELEMENT_TYPES, signature resolved by the checker) and reads `.first()` / `.second()`
+// with no cast: that slot's scalar type. undefined = not such a write; null = such a write, unproven.
+function nullSeedPairSlotWrite (printer, host) {
+    const literal = host?.parent;
+    if (literal === undefined || !ts.isArrayLiteralExpression (literal) || !ts.isBinaryExpression (literal.parent)
+        || literal.parent.left !== literal || literal.parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+        return undefined;
+    }
+    const at = literal.elements.indexOf (host);
+    const types = (at === 0 || at === 1) && literal.elements.length === 2 ? pairCallTypes (printer, literal.parent.right) : undefined;
+    const slot = types?.[at];
+    return slot !== undefined && NULL_SEED_SCALARS.has (slot) ? slot : null;
 }
 
 export function installJavaNullScalarLocalTypes (transpiler) {
