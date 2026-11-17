@@ -23636,7 +23636,7 @@ export function installJavaR87j3SumCounterLocals (transpiler) {
         return;
     }
     printer._javaR87j3SumCounterPatched = true;
-    const memo = new WeakMap ();
+    const memo = r87j3Memo (printer);
     const decide = (declaration) => {
         if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
             return false;
@@ -23680,7 +23680,9 @@ export function installJavaR87j3SumCounterLocals (transpiler) {
             // stack-87j: an unparenthesized base `this.sum (..)` prints `this.sum(` unless printThisKeyword
             // qualifies the receiver (only under a PropertyAssignment ancestor, r87j6UnderPropertyAssignment)
             if (r87j3SumWrite (printer, declaration, init) && ts.isCallExpression (init) && !r87j6UnderPropertyAssignment (init)) {
-                return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + '(Long) ' + literal;
+                // ral-90j3: a sum of two proven non-null longs prints the native long add, no checkcast
+                const sum = r90j3NativeSum (printer, init);
+                return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + (sum ?? '(Long) ' + literal);
             }
             return printed;
         }
@@ -23704,12 +23706,146 @@ export function installJavaR87j3SumCounterLocals (transpiler) {
                 if (r87j3SelfStep (printer, declaration, node.right)) {
                     return `${left} = ${printer.printNode (node.right, 0)}`;
                 }
-                return `${left} = (Long) ${printer.printNode (node.right, 0)}`;
+                const sum = r90j3NativeSum (printer, node.right); // ral-90j3
+                return sum !== undefined ? `${left} = ${sum}` : `${left} = (Long) ${printer.printNode (node.right, 0)}`;
             }
         }
         return upstreamBinary (node, identation);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (decide (declaration) ? 'Long' : undefined));
+}
+
+// ===== ral-90j3. base `this.sum (a, b)` of two proven non-null longs prints the native long add =====
+// Generic.sum maps null to 0, adds the doubles and boxes a whole result as Long, so for two non-null
+// whole-number operands it is the long sum (identical below 2^53; native long is exact above it).
+// An operand is proven when it is an int literal (printed `NL`), a base `safeInteger*` call with an
+// int-literal default (SafeIntegerN answers the converted default on every miss / parse failure, never
+// null), base `milliseconds ()` / `seconds ()` (declared Long, never null), native long arithmetic
+// (`javaProvableNumericKind === 'long'`, a primitive), a ral-87j3 counter local (non-null Long), or a
+// const local whose own initializer is one of these and that the layer declares `Long`.
+// R1 drops the `(Long)` checkcast on ral-87j3 counter writes / initializers; R2 types a const local
+// initialised from such a sum `Long x = (a + bL)` (decided from the TS AST and checker only).
+const R90J3_MEMOS = new WeakMap ();
+
+function r87j3Memo (printer) {
+    let memo = R90J3_MEMOS.get (printer);
+    if (memo === undefined) {
+        memo = new WeakMap ();
+        R90J3_MEMOS.set (printer, memo);
+    }
+    return memo;
+}
+
+function r90j3IntDefaultSafeInteger (printer, node) {
+    const n = unwrapParens (node);
+    if (!isThisCall (n) || ![ 'safeInteger', 'safeInteger2', 'safeIntegerN' ].includes (n.expression.name.text)) {
+        return false;
+    }
+    const arity = { safeInteger: 3, safeInteger2: 4, safeIntegerN: 3 }[n.expression.name.text];
+    return n.arguments.length === arity && r87j3IntLiteral (n.arguments[arity - 1]) && isBaseDeclaration (printer, n);
+}
+
+// the non-null long operand's Java text, or undefined
+function r90j3LongOperand (printer, node, depth = 0) {
+    const n = unwrapParens (node);
+    if (n === undefined || depth > 4) {
+        return undefined;
+    }
+    if (ts.isNumericLiteral (n) && /^\d{1,15}$/.test (n.text)) {
+        const text = printer.printNode (n, 0).trim ();
+        return text.endsWith ('L') ? text : text + 'L';
+    }
+    if (r90j3IntDefaultSafeInteger (printer, n)
+        || (ts.isCallExpression (n) && typeof printer.javaBaseTimeLongCall === 'function' && printer.javaBaseTimeLongCall (n))) {
+        return printer.printNode (n, 0).trim ();
+    }
+    if (ts.isBinaryExpression (n)) {
+        return r87j3LongValue (printer, n) ? printer.printNode (node, 0).trim () : undefined;
+    }
+    if (!ts.isIdentifier (n) || printer.printNode (n, 0) !== n.text) {
+        return undefined;
+    }
+    const target = printer.getChecker ().getSymbolAtLocation (n)?.valueDeclaration?.resolve ();
+    if (target === undefined || !ts.isVariableDeclaration (target)) {
+        return undefined;
+    }
+    if (r87j3Memo (printer).get (target) === true) {
+        return n.text; // a ral-87j3 counter: non-null Long on every write
+    }
+    if (!ts.isVariableDeclarationList (target.parent) || (target.parent.flags & ts.NodeFlags.Const) === 0
+        || target.initializer === undefined) {
+        return undefined;
+    }
+    let declared;
+    try {
+        declared = String (printer.javaDeclaredTypeOfDeclaration?.(target) ?? '').trim ();
+    } catch (e) {
+        declared = '';
+    }
+    if (declared !== 'Long' && declared !== 'long') {
+        return undefined;
+    }
+    const init = unwrapParens (target.initializer);
+    if (r90j3IntDefaultSafeInteger (printer, init) || r87j3LongValue (printer, init)
+        || (ts.isCallExpression (init) && typeof printer.javaBaseTimeLongCall === 'function' && printer.javaBaseTimeLongCall (init))
+        || (ts.isCallExpression (init) && r90j3NativeSum (printer, init, depth + 1) !== undefined)) {
+        return n.text;
+    }
+    return undefined;
+}
+
+// `(<a> + <b>)` for a base this.sum of two proven non-null long operands, or undefined
+function r90j3NativeSum (printer, node, depth = 0) {
+    const call = r87j3BaseSum (printer, node);
+    if (call === undefined) {
+        return undefined;
+    }
+    const a = r90j3LongOperand (printer, call.arguments[0], depth);
+    const b = a === undefined ? undefined : r90j3LongOperand (printer, call.arguments[1], depth);
+    return b === undefined ? undefined : `(${a} + ${b})`;
+}
+
+export function installJavaR90j3NativeSumLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR90j3NativeSumPatched) {
+        return;
+    }
+    printer._javaR90j3NativeSumPatched = true;
+    const typed = new WeakMap ();
+    const decide = (declaration) => {
+        if (!typed.has (declaration)) {
+            let ok = false;
+            try {
+                ok = ts.isIdentifier (declaration.name) && ts.isVariableDeclarationList (declaration.parent)
+                    && (declaration.parent.flags & ts.NodeFlags.Const) !== 0 && declaration.parent.declarations.length === 1
+                    && declaration.initializer !== undefined && ts.isCallExpression (unwrapParens (declaration.initializer))
+                    && !r87j6UnderPropertyAssignment (declaration) && r90j3NativeSum (printer, declaration.initializer) !== undefined
+                    && isSafeToNarrow (printer, declaration, declaration.name.text, 'Long',
+                        /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), { nonNull: true });
+            } catch (e) {
+                ok = false;
+            }
+            typed.set (declaration, ok);
+        }
+        return typed.get (declaration);
+    };
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name) || !decide (declaration)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || (at !== 0 && printed.charAt (at - 1) !== '\n')
+            || printed.slice (at + marker.length).trim () !== printer.printNode (declaration.initializer, 0).trim ()) {
+            typed.set (declaration, false);
+            return printed;
+        }
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + r90j3NativeSum (printer, declaration.initializer);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.get (declaration) === true ? 'Long' : undefined));
 }
 
 // ===== r87-j4. const native-split locals already printed List<Object> =====
