@@ -8710,9 +8710,9 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
         [ 'string? k = ((string)ks[i])', 'k == \"ERC20\"' ], [ 'object k = ' ]);
     check ('Object.keys element only tested by in on an untyped dict keeps object', 'nu (n: Dict, m) { const ks = Object.keys (n); for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k in m) { return 1; } } return this.safeString (ks, 0); }',
         [ 'object k = ' ], [ 'string? k = ' ]);
-    check ('list element whose next statement is its string-method receiver', 'tq (tags: any[]) { const out: string[] = []; for (let i = 0; i < tags.length; i++) { const t = tags[i]; out.push (t.replaceAll ("-", " ")); } return out; }',
+    check ('list element whose next statement is its string-method receiver', 'tq (tags) { const out: string[] = []; for (let i = 0; i < tags.length; i++) { const t = tags[i]; out.push (t.replaceAll ("-", " ")); } return out; }',
         [ 'string? t = ((string)', 't.Replace(' ], [ 'object t = ', '((string)t)' ]);
-    check ('list element used as a receiver only behind a test keeps object', 'tr (tags: any[], c) { const t = tags[0]; if (c) { return t.toUpperCase (); } return c; }',
+    check ('list element used as a receiver only behind a test keeps object', 'tr (tags, c) { const t = tags[0]; if (c) { return t.toUpperCase (); } return c; }',
         [ 'object t = ' ], [ 'string? t = ' ]);
     check ('guarded Int64? difference initialiser is declared Int64?', 'safeInteger (o, k, d = undefined): number { return d; }\n ra (o: Dict, m: number) { const e = this.safeInteger (o, "e"); if (e === undefined) { return 1; } const r = e - 5; if (m < r) { return 2; } return 3; }',
         [ 'Int64? r = (e - 5);' ], [ 'object r = ' ]);
