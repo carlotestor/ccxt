@@ -295,3 +295,14 @@ describe ('ral-87c8-bool-literal-row-write', () => {
         assert.match (out, /if \(\(isContractMarket != true\)\)/);
     });
 });
+
+describe ('ral-87c8-string-literal-split-element-write', () => {
+    test('prediction hyperliquid: a string literal local written from a split element prints string? with a native compare', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as any).transpileCSharpByPath ('./ts/src/prediction/hyperliquid.ts').content as string;
+        assert.match (out, /string\? expiryDate = "";/);
+        assert.match (out, /expiryDate = \(\(string\)\(expiryParts != null && 0 < expiryParts\.Count \? expiryParts\[0\] : null\)\);/);
+        assert.match (out, /if \(expiryDate != ""\)/);
+    });
+});

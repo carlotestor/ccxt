@@ -12618,7 +12618,50 @@ function narrowedCopyWriteType (declaration, node) {
 // the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
 function nullInitWriteValueType (csharp, declaration, node) {
     return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node) ?? arrayGuardedListWriteType (csharp, declaration, node)
-        ?? boolLiteralRowWriteType (csharp, declaration, node);
+        ?? boolLiteralRowWriteType (csharp, declaration, node) ?? stringLiteralElementWriteType (csharp, declaration, node);
+}
+
+// ral-87c8 R4: `let x = '<literal>'` later written `x = parts[N]` where every element of `parts` is a string
+// (elementAccessElementType: split / Object.keys / string-list producers). The element read is a string or
+// null (off the end), so the local is `string?` and the write carries the identity `((string)...)` cast back.
+// Taken only when some read of the local prints natively once typed: a compare with a string literal or the
+// receiver of a member access (`.length`, `.slice (..)`, ...).
+const stringLiteralElementWrites = new WeakSet ();
+
+function stringLiteralElementWriteType (csharp, declaration, node) {
+    if (declaration.initializer?.kind !== ts.SyntaxKind.StringLiteral || declaration.parent?.declarations?.length !== 1
+            || declaration.name?.kind !== ts.SyntaxKind.Identifier || node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const write = node.parent;
+    if (write?.kind !== ts.SyntaxKind.BinaryExpression || write.right !== node || write.operatorToken.kind !== ts.SyntaxKind.EqualsToken
+            || write.left?.kind !== ts.SyntaxKind.Identifier || write.left.text !== declaration.name.text) {
+        return undefined;
+    }
+    if (elementAccessElementType (csharp, node, undefined) !== 'string') {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const native = (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []).some ((n) => {
+        const p = n.parent;
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            return false;
+        }
+        if (p?.kind === ts.SyntaxKind.PropertyAccessExpression && p.expression === n) {
+            return true;
+        }
+        if (p?.kind !== ts.SyntaxKind.BinaryExpression) {
+            return false;
+        }
+        const op = p.operatorToken.kind;
+        const other = (p.left === n) ? p.right : p.left;
+        return (op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken) && other?.kind === ts.SyntaxKind.StringLiteral;
+    });
+    if (!native) {
+        return undefined;
+    }
+    stringLiteralElementWrites.add (node);
+    return 'string?';
 }
 
 // ral-87c8 R3: `let x = true|false` later written `x = market['contract']` (a MARKET_ROW_BOOL_KEYS read of a
@@ -12745,6 +12788,22 @@ function installBoolLiteralRowWriteCasts (csharp) {
         return (target !== undefined && retypedDeclarationTypes.get (target) === 'bool?') ? '((bool?)' + printed + ')' : printed;
     };
     csharp._boolLiteralRowWriteCastsPatched = true;
+}
+
+function installStringLiteralElementWriteCasts (csharp) {
+    if (typeof csharp.printElementAccessExpression !== 'function' || csharp._stringLiteralElementWriteCastsPatched) {
+        return;
+    }
+    const upstream = csharp.printElementAccessExpression.bind (csharp);
+    csharp.printElementAccessExpression = (node, identation) => {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || !stringLiteralElementWrites.has (node)) {
+            return printed;
+        }
+        const target = resolveReference (csharp, node.parent.left);
+        return (target !== undefined && retypedDeclarationTypes.get (target) === 'string?') ? '((string)' + printed + ')' : printed;
+    };
+    csharp._stringLiteralElementWriteCastsPatched = true;
 }
 
 // the write-time record of a retyped name-keyed local (`scope -> Map<printed name, declaration>`), read
@@ -14843,6 +14902,7 @@ export function installCsharpLocalTypes (transpiler) {
     installNullInitRowReadWriteCasts (csharp);
     installArrayGuardedListWriteCasts (csharp);
     installBoolLiteralRowWriteCasts (csharp);
+    installStringLiteralElementWriteCasts (csharp);
 }
 
 // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` — ast-transpiler's printer
