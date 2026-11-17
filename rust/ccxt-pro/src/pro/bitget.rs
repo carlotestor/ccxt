@@ -1205,7 +1205,7 @@ impl Bitget {
             paramsOmitted = self.omit(paramsRequest, Value::Str("limit".into()), &[]);
         }
         if isFixedDepth {
-            channel.push_str(&(Value::Str(limit.map_or_else(|| "null".to_string(), |__n| __n.to_string()).into())).to_string());
+            channel.push_str(&(Value::Str((match limit { Some(__n) => __n.to_string(), None => "null".to_string() }).into())).to_string());
         }
         return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channel.as_str(), "orderbook", "watchOrderBook", &[paramsOmitted]).await;
         Value::Null

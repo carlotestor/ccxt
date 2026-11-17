@@ -2262,7 +2262,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if !isFuturesMethod {
                     method = Some("/spotMarket/level2".to_string());
                 }
-                method = Some(format!("{}{}", method.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("Depth".into()), Value::Str(limit.map_or_else(|| "null".to_string(), |__n| __n.to_string()).into()))));
+                method = Some(format!("{}{}", method.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("Depth".into()), Value::Str((match limit { Some(__n) => __n.to_string(), None => "null".to_string() }).into()))));
             }
         }
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method.as_deref().unwrap_or("null"), ":").into()), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
