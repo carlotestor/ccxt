@@ -9508,9 +9508,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 let mut responseLength: i64 = response.len() as i64;
                 if self.verbose.as_bool() == Some(true) {
-                    let mut cursorString: Value = Value::Str("".into());
+                    let mut cursorString: String = "".to_string();
                     if (cursorValue != Value::Null) {
-                        cursorString = Value::Str(format!("{}", cursorValue).into());
+                        cursorString = format!("{}", cursorValue);
                     }
                     let mut cursorMessage: String = format!("{}{}{}{}{}{}{}{}", Value::Str("Cursor pagination call ".into()), (Value::Int((i + 1))), " method ", method, " response length ", responseLength, " cursor ", cursorString);
                     self.log(Value::from(cursorMessage));
