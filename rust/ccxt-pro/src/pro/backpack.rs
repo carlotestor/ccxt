@@ -525,8 +525,8 @@ impl Backpack {
         let mut recvWindow: String = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("X-Window".into()), &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
         let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instruction=", instruction).into()), "&").into()), "timestamp=").into()), ts.as_deref().unwrap_or("null")).into()), "&window=").into()), recvWindow);
         let mut secretBytes: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
-        let mut seed: Value = self.array_slice(Value::from(&secretBytes), Value::Int(0), &[Value::Int(32)]);
-        let mut signature: String = eddsa(self.encode(Value::from(payload)), seed, Value::Str("ed25519".into()));
+        let mut seed: crate::value::Bytes = crate::value::Bytes(std::sync::Arc::new(secretBytes.0.iter().take(32).cloned().collect()));
+        let mut signature: String = eddsa(self.encode(Value::from(payload)), &seed, Value::Str("ed25519".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
