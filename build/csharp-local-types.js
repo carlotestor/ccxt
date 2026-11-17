@@ -23663,7 +23663,7 @@ function jsonParseDictLocal92c7 (csharp, declaration, context) {
 // (D1) `const m = c ? 'lit' : s` where each arm is a string literal or a local the printer declares
 // `string` / `string?`, and every use of m is the left operand of an effect-free `+` chain: the
 // printer already guards those reads (`(m == null ? null : m + r)`), so declared `string?` behind one
-// cast on the whole conditional the reads lose the `((object)` box and print as a typed string.
+// the reads lose the `((object)` box and print as a typed string (the arms need no cast).
 function c93StringArm (csharp, arm) {
     const node = stripParens (arm);
     if (node?.kind === ts.SyntaxKind.StringLiteral) {
@@ -23713,7 +23713,8 @@ function c93GuardedConcatOnlyConditionalLocal (csharp, declaration, context) {
     for (const n of reads) {
         guardedConcatReads.add (n);
     }
-    return { type: 'string?', cast: 'string', castWhole: true };
+    // both arms already print as C# strings, so the conditional's own type is string: no cast
+    return { type: 'string?' };
 }
 const c93UpstreamLocalDeclarationD1 = csharpLocalDeclaration;
 // eslint-disable-next-line no-func-assign

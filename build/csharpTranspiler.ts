@@ -9567,7 +9567,7 @@ export function csharpNativeEmissionSelfTest (): string[] {
         // conditional of a literal and a typed string local, read only as a guarded `+` left operand
         check ('c ? lit : <string? local> read only as a + left -> string? with no object box at the read',
             'safeString (o, k, d = undefined) { return d; }\n f (c, o) { const s = this.safeString (o, \'k\'); const m = c ? \'/a\' : s; const t = m + \':\' + o; return t; }',
-            'string? m = ((string)(', 'object m = ');
+            'string? m = isTrue(c) ? ', 'object m = ');
         check ('c ? lit : <string? local> also stored in a map keeps object',
             'safeString (o, k, d = undefined) { return d; }\n f (c, o) { const s = this.safeString (o, \'k\'); const m = c ? \'/a\' : s; const t = m + \':\' + o; return { \'m\': m, \'t\': t }; }',
             'object m = ');
