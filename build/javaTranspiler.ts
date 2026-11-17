@@ -58,6 +58,7 @@ import { installJavaR92j3LongDefaultParams } from './java-local-types.js';
 import { installJavaR92j3LongFixedParams } from './java-local-types.js';
 import { installJavaR92j3ParseToIntCompare } from './java-local-types.js';
 import { installJavaR92j3SafeIntegerOperands } from './java-local-types.js';
+import { installJavaR92j3HexStringCalls } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
@@ -2541,6 +2542,7 @@ class NewTranspiler {
         installJavaR92j3LongFixedParams(this.transpiler);
         installJavaR92j3ParseToIntCompare(this.transpiler);
         installJavaR92j3SafeIntegerOperands(this.transpiler);
+        installJavaR92j3HexStringCalls(this.transpiler);
         installJavaR90j8OmitParamLocals(this.transpiler);
     }
 
@@ -6117,6 +6119,7 @@ function mapLocalsSelfTest (): string[] {
             "    within (xs: any[], p: Dict) { const end = this.safeInteger (p, 'end'); return this.parseToInt (xs[0]) > end; }",
             "    deadline () { const d = this.seconds () + this.safeInteger (this.options, 'expiry', 600); return d; }",
             "    grow (p: Dict, n: Int = 1) { const have = this.safeInteger (p, 'have', 0); const next = have + n; return next > 10; }",
+            "    sig (o: Dict) { const s = this.remove0xPrefix (this.safeString (o, 'r')) + this.intToBase16 (o['v']); return '0x' + s; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j3).content as string;
@@ -6126,6 +6129,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/this\.parseToInt\([^\n]*\) > end\)/.test(out) || /\}\)\.test\(this\.parseToInt\(/.test(out)) problems.push("r92j3 R3: a parseToInt compare operand must print the native compare");
         if (!/= \(this\.seconds\(\) \+ this\.safeInteger\(this\.options, "expiry", 600\)\);/.test(out)) problems.push("r92j3 R4: a defaulted safeInteger operand must print the native long add");
         if (!/Long next = \(have \+ java\.util\.Objects\.requireNonNullElse\(n, 1L\)\);/.test(out)) problems.push("r92j3 R4: 'next' (sum of a defaulted safeInteger local and a Long slot) must be a native Long");
+        if (!/String s = \(this\.remove0xPrefix\(this\.safeString\(o, "r"\)\) \+ this\.intToBase16\(/.test(out)) problems.push("r92j3 R5: remove0xPrefix + intToBase16 must print the native concat");
     } catch (e) {
         problems.push(`r92j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {

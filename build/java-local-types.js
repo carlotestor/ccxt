@@ -24494,6 +24494,40 @@ function r92j3DefaultedLongParamRead (printer, node) {
     return printer.javaDefaultedLocalName (bare) === `java.util.Objects.requireNonNullElse(${bare.text}, ${unwrapParens (declaration.initializer).text}L)`;
 }
 
+// ===== r92j3 R5. base `remove0xPrefix` / `intToBase16` calls print a non-null String =====
+// Encode.remove0xPrefix casts and calls `startsWith` (a null argument throws, it never answers null) and
+// Encode.intToBase16 ends in Long.toHexString: both are declared String in BaseExchange.java, so the
+// printer's resolver may answer String for them and a `+` over them prints the native concat.
+function r92j3HexStringCall (printer, node) {
+    const call = unwrapParens (node);
+    if (!isThisCall (call) || ![ 'remove0xPrefix', 'intToBase16' ].includes (call.expression.name.text)
+        || call.arguments.length !== 1 || r87j6UnderPropertyAssignment (call)) {
+        return false;
+    }
+    let member;
+    try {
+        member = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName);
+}
+
+export function installJavaR92j3HexStringCalls (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || printer._javaR92j3HexStringCallsPatched) {
+        return;
+    }
+    printer._javaR92j3HexStringCallsPatched = true;
+    const upstream = printer.javaExpressionTypeResolver;
+    printer.javaExpressionTypeResolver = function (node) {
+        if (r92j3HexStringCall (printer, node)) {
+            return 'String';
+        }
+        return typeof upstream === 'function' ? upstream (node) : undefined;
+    };
+}
+
 // ===== r87-j4. const native-split locals already printed List<Object> =====
 // `const parts = s.split (sep)` that an earlier section declared `java.util.List<Object>` holds only the
 // Strings of `String.split`: when 84j8's split audit accepts every use, declare it List<String> (the
