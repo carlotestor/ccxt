@@ -9931,7 +9931,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 				}
 			}
 		} else if *this.SafeBool(market, "spot", false) {
-			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
+			var quoteOrderQty bool = this.HandleOption("createOrder", "quoteOrderQty", true) == true
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(paramsPapi, "quoteOrderQty", "cost")
 				var precision *float64 = this.SafeNumber(market["precision"], "price")

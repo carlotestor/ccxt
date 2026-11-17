@@ -1478,8 +1478,8 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 								client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 							}
 						} else {
-							var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
-							if checksum == true {
+							var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
+							if ccxt.IsEqual(checksum, true) {
 								panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
 							}
 						}
@@ -1497,8 +1497,8 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 								client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 							}
 						} else {
-							var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
-							if checksum == true {
+							var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
+							if ccxt.IsEqual(checksum, true) {
 								panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
 							}
 						}
