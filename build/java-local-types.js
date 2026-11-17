@@ -24339,6 +24339,36 @@ export function installJavaR92j3LongFixedParams (transpiler) {
     };
 }
 
+// ===== r92j3 R3. base `this.parseToInt (x)` is a non-null long compare operand =====
+// BaseExchange.parseToInt is declared Long and ends in `((Number) Double.parseDouble(..)).longValue()`:
+// it throws on a non-numeric argument and never answers null, so in a compare it is an unboxed long
+// and the compare prints the native form instead of the inline helper blob.
+function r92j3ParseToIntCall (printer, node) {
+    const call = unwrapParens (node);
+    if (!isThisCall (call) || call.expression.name.text !== 'parseToInt' || call.arguments.length !== 1) {
+        return false;
+    }
+    let member;
+    try {
+        member = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName);
+}
+
+export function installJavaR92j3ParseToIntCompare (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaComparisonOperand !== 'function' || printer._javaR92j3ParseToIntComparePatched) {
+        return;
+    }
+    printer._javaR92j3ParseToIntComparePatched = true;
+    const upstream = printer.javaComparisonOperand.bind (printer);
+    printer.javaComparisonOperand = function (node) {
+        return r92j3ParseToIntCall (printer, node) ? { kind: 'long', boxed: false } : upstream (node);
+    };
+}
+
 // ===== r87-j4. const native-split locals already printed List<Object> =====
 // `const parts = s.split (sep)` that an earlier section declared `java.util.List<Object>` holds only the
 // Strings of `String.split`: when 84j8's split audit accepts every use, declare it List<String> (the
