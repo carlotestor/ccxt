@@ -4879,11 +4879,11 @@ public partial class hyperliquid : Exchange
         bool useSendAsset = (transferMethod == "sendAsset");
         if ((transferMethod == null))
         {
-            object isUnified = null;
+            bool? isUnified = null;
             var isUnifiedqueryVariable = await this.isUnifiedEnabled("transfer", masterAddress, false, query);
-            isUnified = isUnifiedqueryVariable[0];
+            isUnified = (bool?)isUnifiedqueryVariable[0];
             query = isUnifiedqueryVariable[1];
-            useSendAsset = ((isUnified is true));
+            useSendAsset = ((isUnified == true));
         }
         if (useSendAsset)
         {
