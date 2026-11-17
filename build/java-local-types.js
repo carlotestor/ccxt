@@ -6583,7 +6583,10 @@ export function installJavaLocalTypes (transpiler) {
             }
             // numeric boxes (sum/subtract may hand back Integer or Double) convert, not checkcast
             // a returned one-argument this.extend ({..}) keeps the `((T) call)` form, so its literal argument is still hoisted
-            const returned = unwrapParens (node.expression);
+            let returned = unwrapParens (node.expression);
+            while (returned !== undefined && (ts.isAsExpression (returned) || ts.isNonNullExpression (returned))) {
+                returned = unwrapParens (returned.expression);
+            }
             const wrapsExtend = isThisCall (returned) && returned.expression.name.text === 'extend' && returned.arguments.length === 1;
             if (venueType !== 'Long' && wrapsExtend) {
                 return printed.slice (0, at + 'return '.length) + '(' + venueCast + ' ' + tail.slice (0, end) + ')' + tail.slice (end);
