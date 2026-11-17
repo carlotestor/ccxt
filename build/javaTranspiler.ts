@@ -10317,6 +10317,7 @@ function javaR90j8LocalsSelfTest (): string[] {
         "        const response = await this.publicGetPing (params);",
         "        return response;",
         "    }",
+        "    strs (rows: number[]) { const parsed: string[] = []; for (let i = 0; i < rows.length; i++) { const id = this.safeString (rows, i, ''); const sid = id.toString (); parsed.push (sid); } return parsed.join (','); }",
         "    ids (symbols: string[]) { const out: string[] = []; for (let i = 0; i < symbols.length; i++) { const market = this.market (symbols[i]); const marketId = market['id']; out.push (marketId); } return out.join (','); }",
         "    async zzr90j8Use (q: string, params: Dict = {}) { let rows: Dict[] = []; if (q !== undefined) { rows = await this.zzr90j8Pages (params); } let raw: Dict[] = []; raw = await this.zzr90j8Raw (params); return [ rows.length, raw ]; }",
         "    sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict { const headers = undefined; const body = undefined; const query = this.omit (params, this.extractParams (path)); const n = Object.keys (query).length; let url = '/' + path; if (n > 0) { url += '?' + this.urlencode (query); } const later = this.omit (params, 'a'); if (method === 'GET') { url += Object.keys (later).length; } return { 'url': url, 'method': method, 'body': body, 'headers': headers }; }",
@@ -10330,6 +10331,7 @@ function javaR90j8LocalsSelfTest (): string[] {
         if (!/\bObject later = /.test(out)) problems.push("'later' (first use under an if) must stay Object");
         if (!/List<Object> rows = /.test(out) || !/\brows\.size\(\)/.test(out)) problems.push("'rows' (let x: Dict[] = [] written from a fresh-list Promise<Dict[]> venue method) must print List<Object> with a native size()");
         if (!/List<String> out = new java\.util\.ArrayList<String>\(/.test(out) || !/\bout\.add\(marketId\)/.test(out)) problems.push("'out' (pushes of a market['id'] structure-key String local) must print List<String> with a bare add");
+        if (!/List<String> parsed = new java\.util\.ArrayList<String>\(/.test(out) || !/\bparsed\.add\(sid\)/.test(out)) problems.push("'parsed' (pushes of a const x.toString () local) must print List<String> with a bare add");
         if (!/\bObject raw = /.test(out)) problems.push("'raw' (written from a venue method that returns an awaited response) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {

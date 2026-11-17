@@ -23870,6 +23870,14 @@ function r87j8StringElement (printer, node, depth = 0, internalCalls = true) {
         && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
         return true;
     }
+    // ral-90j8 R4: `const s = x.toString ()` prints `String.valueOf (x)` (printToStringCall), a non-null String,
+    // when section 1 declares the local String
+    const init90 = unwrapParens (declaration.initializer);
+    if (ts.isCallExpression (init90) && init90.arguments.length === 0 && ts.isPropertyAccessExpression (init90.expression)
+        && init90.expression.name.text === 'toString' && (declaration.parent.flags & ts.NodeFlags.Const) !== 0
+        && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
+        return true;
+    }
     // ral-90j8: `const id = market['id']` on a structure local whose DTO declares the key String (section 1's
     // structure-key arm prints `String id = (String) market.get("id")`)
     if (structureKeyReadLocalType (printer, unwrapParens (declaration.initializer))?.type === 'String'
