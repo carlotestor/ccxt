@@ -14228,6 +14228,9 @@ function stringListWriteOk (printer, node, seen, depth = 0) {
     if (stringListBaseSymbolsRead (printer, value)) {
         return true; // the base field is declared List<String>
     }
+    if (stringListNativeKeysOfLocal (printer, value)) {
+        return true;
+    }
     if (ts.isIdentifier (value)) {
         const declaration = stringListLocalDeclaration (printer, value);
         if (declaration === undefined) {
@@ -14236,6 +14239,18 @@ function stringListWriteOk (printer, node, seen, depth = 0) {
         return stringListLocalType (printer, declaration, seen) !== undefined;
     }
     return false;
+}
+
+// `Object.keys (m)` of a local the printer copies natively (`new ArrayList<Object>(m.keySet())`, m a
+// String-keyed Map): the copy of a Set<String> is retyped ArrayList<String> with the declaration
+function stringListNativeKeysOfLocal (printer, value) {
+    if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression) || value.arguments.length !== 1
+        || !ts.isIdentifier (value.expression.expression) || value.expression.expression.text !== 'Object'
+        || value.expression.name.text !== 'keys' || !ts.isIdentifier (value.arguments[0])
+        || typeof printer.printNativeObjectKeysCall !== 'function') {
+        return false;
+    }
+    return printer.printNativeObjectKeysCall (value) !== undefined;
 }
 
 // `this.symbols` (base field, printed List<Object>): its values are the market symbols
@@ -14406,6 +14421,10 @@ function stringListLocalType (printer, declaration, seen = undefined) {
 }
 
 function stringListRetypeValue (text) {
+    const keys = OBJECT_KEYS_NATIVE_COPY.exec (text);
+    if (keys !== null) {
+        return `new java.util.ArrayList<String>(${keys[1]}.keySet())${keys[2]}`;
+    }
     return text.split (STRING_LIST_ARRAY_OPEN).join ('new java.util.ArrayList<String>(java.util.Arrays.asList(')
         .replace (/^(\s*)\(java\.util\.List<Object>\)\s*/, '$1');
 }

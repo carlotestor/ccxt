@@ -10165,7 +10165,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if (!/\bk\.startsWith\(/.test(out) || /\(\(String\)k\)/.test(out) || /\(String\)k\b/.test(out)) problems.push("84j1: 'k' uses must print with no (String) cast");
         if (!/Map<String, Object> row = \(java\.util\.Map<String, Object>\) \(rows == null/.test(out) || !/\brow\.put\("seen"/.test(out)) problems.push("84j1: 'row' (Dict element with an element write) must print Map<String, Object> and a native put");
         if (!/String symbol = \(String\) [^;]*\.get\("symbol"\)/.test(out) || /\(\(String\)symbol\)/.test(out)) problems.push("84j1: 'symbol' (Str structure field) must print String and its `as string` key no cast");
-        if (!/String sym = \(String\) \(syms == null/.test(out) || !/out\.put\(sym, /.test(out)) problems.push("87j1 r4 (stack-87j): 'sym' (element of a list re-bound only by Object.keys / marketSymbols, backpack fetchTickers shape) must print String with a native put key");
+        if (!/String sym = (\(String\) )?\(syms == null/.test(out) || !/out\.put\(sym, /.test(out)) problems.push("87j1 r4 (stack-87j): 'sym' (element of a list re-bound only by Object.keys / marketSymbols, backpack fetchTickers shape) must print String with a native put key");
         if ((out.match(/String c = (\(String\) )?\((cs|ds) == null/g) || []).length !== 2 || /put\(\(String\)c,/.test(out)) problems.push("87j1 r5: both sibling 'c' bindings (const element reads of String-only lists) must print String with a native put key");
         if (!/String head = \(String\) (\(splitEntry == null \|\| 0 >= |Helpers\.GetValue\(splitEntry, 0\))/.test(out) || /safeCurrencyCode\(\(String\) \(head\)/.test(out)) problems.push("87j1 r6: 'head' (literal-index read of a split list) must print String with no core-argument cast");
         if ((out.match(/Map<String, Object> e = \(java\.util\.Map<String, Object>\) \((rs|qs) == null/g) || []).length !== 2 || /Helpers\.addElementToObject\(e,/.test(out)) problems.push("90j1 r2: both sibling 'e' bindings (const Dict[] element reads) must print Map<String, Object> with a native put");
@@ -10980,12 +10980,27 @@ function javaR93j8LocalsSelfTest (): string[] {
         "        }",
         "        return out;",
         "    }",
+        "    keyed (symbols: string[], byId: Dict) {",
+        "        let ids: string[] = [];",
+        "        if (symbols.length === 0) {",
+        "            const m: Dict = this.safeDict (byId, 'a', {});",
+        "            ids = Object.keys (m);",
+        "        } else {",
+        "            ids = this.marketIds (symbols);",
+        "        }",
+        "        const out: Dict = {};",
+        "        for (let i = 0; i < ids.length; i++) {",
+        "            out[ids[i]] = true;",
+        "        }",
+        "        return out;",
+        "    }",
         '}',
     ].join('\n');
     try {
         fs.writeFileSync(probe, body);
         resetJavaVenueIndexes();
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<String> ids = /.test(out) || !/ids = new java\.util\.ArrayList<String>\(m\.keySet\(\)\);/.test(out) || !/\bids\.size\(\)/.test(out)) problems.push("'ids' (String list written from Object.keys of a Map local and marketIds) must print List<String> with a native size()");
         if (!/List<String> chunk = /.test(out) || !/\bchunk\.size\(\)/.test(out)) problems.push("'chunk' (String list fed by elements of a list of String copy locals) must print List<String> with a native size()");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
