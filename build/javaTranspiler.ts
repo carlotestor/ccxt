@@ -42,6 +42,7 @@ import { installJavaR87j2WsLocals } from './java-local-types.js';
 import { installJavaR87j2UrlLocals } from './java-local-types.js';
 import { installJavaR87j3SumCounterLocals } from './java-local-types.js';
 import { installJavaR90j3NativeSumLocals } from './java-local-types.js';
+import { installJavaR90j3CounterLoops } from './java-local-types.js';
 import { installJavaR87j4SplitLists } from './java-local-types.js';
 import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
 import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
@@ -2514,6 +2515,7 @@ class NewTranspiler {
         installJavaR87j5CalleeStringArgs(this.transpiler);
         installJavaR87j8CopyStringResolver(this.transpiler);
         installJavaR90j3NativeSumLocals(this.transpiler);
+        installJavaR90j3CounterLoops(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -6057,6 +6059,8 @@ function mapLocalsSelfTest (): string[] {
             "    neg2 (p: Dict) { const b = this.sum (this.safeValue (p, 'b'), 1); return b; }",
             "    cut (s: string, p: Dict) { const a = this.safeInteger (p, 'a', 0); const e = this.sum (a, 2); return s.slice (a, e); }",
             "    put (p: Dict) { const a = this.safeInteger (p, 'a', 0); const f = this.sum (a, 2); p['f'] = f; return p; }",
+            "    loop (xs: any[]) { const n = xs.length; const out = []; let s = 0; while (s < n) { let t = this.sum (s, 2); if (t > n) { t = n; } for (let k = s; k < t; k++) { out.push (xs[k]); } s = this.sum (s, 2); } return out; }",
+            "    loop2 (xs: any[]) { const n = xs.length; let s = 0; while (s < n) { let t = this.sum (s, 2); if (t > n) { t = n; } for (let m = s; m < t; m++) { m = m + 1; } s = this.sum (s, 2); } return s; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r90j3).content as string;
@@ -6067,6 +6071,8 @@ function mapLocalsSelfTest (): string[] {
         if (!/Object b = this\.sum\(/.test(out)) problems.push("ral-90j3: 'b' (Object operand) must stay Object");
         if (!/Long e = \(a \+ 2L\);/.test(out)) problems.push("ral-90j3 R2: 'e' (const-local sum feeding a slice bound) must print the native long add");
         if (/Long f = \(a \+ 2L\);/.test(out)) problems.push("ral-90j3 R2: 'f' (const-local sum only put into a map) must not be retyped by R2");
+        if (!/for \(long k = s; k < t; k\+\+\)/.test(out)) problems.push("ral-90j3 R3: 'k' (loop between two Long counters) must print a native long header");
+        if (/for \(long m = s; m < t; m\+\+\)/.test(out)) problems.push("ral-90j3 R3: 'm' (loop variable written in the body) must keep the helper header");
     } catch (e) {
         problems.push(`ral-90j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {

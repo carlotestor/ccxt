@@ -23879,6 +23879,78 @@ export function installJavaR90j3NativeSumLocals (transpiler) {
     publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.get (declaration) === true ? 'Long' : undefined));
 }
 
+// ===== ral-90j3 R3. `for (let i = <counter>; i < <counter>; i++)` over two non-null Long counters =====
+// The loop variable is seeded from a ral-87j3 counter local (non-null Long on every write) and bounded by
+// another one; the body never writes it except the `i++` incrementor. Print the header with a primitive
+// `long i = <seed>` and the native `i < <bound>` (Helpers.isLessThan on two non-null whole numbers is the
+// long compare), instead of `var i = <seed>` that a later text pass coerces and an inline compare blob.
+function r90j3CounterLoop (printer, node) {
+    const list = node.initializer;
+    const cond = unwrapParens (node.condition);
+    const inc = node.incrementor;
+    if (list === undefined || !ts.isVariableDeclarationList (list) || list.declarations.length !== 1 || cond === undefined
+        || !ts.isBinaryExpression (cond) || inc === undefined || !ts.isPostfixUnaryExpression (inc)
+        || inc.operator !== ts.SyntaxKind.PlusPlusToken) {
+        return undefined;
+    }
+    const declaration = list.declarations[0];
+    const op = cond.operatorToken.kind;
+    if (!ts.isIdentifier (declaration.name) || (op !== ts.SyntaxKind.LessThanToken && op !== ts.SyntaxKind.LessThanEqualsToken)) {
+        return undefined;
+    }
+    const checker = printer.getChecker ();
+    const own = (n) => n !== undefined && ts.isIdentifier (n) && checker.getSymbolAtLocation (n)?.valueDeclaration?.resolve () === declaration;
+    const counter = (n) => {
+        const target = n !== undefined && ts.isIdentifier (n) && printer.printNode (n, 0) === n.text
+            ? checker.getSymbolAtLocation (n)?.valueDeclaration?.resolve () : undefined;
+        return target !== undefined && r87j3Memo (printer).get (target) === true;
+    };
+    if (!own (unwrapParens (cond.left)) || !own (unwrapParens (inc.operand)) || !counter (unwrapParens (declaration.initializer))
+        || !counter (unwrapParens (cond.right))) {
+        return undefined;
+    }
+    for (const n of identifierIndex (node).get (declaration.name.text) ?? []) {
+        if (n === declaration.name || !own (n) || n === unwrapParens (cond.left) || n === unwrapParens (inc.operand)) {
+            continue;
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (enclosingFunction (n) !== enclosingFunction (node)) {
+            return undefined;
+        }
+        if ((ts.isBinaryExpression (parent) && parent.left === host && parent.operatorToken.kind >= ts.SyntaxKind.FirstAssignment
+            && parent.operatorToken.kind <= ts.SyntaxKind.LastAssignment)
+            || ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent) && [ ts.SyntaxKind.PlusPlusToken, ts.SyntaxKind.MinusMinusToken ].includes (parent.operator)) {
+            return undefined;
+        }
+    }
+    const name = declaration.name.text;
+    return `long ${name} = ${unwrapParens (declaration.initializer).text}; ${name} ${op === ts.SyntaxKind.LessThanToken ? '<' : '<='} ${unwrapParens (cond.right).text}; ${name}++`;
+}
+
+export function installJavaR90j3CounterLoops (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printForStatement !== 'function' || printer._javaR90j3CounterLoopsPatched) {
+        return;
+    }
+    printer._javaR90j3CounterLoopsPatched = true;
+    const upstream = printer.printForStatement.bind (printer);
+    printer.printForStatement = function (node, identation) {
+        let header;
+        try {
+            header = r90j3CounterLoop (printer, node);
+        } catch (e) {
+            header = undefined;
+        }
+        if (header === undefined) {
+            return upstream (node, identation);
+        }
+        const stm = printer.getIden (identation) + printer.FOR_TOKEN + ' ' + printer.CONDITION_OPENING + header
+            + printer.CONDITION_CLOSE + printer.printBlock (node.statement, identation);
+        return printer.printNodeCommentsIfAny (node, identation, stm);
+    };
+}
+
 // ===== r87-j4. const native-split locals already printed List<Object> =====
 // `const parts = s.split (sep)` that an earlier section declared `java.util.List<Object>` holds only the
 // Strings of `String.split`: when 84j8's split audit accepts every use, declare it List<String> (the
