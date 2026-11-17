@@ -21959,6 +21959,8 @@ export function installJ6ReaderLocals (transpiler) {
 //     runs (the printed guard is `v instanceof java.util.List` / Helpers.isArray, and a rest
 //     parameter - a Java array - is excluded), so the local is List<Object> and that write takes
 //     the checkcast its Object source needs.
+let j8EarlyStringSources = 0;
+
 function j8ScalarSourceType (printer, identifier) {
     if (identifier === undefined || !ts.isIdentifier (identifier) || printer.printNode (identifier, 0) !== identifier.text) {
         return undefined;
@@ -21973,6 +21975,11 @@ function j8ScalarSourceType (printer, identifier) {
         return declared;
     }
     const declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    // decided before the source prints (an accumulator declared above it): the source's own String decision
+    if (j8EarlyStringSources > 0 && declared === undefined && declaration !== undefined && ts.isVariableDeclaration (declaration)
+        && r87j8StringElement (printer, identifier, 1, false)) {
+        return 'String';
+    }
     if (declaration === undefined || !ts.isParameterDeclaration (declaration) || declaration.initializer === undefined
         || declaration.dotDotDotToken !== undefined || printer.javaParameterIsWritten?.(declaration) !== false) {
         return undefined;
@@ -25192,7 +25199,16 @@ function r87j8StringElement (printer, node, depth = 0, internalCalls = true) {
         && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
         return true;
     }
-    return r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true;
+    if (r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true) {
+        return true;
+    }
+    // a String copy (section 77j8 (a), `let t: Str = s; if (c) { t = s.slice (0, -3); }`) decided before it prints
+    j8EarlyStringSources++;
+    try {
+        return j8ScalarCopyLocal (printer, declaration) === 'String';
+    } finally {
+        j8EarlyStringSources--;
+    }
 }
 
 // 87j8 (b): `x = r.slice (<literal>[, <literal>])` where r is the local itself or a String source: the printer's
