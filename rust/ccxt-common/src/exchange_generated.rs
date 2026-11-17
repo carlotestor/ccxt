@@ -7801,15 +7801,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (price == Value::Null) {
             return None;
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-        let mut result: Option<String> = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
+        let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut result: Option<String> = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
         if (result.as_deref() == Some("0")) {
-            let mut pricePrecision: Option<String> = self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null));
+            let mut pricePrecision: Option<String> = self.number_to_string(crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null));
             if (pricePrecision.is_none()) {
-                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " priceToPrecision() market ").into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), " has no price precision")));
+                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " priceToPrecision() market ").into()), Value::from((market).symbol.clone())).into()), " has no price precision")));
             }
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " price of ").into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), " must be greater than minimum price precision of ").into()),
-                pricePrecision.as_deref().unwrap_or("null"))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " price of ").into()), Value::from((market).symbol.clone())).into()), " must be greater than minimum price precision of ").into()), pricePrecision.as_deref().unwrap_or("null"))));
         }
         return result;
 }
@@ -7818,15 +7817,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (amount == Value::Null) {
             return None;
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-        let mut result: Option<String> = self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
+        let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut result: Option<String> = self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
         if (result.as_deref() == Some("0")) {
-            let mut amountPrecision: Option<String> = self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
+            let mut amountPrecision: Option<String> = self.number_to_string(crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
             if (amountPrecision.is_none()) {
-                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amountToPrecision() market ").into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), " has no amount precision")));
+                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amountToPrecision() market ").into()), Value::from((market).symbol.clone())).into()), " has no amount precision")));
             }
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amount of ").into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), " must be greater than minimum amount precision of ").into()),
-                amountPrecision.as_deref().unwrap_or("null"))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amount of ").into()), Value::from((market).symbol.clone())).into()), " must be greater than minimum amount precision of ").into()), amountPrecision.as_deref().unwrap_or("null"))));
         }
         return result;
 }
@@ -7835,8 +7833,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (fee == Value::Null) {
             return None;
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-        return self.decimal_to_precision(fee, Value::Int(crate::runtime::ROUND), market.get("precision").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
+        let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return self.decimal_to_precision(fee, Value::Int(crate::runtime::ROUND), crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
     fn currency_to_precision(&self, mut code: Value, mut fee: Value, optional_args: &[Value]) -> Option<String> {
