@@ -3444,15 +3444,15 @@ impl Polymarket {
             })]));
         }
         }
-        let mut response: Value = self.clob_private_post_orders(&[Value::from(bodies)]).await;
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.clob_private_post_orders(&[Value::from(bodies)]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let mut result: Vec<Value> = Vec::new();
-        if (matches!(&response, Value::Arr(_))) {
+        if (response.is_some()) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1443: bool = true;
-                while { if !__for_first_1443 { i += 1; } __for_first_1443 = false; i < (response.len() as i64) } {
+                while { if !__for_first_1443 { i += 1; } __for_first_1443 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 // request echo first so the response's real orderID/status win on overlap
-                let mut rawItem: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut rawItem: Value = response.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut enriched: crate::value::Dict = self.extend(requests.get(i as usize).cloned().unwrap_or(Value::Null), &[rawItem.clone()]).into_dict();
                 let mut parsedItem: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomes.get(i as usize).cloned().unwrap_or(Value::Null)).as_ref()).into_dict();
                 std::sync::Arc::make_mut(&mut parsedItem).insert("info".into(), rawItem); // keep info the raw exchange response
@@ -3460,7 +3460,7 @@ impl Polymarket {
             }
             }
         }  else {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, response, None));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, response__map.map_or(Value::Null, Value::Dict), None));
         }
         return Value::from(result);
         Value::Null

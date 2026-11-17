@@ -2228,11 +2228,11 @@ impl Tokocrypto {
         // the binance backed host is the only source of 24hr statistics, so the
         // result omits the native markets instead of raising for them, unlike
         // the single symbol fetchTicker
-        let mut response: Value = self.binance_get_ticker24hr(&[params]).await;
-        if !(matches!(&response, Value::Arr(_))) {
-            return self.parse_tickers(Value::from(vec![response.clone()]), &[symbols.clone()]);
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.binance_get_ticker24hr(&[params]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        if !(response.is_some()) {
+            return self.parse_tickers(Value::from(vec![response__map.clone().map_or(Value::Null, Value::Dict)]), &[symbols.clone()]);
         }
-        return self.parse_tickers(response, &[symbols]);
+        return self.parse_tickers(response.map_or(Value::Null, Value::Arr), &[symbols]);
         Value::Null
         }).await?))
     }
@@ -2304,15 +2304,15 @@ impl Tokocrypto {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.binance_get_ticker24hr(&[__ws_arg_5]).await;
-        if (matches!(&response, Value::Arr(_))) {
-            let mut firstTicker: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.binance_get_ticker24hr(&[__ws_arg_5]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        if (response.is_some()) {
+            let mut firstTicker: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
             return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &firstTicker, Some(&market));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, response__map.map_or(Value::Null, Value::Dict), Some(&market));
         Value::Null
         }).await?))
     }
