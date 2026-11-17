@@ -22804,8 +22804,37 @@ function r87j3SumWrite (printer, declaration, node) {
     return call !== undefined && call.arguments.every ((a) => r87j3IntegralOperand (printer, declaration, a));
 }
 
+// ral-87j3 R3: a value the printer proves a primitive Java `long` (native long arithmetic such as
+// `5 - s.length` printed `(5L - ((long) s.length()))`): assigning it to a Long box autoboxes, never null.
+// `int`/`double` kinds are refused (int does not box to Long; double would change the box).
+function r87j3LongValue (printer, node) {
+    const n = unwrapParens (node);
+    if (n === undefined || !ts.isBinaryExpression (n) || typeof printer.javaProvableNumericKind !== 'function') {
+        return false;
+    }
+    try {
+        return printer.javaProvableNumericKind (n) === 'long';
+    } catch (e) {
+        return false;
+    }
+}
+
+// a read of a `const n = <x>.length` local: printed `Integer n = <int>.size()/.length()`, never null,
+// so `Long.valueOf (n)` (unboxing + widening) is the same whole number in a Long box
+function r87j3LengthConst (printer, node) {
+    const n = unwrapParens (node);
+    if (n === undefined || !ts.isIdentifier (n) || printer.printNode (n, 0) !== n.text) {
+        return false;
+    }
+    const target = printer.getChecker ().getSymbolAtLocation (n)?.valueDeclaration?.resolve ();
+    return target !== undefined && ts.isVariableDeclaration (target) && ts.isVariableDeclarationList (target.parent)
+        && (target.parent.flags & ts.NodeFlags.Const) !== 0 && target.initializer !== undefined
+        && ts.isPropertyAccessExpression (target.initializer) && target.initializer.name.text === 'length';
+}
+
 function r87j3SumCounter (printer, declaration) {
-    if (!ts.isIdentifier (declaration.name) || !r87j3IntLiteral (declaration.initializer)
+    if (!ts.isIdentifier (declaration.name) || !(r87j3IntLiteral (declaration.initializer) || r87j3LongValue (printer, declaration.initializer)
+        || r87j3SumWrite (printer, declaration, declaration.initializer))
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.declarations.length !== 1
         || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement) {
         return false;
@@ -22829,7 +22858,8 @@ function r87j3SumCounter (printer, declaration) {
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
-                if (r87j3SumWrite (printer, declaration, parent.right)) {
+                if (r87j3SumWrite (printer, declaration, parent.right) || r87j3LongValue (printer, parent.right)
+                    || r87j3LengthConst (printer, parent.right)) {
                     sumWrites++;
                 } else if (!r87j3IntLiteral (parent.right)) {
                     return false;
@@ -22844,14 +22874,15 @@ function r87j3SumCounter (printer, declaration) {
             nativeUse = true;
         }
     }
-    if (sumWrites === 0 || !nativeUse) {
+    if ((sumWrites === 0 && !r87j3SumWrite (printer, declaration, declaration.initializer)) || !nativeUse) {
         return false;
     }
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
     return isSafeToNarrow (printer, declaration, name, 'Long', isProFile, {
         nonNull: true,
         writeOnly: true,
-        writeOk: (rhs) => r87j3IntLiteral (rhs) || r87j3SumWrite (printer, declaration, rhs),
+        writeOk: (rhs) => r87j3IntLiteral (rhs) || r87j3SumWrite (printer, declaration, rhs) || r87j3LongValue (printer, rhs)
+            || r87j3LengthConst (printer, rhs),
     });
 }
 
@@ -22891,7 +22922,17 @@ export function installJavaR87j3SumCounterLocals (transpiler) {
             return printed;
         }
         const literal = printer.printNode (declaration.initializer, 0).trim ();
-        if (!/^\d+$/.test (literal) || printed.slice (at + marker.length).trim () !== literal) {
+        if (printed.slice (at + marker.length).trim () !== literal) {
+            return printed;
+        }
+        if (!/^\d+$/.test (literal)) {
+            // a native long initializer (R3) autoboxes as printed; a base sum takes the Long checkcast
+            if (r87j3LongValue (printer, declaration.initializer)) {
+                return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + literal;
+            }
+            if (r87j3SumWrite (printer, declaration, declaration.initializer) && /^this\.sum\(/.test (literal)) {
+                return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + '(Long) ' + literal;
+            }
             return printed;
         }
         return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + literal + 'L';
@@ -22904,6 +22945,12 @@ export function installJavaR87j3SumCounterLocals (transpiler) {
                 const left = printer.printNode (node.left, 0);
                 if (r87j3IntLiteral (node.right)) {
                     return `${left} = ${printer.printNode (unwrapParens (node.right), 0)}L`;
+                }
+                if (r87j3LongValue (printer, node.right)) {
+                    return `${left} = ${printer.printNode (node.right, 0)}`;
+                }
+                if (r87j3LengthConst (printer, node.right)) {
+                    return `${left} = Long.valueOf(${printer.printNode (node.right, 0)})`;
                 }
                 return `${left} = (Long) ${printer.printNode (node.right, 0)}`;
             }

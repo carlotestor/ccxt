@@ -5976,12 +5976,16 @@ function mapLocalsSelfTest (): string[] {
             "    walk (xs: any[], step: number) { const n = xs.length; let i = 0; while (i < n) { i = this.sum (i, 1); } return i; }",
             "    neg (xs: any[], p: Dict) { const n = xs.length; let j = 0; while (j < n) { j = this.sum (j, this.safeValue (p, 'k')); } return j; }",
             "    arg (p: Dict) { let k = 0; k = this.sum (k, 1); return this.safeValue (p, k); }",
+            "    cap (xs: any[], p: Dict) { const n = xs.length; const a = this.safeInteger (p, 'a', 1); let e = this.sum (a, 2); if (e > n) { e = n; } return e; }",
+            "    left (s: string) { let d = 0; if (s.length < 5) { d = 5 - s.length; } return d > 2; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j3b).content as string;
         if (!/Long i = 0L;/.test(out) || !/i = \(Long\) this\.sum\(i, 1\)/.test(out)) problems.push("ral-87j3: 'i' (sum-of-integral counter) must print Long with a checkcast sum write");
         if (!/Object j = 0;/.test(out)) problems.push("ral-87j3: 'j' (sum with an Object operand) must stay Object");
         if (!/Object k = 0;/.test(out)) problems.push("ral-87j3: 'k' (no comparison / arithmetic use) must stay Object");
+        if (!/Long e = \(Long\) this\.sum\(a, 2\);/.test(out) || !/e = Long\.valueOf\(n\)/.test(out)) problems.push("ral-87j3 R3: 'e' (sum initializer, length-const write) must print Long");
+        if (!/Long d = 0L;/.test(out)) problems.push("ral-87j3 R3: 'd' (native long write) must print Long");
     } catch (e: any) {
         problems.push(`ral-87j3 R2 self-test threw: ${e.message}`);
     } finally {
