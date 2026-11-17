@@ -18582,6 +18582,8 @@ const JAVA_VENUE_PARAM_TYPES = {
     'any[]': 'java.util.List<Object>',
     'List': 'java.util.List<Object>',
     'Dict[]': 'java.util.List<Object>',
+    // a venue-only `string[]` parameter: every caller hands a bare List (literal, safeList, List<Object> local)
+    'string[]': 'java.util.List<Object>',
 };
 const JAVA_VENUE_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/])?[a-z0-9_]+\.ts$/;
 const JAVA_LIB_SOURCE_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
