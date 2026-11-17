@@ -1057,10 +1057,10 @@ public partial class htx : ccxt.htx
         {
             marketCode = this.safeStringLower(market, "lowercaseId");
         }
-        object baseId = null;
+        string? baseId = null;
         if ((market != null))
         {
-            baseId = (market != null && market.ContainsKey("baseId") ? market["baseId"] : null);
+            baseId = ((string)(market != null && market.ContainsKey("baseId") ? market["baseId"] : null));
         }
         object prefix = orderType;
         messageHash = prefix;
@@ -1087,7 +1087,7 @@ public partial class htx : ccxt.htx
             // inverse futures Example: BCH/USD:BCH-220408
             if ((baseId != null))
             {
-                channel = ((object)(prefix == null ? null : prefix + "." + ((string)baseId).ToLower()));
+                channel = ((object)(prefix == null ? null : prefix + "." + baseId.ToLower()));
                 messageHash = channel;
             } else
             {
@@ -1111,19 +1111,19 @@ public partial class htx : ccxt.htx
     public virtual List<object> getV5LinearChannelAndMessageHash(string? topic, IDictionary<string, object>? market = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object contractCode = null;
+        string? contractCode = null;
         if ((market != null))
         {
-            contractCode = (market != null && market.ContainsKey("id") ? market["id"] : null);
+            contractCode = ((string)(market != null && market.ContainsKey("id") ? market["id"] : null));
         } else
         {
             contractCode = this.safeString(parameters, "contract_code", "*");
         }
         string channel = topic;
         string messageHash = topic;
-        if (((contractCode != null)) && (!(contractCode is "*")))
+        if (((contractCode != null)) && (contractCode != "*"))
         {
-            messageHash = ((topic + ".") + ((string)contractCode).ToLower());
+            messageHash = ((topic + ".") + contractCode.ToLower());
         }
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "contract_code");
         Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {

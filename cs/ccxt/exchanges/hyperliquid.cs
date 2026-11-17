@@ -2197,7 +2197,7 @@ public partial class hyperliquid : Exchange
                 { "type", "userAbstraction" },
                 { "user", userAddress },
             };
-            object response = null;
+            string? response = null;
             try
             {
                 // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
@@ -2205,7 +2205,7 @@ public partial class hyperliquid : Exchange
                 object rawResponse = await this.publicPostInfo(this.extend(paramsEnableUnifiedMargin, request));
                 if ((rawResponse is string))
                 {
-                    response = rawResponse;
+                    response = ((string)rawResponse);
                 }
             } catch(Exception e)
             {
@@ -2220,9 +2220,9 @@ public partial class hyperliquid : Exchange
             //
             if ((response != null))
             {
-                response = ((string)response).Replace("\"", (string)"");
-                response = ((string)response).Replace("\"", (string)"");
-                enableUnifiedMargin = (response is "unifiedAccount");
+                response = response.Replace("\"", (string)"");
+                response = response.Replace("\"", (string)"");
+                enableUnifiedMargin = response == "unifiedAccount";
             }
             // don't cache this result if this is a different addresss
             this.options["enableUnifiedMargin"] = enableUnifiedMargin; // cache this for future calls

@@ -5824,7 +5824,7 @@ public partial class gate : Exchange
             priceResolved = 0;
         }
         object contractAmount = 0;
-        object signedAmount = null;
+        string? signedAmount = null;
         bool useGateFuturesDecimalSize = false;
         if ((contract == true))
         {
@@ -5835,7 +5835,7 @@ public partial class gate : Exchange
                 useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize(market);
                 if (!useGateFuturesDecimalSize)
                 {
-                    contractAmount = JsParse.parseInt(((string)signedAmount));
+                    contractAmount = JsParse.parseInt(signedAmount);
                 }
             }
         }
