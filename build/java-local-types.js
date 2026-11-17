@@ -22055,8 +22055,10 @@ function r84j1BoxElementLocal (printer, declaration) {
         return false;
     }
     const read = unwrapParens (declaration.initializer);
+    // (R2, ral-90j1) a non-negative integer literal index prints the same bounds-checked List read
     if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
-        || !printer.javaPrimitiveCounterIndex (read.argumentExpression)) {
+        || !(printer.javaPrimitiveCounterIndex (read.argumentExpression)
+            || (ts.isNumericLiteral (read.argumentExpression) && /^[0-9]+$/.test (read.argumentExpression.text)))) {
         return false;
     }
     const checker = printer.getChecker ();
@@ -22071,7 +22073,10 @@ function r84j1BoxElementLocal (printer, declaration) {
     const scope = enclosingFunction (declaration);
     const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
     const name = String (declaration.name.text);
-    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+    // (R2, ral-90j1) a name bound by several sibling `const` declarations is decided per binding, as 87j1 r5
+    // does for String elements: every use below is matched to THIS binding by checker symbol
+    if (index === undefined || index.parameterNames.has (name)
+        || ((index.bindingCounts.get (name) ?? 0) !== 1 && !r87j1SiblingConstBindings (index, name))
         || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, 'java.util.Map<String, Object>')) {
         return false;
     }
