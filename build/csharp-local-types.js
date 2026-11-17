@@ -10895,7 +10895,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -20537,4 +20537,81 @@ function sumCounterLocal87c7 (csharp, node, context) {
         return false;
     }
     return sums > 0;
+}
+
+// ===== ral-87c7 R3: element read of a local list-bucket map (`const g = byKey[k]`) =====
+// `const byKey: Dict = {}` (printed `Dictionary<string, object>`) whose every element write is
+// `byKey[k] = []` or `byKey[k] = <local printed List<object>>`, and which never escapes (only
+// element reads / writes and `k in byKey` tests): each value is a List<object>, so the read
+// prints `(byKey.ContainsKey(k) ? byKey[k] : null)` holding a List<object> box or null. The
+// local then names `List<object>` behind the exact cast (castWhole: the printed initializer is a
+// conditional), and its `.length` / `[j]` reads print the native list forms.
+function listBucketMapReadLocal87c7 (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined) {
+        return undefined;
+    }
+    const read = stripParens (declaration.initializer);
+    if (read?.kind !== ts.SyntaxKind.ElementAccessExpression || stripParens (read.expression)?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const index = indexScope (csharp, scope);
+    const mapName = stripParens (read.expression).text;
+    const maps = index.declarations.get (mapName) ?? [];
+    if (maps.length !== 1 || index.parameterNames.has (mapName) || maps[0].parent?.declarations?.length !== 1 || maps[0].getStart () >= read.getStart ()) {
+        return undefined;
+    }
+    const map = maps[0];
+    const mapInit = stripParens (map.initializer);
+    if (mapInit?.kind !== ts.SyntaxKind.ObjectLiteralExpression || mapInit.properties.length !== 0) {
+        return undefined;
+    }
+    const listValue = (value) => {
+        const v = stripParens (value);
+        if (v?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            return v.elements.length === 0;
+        }
+        return v?.kind === ts.SyntaxKind.Identifier && csharpTypeOfValue (csharp, v, ctx) === 'List<object>';
+    };
+    for (const use of index.identifiers.get (mapName) ?? []) {
+        if (use === map.name || isNotAUse (use)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, map, use) !== true) {
+            return undefined;
+        }
+        let node = use;
+        while (node.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            node = node.parent;
+        }
+        const parent = node.parent;
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === node) {
+            const holder = parent.parent;
+            if (holder?.kind === ts.SyntaxKind.BinaryExpression && holder.left === parent && ASSIGNMENT_OPERATORS.includes (holder.operatorToken.kind)) {
+                if (holder.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !listValue (holder.right)) {
+                    return undefined;
+                }
+                continue;
+            }
+            if (holder?.kind === ts.SyntaxKind.DeleteExpression || holder?.kind === ts.SyntaxKind.PrefixUnaryExpression || holder?.kind === ts.SyntaxKind.PostfixUnaryExpression) {
+                return undefined;
+            }
+            continue; // an element read
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.right === node && parent.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            continue;
+        }
+        // `this.safeList (map, k, [])` reads an element: the List<object> box or the default list
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments[0] === node && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && parent.expression.name?.text === 'safeList') {
+            continue;
+        }
+        return undefined;
+    }
+    const type = 'List<object>';
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type, castWhole: true } : undefined;
 }

@@ -12817,5 +12817,12 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
     const escaped = (transpiler as any).transpileCSharp ('class Test {\n sum (a, b) { return a; }\n safeInteger (o, k, d = undefined) { return d; }\n'
         + ' f (ids: string[]) { const n = ids.length; const size = this.safeInteger ({}, \'x\', 50); let start = 0; let end = this.sum (start, size); if (end > n) { end = n; } return [ start, end ]; }\n}').content as string;
     if (!escaped.includes ('object end = this.sum(start, size);')) problems.push (`87c7 Int64 sum bound: escaping read retyped: ${escaped.replace (/\n/g, ' | ').slice (-500)}`);
+    // ral-87c7 R3: element read of a local map whose every element write is a list
+    const bucketBody = (tail: string) => 'class Test {\n safeList (o, k, d = undefined) { return d; }\n hash (a, b, c) { return a; }\n'
+        + ' f (keys: string[], rows: string[]) { const byKey = {}; for (let i = 0; i < keys.length; i++) { const k = keys[i]; if (!(k in byKey)) { byKey[k] = []; } const g = this.safeList (byKey, k, []); g.push (rows[i]); byKey[k] = g; }' + tail + ' }\n}';
+    const bucket = (transpiler as any).transpileCSharp (bucketBody (' const out = []; for (let i = 0; i < keys.length; i++) { const grouped = byKey[keys[i]]; for (let j = 0; j < grouped.length; j++) { out.push (grouped[j]); } } return out;')).content as string;
+    if (!bucket.includes ('List<object> grouped = ((List<object>)(')) problems.push (`87c7 list-bucket map read: ${bucket.replace (/\n/g, ' | ').slice (-500)}`);
+    const leaked = (transpiler as any).transpileCSharp (bucketBody (' byKey[\'x\'] = 1; const grouped = byKey[keys[0]]; return this.hash (grouped.length, 1, 1);')).content as string;
+    if (leaked.includes ('List<object> grouped =')) problems.push (`87c7 list-bucket map read: non-list element write retyped: ${leaked.replace (/\n/g, ' | ').slice (-500)}`);
     return problems;
 }
