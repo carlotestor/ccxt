@@ -4132,7 +4132,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             let mut grouped: Value = outcomesByMarket.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut grouped, crate::Value::from(outcomeObj.as_ref()));
+            if let Value::Arr(__a) = &mut grouped { std::sync::Arc::make_mut(__a).push(crate::Value::from(outcomeObj.as_ref())); };
             if let Some(__k) = key.as_str() { outcomesByMarket.insert(__k.to_string(), grouped.clone()); }
             outcomesByMarket.insert(crate::runtime::stringify_param(&key), grouped.clone());
         }
@@ -4142,8 +4142,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1367: bool = true;
             while { if !__for_first_1367 { i += 1; } __for_first_1367 = false; i < (marketKeys.len() as i64) } {
-            let mut key: Option<String> = marketKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut grouped: Value = outcomesByMarket.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut key: Value = marketKeys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut grouped: Value = outcomesByMarket.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut firstOutcome: crate::value::Dict = self.safe_dict(grouped, Value::Int(0), &[]).into_dict();
             let mut info: crate::value::Dict = self.safe_dict_k(&firstOutcome, "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4163,9 +4163,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1369: bool = true;
             while { if !__for_first_1369 { i += 1; } __for_first_1369 = false; i < (marketKeys.len() as i64) } {
-            let mut key: Option<String> = marketKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut key: Value = marketKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut response: Value = responses.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut grouped: Value = outcomesByMarket.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut grouped: Value = outcomesByMarket.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1368: bool = true;
