@@ -9298,9 +9298,9 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var hf any = nil
+	var hf bool
 	hfparamsRequestVariable := this.HandleHfAndParams(paramsRequest)
-	hf = hfparamsRequestVariable[0]
+	hf = hfparamsRequestVariable[0] == true
 	paramsRequest = hfparamsRequestVariable[1]
 	var marginMode any = nil
 	var marginModePtr *string = nil
@@ -9318,7 +9318,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 			return this.SafeString(this.Options["marginModes"], marginMode, marginMode)
 		}()
 	}
-	if (hf == true) && (symbol == nil) {
+	if (hf) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol parameter for hf or margin orders"))
 	}
 	var market map[string]any = nil
@@ -9330,7 +9330,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 	var parseResponseData bool = false
 	var response map[string]any = nil
 	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
-	if hf == true {
+	if hf {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
 		if limit != nil {
 			request["limit"] = limit
@@ -12248,9 +12248,9 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		return nil
 	}()
 	paramsRequest = utaparamsRequestVariable[1]
-	var hf any = nil
+	var hf bool
 	hfparamsRequestVariable := this.HandleHfAndParams(paramsRequest)
-	hf = hfparamsRequestVariable[0]
+	hf = hfparamsRequestVariable[0] == true
 	paramsRequest = hfparamsRequestVariable[1]
 	var requestedType any = nil
 	if uta == true {
@@ -12284,7 +12284,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	var typeVar *string = nil
 	typeVar = this.SafeString(accountsByType, requestedType, requestedType)
 	var maxLimit int = 500 // for spot non-uta and margin
-	if hf == true {
+	if hf {
 		maxLimit = 200
 	} else if typeVar != nil && *typeVar == "contract" {
 		maxLimit = 50
@@ -12325,7 +12325,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	if limit != nil {
 		if typeVar != nil && *typeVar == "contract" {
 			request["maxCount"] = limit
-		} else if hf == true {
+		} else if hf {
 			request["limit"] = limit
 		} else {
 			if *limit < 10 {
@@ -12344,7 +12344,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 			panic(r3.Err)
 		}
 		response = r3.Value
-	} else if hf == true {
+	} else if hf {
 		if marginMode != nil {
 
 			r4 := <-this.PrivateGetHfMarginAccountLedgers(this.Extend(request, paramsRequest))

@@ -5811,16 +5811,16 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 	query = this.SafeDict(this.HandlePublicAddress("transfer", query), 1, map[string]any{})
 	var useSendAsset bool = (transferMethod != nil && *transferMethod == "sendAsset")
 	if transferMethod == nil {
-		var isUnified any = nil
+		var isUnified bool
 		r2 := <-this.IsUnifiedEnabledAsync("transfer", masterAddress, false, query)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
 		isUnifiedqueryVariableRecv, _ := r2.Value, r2.Value != nil
 		var isUnifiedqueryVariable []any = isUnifiedqueryVariableRecv
-		isUnified = GetValue(isUnifiedqueryVariable, 0)
+		isUnified = GetValue(isUnifiedqueryVariable, 0) == true
 		query = isUnifiedqueryVariable[1]
-		useSendAsset = (isUnified == true)
+		useSendAsset = (isUnified)
 	}
 	if useSendAsset {
 		var paramsSendAsset any = query
