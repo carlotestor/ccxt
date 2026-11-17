@@ -23667,7 +23667,7 @@ function jsonParseDictLocal92c7 (csharp, declaration, context) {
 // is the fresh outDict, so the exact cast names it and the map use then prints on the typed local.
 function omitFirstMapUseLocal93c5 (csharp, declaration, context) {
     if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
-            || declaration.type !== undefined || tsSourceMethodDeclarationCount ('omit') !== 0) {
+            || !omitLocalAnnotationIsMap93c5 (declaration.type) || tsSourceMethodDeclarationCount ('omit') !== 0) {
         return undefined;
     }
     const call = stripParens (declaration.initializer);
@@ -23715,6 +23715,11 @@ function omitFirstMapUseLocal93c5 (csharp, declaration, context) {
     const type = 'Dictionary<string, object>';
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, cast: type } : undefined;
+}
+// R2: no annotation, or the `Dict` alias (a map annotation names the box the omit result already is)
+function omitLocalAnnotationIsMap93c5 (type) {
+    return type === undefined || (type.kind === ts.SyntaxKind.TypeReference && type.typeName?.kind === ts.SyntaxKind.Identifier
+        && type.typeName.text === 'Dict' && (type.typeArguments ?? []).length === 0);
 }
 // the use runs whenever the statement does: a variable / expression statement or an `if` condition,
 // with no conditional arm, short-circuit right side or function boundary on the way up
