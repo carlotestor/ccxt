@@ -5847,7 +5847,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j6ReaderLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10300,6 +10300,35 @@ function javaR87j8LocalsSelfTest (): string[] {
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-90j6: reader results with native uses: R1 safeList* used by length/join -> List<String>; R2 `as string[]`
+// safeList read by length/index -> List<String>; R4 safeList* re-written from a const list literal -> List<Object>. Written / value-used locals keep Object.
+function javaR90j6ReaderLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zz90j6selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        `export default class zz90j6selftest${process.pid} extends Exchange {`,
+        "    r1 (params = {}) { const tt = this.safeList (params, 'tags', []); const r = {}; if (tt.length > 0) { r['t'] = tt.join (','); } return r; }",
+        "    r2 (params = {}) { const ok: string[] = this.safeList (params, 'success', []) as string[]; const r = []; for (let i = 0; i < ok.length; i++) { r.push (ok[i]); } return r; }",
+        "    r4 (params = {}) { let ll = this.safeList (params, 'list', []); const acc = []; for (let i = 0; i < ll.length; i++) { acc.push (ll[i]); } ll = acc; return ll; }",
+        "    neg (params = {}) { let ww = this.safeList (params, 'w', []); if (ww.length > 0) { ww = this.safeValue (params, 'x'); } return ww.join (','); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/java\.util\.List<String> tt = \(java\.util\.List<String>\) this\.safeList\(/.test(out) || !/tt\.size\(\) > 0/.test(out) || !/String\.join\(",", tt\)/.test(out)) problems.push("ral-90j6 R1: 'tt' (safeList read by length + join) must print List<String> with native size()/String.join");
+        if (!/java\.util\.List<String> ok = \(java\.util\.List<String>\)\(this\.safeList\(/.test(out) || !/i < ok\.size\(\)/.test(out)) problems.push("ral-90j6 R2: 'ok' (as string[] reader read by length/index) must print List<String> with a native size()");
+        if (!/java\.util\.List<Object> ll = \(java\.util\.List<Object>\) this\.safeList\(/.test(out) || !/i < ll\.size\(\)/.test(out)) problems.push("ral-90j6 R4: 'll' (safeList re-written from a const list) must print List<Object> with a native size()");
+        if (!/\bObject ww = /.test(out)) problems.push("ral-90j6: 'ww' (re-written from safeValue) must stay Object");
+    } catch (e) {
+        problems.push(`ral-90j6 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
