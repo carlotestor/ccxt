@@ -379,6 +379,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     ...J92J7_LIST_RETURN_METHODS,
     // bitfinex parseOrderFlags: its one return is safeList (dict, key, [ .. ]), a List on every path
     'parseOrderFlags',
+    // every parseSettlements declaration already prints List<Object> and returns its own List `result`
+    'parseSettlements',
     // base reduceFeesByCurrency returns its own `result: any[]` list (arrayConcat writes cast back to List); no override
     'reduceFeesByCurrency',
 ]);

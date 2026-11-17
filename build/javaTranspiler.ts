@@ -6343,6 +6343,23 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r93j7a, { force: true });
     }
+    // parseSettlements is List<Object> on every declaration: its result local takes no declaration cast
+    const r93j7b = path.join(process.cwd(), 'ts', 'src', `zz93j7bselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7b, [
+            "import Exchange from './binance.js';",
+            "import type { Dict, Market } from './base/types.js';",
+            'export default class zz93j7bselftest extends Exchange {',
+            "    zzSettle (response: Dict[], market: Market) { const settlements = this.parseSettlements (response, market); return settlements.length; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7b).content as string;
+        if (!/List<Object> settlements = this\.parseSettlements\(/.test(out) || !/= settlements\.size\(\)|return settlements\.size\(\)/.test(out)) problems.push("ral-93j7: a parseSettlements result must print List<Object> without a cast and a native size()\n" + out.split('\n').filter((l) => l.includes('settlements')).join('\n'));
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7b, { force: true });
+    }
     return problems;
 }
 
