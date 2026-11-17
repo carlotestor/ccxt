@@ -4086,7 +4086,7 @@ function javaLocalTypeOf (printer, declaration, narrowed) {
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const info0 = localInitializerType (printer, declaration, isProFile, narrowed);
     // ral-90j7 R1: `delete x[k]` prints `((Map<String,Object>)x).remove (k)`, legal on a Map-declared local
-    const info = info0?.type === JAVA_STRUCTURE_TYPE ? { ...info0, r90j7DeleteOk: true } : info0;
+    const info = info0?.type === JAVA_STRUCTURE_TYPE ? { ...info0, r90j7DeleteOk: true, writeOk: r90j7MapWriteOk (printer, sourceName, info0.writeOk) } : info0;
     if (info === undefined) {
         return undefined;
     }
@@ -23981,6 +23981,22 @@ function r87j8StringListRead (printer, value) {
         return false;
     }
     return numeric && /^(java\.util\.)?List<String>$/.test (declared.trim ());
+}
+
+// ral-90j7 R4: a Map-declared local may be rewritten by `x = this.omit (x, keys)`: the hand-written
+// `Map<String, Object> omit (Map<String, Object>, ..)` overload binds on the Map receiver and returns a fresh Map
+function r90j7MapWriteOk (printer, selfName, upstream) {
+    return (right) => {
+        if (typeof upstream === 'function' && upstream (right) === true) {
+            return true;
+        }
+        const call = unwrapParens (right);
+        if (!isThisCall (call) || String (call.expression.name.text) !== 'omit' || call.arguments.length < 2) {
+            return false;
+        }
+        const first = unwrapParens (call.arguments[0]);
+        return first !== undefined && ts.isIdentifier (first) && first.text === selfName && isBaseDeclaration (printer, call);
+    };
 }
 
 // ===== ral-90j7 R1. `delete x[k]` on a Map-declared local =====
