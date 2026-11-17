@@ -6243,6 +6243,23 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r92j7c, { force: true });
     }
+    // parseTickers prints Map (filterByArrayTickers -> indexBy): a result handed to a Map parameter needs no cast
+    const r92j7d = path.join(process.cwd(), 'ts', 'src', `zz92j7dselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7d, [
+            "import Exchange from './abstract/gemini.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz92j7dselftest extends Exchange {',
+            "    zzTickers (response: any[], keys: string[]): Dict { const result = this.parseTickers (response); return this.removeKeysFromDict (result, keys); }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7d).content as string;
+        if (!/Map<String, ?Object> result = this\.parseTickers\(/.test(out) || !/removeKeysFromDict\(result, keys\)/.test(out)) problems.push("ral-92j7: a parseTickers result handed to a Map parameter must print Map<String, Object> with no cast");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7d, { force: true });
+    }
     return problems;
 }
 

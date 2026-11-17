@@ -685,9 +685,12 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 const J90J7_MAP_RETURN_METHODS = [ 'setMarkets', 'safePredictionPosition', 'parsePredictionPosition' ];
 // base safePosition returns its own Map parameter after in-place writes (no override); pro kucoin
 // parseWsUtaPosition returns this.safePosition ({..}). Result locals are read by keys / delete
-const J92J7_MAP_RETURN_METHODS = [ 'safePosition', 'parseWsUtaPosition', 'parseTradingBalance' ];
+const J92J7_MAP_RETURN_METHODS = [ 'safePosition', 'parseWsUtaPosition', 'parseTradingBalance', 'parseTickers', 'filterByArrayTickers' ];
 // okx parseTradingBalance returns this.safeBalance (..) (a Balances view, itself a Map<String, Object>)
-const J92J7_MAP_VIEW_RETURNS = new Set ([ 'safeBalance' ]);
+const J92J7_MAP_VIEW_RETURNS = new Set ([ 'safeBalance', 'indexBy' ]);
+// base parseTickers / hollaex parseTickers return filterByArrayTickers, which returns this.indexBy (..) (a Map);
+// a result local takes Map only when it feeds a Map core parameter
+const J92J7_MAP_GATED_RETURNS = [ 'parseTickers', 'filterByArrayTickers' ];
 const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS, ...J90J7_MAP_RETURN_METHODS, ...J92J7_MAP_RETURN_METHODS ]);
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
@@ -1753,6 +1756,9 @@ function syncCoreCallType (printer, node) {
     }
     // the List returns typed for list readers stay Object at a pass-through result local
     if (J92J7_LIST_RETURN_METHODS.includes (methodName) && !j92j7ReadAsList (printer, node)) {
+        return undefined;
+    }
+    if (J92J7_MAP_GATED_RETURNS.includes (methodName) && !j92j7FeedsMapSlot (printer, node)) {
         return undefined;
     }
     // a generated venue callee's own printed signature decides here (printer rule), not the
@@ -3122,6 +3128,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             return undefined;
         }
         return resolvesToMethodNamed (printer, initializer, name) ? { type: JAVA_ARRAY_TYPE } : undefined;
+    }
+    // decided from the table, not the previous generation's signature on disk
+    if (!asserted && J92J7_MAP_GATED_RETURNS.includes (name)) {
+        return j92j7FeedsMapSlot (printer, initializer) && resolvesToMethodNamed (printer, initializer, name) ? { type: JAVA_STRUCTURE_TYPE } : undefined;
     }
     const venue = asserted ? undefined : venueCallJavaType (printer, initializer);
     if (venue !== undefined) {
@@ -25587,6 +25597,33 @@ function j92j7ReadAsList (printer, call) {
             }
             if ((ts.isPropertyAccessExpression (n.parent) && n.parent.expression === n && n.parent.name.text === 'length')
                 || (ts.isElementAccessExpression (n.parent) && n.parent.expression === n)) {
+                return true;
+            }
+        }
+    } catch (e) {
+        return false;
+    }
+    return false;
+}
+
+// the declaration whose initializer is `call` has a use of its own binding handed to a Map-typed core parameter
+function j92j7FeedsMapSlot (printer, call) {
+    const declaration = call.parent;
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
+        return false;
+    }
+    try {
+        const checker = printer.getChecker ();
+        const symbol = checker.getSymbolAtLocation (declaration.name);
+        const scope = enclosingFunction (declaration);
+        for (const n of (scope === undefined ? [] : identifierIndex (scope).get (declaration.name.text) ?? [])) {
+            const parent = n.parent;
+            if (n === declaration.name || parent === undefined || !ts.isCallExpression (parent) || checker.getSymbolAtLocation (n) !== symbol) {
+                continue;
+            }
+            const i = parent.arguments.indexOf (n);
+            const types = i < 0 || typeof printer.javaNativeCallParameterTypes !== 'function' ? [] : printer.javaNativeCallParameterTypes (parent);
+            if (i >= 0 && /^(java\.util\.)?Map<String, ?Object>$/.test (String (types[i] ?? ''))) {
                 return true;
             }
         }
