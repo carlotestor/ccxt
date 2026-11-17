@@ -25632,3 +25632,121 @@ export function installJavaR92j2MarketTypeParams (transpiler) {
     };
 }
 
+// ===== 92j2 R2. single hand-off into a typed fixed Map parameter slot =====
+// `const x = <conditional | element read>` whose ONLY use (checker symbol of this binding) is an argument,
+// in the very next statement, of a this-call whose parameter has no default and prints
+// `Map<String, Object>`: the printer casts that argument `(Map<String, Object>) (x)`. The checkcast
+// moves to the declaration (same value, nothing runs in between), the slot then takes the declared
+// local bare, so the cast spellings stay flat and the hand-off is a typed use.
+function r92j2SlotHandOff (printer, declaration, type) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || !ts.isVariableStatement (declaration.parent.parent)
+        || (declaration.parent.flags & ts.NodeFlags.Const) === 0 || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !(ts.isConditionalExpression (init) || (ts.isElementAccessExpression (init)
+        && !ts.isStringLiteralLike (init.argumentExpression) && !ts.isNumericLiteral (init.argumentExpression)))) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || dataflowTypeTokenCollides (index, type)) {
+        return undefined;
+    }
+    const uses = r90j2BindingUses (printer, declaration);
+    if (uses === undefined || uses.length !== 1) {
+        return undefined;
+    }
+    const use = uses[0];
+    const call = use.parent;
+    if (call === undefined || !ts.isCallExpression (call) || !call.arguments.includes (use) || !isThisCall (call)
+        || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    let param;
+    let slot;
+    try {
+        const method = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.();
+        param = method?.parameters?.[call.arguments.indexOf (use)];
+        slot = printer.javaNativeCallParameterTypes?.(call)?.[call.arguments.indexOf (use)];
+    } catch (e) {
+        return undefined;
+    }
+    if (param === undefined || param.initializer !== undefined || param.questionToken !== undefined || param.dotDotDotToken !== undefined
+        || r77j2Normalize (slot) !== type) {
+        return undefined;
+    }
+    const statement = declaration.parent.parent;
+    const block = statement.parent;
+    const next = block?.statements?.[block.statements.indexOf (statement) + 1];
+    let current = use;
+    while (current !== undefined && current !== next && current !== block) {
+        current = current.parent;
+    }
+    return current === next && next !== undefined ? { type, cast: JAVA_MAP_LOCAL_CAST } : undefined;
+}
+
+function r92j2InstallSlotHandOff (transpiler, type, flag) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || typeof printer.javaNativeArgumentAlreadyTyped !== 'function'
+        || printer[flag]) {
+        return;
+    }
+    printer[flag] = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let info;
+        try {
+            info = (typed.has (declaration) || r87j6HeadIsObject (printer, declaration, upto)) ? r92j2SlotHandOff (printer, declaration, type) : undefined;
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const rest = printed.slice (marker.length);
+        const semi = rest.lastIndexOf (';');
+        const body = semi === -1 ? rest : rest.slice (0, semi);
+        const tail = semi === -1 ? '' : rest.slice (semi);
+        if (tail !== '' && tail.trim () !== ';') {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        return r87j6Head (printer, declaration, identation, info.type) + `${info.cast} (${body})${tail}`;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // the slot takes the declared local bare
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, slotType) {
+        if (upstreamTyped (arg, slotType)) {
+            return true;
+        }
+        if (arg === undefined || !ts.isIdentifier (arg) || r77j2Normalize (slotType) !== type) {
+            return false;
+        }
+        try {
+            const declaration = printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve ();
+            return declaration !== undefined && typed.get (declaration) === type && printer.printNode (arg, 0) === arg.text;
+        } catch (e) {
+            return false;
+        }
+    };
+}
+
+export function installJavaR92j2MapSlotHandOff (transpiler) {
+    r92j2InstallSlotHandOff (transpiler, JAVA_MAP_TYPE, '_javaR92j2MapSlotHandOffPatched');
+}
