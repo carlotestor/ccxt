@@ -7370,7 +7370,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             if (parent.left === n) {
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
-                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context);
+                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context) ?? nullSeedStringConcatWriteType90c4 (csharp, declaration, parent.right, context);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
@@ -11244,6 +11244,59 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
         guardedConcatReads.add (n);
     }
     return ok;
+}
+
+// ral-90c4 R4 use gate: the seed is compared `===` / `!==` with a string literal somewhere in its function
+// (`(x is "lit")` on object becomes the native `x == "lit"` once typed)
+function nullSeedLiteralCompare90c4 (declaration) {
+    const name = declaration.name.text;
+    const scope = enclosingFunction (declaration);
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.BinaryExpression && (n.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken || n.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken)) {
+            const l = stripParens (n.left);
+            const r = stripParens (n.right);
+            const isName = (x) => x?.kind === ts.SyntaxKind.Identifier && x.text === name;
+            const isLit = (x) => x?.kind === ts.SyntaxKind.StringLiteral && x.text.length > 0 && !/^[-+.0-9]|^(NaN|Infinity)$/.test (x.text);
+            if ((isName (l) && isLit (r)) || (isName (r) && isLit (l))) {
+                found = true;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
+    return found;
+}
+
+// ral-90c4 R4: a write `x = a + r1 + …` into a Str null seed whose leftmost leaf `a` is a local the classifier
+// types `string` / `string?`: the left leaf selects add(string, *) / the native `+` / the printer's null guard
+// `(a == null ? null : a + …)`, all of static type string, so the write needs no cast and the value is the
+// same text the `object` declaration received
+function nullSeedStringConcatWriteType90c4 (csharp, declaration, node, context) {
+    if (!nullSeedGuardedConcat90c4 (declaration) || !nullSeedLiteralCompare90c4 (declaration)) {
+        return undefined;
+    }
+    let base = stripParens (node);
+    if (base?.kind !== ts.SyntaxKind.BinaryExpression || base.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    while (base?.kind === ts.SyntaxKind.BinaryExpression && base.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        base = stripParens (base.left);
+    }
+    if (base?.kind !== ts.SyntaxKind.Identifier || isSelfRead (csharp, base, declaration)) {
+        return undefined;
+    }
+    const target = resolveReference (csharp, base);
+    if (target?.kind !== ts.SyntaxKind.VariableDeclaration) {
+        return undefined;
+    }
+    const leaf = localIdentifierType (csharp, base);
+    return (leaf === 'string' || leaf === 'string?') ? 'string' : undefined;
 }
 
 // ral-90c4 R1: `let x: Str = undefined` / `let x: string = undefined` (TS annotation only names the

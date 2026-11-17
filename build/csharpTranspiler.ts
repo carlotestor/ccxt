@@ -12886,6 +12886,9 @@ export function nullSeedChecks90c4 (): string[] {
     // R3: `const b = h; h = (b === undefined) ? {} : b;` reads h's own box through the alias, so h stays a Dictionary and its writes are native
     const r3 = print ('f (o) { let h = undefined; if (o) { h = { \'a\': 1 }; } const b = h; h = (b === undefined) ? {} : b; h[\'k\'] = 2; return h; }');
     if (!r3.includes ('Dictionary<string, object> h = null;') || r3.includes ('((IDictionary<string,object>)h)')) problems.push (`90c4 R3 self alias ternary: ${r3.replace (/\n/g, ' | ').slice (-400)}`);
+    // R4: a concat write whose left leaf is a typed string local, into a seed compared with a string literal: native ==
+    const r4 = print ('safeString (o, k, d = undefined): Str { return d; }\n f (o) { let x: Str = undefined; const a = this.safeString (o, 4); const b = this.safeString (o, 5); if (a === \'limit\') { x = a; } else { x = a + \' \' + b; } if (x === \'stop loss\') { return 1; } return 0; }');
+    if (!r4.includes ('string? x = null;') || !r4.includes ('x == "stop loss"')) problems.push (`90c4 R4 concat write: ${r4.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
 
