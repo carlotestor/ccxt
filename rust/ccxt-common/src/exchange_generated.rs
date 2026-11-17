@@ -7911,17 +7911,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (precision == Value::Null) {
             return Value::Null;
         }
-        let mut precisionNumber: Value = (match &precision { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
-        if (precisionNumber.as_f64() == Some(0.0)) {
+        let mut precisionNumber: Option<i64> = (match &precision { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }).as_i64();
+        if (precisionNumber == Some(0)) {
             return Value::Str("1".into());
         }
-        if precisionNumber.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+        if precisionNumber > Some(0) {
             let mut parsedPrecision: String = "0.".to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_141: bool = true;
-                while { if !__for_first_141 { i += 1; } __for_first_141 = false; (i as f64) < (match (&(precisionNumber), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_141 { i += 1; } __for_first_141 = false; matches!(precisionNumber, Some(__b) if (i as f64) < ((__b - 1) as f64)) } {
                 parsedPrecision = format!("{}{}", parsedPrecision, "0");
             }
             }
@@ -7931,8 +7930,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_142: bool = true;
-                while { if !__for_first_142 { i += 1; } __for_first_142 = false; (i as f64) < (match (&(Value::Int(-1)), &(precisionNumber)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_142 { i += 1; } __for_first_142 = false; matches!(precisionNumber, Some(__b) if (i as f64) < ((-1 - __b) as f64)) } {
                 parsedPrecision = format!("{}{}", parsedPrecision, "0");
             }
             }
@@ -7960,13 +7958,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (positivePrecisionString.is_none()) {
                 return Value::Null;
             }
-            let mut positivePrecision: Value = (match positivePrecisionString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null });
+            let mut positivePrecision: Option<i64> = (match positivePrecisionString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null }).as_i64();
             let mut parsedPrecision: String = "1".to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_143: bool = true;
-                while { if !__for_first_143 { i += 1; } __for_first_143 = false; (i as f64) < (match (&(positivePrecision), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_143 { i += 1; } __for_first_143 = false; matches!(positivePrecision, Some(__b) if (i as f64) < ((__b - 1) as f64)) } {
                 parsedPrecision = format!("{}{}", parsedPrecision, "0");
             }
             }
