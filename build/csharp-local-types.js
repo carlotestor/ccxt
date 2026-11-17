@@ -22298,3 +22298,56 @@ stringValueIsNonNullAtUse = function (csharp, scope, declaration, name, read, co
     return c90UpstreamStringValueIsNonNullAtUse (csharp, scope, declaration, name, read, context)
         || c90DereferenceDominates (csharp, scope, declaration, name, read);
 };
+
+// ===== 92c5: typed sources of copies and omit writes (continues 90c5) =====
+// (R1) the omit receiver proof (omitReceiverIsDictionary) only read element-1 bindings once their line was
+// printed, and never a tuple holder's slot. Both have a static IDictionary type from the TS AST: a
+// `const [ x, p ] = this.handle* (...)` binding element1ParamsBinding proves (copiedElement1ReadType), and
+// `h[1]` of a `const h = this.<name> (...)` whose CSHARP_TUPLE_RETURN_ELEMENT1 slot prints `h.Item2`.
+function c92TupleElement1Read (csharp, node) {
+    const read = stripParens (node);
+    if (c5ParameterProofDepth > 0 || read === undefined) {
+        return false;
+    }
+    if (read.kind === ts.SyntaxKind.Identifier) {
+        const reference = resolveReference (csharp, read);
+        return reference?.kind === ts.SyntaxKind.BindingElement && copiedElement1ReadType (csharp, reference) !== undefined;
+    }
+    if (read.kind !== ts.SyntaxKind.ElementAccessExpression || read.argumentExpression?.kind !== ts.SyntaxKind.NumericLiteral
+            || read.argumentExpression.text !== '1' || read.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const holder = resolveReference (csharp, read.expression);
+    if (holder?.kind !== ts.SyntaxKind.VariableDeclaration || holder.name?.kind !== ts.SyntaxKind.Identifier
+            || (holder.parent?.flags & ts.NodeFlags.Const) === 0 || holder.initializer?.kind !== ts.SyntaxKind.CallExpression
+            || holder.initializer.expression?.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = destructuredHandleCallName (holder.initializer);
+    return name !== undefined && tupleElement1 (name) === CSHARP_ELEMENT_1_TYPE;
+}
+const c92UpstreamOmitReceiverIsDictionary = omitReceiverIsDictionary;
+// eslint-disable-next-line no-func-assign
+omitReceiverIsDictionary = function (csharp, receiver) {
+    if (c92UpstreamOmitReceiverIsDictionary (csharp, receiver)) {
+        return true;
+    }
+    const proven = c92TupleElement1Read (csharp, receiver);
+    if (proven) {
+        c92Element1Proofs++;
+    }
+    return proven;
+};
+// a declaration this proof decided (at any depth) stands only with a native use of its own (omit
+// receiver, indexer, `in`): copies only handed to extend / safe* readers keep object, in every context
+let c92Element1Proofs = 0;
+const c92UpstreamLocalDeclarationR1 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const before = c92Element1Proofs;
+    const info = c92UpstreamLocalDeclarationR1 (csharp, declaration, context);
+    if (info === undefined || c92Element1Proofs === before || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return info;
+    }
+    return dictParamsCopyHasNativeUse (csharp, (context?.scope) ?? enclosingFunction (declaration), declaration) ? info : undefined;
+};
