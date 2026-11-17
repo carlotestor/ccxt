@@ -9927,6 +9927,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         "    lit (response: Dict) { const out: Dict = {}; const currencyIds = Object.keys (response); for (let i = 0; i < currencyIds.length; i++) { const entry = currencyIds[i]; const splitEntry = entry.split (' '); const head = splitEntry[0]; const code = this.safeCurrencyCode (head); out[code] = 1; } return out; }",
         "    sibbox (m: Dict, f: boolean) { const out: Dict = {}; if (f) { const rs: Dict[] = this.safeList (m, 'a', []); for (let i = 0; i < rs.length; i++) { const e = rs[i]; e['x'] = 1; out['a'] = e; } } else { const qs: Dict[] = this.safeList (m, 'b', []); for (let i = 0; i < qs.length; i++) { const e = qs[i]; e['y'] = 2; out['b'] = e; } } const ls: Dict[] = this.safeList (m, 'c', []); const first = ls[0]; first['z'] = 3; return out; }",
         "    unified (m: Dict, trades: Trade[], cache: any) { const out: Dict = {}; for (let i = 0; i < trades.length; i++) { const trade = trades[i]; cache.append (trade); out[trade['id']] = 1; } return out; }",
+        "    pairs (sts: string[][]) { const out = []; for (let i = 0; i < sts.length; i++) { const st = sts[i]; const sy = st[0]; out.push (sy.toUpperCase ()); } return out; }",
         "    neg (m: Dict, xs: string[]) { const vs: any[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < vs.length; i++) { const a = vs[i]; out.push (a.length); const b = xs[i]; out.push (b.toUpperCase ()); } return out; }",
         '}',
     ].join('\n');
@@ -9943,6 +9944,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if ((out.match(/Map<String, Object> e = \(java\.util\.Map<String, Object>\) \((rs|qs) == null/g) || []).length !== 2 || /Helpers\.addElementToObject\(e,/.test(out)) problems.push("90j1 r2: both sibling 'e' bindings (const Dict[] element reads) must print Map<String, Object> with a native put");
         if (!/Map<String, Object> first = \(java\.util\.Map<String, Object>\) \(ls == null \|\| 0 >= /.test(out) || !/\bfirst\.put\("z"/.test(out)) problems.push("90j1 r2: 'first' (literal-index read of a Dict[] list) must print Map<String, Object> with a native put");
         if (!/Map<String, Object> trade = \(java\.util\.Map<String, Object>\) \(trades == null/.test(out) || !/\btrade\.get\("id"\)/.test(out)) problems.push("90j1 r3: 'trade' (element of a Trade[] list, appended to a ws cache) must print Map<String, Object> with a native get");
+        if (!/String sy = \(String\) \(st == null \|\| 0 >= /.test(out) || !/\bsy\.toUpperCase\(/.test(out)) problems.push("90j1 r4: 'sy' (literal-index read of a row of an unwritten `string[][]` parameter) must print String with a native toUpperCase");
         if (!/String b = \(String\) \(xs == null/.test(out) || !/\bb\.toUpperCase\(/.test(out)) problems.push("90j1 r1: 'b' (element of an unwritten `string[]` parameter) must print String with a native toUpperCase");
         for (const name of [ 'a', 'ro' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);

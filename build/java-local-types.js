@@ -21647,24 +21647,53 @@ function r84j1StringOnlyProducer (printer, value) {
 // (R1, ral-90j1) a parameter or local whose own annotation is `string[]` (checker: every non-nullish part
 // an array of plain `string`), owned by this function and never re-bound, element-written or deleted
 // from: its elements are String or null on every path the type checker admits
-function r90j1AnnotatedStringList (printer, receiver, symbol, declaration, scope) {
-    if (declaration === undefined || declaration.type === undefined || !ts.isIdentifier (declaration.name)
+function r90j1AnnotatedStringList (printer, receiver, symbol, declaration, scope, depth = 1) {
+    if (declaration === undefined || !ts.isIdentifier (declaration.name)
         || !(ts.isParameterDeclaration (declaration) || ts.isVariableDeclaration (declaration)) || enclosingFunction (declaration) !== scope) {
         return false;
     }
     const checker = printer.getChecker ();
+    if (declaration.type === undefined) {
+        // (R4, ral-90j1) `const row = rows[i]` (counter or literal index) of an unwritten `string[][]`
+        // parameter / annotated local: the row is itself a String-only list
+        const read = declaration.initializer === undefined ? undefined : unwrapParens (declaration.initializer);
+        if (read === undefined || !ts.isVariableDeclaration (declaration) || (declaration.parent.flags & ts.NodeFlags.Const) === 0
+            || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+            || !(printer.javaPrimitiveCounterIndex?.(read.argumentExpression)
+                || (ts.isNumericLiteral (read.argumentExpression) && /^[0-9]+$/.test (read.argumentExpression.text)))) {
+            return false;
+        }
+        const outerSymbol = checker.getSymbolAtLocation (read.expression);
+        return r90j1AnnotatedStringList (printer, read.expression, outerSymbol, outerSymbol?.valueDeclaration?.resolve (), scope, depth + 1)
+            && r90j1ListNeverWritten (checker, symbol, declaration, scope);
+    }
     const annotated = checker.getTypeFromTypeNode (declaration.type);
     const parts = ((annotated.flags & ts.TypeFlags.Union) !== 0 ? ts.typeParts (annotated) : [ annotated ])
         .filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
-    if (parts.length === 0 || !parts.every ((t) => checker.isArrayType (t)
-        && checker.getTypeArguments (t)?.[0]?.flags === ts.TypeFlags.String)) {
+    const stringsAtDepth = (t, d) => checker.isArrayType (t) && (d === 1
+        ? checker.getTypeArguments (t)?.[0]?.flags === ts.TypeFlags.String
+        : stringsAtDepth (checker.getTypeArguments (t)?.[0], d - 1));
+    if (parts.length === 0 || depth > 2 || !parts.every ((t) => t !== undefined && stringsAtDepth (t, depth))) {
         return false;
     }
+    return r90j1ListNeverWritten (checker, symbol, declaration, scope);
+}
+
+function r90j1ListNeverWritten (checker, symbol, declaration, scope) {
     for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
         if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
             continue;
         }
         const parent = n.parent;
+        // a mutating call may only add values the checker types as plain `string` (an `any` argument could
+        // carry another box past the annotation)
+        if (ts.isPropertyAccessExpression (parent) && parent.expression === n && LIST_MUTATING_METHODS.has (String (parent.name.text))) {
+            const call = parent.parent;
+            if (!ts.isCallExpression (call) || call.expression !== parent || String (parent.name.text) !== 'push'
+                || !call.arguments.every ((a) => !ts.isSpreadElement (a) && checker.getTypeAtLocation (a)?.flags === ts.TypeFlags.String)) {
+                return false;
+            }
+        }
         if (ts.isBinaryExpression (parent) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)
             && (parent.left === n || (ts.isElementAccessExpression (parent.left) && parent.left.expression === n))) {
             return false;
