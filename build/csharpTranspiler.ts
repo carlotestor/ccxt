@@ -13042,5 +13042,7 @@ export function readerSeedElementWriteChecks (): string[] {
     if (!out.includes ('string? t = this.safeString(') || !out.includes ('t.Split(') || !out.includes ('t = ((string)(p')) problems.push (`reader seed element write: ${out.replace (/\n/g, ' | ').slice (-400)}`);
     const kept = emit.transpileCSharp (pre + 'f (o, r: string) { let t = this.safeString (o, \'w\'); const p = r.split (\'@\'); t = p[0]; return this.hash (t, 1, 1); }\n}').content;
     if (!kept.includes ('object t = ')) problems.push (`reader seed element write without a native use retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    const callee = emit.transpileCSharp (pre + 'enc (t: Str): Str { return t; }\n p (t: Str, po: boolean) { let i = \'GTC\'; if (t !== undefined) { i = this.enc (t); } if (po && (i !== \'RPI\')) { i = \'POST_ONLY\'; } return i; }\n}').content;
+    if (!callee.includes ('string? i = "GTC";') || !callee.includes ('(i != "RPI")')) problems.push (`literal seed written from a string? method: ${callee.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
