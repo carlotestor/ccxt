@@ -9545,6 +9545,12 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('p.endsWith (x) ? p.slice (..) : p never read by a string method keeps object',
             'f (p) { const u = p.endsWith (\'utc\') ? p.slice (0, -3) : p; return { \'u\': u }; }',
             'object u = ');
+        check ('c ? lit : <unwritten Str param> compared to literals -> string? with native ==',
+            'f (type: Str, postOnly) { let t: Str = postOnly ? \'post_only\' : type; if (postOnly) { t = \'ioc\'; } if (t === \'limit\' || t === \'ioc\') { return 1; } return 0; }',
+            'string? t = ((string)(', 'object t = ');
+        check ('c ? lit : <written Str param> keeps object',
+            'f (type: Str, postOnly) { type = \'x\'; let t: Str = postOnly ? \'post_only\' : type; if (t === \'limit\') { return 1; } return 0; }',
+            'object t = ');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {

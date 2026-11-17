@@ -22317,7 +22317,8 @@ function c92TypedDictStringArm (csharp, arm, ctx) {
     if (node.kind === ts.SyntaxKind.ElementAccessExpression && stripParens (node.expression)?.kind === ts.SyntaxKind.Identifier
             && elementAccessLiteralKey (node.argumentExpression) !== undefined) {
         const receiver = stripParens (node.expression);
-        const type = localIdentifierType (csharp, receiver) ?? parameterArithmeticType (csharp, receiver);
+        const printed = (typeof csharp.csharpPrintedParamType === 'function') ? csharp.csharpPrintedParamType (receiver)?.replace (/\?$/, '') : undefined;
+        const type = localIdentifierType (csharp, receiver) ?? parameterArithmeticType (csharp, receiver) ?? printed;
         if (!TYPED_DICT_RECEIVER_TYPES.includes (type)) {
             return undefined;
         }
@@ -22442,4 +22443,77 @@ const c92UpstreamLocalDeclaration = csharpLocalDeclaration;
 csharpLocalDeclaration = function (csharp, declaration, context) {
     return c92UpstreamLocalDeclaration (csharp, declaration, context) ?? c92TypedDictStringConditionalLocal (csharp, declaration, context)
         ?? c92StringTestedArmLocal (csharp, declaration, context);
+};
+
+// (C3) `let t: Str = c ? 'lit' : p` over a method parameter annotated `Str` / `string` that the body never
+// writes: every caller hands a string or nothing (the annotation the venue string-parameter pass narrows
+// on), so the local holds a string or null, named behind one cast on the whole conditional. Every write
+// must be a string literal, and only a local compared against a string literal (`is "x"` -> `==`)
+// qualifies.
+function c92LiteralCompared (csharp, scope, declaration) {
+    let compared = false;
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
+            continue;
+        }
+        const p = n.parent;
+        if (p?.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (p.operatorToken.kind) && p.left === n) {
+            if (stripParens (p.right)?.kind !== ts.SyntaxKind.StringLiteral || p.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+                return false;
+            }
+            continue;
+        }
+        if (p?.kind === ts.SyntaxKind.BinaryExpression && (p.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken || p.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken)
+                && stripParens ((p.left === n) ? p.right : p.left)?.kind === ts.SyntaxKind.StringLiteral) {
+            compared = true;
+        }
+    }
+    return compared;
+}
+function c92StringParamArm (csharp, arm) {
+    const node = stripParens (arm);
+    if (node?.kind === ts.SyntaxKind.StringLiteral) {
+        return true;
+    }
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    let parameter;
+    try {
+        parameter = csharp.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    const owner = parameter?.parent;
+    if (parameter?.kind !== ts.SyntaxKind.Parameter || owner?.kind !== ts.SyntaxKind.MethodDeclaration || parameter.initializer !== undefined) {
+        return false;
+    }
+    const annotation = parameter.type?.getText ();
+    return (annotation === 'Str' || annotation === 'string') && !csharpParameterIsWritten (csharp, owner, parameter);
+}
+function c92LiteralOrStringParamConditionalLocal (csharp, declaration, context) {
+    if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const conditional = stripParens (declaration.initializer);
+    if (conditional?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const literals = [ conditional.whenTrue, conditional.whenFalse ].filter ((arm) => stripParens (arm)?.kind === ts.SyntaxKind.StringLiteral).length;
+    if (literals !== 1 || !c92StringParamArm (csharp, conditional.whenTrue) || !c92StringParamArm (csharp, conditional.whenFalse)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || /(^|[\\/])test[\\/]/.test (declaration.getSourceFile?.()?.fileName ?? '') || !c92LiteralCompared (csharp, scope, declaration)) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const type = 'string?';
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: 'string', castWhole: true } : undefined;
+}
+const c92UpstreamLocalDeclarationC3 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c92UpstreamLocalDeclarationC3 (csharp, declaration, context) ?? c92LiteralOrStringParamConditionalLocal (csharp, declaration, context);
 };
