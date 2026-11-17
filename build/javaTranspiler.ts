@@ -6222,6 +6222,27 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r92j7b, { force: true });
     }
+    // parsePositions / parseDepositAddresses print List<Object>: a result read as a list goes native, a pass-through stays Object
+    const r92j7c = path.join(process.cwd(), 'ts', 'src', `zz92j7cselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7c, [
+            "import Exchange from './abstract/htx.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz92j7cselftest extends Exchange {',
+            "    zzAddr (data: any[], code: string) { const allAddresses: Dict[] = this.parseDepositAddresses (data, [ code ], false); let n = 0; for (let i = 0; i < allAddresses.length; i++) { n += 1; } return n; }",
+            "    zzPos (raw: any[]) { const positions = this.parsePositions (raw); const positionsLength = positions.length; return positionsLength; }",
+            "    zzPass (raw: any[]) { const passed = this.parsePositions (raw); return this.filterBySinceLimit (passed, undefined, undefined); }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7c).content as string;
+        if (!/List<Object> allAddresses = this\.parseDepositAddresses\(/.test(out) || !/i < allAddresses\.size\(\)/.test(out)) problems.push("ral-92j7: a parseDepositAddresses result read by length must print List<Object> with a native size()");
+        if (!/List<Object> positions = this\.parsePositions\(/.test(out) || !/= positions\.size\(\);/.test(out)) problems.push("ral-92j7: a parsePositions result read by length must print List<Object> with a native size()");
+        if (!/\bObject passed = this\.parsePositions\(/.test(out)) problems.push("ral-92j7: a pass-through parsePositions result must stay Object");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7c, { force: true });
+    }
     return problems;
 }
 
