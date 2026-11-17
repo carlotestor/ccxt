@@ -21423,3 +21423,67 @@ csharpLocalDeclaration = function (csharp, declaration, context) {
     }
     return c90DestructuredSlotWritten (csharp, scope, declaration) ? undefined : info;
 };
+
+// (R2) the 87c5 string-copy rule (c87StringCopyLocal) for a copy of a PARAMETER the signature prints
+// `string` / `string?`: a D-17 Str parameter (csharpParameterDecision) or a never-written core string
+// argument (coreParameterCopyReadType). Either prints with no cast and holds a string-or-null box, so the
+// same proof applies: every `+` / `+=` left read must already print as the null-guarded concat, at least
+// one must, and the whole retype scan must pass; the guarded conditional then loses its ((object) box.
+function c90StringParameterCopy (csharp, declaration) {
+    const init = stripParens (declaration?.initializer);
+    if (init?.kind !== ts.SyntaxKind.Identifier || c5ParameterProofDepth > 0) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return false;
+    }
+    const parameter = (scope.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === init.text);
+    if (parameter === undefined || useRefersToDeclaration (csharp, scope, parameter, init) === false || parameterIsRefSunk (csharp, init)) {
+        return false;
+    }
+    const type = csharpParameterDecision (csharp, parameter) ?? coreParameterCopyReadType (csharp, scope, init);
+    if (type !== 'string' && type !== 'string?') {
+        return false;
+    }
+    // every `+` / `+=` left read of the copy (self-concat writes included) must ALREADY print as the
+    // printer's null-guarded concat (csharpObjectStringLocal): an unguarded `object + string` read is
+    // string.Concat (null -> ""), which the typed guard would turn into null
+    if (typeof csharp.csharpObjectStringLocal !== 'function') {
+        return false;
+    }
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        let use = n;
+        while (use.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            use = use.parent;
+        }
+        const parent = use.parent;
+        const plusLeft = parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use
+            && (parent.operatorToken.kind === ts.SyntaxKind.PlusToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken);
+        if (plusLeft && !csharp.csharpObjectStringLocal (n)) {
+            return false;
+        }
+        // a string-printing right operand makes the printer emit the unguarded `object + string`
+        // (string.Concat, null -> "") for the untyped copy; the typed copy would guard it (null -> null)
+        // only a right operand led by a string literal (`x + ':' + y`): the printer's guard decision
+        // for any other right operand (a `string?` local) depends on print order
+        if (plusLeft) {
+            let leaf = stripParens (parent.right);
+            while (leaf?.kind === ts.SyntaxKind.BinaryExpression && leaf.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+                leaf = stripParens (leaf.left);
+            }
+            if (leaf?.kind !== ts.SyntaxKind.StringLiteral && leaf?.kind !== ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+const c90UpstreamStringCopyInitializer = c87StringCopyInitializer;
+// eslint-disable-next-line no-func-assign
+c87StringCopyInitializer = function (csharp, declaration) {
+    return c90UpstreamStringCopyInitializer (csharp, declaration) || c90StringParameterCopy (csharp, declaration);
+};
