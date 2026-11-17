@@ -24959,10 +24959,11 @@ export function installJavaR92j3SafeIntegerOperands (transpiler) {
     printer._javaR92j3SafeIntegerOperandsPatched = true;
     const upstream = printer.javaProvableNumericKind.bind (printer);
     printer.javaProvableNumericKind = function (node, allowDeclaredLocals = true) {
-        // a negated whole-number literal `-N` prints `-N`: a primitive operand like N itself
+        // a negated whole-number literal `-N` prints `-N`: a primitive operand like N itself; only as the
+        // left of a `-` that is itself a compare operand (`i < -1 - n`), so no other sum or local retypes
         const bare = unwrapParens (node);
         if (bare !== undefined && ts.isPrefixUnaryExpression (bare) && bare.operator === ts.SyntaxKind.MinusToken
-            && r87j3IntLiteral (bare.operand)) {
+            && r87j3IntLiteral (bare.operand) && r93j3NegatedLiteralInCompare (bare)) {
             return 'long';
         }
         const kind = upstream (node, allowDeclaredLocals);
@@ -25056,6 +25057,27 @@ function r93j3NativeLongDifference (printer, init) {
             && r92j3ParseToIntCall (printer, target.initializer);
     };
     return r87j3IntLiteral (init.left) && parseToIntConst (init.right);
+}
+
+function r93j3NegatedLiteralInCompare (node) {
+    let child = node;
+    let parent = node.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    if (parent === undefined || !ts.isBinaryExpression (parent) || parent.left !== child || parent.operatorToken.kind !== ts.SyntaxKind.MinusToken) {
+        return false;
+    }
+    let outer = parent.parent;
+    let inner = parent;
+    while (outer !== undefined && ts.isParenthesizedExpression (outer)) {
+        inner = outer;
+        outer = outer.parent;
+    }
+    return outer !== undefined && ts.isBinaryExpression (outer) && (outer.left === inner || outer.right === inner)
+        && [ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanToken,
+            ts.SyntaxKind.GreaterThanEqualsToken ].includes (outer.operatorToken.kind);
 }
 
 // a read of a Long-typed integer-literal defaulted parameter prints `requireNonNullElse(x, NL)`: never null
