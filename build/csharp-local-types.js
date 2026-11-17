@@ -2468,6 +2468,9 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     // the name is declared in the REST file only, hence this table
     'authenticateRest': 'string?',
     'loadProxyCredentials': 'IDictionary<string, object>',
+    // 90c6: hyperliquid's per-request info wrappers (CSHARP_AWAITED_CORE_RETURNS)
+    'publicPostInfoList': 'List<object>',
+    'publicPostInfoDict': 'IDictionary<string, object>',
     // nado's queryContracts (CSHARP_AWAITED_CORE_RETURNS), awaited from the pro subclass too
     'queryContracts': 'IDictionary<string, object>',
     // cs/ccxt/base/PredictionExchange.cs, retyped from Task<object> by
@@ -15956,6 +15959,10 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'getMarketsPaginated': 'List<object>',
     // apex: return this.safeString (this.options, 'accountId') — one string? box
     'getAccountId': 'string?',
+    // 90c6 hyperliquid (rest + prediction): `return this.safeList ([ <info body> ], 0, [])` /
+    // `this.safeDict (..., 0, {})` on the single path — one List<object> / IDictionary box
+    'publicPostInfoList': 'List<object>',
+    'publicPostInfoDict': 'IDictionary<string, object>',
 };
 
 // cores whose Dictionary and IDictionary return arms join to the interface (collectionArmWidening)
