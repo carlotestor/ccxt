@@ -38,6 +38,7 @@ import { installJavaR84j2ContainerLocals } from './java-local-types.js';
 import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
 import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
 import { installJavaR84j8Locals } from './java-local-types.js';
+import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2500,6 +2501,7 @@ class NewTranspiler {
         installJ84j6TrueOnlyLocals(this.transpiler);
         installJ84j6StringListLocals(this.transpiler);
         installJavaR84j8Locals(this.transpiler);
+        installJavaR87j8CopyStringResolver(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -10019,6 +10021,7 @@ function javaR87j8LocalsSelfTest (): string[] {
         'export default class zzr87j8selftest extends Exchange {',
         "    acc (rows: Dict[]) { const out = []; for (let i = 0; i < rows.length; i++) { const a = this.safeString (rows[i], 'a', ''); const b = this.safeString (rows[i], 'b', ''); out.push (a + ': ' + b); } return out.join (', '); }",
         "    twice (rows: Dict[], a: string, b: string) { let k: string = a.toLowerCase (); k = k + b; const keys = []; for (let i = 0; i < rows.length; i++) { let k: string = a.toLowerCase (); k = k + b; keys.push (k); } return keys.join (','); }",
+        "    sliced (order: Dict) { const code = this.safeString (order, 'b'); let base = code; if ((base !== undefined) && base.startsWith ('EQ_')) { base = base.slice (3); } return this.safeCurrencyCode (base); }",
         "    accAny (rows: Dict[]) { const bad = []; for (let i = 0; i < rows.length; i++) { const v = rows[i]['v']; bad.push (v); } return bad.join (','); }",
         '}',
     ].join('\n');
@@ -10027,6 +10030,8 @@ function javaR87j8LocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<String> out = new java\.util\.ArrayList<String>\(/.test(out) || !/\bout\.add\(/.test(out)) problems.push("'out' (pushes of a String concat of later String locals) must print List<String> with a bare add");
         if (!/\bObject bad = /.test(out)) problems.push("'bad' (push of an Object element read) must stay Object");
+        if (!/\bString base = code;/.test(out)) problems.push("'base' (String copy written from a native literal slice of itself) must print String");
+        if (/\(String\) \(base\)/.test(out)) problems.push("'base' must reach the String core argument without a checkcast");
         if (!/\bObject keys = /.test(out)) problems.push("'keys' (push of a local with a same-named sibling binding) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {

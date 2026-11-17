@@ -20960,6 +20960,9 @@ function j8ScalarWrite (printer, right, declaration, type, depth = 0) {
     if (ts.isIdentifier (value)) {
         return value.text === declaration.name.text || j8ScalarSourceType (printer, value) === type ? { cast: '', suffix: false } : undefined;
     }
+    if (type === 'String' && r87j8NativeStringSlice (printer, value, declaration)) {
+        return { cast: '', suffix: false }; // 87j8: prints `(r == null ? null : ((String)r).substring(..))`, a String
+    }
     if (type === 'Long' && javaIntLiteral (value) && ts.isNumericLiteral (value)) {
         return { cast: '', suffix: true };
     }
@@ -22705,4 +22708,78 @@ function r87j8StringElement (printer, node, depth = 0) {
         return true;
     }
     return r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true;
+}
+
+// 87j8 (b): `x = r.slice (<literal>[, <literal>])` where r is the local itself or a String source: the printer's
+// nativeSliceCallIfProvable decides from the checker (string receiver, literal bounds) and prints
+// `(r == null ? null : ((String)r).substring(..))`, statically a String, so a String copy local (section 77j8)
+// can take the write without a cast and its `((String)x).m()` uses go native.
+function r87j8NativeStringSlice (printer, value, declaration) {
+    if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression) || value.expression.name.text !== 'slice'
+        || typeof printer.nativeSliceCallIfProvable !== 'function') {
+        return false;
+    }
+    const receiver = unwrapParens (value.expression.expression);
+    if (receiver === undefined || !ts.isIdentifier (receiver)
+        || !(receiver.text === declaration.name.text || j8ScalarSourceType (printer, receiver) === 'String')) {
+        return false;
+    }
+    let printed;
+    try {
+        printed = printer.nativeSliceCallIfProvable (value, receiver.text);
+    } catch (e) {
+        return false;
+    }
+    return typeof printed === 'string' && printed.includes ('.substring(');
+}
+
+// 87j8 (c): a String local section 77j8 declared (its printed head is `String x = `) answers the printer's
+// javaExpressionTypeResolver, as section 36 does for its own locals, so `(String) (x)` core-argument
+// checkcasts on it drop. The decision is the section's own (j8ScalarCopyLocal), recorded when the
+// declaration prints, so the answer never runs ahead of the printed head.
+export function installJavaR87j8CopyStringResolver (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR87j8CopyStringPatched) {
+        return;
+    }
+    printer._javaR87j8CopyStringPatched = true;
+    const strings = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const head = `${printer.getIden (identation)}String ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (head)) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = j8ScalarCopyLocal (printer, declaration) === 'String';
+        } catch (e) {
+            ok = false;
+        }
+        if (ok) {
+            strings.add (declaration);
+        }
+        return printed;
+    };
+    const upstreamResolver = printer.javaExpressionTypeResolver;
+    printer.javaExpressionTypeResolver = function (node) {
+        const target = unwrapParens (node);
+        if (target !== undefined && ts.isIdentifier (target)) {
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (target)?.valueDeclaration?.resolve ();
+            } catch (e) {
+                declaration = undefined;
+            }
+            if (declaration !== undefined && strings.has (declaration) && printer.printNode (target, 0) === target.text) {
+                return 'String';
+            }
+        }
+        return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
+    };
 }
