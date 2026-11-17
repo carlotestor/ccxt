@@ -1732,7 +1732,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
         {
-            object marketSymbol = symbolsResolved[i];
+            string? marketSymbol = ((string)symbolsResolved[i]);
             Dictionary<string, object> market = this.market(marketSymbol);
             if ((stockOnly == true) && ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true)))
             {

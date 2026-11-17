@@ -8627,7 +8627,10 @@ function stringListLocal (csharp, scope, declaration, depth = 0) {
             return list.length === 1 && !index.blockedNames.has (name)
                 && list[0].getStart () < node.getStart () && stringListLocal (csharp, scope, list[0], depth + 1);
         }
-        return stringListParameterWriteProducer (node);
+        // ral-87c3 rule 3: `let xs: string[] = Object.keys (..)` later rewritten by `this.marketSymbols (..)`:
+        // every writer is a string-elements producer (Object.keys / split / marketIds / findMessageHashes,
+        // stringElementsProducer), so the list holds strings at any read
+        return stringListParameterWriteProducer (node) || stringElementsProducer (node);
     };
     return producer (declaration.initializer) && stringListUsesKeepList (csharp, scope, declaration, 0, producer);
 }

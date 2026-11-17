@@ -1843,7 +1843,7 @@ public partial class BaseExchange
             return ((defaultValue != null)) ? defaultValue : methodDict;
         }
         List<object> splited = paramName.Split(new [] {"."}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
-        object parentKey = (splited != null && 0 < splited.Count ? splited[0] : null);
+        string? parentKey = ((string)(splited != null && 0 < splited.Count ? splited[0] : null));
         string? subKey = this.safeString(splited, 1);
         if (!(inOp(methodDict, parentKey)))
         {

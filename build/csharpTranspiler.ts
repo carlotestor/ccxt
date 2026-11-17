@@ -8680,6 +8680,10 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
         [ 'string k = ((string)' ], [ 'object k = ' ]);
     check ('87c3 length alias with a moved index keeps object', 'w (a: Dict) { const ks = Object.keys (a); const n = ks.length; let r = 0; for (let i = 0; i < n; i++) { i = i + 1; const k = ks[i]; r = k + "=" + a[k]; } return r; }',
         [ 'object k = ' ], [ 'string k = ' ]);
+    check ('87c3 string list rewritten by keys then split', 'x (a: Dict, s: string, f) { let ks: string[] = Object.keys (a); if (f) { ks = s.split (","); } let r = undefined; for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k === "spot") { r = a[k]; } } return r; }',
+        [ 'string? k = ((string)', 'k == "spot"' ], [ 'object k = ' ]);
+    check ('87c3 string list rewritten by an untyped value keeps object', 'y (a: Dict, v, f) { let ks: string[] = Object.keys (a); if (f) { ks = v; } let r = undefined; for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k === "spot") { r = a[k]; } } return r; }',
+        [ 'object k = ' ], [ 'string? k = ' ]);
     check ('keyed read into a local keeps object', 'n (data: Dict[]) { const row = data[0]; row["a"] = 1; const s = row["b"]; return s; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     return problems;
 }
