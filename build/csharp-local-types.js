@@ -7391,8 +7391,10 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         const selfTernary = ((selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType)) || selfTernaryString || selfTernaryCollection;
                         // ral-84c8 R3: `x = this.safeString (o, k, '<literal>')` into a `string` local whose own
                         // initializer is such a call too: the reader hands back the value or the non-null default
-                        const nonNullDefaultWrite = (csharpType === 'string') && nonNullStringDefaultCall (csharp, declaration.initializer, context)
-                            && nonNullStringDefaultCall (csharp, parent.right, context);
+                        const nonNullDefaultWrite = (csharpType === 'string') && ((nonNullStringDefaultCall (csharp, declaration.initializer, context)
+                            && nonNullStringDefaultCall (csharp, parent.right, context))
+                            // ral-87c4 R3: the uninitialised `let x: string;` whose every write is such a call
+                            || definiteStringDefaultWrites87c4 (csharp, scope, declaration, varName, context));
                         if (!selfConcat && !selfStringWrite && !nonNullWrite && !nonNullDefaultWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
                             return false;
                         }
@@ -11742,6 +11744,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         cast = 'string';
         safe = true;
     }
+    // ral-87c4 R3: `let x: string;` (no initialiser, so TS definite assignment proves a write before every
+    // read) whose every write is a safeString* call with a non-null string default: x is a non-null string
+    // at every read, so the non-null spelling holds the same box and its `+` reads bind add(string, *)
+    if (!safe && csharpType === 'string?' && definiteStringDefaultWrites87c4 (csharp, scope, declaration, sourceName, ctx) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        safe = true;
+    }
     // `this.handleOptionStringAndParams (p, m, k, '<literal>')[0]`: checkOptionString hands back the
     // option string or the literal default, never null — retried only after `string?` was rejected
     if (!safe && csharpType === 'string?' && tupleElement0LiteralDefault (declaration.initializer) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
@@ -12622,6 +12631,48 @@ function nullSeedRelationalRead87c4 (declaration) {
         visit (scope.body);
     }
     return found;
+}
+
+// a safeString* call whose default argument is a non-null string: a value nonNullStringDefaultCall proves, or
+// (one level down, `this.safeString (o, k, this.safeString (o, 'public', ''))`) such a call itself
+function nestedNonNullStringDefaultCall87c4 (csharp, node, context, depth) {
+    if (nonNullStringDefaultCall (csharp, node, context)) {
+        return true;
+    }
+    const call = stripParens (node);
+    if (depth > 0 || call?.kind !== ts.SyntaxKind.CallExpression || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const arity = NON_NULL_DEFAULT_SAFE_STRING_ARITY[call.expression.name?.text];
+    return arity !== undefined && call.arguments?.length === arity && nestedNonNullStringDefaultCall87c4 (csharp, call.arguments[arity - 1], context, depth + 1);
+}
+
+// ral-87c4 R3: the uninitialised `let x: string;` (StringKeyword only, never `Str`) with at least one write,
+// every reference to it either a plain `x = <safeString* with a non-null string default>` write or a read
+function definiteStringDefaultWrites87c4 (csharp, scope, declaration, varName, context) {
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.initializer !== undefined || declaration.exclamationToken !== undefined
+            || declaration.type?.kind !== ts.SyntaxKind.StringKeyword || declaration.parent?.declarations?.length !== 1 || !isBlockScopedDeclaration (declaration)
+            || scope === undefined) {
+        return false;
+    }
+    let writes = 0;
+    for (const n of (indexScope (csharp, scope).identifiers.get (varName) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !nestedNonNullStringDefaultCall87c4 (csharp, parent.right, context, 0)) {
+                return false;
+            }
+            writes++;
+        } else if (parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || parent?.kind === ts.SyntaxKind.PostfixUnaryExpression
+                || parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            return false;
+        }
+    }
+    return writes > 0;
 }
 
 // ral-87c4: a write `x = this.<m> (..)` into such a local whose same-file sync declaration prints a string

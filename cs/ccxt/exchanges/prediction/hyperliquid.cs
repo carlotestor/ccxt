@@ -2598,7 +2598,7 @@ public partial class hyperliquid : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object baseUrl = null;
+        string baseUrl = null;
         if ((sandboxMode == true))
         {
             IDictionary<string, object> testUrls = this.safeDict(this.urls, "test", new Dictionary<string, object>() {});
@@ -2608,7 +2608,7 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, "public", ""));
         }
-        string? url = ((string)(add(add(baseUrl, "/"), path)));
+        string url = ((baseUrl + "/") + path);
         Dictionary<string, object> headersValue = null;
         string? bodyValue = null;
         if ((method == "POST"))
