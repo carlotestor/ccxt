@@ -22349,5 +22349,33 @@ csharpLocalDeclaration = function (csharp, declaration, context) {
     if (info === undefined || c92Element1Proofs === before || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
         return info;
     }
-    return dictParamsCopyHasNativeUse (csharp, (context?.scope) ?? enclosingFunction (declaration), declaration) ? info : undefined;
+    const scope = (context?.scope) ?? enclosingFunction (declaration);
+    return (dictParamsCopyHasNativeUse (csharp, scope, declaration) || c92FeedsNativeCopy (csharp, scope, declaration, new Set ())) ? info : undefined;
 };
+// (R2) the source of a copy: a local read as the initializer (or a conditional arm of it) of a later
+// local that has a native use, directly or through such copies, is what lets that copy be typed
+function c92FeedsNativeCopy (csharp, scope, declaration, seen) {
+    if (scope === undefined || seen.has (declaration) || seen.size > 4) {
+        return false;
+    }
+    seen.add (declaration);
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        let use = n;
+        while (use.parent?.kind === ts.SyntaxKind.ParenthesizedExpression
+                || (use.parent?.kind === ts.SyntaxKind.ConditionalExpression && use.parent.condition !== use)) {
+            use = use.parent;
+        }
+        const copy = use.parent;
+        if (copy?.kind !== ts.SyntaxKind.VariableDeclaration || copy.initializer !== use || copy.name?.kind !== ts.SyntaxKind.Identifier
+                || enclosingFunction (copy) !== scope) {
+            continue;
+        }
+        if (dictParamsCopyHasNativeUse (csharp, scope, copy) || c92FeedsNativeCopy (csharp, scope, copy, seen)) {
+            return true;
+        }
+    }
+    return false;
+}
