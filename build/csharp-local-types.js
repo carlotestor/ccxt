@@ -20434,7 +20434,9 @@ function c87StringCopyLocal (csharp, declaration, context) {
     c87StringCopyActive.add (declaration);
     c87StringCopyReads.length = 0;
     try {
-        if (!csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'string?', ctx)) {
+        // at least one read must go native (the guarded concat loses its object box); a copy that is only
+        // written and handed to helpers would gain a declaration type alone
+        if (!csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'string?', ctx) || c87StringCopyReads.length === 0) {
             return undefined;
         }
         for (const read of c87StringCopyReads) {
@@ -20504,4 +20506,42 @@ const c87UpstreamLocalDeclarationR2 = csharpLocalDeclaration;
 // eslint-disable-next-line no-func-assign
 csharpLocalDeclaration = function (csharp, declaration, context) {
     return c87UpstreamLocalDeclarationR2 (csharp, declaration, context) ?? c87DictionaryWriteWidening (csharp, declaration, context);
+};
+
+// (R3) the R1 copies again, now with plain writes `x = <s> + r` whose LEFTMOST leaf <s> is a local the
+// module declares `string` / `string?` (localIdentifierType) or a string literal: the printer prints that
+// `+` chain as a native concatenation, add(string, …) or its null-guarded conditional, all statically
+// `string`, so the write is assignable to the `string?` declaration with the same string-or-null value.
+// The classifier cannot type a `+` value (csharpTypeOfValue's second BinaryExpression arm is
+// unreachable), hence this fallback, consulted only while R1 decides its own declaration.
+function c87StringPlusWriteType (csharp, node, declaration) {
+    let value = stripParens (node);
+    if (value?.kind !== ts.SyntaxKind.BinaryExpression || value.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    while (value?.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        value = stripParens (value.left);
+    }
+    if (value?.kind === ts.SyntaxKind.StringLiteral || value?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+        return 'string';
+    }
+    if (value?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    // `x = x + r`: the leaf is the R1 local itself, read as the `string?` it is being decided as, so the
+    // printer prints the same guarded concatenation its reads get (guardedConcatLeftUse proves each read)
+    if (declaration !== undefined && value.text === declaration.name.text && resolveReference (csharp, value) === declaration) {
+        return 'string?';
+    }
+    const type = localIdentifierType (csharp, value);
+    return (type === 'string' || type === 'string?') ? 'string' : undefined;
+}
+const c87UpstreamNullInitWriteValueType = nullInitWriteValueType;
+// eslint-disable-next-line no-func-assign
+nullInitWriteValueType = function (csharp, declaration, node) {
+    const upstream = c87UpstreamNullInitWriteValueType (csharp, declaration, node);
+    if (upstream !== undefined || !c87StringCopyActive.has (declaration)) {
+        return upstream;
+    }
+    return c87StringPlusWriteType (csharp, node, declaration);
 };

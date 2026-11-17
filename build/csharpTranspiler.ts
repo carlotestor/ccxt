@@ -12822,6 +12822,9 @@ export function copyLocalSnippetChecks87c5 (): string[] {
     const widened = (transpiler as any).transpileCSharp ('type Dict = { [key: string]: any };\nclass Test {\n omit (o, k): Dict { return o; }\n safeDict (o, k, d = undefined): Dict { return d; }\n hash (a, b, c) { return a; }\n'
         + ' f (o) { let p = this.omit ({}, \'a\'); if (o) { p = this.safeDict (o, \'b\'); } p = this.omit (p, \'c\'); return this.hash (p, 1, 1); }\n}').content as string;
     if (!widened.includes ('IDictionary<string, object> p = this.omit(')) problems.push (`87c5 R2 dictionary widening: ${widened.replace (/\n/g, ' | ').slice (-400)}`);
+    // R3: self-concat writes `x = x + r` keep the guarded form, now without the box
+    const selfWrite = print ('f (o, e) { const id = this.safeString (o, \'i\'); let s = id; if (e) { s = s + \'-\' + e; } const k = s + \':\'; return this.hash (k, 1, 1); }');
+    if (!selfWrite.includes ('string? s = id;') || !selfWrite.includes ('s = (s == null ? null : s + "-" + ')) problems.push (`87c5 R3 string self write: ${selfWrite.replace (/\n/g, ' | ').slice (-400)}`);
     // a copy of an untyped value keeps object
     const kept = print ('f (o, r) { let q = o; q = q + \'?\' + r; return this.hash (q, 1, 1); }');
     if (!kept.includes ('object q = o;')) problems.push (`87c5 string copy: untyped source retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
