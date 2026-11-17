@@ -22433,6 +22433,27 @@ function r87j1SiblingConstBindings (index, name) {
         && ts.isVariableDeclarationList (d.parent) && (d.parent.flags & ts.NodeFlags.Const) !== 0);
 }
 
+// (93j1) `o['type']` / `o['side']` of an OrderRequest (ts/src/base/types.ts, `OrderType` / `OrderSide`):
+// the unified createOrders input field is a String or null, as the symbol field structureStringFieldRead takes
+const R93J1_ORDER_REQUEST_KEYS = new Set ([ 'type', 'side' ]);
+
+function r93j1OrderRequestStringField (printer, node) {
+    const key = node.argumentExpression;
+    if (key === undefined || !ts.isStringLiteral (key) || !R93J1_ORDER_REQUEST_KEYS.has (key.text)) {
+        return false;
+    }
+    try {
+        const checker = printer.getChecker ();
+        const property = checker.getTypeAtLocation (node.expression).getProperty (key.text);
+        const declaration = property?.valueDeclaration?.resolve () ?? property?.declarations?.map ((handle) => handle.resolve ())?.[0];
+        return declaration !== undefined && ts.isPropertySignatureDeclaration (declaration) && declaration.type !== undefined
+            && ts.isInterfaceDeclaration (declaration.parent) && declaration.parent.name.text === 'OrderRequest'
+            && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName) && typeNodeIsString (checker, declaration.type);
+    } catch (e) {
+        return false;
+    }
+}
+
 // (93j1) `s[i]` of a plain-`string` String-declared identifier reads one character (a String) or null
 function r93j1PlainStringReceiver (printer, receiver) {
     const type = printer.getChecker ().getTypeAtLocation (receiver);
@@ -22460,7 +22481,7 @@ function r84j1StringElementLocal (printer, declaration) {
         // the box holds a String or null, so a String declaration (nullable) is exact
         const nullableString = (type.flags & ts.TypeFlags.Union) !== 0
             && ts.typeParts (type).every ((t) => t.flags === ts.TypeFlags.String || (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0);
-        if (!nullableString || !structureStringFieldRead (printer, read)) {
+        if (!nullableString || !(structureStringFieldRead (printer, read) || r93j1OrderRequestStringField (printer, read))) {
             return false;
         }
     } else {
@@ -22470,7 +22491,8 @@ function r84j1StringElementLocal (printer, declaration) {
         const counterRead = ts.isIdentifier (read.expression)
             && (literalIndex || (typeof printer.javaPrimitiveCounterIndex === 'function' && printer.javaPrimitiveCounterIndex (read.argumentExpression)))
             && (r84j1StringOnlyList (printer, read.expression, scope) || r93j1PlainStringReceiver (printer, read.expression));
-        if (!counterRead && !r84j1EcdsaSlot (printer, read, scope) && !structureStringFieldRead (printer, read)) {
+        if (!counterRead && !r84j1EcdsaSlot (printer, read, scope) && !structureStringFieldRead (printer, read)
+            && !r93j1OrderRequestStringField (printer, read)) {
             return false;
         }
     }
