@@ -23686,7 +23686,9 @@ function int64ChainValue (csharp, declaration, node, depth) {
     }
     case ts.SyntaxKind.BinaryExpression: {
         const op = value.operatorToken.kind;
-        return (op === ts.SyntaxKind.PlusToken || op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.AsteriskToken)
+        // nullable `a + b` binds the add (object, object) helper unless one side is an int literal
+        const literalSide = integerLiteralArithmeticLiteral (stripParens (value.left)) || integerLiteralArithmeticLiteral (stripParens (value.right));
+        return (op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.AsteriskToken || (op === ts.SyntaxKind.PlusToken && literalSide))
             && int64ChainValue (csharp, declaration, value.left, depth + 1) && int64ChainValue (csharp, declaration, value.right, depth + 1);
     }
     case ts.SyntaxKind.CallExpression:
