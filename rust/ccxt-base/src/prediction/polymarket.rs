@@ -4664,14 +4664,14 @@ if _try_result.is_err() {
             return Value::Null;
         }
         let mut apiKey: Option<String> = (if (self.apiKey.clone() != Value::Null) { self.apiKey.as_str().map(str::to_owned) } else { self.safe_string_k_opt(self.options.clone(), "l2ApiKey", &[]) });
-        let mut secret: Value = Value::Null;
+        let mut secret: Option<String> = None;
         if (self.secret.clone() != Value::Null) {
-            secret = self.secret.clone();
+            secret = self.secret.as_str().map(str::to_owned);
         }  else {
-            secret = self.safe_string_k(self.options.clone(), "l2Secret", &[]);
+            secret = self.safe_string_k_opt(self.options.clone(), "l2Secret", &[]);
         }
         let mut passphrase: Option<String> = (if (self.password.clone() != Value::Null) { self.password.as_str().map(str::to_owned) } else { self.safe_string_k_opt(self.options.clone(), "l2Passphrase", &[]) });
-        let mut hasL2: bool = (apiKey.is_some()) && (secret != Value::Null) && (passphrase.is_some());
+        let mut hasL2: bool = (apiKey.is_some()) && (secret.is_some()) && (passphrase.is_some());
         if hasL2 {
             return Value::Null;
         }
