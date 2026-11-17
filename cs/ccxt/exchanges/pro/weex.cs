@@ -1407,8 +1407,8 @@ public partial class weex : ccxt.weex
         }
         for (int j = 0; j < symbolKeys.Count; j++)
         {
-            object symbol = symbolKeys[j];
-            string symbolMessageHash = ((messageHash + "::") + (symbol));
+            string? symbol = ((string)symbolKeys[j]);
+            string symbolMessageHash = ((messageHash + "::") + symbol);
             client.resolve(trades, symbolMessageHash);
         }
         client.resolve(trades, messageHash);
@@ -1646,8 +1646,8 @@ public partial class weex : ccxt.weex
         }
         for (int i = 0; i < symbolKeys.Count; i++)
         {
-            object symbol = symbolKeys[i];
-            string symbolMessageHash = ((messageHash + "::") + (symbol));
+            string? symbol = ((string)symbolKeys[i]);
+            string symbolMessageHash = ((messageHash + "::") + symbol);
             client.resolve(orders, symbolMessageHash);
         }
         client.resolve(this.orders, messageHash);

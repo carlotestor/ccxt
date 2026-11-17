@@ -1455,7 +1455,7 @@ public partial class onetrading : ccxt.onetrading
             {
                 for (int i = 0; i < (marketIds?.Count ?? 0); i++)
                 {
-                    object marketId = marketIds[i];
+                    string? marketId = ((string)marketIds[i]);
                     bool? marketSubscribed = this.safeBool(subscription, marketId, false);
                     if (marketSubscribed != true)
                     {
@@ -1470,7 +1470,7 @@ public partial class onetrading : ccxt.onetrading
         }
         for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
-            object marketId = marketIds[i];
+            string? marketId = ((string)marketIds[i]);
             subscription[(string)marketId] = true;
         }
         request["type"] = type;
