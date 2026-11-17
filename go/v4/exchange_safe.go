@@ -1122,3 +1122,8 @@ func (this *BaseExchange) SafeListNStrings(dictionaryOrList any, keys any) []str
 func (this *BaseExchange) SafeListSlice(dictionaryOrList any, key any, defaultValue any) []any {
 	return listValueToTypedSlice(this.SafeList(dictionaryOrList, key, defaultValue))
 }
+
+// SafeListNSlice is SafeListN (no default) read as a []any: nil exactly where SafeListN answers nil.
+func (this *BaseExchange) SafeListNSlice(dictionaryOrList any, keys any) []any {
+	return listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys))
+}
