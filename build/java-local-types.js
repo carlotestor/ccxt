@@ -24236,7 +24236,14 @@ function r90j2MapUse (printer, n) {
         return 'read';
     }
     if (ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)) {
-        return 'arg';
+        // ral-90j2 R4: a slot the printer prints Map<String, Object> takes the declared Map with no cast
+        let types;
+        try {
+            types = printer.javaNativeCallParameterTypes?.(parent);
+        } catch (e) {
+            types = undefined;
+        }
+        return r77j2Normalize (types?.[parent.arguments.indexOf (n)]) === JAVA_MAP_TYPE ? 'slot' : 'arg';
     }
     return undefined;
 }
@@ -24277,7 +24284,7 @@ function r90j2ElementMapLocal (printer, declaration) {
     const statement = declaration.parent.parent;
     const block = statement.parent;
     const next = block?.statements?.[block.statements.indexOf (statement) + 1];
-    const first = uses.find ((n, i) => kinds[i] === 'read');
+    const first = uses.find ((n, i) => kinds[i] === 'read' || kinds[i] === 'slot');
     if (first === undefined || next === undefined || uses.indexOf (first) !== 0) {
         return undefined;
     }

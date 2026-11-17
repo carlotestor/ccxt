@@ -5845,7 +5845,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10372,6 +10372,30 @@ function javaR90j2ElementMapLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/Map<String, Object> t = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bt\.get\("info"\)/.test(out)) problems.push("ral-90j2 R3: 't' (ts[s] then t['info']) must print Map with a native get");
         if (!/\bObject u = /.test(out)) problems.push("ral-90j2 R3: 'u' (only a call argument) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-90j2 R4: an element-read Map-structure local handed first to a Map<String, Object> core slot prints Map, and the argument binds bare
+function javaR90j2ElementMapSlotSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr90j2ms${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Market } from './base/types.js';",
+        `export default class zzr90j2ms${process.pid} extends Exchange {`,
+        "    slot (rs: Record<string, Dict>, id: string, market: Market) { const p = rs[id]; return this.parsePosition (p, market); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> p = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/parsePosition\(p, /.test(out)) problems.push("ral-90j2 R4: 'p' (rs[id] handed to parsePosition's Map slot) must print Map and bind bare");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
