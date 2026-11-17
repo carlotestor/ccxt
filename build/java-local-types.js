@@ -10902,6 +10902,14 @@ function safeListInitializerIsList (printer, initializer) {
     }
 }
 
+function unwrapSafeListCall (node) {
+    let call = unwrapParens (node);
+    if (call !== undefined && (ts.isAsExpression (call) || ts.isTypeAssertion (call))) {
+        call = unwrapParens (call.expression);
+    }
+    return call;
+}
+
 function safeListLocalTypeOf (printer, declaration, isProFile) {
     let initializer = unwrapParens (declaration.initializer);
     // `this.safeList(..) as List` / `as any[]` — the TS author asserts an array; the printer
@@ -10966,7 +10974,10 @@ export function patchJavaSafeListLocalTypes (transpiler) {
             return printed;
         }
         typed.add (declaration);
-        return printed.slice (0, at) + `${iden}${JAVA_SAFE_LIST_TYPE} ${printedName} = ${JAVA_SAFE_LIST_CAST} ${value}`;
+        // an array-literal default binds the hand-written List-default safeList overload: no checkcast
+        const args = unwrapSafeListCall (declaration.initializer).arguments;
+        const listDefault = name === 'safeList' && args.length === 3 && ts.isArrayLiteralExpression (unwrapParens (args[2]));
+        return printed.slice (0, at) + `${iden}${JAVA_SAFE_LIST_TYPE} ${printedName} = ${listDefault ? '' : JAVA_SAFE_LIST_CAST + ' '}${value}`;
     };
     // later safeList*/arrayConcat writes are declared Object in Java: same checkcast as the declaration
     const upstreamBinary = printer.printBinaryExpression.bind (printer);

@@ -7326,7 +7326,7 @@ function javaListLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<Object> a = /.test(out)) problems.push("'a' ([] + arrayConcat) must print List<Object>");
         if (!/a = \(java\.util\.List<Object>\) this\.arrayConcat\(/.test(out)) problems.push("'a' arrayConcat write needs a checkcast");
-        if (!/List<Object> b = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("'b' (safeList + safeList write) must print List<Object> with a checkcast");
+        if (!/List<Object> b = (\(java\.util\.List<Object>\) )?this\.safeList\(/.test(out)) problems.push("'b' (safeList + safeList write) must print List<Object>");
         if (!/List<Object> c = /.test(out)) problems.push("'c' (Object.keys) must print List<Object>");
         if (/Helpers\.getArrayLength\((a|b)\)/.test(out) || /Helpers\.GetValue\((a|b), /.test(out)) problems.push("'a'/'b' length/get must go native");
         // shapes no earlier section types: toArray / fresh-list method writes, a List<Object> core + sortBy

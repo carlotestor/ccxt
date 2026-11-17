@@ -1568,6 +1568,10 @@ public class BaseExchange {
     public java.util.Map<String, Object> safeDict(Object dictionaryOrList, Object key, java.util.Map<String, Object> defaultValue) {
         return (java.util.Map<String, Object>) this.safeDict(dictionaryOrList, key, (Object) defaultValue);
     }
+    // a List default: the transpiled safeList hands back a List value or this default, so the result is a List
+    public java.util.List<Object> safeList(Object dictionaryOrList, Object key, java.util.List<Object> defaultValue) {
+        return (java.util.List<Object>) this.safeList(dictionaryOrList, key, (Object) defaultValue);
+    }
     // ----- END OF WRAPPERS ----- //
     // when true, sleep() blocks the calling thread and returns an already
     // completed future instead of a delayed one. joining an incomplete future
