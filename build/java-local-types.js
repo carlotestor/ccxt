@@ -2167,6 +2167,9 @@ const VENUE_RETURN_KINDS = {
     // String), hyperliquid findOutcomeInMarket (`: Dict`, returns safeDict (.., {}) reads). selectNetworkKeyFromNetworks
     // and normalizeTagKey prove String too, but 5 of their 6 result locals only feed Object slots: left out
     'hashOrderMessage': [ 'String' ], 'findOutcomeInMarket': [ JAVA_ARRAY_TYPE_MAP () ],
+    // base `convertMarketIdExpireDate (date: Str): Str` (no override in ts/src): returns undefined or its String
+    // concat; the bybit / deribit `expiry` seeds it writes are handed to String slots (convertExpireDate*)
+    'convertMarketIdExpireDate': [ 'String' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -12670,6 +12673,12 @@ function nullScalarWriteType (printer, node) {
         const container = nullContainerSpelling (core);
         if (container !== undefined || NULL_SCALAR_COPY_TYPES.has (core)) {
             return container ?? core;
+        }
+        // a VENUE_RETURN_KINDS callee printed `public String` that no arm above proved (its signature follows the
+        // same table, so a callee this run retypes is read in the same pass); lands only with a native use
+        if (isThisCall (value) && venueCallJavaType (printer, value) === JAVA_DATAFLOW_STRING) {
+            NULL_SEED_R84_WRITES.add (node);
+            return JAVA_DATAFLOW_STRING;
         }
     }
     const r84 = nullSeedWriteType (printer, value);
