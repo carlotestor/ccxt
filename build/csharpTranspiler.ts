@@ -8716,6 +8716,8 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
         [ 'object t = ' ], [ 'string? t = ' ]);
     check ('guarded Int64? difference initialiser is declared Int64?', 'safeInteger (o, k, d = undefined): number { return d; }\n ra (o: Dict, m: number) { const e = this.safeInteger (o, "e"); if (e === undefined) { return 1; } const r = e - 5; if (m < r) { return 2; } return 3; }',
         [ 'Int64? r = (e - 5);' ], [ 'object r = ' ]);
+    check ('nested guarded Int64? difference', 'safeInteger (o, k, d = undefined): number { return d; }\n rn (o: Dict, t: number) { const e = this.safeInteger (o, "e"); if (e !== undefined) { const r = e - 7 - 60000; if (r > 0) { return r; } } return 3; }',
+        [ 'Int64? r = ((e - 7) - 60000);' ], [ 'object r = ', 'subtract(' ]);
     return problems;
 }
 

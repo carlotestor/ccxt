@@ -19644,6 +19644,9 @@ function nativeGuardedSubtractExpression (csharp, node) {
         while (operand?.kind === ts.SyntaxKind.ParenthesizedExpression) {
             operand = operand.expression;
         }
+        if (operand?.kind === ts.SyntaxKind.BinaryExpression && operand === node.left && nativeGuardedSubtractExpression (csharp, operand) !== undefined) {
+            return 'Int64'; // `(a - b) - c`: the inner guarded difference is a non-null Int64
+        }
         const kind = nativeArithmeticOperandKind (csharp, operand);
         if (kind === 'Int64?') {
             if (nativeInt64ValueIsNonNull (csharp, operand, 0)) {
