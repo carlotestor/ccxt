@@ -10986,8 +10986,54 @@ const JAVA_VENUE_TS_ROOT = path.join (path.dirname (fileURLToPath (import.meta.u
 const JAVA_VENUE_RETURN_MAP = {
     'Dict': 'Map<String, Object>', 'string': 'String', 'Str': 'String', 'boolean': 'Boolean', 'Bool': 'Boolean',
     'Int': 'Long', 'int': 'Long', 'Num': 'Double', 'number': 'Double',
+    // ral-87j7: a venue-only `Promise<Dict[]>` (raw page fetchers) prints CompletableFuture<List<Object>>
+    'Dict[]': 'List<Object>',
 };
 let javaVenueReturnTable;
+const javaVenueListFiles = [];
+
+// self-test hook: drop the ts/src indexes so a probe file written after they were built is seen
+export function resetJavaVenueIndexes () {
+    javaVenueReturnTable = undefined;
+    javaVenueListFiles.length = 0;
+    javaFreshMapMethodIndex = undefined;
+}
+
+function javaVenueListReturnsProven (file, name) {
+    const text = readTsIndexSource (file);
+    if (text === undefined) {
+        return false;
+    }
+    const sf = ts.createSourceFile (file, text);
+    let ok = true;
+    let found = 0;
+    const visitMethod = (member) => {
+        if (member.kind !== ts.SyntaxKind.MethodDeclaration || member.name === undefined || !ts.isIdentifier (member.name)
+            || member.name.text !== name || member.body === undefined) {
+            return;
+        }
+        found++;
+        const walk = (node) => {
+            if (!ok || node === undefined || (node !== member && ts.isFunctionLike (node))) {
+                return;
+            }
+            if (ts.isReturnStatement (node)) {
+                const value = unwrapParens (node.expression);
+                ok = value !== undefined && (ts.isIdentifier (value)
+                    || (isThisCall (value) && value.expression.name.text === 'arraySlice'));
+                return;
+            }
+            node.forEachChild (walk);
+        };
+        walk (member);
+    };
+    for (const statement of sf.statements) {
+        if (ts.isClassDeclaration (statement)) {
+            statement.members.forEach (visitMethod);
+        }
+    }
+    return ok && found > 0;
+}
 
 function javaVenueScan (file, re, onMatch) {
     const content = readTsIndexSource (file);
@@ -11018,9 +11064,12 @@ export function javaVenueAsyncReturnTable () {
             // only async declarations print a CompletableFuture core; a same-named sync helper elsewhere is unrelated
             javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )(\w+) \(/, (m, line) => {
                 const full = /^ {4}(async )?\w+ \(.*\)\s*(?::\s*(.+?))?\s*\{\s*$/.exec (line);
-                const promise = full === null ? undefined : /^Promise<(\w+)>$/.exec (full[2] ?? '');
+                const promise = full === null ? undefined : /^Promise<(\w+(?:\[\])?)>$/.exec (full[2] ?? '');
                 const spelling = (full !== null && full[1] !== undefined && promise) ? JAVA_VENUE_RETURN_MAP[promise[1]] : undefined;
                 const set = seen.get (m[2]) ?? new Set ();
+                if (spelling === 'List<Object>') {
+                    javaVenueListFiles.push ([ m[2], path.join (JAVA_VENUE_TS_ROOT, dir, f) ]);
+                }
                 set.add (spelling ?? '?');
                 seen.set (m[2], set);
             });
@@ -11030,6 +11079,14 @@ export function javaVenueAsyncReturnTable () {
     for (const [ name, set ] of seen) {
         if (!baseNames.has (name) && set.size === 1 && !set.has ('?')) {
             javaVenueReturnTable.set (name, [ ...set ][0]);
+        }
+    }
+    // ral-87j7: a `Promise<Dict[]>` core keeps no cast only when every return is a local or
+    // this.arraySlice (..) (List<Object> in BaseExchange.java); a returned Object call (safeList) would
+    // need a checkcast at the return, so those names stay out (parsed from the TS AST of each file)
+    for (const [ name, file ] of javaVenueListFiles) {
+        if (javaVenueReturnTable.get (name) === 'List<Object>' && !javaVenueListReturnsProven (file, name)) {
+            javaVenueReturnTable.delete (name);
         }
     }
     return javaVenueReturnTable;
@@ -11057,7 +11114,7 @@ function awaitedVenueCallType (printer, node) {
     if (file === undefined || BASE_SOURCE_FILE.test (file)) {
         return undefined;
     }
-    return spelling === 'Map<String, Object>' ? JAVA_STRUCTURE_TYPE : spelling;
+    return spelling === 'Map<String, Object>' ? JAVA_STRUCTURE_TYPE : spelling === 'List<Object>' ? JAVA_ARRAY_TYPE : spelling;
 }
 
 // ===== 13. null accumulators joined over every provable later write (r10-j2b) =====
