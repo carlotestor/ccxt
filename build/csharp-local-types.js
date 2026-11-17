@@ -12617,6 +12617,9 @@ function boolOptionElementProof (declaration, idNode, assignment, name) {
 // element 0 of a bool helper: the per-call-site option proof above, or the flat
 // DESTRUCTURED_ELEMENT0_TYPES entry (a helper whose own body boxes a bool? local on every path)
 function destructuredBoolElementProof (csharp, scope, index, declaration, idNode, assignment, name) {
+    if (hyperliquidUnifiedElement0Proof92c4 (declaration, idNode, assignment, name)) {
+        return true;
+    }
     // the bool-coercion family (raw user box, isTrue-rewritten write) proves first; the
     // cast-proven bool helpers fall through to the element-0 tables below
     if (DESTRUCTURED_BOOL_COERCION_HELPERS.includes (name)) {
@@ -22378,4 +22381,40 @@ function currencyRowStringReadType92c4 (csharp, node) {
         }
     }
     return 'string';
+}
+
+// `[ x, q ] = await this.isUnifiedEnabled (...)` in ts/src/hyperliquid.ts: the venue's single declaration
+// (no override in pro/prediction) returns `[ enableUnifiedMargin, params ]` on its only return path, and
+// that slot-0 local is printed `bool?` (handleOptionBoolAndParams element 0, later `= response == "..."`),
+// so the `(bool?)` element read names its box. Taken only for a seed compared `=== true|false`, the
+// use that prints natively on bool? (`(x is true)` -> `x == true`).
+function hyperliquidUnifiedElement0Proof92c4 (declaration, idNode, assignment, name) {
+    if (name !== 'isUnifiedEnabled' || idNode.parent?.elements?.[0] !== idNode || !isNullInit (declaration)
+            || !/[\\/]ts[\\/]src[\\/]hyperliquid\.ts$/.test (declaration.getSourceFile?.()?.fileName ?? '')) {
+        return false;
+    }
+    const right = assignment?.right;
+    if (right?.kind !== ts.SyntaxKind.AwaitExpression || right.expression?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const target = declaration.name?.text;
+    const scope = enclosingFunction (declaration);
+    let compared = false;
+    const visit = (n) => {
+        if (compared) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken) {
+            const l = stripParens (n.left);
+            const r = stripParens (n.right);
+            const isTarget = (x) => x?.kind === ts.SyntaxKind.Identifier && x.text === target;
+            const isBool = (x) => x?.kind === ts.SyntaxKind.TrueKeyword || x?.kind === ts.SyntaxKind.FalseKeyword;
+            compared = (isTarget (l) && isBool (r)) || (isTarget (r) && isBool (l));
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
+    return compared;
 }

@@ -12974,5 +12974,10 @@ export function nullSeedChecks92c4 (): string[] {
     // the currency-row id read is a string write: the receiver call prints natively
     const row = print ('f (code: Str, n: Str) { const currency = this.currency (code); let id: Str = undefined; if (n === undefined) { id = currency[\'id\']; } return id.toUpperCase (); }');
     if (!row.includes ('string? id = null;') || !row.includes ('id.ToUpper()')) problems.push (`currency-row id write: ${row.replace (/\n/g, ' | ').slice (-400)}`);
+    // slot 0 of hyperliquid isUnifiedEnabled is its bool? local: a seed compared `=== true` prints native ==
+    const hl: string = (transpiler as unknown as { transpileCSharpByPath (file: string): { content: string } }).transpileCSharpByPath ('./ts/src/hyperliquid.ts').content;
+    const t0 = hl.search (/ transfer\(/i);
+    const tb = (t0 < 0) ? '' : hl.slice (t0, hl.indexOf ('\n    }\n', t0));
+    if (!tb.includes ('bool? isUnified = null;') || !tb.includes ('(isUnified == true)')) problems.push ('hyperliquid transfer isUnified not bool? / native ==');
     return problems;
 }
