@@ -54,6 +54,7 @@ import { installJavaR90j6AsStringListReaders } from './java-local-types.js';
 import { installJavaR90j6PairLocals } from './java-local-types.js';
 import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
 import { installJavaR90j7MapDelete } from './java-local-types.js';
+import { installJavaR92j3LongDefaultParams } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
@@ -2533,6 +2534,7 @@ class NewTranspiler {
         installJavaR90j6PairLocals(this.transpiler);
         installJavaR90j6ListCopyLocals(this.transpiler);
         installJavaR90j7MapDelete(this.transpiler);
+        installJavaR92j3LongDefaultParams(this.transpiler);
         installJavaR90j8OmitParamLocals(this.transpiler);
     }
 
@@ -6095,6 +6097,22 @@ function mapLocalsSelfTest (): string[] {
         problems.push(`ral-90j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(r90j3, { force: true });
+    }
+    // integer-literal defaulted number slots (buildOHLCVC since / limit) print Long, so call sites pass NL
+    const r92j3 = path.join(process.cwd(), 'ts', 'src', `zz92j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j3, [
+            "import Exchange from './abstract/binance.js';",
+            'export default class zz92j3selftest extends Exchange {',
+            "    candles (trades: any[]) { const c = this.buildOHLCVC (trades, '1m', 0, 100); return c; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j3).content as string;
+        if (!/this\.buildOHLCVC\([^\n]*, 0L, 100L\)/.test(out)) problems.push("r92j3 R1: buildOHLCVC since / limit must take Long arguments");
+    } catch (e) {
+        problems.push(`r92j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j3, { force: true });
     }
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [

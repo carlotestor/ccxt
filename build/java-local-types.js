@@ -24129,6 +24129,118 @@ export function installJavaR90j3CounterLoops (transpiler) {
     };
 }
 
+// ===== r92j3. integer-literal defaulted number parameters print `Long` =====
+// Every printed declaration of these (method, position) slots defaults to an integer literal, is
+// annotated number/Int (or not at all) and never written, so the slot holds a whole number: the
+// compares and min of the body print as native long operations instead of the inline helper blobs.
+const R92J3_LONG_DEFAULT_PARAMS = {
+    'buildOHLCVC': [ 2, 3 ],
+    'waitForTransactionReceipt': [ 2 ],
+};
+
+function r92j3LongDefaultParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || !ts.isIdentifier (method.name ?? {}) || !Object.hasOwn (R92J3_LONG_DEFAULT_PARAMS, method.name.text)) {
+        return undefined;
+    }
+    const index = method.parameters.indexOf (node);
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (!R92J3_LONG_DEFAULT_PARAMS[method.name.text].includes (index) || fileName.includes ('/ts/src/test/')
+        || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    const initializer = unwrapParens (node.initializer);
+    if (initializer === undefined || !ts.isNumericLiteral (initializer) || !/^\d+$/.test (initializer.text)
+        || Number (initializer.text) > 2147483647 || ![ '', 'number', 'Int', 'int' ].includes (annotation)
+        || !ts.isIdentifier (node.name) || printer.javaParameterIsWritten (node)) {
+        throw new Error (`java long param ${method.name.text}#${index} (${fileName}) is not a read-only integer-literal default`);
+    }
+    return 'Long';
+}
+
+export function installJavaR92j3LongDefaultParams (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaOptionalParameterTypeOf !== 'function' || printer._javaR92j3LongDefaultParamsPatched) {
+        return;
+    }
+    printer._javaR92j3LongDefaultParamsPatched = true;
+    const upstreamType = printer.javaOptionalParameterTypeOf.bind (printer);
+    printer.javaOptionalParameterTypeOf = function (node) {
+        return r92j3LongDefaultParamType (printer, node) ?? upstreamType (node);
+    };
+    // a read of such a slot prints `requireNonNullElse(x, NL)`: a non-null Long, so compares,
+    // min/max and arithmetic on it take the native long forms
+    const isSlotRead = (node) => {
+        const bare = unwrapParens (node);
+        if (bare === undefined || !ts.isIdentifier (bare)) {
+            return false;
+        }
+        const declaration = printer.javaDeclarationOfIdentifier (bare);
+        if (declaration?.kind !== ts.SyntaxKind.Parameter || r92j3LongDefaultParamType (printer, declaration) !== 'Long') {
+            return false;
+        }
+        return printer.javaDefaultedLocalName (bare) === `java.util.Objects.requireNonNullElse(${bare.text}, ${unwrapParens (declaration.initializer).text}L)`;
+    };
+    const upstreamKind = printer.javaProvableNumericKind.bind (printer);
+    printer.javaProvableNumericKind = function (node, allowDeclaredLocals = true) {
+        return (allowDeclaredLocals && isSlotRead (node)) ? 'long' : upstreamKind (node, allowDeclaredLocals);
+    };
+    // Math.min/max of a slot read and a non-null int/long operand: Math.min(long, long) is the
+    // helper's pick on two whole numbers
+    const upstreamMinMax = printer.printNativeMathMinMax.bind (printer);
+    printer.printNativeMathMinMax = function (node, left, right, leftText, rightText, name) {
+        const integral = (n) => [ 'int', 'long' ].includes (printer.javaProvableNumericKind (unwrapParens (n)));
+        if ((isSlotRead (left) || isSlotRead (right)) && integral (left) && integral (right)
+            && printer.javaNativeMathMinMaxResultIsPlainValue (node)) {
+            return `Math.${name}(${leftText}, ${rightText})`;
+        }
+        return upstreamMinMax (node, left, right, leftText, rightText, name);
+    };
+    // `const x = Math.min (<slot read>, <int/long>)` holds that native long: declare it `long`
+    const minMaxLocals = new WeakMap ();
+    const isMinMaxLocal = (declaration) => {
+        if (!minMaxLocals.has (declaration)) {
+            let ok = false;
+            try {
+                const init = unwrapParens (declaration.initializer);
+                ok = ts.isVariableDeclaration (declaration) && ts.isIdentifier (declaration.name)
+                    && ts.isVariableDeclarationList (declaration.parent) && (declaration.parent.flags & ts.NodeFlags.Const) !== 0
+                    && declaration.parent.declarations.length === 1 && init !== undefined && ts.isCallExpression (init)
+                    && ts.isPropertyAccessExpression (init.expression) && ts.isIdentifier (init.expression.expression)
+                    && init.expression.expression.text === 'Math' && [ 'min', 'max' ].includes (init.expression.name.text)
+                    && init.arguments.length === 2 && init.arguments.some ((a) => isSlotRead (a))
+                    && init.arguments.every ((a) => [ 'int', 'long' ].includes (printer.javaProvableNumericKind (unwrapParens (a))));
+            } catch (e) {
+                ok = false;
+            }
+            minMaxLocals.set (declaration, ok);
+        }
+        return minMaxLocals.get (declaration);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (declaration !== undefined && ts.isVariableDeclaration (declaration)
+        && isMinMaxLocal (declaration) ? 'long' : undefined));
+    const upstreamList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamList (node, identation);
+        const declaration = node.declarations?.length === 1 ? node.declarations[0] : undefined;
+        if (declaration === undefined || !isMinMaxLocal (declaration)) {
+            return printed;
+        }
+        const head = `Object ${declaration.name.text} = Math.`;
+        const at = printed.indexOf (head);
+        if (at < 0) {
+            throw new Error (`min/max local ${declaration.name.text} printed without its native Math call`);
+        }
+        return printed.slice (0, at) + `long ${declaration.name.text} = Math.` + printed.slice (at + head.length);
+    };
+    const upstreamOperand = printer.javaComparisonOperand.bind (printer);
+    printer.javaComparisonOperand = function (node) {
+        return isSlotRead (node) ? { kind: 'long', boxed: false } : upstreamOperand (node);
+    };
+}
+
 // ===== r87-j4. const native-split locals already printed List<Object> =====
 // `const parts = s.split (sep)` that an earlier section declared `java.util.List<Object>` holds only the
 // Strings of `String.split`: when 84j8's split audit accepts every use, declare it List<String> (the
