@@ -3918,7 +3918,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             // the String cannot satisfy ("...".remove((String)k) / List cast), so it
             // rejects. Map/List/ws locals take the Object-parameter helper unchanged.
             const grand = parent.parent;
-            if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+            if (grand?.kind === ts.SyntaxKind.DeleteExpression && !(javaType === JAVA_STRUCTURE_TYPE && info?.r90j7DeleteOk === true)) {
                 return false;
             }
             if (javaType === 'String' && grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
@@ -4074,7 +4074,9 @@ function javaLocalTypeOf (printer, declaration, narrowed) {
     const sourceName = declaration.name.text;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    const info = localInitializerType (printer, declaration, isProFile, narrowed);
+    const info0 = localInitializerType (printer, declaration, isProFile, narrowed);
+    // ral-90j7 R1: `delete x[k]` prints `((Map<String,Object>)x).remove (k)`, legal on a Map-declared local
+    const info = info0?.type === JAVA_STRUCTURE_TYPE ? { ...info0, r90j7DeleteOk: true } : info0;
     if (info === undefined) {
         return undefined;
     }
@@ -23964,4 +23966,42 @@ function r87j8StringListRead (printer, value) {
         return false;
     }
     return numeric && /^(java\.util\.)?List<String>$/.test (declared.trim ());
+}
+
+// ===== ral-90j7 R1. `delete x[k]` on a Map-declared local =====
+// isSafeToNarrow refused every Map local with a `delete x[k]` use (the delete prints a receiver cast a
+// String local cannot take). For a Map-declared local the delete is legal; print it on the receiver
+// with no cast. Decided from the TS declaration and the type the layer published for it.
+export function installJavaR90j7MapDelete (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || printer._javaR90j7MapDeletePatched || typeof printer.printDeleteExpression !== 'function') {
+        return;
+    }
+    printer._javaR90j7MapDeletePatched = true;
+    const upstream = printer.printDeleteExpression.bind (printer);
+    printer.printDeleteExpression = function (node, identation) {
+        const out = upstream (node, identation);
+        const receiver = node?.expression?.expression;
+        if (typeof out !== 'string' || receiver === undefined || !ts.isIdentifier (receiver)) {
+            return out;
+        }
+        try {
+            const declaration = this.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+            if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.name?.text !== receiver.text) {
+                return out;
+            }
+            const declared = String (this.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').replace (/^final\s+/, '').replace (/\s+/g, '').replace (/java\.util\./g, '');
+            if (declared !== 'Map<String,Object>') {
+                return out;
+            }
+            // the receiver cast the upstream chain printed has a fixed length (receiver printed from the AST
+            // node); the key argument it chose (section 10 / printer) is kept as printed
+            // (fail-closed shape check only: other upstream arms, e.g. ws client maps, already print bare)
+            const object = this.printNode (receiver, 0);
+            const cast = '((java.util.Map<String,Object>)' + object + ')';
+            return out.startsWith (cast + '.remove(') ? object + out.slice (cast.length) : out;
+        } catch (e) {
+            return out;
+        }
+    };
 }

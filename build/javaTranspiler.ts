@@ -44,6 +44,7 @@ import { installJavaR87j3SumCounterLocals } from './java-local-types.js';
 import { installJavaR87j4SplitLists } from './java-local-types.js';
 import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
 import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
+import { installJavaR90j7MapDelete } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2512,6 +2513,7 @@ class NewTranspiler {
         installJavaR87j4SplitLists(this.transpiler);
         installJavaR87j5CalleeStringArgs(this.transpiler);
         installJavaR87j8CopyStringResolver(this.transpiler);
+        installJavaR90j7MapDelete(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -6104,6 +6106,24 @@ function mapLocalsSelfTest (): string[] {
         problems.push(`ral-87j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(r87j7, { force: true });
+    }
+    // ral-90j7 R1: a Map-typed callee result with a `delete x[k]` use prints Map<String, Object> and a bare remove
+    const r90j7 = path.join(process.cwd(), 'ts', 'src', `zz90j7selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r90j7, [
+            "import Exchange from './abstract/okx.js';",
+            "import type { Dict, Str } from './base/types.js';",
+            'export default class zz90j7selftest extends Exchange {',
+            "    createOrderRequest (symbol: Str, type: Str, side: Str, amount: number, price: number = undefined, params: Dict = {}): Dict { return { 'instId': symbol }; }",
+            "    zzWs (symbol: string, code: number) { const args = this.createOrderRequest (symbol, 'limit', 'buy', 1, undefined, {}); delete args['instId']; args['instIdCode'] = code; return args; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r90j7).content as string;
+        if (!/Map<String, ?Object> args = this\.createOrderRequest\(/.test(out) || !/\bargs\.remove\("instId"\);/.test(out)) problems.push("ral-90j7: a Map callee result with a delete must print Map<String, Object> and a bare remove");
+    } catch (e) {
+        problems.push(`ral-90j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r90j7, { force: true });
     }
     return problems;
 }
