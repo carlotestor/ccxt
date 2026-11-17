@@ -9140,6 +9140,88 @@ function requireValueStringListOrStringReceiver (csharp, initializer, declaratio
     return stringElementLocalHasNativeUse (csharp, declaration) ? 'string' : undefined;
 }
 
+// `const x = keys[i]` over a once-bound string-elements producer (`Object.keys`, `.split`, a string
+// literal list) declared before the read, whose only non-index uses are reads: `.length` and being
+// handed to a this.safe* reader (which reads, never mutates). elementAccessElementType refuses any
+// call-argument use; this admits the reader hand-off, gated on a native use of the element.
+function readerArgStringListElementType (csharp, initializer, declaration) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier
+            || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const fileName = (initializer.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const receiver = initializer.expression;
+    const receiverDeclaration = csharpIdentifierDeclaration (csharp, receiver);
+    if (receiverDeclaration?.kind !== ts.SyntaxKind.VariableDeclaration || receiverDeclaration.name?.kind !== ts.SyntaxKind.Identifier
+            || receiverDeclaration.getStart () > initializer.getStart () || !stringElementsProducer (receiverDeclaration.initializer)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+    if (scope === undefined || enclosingFunction (receiverDeclaration) !== enclosingFunction (initializer)) {
+        return undefined;
+    }
+    let readerArgs = 0;
+    for (const n of indexScope (csharp, scope).identifiers.get (receiver.text) ?? []) {
+        if (n === receiver || n === receiverDeclaration.name || (n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && n.parent.name === n)) {
+            continue;
+        }
+        if (csharpIdentifierDeclaration (csharp, n) !== receiverDeclaration) {
+            continue;
+        }
+        const call = n.parent;
+        if (call?.kind === ts.SyntaxKind.CallExpression && call.arguments?.[0] === n && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && ROW_USE_PURE_READERS.has (call.expression.name?.text)) {
+            readerArgs++;
+            continue;
+        }
+        if (receiverUseIsWrite (n)) {
+            return undefined;
+        }
+    }
+    return (readerArgs > 0 && stringElementLocalHasNativeUse (csharp, declaration) && !nativeUseIsOnlyUntypedIn (csharp, declaration)) ? 'string' : undefined;
+}
+
+// `x in d` prints a bare ContainsKey only on a declared dictionary; on an untyped `d` it stays
+// `inOp(d, x)` (object parameters), so a local whose native-use candidates are all such `in`
+// operands gains nothing
+function nativeUseIsOnlyUntypedIn (csharp, declaration) {
+    const name = declaration.name.text;
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    let untypedIn = 0;
+    let other = 0;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && parent.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            const right = parent.right;
+            const declared = (right?.kind === ts.SyntaxKind.Identifier && typeof csharp.csharpDeclaredCollectionType === 'function') ? csharp.csharpDeclaredCollectionType (right) : undefined;
+            if (typeof declared === 'string' && declared.includes ('Dictionary<')) {
+                other++;
+            } else {
+                untypedIn++;
+            }
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && ts.isStringLiteralLike ((parent.left === use) ? parent.right : parent.left)) {
+            other++;
+        } else if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use) {
+            other++;
+        } else if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.argumentExpression === use
+                && (parent.parent?.kind === ts.SyntaxKind.DeleteExpression || stringKeyedDictionaryRead (csharp, parent))) {
+            other++;
+        } else if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && parent.expression.expression?.kind === ts.SyntaxKind.Identifier) {
+            other++;
+        }
+    }
+    return untypedIn > 0 && other === 0;
+}
+
 function keyedStringListElementType (csharp, initializer, declaration) {
     if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier
             || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
@@ -11887,7 +11969,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `const x = recv[key]`: the runtime element is a proven box, but the call's C# type
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
-        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer) ?? keyedStringListElementType (csharp, declaration.initializer, declaration) ?? censusStringListParameterElementType (csharp, declaration.initializer, declaration) ?? requireValueStringListOrStringReceiver (csharp, declaration.initializer, declaration)) : undefined;
+        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer) ?? keyedStringListElementType (csharp, declaration.initializer, declaration) ?? censusStringListParameterElementType (csharp, declaration.initializer, declaration) ?? requireValueStringListOrStringReceiver (csharp, declaration.initializer, declaration) ?? readerArgStringListElementType (csharp, declaration.initializer, declaration)) : undefined;
         // `const key = keys[i]` over a receiver whose PRINTED declaration head is a scalar list
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back
