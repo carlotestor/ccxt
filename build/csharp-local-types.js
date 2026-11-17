@@ -21362,64 +21362,7 @@ function listBucketMapReadLocal87c7 (csharp, declaration, context) {
 }
 
 // ===== 90c2: conditional initialisers proven from the TS AST (continues 87c2) =====
-// (R1) `const xs = Array.isArray (y) ? y : <list>` / `const ok = Array.isArray (y); const xs = ok ? y : <list>`
-// where <list> is a value the module types List<object> (`[]`, `[ v ]`, `this.safeList (..)`). In the guarded
-// arm y passed the printed `(y is IList<object>) || (y is a generic List<>)` test, and every list box the
-// generated code and JsonHelper build is a List<object> (87c8 R1's proof), so both arms hold an
-// IList<object> box: the declaration names it behind ONE cast on the whole conditional. y and the guard
-// local must never be written (so the test still describes y). Taken only when some use prints natively
-// on the list (`xs.length` -> Count, `xs[i]`, `xs.push`); otherwise the local stays `object`.
-function c90IsArrayCall (node) {
-    const call = stripParens (node);
-    return call?.kind === ts.SyntaxKind.CallExpression && call.arguments?.length === 1
-        && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && call.expression.expression?.kind === ts.SyntaxKind.Identifier
-        && call.expression.expression.text === 'Array' && call.expression.name?.text === 'isArray'
-        && stripParens (call.arguments[0])?.kind === ts.SyntaxKind.Identifier ? stripParens (call.arguments[0]) : undefined;
-}
-function c90NeverWritten (csharp, scope, binding) {
-    if (binding === undefined || binding.name?.kind !== ts.SyntaxKind.Identifier) {
-        return false;
-    }
-    for (const n of (indexScope (csharp, scope).identifiers.get (binding.name.text) ?? [])) {
-        if (n === binding.name || isNotAUse (n)) {
-            continue;
-        }
-        const refers = useRefersToDeclaration (csharp, scope, binding, n);
-        if (refers === false) {
-            continue;
-        }
-        let node = n;
-        while (node.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-            node = node.parent;
-        }
-        const p = node.parent;
-        if ((p?.kind === ts.SyntaxKind.BinaryExpression && p.left === node && ASSIGNMENT_OPERATORS.includes (p.operatorToken.kind))
-                || ((p?.kind === ts.SyntaxKind.PrefixUnaryExpression || p?.kind === ts.SyntaxKind.PostfixUnaryExpression)
-                    && (p.operator === ts.SyntaxKind.PlusPlusToken || p.operator === ts.SyntaxKind.MinusMinusToken))) {
-            return false;
-        }
-        if (refers !== true && (p?.kind === ts.SyntaxKind.ArrayLiteralExpression || p?.kind === ts.SyntaxKind.ObjectLiteralExpression)) {
-            return false; // a destructuring target the index cannot attribute
-        }
-    }
-    return true;
-}
-function c90GuardedArrayIdentifier (csharp, scope, test) {
-    const direct = c90IsArrayCall (test);
-    if (direct !== undefined) {
-        return direct;
-    }
-    const flag = stripParens (test);
-    if (flag?.kind !== ts.SyntaxKind.Identifier) {
-        return undefined;
-    }
-    const binding = resolveReference (csharp, flag);
-    if (binding?.kind !== ts.SyntaxKind.VariableDeclaration || binding.initializer === undefined || binding.parent?.declarations?.length !== 1
-            || enclosingFunction (binding) !== scope || !c90NeverWritten (csharp, scope, binding)) {
-        return undefined;
-    }
-    return c90IsArrayCall (binding.initializer);
-}
+// shared by R2: some use of the local prints natively on a list (`.length` -> Count, `[i]`, `push`)
 function c90ListLocalHasNativeUse (csharp, scope, declaration) {
     for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
         if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
@@ -21436,53 +21379,6 @@ function c90ListLocalHasNativeUse (csharp, scope, declaration) {
     }
     return false;
 }
-function c90ArrayGuardedConditionalLocal (csharp, declaration, context) {
-    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || !isBlockScopedDeclaration (declaration)) {
-        return undefined;
-    }
-    const conditional = stripParens (declaration.initializer);
-    if (conditional?.kind !== ts.SyntaxKind.ConditionalExpression) {
-        return undefined;
-    }
-    const sourceFile = declaration.getSourceFile?.()?.fileName ?? '';
-    if (/(^|[\\/])test[\\/]/.test (sourceFile) || sourceFile.includes ('examples')) {
-        return undefined;
-    }
-    const scope = enclosingFunction (declaration);
-    if (scope === undefined) {
-        return undefined;
-    }
-    const guarded = c90GuardedArrayIdentifier (csharp, scope, conditional.condition);
-    const arm = stripParens (conditional.whenTrue);
-    if (guarded === undefined || arm?.kind !== ts.SyntaxKind.Identifier || arm.text !== guarded.text) {
-        return undefined;
-    }
-    const target = resolveReference (csharp, arm);
-    if (target === undefined || target !== resolveReference (csharp, guarded) || enclosingFunction (target) !== scope || !c90NeverWritten (csharp, scope, target)) {
-        return undefined;
-    }
-    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
-    // the guarded arm must print as `object`: a statically typed arm (a `Dictionary` endpoint result)
-    // gives the cast conditional no natural type (CS0029) and is never a list anyway
-    const armType = csharpTypeOfValue (csharp, arm, ctx) ?? retypedDeclarationTypes.get (target);
-    if (armType !== undefined && armType !== 'object') {
-        return undefined;
-    }
-    if (csharpTypeOfValue (csharp, conditional.whenFalse, ctx) !== 'List<object>') {
-        return undefined;
-    }
-    if (!c90ListLocalHasNativeUse (csharp, scope, declaration)) {
-        return undefined;
-    }
-    const type = 'IList<object>';
-    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type, castWhole: true } : undefined;
-}
-const c90UpstreamLocalDeclaration = csharpLocalDeclaration;
-// eslint-disable-next-line no-func-assign
-csharpLocalDeclaration = function (csharp, declaration, context) {
-    return c90UpstreamLocalDeclaration (csharp, declaration, context) ?? c90ArrayGuardedConditionalLocal (csharp, declaration, context);
-};
-
 // (R2) a conditional whose arms are parameters (or typed locals) the PRINTED signature names as one
 // collection interface (`IList<object>` / `IDictionary<string, object>`, nullable or not, recorded by
 // the printer before the body prints: csharpPrintedParamType). Both arms are references of that

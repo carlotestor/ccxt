@@ -9495,16 +9495,6 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('87c2 literal-key read pushed only inside a branch keeps object',
             'f (eventGroup: Dict, m) { const groupMarkets = eventGroup[\'markets\']; if (m) { groupMarkets.push (m); } return groupMarkets; }',
             'object groupMarkets = ');
-        // 90c2 R1: `Array.isArray (y) ? y : <List<object>>` (direct or through an unwritten flag local) -> IList<object>
-        check ('90c2 isArray-guarded conditional with a native length / index -> IList',
-            'f (response, req) { const ok = Array.isArray (response); const rows = ok ? response : [ response ]; for (let i = 0; i < rows.length; i++) { req.push (rows[i]); } }',
-            'IList<object> rows = ((IList<object>)(ok ? response : new List<object>() {response}));', 'object rows = ');
-        check ('90c2 isArray-guarded conditional only returned keeps object',
-            'f (response) { const rows = Array.isArray (response) ? response : []; return rows; }',
-            'object rows = ');
-        check ('90c2 isArray guard over a rewritten operand keeps object',
-            'f (response) { const ok = Array.isArray (response); response = {}; const rows = ok ? response : []; return rows.length; }',
-            'object rows = ');
         // 90c2 R2: arms are parameters the printed signature names IList<object>; R3/R4: element reads of local literal maps
         // (R2 needs the printed IList<object> signature, which only the corpus run records: gated on the farm)
         check ('90c2 c ? <object param> : <object param> keeps object',
