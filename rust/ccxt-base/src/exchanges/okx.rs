@@ -6731,14 +6731,14 @@ impl Okx {
             limitResolved = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, requestMaxLimit)) } else { None });
         }
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-        let mut bar: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut bar: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         if (timezone == "UTC") && (duration >= 21600) {
-            bar = Value::Str(format!("{}{}", bar, Value::from(timezone.to_lowercase())).into());
+            bar = Some(format!("{}{}", bar.as_deref().unwrap_or("null"), timezone.to_lowercase()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
-                m.insert("bar".to_string(), bar);
+                m.insert("bar".to_string(), bar.map(Value::from).unwrap_or(Value::Null));
                 m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
