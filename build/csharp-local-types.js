@@ -23698,7 +23698,8 @@ function omitFirstMapUseLocal93c5 (csharp, declaration, context) {
             && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression.expression?.kind === ts.SyntaxKind.Identifier
             && parent.expression.expression.text === 'Object' && (parent.expression.name?.text === 'keys' || parent.expression.name?.text === 'values');
     };
-    const next = block.statements[block.statements.indexOf (statement) + 1];
+    const at = block.statements.indexOf (statement);
+    let next = block.statements[at + 1];
     let first;
     for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
         if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
@@ -23707,6 +23708,14 @@ function omitFirstMapUseLocal93c5 (csharp, declaration, context) {
         if (first === undefined || use.getStart () < first.getStart ()) {
             first = use;
         }
+    }
+    // R3: the use may sit in a later sibling statement when every statement in between is a plain
+    // variable / expression statement (no throw, return or branch can skip it)
+    for (let k = at + 1; first !== undefined && next !== undefined && first.getStart () > next.getEnd (); k++) {
+        if (next.kind !== ts.SyntaxKind.VariableStatement && next.kind !== ts.SyntaxKind.ExpressionStatement) {
+            return undefined;
+        }
+        next = block.statements[k + 1];
     }
     if (first === undefined || next === undefined || !mapUse (first) || first.getStart () < next.getStart () || first.getEnd () > next.getEnd ()
             || !unconditionalInStatement93c5 (first, next)) {
