@@ -11,7 +11,7 @@ import { MARKET_ROW_STRING_KEYS, MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
 import { csharpTupleReturns } from './csharp-local-types.js'
 import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js'
-import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
+import { PARAMETERS_ARG_TYPED_METHODS, PARSE_CURRENCY_IDICT_PARAMS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -1996,6 +1996,8 @@ const PARSE_MARKET_PARAM_DICTS: string[] = [
 const PARSE_MARKET_SIG_RE = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
 const PARSE_MARKET_PARAM_RE = /([(,]\s*)object(\s+market\s*=\s*null)(?=[,)])/g;
 const PARSE_MARKET_PARAM_REQUIRED_RE = /([(,]\s*)object(\s+market)(?=[,)])/g;
+const PARSE_CURRENCY_PARAM_RE = /([(,]\s*)object(\s+currency\s*=\s*null)(?=[,)])/g;
+const PARSE_CURRENCY_PARAM_REQUIRED_RE = /([(,]\s*)object(\s+currency)(?=[,)])/g;
 
 // ws handler `object message` -> `Dictionary<string, object>` where every reference passes a dict: a
 // dispatch-table entry selected by a key read off the message, or a direct call with a proven dict
@@ -4662,12 +4664,18 @@ class NewTranspiler {
     // are invariant on parameter types), so base / venue / ws / prediction stay in sync.
     retypeParseMarketParams (content: string): string {
         const typed = Object.keys (PARSE_MARKET_IDICT_PARAMS);
-        if (!PARSE_MARKET_PARAM_DICTS.concat (typed).some (name => content.includes (name + '('))) {
+        const typedCurrency = Object.keys (PARSE_CURRENCY_IDICT_PARAMS);
+        if (!PARSE_MARKET_PARAM_DICTS.concat (typed, typedCurrency).some (name => content.includes (name + '('))) {
             return content;
         }
         const lines = content.split ('\n');
         for (let i = 0; i < lines.length; i++) {
             const sig = PARSE_MARKET_SIG_RE.exec (lines[i]);
+            if (sig !== null && typedCurrency.indexOf (sig[5]) !== -1) {
+                // ral-90c1: `object currency` -> IDictionary, same shadow rule (lines are not advanced:
+                // a name in both tables is retyped by both)
+                this.retypeParseMarketParamShadowed (lines, i, sig[1], 'currency');
+            }
             if (sig !== null && typed.indexOf (sig[5]) !== -1) {
                 i = this.retypeParseMarketParamShadowed (lines, i, sig[1]);
                 continue;
@@ -4684,7 +4692,7 @@ class NewTranspiler {
     // PARSE_MARKET_IDICT_PARAMS: retype `object market`; a body writing anything but null or a
     // market-row core keeps the object slot as `object marketVar = market;` (the printer's reads
     // agree: build/csharp-local-types.js#parseMarketParamType). Returns the body's last line.
-    retypeParseMarketParamShadowed (lines: string[], i: number, indent: string): number {
+    retypeParseMarketParamShadowed (lines: string[], i: number, indent: string, slot = 'market'): number {
         let bodyStart = i + 1;
         while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
             bodyStart++;
@@ -4693,17 +4701,20 @@ class NewTranspiler {
         for (let j = bodyStart + 1; j < lines.length; j++) {
             if (lines[j] === indent + '}') { bodyEnd = j; break; }
         }
-        lines[i] = lines[i].replace (PARSE_MARKET_PARAM_RE, '$1IDictionary<string, object>$2')
-                           .replace (PARSE_MARKET_PARAM_REQUIRED_RE, '$1IDictionary<string, object>$2');
-        const writes = lines.slice (bodyStart + 1, bodyEnd).join ('\n').match (/(?<![\w.])market\s*(?:\?\?)?=(?!=)[^;]*;|(?<![\w])(?:ref|out)\s+market(?![\w])/g) ?? [];
-        const rowWrite = /^market\s*=\s*(?:null|this\.(?:market|safeMarket)\([^;]*\));$/;
+        const paramRe = (slot === 'market') ? PARSE_MARKET_PARAM_RE : PARSE_CURRENCY_PARAM_RE;
+        const requiredRe = (slot === 'market') ? PARSE_MARKET_PARAM_REQUIRED_RE : PARSE_CURRENCY_PARAM_REQUIRED_RE;
+        lines[i] = lines[i].replace (paramRe, '$1IDictionary<string, object>$2')
+                           .replace (requiredRe, '$1IDictionary<string, object>$2');
+        const writes = lines.slice (bodyStart + 1, bodyEnd).join ('\n').match (new RegExp ('(?<![\\w.])' + slot + '\\s*(?:\\?\\?)?=(?!=)[^;]*;|(?<![\\w])(?:ref|out)\\s+' + slot + '(?![\\w])', 'g')) ?? [];
+        const rowWrite = (slot === 'market') ? /^market\s*=\s*(?:null|this\.(?:market|safeMarket)\([^;]*\));$/
+            : /^currency\s*=\s*(?:null|this\.(?:currency|safeCurrency)\([^;]*\));$/;
         if (writes.every ((w) => rowWrite.test (w))) {
             return bodyEnd;
         }
         for (let k = bodyStart + 1; k < bodyEnd; k++) {
-            lines[k] = this.renameLocalInBody (lines[k], 'market', 'marketVar');
+            lines[k] = this.renameLocalInBody (lines[k], slot, slot + 'Var');
         }
-        lines[bodyStart] = lines[bodyStart] + '\n' + indent + '    object marketVar = market;';
+        lines[bodyStart] = lines[bodyStart] + '\n' + indent + '    object ' + slot + 'Var = ' + slot + ';';
         return bodyEnd;
     }
 

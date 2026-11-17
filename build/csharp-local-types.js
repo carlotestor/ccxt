@@ -16698,14 +16698,16 @@ export const SIGNATURE_ARG_TYPES = {
 export const PARSE_MARKET_IDICT_PARAMS = {
     'parseContractOrder': 1, 'parseMarketToEvent': 1, 'parseOrder': 1, 'parseSpotOrder': 1,
     'parseSwapOrder': 1, 'parseSxbetV3Fill': 1, 'parseUtaOrder': 1,
-    // ral-90c1: the trade / ticker / ohlcv row builders and their forwarders, admitted as one closed set
-    // (a member fed an `object market` from outside the set is dropped, never cast at the call)
-   
-    'handleStockParams': 2,
-   
-   
-   
-    'stockDataRequest': 2,
+    // ral-90c1: market-row forwarders whose every caller passes null, a dictionary or an admitted
+    // name's own `market` (fixed point of farm jobs 15694..15699; 24 names fed `object` dropped)
+    'handleStockParams': 2, 'stockDataRequest': 2,
+};
+
+// ral-90c1: the same shadowed retype for a `currency: Currency` parameter (row writes are
+// this.currency / this.safeCurrency); a member fed an `object currency` from outside is dropped
+export const PARSE_CURRENCY_IDICT_PARAMS = {
+    'getCurrencyFromChaincode': 1, 'getExtendedCurrencyCodeById': 1, 'parseLedger': 1, 'parseLedgerEntry': 1,
+    'parseTransaction': 1, 'parseTransactions': 1, 'safeCurrency': 1, 'safeCurrencyCode': 1, 'safeLedgerEntry': 1,
 };
 
 // every write of the parameter is a market-row producer or a nullish reset (the text pass keeps
@@ -16754,7 +16756,7 @@ function parseMarketParamRowWrite (node) {
     }
     const callee = (node?.kind === ts.SyntaxKind.CallExpression) ? node.expression : undefined;
     return (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
-        && [ 'market', 'safeMarket' ].includes (callee.name?.text);
+        && [ 'market', 'safeMarket', 'currency', 'safeCurrency' ].includes (callee.name?.text);
 }
 
 // the declared parameter behind a PARSE_MARKET_IDICT_PARAMS position, or undefined
@@ -16763,8 +16765,10 @@ function parseMarketParamType (csharp, declaration) {
     if ((declaration?.kind !== ts.SyntaxKind.Parameter) || (owner?.kind !== ts.SyntaxKind.MethodDeclaration)) {
         return undefined;
     }
-    const at = PARSE_MARKET_IDICT_PARAMS[owner.name?.text];
-    if ((at === undefined) || (owner.parameters.indexOf (declaration) !== at) || (declaration.name?.text !== 'market')) {
+    const slot = declaration.name?.text;
+    const table = (slot === 'currency') ? PARSE_CURRENCY_IDICT_PARAMS : PARSE_MARKET_IDICT_PARAMS;
+    const at = Object.prototype.hasOwnProperty.call (table, owner.name?.text) ? table[owner.name?.text] : undefined;
+    if ((at === undefined) || (owner.parameters.indexOf (declaration) !== at) || ((slot !== 'market') && (slot !== 'currency'))) {
         return undefined;
     }
     return parseMarketParamWritesAreRows (csharp, owner, declaration) ? 'IDictionary<string, object>' : undefined;
