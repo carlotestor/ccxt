@@ -4904,7 +4904,7 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 	var cancelTime any = 0
 	if isScheduled {
 		timeInForce = 1
-		cancelTime = this.Milliseconds() + timeout
+		cancelTime = this.Sum(this.Milliseconds(), timeout)
 	}
 	var signRaw map[string]any = map[string]any{
 		"time_in_force": timeInForce,

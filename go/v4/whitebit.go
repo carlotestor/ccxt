@@ -2618,17 +2618,17 @@ func (this *Whitebit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		var duration int64 = this.ParseTimeframe(timeframe)
 		var endTime any = nil
 		if until != nil {
-			endTime = this.ParseToInt(float64(*until)/1000) + duration
+			endTime = this.Sum(this.ParseToInt(float64(*until)/1000), duration)
 		}
 		if since != nil {
 			var start int64 = this.ParseToInt(float64(*since) / 1000)
 			request["start"] = start
 			var rangeEnd any = this.Sum(start, Multiply(duration, cappedLimit))
-			if (IsEqual(endTime, nil)) || (IsLessThan(rangeEnd, endTime)) {
+			if (endTime == nil) || (IsLessThan(rangeEnd, endTime)) {
 				endTime = rangeEnd
 			}
 		}
-		if (!IsEqual(endTime, nil)) && (IsLessThan(this.Sum(endTime, duration), this.Seconds())) {
+		if (endTime != nil) && (IsLessThan(this.Sum(endTime, duration), this.Seconds())) {
 			request["end"] = endTime
 		}
 	}

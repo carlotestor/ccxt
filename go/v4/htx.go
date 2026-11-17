@@ -4336,7 +4336,7 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 			} else {
 				var start int64 = this.ParseToInt(float64(*since) / 1000)
 				request["from"] = start
-				calcualtedEnd = start + duration*(contractLimit-1)
+				calcualtedEnd = this.Sum(start, duration*(contractLimit-1))
 			}
 			request["to"] = func() any {
 				if untilSeconds != nil {

@@ -2193,7 +2193,7 @@ func (this *Polymarket) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]
 	}
 	var deadline any = 0
 	if (true) && (timeout > 0) {
-		deadline = this.Milliseconds() + timeout
+		deadline = this.Sum(this.Milliseconds(), timeout)
 	}
 	var signable []any = []any{"autoCancel", []any{deadline}}
 	var bodyOp map[string]any = map[string]any{

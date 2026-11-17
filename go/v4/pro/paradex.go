@@ -3053,7 +3053,7 @@ func (this *Paradex) SbeReadString(frameHex string, offset int64, length int64) 
 	var first int64 = this.ParseToInt(offset)
 	var size int64 = this.ParseToInt(length)
 	var start int64 = first * 2
-	var end int64 = start + size*2
+	var end any = start + size*2
 	return this.BinaryToString(this.Base16ToBinary(ccxt.Slice(frameHex, start, end)))
 }
 func (this *Paradex) SbeReadAddress(frameHex string, offset any) string {

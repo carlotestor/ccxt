@@ -921,7 +921,7 @@ func (this *Sxbet) fetchErc20NameBody(ch chan ccxt.AsyncResult[string], rpcUrl a
 	// dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
 	var lengthHex string = hex[64:min(128, len(hex))]
 	var length int64 = this.ParseToInt(this.HexToInt(lengthHex))
-	var dataEnd int64 = 128 + length*2
+	var dataEnd any = 128 + length*2
 	var dataHex string = ccxt.Slice(hex, 128, dataEnd)
 
 	ch <- ccxt.AsyncResult[string]{Value: this.Decode(this.Base16ToBinary(dataHex))}

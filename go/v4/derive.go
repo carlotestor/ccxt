@@ -2236,7 +2236,7 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		start = sinceSeconds
 		// the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
 		if sinceSeconds < windowStart {
-			end = sinceSeconds + span
+			end = this.Sum(sinceSeconds, span)
 		}
 	}
 	var request map[string]any = map[string]any{

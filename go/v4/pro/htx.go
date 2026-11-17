@@ -798,7 +798,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 						var nextAttempts int64 = this.Sum(numAttempts, 1).(int64)
 						var delayTime any = 1000
 						if (lastTimestamp != nil) && (snapshotTimestamp != nil) {
-							delayTime = 1000 + *lastTimestamp - *snapshotTimestamp
+							delayTime = this.Sum(1000, *lastTimestamp-*snapshotTimestamp)
 						}
 						subscription["numAttempts"] = nextAttempts
 						client.(ccxt.ClientInterface).SubscriptionSet(messageHash, subscription)
