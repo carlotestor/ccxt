@@ -25618,4 +25618,17 @@ export function installJavaR92j2MarketTypeParams (transpiler) {
     printer.javaOptionalParameterTypeOf = function (node) {
         return r92j2MarketTypeParamType (printer, node) ?? upstreamType (node);
     };
+    // an omitted / undefined argument for the slot prints a bare null (it printed `(Object) null`):
+    // the String slot of the full-arity core is the only candidate, so no checkcast spelling is added
+    const upstreamDefault = printer.javaCoreDefaultArgument.bind (printer);
+    printer.javaCoreDefaultArgument = function (param, type) {
+        let mine;
+        try {
+            mine = type === 'String' && r92j2MarketTypeParamType (printer, param) === 'String';
+        } catch (e) {
+            mine = false;
+        }
+        return mine ? 'null' : upstreamDefault (param, type);
+    };
 }
+
