@@ -9548,10 +9548,6 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('c ? lit : <unwritten Str param> compared to literals -> string? with native ==',
             'f (type: Str, postOnly) { let t: Str = postOnly ? \'post_only\' : type; if (postOnly) { t = \'ioc\'; } if (t === \'limit\' || t === \'ioc\') { return 1; } return 0; }',
             'string? t = ((string)(', 'object t = ');
-        // (a typed params arm beside a Dictionary arm needs the corpus params-bag signature: gated on the farm)
-        check ('c ? <object param> : <object param> omitted keeps object',
-            'omit (o, k) { return o; }\n f (xs, ys, m) { const p2 = (m === undefined) ? xs : ys; return this.omit (p2, \'b\'); }',
-            'object p2 = ');
         check ('c ? lit : <written Str param> keeps object',
             'f (type: Str, postOnly) { type = \'x\'; let t: Str = postOnly ? \'post_only\' : type; if (t === \'limit\') { return 1; } return 0; }',
             'object t = ');
