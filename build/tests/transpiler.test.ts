@@ -274,3 +274,13 @@ describe ('ral-87c8-array-guarded-list-locals', () => {
         assert.doesNotMatch (out, /object fundings = /);
     });
 });
+
+describe ('ral-87c8-guarded-self-concat-write', () => {
+    test('pro xt: `x = x + r` on a safeString local prints string? and the unboxed guarded write', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as any).transpileCSharpByPath ('./ts/src/pro/xt.ts').content as string;
+        assert.match (out, /string\? url = this\.safeString\(apiUrls, tradeType\);/);
+        assert.match (out, /url = \(url == null \? null : url \+ "\/private"\);/);
+    });
+});

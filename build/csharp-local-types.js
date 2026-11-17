@@ -7393,7 +7393,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // initializer is such a call too: the reader hands back the value or the non-null default
                         const nonNullDefaultWrite = (csharpType === 'string') && nonNullStringDefaultCall (csharp, declaration.initializer, context)
                             && nonNullStringDefaultCall (csharp, parent.right, context);
-                        if (!selfConcat && !selfStringWrite && !nonNullWrite && !nonNullDefaultWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
+                        const guardedSelfWrite = guardedSelfConcatWrite (csharp, declaration, parent.right, csharpType, context);
+                        if (!selfConcat && !selfStringWrite && !nonNullWrite && !nonNullDefaultWrite && !selfOmit && !selfTernary && !guardedSelfWrite && !assignable (csharpType, selfRead)) {
                             return false;
                         }
                     }
@@ -11176,6 +11177,36 @@ function guardedConcatNonNullRetryCandidate (csharp, declaration, context) {
         || nonNullStringValue (csharp, declaration, init, 0) || sameFileGuardedStringCall (csharp, init);
 }
 
+// ral-87c8 R2: `x = x + r1 + ...` (plain `=`) into the same string? local: the leftmost read of the value
+// is this local, so the guarded form `(x == null ? null : x + r1 + ...)` is printed for it (the read is
+// accepted by guardedConcatLeftUse) and the write hands back that same string-or-null value
+function guardedSelfConcatWrite (csharp, declaration, value, csharpType, context) {
+    if (csharpType !== 'string?' || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    // a non-null string helper initializer (numberToString, iso8601, ...) is the 84c7 `string` family's:
+    // the nullable spelling here would pre-empt it
+    const init = stripParens (declaration.initializer);
+    if (init?.kind === ts.SyntaxKind.CallExpression && nonNullStringCall84c7 (csharp, init, context ?? { scope: enclosingFunction (declaration), stack: new Set (), depth: 0 })) {
+        return false;
+    }
+    let base = unwrapParens (value);
+    if (base?.kind !== ts.SyntaxKind.BinaryExpression || base.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return false;
+    }
+    while (base?.kind === ts.SyntaxKind.BinaryExpression && base.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        base = unwrapParens (base.left);
+    }
+    if (base?.kind !== ts.SyntaxKind.Identifier || base.text !== declaration.name.text || base.parent?.kind !== ts.SyntaxKind.BinaryExpression) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || useRefersToDeclaration (csharp, scope, declaration, base) === false) {
+        return false;
+    }
+    return guardedConcatLeftUse (csharp, base, csharpType, { declaration, context });
+}
+
 // reads the retype scan accepted ONLY through guardedConcatLeftUse (every other proof refused)
 const guardedConcatReads = new WeakSet ();
 
@@ -13078,6 +13109,9 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // `x = cond ? 'lit' : x` over a safeString* local: the value reads x, so it has
             // no type until this declaration decides one (see selfTernaryStringWriteType).
             written = selfTernaryStringWriteType (csharp, context, declaration, parent.right);
+        }
+        if (written === undefined && type === 'string?' && guardedSelfConcatWrite (csharp, declaration, parent.right, type, context)) {
+            written = 'string?'; // ral-87c8 R2: the guarded self-concat value (see guardedSelfConcatWrite)
         }
         if (written === undefined && safeCollectionFamilyLocal (declaration.initializer) && !sawNull) {
             // `x = (x === undefined) ? <default> : x` (the safeDict*/safeList* family): the
