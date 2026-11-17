@@ -3873,11 +3873,11 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		if (groupId != nil) && (groupId == nil || *groupId != "") {
 			eventKey = this.ShortenSlug(groupId)
 		}
-		var m any = this.ParseMarket(raw)
-		if ccxt.IsEqual(m, nil) {
+		var m map[string]any = this.ParseMarket(raw)
+		if m == nil {
 			panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing m"))
 		}
-		this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
+		this.AddMarketsEntry(m["market"], m)
 		if (eventKey != nil) && (!ccxt.IsEqual(eventKey, "")) {
 			if !(ccxt.InOp(eventGroups, eventKey)) {
 				ccxt.AddElementToObject(eventGroups, eventKey, map[string]any{
