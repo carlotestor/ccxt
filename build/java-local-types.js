@@ -24369,6 +24369,131 @@ export function installJavaR92j3ParseToIntCompare (transpiler) {
     };
 }
 
+// ===== r92j3 R4. defaulted safeInteger reads are non-null long operands =====
+// Base safeInteger / safeInteger2 / safeIntegerN with an int-literal default answer the converted
+// default on every miss (SafeIntegerN never returns null), and are declared Long: as an arithmetic
+// operand, directly or through a never-written const local, they are a non-null long, so `+` / `-`
+// with another proven long prints the native long operator instead of the inline add / subtract blob.
+function r92j3DefaultedSafeIntegerOperand (printer, node, depth = 0) {
+    const n = unwrapParens (node);
+    if (n === undefined || depth > 2) {
+        return false;
+    }
+    if (ts.isCallExpression (n)) {
+        return javaSubtractSafeIntegerWithDefault (printer, n);
+    }
+    if (!ts.isIdentifier (n) || printer.printNode (n, 0) !== n.text) {
+        return false;
+    }
+    let target;
+    try {
+        target = printer.getChecker ().getSymbolAtLocation (n)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return target !== undefined && ts.isVariableDeclaration (target) && ts.isVariableDeclarationList (target.parent)
+        && (target.parent.flags & ts.NodeFlags.Const) !== 0 && target.parent.declarations.length === 1
+        && enclosingFunction (target) === enclosingFunction (n) && target.initializer !== undefined
+        && String (printer.javaDeclaredTypeOfDeclaration?.(target) ?? '').replace (/^final\s+/, '').trim () === 'Long'
+        && r92j3DefaultedSafeIntegerOperand (printer, target.initializer, depth + 1);
+}
+
+export function installJavaR92j3SafeIntegerOperands (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaProvableNumericKind !== 'function' || printer._javaR92j3SafeIntegerOperandsPatched) {
+        return;
+    }
+    printer._javaR92j3SafeIntegerOperandsPatched = true;
+    const upstream = printer.javaProvableNumericKind.bind (printer);
+    printer.javaProvableNumericKind = function (node, allowDeclaredLocals = true) {
+        const kind = upstream (node, allowDeclaredLocals);
+        // the call form relies on no retyped local, so it also answers `+` (allowDeclaredLocals false)
+        if (kind !== undefined || (!allowDeclaredLocals && !ts.isCallExpression (unwrapParens (node) ?? node))) {
+            return kind;
+        }
+        let ok = false;
+        try {
+            ok = r92j3DefaultedSafeIntegerOperand (printer, node);
+        } catch (e) {
+            ok = false;
+        }
+        return ok ? 'long' : undefined;
+    };
+    const sumLocals = new WeakMap ();
+    const isSumLocal = (declaration) => {
+        if (!sumLocals.has (declaration)) {
+            let ok = false;
+            try {
+                ok = r92j3NativeSumLocal (printer, declaration);
+            } catch (e) {
+                ok = false;
+            }
+            sumLocals.set (declaration, ok);
+        }
+        return sumLocals.get (declaration);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (declaration !== undefined && isSumLocal (declaration) ? 'Long' : undefined));
+    const upstreamList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamList (node, identation);
+        const declaration = node.declarations?.length === 1 ? node.declarations[0] : undefined;
+        if (declaration === undefined || !isSumLocal (declaration)) {
+            return printed;
+        }
+        const head = `Object ${declaration.name.text} = (`;
+        const at = printed.indexOf (head);
+        if (at < 0) {
+            return printed;
+        }
+        return printed.slice (0, at) + `Long ${declaration.name.text} = (` + printed.slice (at + head.length);
+    };
+    // the `+` rule reads its own operand table
+    const upstreamWidened = printer.javaWidenedNumericKind.bind (printer);
+    printer.javaWidenedNumericKind = function (node) {
+        const kind = upstreamWidened (node);
+        if (kind !== undefined) {
+            return kind;
+        }
+        let ok = false;
+        try {
+            ok = r92j3DefaultedSafeIntegerOperand (printer, node) || r92j3DefaultedLongParamRead (printer, node);
+        } catch (e) {
+            ok = false;
+        }
+        return ok ? 'long' : undefined;
+    };
+}
+
+// `const x = a + b` / `a - b` printed as the native long add over at least one operand proven here:
+// the local holds that long, so it is declared `Long` (its later compares then print natively)
+function r92j3NativeSumLocal (printer, declaration) {
+    if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || !ts.isVariableDeclarationList (declaration.parent)
+        || (declaration.parent.flags & ts.NodeFlags.Const) === 0 || declaration.parent.declarations.length !== 1) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isBinaryExpression (init) || init.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return false;
+    }
+    const mine = (n) => r92j3DefaultedSafeIntegerOperand (printer, n) || r92j3DefaultedLongParamRead (printer, n);
+    const longish = (n) => mine (n) || printer.javaWidenedNumericKind (unwrapParens (n)) === 'long';
+    return (mine (init.left) || mine (init.right)) && longish (init.left) && longish (init.right);
+}
+
+// a read of a Long-typed integer-literal defaulted parameter prints `requireNonNullElse(x, NL)`: never null
+function r92j3DefaultedLongParamRead (printer, node) {
+    const bare = unwrapParens (node);
+    if (bare === undefined || !ts.isIdentifier (bare)) {
+        return false;
+    }
+    const declaration = printer.javaDeclarationOfIdentifier (bare);
+    if (declaration?.kind !== ts.SyntaxKind.Parameter || !ts.isNumericLiteral (unwrapParens (declaration.initializer) ?? declaration)
+        || printer.javaOptionalParameterType (declaration) !== 'Long') {
+        return false;
+    }
+    return printer.javaDefaultedLocalName (bare) === `java.util.Objects.requireNonNullElse(${bare.text}, ${unwrapParens (declaration.initializer).text}L)`;
+}
+
 // ===== r87-j4. const native-split locals already printed List<Object> =====
 // `const parts = s.split (sep)` that an earlier section declared `java.util.List<Object>` holds only the
 // Strings of `String.split`: when 84j8's split audit accepts every use, declare it List<String> (the

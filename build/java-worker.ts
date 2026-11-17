@@ -36,6 +36,7 @@ import { installJavaR90j7MapDelete } from './java-local-types.js';
 import { installJavaR92j3LongDefaultParams } from './java-local-types.js';
 import { installJavaR92j3LongFixedParams } from './java-local-types.js';
 import { installJavaR92j3ParseToIntCompare } from './java-local-types.js';
+import { installJavaR92j3SafeIntegerOperands } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -212,6 +213,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaR92j3LongDefaultParams (cachedTranspiler);
         installJavaR92j3LongFixedParams (cachedTranspiler);
         installJavaR92j3ParseToIntCompare (cachedTranspiler);
+        installJavaR92j3SafeIntegerOperands (cachedTranspiler);
         installJavaR90j8OmitParamLocals (cachedTranspiler);
         cachedConfigKey = key;
     }
