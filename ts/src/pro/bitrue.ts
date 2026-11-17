@@ -438,7 +438,7 @@ export default class bitrue extends bitrueRest {
         const symbols = Object.keys (markets);
         for (let i = 0; i < symbols.length; i++) {
             const symbolId: string = symbols[i];
-            const candidate = this.safeDict (markets, symbolId) as Market;
+            const candidate = this.safeDict (markets, symbolId);
             if (!this.safeBool (candidate, 'swap', false)) {
                 continue;
             }
@@ -448,7 +448,7 @@ export default class bitrue extends bitrueRest {
                 throw new ExchangeError (this.id + ' findSwapMarketByWsBaseQuote() market ' + symbolId + ' has no baseId or quoteId');
             }
             if (baseId + quoteId === wsBaseQuote) {
-                return candidate;
+                return this.market (symbolId);
             }
         }
         return undefined;
