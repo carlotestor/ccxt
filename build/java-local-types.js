@@ -22665,3 +22665,41 @@ export function installJavaR84j8Locals (transpiler) {
         return info?.cast ? accumulatorCastWrite (printer, node, printed, { cast: JAVA_MAP_LOCAL_CAST }) : printed;
     };
 }
+
+// ===== ral-87j5. String results of venue-typed callees as call arguments =====
+// A local initialised from a `this.<m>(..)` whose venueReturnJavaType is String (section VENUE_RETURN_KINDS)
+// and that the layer declared `String` already holds the static type a String core parameter takes: the
+// printer's javaNativeArgumentAlreadyTyped then prints it bare instead of `(String) (x)`. Only call-argument
+// positions answer, so no `+` / comparison proof changes (a null box stays a null String argument).
+export function installJavaR87j5CalleeStringArgs (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || printer._javaR87j5CalleeStringArgsPatched) {
+        return;
+    }
+    printer._javaR87j5CalleeStringArgsPatched = true;
+    const upstreamResolver = printer.javaExpressionTypeResolver;
+    printer.javaExpressionTypeResolver = function (node) {
+        const upstream = typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
+        if (upstream !== undefined || node === undefined || !ts.isIdentifier (node)) {
+            return upstream;
+        }
+        try {
+            const call = node.parent;
+            if (call === undefined || !ts.isCallExpression (call) || !call.arguments.includes (node)) {
+                return undefined;
+            }
+            const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+            if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.name?.text !== node.text
+                || (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) === 0) {
+                return undefined;
+            }
+            const init = unwrapParens (declaration.initializer);
+            if (init === undefined || !ts.isCallExpression (init) || venueCallJavaType (printer, init) !== 'String') {
+                return undefined;
+            }
+            return String (printer.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').replace (/^final\s+/, '') === 'String' ? 'String' : undefined;
+        } catch (e) {
+            return undefined;
+        }
+    };
+}
