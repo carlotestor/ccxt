@@ -8715,7 +8715,7 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...nullSeedChecks92c4 (), ...copyLocalSnippetChecks87c5 () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...nullSeedChecks92c4 (), ...copyLocalSnippetChecks87c5 (), ...readerSeedElementWriteChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -13027,5 +13027,20 @@ export function nullSeedChecks92c4 (): string[] {
     // a ws url seed written from `wsUrls['public']` (wsUrls = this.safeDict (this.urls['api'], 'ws', {})) and read `url as string`
     const wsu = print ('describe () { return { \'urls\': { \'api\': { \'ws\': { \'public\': \'wss://a\', \'private\': \'wss://b\' } } } }; }\n safeDict (o, k, d = undefined) { return d; }\n watch (u: string) { return u; }\n f (o) { const wsUrls = this.safeDict (this.urls[\'api\'], \'ws\', {}); let url: Str = undefined; if (o) { url = wsUrls[\'public\']; } else { url = wsUrls[\'private\']; } return this.watch (url as string); }');
     if (!wsu.includes ('string? url = null;') || !wsu.includes ('url = ((string)(wsUrls')) problems.push (`ws url element write: ${wsu.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// a safeString seed rewritten from an element of its own split keeps `string?` (part of `--self-test`)
+export function readerSeedElementWriteChecks (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string } };
+    const pre = 'type Str = string | undefined;\nclass Test {\n safeString (o, k, d = undefined): Str { return d; }\n hash (a, b, c) { return a; }\n';
+    const out = emit.transpileCSharp (pre + 'f (o) { let t = this.safeString (o, \'w\'); if (t !== undefined) { const p = t.split (\'@\'); t = p[0]; } return this.hash (t, 1, 1); }\n}').content;
+    if (!out.includes ('string? t = this.safeString(') || !out.includes ('t.Split(') || !out.includes ('t = ((string)(p')) problems.push (`reader seed element write: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    const kept = emit.transpileCSharp (pre + 'f (o, r: string) { let t = this.safeString (o, \'w\'); const p = r.split (\'@\'); t = p[0]; return this.hash (t, 1, 1); }\n}').content;
+    if (!kept.includes ('object t = ')) problems.push (`reader seed element write without a native use retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }

@@ -13929,7 +13929,8 @@ function nullInitWriteValueType (csharp, declaration, node) {
 const stringLiteralElementWrites = new WeakSet ();
 
 function stringLiteralElementWriteType (csharp, declaration, node) {
-    if (declaration.initializer?.kind !== ts.SyntaxKind.StringLiteral || declaration.parent?.declarations?.length !== 1
+    // a safeString-family seed is a `string?` box too, so the same element write joins it
+    if ((declaration.initializer?.kind !== ts.SyntaxKind.StringLiteral && !safeStringFamilyLocal (declaration)) || declaration.parent?.declarations?.length !== 1
             || declaration.name?.kind !== ts.SyntaxKind.Identifier || node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
