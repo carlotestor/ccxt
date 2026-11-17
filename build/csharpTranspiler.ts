@@ -12892,6 +12892,11 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
     if (!frame.includes ('string h = ') || !frame.includes ('h?.Length') || frame.includes ('((string)h)')) problems.push (`92c7 string-receiver call argument: ${frame.replace (/\n/g, ' | ').slice (-400)}`);
     const argOnly = bare ('g (m) { const h = this.binaryToBase16 (m); return this.read (h, 1); }');
     if (!argOnly.includes ('object h = ')) problems.push (`92c7 string-receiver call argument: argument-only local retyped: ${argOnly.replace (/\n/g, ' | ').slice (-400)}`);
+    // ral-92c7 R4: a JSON.parse result whose first use (the next statement) needs a map is declared Dictionary
+    const parsedMap = bare ('g (t, a) { const w = JSON.parse (t); w[\'x\'] = a; if (\'m\' in w) { w[\'m\'] = a; } return this.hash (w, 1, 1); }');
+    if (!parsedMap.includes ('Dictionary<string, object> w = ((Dictionary<string, object>)') || parsedMap.includes ('((IDictionary<string,object>)w)')) problems.push (`92c7 JSON.parse map local: ${parsedMap.replace (/\n/g, ' | ').slice (-400)}`);
+    const parsedLater = bare ('g (t, a) { const w = JSON.parse (t); const n = this.hash (a, 1, 1); w[\'x\'] = n; return w; }');
+    if (!parsedLater.includes ('object w = ')) problems.push (`92c7 JSON.parse map local: map use not next retyped: ${parsedLater.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
 
