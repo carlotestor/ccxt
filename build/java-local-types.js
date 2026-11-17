@@ -371,6 +371,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     // ral-90j7 R5: base parseWsTrades returns parseTradesHelper (List), the hitbtc override filterBySymbolSinceLimit (List);
     // the hitbtc handleTrades result local is read by size()/get(j)
     'parseWsTrades',
+    // base reduceFeesByCurrency returns its own `result: any[]` list (arrayConcat writes cast back to List); no override
+    'reduceFeesByCurrency',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>', 'sendEvmTransaction': 'String' }; // ral-90j5 R1: + sendEvmTransaction
