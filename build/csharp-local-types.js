@@ -20383,3 +20383,72 @@ function passThroughHelperLocal84c7 (csharp, declaration, context) {
     }
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type } : undefined;
 }
+
+// ===== 87c5: copies of typed locals (continues 84c5) =====
+// (R1) `let x = <string / string? local>` whose `+` / `+=` reads are left operands: the guarded
+// concat proof (guardedConcatLeftUse) only takes a declaration whose initializer is a string-or-null
+// CALL, so a plain copy of such a local stayed `object` and every read printed the boxed
+// `((object)(x == null ? null : x + r))`. A copy of a local the module itself declares `string` /
+// `string?` (localIdentifierType: one binding, declared before the read) prints with no cast and holds
+// the same string-or-null box, so the same proof applies: the guarded conditional keeps add(object,
+// object)'s null-left semantics and is already statically `string`. Only a FALLBACK: it runs when
+// every upstream rule left the declaration `object`, so no already-typed local changes its reads.
+function c87StringCopyInitializer (csharp, declaration) {
+    const init = stripParens (declaration?.initializer);
+    if (init?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const type = localIdentifierType (csharp, init);
+    return type === 'string' || type === 'string?';
+}
+const c87StringCopyActive = new Set ();
+const c87UpstreamGuardedConcatLeftUse = guardedConcatLeftUse;
+// eslint-disable-next-line no-func-assign
+guardedConcatLeftUse = function (csharp, n, csharpType, scan) {
+    if (scan === undefined || csharpType !== 'string?' || !c87StringCopyActive.has (scan.declaration)) {
+        return c87UpstreamGuardedConcatLeftUse (csharp, n, csharpType, scan);
+    }
+    // the upstream proof for the read alone (shape + effect-free right operands); the read is
+    // recorded only when the whole declaration is accepted (c87StringCopyLocal)
+    // and only reads the printer already prints guarded for the `object` local (csharpObjectStringLocal):
+    // an unguarded `object + string` read is string.Concat (null -> ""), which the guard would change
+    const ok = typeof csharp.csharpObjectStringLocal === 'function' && csharp.csharpObjectStringLocal (n)
+        && c87UpstreamGuardedConcatLeftUse (csharp, n, csharpType, undefined);
+    if (ok) {
+        c87StringCopyReads.push (n);
+    }
+    return ok;
+};
+const c87StringCopyReads = [];
+function c87StringCopyLocal (csharp, declaration, context) {
+    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration) || c87StringCopyActive.size > 0 || !c87StringCopyInitializer (csharp, declaration)) {
+        return undefined;
+    }
+    // top-level (printer) decisions only: a nested classification must not record guarded reads
+    if (context !== undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const ctx = { scope, stack: new Set (), depth: 0 };
+    c87StringCopyActive.add (declaration);
+    c87StringCopyReads.length = 0;
+    try {
+        if (!csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'string?', ctx)) {
+            return undefined;
+        }
+        for (const read of c87StringCopyReads) {
+            guardedConcatReads.add (read);
+        }
+        return { type: 'string?' };
+    } finally {
+        c87StringCopyActive.delete (declaration);
+        c87StringCopyReads.length = 0;
+    }
+}
+const c87UpstreamLocalDeclaration = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c87UpstreamLocalDeclaration (csharp, declaration, context) ?? c87StringCopyLocal (csharp, declaration, context);
+};
+
