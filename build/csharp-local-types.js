@@ -11855,7 +11855,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context) ?? outcomesMapLocal93c7 (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context) ?? outcomesMapLocal93c7 (csharp, declaration, context) ?? currenciesViewLocal93c7 (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -23808,4 +23808,41 @@ function outcomesMapLocal93c7 (csharp, declaration, context) {
     const type = 'Dictionary<string, object>';
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, cast: type, castWhole: conditional ? true : undefined } : undefined;
+}
+
+// R3: `const c = this.currencies`: the member stays `object` in C#, but the hand-written
+// `currenciesDict` view (Exchange.Options.cs) is that same box as an IDictionary (every writer
+// stores a string-keyed dictionary), so the declaration reads the view with no cast and
+// `k in c` / `c[k]` print natively. Only for a local whose every use is such a keyed read.
+function currenciesViewLocal93c7 (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined
+            || !thisMemberAccess (stripParens (declaration.initializer), 'currencies')) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    let uses = 0;
+    let ok = true;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        uses++;
+        const parent = use.parent;
+        const keyed = (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use
+                && !(parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent))
+            || (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.operatorToken.kind === ts.SyntaxKind.InKeyword && parent.right === use);
+        if (!keyed) {
+            ok = false;
+        }
+    }
+    if (!ok || uses === 0) {
+        return undefined;
+    }
+    const type = 'IDictionary<string, object>';
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, nativeValue90c7: 'this.currenciesDict' } : undefined;
 }
