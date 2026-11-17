@@ -10156,6 +10156,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         "    zzFlags92 (bits: number, zzNames92: string[]) { const out = []; for (let i = 0; i < zzNames92.length; i++) { out.push (zzNames92[i]); } return out; }",
         "    zzFlagsCaller92 () { return this.zzFlags92 (1, [ 'a', 'b' ]); }",
         "    rows92 (sts: string[][]) { const out = []; for (let i = 0; i < sts.length; i++) { const row = sts[i]; out.push (this.market (row[0])); out.push (row[1]); } return out; }",
+        "    hash93 (client: Client, m: Dict) { const hs = this.safeList (m, 'h', []); for (let j = 0; j < hs.length; j++) { const h93 = hs[j] as string; if (h93 in client.subscriptions) { delete client.subscriptions[h93]; } } }",
         '}',
     ].join('\n');
     try {
@@ -10176,6 +10177,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if (!/zzFlags92\(Object bits, (java\.util\.)?List<Object> zzNames92\)/.test(out) || !/\bi < zzNames92\.size\(\)/.test(out)) problems.push("92j1 r1: venue-only `string[]` parameter 'zzNames92' (element / length uses, literal callers) must print List<Object> with a native size");
         if (!/String url = client\.url;/.test(out) || !/\burl\.indexOf\("v2"\)/.test(out)) problems.push("92j1 r3: 'url' (ws Client url field) must print String with a native indexOf");
         if (!/List<\?> row = \(java\.util\.List<\?>\) \(sts == null/.test(out) || !/\(row == null \|\| 0 >= row\.size\(\) \? null : row\.get\(0\)\)/.test(out)) problems.push("92j1 r4: 'row' (counter row of an unwritten `string[][]` parameter) must print List<?> with native literal reads");
+        if (!/String h93 = \(\(String\)/.test(out) || !/client\.subscriptions\.remove\(h93\)/.test(out)) problems.push("93j1 r1: 'h93' (a const `x as string` local whose only native use is a ws Client map delete key) must print String with a bare remove key");
         if (!/String b = \(String\) \(xs == null/.test(out) || !/\bb\.toUpperCase\(/.test(out)) problems.push("90j1 r1: 'b' (element of an unwritten `string[]` parameter) must print String with a native toUpperCase");
         for (const name of [ 'a', 'ro' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);

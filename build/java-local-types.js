@@ -26526,6 +26526,11 @@ function r92j1KeyUseIsNative (printer, n) {
         return true;
     }
     const receiver = unwrapParens (parent.expression);
+    // `delete client.subscriptions[k]` binds the ws Client map's `remove(String)` with no receiver cast
+    if (parent.parent?.kind === ts.SyntaxKind.DeleteExpression && typeof printer.javaWsClientMapReceiver === 'function'
+        && printer.javaWsClientMapReceiver (parent.expression)) {
+        return true;
+    }
     if (!ts.isIdentifier (receiver) || typeof printer.javaDeclaredTypeOf !== 'function') {
         return false;
     }
