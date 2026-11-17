@@ -156,7 +156,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         let mut volume24h: Option<f64> = self.safe_number_k(raw.clone(), "volumeFormatted", &[]).as_f64();
         // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
         let mut winningOutcomeIndex: Option<i64> = self.safe_integer_k(raw.clone(), "winningOutcomeIndex", &[]).as_i64();
-        let mut marketResolved: Value = (Value::Bool(winningOutcomeIndex.is_some()));
+        let mut marketResolved: bool = (winningOutcomeIndex.is_some());
         let mut resolvedOutcome: Option<String> = None;
         let mut marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
@@ -195,7 +195,7 @@ impl crate::exchange::DerivedExchange for Limitless {
             }
             let mut winnerRaw: Option<bool> = None;
             let mut settleFractionRaw: Option<i64> = None;
-            if matches!(&marketResolved, Value::Bool(true)) {
+            if marketResolved {
                 winnerRaw = Some((winningOutcomeIndex == legIndex.as_i64()));
                 settleFractionRaw = (if (winnerRaw == Some(true)) { Some(1) } else { Some(0) });
                 if (winnerRaw == Some(true)) {
@@ -254,7 +254,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("resolved".to_string(), marketResolved);
+        m.insert("resolved".to_string(), Value::Bool(marketResolved));
         m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
@@ -3202,8 +3202,8 @@ if _try_result.is_err() {
         // when the profile trades through a smart wallet the order must be signed by the
         // linked embedded (owner) wallet, not by the smart wallet itself
         let mut embeddedAddress: Option<String> = self.safe_string_k_opt(&accountInfo, "embeddedAccount", &[]);
-        let mut hasEmbedded: bool = embeddedAddress.is_some();
-        let mut isSmartWallet: bool = usesSmartWallet && hasEmbedded;
+        let mut hasEmbedded: bool = (embeddedAddress.is_some());
+        let mut isSmartWallet: bool = (usesSmartWallet && hasEmbedded);
         let mut signer: Value = maker.clone();
         if isSmartWallet {
             signer = embeddedAddress.map(Value::from).unwrap_or(Value::Null);

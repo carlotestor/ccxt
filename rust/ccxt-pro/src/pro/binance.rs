@@ -2493,7 +2493,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             type_var = (if ((firstMarket).linear == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
             wsUrlType = type_var.clone();
         }
-        let mut isSpot: bool = type_var.as_str() == Some("spot");
+        let mut isSpot: bool = (type_var.as_str() == Some("spot"));
         let timezoneparamsTimezoneVariable: Vec<Value> = self.handle_param_string(&paramsChannel, Value::Str("timezone".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut timezone: Option<String> = timezoneparamsTimezoneVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimezone: crate::value::Dict = timezoneparamsTimezoneVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2604,7 +2604,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             type_var = (if ((firstMarket).linear == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
             wsUrlType = type_var.clone();
         }
-        let mut isSpot: bool = type_var.as_str() == Some("spot");
+        let mut isSpot: bool = (type_var.as_str() == Some("spot"));
         let timezoneparamsTimezoneVariable: Vec<Value> = self.handle_param_string(&paramsChannel, Value::Str("timezone".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut timezone: Option<String> = timezoneparamsTimezoneVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimezone: crate::value::Dict = timezoneparamsTimezoneVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

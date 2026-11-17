@@ -3225,11 +3225,11 @@ pub trait ExchangeBase:
         let mut parseCost: bool = cost.is_none();
         let mut parseLastTradeTimeTimestamp: bool = lastTradeTimeTimestamp.is_none();
         let mut fee: Value = self.safe_value_k(orderDict.clone(), "fee", &[]);
-        let mut parseFee: bool = fee == Value::Null;
-        let mut parseFees: bool = self.safe_value_k(orderDict.clone(), "fees", &[]) == Value::Null;
+        let mut parseFee: bool = (fee == Value::Null);
+        let mut parseFees: bool = (self.safe_value_k(orderDict.clone(), "fees", &[]) == Value::Null);
         let mut parseSymbol: bool = symbol.is_none();
         let mut parseSide: bool = side.is_none();
-        let mut shouldParseFees: bool = parseFee || parseFees;
+        let mut shouldParseFees: bool = (parseFee || parseFees);
         let mut fees: Value = self.safe_list_k(orderDict.clone(), "fees", &[Value::from(vec![])]);
         let mut trades: Value = Value::from(vec![]);
         let mut isTriggerOrSLTpOrder: bool = ((self.safe_string_k(orderDict.clone(), "triggerPrice", &[]) != Value::Null) || (self.safe_string_k(orderDict.clone(), "stopLossPrice", &[]) != Value::Null)) || (self.safe_string_k(orderDict.clone(), "takeProfitPrice", &[]) != Value::Null);
@@ -3345,7 +3345,7 @@ pub trait ExchangeBase:
                 }
             }
             }
-            if !(parseFee) && (reducedLength == 0) {
+            if !parseFee && (reducedLength == 0) {
                 // copy fee to avoid modification by reference
                 let mut feeCopy: Value = self.deep_extend(fee, &[]);
                 { let __be_tmp = self.safe_number_k(feeCopy.clone(), "cost", &[]); add_element_to_object(&mut feeCopy, &Value::Str("cost".into()), __be_tmp); }
@@ -3721,15 +3721,15 @@ pub trait ExchangeBase:
     fn parsed_fee_and_fees(&self, mut container: Value) -> Value {
         let mut fee: Value = self.safe_dict_k(container.clone(), "fee", &[]);
         let mut fees: Value = self.safe_list_k(container, "fees", &[]);
-        let mut feeDefined: bool = fee != Value::Null;
-        let mut feesDefined: bool = fees != Value::Null;
+        let mut feeDefined: bool = (fee != Value::Null);
+        let mut feesDefined: bool = (fees != Value::Null);
         // parsing only if at least one of them is defined
-        let mut shouldParseFees: bool = feeDefined || feesDefined;
+        let mut shouldParseFees: bool = (feeDefined || feesDefined);
         if shouldParseFees {
             if feeDefined {
                 fee = self.parse_fee_numeric(fee);
             }
-            if !(feesDefined) {
+            if !feesDefined {
                 // just set it directly, no further processing needed.
                 fees = Value::from(vec![fee.clone()]);
             }

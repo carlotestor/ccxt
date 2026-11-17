@@ -3414,15 +3414,15 @@ impl Woo {
         let mut triggerPrice: Option<String> = self.safe_string2_opt(Value::from(&paramsMarginMode), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLoss: Value = self.safe_value_k(&paramsMarginMode, "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(&paramsMarginMode, "takeProfit", &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut hasStopLoss: bool = (stopLoss != Value::Null);
+        let mut hasTakeProfit: bool = (takeProfit != Value::Null);
         let mut algoType: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "algoType", &[]);
         let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(Value::from(&paramsMarginMode), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[Value::from(self.number_to_string(price.clone()))]);
         let mut trailingAmount: Option<String> = self.safe_string2_opt(Value::from(&paramsMarginMode), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);
         let mut trailingPercent: Option<String> = self.safe_string2_opt(Value::from(&paramsMarginMode), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]);
-        let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
-        let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
-        let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
+        let mut isTrailingAmountOrder: bool = (trailingAmount.is_some());
+        let mut isTrailingPercentOrder: bool = (trailingPercent.is_some());
+        let mut isTrailing: bool = (isTrailingAmountOrder || isTrailingPercentOrder);
         let mut isConditional: bool = isTrailing || (triggerPrice.is_some()) || hasStopLoss || hasTakeProfit || (self.safe_list_k(&paramsMarginMode, "childOrders", &[]) != Value::Null);
         let mut isMarket: bool = orderType == "MARKET";
         let mut timeInForce: Option<String> = self.safe_string_lower_k_opt(&paramsMarginMode, "timeInForce", &[]);
@@ -3635,9 +3635,9 @@ impl Woo {
         let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[Value::from(self.number_to_string(price))]);
         let mut trailingAmount: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);
         let mut trailingPercent: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]);
-        let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
-        let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
-        let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
+        let mut isTrailingAmountOrder: bool = (trailingAmount.is_some());
+        let mut isTrailingPercentOrder: bool = (trailingPercent.is_some());
+        let mut isTrailing: bool = (isTrailingAmountOrder || isTrailingPercentOrder);
         if isTrailing {
             if (trailingTriggerPrice.is_some()) {
                 request.insert("activatedPrice".into(), Value::from(self.price_to_precision(symbol, trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null))));

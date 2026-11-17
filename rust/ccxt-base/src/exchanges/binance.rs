@@ -12707,11 +12707,11 @@ impl Binance {
         let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(Value::from(&paramsPapi), Value::Str("trailingTriggerPrice".into()), Value::Str("activationPrice".into()), &[]);
         let mut trailingPercent: Option<String> = self.safe_string_n_opt(Value::from(&paramsPapi), Value::from(vec![Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), Value::Str("trailingDelta".into())]), &[]);
         let mut priceMatch: Option<String> = self.safe_string_k_opt(&paramsPapi, "priceMatch", &[]);
-        let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
+        let mut isTrailingPercentOrder: bool = (trailingPercent.is_some());
         let mut isStopLoss: bool = ((stopLossPrice != Value::Null) || (trailingDelta.is_some()));
-        let mut isTakeProfit: bool = takeProfitPrice.is_some();
-        let mut isTriggerOrder: bool = triggerPrice.is_some();
-        let mut isConditional: bool = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
+        let mut isTakeProfit: bool = (takeProfitPrice.is_some());
+        let mut isTriggerOrder: bool = (triggerPrice.is_some());
+        let mut isConditional: bool = (((isTriggerOrder || isTrailingPercentOrder) || isStopLoss) || isTakeProfit);
         let mut isPortfolioMarginConditional: bool = isPortfolioMargin && isConditional;
         let mut isPriceMatch: bool = priceMatch.is_some();
         let mut priceRequiredForTrailing: bool = true;

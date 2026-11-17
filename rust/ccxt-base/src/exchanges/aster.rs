@@ -364,7 +364,7 @@ impl crate::exchange::DerivedExchange for Aster {
         let mut inverse: Option<bool> = None;
         let mut contractSize: Option<f64> = None;
         let mut contractType: Option<String> = self.safe_string_k_opt(market.clone(), "contractType", &[]);
-        let mut isContract: bool = contractType.is_some();
+        let mut isContract: bool = (contractType.is_some());
         if isContract {
             // currently, there is only perpetuals, not futures
             spot = Some(false);

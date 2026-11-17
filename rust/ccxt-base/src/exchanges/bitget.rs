@@ -10503,7 +10503,7 @@ if _try_result.is_err() {
     m
 })]).into_dict();
         let mut recentEndpointAvailableDays: Option<i64> = self.safe_integer(&recentEndpointDaysMap, timeframe.clone(), &[]).as_i64();
-        let mut historicalEndpointNeeded: bool = useHistoryEndpoint == true;
+        let mut historicalEndpointNeeded: bool = (useHistoryEndpoint == true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         let mut calculatedStartTime: Value = Value::Null;
@@ -10597,7 +10597,7 @@ if _try_result.is_err() {
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let mut extended: crate::value::Dict = self.extend(Value::Map(request), &[&paramsProductType]).into_dict();
-            if !(historicalEndpointNeeded) && ((priceType.as_deref() == Some("mark")) || (priceType.as_deref() == Some("index"))) {
+            if !historicalEndpointNeeded && ((priceType.as_deref() == Some("mark")) || (priceType.as_deref() == Some("index"))) {
                 if !limitDefined {
                     std::sync::Arc::make_mut(&mut extended).insert("limit".into(), Value::Int(1000));
                     limitResolved = 1000;
@@ -11042,9 +11042,9 @@ if _try_result.is_err() {
         let mut trailingPercent: Option<String> = self.safe_string2_opt(params, Value::Str("trailingPercent".into()), Value::Str("callbackRatio".into()), &[]);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTriggerOrder: bool = triggerPrice.is_some();
-        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        let mut isStopLossTriggerOrder: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitTriggerOrder: bool = (takeProfitTriggerPrice.is_some());
+        let mut isStopLossOrTakeProfitTrigger: bool = (isStopLossTriggerOrder || isTakeProfitTriggerOrder);
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut response: Option<crate::value::Dict> = None;
@@ -11153,9 +11153,9 @@ if _try_result.is_err() {
         let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsProductType.clone(), "takeProfit", &[]).into_opt_dict();
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
-        let mut isStopLossTrigger: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitTrigger: bool = takeProfitTriggerPrice.is_some();
-        let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTrigger || isTakeProfitTrigger;
+        let mut isStopLossTrigger: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitTrigger: bool = (takeProfitTriggerPrice.is_some());
+        let mut isStopLossOrTakeProfitTrigger: bool = (isStopLossTrigger || isTakeProfitTrigger);
         if isStopLossOrTakeProfitTrigger {
             if isStopLossTrigger {
                 let mut slType: String = self.safe_string_k(paramsProductType.clone(), "slTriggerBy", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
@@ -11295,11 +11295,11 @@ if _try_result.is_err() {
         let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsMarketType.clone(), "stopLoss", &[]).into_opt_dict();
         let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsMarketType.clone(), "takeProfit", &[]).into_opt_dict();
         let mut isTriggerOrder: bool = triggerPrice.is_some();
-        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
+        let mut isStopLossTriggerOrder: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitTriggerOrder: bool = (takeProfitTriggerPrice.is_some());
         let mut hasStopLoss: bool = (stopLoss.is_some());
         let mut hasTakeProfit: bool = (takeProfit.is_some());
-        let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        let mut isStopLossOrTakeProfitTrigger: bool = (isStopLossTriggerOrder || isTakeProfitTriggerOrder);
         let mut isStopLossOrTakeProfit: bool = (hasStopLoss || hasTakeProfit);
         let mut trailingTriggerPrice: Option<String> = self.safe_string_k_opt(paramsMarketType.clone(), "trailingTriggerPrice", &[Value::from(self.number_to_string(price.clone()))]);
         let mut trailingPercent: Option<String> = self.safe_string2_opt(paramsMarketType.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRatio".into()), &[]);
@@ -12778,8 +12778,8 @@ if _try_result.is_err() {
         let mut trailing: bool = self.safe_bool_k_opt(&paramsMarginMode, "trailing", &[Value::Bool(false)]).unwrap_or(false);
         let mut trigger: Option<bool> = self.safe_bool2_opt(&paramsMarginMode, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut planTypeValue: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "planType", &[]);
-        let mut planTypeDefined: bool = planTypeValue.is_some();
-        let mut isTrigger: bool = (trigger == Some(true)) || planTypeDefined;
+        let mut planTypeDefined: bool = (planTypeValue.is_some());
+        let mut isTrigger: bool = ((trigger == Some(true)) || planTypeDefined);
         { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Dict(request), &paramsMarginMode, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (since != Value::Null) {
             std::sync::Arc::make_mut(&mut request).insert("startTime".into(), since.clone());
