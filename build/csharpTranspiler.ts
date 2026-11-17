@@ -12880,6 +12880,9 @@ export function nullSeedChecks90c4 (): string[] {
     // R1: a `Str` null seed read as the LEFT of `+` keeps the printer's guarded concat, typed string?, no ((object)..) box
     const r1 = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = \'p\'; } x += \'?\' + a; return x; }');
     if (!r1.includes ('string? x = null;') || r1.includes ('((object)(x == null')) problems.push (`90c4 R1 null-seed guarded concat: ${r1.replace (/\n/g, ' | ').slice (-400)}`);
+    // R2: a `typeof r === 'string'` const alias guards the copy `x = r` like the direct test, so the receiver prints natively
+    const r2 = print ('f (r) { let x: Str = undefined; const isString = (typeof r === \'string\'); if (isString) { x = r; } else { x = this.signed (\'a\'); } const u = (x as string).toUpperCase (); return u; }');
+    if (!r2.includes ('string? x = null;') || !r2.includes ('x = ((string)r);')) problems.push (`90c4 R2 typeof alias copy: ${r2.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
 

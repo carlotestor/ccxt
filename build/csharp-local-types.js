@@ -12809,13 +12809,61 @@ function typeofStringGuardName (condition) {
     return (literal === 'string') ? subject : undefined;
 }
 
+// ral-90c4 R2: `const isString = (typeof x === 'string'); … if (isString) { y = x; }`: the alias is a
+// single const of the enclosing function declared before the test, and x is never written in that
+// function, so the then-branch holds the same string box the direct guard proves
+function typeofStringAliasGuardName90c4 (condition) {
+    const alias = stripParens (condition);
+    if (alias?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const scope = enclosingFunction (alias);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const declarations = [];
+    let subjectWritten = false;
+    let subject;
+    const collect = (node) => {
+        if (node.kind === ts.SyntaxKind.VariableDeclaration && node.name?.kind === ts.SyntaxKind.Identifier && node.name.text === alias.text) {
+            declarations.push (node);
+        }
+        node.forEachChild (collect);
+    };
+    collect (scope);
+    const declaration = declarations[0];
+    if (declarations.length !== 1 || (declaration.parent?.flags & ts.NodeFlags.Const) === 0 || declaration.getEnd () > alias.getStart ()) {
+        return undefined;
+    }
+    subject = typeofStringGuardName (stripParens (declaration.initializer));
+    if (subject === undefined) {
+        return undefined;
+    }
+    const writes = (node) => {
+        if (node.kind === ts.SyntaxKind.BinaryExpression && node.left?.kind === ts.SyntaxKind.Identifier && node.left.text === subject
+                && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            subjectWritten = true;
+        }
+        if ((node.kind === ts.SyntaxKind.PrefixUnaryExpression || node.kind === ts.SyntaxKind.PostfixUnaryExpression) && node.operand?.kind === ts.SyntaxKind.Identifier && node.operand.text === subject) {
+            subjectWritten = true;
+        }
+        if (node.kind === ts.SyntaxKind.ArrayLiteralExpression && node.parent?.kind === ts.SyntaxKind.BinaryExpression && node.parent.left === node
+                && node.elements.some ((e) => e.kind === ts.SyntaxKind.Identifier && e.text === subject)) {
+            subjectWritten = true;
+        }
+        node.forEachChild (writes);
+    };
+    writes (scope);
+    return subjectWritten ? undefined : subject;
+}
+
 // the identifier a `typeof <id> === 'string'` then-branch narrows, or undefined
 function narrowedCopyNodeName (node) {
     let current = node?.parent;
     while (current !== undefined && current.kind !== ts.SyntaxKind.FunctionLikeDeclaration) {
         if (current.kind === ts.SyntaxKind.IfStatement && current.thenStatement !== undefined
                 && current.thenStatement.getStart () <= node.getStart () && node.getEnd () <= current.thenStatement.getEnd ()) {
-            const name = typeofStringGuardName (current.expression);
+            const name = typeofStringGuardName (current.expression) ?? typeofStringAliasGuardName90c4 (current.expression);
             if (name !== undefined) {
                 return name;
             }
