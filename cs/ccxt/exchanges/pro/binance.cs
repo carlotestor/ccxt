@@ -3201,16 +3201,16 @@ public partial class binance : ccxt.binance
         }
         string? channelName = null;
         List<object> resolvedMessageHashes = new List<object>() {};
-        object rawTickers = new List<object>() {};
+        List<object> rawTickers = new List<object>() {};
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         if (((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rawTickers = message;
+            rawTickers = ((List<object>)message);
         } else
         {
-            ((IList<object>)rawTickers).Add(message);
+            rawTickers.Add(message);
         }
-        for (int i = 0; i < getArrayLength(rawTickers); i++)
+        for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
             IDictionary<string, object> ticker = this.safeDict(rawTickers, i);
             string? eventVar = this.safeString(ticker, "e");

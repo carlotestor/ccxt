@@ -1197,10 +1197,10 @@ public partial class bithumb : Exchange
                 {
                     expectedMarketId = firstMarketId;
                 }
-                object tickers = new List<object>() {};
+                List<object> tickers = new List<object>() {};
                 if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
-                    tickers = response;
+                    tickers = ((List<object>)response);
                 } else if (this.isDictionary(response))
                 {
                     if ((inOp(response, "market")) || (inOp(response, "trade_date")) || (inOp(response, "trade_timestamp")))
@@ -1221,9 +1221,9 @@ public partial class bithumb : Exchange
                         }
                     }
                 }
-                for (int j = 0; j < getArrayLength(tickers); j++)
+                for (int j = 0; j < (tickers?.Count ?? 0); j++)
                 {
-                    object entry = getValue(tickers, j);
+                    object entry = tickers[j];
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
                     if ((marketId == null))
                     {

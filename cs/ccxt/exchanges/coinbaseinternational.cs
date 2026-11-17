@@ -1858,15 +1858,15 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object summaries = new List<object>() {response};
+        List<object> summaries = new List<object>() {response};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            summaries = response;
+            summaries = ((List<object>)response);
         } else if (this.isNativeDeribitCredentials())
         {
             summaries = this.safeList(response, "summaries", new List<object>() {response});
         }
-        for (int i = 0; i < getArrayLength(summaries); i++)
+        for (int i = 0; i < (summaries?.Count ?? 0); i++)
         {
             IDictionary<string, object> data = this.safeDict(summaries, i);
             string? currencyId = this.safeString(data, "currency");

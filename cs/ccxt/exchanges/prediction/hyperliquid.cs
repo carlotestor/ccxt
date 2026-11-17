@@ -1685,14 +1685,14 @@ public partial class hyperliquid : PredictionExchange
         };
         object response = await this.publicPostInfo(this.extend(request, paramsMethod));
         List<object> ordersWithStatus = new List<object>() {};
-        object rawOrders = new List<object>() {};
+        List<object> rawOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rawOrders = response;
+            rawOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(rawOrders); i++)
+        for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(rawOrders, i));
+            IDictionary<string, object> order = ((IDictionary<string, object>)rawOrders[i]);
             ordersWithStatus.Add(this.extend(order, new Dictionary<string, object>() {
                 { "ccxtStatus", "open" },
             }));
@@ -1733,14 +1733,14 @@ public partial class hyperliquid : PredictionExchange
         object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
         // Deduplicate by oid keeping most recent statusTimestamp
         Dictionary<string, object> deduped = new Dictionary<string, object>() {};
-        object historicalOrders = new List<object>() {};
+        List<object> historicalOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            historicalOrders = response;
+            historicalOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(historicalOrders); i++)
+        for (int i = 0; i < (historicalOrders?.Count ?? 0); i++)
         {
-            object raw = getValue(historicalOrders, i);
+            object raw = historicalOrders[i];
             object entry = this.safeDict(raw, "order");
             if ((entry == null))
             {

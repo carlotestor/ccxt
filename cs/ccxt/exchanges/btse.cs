@@ -4116,15 +4116,15 @@ public partial class btse : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), legacyMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
-        object rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = response;
+            rows = ((List<object>)response);
         } else
         {
             rows = new List<object>() {response};
         }
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             IDictionary<string, object> row = this.safeDict(rows, i);
             string? status = this.safeString(row, "status");

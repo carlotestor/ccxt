@@ -3501,12 +3501,12 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        object fundings = new List<object>() {};
+        List<object> fundings = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            fundings = response;
+            fundings = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(fundings); i++)
+        for (int i = 0; i < (fundings?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(fundings, i);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -3591,12 +3591,12 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         List<object> orderWithStatus = new List<object>() {};
-        object rawOrders = new List<object>() {};
+        List<object> rawOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rawOrders = response;
+            rawOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(rawOrders); i++)
+        for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(rawOrders, i);
             Dictionary<string, object> extendOrder = new Dictionary<string, object>() {};
@@ -3737,14 +3737,14 @@ public partial class hyperliquid : Exchange
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         Dictionary<string, object> deduplicatedByOid = new Dictionary<string, object>() {};
-        object historicalOrders = new List<object>() {};
+        List<object> historicalOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            historicalOrders = response;
+            historicalOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(historicalOrders); i++)
+        for (int i = 0; i < (historicalOrders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(historicalOrders, i));
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)historicalOrders[i]);
             IDictionary<string, object> entry = this.safeDict(rawOrder, "order", rawOrder);
             string? oid = this.safeString(entry, "oid");
             if ((oid != null))
