@@ -1996,8 +1996,6 @@ const PARSE_MARKET_PARAM_DICTS: string[] = [
 const PARSE_MARKET_SIG_RE = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
 const PARSE_MARKET_PARAM_RE = /([(,]\s*)object(\s+market\s*=\s*null)(?=[,)])/g;
 const PARSE_MARKET_PARAM_REQUIRED_RE = /([(,]\s*)object(\s+market)(?=[,)])/g;
-const PARSE_CURRENCY_PARAM_RE = /([(,]\s*)object(\s+currency\s*=\s*null)(?=[,)])/g;
-const PARSE_CURRENCY_PARAM_REQUIRED_RE = /([(,]\s*)object(\s+currency)(?=[,)])/g;
 
 // ws handler `object message` -> `Dictionary<string, object>` where every reference passes a dict: a
 // dispatch-table entry selected by a key read off the message, or a direct call with a proven dict
@@ -4672,9 +4670,15 @@ class NewTranspiler {
         for (let i = 0; i < lines.length; i++) {
             const sig = PARSE_MARKET_SIG_RE.exec (lines[i]);
             if (sig !== null && typedCurrency.indexOf (sig[5]) !== -1) {
-                // ral-90c1: `object currency` -> IDictionary, same shadow rule (lines are not advanced:
-                // a name in both tables is retyped by both)
-                this.retypeParseMarketParamShadowed (lines, i, sig[1], 'currency');
+                // ral-90c1: `object currency` (parseConversion: fromCurrency / toCurrency) -> IDictionary,
+                // same shadow rule; lines are not advanced, so a name in both tables is retyped by both
+                const params = this.splitCsharpParams (sig[6]);
+                for (const at of ([] as number[]).concat (PARSE_CURRENCY_IDICT_PARAMS[sig[5]])) {
+                    const slot = (params[at] ?? '').trim ().split ('=')[0].trim ().split (/\s+/).pop ();
+                    if ([ 'currency', 'fromCurrency', 'toCurrency' ].includes (slot)) {
+                        this.retypeParseMarketParamShadowed (lines, i, sig[1], slot);
+                    }
+                }
             }
             if (sig !== null && typed.indexOf (sig[5]) !== -1) {
                 i = this.retypeParseMarketParamShadowed (lines, i, sig[1]);
@@ -4701,13 +4705,13 @@ class NewTranspiler {
         for (let j = bodyStart + 1; j < lines.length; j++) {
             if (lines[j] === indent + '}') { bodyEnd = j; break; }
         }
-        const paramRe = (slot === 'market') ? PARSE_MARKET_PARAM_RE : PARSE_CURRENCY_PARAM_RE;
-        const requiredRe = (slot === 'market') ? PARSE_MARKET_PARAM_REQUIRED_RE : PARSE_CURRENCY_PARAM_REQUIRED_RE;
+        const paramRe = (slot === 'market') ? PARSE_MARKET_PARAM_RE : new RegExp ('([(,]\\s*)object(\\s+' + slot + '\\s*=\\s*null)(?=[,)])', 'g');
+        const requiredRe = (slot === 'market') ? PARSE_MARKET_PARAM_REQUIRED_RE : new RegExp ('([(,]\\s*)object(\\s+' + slot + ')(?=[,)])', 'g');
         lines[i] = lines[i].replace (paramRe, '$1IDictionary<string, object>$2')
                            .replace (requiredRe, '$1IDictionary<string, object>$2');
         const writes = lines.slice (bodyStart + 1, bodyEnd).join ('\n').match (new RegExp ('(?<![\\w.])' + slot + '\\s*(?:\\?\\?)?=(?!=)[^;]*;|(?<![\\w])(?:ref|out)\\s+' + slot + '(?![\\w])', 'g')) ?? [];
         const rowWrite = (slot === 'market') ? /^market\s*=\s*(?:null|this\.(?:market|safeMarket)\([^;]*\));$/
-            : /^currency\s*=\s*(?:null|this\.(?:currency|safeCurrency)\([^;]*\));$/;
+            : new RegExp ('^' + slot + '\\s*=\\s*(?:null|this\\.(?:currency|safeCurrency)\\([^;]*\\));$');
         if (writes.every ((w) => rowWrite.test (w))) {
             return bodyEnd;
         }

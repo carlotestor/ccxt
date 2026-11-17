@@ -16708,7 +16708,10 @@ export const PARSE_MARKET_IDICT_PARAMS = {
 export const PARSE_CURRENCY_IDICT_PARAMS = {
     'getCurrencyFromChaincode': 1, 'getExtendedCurrencyCodeById': 1, 'parseLedger': 1, 'parseLedgerEntry': 1,
     'parseTransaction': 1, 'parseTransactions': 1,
+    // the consumer chain the rows above forward to; parseConversion's two slots are fromCurrency / toCurrency
+    'safeCurrency': 1, 'safeCurrencyCode': 1, 'parseConversion': [ 1, 2 ],
 };
+const CURRENCY_SLOT_NAMES = [ 'currency', 'fromCurrency', 'toCurrency' ];
 
 // every write of the parameter is a market-row producer or a nullish reset (the text pass keeps
 // the same bodies unshadowed)
@@ -16766,9 +16769,10 @@ function parseMarketParamType (csharp, declaration) {
         return undefined;
     }
     const slot = declaration.name?.text;
-    const table = (slot === 'currency') ? PARSE_CURRENCY_IDICT_PARAMS : PARSE_MARKET_IDICT_PARAMS;
-    const at = Object.prototype.hasOwnProperty.call (table, owner.name?.text) ? table[owner.name?.text] : undefined;
-    if ((at === undefined) || (owner.parameters.indexOf (declaration) !== at) || ((slot !== 'market') && (slot !== 'currency'))) {
+    const isCurrency = CURRENCY_SLOT_NAMES.includes (slot);
+    const table = isCurrency ? PARSE_CURRENCY_IDICT_PARAMS : PARSE_MARKET_IDICT_PARAMS;
+    const at = Object.prototype.hasOwnProperty.call (table, owner.name?.text) ? [].concat (table[owner.name?.text]) : undefined;
+    if ((at === undefined) || !at.includes (owner.parameters.indexOf (declaration)) || ((slot !== 'market') && !isCurrency)) {
         return undefined;
     }
     return parseMarketParamWritesAreRows (csharp, owner, declaration) ? 'IDictionary<string, object>' : undefined;
