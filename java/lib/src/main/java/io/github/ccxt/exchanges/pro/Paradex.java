@@ -1396,14 +1396,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String scopedHash = (channel + ":scoped");
             String url = this.getWsUrl();
             Client client = this.client(url);
-            Object marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Object symbol = (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i));
-                Object marketId = ((String)((Map<String, Object>)this.market(symbol)).get("id"));
-                ((List<Object>)marketIds).add(marketId);
+                String marketId = ((String)((Map<String, Object>)this.market(symbol)).get("id"));
+                marketIds.add(marketId);
                 subscribeHashes.add(((channel + ".") + marketId));
                 ((List<Object>)subMessageHashes).add(((channel + ".") + symbol));
             }
@@ -1497,17 +1497,17 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // the all-markets one is thousands of frames a second, mostly options, decoded to be dropped
             String scopedHash = (channel + ":scoped");
             List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
-            List<Object> missing = new ArrayList<Object>(Arrays.asList());
+            List<String> missing = new ArrayList<String>(Arrays.asList());
             List<Object> missingHashes = new ArrayList<Object>(Arrays.asList());
             // messageHashes[i] is the hash the summaries of symbols[i] resolve
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object marketId = ((String)((Map<String, Object>)this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))).get("id"));
+                String marketId = ((String)((Map<String, Object>)this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))).get("id"));
                 String subscribeHash = ((channel + ".") + marketId);
                 subscribeHashes.add(subscribeHash);
                 if (!(client.subscriptions.containsKey(subscribeHash)))
                 {
-                    ((List<Object>)missing).add(marketId);
+                    missing.add(marketId);
                     ((List<Object>)missingHashes).add((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)));
                 }
             }
