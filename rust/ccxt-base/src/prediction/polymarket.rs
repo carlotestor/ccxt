@@ -2044,12 +2044,12 @@ impl Polymarket {
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
         if (!outcomeSymbol.as_str().unwrap_or("").contains(":")) && (self.outcome_search_query(outcomeSymbol.clone()) == Value::Null) {
-            let mut response: Value = self.gamma_public_get_markets(&[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("clob_token_ids".to_string(), outcomeSymbol.clone());
-                m
-            })]).await;
-            let mut rawMarkets: Value = (if (response != Value::Null) { response } else { Value::from(vec![]) });
+            let mut response: Option<crate::value::List> = self.gamma_public_get_markets(&[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("clob_token_ids".to_string(), outcomeSymbol.clone());
+    m
+})]).await.into_opt_list();
+            let mut rawMarkets: Value = (if (response.is_some()) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) });
             let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
             if rawMarketsLength > 0 {
                 if (self.markets.clone() == Value::Null) {
@@ -2131,13 +2131,13 @@ impl Polymarket {
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
-                let mut response: Value = self.gamma_public_get_markets(&[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("clob_token_ids".to_string(), Value::from(chunk));
-                        m.insert("limit".to_string(), Value::from(chunkSize));
-                    m
-                })]).await;
-                let mut rawMarkets: Value = (if (response != Value::Null) { response } else { Value::from(vec![]) });
+                let mut response: Option<crate::value::List> = self.gamma_public_get_markets(&[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("clob_token_ids".to_string(), Value::from(chunk));
+        m.insert("limit".to_string(), Value::from(chunkSize));
+    m
+})]).await.into_opt_list();
+                let mut rawMarkets: Value = (if (response.is_some()) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) });
                 let mut ccxtMarkets: Vec<Value> = self.parse_event_to_markets(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("markets".to_string(), rawMarkets);
