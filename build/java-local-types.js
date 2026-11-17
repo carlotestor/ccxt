@@ -11001,6 +11001,47 @@ export function resetJavaVenueIndexes () {
     javaFreshMapMethodIndex = undefined;
 }
 
+// names m with some `const x = await this.m (..)` in a defining file whose x is read by .length or x[..]
+function javaVenueListReadNames () {
+    const names = new Set ();
+    for (const file of new Set (javaVenueListFiles.map (([ , f ]) => f))) {
+        const text = readTsIndexSource (file);
+        if (text === undefined) {
+            continue;
+        }
+        const sf = ts.createSourceFile (file, text);
+        const visit = (node) => {
+            if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.initializer !== undefined) {
+                const init = unwrapParens (node.initializer);
+                const call = init.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (init.expression) : undefined;
+                const scope = isThisCall (call) ? enclosingFunction (node) : undefined;
+                if (scope !== undefined) {
+                    const local = node.name.text;
+                    let read = false;
+                    const uses = (n) => {
+                        if (read) {
+                            return;
+                        }
+                        if (ts.isIdentifier (n) && n.text === local && n !== node.name) {
+                            const parent = n.parent;
+                            read = (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.name.text === 'length')
+                                || (ts.isElementAccessExpression (parent) && parent.expression === n);
+                        }
+                        n.forEachChild (uses);
+                    };
+                    uses (scope);
+                    if (read) {
+                        names.add (call.expression.name.text);
+                    }
+                }
+            }
+            node.forEachChild (visit);
+        };
+        visit (sf);
+    }
+    return names;
+}
+
 function javaVenueSafeListSeededWrites () {
     const names = new Set ();
     for (const file of new Set (javaVenueListFiles.map (([ , f ]) => f))) {
@@ -11126,6 +11167,14 @@ export function javaVenueAsyncReturnTable () {
     }
     // a `x = await this.m (..)` write into a local seeded from this.safeList (..) would make that
     // local List with a declaration checkcast and no native use: keep such names Object
+    // the change only counts where a result local is read as a list (`x.length`, `x[i]`); a name whose
+    // awaited results are only handed on stays Object (ral-87j7: native use, not a declaration retype)
+    const listRead = javaVenueListReadNames ();
+    for (const [ name, spelling ] of [ ...javaVenueReturnTable ]) {
+        if (spelling === 'List<Object>' && !listRead.has (name)) {
+            javaVenueReturnTable.delete (name);
+        }
+    }
     for (const name of javaVenueSafeListSeededWrites ()) {
         if (javaVenueReturnTable.get (name) === 'List<Object>') {
             javaVenueReturnTable.delete (name);
