@@ -3032,7 +3032,7 @@ func (this *Myriad) ParseMarketToEvent(raw any, market any) map[string]any {
  * @param {string} [eventSlug] the slug of the parent event
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
+func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]any {
 	eventSlug := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = eventSlug
 	var networkId *string = this.SafeString(raw, "networkId")

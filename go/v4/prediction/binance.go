@@ -801,7 +801,7 @@ func (this *Binance) ParseEvent(rawTopic any) map[string]any {
  * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
  * @returns {object} a market structure
  */
-func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
+func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) map[string]any {
 	//
 	//     {
 	//         "marketId": 5567895,

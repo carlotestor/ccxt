@@ -363,7 +363,7 @@ func (this *Sxbet) FilterRawMarketsByFixture(rawMarkets any, sportXeventId any) 
  * @param {object} raw the raw sx.bet market object
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-func (this *Sxbet) ParseSxbetMarket(raw any) any {
+func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 	//
 	//     {
 	//         "status": "ACTIVE",
@@ -752,8 +752,8 @@ func (this *Sxbet) ParseEvent(fixtureId any, rawMarkets any) map[string]any {
 	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
 		var raw any = ccxt.GetValue(rawMarkets, i)
-		var parsed any = this.ParseSxbetMarket(raw)
-		if ccxt.IsEqual(parsed, nil) {
+		var parsed map[string]any = this.ParseSxbetMarket(raw)
+		if parsed == nil {
 			panic(ccxt.ExchangeError(this.Id + " parseEvent() could not resolve parsed market"))
 		}
 		marketsList = append(marketsList, parsed)

@@ -1168,7 +1168,7 @@ func (this *Predictfun) TitleForMarketSymbol(topicSlug *string, title *string, o
  * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
  * @returns {object} a market structure
  */
-func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
+func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) map[string]any {
 	//
 	//     {
 	//         "boostEndsAt": "2026-08-27T14:15:00.000Z",
