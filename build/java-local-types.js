@@ -22686,6 +22686,10 @@ function r87j8StringElement (printer, node, depth = 0) {
     if (r87j8StringListRead (printer, value)) {
         return true;
     }
+    // a `this.m (..)` whose declaration the printer itself prints `public String` (javaNativeReturnType)
+    if (isThisCall (value) && internalReturnLocalType (printer, value)?.type === 'String') {
+        return true;
+    }
     if (!ts.isIdentifier (value)) {
         return false;
     }
