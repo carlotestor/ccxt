@@ -25021,12 +25021,31 @@ function r92j3NativeSumLocal (printer, declaration) {
         return false;
     }
     const init = unwrapParens (declaration.initializer);
+    if (init !== undefined && ts.isBinaryExpression (init) && init.operatorToken.kind === ts.SyntaxKind.MinusToken) {
+        return r93j3NativeLongDifference (printer, init);
+    }
     if (init === undefined || !ts.isBinaryExpression (init) || init.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
         return false;
     }
     const mine = (n) => r92j3DefaultedSafeIntegerOperand (printer, n) || r92j3DefaultedLongParamRead (printer, n);
     const longish = (n) => mine (n) || printer.javaWidenedNumericKind (unwrapParens (n)) === 'long';
     return (mine (init.left) || mine (init.right)) && longish (init.left) && longish (init.right);
+}
+
+// `const x = <int literal> - <long>`: the printer's native long subtract `(NL - y)` over a never-null
+// operand (a base parseToInt const: declared Long, throws or answers a long) is a long, so x is Long
+function r93j3NativeLongDifference (printer, init) {
+    const parseToIntConst = (n) => {
+        const bare = unwrapParens (n);
+        if (bare === undefined || !ts.isIdentifier (bare) || printer.printNode (bare, 0) !== bare.text) {
+            return false;
+        }
+        const target = printer.getChecker ().getSymbolAtLocation (bare)?.valueDeclaration?.resolve ();
+        return target !== undefined && ts.isVariableDeclaration (target) && ts.isVariableDeclarationList (target.parent)
+            && (target.parent.flags & ts.NodeFlags.Const) !== 0 && enclosingFunction (target) === enclosingFunction (bare)
+            && r92j3ParseToIntCall (printer, target.initializer);
+    };
+    return r87j3IntLiteral (init.left) && parseToIntConst (init.right);
 }
 
 // a read of a Long-typed integer-literal defaulted parameter prints `requireNonNullElse(x, NL)`: never null
