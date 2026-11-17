@@ -8714,6 +8714,8 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
         [ 'string? t = ((string)', 't.Replace(' ], [ 'object t = ', '((string)t)' ]);
     check ('list element used as a receiver only behind a test keeps object', 'tr (tags: any[], c) { const t = tags[0]; if (c) { return t.toUpperCase (); } return c; }',
         [ 'object t = ' ], [ 'string? t = ' ]);
+    check ('guarded Int64? difference initialiser is declared Int64?', 'safeInteger (o, k, d = undefined): number { return d; }\n ra (o: Dict, m: number) { const e = this.safeInteger (o, "e"); if (e === undefined) { return 1; } const r = e - 5; if (m < r) { return 2; } return 3; }',
+        [ 'Int64? r = (e - 5);' ], [ 'object r = ' ]);
     return problems;
 }
 

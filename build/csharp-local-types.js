@@ -6940,6 +6940,19 @@ function isPlainAssignmentValue (node) {
         && parent.right === current && parent.parent?.kind === ts.SyntaxKind.ExpressionStatement;
 }
 
+// `node` (through parentheses) initialises the only declarator of a `const` / `let` statement:
+// the printed `(a - b)` is the declaration's own value, so its lifted Int64? type names it
+function isSoleDeclarationInitializer (node) {
+    let current = node;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const declaration = current.parent;
+    return declaration?.kind === ts.SyntaxKind.VariableDeclaration && declaration.initializer === current
+        && declaration.name?.kind === ts.SyntaxKind.Identifier && declaration.parent?.declarations?.length === 1
+        && declaration.parent.parent?.kind === ts.SyntaxKind.VariableStatement;
+}
+
 // the C# type of an initializer / assigned value, or undefined when it cannot be proven.
 // 'null' is returned for a literal null/undefined so assignable() can accept it for
 // nullable targets. Falls back to the printer's own classifier for its families.
@@ -7045,7 +7058,7 @@ export function csharpTypeOfValue (csharp, node, context) {
         // `x = (a - b)` WRITE printed natively under a dominating null test
         // (nativeGuardedSubtractExpression): lifted Int64? minus an int-like, the same Int64 box
         // subtract() returns. Writes only: initialisers and arm types keep their old answer.
-        if (nativeOp === ts.SyntaxKind.MinusToken && isPlainAssignmentValue (node)
+        if (nativeOp === ts.SyntaxKind.MinusToken && (isPlainAssignmentValue (node) || isSoleDeclarationInitializer (node))
             && nativeGuardedSubtractExpression (csharp, node) !== undefined) {
             return 'Int64?';
         }
