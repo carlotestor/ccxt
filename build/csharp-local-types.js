@@ -21549,3 +21549,51 @@ stringValueIsNonNullAtUse = function (csharp, scope, declaration, name, read, co
     return c90UpstreamStringValueIsNonNullAtUse (csharp, scope, declaration, name, read, context)
         || c90DereferenceDominates (csharp, scope, declaration, name, read);
 };
+
+// (R4) a copy of a copy: `let y = x` where x's own top-level declaration decision (any rule of this
+// module, recorded when the printer asks for it, before y's) named `string` / `string?`: nested lookups
+// (localIdentifierType) refuse such a local because some rules decide only at the top level, so the
+// accepted decisions are remembered here and y becomes an 87c5 R1 candidate under the same guarded-concat
+// proof. Decided from this module's own AST decisions, never from printed text.
+const c90StringDeclared = new WeakSet ();
+const c90UpstreamLocalDeclarationR4 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = c90UpstreamLocalDeclarationR4 (csharp, declaration, context);
+    if (context === undefined && (info?.type === 'string' || info?.type === 'string?')) {
+        c90StringDeclared.add (declaration);
+    }
+    return info;
+};
+function c90StringCopyOfCopy (csharp, declaration) {
+    const init = stripParens (declaration?.initializer);
+    if (init?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const source = resolveReference (csharp, init);
+    return source !== undefined && source !== declaration && c90StringDeclared.has (source)
+        && enclosingFunction (source) === enclosingFunction (declaration) && source.getStart () < declaration.getStart ();
+}
+const c90UpstreamStringCopyInitializerR4 = c87StringCopyInitializer;
+// eslint-disable-next-line no-func-assign
+c87StringCopyInitializer = function (csharp, declaration) {
+    return c90UpstreamStringCopyInitializerR4 (csharp, declaration) || c90StringCopyOfCopy (csharp, declaration);
+};
+// the R4 copy's own writes `y = x + r` whose leftmost leaf x is such a recorded string local
+const c90UpstreamStringPlusWriteType = c87StringPlusWriteType;
+// eslint-disable-next-line no-func-assign
+c87StringPlusWriteType = function (csharp, node, declaration) {
+    const upstream = c90UpstreamStringPlusWriteType (csharp, node, declaration);
+    if (upstream !== undefined) {
+        return upstream;
+    }
+    let value = stripParens (node);
+    if (value?.kind !== ts.SyntaxKind.BinaryExpression || value.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    while (value?.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        value = stripParens (value.left);
+    }
+    const source = (value?.kind === ts.SyntaxKind.Identifier) ? resolveReference (csharp, value) : undefined;
+    return (source !== undefined && c90StringDeclared.has (source)) ? 'string' : undefined;
+};
