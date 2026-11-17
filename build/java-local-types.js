@@ -2133,6 +2133,12 @@ const VENUE_RETURN_KINDS = {
     'getSettlementCurrencies': [ 'java.util.List<Object>' ], 'findMessageHashes': [ 'java.util.List<Object>' ],
     // base `buildOHLCVC (..): OHLCVC[]` returns its own `ohlcvs` accumulator (no override)
     'buildOHLCVC': [ 'java.util.List<Object>' ],
+    // ral-87j5 R4, one declaration each in ts/src: selectNetworkKeyFromNetworks (base `: Str`, returns a String
+    // param / networkCodeToId results / null), normalizeTagKey (prediction base, returns its own '' + ch accumulator),
+    // derive hashOrderMessage (returns this.hash (.., 'hex'), a hex String), hyperliquid findOutcomeInMarket
+    // (`: Dict`, returns safeDict (.., {}) reads)
+    'selectNetworkKeyFromNetworks': [ 'String' ], 'normalizeTagKey': [ 'String' ], 'hashOrderMessage': [ 'String' ],
+    'findOutcomeInMarket': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {

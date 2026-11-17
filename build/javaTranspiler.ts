@@ -5916,6 +5916,7 @@ function javaR87j5CalleeReturnsSelfTest (): string[] {
         "    requestId (url: string): Int { return this.sum (url.length, 1); }",
         "    useSu () { const su = this.getStockWsUrl ('user'); return this.requestId (su); }",
         "    useOh (trades: any[]) { const oh = this.buildOHLCVC (trades, '1m', 0, 10); return oh.length; }",
+        "    useSn (code: string, entries: Dict) { const sn = this.selectNetworkKeyFromNetworks (code, undefined, entries); return this.networkIdToCode (sn, code); }",
         '}',
     ].join('\n');
     try {
@@ -5927,6 +5928,7 @@ function javaR87j5CalleeReturnsSelfTest (): string[] {
         // a const String result of a venue-typed callee passes a String parameter bare (no `(String) (su)` checkcast)
         if (!/String su = this\.getStockWsUrl\(/.test(out) || !/this\.requestId\(su\)/.test(out)) problems.push("ral-87j5: 'su' (String venue callee result) must be passed to a String parameter with no checkcast");
         if (!/(java\.util\.)?List<Object> oh = this\.buildOHLCVC\(/.test(out)) problems.push("ral-87j5: 'oh' (base buildOHLCVC: OHLCVC[]) must print List<Object>");
+        if (!/String sn = this\.selectNetworkKeyFromNetworks\(/.test(out) || !/this\.networkIdToCode\(sn, /.test(out)) problems.push("ral-87j5: 'sn' (base selectNetworkKeyFromNetworks: Str) must print String and pass networkIdToCode bare");
     } catch (e: any) {
         problems.push(`ral-87j5 self-test threw: ${e.message}`);
     } finally {
