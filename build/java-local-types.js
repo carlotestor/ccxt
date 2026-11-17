@@ -12704,6 +12704,10 @@ function nullSeedHasNativeUse (printer, declaration, type) {
                 return true;
             }
         }
+        // `x as string` on a String seed prints the bare local (this section's printAsExpression wrapper)
+        if (type === JAVA_DATAFLOW_STRING && parent !== undefined && ts.isAsExpression (parent) && parent.type.kind === ts.SyntaxKind.StringKeyword) {
+            return true;
+        }
         // a Map seed handed to a Map core parameter (`watchPublic (.., market: Market, ..)`): the checkcast drops
         if (type === JAVA_STRUCTURE_TYPE && parent !== undefined && ts.isCallExpression (parent) && parent.arguments.indexOf (host) !== -1
             && typeof printer.javaNativeCallParameterTypes === 'function'
@@ -13015,7 +13019,10 @@ function nullScalarLocalTypeOpen (printer, declaration) {
     // writeOk decides every write and casts on the local decline it
     const container = NULL_CONTAINER_TYPES.has (type);
     const destructureOk = (assignment, at) => nullSeedPairSlotWrite (printer, assignment.left.elements[at]) === type;
-    return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk, noCastAssertions: container, writeOnly: container, destructureOk }) ? type : undefined;
+    // `x as string` on a String seed is the identity checkcast (admitted only where a String core slot / overload
+    // is the seed's native use: nullSeedHasNativeUse)
+    const stringAsCast = type === JAVA_DATAFLOW_STRING && r84Write;
+    return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk, noCastAssertions: container, writeOnly: container, destructureOk, stringAsCast }) ? type : undefined;
 }
 
 // r90-j4: a seed written as element 0 or 1 of `[ a, b ] = <call>` where the printer binds the call's
@@ -13083,6 +13090,22 @@ export function installJavaNullScalarLocalTypes (transpiler) {
             }
         }
         return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
+    };
+    // `x as string` of a String-retyped seed is the identity: print the bare local
+    const upstreamAs = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        const target = node?.type?.kind === ts.SyntaxKind.StringKeyword ? unwrapParens (node.expression) : undefined;
+        if (target !== undefined && ts.isIdentifier (target)) {
+            try {
+                const declaration = printer.getChecker ().getSymbolAtLocation (target)?.valueDeclaration?.resolve ();
+                if (declaration !== undefined && retyped.get (declaration) === JAVA_DATAFLOW_STRING) {
+                    return printer.printNode (target, identation);
+                }
+            } catch (e) {
+                // fall through to the upstream print
+            }
+        }
+        return upstreamAs (node, identation);
     };
     // this section retypes after the declared-local observer: publish so core-argument conversions see it
     publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));

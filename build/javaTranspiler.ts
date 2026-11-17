@@ -10684,6 +10684,7 @@ function javaR92j4NullSeedConsumerSelfTest (): string[] {
         "        if (f) { channel = 'acc.' + mode; hash = channel; } else { hash = 'account'; channel = hash; }",
         "        return await this.sp (channel, hash);",
         "    }",
+        "    async m4 (f: boolean, a: string, b: string) { let url: Str = undefined; if (f) { url = a.toLowerCase (); } else { url = b.trim (); } return await this.watch (url as string, 'h'); }",
         "    async m3 (f: boolean, raw: Dict) { let other: Str = undefined; let mixed: Str = undefined; if (f) { other = 'a'; mixed = other; } else { mixed = raw['k']; } return await this.sp (mixed, other); }",
         '}',
     ].join('\n');
@@ -10692,6 +10693,7 @@ function javaR92j4NullSeedConsumerSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/Map<String, Object> market = null/.test(out) || !/this\.wp\("x", market, messageHash, /.test(out)) problems.push("r92-j4: 'market' (written from a later market() const, passed to a Map slot) must print Map with a bare argument");
         if (!/String hash = null/.test(out) || !/String channel = null/.test(out) || !/this\.sp\(channel, hash/.test(out)) problems.push("r92-j4: 'hash' / 'channel' (String writes of each other, String slots) must print String with bare arguments");
+        if (!/String url = null/.test(out) || !/this\.watch\(url, /.test(out)) problems.push("r92-j4: 'url' (String writes, `url as string` into watch) must print String with the identity cast dropped");
         if (!/\bObject mixed = null/.test(out)) problems.push("r92-j4: 'mixed' (one Object element write) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
