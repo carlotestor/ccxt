@@ -5476,11 +5476,11 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *
 			request["isIsolated"] = true
 		}
 	}
-	var postOnly any = nil
+	var postOnly bool
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsOmitted)
-	postOnly = postOnlyparamsOmittedVariable[0]
+	postOnly = postOnlyparamsOmittedVariable[0].(bool)
 	paramsOmitted = postOnlyparamsOmittedVariable[1]
-	if postOnly == true {
+	if postOnly {
 		request["postOnly"] = true
 	}
 	return this.Extend(request, paramsOmitted)
@@ -5717,15 +5717,15 @@ func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar string, si
 			request["timeInForce"] = timeInForce
 		}
 	}
-	var postOnly any = nil
+	var postOnly bool
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsOmitted)
-	postOnly = postOnlyparamsOmittedVariable[0]
+	postOnly = postOnlyparamsOmittedVariable[0].(bool)
 	paramsOmitted = postOnlyparamsOmittedVariable[1]
-	if postOnly == true {
+	if postOnly {
 		request["postOnly"] = true
 	}
 	var hidden any = this.SafeValue(paramsOmitted, "hidden")
-	if (postOnly == true) && (hidden != nil) {
+	if (postOnly) && (hidden != nil) {
 		panic(BadRequest(this.Id + " createOrder() does not support the postOnly parameter together with a hidden parameter"))
 	}
 	var iceberg any = this.SafeValue(paramsOmitted, "iceberg")
@@ -5905,9 +5905,9 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 	if !isMarketOrder {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var postOnly any = nil
+	var postOnly bool
 	var postOnlyparamsRequestVariable []any = this.HandlePostOnly(isMarketOrder, false, paramsRequest)
-	postOnly = postOnlyparamsRequestVariable[0]
+	postOnly = postOnlyparamsRequestVariable[0].(bool)
 	paramsRequest = postOnlyparamsRequestVariable[1]
 	var timeInForce any = this.HandleTimeInForce(paramsRequest)
 	var paramsOmitted any = func() any {
@@ -5919,7 +5919,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 	if timeInForce != nil {
 		request["timeInForce"] = timeInForce
 	}
-	if postOnly == true {
+	if postOnly {
 		request["postOnly"] = true
 	}
 	if isContract != nil && *isContract == true {

@@ -5888,11 +5888,11 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 		request["side"] = this.Capitalize(side)
 		request["orderType"] = this.Capitalize(lowerCaseType)
 		var timeInForce *string = this.SafeStringLower(query, "timeInForce") // this is same as exchange specific param
-		var postOnly any = nil
+		var postOnly bool
 		var postOnlyqueryVariable []any = this.HandlePostOnly(isMarket, (timeInForce != nil && *timeInForce == "postonly"), query)
-		postOnly = postOnlyqueryVariable[0]
+		postOnly = postOnlyqueryVariable[0].(bool)
 		query = postOnlyqueryVariable[1]
-		if postOnly == true {
+		if postOnly {
 			request["timeInForce"] = "PostOnly"
 		} else if timeInForce != nil && *timeInForce == "gtc" {
 			request["timeInForce"] = "GTC"
