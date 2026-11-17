@@ -22537,6 +22537,11 @@ function c92StringSunkElementReadLocal (csharp, declaration, context) {
     if (scope === undefined || /(^|[\\/])test[\\/]/.test (declaration.getSourceFile?.()?.fileName ?? '')) {
         return undefined;
     }
+    // only venue sources: the generated test tier (in-memory, read through the BaseTest getValue shim) keeps object
+    const sourceName = (declaration.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (!sourceName.includes ('ts/src/') || sourceName.includes ('ts/src/test/')) {
+        return undefined;
+    }
     const returnsString = [ 'string', 'Str' ].includes (scope.type?.getText?.());
     let receivers = 0;
     for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {

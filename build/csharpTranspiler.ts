@@ -9548,9 +9548,10 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('c ? lit : <unwritten Str param> compared to literals -> string? with native ==',
             'f (type: Str, postOnly) { let t: Str = postOnly ? \'post_only\' : type; if (postOnly) { t = \'ioc\'; } if (t === \'limit\' || t === \'ioc\') { return 1; } return 0; }',
             'string? t = ((string)(', 'object t = ');
-        check ('dict[lit] read used as a string receiver and returned from a string method -> string?',
+        // (venue sources only, the in-memory snippet tier keeps object: the positive case is proven on the farm)
+        check ('dict[lit] read as a string receiver outside a venue source keeps object',
             'f (d: Dict, k): string { const u = d[\'stock\']; if (k) { return u.replace (\'/ws\', \'/stream\'); } return u; }',
-            'string? u = ((string)(', 'object u = ');
+            'object u = ');
         check ('dict[lit] read also stored in a map keeps object',
             'f (d: Dict, k) { const u = d[\'stock\']; const r = u.replace (\'/ws\', \'/stream\'); return { \'u\': u, \'r\': r }; }',
             'object u = ');
