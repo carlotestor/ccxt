@@ -15921,8 +15921,9 @@ function javaNonNullStringCall87 (printer, node, name, declaration, retyped, dep
     // `<s>.slice (..)` prints `(s == null ? null : ((String)s).substring (..))`: String, and non-null for a
     // non-null String receiver (substring never answers null)
     if (name === 'slice' && r93j3StringSliceShape (node)) {
-        return javaStringLikeReceiver (printer, receiver)
-            && declaration !== undefined && javaNonNullStringValue (printer, declaration, retyped, receiver, (depth ?? 0) + 1);
+        // only the self slice `x = x.slice (..)` of the declaration being classified (its other writes decide x)
+        return ts.isIdentifier (receiver) && declaration !== undefined && javaStringLikeReceiver (printer, receiver)
+            && javaNonNullStringDeclarationOf (printer, receiver) === declaration;
     }
     return undefined;
 }
@@ -24266,6 +24267,23 @@ function r87j3SelfStep (printer, declaration, node) {
         && printer.getChecker ().getSymbolAtLocation (left)?.valueDeclaration?.resolve () === declaration;
 }
 
+// `Math.min (a, x)` / `Math.max (a, x)` whose other operand the printer proves a long: with x a
+// non-null Long the printer's numeric min/max prints the native Math call instead of the boxed compare
+function r93j3MathMinMaxOperand (printer, n) {
+    const call = n.parent;
+    if (call === undefined || !ts.isCallExpression (call) || call.arguments.length !== 2 || !call.arguments.includes (n)
+        || !ts.isPropertyAccessExpression (call.expression) || !ts.isIdentifier (call.expression.expression)
+        || call.expression.expression.text !== 'Math' || ![ 'min', 'max' ].includes (call.expression.name.text)) {
+        return false;
+    }
+    const other = call.arguments[0] === n ? call.arguments[1] : call.arguments[0];
+    try {
+        return r87j3IntLiteral (other) || printer.javaProvableNumericKind (unwrapParens (other)) === 'long';
+    } catch (e) {
+        return false;
+    }
+}
+
 function r87j3SumCounter (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || !(r87j3IntLiteral (declaration.initializer) || r87j3LongValue (printer, declaration.initializer)
         || r87j3SumWrite (printer, declaration, declaration.initializer))
@@ -24313,6 +24331,9 @@ function r87j3SumCounter (printer, declaration) {
             }
         }
         if (ts.isBinaryExpression (parent) && R87J3_ARITH_OPS.has (parent.operatorToken.kind)) {
+            nativeUse = true;
+        }
+        if (r93j3MathMinMaxOperand (printer, n)) {
             nativeUse = true;
         }
         if (ts.isPropertyAssignment (parent) && parent.initializer === n) {
