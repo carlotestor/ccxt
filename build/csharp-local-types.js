@@ -18751,12 +18751,12 @@ export const CSHARP_TUPLE_RETURN_ELEMENT0 = {
 };
 // ral-90c1: element 1 (the params bag) where every return path hands back the omit / extend result
 // the TS declares `Dict` (handleOptionAndParams' newParams, typed IDictionary in every body). Not
-// handleNetworkCodeAndParams: its bag is an `object` conditional local, a cast at the return is no typing.
+// handleNetworkCodeAndParams: its bag is an `object` conditional local, a cast at the return is no typing;
+// nor the Integer pair (their `params: object` makes the destructured newParams an `object` local).
 export const CSHARP_TUPLE_RETURN_ELEMENT1 = {
     'handleOptionStringAndParams': 'IDictionary<string, object>', 'handleOptionStringAndParams2': 'IDictionary<string, object>',
     'handleMarginModeAndParams': 'IDictionary<string, object>',
     'handleOptionBoolAndParams': 'IDictionary<string, object>', 'handleOptionBoolAndParams2': 'IDictionary<string, object>',
-    'handleOptionIntegerAndParams': 'IDictionary<string, object>', 'handleOptionIntegerAndParams2': 'IDictionary<string, object>',
 };
 const tupleElement1 = (name) => (Object.prototype.hasOwnProperty.call (CSHARP_TUPLE_RETURN_ELEMENT1, name) ? CSHARP_TUPLE_RETURN_ELEMENT1[name] : 'object');
 const TUPLE_NAMES = Object.keys (CSHARP_TUPLE_RETURN_ELEMENT0).sort ((a, b) => b.length - a.length).join ('|');
