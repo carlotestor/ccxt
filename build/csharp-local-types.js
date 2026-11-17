@@ -8977,6 +8977,20 @@ function keyedStringListProducer (csharp, initializer) {
     return ok && writes > 0;
 }
 
+function stringKeyedDictionaryRead (csharp, access) {
+    const grand = access.parent;
+    if (grand?.kind === ts.SyntaxKind.DeleteExpression || (grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === access && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind))
+            || grand?.kind === ts.SyntaxKind.PrefixUnaryExpression || grand?.kind === ts.SyntaxKind.PostfixUnaryExpression) {
+        return false;
+    }
+    const receiver = access.expression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || typeof csharp.csharpDeclaredCollectionType !== 'function') {
+        return false;
+    }
+    const declared = csharp.csharpDeclaredCollectionType (receiver);
+    return typeof declared === 'string' && declared.includes ('Dictionary<');
+}
+
 function stringElementLocalHasNativeUse (csharp, declaration) {
     const name = declaration?.name?.text;
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
@@ -8993,6 +9007,11 @@ function stringElementLocalHasNativeUse (csharp, declaration) {
             // `delete d[x]` prints `Remove(x)` without the cast; a `d[x] = v` write keeps its
             // `(string)` key cast on a typed local too, so it is not a native use
             if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+                return true;
+            }
+            // a plain `d[x]` read on a declared dictionary local prints `d.ContainsKey(x) ? d[x] : null`
+            // with no `(string)` key cast once x is a string
+            if (stringKeyedDictionaryRead (csharp, parent)) {
                 return true;
             }
         }
