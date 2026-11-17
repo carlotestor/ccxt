@@ -12546,6 +12546,15 @@ function nullScalarCopyTernaryType (printer, value, arms) {
 }
 
 // the one spelling each container box publishes under (`Map<String,Object>` / `java.util.List<Object>` ...)
+// r90-j4: a sync core printed with a unified structure return (`Trade parseWsTrade(..)`): the hand-written
+// io.github.ccxt.types class extends TypedMap (an AbstractMap<String, Object>), so the result is assignable to a
+// Map<String, Object> seed with no cast, exactly as `Map<String, Object> x = this.parseWsTrade(..)` prints today
+const NULL_SEED_TYPED_MAP_CORES = new Set ([ 'Trade', 'Ticker', 'Order', 'OrderBook' ]);
+function nullSeedTypedMapCore (type) {
+    const m = typeof type === 'string' ? /^(?:io\.github\.ccxt\.types\.)?(\w+)$/.exec (type.trim ()) : null;
+    return m !== null && NULL_SEED_TYPED_MAP_CORES.has (m[1]) ? JAVA_STRUCTURE_TYPE : undefined;
+}
+
 function nullContainerSpelling (type) {
     const bare = typeof type === 'string' ? type.replace (/\s+/g, '').replace (/^java\.util\./, '') : undefined;
     return bare === 'Map<String,Object>' ? JAVA_STRUCTURE_TYPE : bare === 'List<Object>' ? JAVA_ARRAY_TYPE : undefined;
@@ -12628,6 +12637,11 @@ function nullScalarWriteType (printer, node) {
         }
         // r77-j4: a sync core whose printed signature already returns the box (no cast)
         const core = isThisCall (value) ? syncCoreCallType (printer, value) : undefined;
+        const typedMap = nullContainerSpelling (core) === undefined ? nullSeedTypedMapCore (core) : undefined;
+        if (typedMap !== undefined) {
+            NULL_SEED_R84_WRITES.add (node); // r90-j4: lands only with a native use
+            return typedMap;
+        }
         const container = nullContainerSpelling (core);
         if (container !== undefined || NULL_SCALAR_COPY_TYPES.has (core)) {
             return container ?? core;
@@ -12664,6 +12678,12 @@ function nullSeedHasNativeUse (printer, declaration, type) {
             if (types[at] === 'String') {
                 return true;
             }
+        }
+        // r90-j4: a Map seed read by a string-literal key prints `x.get("k")` instead of `((Map)x).get("k")`
+        if (type === JAVA_STRUCTURE_TYPE && parent !== undefined && ts.isElementAccessExpression (parent) && parent.expression === host
+            && ts.isStringLiteral (parent.argumentExpression) && !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent)
+            && parent.parent?.kind !== ts.SyntaxKind.DeleteExpression) {
+            return true;
         }
         // r90-j4: a String slot of a printed typed core (defaulted tail): the conversion
         // `java.util.Objects.toString(x, null)` drops once the argument is declared String

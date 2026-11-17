@@ -10268,11 +10268,14 @@ function javaR90j4NullSeedSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzr90j4seed${process.pid}.ts`);
     const body = [
-        "import Exchange from '../binance.js';", "import type { Str, Dict } from '../base/types.js';",
+        "import Exchange from '../binance.js';", "import type { Str, Dict, Trade } from '../base/types.js';",
         'export default class zzr90j4seed extends Exchange {',
         "    async a1 (flag: boolean, params: Dict = {}) { let subType: Str = undefined; let paramsSubType: Dict = {}; if (flag) { subType = 'linear'; } else { const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('a1', undefined, params); [ subType, paramsSubType ] = this.handleOptionStringAndParams (paramsMarketType, 'a1', 'subType', subType); } return await this.ws2 ('c', subType, paramsSubType); }",
         "    async a3 (flag: boolean, params: Dict = {}) { let k = undefined; let p2: Dict = {}; if (flag) { k = params['k']; } else { [ k, p2 ] = this.handleOptionStringAndParams (params, 'a3', 'k'); } return await this.ws2 ('c', k, p2); }",
         "    async ws2 (c: string, s: string, params: Dict = {}) { return [ c, s, params ]; }",
+        "    h3 (raw: Dict, flag: boolean) { let parsed = undefined; if (flag) { parsed = this.parseWsTrade (raw); } else { parsed = this.parseTrade (raw); } const symbol = parsed['symbol']; return symbol; }",
+        "    h4 (raw: Dict, flag: boolean) { let parsed = undefined; if (flag) { parsed = this.parseWsTrade (raw); } else { parsed = this.parseTrade (raw); } return [ parsed ]; }",
+        "    parseWsTrade (trade: Dict, market = undefined): Trade { return this.parseTrade (trade, market); }",
         '}',
     ].join('\n');
     try {
@@ -10280,6 +10283,8 @@ function javaR90j4NullSeedSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/String subType = null/.test(out) || !/ws2\("c", subType, /.test(out) || /toStringArg\(subType\)/.test(out)) problems.push("r90-j4: 'subType' (literal + Pair slot 0 writes, String core argument) must print String with no argument cast");
         if (!/\bObject k = null/.test(out)) problems.push("r90-j4: 'k' (an unproven element-read write beside the Pair slot) must stay Object");
+        if (!/Map<String, Object> parsed = null;[^]*?String symbol = \(String\) parsed\.get\("symbol"\)/.test(out)) problems.push("r90-j4 R2: 'parsed' (Trade core writes, string-key read) must print Map<String, Object> with an uncast get");
+        if (!/public Object h4\([^]*?\bObject parsed = null/.test(out)) problems.push("r90-j4 R2: 'parsed' with no native use must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`r90-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
