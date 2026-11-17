@@ -6193,9 +6193,11 @@ async function runMain() {
     shouldTranspileTests = process.argv.includes('--noTests') ? false : true
     log.bright.green({ force })
     // ral-90j5: the local-type classifier reads generated Java signatures from disk, so a full run
-    // repeats in a fresh process until the signatures it reads are its own output
-    const fixedPoint = restAndWs && cliExchanges.length === 0;
-    const readBefore = fixedPoint ? javaClassifierReadView () : undefined;
+    // is driven from here as fresh child passes until the signatures it reads are its own output
+    if (restAndWs && cliExchanges.length === 0 && process.env['CCXT_JAVA_FIXED_POINT_PASS'] === undefined) {
+        javaFixedPointDrive ();
+        return;
+    }
     const transpiler = new NewTranspiler();
     try {
         if (baseClassOnly) {
@@ -6216,9 +6218,6 @@ async function runMain() {
     } finally {
         await transpiler.destroy();
     }
-    if (fixedPoint) {
-        javaFixedPointRerun (readBefore as string);
-    }
 }
 
 // ===== ral-90j5: one full run is a fixed point =====
@@ -6227,6 +6226,7 @@ async function runMain() {
 // them, so a run printed against the previous generation's signatures. The view below is every
 // generated signature line those readers see; when a run changes it, the run repeats in a fresh
 // process (fresh classifier caches and worker threads) until its input equals its output.
+// The view is read before and after each pass; an unchanged view means the pass read its own output.
 const JAVA_FIXED_POINT_ROOT = path.join (__dirname, '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
 const JAVA_FIXED_POINT_SIGNATURE = /^\s*(?:public|protected)\s+(?:static\s+final\s+|static\s+|final\s+|abstract\s+|synchronized\s+)*[\w.$]+(?:<[^()]*>)?\s+\w+\s*\(/;
 const JAVA_FIXED_POINT_MAX_PASSES = 3;
@@ -6258,20 +6258,24 @@ function javaClassifierReadView (): string {
     return out.join ('\n');
 }
 
-function javaFixedPointRerun (readBefore: string) {
-    const pass = Number (process.env['CCXT_JAVA_FIXED_POINT_PASS'] ?? '1');
-    if (javaClassifierReadView () === readBefore) {
-        log.bright.green ('[java] fixed point after pass', pass);
-        return;
+// the driver holds only the signature views; each pass is a child with fresh caches and worker
+// threads, so peak memory stays that of one ordinary run
+function javaFixedPointDrive () {
+    for (let pass = 1; ; pass++) {
+        const before = javaClassifierReadView ();
+        execFileSync (process.execPath, [ ...process.execArgv, ...process.argv.slice (1) ], {
+            stdio: 'inherit',
+            env: { ...process.env, CCXT_JAVA_FIXED_POINT_PASS: String (pass) },
+        });
+        if (javaClassifierReadView () === before) {
+            log.bright.green ('[java] fixed point after pass', pass);
+            return;
+        }
+        if (pass >= JAVA_FIXED_POINT_MAX_PASSES) {
+            throw new Error (`[java] generated signatures still changing after ${pass} passes`);
+        }
+        log.bright.yellow ('[java] generated signatures changed in pass', pass, '- re-running against this run\'s output');
     }
-    if (pass >= JAVA_FIXED_POINT_MAX_PASSES) {
-        throw new Error (`[java] generated signatures still changing after ${pass} passes`);
-    }
-    log.bright.yellow ('[java] generated signatures changed in pass', pass, '- re-running against this run\'s output');
-    execFileSync (process.execPath, [ ...process.execArgv, ...process.argv.slice (1) ], {
-        stdio: 'inherit',
-        env: { ...process.env, CCXT_JAVA_FIXED_POINT_PASS: String (pass + 1) },
-    });
 }
 
 // Native top-level newMap (declaration initializer / return value)
