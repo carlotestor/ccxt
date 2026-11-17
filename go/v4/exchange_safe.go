@@ -1127,3 +1127,11 @@ func (this *BaseExchange) SafeListSlice(dictionaryOrList any, key any, defaultVa
 func (this *BaseExchange) SafeListNSlice(dictionaryOrList any, keys any) []any {
 	return listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys))
 }
+
+// SafeListNSliceDefault is SafeListN with a list default read as a []any: the member list, else the default.
+func (this *BaseExchange) SafeListNSliceDefault(dictionaryOrList any, keys any, defaultValue []any) []any {
+	if value := listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys)); value != nil {
+		return value
+	}
+	return defaultValue
+}
