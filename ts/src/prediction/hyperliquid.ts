@@ -2236,12 +2236,14 @@ export default class hyperliquid extends Exchange {
 
     async publicPostInfoList (params: Dict = {}): Promise<Dict[]> {
         // info requests documented to answer a JSON array: any other body reads as no rows
-        return this.safeList ([ await this.publicPostInfo (params) ], 0, []);
+        const response = await this.publicPostInfo (params);
+        return this.safeList ([ response ], 0, []);
     }
 
     async publicPostInfoDict (params: Dict = {}): Promise<Dict> {
         // info requests documented to answer a JSON object: any other body reads as empty
-        return this.safeDict ([ await this.publicPostInfo (params) ], 0, {});
+        const response = await this.publicPostInfo (params);
+        return this.safeDict ([ response ], 0, {});
     }
 
     handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
