@@ -23746,7 +23746,7 @@ function r90j3IntDefaultSafeInteger (printer, node) {
 }
 
 // the non-null long operand's Java text, or undefined
-function r90j3LongOperand (printer, node, depth = 0) {
+function r90j3LongOperand (printer, node, depth = 0, constLocals = true) {
     const n = unwrapParens (node);
     if (n === undefined || depth > 4) {
         return undefined;
@@ -23772,6 +23772,9 @@ function r90j3LongOperand (printer, node, depth = 0) {
     if (r87j3Memo (printer).get (target) === true) {
         return n.text; // a ral-87j3 counter: non-null Long on every write
     }
+    if (!constLocals) {
+        return undefined;
+    }
     if (!ts.isVariableDeclarationList (target.parent) || (target.parent.flags & ts.NodeFlags.Const) === 0
         || target.initializer === undefined) {
         return undefined;
@@ -23795,13 +23798,13 @@ function r90j3LongOperand (printer, node, depth = 0) {
 }
 
 // `(<a> + <b>)` for a base this.sum of two proven non-null long operands, or undefined
-function r90j3NativeSum (printer, node, depth = 0) {
+function r90j3NativeSum (printer, node, depth = 0, constLocals = true) {
     const call = r87j3BaseSum (printer, node);
     if (call === undefined) {
         return undefined;
     }
-    const a = r90j3LongOperand (printer, call.arguments[0], depth);
-    const b = a === undefined ? undefined : r90j3LongOperand (printer, call.arguments[1], depth);
+    const a = r90j3LongOperand (printer, call.arguments[0], depth, constLocals);
+    const b = a === undefined ? undefined : r90j3LongOperand (printer, call.arguments[1], depth, constLocals);
     return b === undefined ? undefined : `(${a} + ${b})`;
 }
 
@@ -23819,7 +23822,8 @@ export function installJavaR90j3NativeSumLocals (transpiler) {
                 ok = ts.isIdentifier (declaration.name) && ts.isVariableDeclarationList (declaration.parent)
                     && (declaration.parent.flags & ts.NodeFlags.Const) !== 0 && declaration.parent.declarations.length === 1
                     && declaration.initializer !== undefined && ts.isCallExpression (unwrapParens (declaration.initializer))
-                    && !r87j6UnderPropertyAssignment (declaration) && r90j3NativeSum (printer, declaration.initializer) !== undefined
+                    // const-local operands are refused here: they freed only declaration-only locals (gate 15755)
+                    && !r87j6UnderPropertyAssignment (declaration) && r90j3NativeSum (printer, declaration.initializer, 0, false) !== undefined
                     && isSafeToNarrow (printer, declaration, declaration.name.text, 'Long',
                         /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), { nonNull: true });
             } catch (e) {
@@ -23843,7 +23847,7 @@ export function installJavaR90j3NativeSumLocals (transpiler) {
             typed.set (declaration, false);
             return printed;
         }
-        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + r90j3NativeSum (printer, declaration.initializer);
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + r90j3NativeSum (printer, declaration.initializer, 0, false);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.get (declaration) === true ? 'Long' : undefined));
 }
