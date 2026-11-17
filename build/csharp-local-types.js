@@ -21487,3 +21487,65 @@ const c90UpstreamStringCopyInitializer = c87StringCopyInitializer;
 c87StringCopyInitializer = function (csharp, declaration) {
     return c90UpstreamStringCopyInitializer (csharp, declaration) || c90StringParameterCopy (csharp, declaration);
 };
+
+// (R3) a `string?` local whose first use after the declaration (same statement list, no earlier mention)
+// is an unconditional member call `x.m (...)` in the condition of the next `if` / an expression statement:
+// a null value throws right there (TypeError in TS, NullReferenceException on the `((string)x).M (...)`
+// the C# side prints), so every read after that condition holds a non-null string as long as each write
+// stores one: `x = '<literal>'` or `x += r` (add(string, *) on a non-null left never answers null).
+// Answers the same question stringValueIsNonNullAtUse answers (the add(string, *) left-operand proof).
+function c90DereferenceDominates (csharp, scope, declaration, name, read) {
+    const statement = declaration?.parent?.parent;
+    const list = statement?.parent;
+    if (statement?.kind !== ts.SyntaxKind.VariableStatement || declaration.parent.declarations.length !== 1
+            || (list?.kind !== ts.SyntaxKind.Block && list?.kind !== ts.SyntaxKind.SourceFile) || enclosingFunction (read) !== scope) {
+        return false;
+    }
+    const uses = (indexScope (csharp, scope).identifiers.get (name) ?? []).filter ((n) => n !== declaration.name && !isNotAUse (n)
+        && useRefersToDeclaration (csharp, scope, declaration, n) !== false);
+    const at = list.statements.indexOf (statement);
+    const next = list.statements[at + 1];
+    const test = (next?.kind === ts.SyntaxKind.IfStatement) ? next.expression : (next?.kind === ts.SyntaxKind.ExpressionStatement ? next.expression : undefined);
+    if (test === undefined) {
+        return false;
+    }
+    // the dereference: the test itself, or the left of a comparison, is `x.m (...)`
+    let call = stripParens (test);
+    if (call?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken,
+        ts.SyntaxKind.GreaterThanEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (call.operatorToken.kind)) {
+        call = stripParens (call.left);
+    }
+    const receiver = (call?.kind === ts.SyntaxKind.CallExpression && call.questionDotToken === undefined && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && call.expression.questionDotToken === undefined) ? call.expression.expression : undefined;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || receiver.text !== name || !uses.includes (receiver)) {
+        return false;
+    }
+    const after = test.getEnd ();
+    if (read.getStart () < after) {
+        return false;
+    }
+    for (const n of uses) {
+        if (n.getStart () < receiver.getStart ()) {
+            return false; // a mention before the dereference
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            const op = parent.operatorToken.kind;
+            const value = stripParens (parent.right);
+            const literal = value?.kind === ts.SyntaxKind.StringLiteral || value?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral;
+            if (n.getStart () < after || !((op === ts.SyntaxKind.EqualsToken && literal) || op === ts.SyntaxKind.PlusEqualsToken)) {
+                return false;
+            }
+        }
+        if (enclosingFunction (n) !== scope) {
+            return false; // a closure could run before the dereference
+        }
+    }
+    return true;
+}
+const c90UpstreamStringValueIsNonNullAtUse = stringValueIsNonNullAtUse;
+// eslint-disable-next-line no-func-assign
+stringValueIsNonNullAtUse = function (csharp, scope, declaration, name, read, context) {
+    return c90UpstreamStringValueIsNonNullAtUse (csharp, scope, declaration, name, read, context)
+        || c90DereferenceDominates (csharp, scope, declaration, name, read);
+};
