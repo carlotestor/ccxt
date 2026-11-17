@@ -9168,7 +9168,7 @@ public partial class binance : Exchange
             }
             for (int i = 0; i < (clientOrderIdKeys?.Count ?? 0); i++)
             {
-                string? currentClientOrderIdKey = ((string)clientOrderIdKeys[i]);
+                object currentClientOrderIdKey = clientOrderIdKeys[i];
                 string? currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
                 if ((currentClientOrderId == null))
                 {

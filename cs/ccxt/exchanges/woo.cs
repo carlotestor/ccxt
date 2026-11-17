@@ -5240,10 +5240,10 @@ public partial class woo : Exchange
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         for (int i = 0; i < networkKeys.Count; i++)
         {
-            string? network = ((string)networkKeys[i]);
-            if (network == "ERC20")
+            object network = networkKeys[i];
+            if ((network is "ERC20"))
             {
-                return network;
+                return ((string?)((object)(network)));
             }
         }
         // if it was not returned according to above options, then return the first network of currency

@@ -1882,14 +1882,14 @@ public partial class testMainClass
             // iterate over the keys
             for (int i = 0; i < storedOutputKeys.Count; i++)
             {
-                string? key = ((string)storedOutputKeys[i]);
+                object key = storedOutputKeys[i];
                 if (!isTrue((exchange.inArray(key, newOutputKeys))))
                 {
                     if (((isEqual(this.lang, "C#")) || (isEqual(this.lang, "GO"))) && isTrue(this.isVacantValue(exchange, getValue(storedOutput, key))))
                     {
                         continue;
                     }
-                    this.assertStaticError(false, ("output key missing: " + key), storedOutput, newOutput);
+                    this.assertStaticError(false, ("output key missing: " + (key)), storedOutput, newOutput);
                 }
                 if (isTrue(exchange.inArray(key, skipKeys)))
                 {

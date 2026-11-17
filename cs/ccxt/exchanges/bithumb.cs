@@ -1271,7 +1271,7 @@ public partial class bithumb : Exchange
             List<object> responses = new List<object>(await Task.WhenAll(promises));
             for (int i = 0; i < (quotes?.Count ?? 0); i++)
             {
-                string? quote = ((string)quotes[i]);
+                object quote = quotes[i];
                 IDictionary<string, object> response = this.safeDict(responses, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 Int64? timestamp = this.safeInteger(data, "date");
@@ -1286,7 +1286,7 @@ public partial class bithumb : Exchange
                     {
                         continue;
                     }
-                    string symbol = ((bs + "/") + quote);
+                    string symbol = ((bs + "/") + (quote));
                     Dictionary<string, object> market = this.safeMarket(symbol);
                     ((IDictionary<string,object>)ticker)["date"] = timestamp;
                     result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
