@@ -5978,7 +5978,7 @@ function mapLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(r87j7, [
             "import Exchange from '../abstract/prediction/kalshi.js';",
-            "import type { Dict, Market, PredictionOrder } from '../base/types.js';",
+            "import type { Dict, Market, PredictionOrder, Str } from '../base/types.js';",
             'export default class zz87j7selftest extends Exchange {',
             "    zzCancel (response: Dict, id: string) { const order = this.parsePredictionOrder (response); order['id'] = id; return order; }",
             "    zzPositions (rows: any[]) { const parsed = this.parsePredictionPositions (rows); let n = 0; for (let i = 0; i < parsed.length; i++) { n += 1; } return n; }",
@@ -5988,6 +5988,11 @@ function mapLocalsSelfTest (): string[] {
             "        return out;",
             "    }",
             "    async zzUseRows () { const rows = await this.zzRawRows (); return rows.length; }",
+            "    async zzRawIds (): Promise<Str[]> {",
+            "        const ids: Str[] = [];",
+            "        return ids;",
+            "    }",
+            "    async zzUseIds () { const ids = await this.zzRawIds (); return ids.length; }",
             '}',
         ].join('\n'));
         resetJavaVenueIndexes();
@@ -5995,6 +6000,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/Map<String, ?Object> order = this\.parsePredictionOrder\(/.test(out) || !/order\.put\("id", id\);/.test(out)) problems.push("ral-87j7: a prediction-order result local must print Map with a native put");
         if (!/List<Object> parsed = this\.parsePredictionPositions\(/.test(out) || !/i < parsed\.size\(\)/.test(out)) problems.push("ral-87j7: a parsePredictionPositions result must print List<Object> read by size()");
         if (!/List<Object> rows = \(this\.zzRawRows\(/.test(out) || !/rows\.size\(\)/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Dict[]> core (returns a local) must give a List<Object> local read by size()");
+        if (!/List<Object> ids = \(this\.zzRawIds\(/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Str[]> core (returns a local) must give a List<Object> local");
     } catch (e: any) {
         problems.push(`ral-87j7 self-test threw: ${e.message}`);
     } finally {

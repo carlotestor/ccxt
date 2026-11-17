@@ -10988,6 +10988,8 @@ const JAVA_VENUE_RETURN_MAP = {
     'Int': 'Long', 'int': 'Long', 'Num': 'Double', 'number': 'Double',
     // ral-87j7: a venue-only `Promise<Dict[]>` (raw page fetchers) prints CompletableFuture<List<Object>>
     'Dict[]': 'List<Object>',
+    // ral-87j7 R4: `Str[]` / `string[]` locals print java.util.List<Object> too (array literal + push)
+    'Str[]': 'List<Object>', 'string[]': 'List<Object>',
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];
