@@ -8710,6 +8710,10 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
         [ 'string? k = ((string)ks[i])', 'k == \"ERC20\"' ], [ 'object k = ' ]);
     check ('Object.keys element only tested by in on an untyped dict keeps object', 'nu (n: Dict, m) { const ks = Object.keys (n); for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k in m) { return 1; } } return this.safeString (ks, 0); }',
         [ 'object k = ' ], [ 'string? k = ' ]);
+    check ('list element whose next statement is its string-method receiver', 'tq (tags: any[]) { const out: string[] = []; for (let i = 0; i < tags.length; i++) { const t = tags[i]; out.push (t.replaceAll ("-", " ")); } return out; }',
+        [ 'string? t = ((string)', 't.Replace(' ], [ 'object t = ', '((string)t)' ]);
+    check ('list element used as a receiver only behind a test keeps object', 'tr (tags: any[], c) { const t = tags[0]; if (c) { return t.toUpperCase (); } return c; }',
+        [ 'object t = ' ], [ 'string? t = ' ]);
     return problems;
 }
 

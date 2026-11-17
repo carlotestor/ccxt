@@ -9691,6 +9691,64 @@ function readerArgStringListElementType (csharp, initializer, declaration) {
     return (readerArgs > 0 && stringElementLocalHasNativeUse (csharp, declaration) && !nativeUseIsOnlyUntypedIn (csharp, declaration)) ? 'string' : undefined;
 }
 
+// `const x = xs[i]` whose every use is the receiver of a string method call, the first one in
+// the very next statement of the same block: that call already casts `(string)x`, so the cast
+// moved onto the declaration throws (or passes a null) on the same element with nothing between.
+function nextStatementStringReceiverElementType (csharp, initializer, declaration) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || ts.isStringLiteralLike (initializer.argumentExpression)
+            || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const fileName = (initializer.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const statement = declaration.parent?.parent;
+    const block = statement?.parent;
+    if (statement?.kind !== ts.SyntaxKind.VariableStatement || declaration.parent.declarations.length !== 1 || block?.kind !== ts.SyntaxKind.Block) {
+        return undefined;
+    }
+    const next = block.statements[block.statements.indexOf (statement) + 1];
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (next?.kind !== ts.SyntaxKind.ExpressionStatement || scope === undefined) {
+        return undefined;
+    }
+    let first = false;
+    let uses = 0;
+    for (const use of indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        const access = use.parent;
+        if (access?.kind !== ts.SyntaxKind.PropertyAccessExpression || access.expression !== use || !DICT_ROW_STRING_METHODS.has (access.name?.text)
+                || access.parent?.kind !== ts.SyntaxKind.CallExpression || access.parent.expression !== access || enclosingFunction (use) !== enclosingFunction (declaration)) {
+            return undefined;
+        }
+        uses++;
+        let top = use;
+        while (top !== undefined && top.parent !== block) {
+            top = top.parent;
+        }
+        if (top === next && next.expression?.kind === ts.SyntaxKind.CallExpression && !nodeHasConditionalBetween (use, next)) {
+            first = true;
+        }
+    }
+    return (first && uses > 0) ? 'string' : undefined;
+}
+
+// a `?:`, `&&`, `||` or `??` between the use and its statement could skip the call
+function nodeHasConditionalBetween (node, statement) {
+    for (let current = node.parent; current !== undefined && current !== statement; current = current.parent) {
+        if (current.kind === ts.SyntaxKind.ConditionalExpression || current.kind === ts.SyntaxKind.ArrowFunction || current.kind === ts.SyntaxKind.FunctionExpression) {
+            return true;
+        }
+        if (current.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken, ts.SyntaxKind.QuestionQuestionToken ].includes (current.operatorToken.kind)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // `x in d` prints a bare ContainsKey only on a declared dictionary; on an untyped `d` it stays
 // `inOp(d, x)` (object parameters), so a local whose native-use candidates are all such `in`
 // operands gains nothing
@@ -12476,7 +12534,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `const x = recv[key]`: the runtime element is a proven box, but the call's C# type
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
-        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer) ?? keyedStringListElementType (csharp, declaration.initializer, declaration) ?? censusStringListParameterElementType (csharp, declaration.initializer, declaration) ?? requireValueStringListOrStringReceiver (csharp, declaration.initializer, declaration) ?? readerArgStringListElementType (csharp, declaration.initializer, declaration)) : undefined;
+        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer) ?? keyedStringListElementType (csharp, declaration.initializer, declaration) ?? censusStringListParameterElementType (csharp, declaration.initializer, declaration) ?? requireValueStringListOrStringReceiver (csharp, declaration.initializer, declaration) ?? readerArgStringListElementType (csharp, declaration.initializer, declaration) ?? nextStatementStringReceiverElementType (csharp, declaration.initializer, declaration)) : undefined;
         // `const key = keys[i]` over a receiver whose PRINTED declaration head is a scalar list
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back
