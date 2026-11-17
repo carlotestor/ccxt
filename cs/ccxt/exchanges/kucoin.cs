@@ -12497,12 +12497,12 @@ public partial class kucoin : Exchange
         uta = utaparamsRequestVariable.Item1;
         paramsRequest = (IDictionary<string, object>)utaparamsRequestVariable.Item2;
         IDictionary<string, object> market = null;
-        object isContractMarket = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
+        bool? isContractMarket = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
         if ((symbol != null))
         {
             market = this.market(symbol);
-            isContractMarket = (market.ContainsKey("contract") ? market["contract"] : null);
-            if (!(isContractMarket is true))
+            isContractMarket = ((bool?)(market.ContainsKey("contract") ? market["contract"] : null));
+            if ((isContractMarket != true))
             {
                 if (uta != true)
                 {

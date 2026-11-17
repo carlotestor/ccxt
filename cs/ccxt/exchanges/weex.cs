@@ -2029,13 +2029,13 @@ public partial class weex : Exchange
             tradeMarketType = "swap";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? tradeMarketId : null, market, null, tradeMarketType);
-        object isSpot = false;
+        bool? isSpot = false;
         if ((market == null))
         {
             isSpot = tradeMarketType == "spot";
         } else
         {
-            isSpot = getValue(market, "spot");
+            isSpot = ((bool?)getValue(market, "spot"));
         }
         Dictionary<string, object> fee = null;
         string? commission = this.safeString(trade, "commission");
@@ -2043,7 +2043,7 @@ public partial class weex : Exchange
         {
             string? commissionAsset = this.safeString(trade, "commissionAsset");
             string? feeCurrency = this.safeCurrencyCode(commissionAsset);
-            if ((isSpot is true))
+            if ((isSpot == true))
             {
                 if (side == "buy")
                 {
