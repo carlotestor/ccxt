@@ -11855,7 +11855,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -23658,4 +23658,68 @@ function jsonParseDictLocal92c7 (csharp, declaration, context) {
     const type = 'Dictionary<string, object>';
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, cast: type } : undefined;
+}
+
+// ===== ral-93c7: results of venue helpers whose only definition builds a dictionary literal =====
+// R1: `const x = this.f (..)` where f is declared once in ts/src, synchronous, and every return
+// is an object literal: the box is a Dictionary<string, object>, so the exact cast names it and
+// `x[k]` prints as a native read. Only taken for a local read as `x[k]`, outside parameter proofs.
+function literalDictHelperLocal93c7 (csharp, declaration, context) {
+    if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined) {
+        return undefined;
+    }
+    const call = stripParens (declaration.initializer);
+    const callee = call?.kind === ts.SyntaxKind.CallExpression ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const name = callee.name?.text;
+    if (typeof name !== 'string' || tsSourceMethodDeclarationCount (name) !== 1) {
+        return undefined;
+    }
+    const definitions = sourceFileMethods (declaration.getSourceFile (), name);
+    if (definitions.length !== 1 || !literalDictDefinition93c7 (definitions[0])) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const local = declaration.name.text;
+    let indexed = false;
+    for (const use of indexScope (csharp, scope).identifiers.get (local) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        if (use.parent?.kind === ts.SyntaxKind.ElementAccessExpression && use.parent.expression === use) {
+            indexed = true;
+        }
+    }
+    if (!indexed) {
+        return undefined;
+    }
+    const type = 'Dictionary<string, object>';
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, local, type, ctx) ? { type, cast: type } : undefined;
+}
+
+function literalDictDefinition93c7 (definition) {
+    if (definition.body === undefined || (definition.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
+        return false;
+    }
+    let returns = 0;
+    let ok = true;
+    const visit = (node) => {
+        if (!ok || node.kind === ts.SyntaxKind.ArrowFunction || node.kind === ts.SyntaxKind.FunctionExpression || node.kind === ts.SyntaxKind.FunctionDeclaration) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            returns++;
+            ok = stripParens (node.expression)?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+            return;
+        }
+        node.forEachChild (visit);
+    };
+    definition.body.forEachChild (visit);
+    return ok && returns > 0;
 }
