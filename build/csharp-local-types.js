@@ -17161,7 +17161,7 @@ export const PARSE_MARKET_IDICT_PARAMS = {
     // name's own `market` (fixed point of farm jobs 15694..15699; 24 names fed `object` dropped)
     'handleStockParams': 2, 'stockDataRequest': 2,
     // the trade / order row chain: every caller passes null, a dictionary row or its own typed `market`
-    'parseTrade': 1, 'parseWsTrade': 1, 'safeTrade': 1, 'parseTrades': 1, 'parseWsTrades': 1, 'parseTradesHelper': 2,
+    'parseTrade': 1, 'parseWsTrade': 1, 'safeTrade': 1, 'parseWsTrades': 1, 'parseTradesHelper': 2,
     'parseOrders': 1, 'parseWsOrder': 1, 'parseWsOrders': 1,
 };
 
