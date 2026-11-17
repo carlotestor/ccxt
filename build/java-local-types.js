@@ -18713,6 +18713,32 @@ function javaStringPlusHazard (method, name) {
     return hazard;
 }
 
+// (92j1) a `string[]` parameter printed List<Object>: every use is an element read, `.length` or a bare
+// call argument (`.join` prints a `(List<String>)` cast and `as` assertions print casts a List<Object> rejects)
+function r92j1StringArrayParamUsesOk (method, name) {
+    let ok = true;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (ts.isIdentifier (n) && n.text === name && !(ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)) {
+            let child = n;
+            let parent = n.parent;
+            while (ts.isParenthesizedExpression (parent)) {
+                child = parent;
+                parent = parent.parent;
+            }
+            ok = (ts.isElementAccessExpression (parent) && parent.expression === child)
+                || (ts.isPropertyAccessExpression (parent) && parent.expression === child && parent.name.text === 'length')
+                || (ts.isCallExpression (parent) && parent.arguments.indexOf (child) !== -1)
+                || (ts.isParameterDeclaration (parent) && parent.name === child);
+        }
+        n.forEachChild (visit);
+    };
+    visit (method);
+    return ok;
+}
+
 function javaVenueParamType (printer, node) {
     const method = node?.parent;
     if (node?.kind !== ts.SyntaxKind.Parameter || node.initializer !== undefined || node.questionToken !== undefined
@@ -18741,7 +18767,9 @@ function javaVenueParamType (printer, node) {
         const venueOnly = unique && printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name)
             && printer.javaIsPrintedMethod (method);
         const readOnly = venueOnly && !printer.javaParameterIsWritten (node) && !printer.javaParameterIsCompoundAssigned (node)
-            && !(target === 'String' && javaStringPlusHazard (method, node.name.text));
+            && !(target === 'String' && javaStringPlusHazard (method, node.name.text))
+            && !(node.type.kind === ts.SyntaxKind.ArrayType && node.type.elementType.kind === ts.SyntaxKind.StringKeyword
+                && !r92j1StringArrayParamUsesOk (method, node.name.text));
         if (readOnly) {
             let ok = true;
             const visit = (n) => {
@@ -25551,4 +25579,105 @@ function r90j8VenueReturnsFreshList (file, name) {
         }
     }
     return ok && found > 0;
+}
+
+// ===== 92j1 R2. `const x = <expr> as string` locals =====
+// The assertion already prints the `((String)..)` checkcast on the initializer, so declaring the local
+// String moves no failure point and adds no cast; its uses (String methods, put / remove keys, String
+// core slots) then print natively. Never written; at least one use must gain a native form.
+function r92j1AssertedStringLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || (declaration.parent.flags & ts.NodeFlags.Const) === 0
+        || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement || declaration.type !== undefined) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isAsExpression (init) || init.type.kind !== ts.SyntaxKind.StringKeyword) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || ((index.bindingCounts.get (name) ?? 0) !== 1 && !r87j1SiblingConstBindings (index, name))) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let native = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        if (ts.isBinaryExpression (n.parent) && n.parent.left === n && ASSIGNMENT_OPERATORS.includes (n.parent.operatorToken.kind)) {
+            return false;
+        }
+        if (r84j1NativeUse (printer, n)) {
+            native++;
+        }
+    }
+    if (native === 0) {
+        return false;
+    }
+    const info = { type: 'String', nonNull: false, strictPlus: true, stringListElement: true, stringAsCast: true };
+    return isSafeToNarrow (printer, declaration, name, 'String', /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info);
+}
+
+export function installJavaR92j1AssertedStringLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR92j1AssertedStringPatched) {
+        return;
+    }
+    printer._javaR92j1AssertedStringPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return upstream (node, identation);
+        }
+        let ok = typed.has (declaration);
+        if (!ok) {
+            try {
+                ok = r92j1AssertedStringLocal (printer, declaration) && r87j6HeadIsObject (printer, declaration, upto);
+            } catch (e) {
+                ok = false;
+            }
+        }
+        if (ok) {
+            typed.set (declaration, 'String');
+        }
+        const printed = upstream (node, identation);
+        if (!ok) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            typed.delete (declaration);
+            return printed;
+        }
+        return printed.slice (0, at) + r87j6Head (printer, declaration, identation, 'String') + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // the printer's String receiver / `as string` arms read element-read locals only: answer for these too
+    if (typeof printer.javaDeclaredStringElementLocal === 'function') {
+        const upstreamElement = printer.javaDeclaredStringElementLocal.bind (printer);
+        printer.javaDeclaredStringElementLocal = function (node, printedName) {
+            if (node !== undefined && ts.isIdentifier (node) && printedName === node.text) {
+                let declaration;
+                try {
+                    declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+                } catch (e) {
+                    declaration = undefined;
+                }
+                if (declaration !== undefined && typed.get (declaration) === 'String') {
+                    return true;
+                }
+            }
+            return upstreamElement (node, printedName);
+        };
+    }
 }
