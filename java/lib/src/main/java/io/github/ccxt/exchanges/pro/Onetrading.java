@@ -1515,7 +1515,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             Integer numSymbols = symbols.size();
             if (java.util.Objects.equals(numSymbols, 0))
             {
@@ -1524,7 +1524,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 {
                     return new ArrayList<Object>(Arrays.asList());
                 }
-                marketIds = new ArrayList<Object>(marketsById.keySet());
+                marketIds = new ArrayList<String>(marketsById.keySet());
             } else
             {
                 marketIds = this.marketIds(symbols);
@@ -1538,9 +1538,9 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 subscription = this.safeDict(client.subscriptions, subscriptionHash, (Object) null);
                 if (!java.util.Objects.equals(subscription, null))
                 {
-                    for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+                    for (var i = 0; i < marketIds.size(); i++)
                     {
-                        Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                        String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                         Boolean marketSubscribed = (Boolean) this.safeBool(subscription, marketId, false);
                         if (!Boolean.TRUE.equals(marketSubscribed))
                         {
@@ -1553,10 +1553,10 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                     subscription = new HashMap<String, Object>() {{}};
                 }
             }
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
-                ((Map<String, Object>)subscription).put((String)marketId, true);
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                ((Map<String, Object>)subscription).put(marketId, true);
             }
             request.put("type", type);
             Helpers.addElementToObject(Helpers.GetValue(request.get("channels"), 0), "instrument_codes", new ArrayList<Object>(((Map<String, Object>)subscription).keySet()));

@@ -1285,7 +1285,7 @@ public class Bithumb extends BithumbApi
             } else
             {
                 Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                List<Object> quotes = new ArrayList<Object>(quoteCurrencies.keySet());
+                List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
                 if (!java.util.Objects.equals(symbols, null))
                 {
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
@@ -1299,7 +1299,7 @@ public class Bithumb extends BithumbApi
                             requiredQuotes.put(quoteId, true);
                         }
                     }
-                    List<Object> requiredQuoteIds = new ArrayList<Object>(requiredQuotes.keySet());
+                    List<String> requiredQuoteIds = new ArrayList<String>(requiredQuotes.keySet());
                     String populatedQuotes = this.safeString(requiredQuoteIds, 0);
                     if (!java.util.Objects.equals(populatedQuotes, null))
                     {
@@ -1315,7 +1315,7 @@ public class Bithumb extends BithumbApi
                 Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 for (var i = 0; i < quotes.size(); i++)
                 {
-                    Object quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
+                    String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
                     Object response = this.safeDict(responses, i, (Object) null);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");

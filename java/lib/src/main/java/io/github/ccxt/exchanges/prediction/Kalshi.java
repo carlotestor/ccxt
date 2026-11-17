@@ -623,7 +623,7 @@ public class Kalshi extends KalshiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tickers = new ArrayList<Object>(Arrays.asList());
+            List<String> tickers = new ArrayList<String>(Arrays.asList());
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             Integer outcomeSymbolsLength = ((List<?>)outcomeSymbols).size();
             for (var i = 0; (outcomeSymbolsLength != null && i < outcomeSymbolsLength); i++)
@@ -641,7 +641,7 @@ public class Kalshi extends KalshiApi
                 if (!(seen.containsKey(baseTicker)))
                 {
                     seen.put(baseTicker, true);
-                    ((List<Object>)tickers).add(baseTicker);
+                    tickers.add(baseTicker);
                 }
             }
             if (java.util.Objects.equals(this.markets, null))
@@ -651,12 +651,12 @@ public class Kalshi extends KalshiApi
             Long chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 100);
             Integer tickersLength = tickers.size();
             Long lastTickerIndex = (((long) tickersLength) - 1L);
-            Object chunk = new ArrayList<Object>(Arrays.asList());
+            List<String> chunk = new ArrayList<String>(Arrays.asList());
             // flush a request every chunkSize tickers and once more for the trailing partial chunk
             for (var ti = 0; (tickersLength != null && ti < tickersLength); ti++)
             {
-                ((List<Object>)chunk).add((tickers == null || ti < 0 || ti >= tickers.size() ? null : tickers.get(ti)));
-                Integer chunkLength = ((List<?>)chunk).size();
+                chunk.add((tickers == null || ti < 0 || ti >= tickers.size() ? null : tickers.get(ti)));
+                Integer chunkLength = chunk.size();
                 if (((chunkSize != null && (chunkLength == null || chunkLength < chunkSize))) && ((lastTickerIndex != null && ti < lastTickerIndex)))
                 {
                     continue;
@@ -664,7 +664,7 @@ public class Kalshi extends KalshiApi
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("tickers", String.join(",", (List<String>)chunk));
                 request.put("limit", chunkSize);
-                chunk = new ArrayList<Object>(Arrays.asList());
+                chunk = new ArrayList<String>(Arrays.asList());
                 Map<String, Object> response = (this.kalshiPublicGetMarkets(request)).join();
                 List<Object> rawMarkets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < rawMarkets.size(); i++)
