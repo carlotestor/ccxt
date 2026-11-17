@@ -8862,6 +8862,23 @@ function siblingBoundStringListElementType (csharp, initializer) {
 // cast names (subMessageHashesProducer's proof, keyed on any literal key). Admitted only when the
 // local has a use the typed declaration prints natively: the key of a `delete`, the left operand of `in`, a string-method receiver or a string-literal equality operand; a local that is
 // only handed to object parameters keeps `object` (87c3 rule 3 sank on exactly those).
+// rule C: a cell typed `string`, a string literal, or a union of those with undefined / null (`Str`):
+// a null cell is the null box, which the `(string)` cast names as well
+function keyedElementIsStringOrNullish (element) {
+    const parts = (typeof element?.isUnionType === 'function' && element.isUnionType ()) ? ts.typeParts (element) : [ element ];
+    let strings = 0;
+    for (const part of parts) {
+        if ((part.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0 && (part.flags & ~(ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0) {
+            continue;
+        }
+        if ((part.flags & ts.TypeFlags.StringLike) === 0 || (part.flags & ~ts.TypeFlags.StringLike) !== 0) {
+            return false;
+        }
+        strings++;
+    }
+    return strings > 0;
+}
+
 function keyedWriteIsStringList (csharp, value) {
     const checker = (typeof csharp.getChecker === 'function') ? csharp.getChecker () : undefined;
     if (checker === undefined || value === undefined) {
@@ -8885,7 +8902,7 @@ function keyedWriteIsStringList (csharp, value) {
             return false;
         }
         const args = checker.getTypeArguments (member);
-        if (args.length !== 1 || (args[0].flags & ts.TypeFlags.StringLike) === 0 || (args[0].flags & ~ts.TypeFlags.StringLike) !== 0) {
+        if (args.length !== 1 || !keyedElementIsStringOrNullish (args[0])) {
             return false;
         }
         lists++;
@@ -9057,6 +9074,11 @@ function keyedStringListElementType (csharp, initializer, declaration) {
             continue;
         }
         if (csharpIdentifierDeclaration (csharp, n) !== receiverDeclaration) {
+            continue;
+        }
+        // rule C: `recv = <list the checker types as a string list>` keeps every cell a string or null
+        if (n.parent?.kind === ts.SyntaxKind.BinaryExpression && n.parent.left === n && n.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                && enclosingFunction (n) === enclosingFunction (initializer) && keyedWriteIsStringList (csharp, n.parent.right)) {
             continue;
         }
         if (receiverUseIsWrite (n)) {
