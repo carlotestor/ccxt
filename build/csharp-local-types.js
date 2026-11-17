@@ -16707,7 +16707,7 @@ export const PARSE_MARKET_IDICT_PARAMS = {
 // this.currency / this.safeCurrency); a member fed an `object currency` from outside is dropped
 export const PARSE_CURRENCY_IDICT_PARAMS = {
     'getCurrencyFromChaincode': 1, 'getExtendedCurrencyCodeById': 1, 'parseLedger': 1, 'parseLedgerEntry': 1,
-    'parseTransaction': 1, 'parseTransactions': 1, 'safeCurrency': 1, 'safeCurrencyCode': 1, 'safeLedgerEntry': 1,
+    'parseTransaction': 1, 'parseTransactions': 1, 'safeCurrency': 1,
 };
 
 // every write of the parameter is a market-row producer or a nullish reset (the text pass keeps
