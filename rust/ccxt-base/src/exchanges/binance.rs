@@ -20276,7 +20276,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_223 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_convert_get_quote(&[__ws_arg_223]).await;
+        let mut response: Option<crate::value::Dict> = self.sapi_post_convert_get_quote(&[__ws_arg_223]).await.into_opt_dict();
         //
         //     {
         //         "quoteId":"12415572564",
@@ -20289,10 +20289,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let mut fromCurrency: crate::types::Currency = self.currency(fromCode);
         let mut toCurrency: crate::types::Currency = self.currency(toCode);
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " parseConversion() returned empty response")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, response, Some(&fromCurrency), Some(&toCurrency));
+        return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &response, Some(&fromCurrency), Some(&toCurrency));
         Value::Null
         }).await?))
     }
