@@ -25550,3 +25550,72 @@ function r90j8VenueReturnsFreshList (file, name) {
     }
     return ok && found > 0;
 }
+
+// ===== 92j2 R1. `marketType: MarketType` defaulted parameters print `String` =====
+// MarketType (ts/src/base/types.ts) is a union of string literals, so a read-only parameter annotated
+// with it (or `MarketType | undefined`) and defaulted to undefined holds a String or null on every path.
+// The base declares it on parseMarginModes / parseLeverages / parseMarginModifications (position 3, no
+// override). Then `marketTypeResolved = (marketType === undefined) ? 'swap' : marketType` is a String
+// ternary (section 77j2) and both its local and the safeMarket hand-off print native.
+const R92J2_MARKET_TYPE_PARAMS = {
+    'parseMarginModes': [ 3 ],
+    'parseLeverages': [ 3 ],
+    'parseMarginModifications': [ 3 ],
+};
+
+function r92j2IsMarketTypeAnnotation (typeNode) {
+    if (typeNode === undefined) {
+        return false;
+    }
+    const parts = ts.isUnionTypeNode (typeNode) ? typeNode.types : [ typeNode ];
+    let named = 0;
+    for (const t of parts) {
+        if (ts.isTypeReferenceNode (t) && ts.isIdentifier (t.typeName) && t.typeName.text === 'MarketType' && t.typeArguments === undefined) {
+            named++;
+        } else if (t.kind !== ts.SyntaxKind.UndefinedKeyword) {
+            return false;
+        }
+    }
+    return named === 1;
+}
+
+// 'String' for a table slot; a table slot that breaks the proof throws (overrides must agree)
+function r92j2MarketTypeParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || !ts.isIdentifier (method.name ?? {}) || !Object.hasOwn (R92J2_MARKET_TYPE_PARAMS, method.name.text)) {
+        return undefined;
+    }
+    const index = method.parameters.indexOf (node);
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (!R92J2_MARKET_TYPE_PARAMS[method.name.text].includes (index) || fileName.includes ('/ts/src/test/')
+        || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    let declared = false;
+    try {
+        // every member of the annotated type is a string literal (or undefined)
+        const type = printer.getChecker ().getTypeFromTypeNode (node.type);
+        const parts = (type.isUnionType () ? ts.typeParts (type) : [ type ]).filter ((t) => (t.flags & ts.TypeFlags.Undefined) === 0);
+        declared = parts.length > 0 && parts.every ((t) => (t.flags & ts.TypeFlags.StringLiteral) !== 0);
+    } catch (e) {
+        declared = false;
+    }
+    if (!declared || !r92j2IsMarketTypeAnnotation (node.type) || !isNullishInitializer (unwrapParens (node.initializer))
+        || !ts.isIdentifier (node.name) || printer.javaParameterIsWritten (node)) {
+        throw new Error (`java market type param ${method.name.text}#${index} (${fileName}) is not a read-only MarketType slot`);
+    }
+    return 'String';
+}
+
+export function installJavaR92j2MarketTypeParams (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaOptionalParameterTypeOf !== 'function' || printer._javaR92j2MarketTypeParamsPatched) {
+        return;
+    }
+    printer._javaR92j2MarketTypeParamsPatched = true;
+    const upstreamType = printer.javaOptionalParameterTypeOf.bind (printer);
+    printer.javaOptionalParameterTypeOf = function (node) {
+        return r92j2MarketTypeParamType (printer, node) ?? upstreamType (node);
+    };
+}

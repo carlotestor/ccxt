@@ -55,6 +55,7 @@ import { installJavaR90j6PairLocals } from './java-local-types.js';
 import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
 import { installJavaR90j7MapDelete } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
+import { installJavaR92j2MarketTypeParams } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2534,6 +2535,7 @@ class NewTranspiler {
         installJavaR90j6ListCopyLocals(this.transpiler);
         installJavaR90j7MapDelete(this.transpiler);
         installJavaR90j8OmitParamLocals(this.transpiler);
+        installJavaR92j2MarketTypeParams(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5861,7 +5863,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest(), javaR92j2MarketTypeParamsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10647,6 +10649,42 @@ function javaR90j8LocalsSelfTest (): string[] {
         if (!/List<String> out = new java\.util\.ArrayList<String>\(/.test(out) || !/\bout\.add\(marketId\)/.test(out)) problems.push("'out' (pushes of a market['id'] structure-key String local) must print List<String> with a bare add");
         if (!/List<String> parsed = new java\.util\.ArrayList<String>\(/.test(out) || !/\bparsed\.add\(sid\)/.test(out)) problems.push("'parsed' (pushes of a const x.toString () local) must print List<String> with a bare add");
         if (!/\bObject raw = /.test(out)) problems.push("'raw' (written from a venue method that returns an awaited response) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 92j2 R1: a read-only `marketType: MarketType` slot of the base parse* family prints String,
+// so its `x === undefined ? 'swap' : x` local and the safeMarket hand-off print native
+function javaR92j2MarketTypeParamsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2mt${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { MarketType, Strings, Str, Leverages } from './base/types.js';",
+        `export default class zzr92j2mt${process.pid} extends Exchange {`,
+        "    parseLeverages (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): Leverages {",
+        "        const leverageStructures = {};",
+        "        const marketTypeResolved: MarketType = (marketType === undefined) ? 'swap' : marketType;",
+        "        for (let i = 0; i < response.length; i++) {",
+        "            const info = response[i];",
+        "            const market = this.safeMarket (this.safeString (info, symbolKey), undefined, undefined, marketTypeResolved);",
+        "            leverageStructures[market['symbol']] = this.parseLeverage (info, market);",
+        "        }",
+        "        return leverageStructures as Leverages;",
+        "    }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/parseLeverages\(Object response, (java\.util\.)?List<String> symbols, String symbolKey, String marketType\)/.test(out)) problems.push("92j2 R1: the MarketType slot of parseLeverages must print String");
+        if (!/\bString marketTypeResolved = /.test(out)) problems.push("92j2 R1: 'marketTypeResolved' must print String");
+        if (!/this\.safeMarket\([^;]*, marketTypeResolved\)/.test(out)) problems.push("92j2 R1: 'marketTypeResolved' must reach safeMarket bare");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
