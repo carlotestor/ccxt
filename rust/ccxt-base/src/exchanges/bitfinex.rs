@@ -3060,12 +3060,12 @@ impl Bitfinex {
             let mut order: crate::value::List = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let mut price: Option<f64> = self.safe_number(&order, Value::from(priceIndex), &[]).as_f64();
             let mut signedAmount: Option<String> = self.safe_string_opt(&order, Value::Int(2), &[]);
-            let mut amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount).as_str().map(str::to_owned);
+            let mut amount: Value = crate::precise::Precise::stringAbs(&signedAmount);
             let mut side: Value = Value::Str("asks".into());
             if crate::precise::Precise::stringGt(&signedAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Value::Str("bids".into());
             }
-            crate::runtime::append_to_object_array(&mut result, &side, Value::from(vec![Value::from(price), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[])]));
+            crate::runtime::append_to_object_array(&mut result, &side, Value::from(vec![Value::from(price), self.parse_number(amount, &[])]));
         }
         }
         { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("bids".into(), __be_tmp); } }
