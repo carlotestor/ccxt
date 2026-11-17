@@ -13186,7 +13186,8 @@ function rowReadWriteType (csharp, declaration, node) {
     if (!isNullInitFamilyString (declaration)) {
         return undefined;
     }
-    return (marketRowStringReadType (csharp, node) === 'string' || currencyRowStringReadType92c4 (csharp, node) === 'string') ? 'string' : undefined;
+    return (marketRowStringReadType (csharp, node) === 'string' || currencyRowStringReadType92c4 (csharp, node) === 'string'
+        || wsUrlsElementStringRead92c4 (csharp, declaration, node)) ? 'string' : undefined;
 }
 
 // `typeof x === 'string'` prints `(x is string)`, so a copy inside that branch assigns that very
@@ -13507,7 +13508,8 @@ function rowReadWriteNeedsCast (csharp, node) {
         return false;
     }
     if (node.kind === ts.SyntaxKind.ElementAccessExpression) {
-        return marketRowStringReadType (csharp, node) === 'string' || currencyRowStringReadType92c4 (csharp, node) === 'string';
+        return marketRowStringReadType (csharp, node) === 'string' || currencyRowStringReadType92c4 (csharp, node) === 'string'
+            || wsUrlsElementStringRead92c4 (csharp, declaration, node);
     }
     return narrowedCopyNodeName (node) === node.text;
 }
@@ -22417,4 +22419,71 @@ function hyperliquidUnifiedElement0Proof92c4 (declaration, idNode, assignment, n
         visit (scope.body);
     }
     return compared;
+}
+
+// `url = wsUrls['public']` where `const wsUrls = this.safeDict (this.urls['api'], 'ws', {})`: the element is
+// the describe() literal string at urls.api.ws.<key> (urlsDescribeStringProducer's path proof, extended by
+// the safeDict section key). Taken only for a seed read `url as string`, the use whose cast goes.
+function wsUrlsElementStringRead92c4 (csharp, declaration, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || node.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const key = elementAccessLiteralKey (node.argumentExpression);
+    if (key === undefined || /^[0-9]+$/.test (key) || !seedReadAsString92c4 (declaration)) {
+        return false;
+    }
+    const receiver = node.expression;
+    const scope = enclosingFunction (node);
+    const index = indexScope (csharp, scope);
+    const candidates = (index.declarations.get (receiver.text) ?? []).filter ((c) => useRefersToDeclaration (csharp, scope, c, receiver) === true);
+    if (candidates.length !== 1 || candidates[0].parent?.flags === undefined || !(candidates[0].parent.flags & ts.NodeFlags.Const)) {
+        return false;
+    }
+    const call = stripParens (candidates[0].initializer);
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || callee.name?.text !== 'safeDict' || call.arguments.length < 2) {
+        return false;
+    }
+    const chain = urlsLiteralChain (call.arguments[0]) ?? ((urlsSingleKey92c4 (call.arguments[0]) !== undefined) ? [ urlsSingleKey92c4 (call.arguments[0]) ] : undefined);
+    const section = elementAccessLiteralKey (call.arguments[1]);
+    if (chain === undefined || section === undefined) {
+        return false;
+    }
+    const keys = chain.concat ([ section, key ]);
+    const urls = describeLiteralProperty (ownDescribeLiteral (node.getSourceFile ()), 'urls');
+    if (urls?.kind !== ts.SyntaxKind.ObjectLiteralExpression || describeLiteralPathKind (urls, keys) !== 'string') {
+        return false;
+    }
+    return true;
+}
+
+// `this.urls['api']` -> 'api'
+function urlsSingleKey92c4 (node) {
+    const n = stripParens (node);
+    if (n?.kind !== ts.SyntaxKind.ElementAccessExpression || n.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || n.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword || n.expression.name?.text !== 'urls') {
+        return undefined;
+    }
+    return elementAccessLiteralKey (n.argumentExpression);
+}
+
+function seedReadAsString92c4 (declaration) {
+    const name = declaration?.name?.text;
+    const scope = enclosingFunction (declaration);
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.AsExpression && n.type?.kind === ts.SyntaxKind.StringKeyword
+                && n.expression?.kind === ts.SyntaxKind.Identifier && n.expression.text === name) {
+            found = true;
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
+    return found;
 }

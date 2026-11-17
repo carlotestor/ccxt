@@ -12979,5 +12979,8 @@ export function nullSeedChecks92c4 (): string[] {
     const t0 = hl.search (/ transfer\(/i);
     const tb = (t0 < 0) ? '' : hl.slice (t0, hl.indexOf ('\n    }\n', t0));
     if (!tb.includes ('bool? isUnified = null;') || !tb.includes ('(isUnified == true)')) problems.push ('hyperliquid transfer isUnified not bool? / native ==');
+    // a ws url seed written from `wsUrls['public']` (wsUrls = this.safeDict (this.urls['api'], 'ws', {})) and read `url as string`
+    const wsu = print ('describe () { return { \'urls\': { \'api\': { \'ws\': { \'public\': \'wss://a\', \'private\': \'wss://b\' } } } }; }\n safeDict (o, k, d = undefined) { return d; }\n watch (u: string) { return u; }\n f (o) { const wsUrls = this.safeDict (this.urls[\'api\'], \'ws\', {}); let url: Str = undefined; if (o) { url = wsUrls[\'public\']; } else { url = wsUrls[\'private\']; } return this.watch (url as string); }');
+    if (!wsu.includes ('string? url = null;') || !wsu.includes ('url = ((string)(wsUrls')) problems.push (`ws url element write: ${wsu.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
