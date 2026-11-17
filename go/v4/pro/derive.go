@@ -1474,16 +1474,20 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		if code == nil {
 			continue
 		}
-		var account any = this.SafeDict(subBalance, code)
+		var account map[string]any = this.SafeDictMap(subBalance, code)
 		if account == nil {
 			account = this.Account()
 		}
 		// the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
 		ccxt.AddElementToObject(account, "total", this.SafeString(entry, "new_balance"))
 		// the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
-		ccxt.AddElementToObject(account, "free", nil)
-		ccxt.AddElementToObject(account, "used", nil)
-		subBalance[*code] = account
+		if account != nil {
+			account["free"] = nil
+		}
+		if account != nil {
+			account["used"] = nil
+		}
+		ccxt.AddElementToObject(subBalance, code, account)
 		updated = true
 	}
 	if updated {
