@@ -24082,3 +24082,107 @@ export function installJavaR90j6StringListReaders (transpiler) {
         return out;
     };
 }
+
+// ===== 90j6 R2. `this.safeList* (..) as string[]` readers read by length / index =====
+// `const x: string[] = this.safeList (o, k, []) as string[]` prints `Object x = (List<String>)(this.safeList(..))`:
+// the erased checkcast is already on the initializer, so the declaration takes `java.util.List<String>` with
+// no new cast. Admitted when the reader is a base safeList* with an absent / nullish / `[]` default, the local
+// is never written, and every reference is `x.length`, a read `x[i]`, `x.join (sep)` or a nullish test. Then
+// `x.length` prints `x.size()` and `x[i]` the printer's declared-List read (no `(List<?>)` receiver casts).
+function r90j6AsStringListReader (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return false;
+    }
+    const asserted = unwrapParens (declaration.initializer);
+    if (asserted === undefined || !ts.isAsExpression (asserted) || !ts.isArrayTypeNode (asserted.type)
+        || asserted.type.elementType.kind !== ts.SyntaxKind.StringKeyword) {
+        return false;
+    }
+    const value = unwrapParens (asserted.expression);
+    if (value === undefined || !isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const reader = String (value.expression.name.text);
+    const defaultAt = J6_READER_FAMILIES.list.accessors.get (reader);
+    if (defaultAt === undefined || value.arguments.length > defaultAt + 1 || !resolvesToBaseOrStrippedAccessor (printer, value, reader)) {
+        return false;
+    }
+    if (value.arguments.length === defaultAt + 1) {
+        const d = unwrapParens (value.arguments[defaultAt]);
+        if (!isNullishInitializer (d) && !(d !== undefined && ts.isArrayLiteralExpression (d) && d.elements.length === 0)) {
+            return false;
+        }
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name)) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let native = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+            || (ts.isPropertyAssignment (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        if (checker.getSymbolAtLocation (n) !== symbol) {
+            return false;
+        }
+        const compare = j84j6TrueCompare (n);
+        if (compare !== undefined && compare.mode === 'defined') {
+            continue;
+        }
+        if (j84j6JoinReceiver (n) || r90j6LengthRead (n)) {
+            native++;
+            continue;
+        }
+        const access = n.parent;
+        if (ts.isElementAccessExpression (access) && access.expression === n && access.parent !== undefined
+            && !(ts.isBinaryExpression (access.parent) && access.parent.left === access
+                && ASSIGNMENT_OPERATORS.includes (access.parent.operatorToken.kind))
+            && access.parent.kind !== ts.SyntaxKind.DeleteExpression) {
+            native++;
+            continue;
+        }
+        return false;
+    }
+    return native > 0;
+}
+
+export function installJavaR90j6AsStringListReaders (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR90j6AsStringListPatched) {
+        return;
+    }
+    printer._javaR90j6AsStringListPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        let ok = false;
+        try {
+            ok = typed.has (declaration) || (r87j6HeadIsObject (printer, declaration, upto) && r90j6AsStringListReader (printer, declaration));
+        } catch (e) {
+            ok = false;
+        }
+        // the initializer already carries the AsExpression's `(List<String>)` checkcast
+        if (!ok || !printed.startsWith (marker) || printed.indexOf ('\n') !== -1
+            || !printed.slice (marker.length).startsWith (`(${J84J6_STRING_LIST_TYPE})`)) {
+            return printed;
+        }
+        typed.add (declaration);
+        return r87j6Head (printer, declaration, identation, J84J6_STRING_LIST_TYPE) + printed.slice (marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? J84J6_STRING_LIST_TYPE : undefined));
+}
