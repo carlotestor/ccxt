@@ -5824,7 +5824,7 @@ public partial class phemex : Exchange
         (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
-        object networkId = null;
+        string? networkId = null;
         if ((networkCode != null))
         {
             networkId = this.networkCodeToId(networkCode, code);
@@ -5834,7 +5834,7 @@ public partial class phemex : Exchange
         {
             if (!(this.inArray(code, stableCoins)))
             {
-                networkId = (currency.ContainsKey("id") ? currency["id"] : null);
+                networkId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
             } else
             {
                 throw new ArgumentsRequired ((this.id + " withdraw () requires an extra argument params[\"network\"]")) ;
@@ -5844,7 +5844,7 @@ public partial class phemex : Exchange
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", address },
             { "amount", amount },
-            { "chainName", ((string)networkId).ToUpper() },
+            { "chainName", networkId.ToUpper() },
         };
         if ((tagWithdrawTag != null))
         {
