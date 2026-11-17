@@ -22298,3 +22298,148 @@ stringValueIsNonNullAtUse = function (csharp, scope, declaration, name, read, co
     return c90UpstreamStringValueIsNonNullAtUse (csharp, scope, declaration, name, read, context)
         || c90DereferenceDominates (csharp, scope, declaration, name, read);
 };
+
+// ===== conditional initialisers handed to typed consumers (continues 90c2) =====
+// (C1) `const code = (currency !== undefined) ? currency['code'] : undefined`: an arm reading a
+// literal key off a receiver printed `Dictionary` / `IDictionary` (a typed local or a parameter the
+// signature prints IDictionary) whose checker type is a string, beside null or a string arm. Taken
+// only when the local is handed to a callee position the printed signature types `string`
+// (CORE_STRING_ARGS), so the call-site `((string)x)` conversion goes; one cast on the whole
+// conditional names the box. Never while a parameter proof is running (signatures stay as printed).
+function c92TypedDictStringArm (csharp, arm, ctx) {
+    const node = stripParens (arm);
+    if (node === undefined) {
+        return undefined;
+    }
+    if (node.kind === ts.SyntaxKind.NullKeyword || (node.kind === ts.SyntaxKind.Identifier && node.text === 'undefined')) {
+        return 'null';
+    }
+    if (node.kind === ts.SyntaxKind.ElementAccessExpression && stripParens (node.expression)?.kind === ts.SyntaxKind.Identifier
+            && elementAccessLiteralKey (node.argumentExpression) !== undefined) {
+        const receiver = stripParens (node.expression);
+        const type = localIdentifierType (csharp, receiver) ?? parameterArithmeticType (csharp, receiver);
+        if (!TYPED_DICT_RECEIVER_TYPES.includes (type)) {
+            return undefined;
+        }
+        let elementType;
+        try {
+            elementType = csharp.getChecker ().getTypeAtLocation (node);
+        } catch (e) {
+            return undefined;
+        }
+        return typeIsStringOrNullish (elementType) ? 'string?' : undefined;
+    }
+    const direct = conditionalArmType (csharp, arm, ctx);
+    return (direct === 'string' || direct === 'string?') ? 'string?' : undefined;
+}
+function c92HandedToStringParam (csharp, scope, declaration) {
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
+            continue;
+        }
+        const call = n.parent;
+        if (call?.kind !== ts.SyntaxKind.CallExpression || !call.arguments.includes (n)) {
+            continue;
+        }
+        const callee = call.expression;
+        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            continue;
+        }
+        const positions = Object.prototype.hasOwnProperty.call (CORE_STRING_ARGS, callee.name.text) ? CORE_STRING_ARGS[callee.name.text] : undefined;
+        if (positions !== undefined && positions.includes (call.arguments.indexOf (n))) {
+            return true;
+        }
+    }
+    return false;
+}
+function c92TypedDictStringConditionalLocal (csharp, declaration, context) {
+    if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || declaration.type !== undefined || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const conditional = stripParens (declaration.initializer);
+    if (conditional?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || /(^|[\\/])test[\\/]/.test (declaration.getSourceFile?.()?.fileName ?? '')) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const a = c92TypedDictStringArm (csharp, conditional.whenTrue, ctx);
+    const b = c92TypedDictStringArm (csharp, conditional.whenFalse, ctx);
+    if (a === undefined || b === undefined || (a === 'null' && b === 'null') || !c92HandedToStringParam (csharp, scope, declaration)) {
+        return undefined;
+    }
+    const type = 'string?';
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: 'string', castWhole: true } : undefined;
+}
+
+// (C2) `const u = p.endsWith ('x') ? p.slice (0, -1) : p`: the test calls a string-only method on
+// the bare identifier the other arm reads, which the printer prints `((string)p).EndsWith (..)`, so
+// both arms only run for a non-null string p. Beside a string arm the local holds a string, named
+// behind one cast on the whole conditional; taken only with a string-method use of the local.
+const C92_STRING_ONLY_METHODS = [ 'endsWith', 'startsWith', 'toLowerCase', 'toUpperCase', 'trim', 'replace', 'split' ];
+function c92StringMethodReceiver (n) {
+    const p = n.parent;
+    return p?.kind === ts.SyntaxKind.PropertyAccessExpression && p.expression === n
+        && (C92_STRING_ONLY_METHODS.includes (p.name?.text) || p.name?.text === 'slice' || p.name?.text === 'length')
+        && (p.name?.text === 'length' || (p.parent?.kind === ts.SyntaxKind.CallExpression && p.parent.expression === p));
+}
+function c92StringTestedArmLocal (csharp, declaration, context) {
+    if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || declaration.type !== undefined || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const conditional = stripParens (declaration.initializer);
+    if (conditional?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const test = stripParens (conditional.condition);
+    const callee = test?.kind === ts.SyntaxKind.CallExpression ? test.expression : undefined;
+    const tested = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && C92_STRING_ONLY_METHODS.includes (callee.name?.text)) ? stripParens (callee.expression) : undefined;
+    if (tested?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || /(^|[\\/])test[\\/]/.test (declaration.getSourceFile?.()?.fileName ?? '')) {
+        return undefined;
+    }
+    let symbol;
+    try {
+        symbol = csharp.getChecker ().getSymbolAtLocation (tested);
+    } catch (e) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const armType = (arm) => {
+        const node = stripParens (arm);
+        if (node?.kind === ts.SyntaxKind.Identifier && node.text === tested.text) {
+            try {
+                return (symbol !== undefined && csharp.getChecker ().getSymbolAtLocation (node) === symbol) ? 'string' : undefined;
+            } catch (e) {
+                return undefined;
+            }
+        }
+        const direct = conditionalArmType (csharp, arm, ctx);
+        return (direct === 'string' || direct === 'string?') ? 'string' : undefined;
+    };
+    const a = armType (conditional.whenTrue);
+    const b = armType (conditional.whenFalse);
+    if (a === undefined || b === undefined) {
+        return undefined;
+    }
+    const uses = (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])
+        .filter ((n) => n !== declaration.name && !isNotAUse (n) && useRefersToDeclaration (csharp, scope, declaration, n) === true);
+    if (!uses.some (c92StringMethodReceiver)) {
+        return undefined;
+    }
+    const type = 'string?';
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: 'string', castWhole: true } : undefined;
+}
+const c92UpstreamLocalDeclaration = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c92UpstreamLocalDeclaration (csharp, declaration, context) ?? c92TypedDictStringConditionalLocal (csharp, declaration, context)
+        ?? c92StringTestedArmLocal (csharp, declaration, context);
+};

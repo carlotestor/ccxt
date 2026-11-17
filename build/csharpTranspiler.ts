@@ -9532,6 +9532,19 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('90c2 read of a local list-literal map with write-back -> List with a native element write',
             'safeValue (o, k) { return o; }\n f (n: number, p: number) { const cs = {}; const k = n.toString (); if (!(k in cs)) { cs[k] = [ p, p ]; } else { const c = cs[k]; c[1] = p; cs[k] = c; } return this.safeValue (cs, k); }',
             'c[Convert.ToInt32(1)] = p;', 'object c = ');
+        // conditional initialisers handed to typed consumers: a typed-dict string arm into a string slot; a string-tested arm
+        check ('c ? dict[code] : undefined handed to a string parameter -> string? with no call-site cast',
+            'filterByCurrencySinceLimit (a, code: Str = undefined, s = undefined, l = undefined) { return a; }\n f (rows, m) { const c = { \'code\': \'BTC\' }; const code = (m !== undefined) ? c[\'code\'] : undefined; return this.filterByCurrencySinceLimit (rows, code, 1, 2); }',
+            'string? code = ((string)(', 'object code = ((');
+        check ('c ? dict[code] : undefined never handed to a string parameter keeps object',
+            'f (rows, m) { const c = { \'code\': \'BTC\' }; const code = (m !== undefined) ? c[\'code\'] : undefined; return { \'code\': code }; }',
+            'object code = ');
+        check ('p.endsWith (x) ? p.slice (..) : p read by a string method -> string?',
+            'f (p) { const u = p.endsWith (\'utc\') ? p.slice (0, -3) : p; return u.toLowerCase (); }',
+            'string? u = ((string)(', 'object u = ');
+        check ('p.endsWith (x) ? p.slice (..) : p never read by a string method keeps object',
+            'f (p) { const u = p.endsWith (\'utc\') ? p.slice (0, -3) : p; return { \'u\': u }; }',
+            'object u = ');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {
