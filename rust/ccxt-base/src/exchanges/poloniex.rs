@@ -4773,7 +4773,7 @@ impl Poloniex {
         let mut withdrawalTransactions: crate::value::List = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
         let mut depositTransactions: crate::value::List = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
         let mut transactions: crate::value::List = self.array_concat(&depositTransactions, &withdrawalTransactions).into_list();
-        return self.filter_by_currency_since_limit(self.sort_by(Value::Arr(transactions), Value::Str("timestamp".into()), &[]), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(self.sort_by(Value::Arr(transactions), Value::Str("timestamp".into()), &[]), code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4809,7 +4809,7 @@ impl Poloniex {
         }
         let mut withdrawals: crate::value::List = self.safe_list_k(&response, "withdrawals", &[Value::from(vec![])]).into_list();
         let mut transactions: crate::value::List = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(transactions), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&transactions, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5018,7 +5018,7 @@ impl Poloniex {
         }
         let mut deposits: crate::value::List = self.safe_list_k(&response, "deposits", &[Value::from(vec![])]).into_list();
         let mut transactions: crate::value::List = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(transactions), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&transactions, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

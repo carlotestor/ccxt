@@ -4495,7 +4495,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             result.push(Value::Dict(transaction));
         }
         }
-        return self.filter_by_currency_since_limit(Value::from(result), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(Value::from(result), code.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }

@@ -2175,7 +2175,7 @@ impl Bitvavo {
         self.authenticate(&[]).await;
         let mut request: crate::value::Dict = self.parent.fetch_withdrawals_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]).into_dict();
         let mut withdraws: Value = self.watch_request("privateGetWithdrawalHistory", Value::Dict(request)).await;
-        return self.filter_by_currency_since_limit(withdraws, &[code, since, limit]);
+        return self.filter_by_currency_since_limit(withdraws, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2277,7 +2277,7 @@ impl Bitvavo {
         self.authenticate(&[]).await;
         let mut request: crate::value::Dict = self.parent.fetch_deposits_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]).into_dict();
         let mut deposits: Value = self.watch_request("privateGetDepositHistory", Value::Dict(request)).await;
-        return self.filter_by_currency_since_limit(deposits, &[code, since, limit]);
+        return self.filter_by_currency_since_limit(deposits, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -5348,7 +5348,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     ]
         //
         let mut interest: crate::value::List = self.parse_borrow_interests(&response, market.as_ref()).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&interest, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

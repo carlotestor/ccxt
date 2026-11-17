@@ -5394,7 +5394,7 @@ impl Derive {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(parsed), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&sorted, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5489,7 +5489,7 @@ impl Derive {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&sorted, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -5565,7 +5565,7 @@ impl Derive {
         let mut events: crate::value::List = self.safe_list_k(&result, "events", &[Value::from(vec![])]).into_list();
         let mut interests: crate::value::List = self.parse_borrow_interests(&events, None).into_list();
         let mut sorted: crate::value::List = self.sort_by(Value::Arr(interests), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&sorted, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

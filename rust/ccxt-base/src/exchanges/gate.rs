@@ -10404,7 +10404,7 @@ if _try_result.is_err() {
             response = self.private_margin_get_cross_interest_records(&[__ws_arg_93]).await.into_opt_list();
         }
         let mut interest: crate::value::List = self.parse_borrow_interests(&response, market.as_ref()).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&interest, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
