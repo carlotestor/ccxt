@@ -14508,8 +14508,33 @@ export function patchJavaDeclaredMapReceiverCasts (transpiler) {
             return printed;
         }
         const head = `${JAVA_MAP_RECEIVER_CAST}${receiver.text}).get(`;
-        return printed.startsWith (head) && printer.javaDeclaredMapReceiver (receiver)
-            ? `${receiver.text}.get(` + printed.slice (head.length) : printed;
+        if (printed.startsWith (head) && printer.javaDeclaredMapReceiver (receiver)) {
+            return `${receiver.text}.get(` + printed.slice (head.length);
+        }
+        return printed;
+    };
+    // a required tuple slot `x[i]` (numeric literal) on a local declared List<Object> (a typed tuple core
+    // result) binds List.get on the declaration: decided from the checker and the declaration, no cast
+    const tupleRead = printer.printCheckerTypedElementAccessRead.bind (printer);
+    printer.printCheckerTypedElementAccessRead = function (node) {
+        const receiver = node?.expression;
+        const key = node?.argumentExpression;
+        if (receiver !== undefined && ts.isIdentifier (receiver) && key !== undefined && ts.isNumericLiteral (key)
+            && typeof printer.javaDeclaredTypeOf === 'function' && typeof printer.isJavaListStructureType === 'function'
+            && /^(java\.util\.)?List<Object>$/.test (printer.javaDeclaredTypeOf (receiver) ?? '')) {
+            let type;
+            try {
+                type = printer.getChecker ().getTypeAtLocation (receiver);
+            } catch (e) {
+                type = undefined;
+            }
+            const index = Number (key.text);
+            if (type !== undefined && printer.isJavaListStructureType (type) && Number.isInteger (index)
+                && index >= 0 && index < printer.tupleRequiredElementCount (type) && tupleRead (node) !== undefined) {
+                return `${receiver.text}.get(${printer.printNode (key, 0)})`;
+            }
+        }
+        return tupleRead (node);
     };
 }
 
