@@ -13034,7 +13034,8 @@ function nullScalarWriteType (printer, node) {
     }
     // `x = market['baseId']` of a structure local whose DTO field is `public String`: the write takes the
     // String-slot conversion the uses printed before (`Objects.toString(v, null)`); lands only with a native use
-    if (ts.isElementAccessExpression (value) && structureKeyReadLocalType (printer, value)?.type === JAVA_DATAFLOW_STRING) {
+    if (ts.isElementAccessExpression (value) && (structureKeyReadLocalType (printer, value)?.type === JAVA_DATAFLOW_STRING
+        || nullSeedMarketParamKeyRead (printer, value))) {
         NULL_SEED_R84_WRITES.add (node);
         NULL_SEED_CAST_WRITES.add (value);
         return JAVA_DATAFLOW_STRING;
@@ -13042,6 +13043,24 @@ function nullScalarWriteType (printer, node) {
     return undefined;
 }
 const NULL_SEED_CAST_WRITES = new WeakSet ();
+// `market['baseId']` on a never-written `market: Market` parameter: MarketInterface declares the key `public String`
+// (the write prints Objects.toString, so a non-String raw value still converts as the String-slot use did)
+function nullSeedMarketParamKeyRead (printer, value) {
+    const receiver = value.expression;
+    const key = value.argumentExpression;
+    if (!ts.isIdentifier (receiver) || key === undefined || !ts.isStringLiteral (key)
+        || structureKeyTable ('MarketInterface')[key.text] !== JAVA_DATAFLOW_STRING) {
+        return false;
+    }
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+        return declaration !== undefined && ts.isParameterDeclaration (declaration) && declaration.type !== undefined
+            && ts.isTypeReferenceNode (declaration.type) && declaration.type.getText () === 'Market'
+            && enclosingFunction (declaration) === enclosingFunction (value) && printer.javaParameterIsWritten?.(declaration) === false;
+    } catch (e) {
+        return false;
+    }
+}
 
 // r84-j4: null-seed writes typed from the TS AST and checker that section 24's first pass declined.
 // Each answers the box the printed write statically has, so the write needs no cast.
@@ -13070,7 +13089,7 @@ function nullSeedHasNativeUse (printer, declaration, type) {
         }
         // a String seed receiver of `indexOf` / `slice` drops the `((String)x)` receiver cast
         if (type === JAVA_DATAFLOW_STRING && parent !== undefined && ts.isPropertyAccessExpression (parent) && parent.expression === host
-            && [ 'indexOf', 'slice' ].includes (String (parent.name.text)) && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
+            && [ 'indexOf', 'slice', 'toLowerCase', 'toUpperCase' ].includes (String (parent.name.text)) && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
             return true;
         }
         // `x as string` on a String seed prints the bare local (this section's printAsExpression wrapper)
@@ -13505,6 +13524,23 @@ export function installJavaNullScalarLocalTypes (transpiler) {
         }
         return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
     };
+    // a String-retyped seed is a String receiver for the printer's toLowerCase / toUpperCase arms
+    const upstreamElementLocal = printer.javaDeclaredStringElementLocal?.bind (printer);
+    if (upstreamElementLocal !== undefined) {
+        printer.javaDeclaredStringElementLocal = function (node, printedText) {
+            if (node !== undefined && ts.isIdentifier (node) && printedText === node.text) {
+                try {
+                    const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+                    if (declaration !== undefined && retyped.get (declaration) === JAVA_DATAFLOW_STRING) {
+                        return true;
+                    }
+                } catch (e) {
+                    // fall through to the upstream answer
+                }
+            }
+            return upstreamElementLocal (node, printedText);
+        };
+    }
     // a structure-key String write to a String-retyped seed prints the String-slot conversion
     const upstreamBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node, identation) {
