@@ -1500,8 +1500,12 @@ export default class hyperliquid extends Exchange {
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchOpenOrders', params);
         const [ method, paramsMethod ] = this.handleOptionStringAndParams (paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         const request = { 'type': method, 'user': userAddress };
-        const rawOrders: Dict[] = await this.publicPostInfoList (this.extend (request, paramsMethod));
+        const response = await this.publicPostInfo (this.extend (request, paramsMethod));
         const ordersWithStatus: Dict[] = [];
+        let rawOrders: Dict[] = [];
+        if (Array.isArray (response)) {
+            rawOrders = response;
+        }
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
             ordersWithStatus.push (this.extend (order, { 'ccxtStatus': 'open' }));
@@ -1531,9 +1535,13 @@ export default class hyperliquid extends Exchange {
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchOrders', params);
         const request = { 'type': 'historicalOrders', 'user': userAddress };
-        const historicalOrders: Dict[] = await this.publicPostInfoList (this.extend (request, paramsPublicAddress));
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped: Dict = {};
+        let historicalOrders: Dict[] = [];
+        if (Array.isArray (response)) {
+            historicalOrders = response;
+        }
         for (let i = 0; i < historicalOrders.length; i++) {
             const raw = historicalOrders[i];
             let entry = this.safeDict (raw, 'order');
@@ -2237,13 +2245,15 @@ export default class hyperliquid extends Exchange {
     async publicPostInfoList (params: Dict = {}): Promise<Dict[]> {
         // info requests documented to answer a JSON array: any other body reads as no rows
         const response = await this.publicPostInfo (params);
-        return this.safeList ([ response ], 0, []);
+        const rows: Dict[] = this.safeList ([ response ], 0, []);
+        return rows;
     }
 
     async publicPostInfoDict (params: Dict = {}): Promise<Dict> {
         // info requests documented to answer a JSON object: any other body reads as empty
         const response = await this.publicPostInfo (params);
-        return this.safeDict ([ response ], 0, {});
+        const body: Dict = this.safeDict ([ response ], 0, {});
+        return body;
     }
 
     handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {

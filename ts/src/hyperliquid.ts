@@ -3149,7 +3149,7 @@ export default class hyperliquid extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const fundings: Dict[] = await this.publicPostInfoList (this.extend (request, paramsOmitted));
+        const response = await this.publicPostInfo (this.extend (request, paramsOmitted));
         //
         //     [
         //         {
@@ -3161,6 +3161,10 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const result: List = [];
+        let fundings: Dict[] = [];
+        if (Array.isArray (response)) {
+            fundings = response;
+        }
         for (let i = 0; i < fundings.length; i++) {
             const entry = this.safeDict (fundings, i);
             const timestamp = this.safeInteger (entry, 'time');
@@ -3221,7 +3225,7 @@ export default class hyperliquid extends Exchange {
                 request['dex'] = dexName;
             }
         }
-        const rawOrders: Dict[] = await this.publicPostInfoList (this.extend (request, paramsMethod));
+        const response = await this.publicPostInfo (this.extend (request, paramsMethod));
         //
         //     [
         //         {
@@ -3236,6 +3240,10 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const orderWithStatus: List = [];
+        let rawOrders: Dict[] = [];
+        if (Array.isArray (response)) {
+            rawOrders = response;
+        }
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.safeDict (rawOrders, i);
             const extendOrder: Dict = {};
@@ -3339,7 +3347,7 @@ export default class hyperliquid extends Exchange {
                 request['dex'] = dexName;
             }
         }
-        const historicalOrders: Dict[] = await this.publicPostInfoList (this.extend (request, paramsPublicAddress));
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
         //
         //     [
         //         {
@@ -3361,6 +3369,10 @@ export default class hyperliquid extends Exchange {
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         const deduplicatedByOid: Dict = {};
+        let historicalOrders: Dict[] = [];
+        if (Array.isArray (response)) {
+            historicalOrders = response;
+        }
         for (let i = 0; i < historicalOrders.length; i++) {
             const rawOrder = historicalOrders[i];
             const entry = this.safeDict (rawOrder, 'order', rawOrder);
@@ -5229,7 +5241,8 @@ export default class hyperliquid extends Exchange {
     async publicPostInfoList (params: Dict = {}): Promise<Dict[]> {
         // info requests documented to answer a JSON array: any other body reads as no rows
         const response = await this.publicPostInfo (params);
-        return this.safeList ([ response ], 0, []);
+        const rows: Dict[] = this.safeList ([ response ], 0, []);
+        return rows;
     }
 
     handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
