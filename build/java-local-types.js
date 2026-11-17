@@ -1800,7 +1800,7 @@ function javaCoreVenueTable (tier) {
         const merged = new Map (typedReturnTable (tier));
         for (const [ name, javaReturnType ] of javaVenueAsyncReturnTable ()) {
             if (!merged.has (name)) {
-                merged.set (name, { name, javaReturnType, isArray: false });
+                merged.set (name, { name, javaReturnType, isArray: false, returnsProven: javaVenueTupleCoreProven (name) });
             }
         }
         javaCoreTierTables.set (key, merged);
@@ -11584,6 +11584,11 @@ export function javaVenueAsyncReturnTable () {
         }
     }
     return javaVenueReturnTable;
+}
+
+// tuple cores whose every return the TS AST proved an array literal (prints ArrayList<Object>): no cast lambda
+export function javaVenueTupleCoreProven (name) {
+    return javaVenueAsyncReturnTable ().get (name) === 'List<Object>' && javaVenueTupleNames.has (name);
 }
 
 // the local type of `await this.m (...)` for a table method declared outside ts/src/base
