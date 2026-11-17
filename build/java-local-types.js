@@ -21839,11 +21839,14 @@ function r84j2ListLocal (printer, declaration) {
         || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_LIST_LOCAL_TYPE)) {
         return undefined;
     }
-    // a lift needs a native use: an element read `x[i]` (the printer's declared-List read drops the casts)
+    // a lift needs a native use: an element read `x[i]` (the printer's declared-List read drops the casts),
+    // or (ral-87j2 R3) a `x.length` read, which prints the declared List's own size()
     const reads = (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name
-        && ts.isElementAccessExpression (n.parent) && n.parent.expression === n
+        && ((ts.isElementAccessExpression (n.parent) && n.parent.expression === n
         && !(ts.isBinaryExpression (n.parent.parent) && n.parent.parent.left === n.parent
-            && ASSIGNMENT_OPERATORS.includes (n.parent.parent.operatorToken.kind)));
+            && ASSIGNMENT_OPERATORS.includes (n.parent.parent.operatorToken.kind)))
+        || (ts.isPropertyAccessExpression (n.parent) && n.parent.expression === n && n.parent.name.text === 'length'
+            && !(ts.isBinaryExpression (n.parent.parent) && n.parent.parent.left === n.parent))));
     if (!reads) {
         return undefined;
     }

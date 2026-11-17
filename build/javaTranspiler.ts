@@ -5829,7 +5829,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10030,6 +10030,32 @@ function javaR87j2WsLocalsSelfTest (): string[] {
         if (!/io\.github\.ccxt\.ws\.OrderBookSide s = \(io\.github\.ccxt\.ws\.OrderBookSide\) /.test(out) || !/\bs\.store\(price, amount\)/.test(out)) problems.push("ral-87j2: 's' (WsOrderBook bids/asks conditional, store use) must print OrderBookSide with a native store");
         if (!/io\.github\.ccxt\.ws\.ArrayCache arr = \(io\.github\.ccxt\.ws\.ArrayCache\) /.test(out) || !/\barr\.append\(trade\)/.test(out)) problems.push("ral-87j2: 'arr' (guarded this.trades read, append use) must print ArrayCache with a native append");
         if (!/\bObject t = /.test(out)) problems.push("ral-87j2: 't' (no store use) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-87j2 R3: an Array.isArray-guarded List conditional whose only native use is `x.length` prints List<Object>
+// with a native size(); the same local with only call-argument uses keeps Object
+function javaR87j2LengthListLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j2len${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        `export default class zzr87j2len${process.pid} extends Exchange {`,
+        "    rowsOf (response: any) { const isArr = Array.isArray (response); const rows = isArr ? response : this.safeList (response, 'data', []); const out = []; for (let i = 0; i < rows.length; i++) { out.push (this.safeDict (rows, i)); } return out; }",
+        "    argOnly (response: any) { const isArr = Array.isArray (response); const other = isArr ? response : this.safeList (response, 'data', []); return this.safeDict (other, 0); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> rows = \(java\.util\.List<Object>\) /.test(out) || !/< rows\.size\(\)/.test(out)) problems.push("ral-87j2: 'rows' (isArray-guarded, .length use) must print List<Object> with a native size()");
+        if (!/\bObject other = /.test(out)) problems.push("ral-87j2: 'other' (only a safe* argument) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
