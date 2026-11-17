@@ -1759,7 +1759,7 @@ public class Backpack extends BackpackApi
             {
                 symbolsLength = symbols.size();
             }
-            Object symbolsResolved = new ArrayList<Object>(((Map<String, Object>)this.markets).keySet());
+            List<String> symbolsResolved = new ArrayList<String>(((Map<String, Object>)this.markets).keySet());
             if (!java.util.Objects.equals(symbolsLength, 0))
             {
                 symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
@@ -1768,7 +1768,7 @@ public class Backpack extends BackpackApi
             Boolean hasStockSymbol = false;
             if (!java.util.Objects.equals(symbols, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+                for (var i = 0; i < symbolsResolved.size(); i++)
                 {
                     Map<String, Object> market = this.market(this.safeString(symbolsResolved, i));
                     if (java.util.Objects.equals(market.get("stock"), true))
@@ -1806,9 +1806,9 @@ public class Backpack extends BackpackApi
                 externalResponseById = this.indexBy(externalResponse, "symbol");
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+            for (var i = 0; i < symbolsResolved.size(); i++)
             {
-                String marketSymbol = (String) (symbolsResolved == null || i < 0 || i >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(i));
+                String marketSymbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
                 Map<String, Object> market = this.market(marketSymbol);
                 if (Boolean.TRUE.equals(stockOnly) && (!java.util.Objects.equals(market.get("stock"), true)))
                 {
