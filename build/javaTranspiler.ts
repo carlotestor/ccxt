@@ -66,7 +66,6 @@ import { installJavaR92j2MarketTypeParams } from './java-local-types.js';
 import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
 import { installJavaR93j2ListLocals } from './java-local-types.js';
-import { installJavaR93j2DictElementLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2571,7 +2570,6 @@ class NewTranspiler {
         installJavaR92j2MapSlotHandOff(this.transpiler);
         installJavaR92j2StringSlotLocals(this.transpiler);
         installJavaR93j2ListLocals(this.transpiler);
-        installJavaR93j2DictElementLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5903,7 +5901,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest(), javaR92j2MarketTypeParamsSelfTest(), javaR92j2SlotHandOffSelfTest(), javaR92j2ElementMapWritesSelfTest(), javaR92j2StringSlotLocalsSelfTest(), javaR92j4NullSeedConsumerSelfTest(), javaR92j8LocalsSelfTest(), javaR93j2ListLocalsSelfTest(), javaR93j2DictElementLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest(), javaR92j2MarketTypeParamsSelfTest(), javaR92j2SlotHandOffSelfTest(), javaR92j2ElementMapWritesSelfTest(), javaR92j2StringSlotLocalsSelfTest(), javaR92j4NullSeedConsumerSelfTest(), javaR92j8LocalsSelfTest(), javaR93j2ListLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10874,14 +10872,14 @@ function javaR93j2ListLocalsSelfTest (): string[] {
         "import type { Dict } from './base/types.js';",
         `export default class zzr93j2ls${process.pid} extends Exchange {`,
         "    a (chart: Dict) {",
-        "        const list = this.safeList (chart, 'prices', chart as any);",
+        "        const list = this.safeList (chart, 'prices', this.safeValue (chart, 'data'));",
         "        const points: Dict[] = (list !== undefined) ? list : [];",
         "        let n = 0;",
         "        for (let i = 0; i < points.length; i++) { n = n + this.safeInteger (points[i], 'x', 0); }",
         "        return n;",
         "    }",
         "    b (grouped: Dict, k: string) {",
-        "        const rows: Dict[] = (k !== undefined) ? this.safeList (grouped, k, grouped as any) : undefined;",
+        "        const rows: Dict[] = (k !== undefined) ? this.safeList (grouped, k, this.safeValue (grouped, 'z')) : undefined;",
         "        return this.safeString (rows[0], 'id');",
         "    }",
         '}',
@@ -10891,54 +10889,6 @@ function javaR93j2ListLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<\?> points = \((java\.util\.)?List<\?>\) \(/.test(out) || !/i < points\.size\(\)/.test(out)) problems.push("93j2 R1: 'points' (array conditional read by length / index) must print List<?> and read natively");
         if (!/\bObject rows = /.test(out)) problems.push("93j2 R1: 'rows' (literal index only) must stay Object");
-        if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
-}
-
-// an element of a const `{}` dict written only with object literals is a Map: its literal-key read prints
-// `.get`; a dict that also takes a non-literal value keeps the element Object
-function javaR93j2DictElementLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzr93j2de${process.pid}.ts`);
-    const body = [
-        "import Exchange from './abstract/binance.js';",
-        "import type { Dict } from './base/types.js';",
-        `export default class zzr93j2de${process.pid} extends Exchange {`,
-        "    a (rows: Dict[]) {",
-        "        const groups: Dict = {};",
-        "        for (let i = 0; i < rows.length; i++) {",
-        "            const key = this.safeString (rows[i], 'k');",
-        "            if (!(key in groups)) { groups[key] = { 'id': key, 'items': [] }; }",
-        "            const group = groups[key];",
-        "            const items = group['items'];",
-        "            items.push (rows[i]);",
-        "            group['items'] = items;",
-        "        }",
-        "        return this.safeDict (groups, 'x');",
-        "    }",
-        "    b (rows: Dict[], other: any) {",
-        "        const mixed: Dict = {};",
-        "        for (let i = 0; i < rows.length; i++) {",
-        "            const key = this.safeString (rows[i], 'k');",
-        "            mixed[key] = other;",
-        "            const entry = mixed[key];",
-        "            const items = entry['items'];",
-        "            items.push (rows[i]);",
-        "        }",
-        "        return mixed;",
-        "    }",
-        '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Map<String, Object> group = \((java\.util\.)?Map<String, Object>\) \(/.test(out) || !/= group\.get\("items"\)/.test(out)) problems.push("93j2 R2: 'group' (element of an object-literal dict) must print Map and read natively");
-        if (!/\bObject entry = /.test(out)) problems.push("93j2 R2: 'entry' (dict written from a non-literal) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
