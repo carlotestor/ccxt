@@ -46,6 +46,7 @@ import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
 import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
 import { installJavaR90j6StringListReaders } from './java-local-types.js';
 import { installJavaR90j6AsStringListReaders } from './java-local-types.js';
+import { installJavaR90j6PairLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2516,6 +2517,7 @@ class NewTranspiler {
         installJavaR87j8CopyStringResolver(this.transpiler);
         installJavaR90j6StringListReaders(this.transpiler);
         installJavaR90j6AsStringListReaders(this.transpiler);
+        installJavaR90j6PairLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a

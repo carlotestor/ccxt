@@ -24186,3 +24186,131 @@ export function installJavaR90j6AsStringListReaders (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? J84J6_STRING_LIST_TYPE : undefined));
 }
+
+// ===== 90j6 R3. whole handle*AndParams results kept in a local and read by literal slot =====
+// `const r = this.handleMarginModeAndParams (..)` (a section-46 Pair producer, resolved to the base
+// declaration chain) whose every reference is `r[0]` / `r[1]` (a read, never written): the local prints
+// the hand-written `Pair<A, B>` return type with no cast, and each slot read prints `r.first()` /
+// `r.second()` instead of `((List<Object>) r).get(i)`. Decided from the TS AST (slot index literal).
+function r90j6PairSlotRead (n) {
+    const access = n.parent;
+    if (access === undefined || !ts.isElementAccessExpression (access) || access.expression !== n) {
+        return undefined;
+    }
+    const arg = access.argumentExpression;
+    if (arg === undefined || !ts.isNumericLiteral (arg) || (arg.text !== '0' && arg.text !== '1')) {
+        return undefined;
+    }
+    const up = access.parent;
+    if (up !== undefined && ((ts.isBinaryExpression (up) && up.left === access && ASSIGNMENT_OPERATORS.includes (up.operatorToken.kind))
+        || up.kind === ts.SyntaxKind.DeleteExpression || ts.isPostfixUnaryExpression (up) || ts.isPrefixUnaryExpression (up))) {
+        return undefined;
+    }
+    return Number (arg.text);
+}
+
+function r90j6PairLocalTypes (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.initializer === undefined || declaration.type !== undefined) {
+        return undefined;
+    }
+    const types = pairCallTypes (printer, declaration.initializer);
+    if (types === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+        return undefined;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let reads = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+            || (ts.isPropertyAssignment (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        if (checker.getSymbolAtLocation (n) !== symbol || r90j6PairSlotRead (n) === undefined) {
+            return undefined;
+        }
+        reads++;
+    }
+    return reads > 0 ? types : undefined;
+}
+
+function r90j6PairSlotLocalType (printer, declaration, typed) {
+    if (!ts.isIdentifier (declaration.name) || declaration.initializer === undefined || declaration.type !== undefined
+        || (declaration.parent?.flags & ts.NodeFlags.Const) === 0 || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const access = unwrapParens (declaration.initializer);
+    if (access === undefined || !ts.isElementAccessExpression (access) || !ts.isIdentifier (access.expression)) {
+        return undefined;
+    }
+    const slot = r90j6PairSlotRead (access.expression);
+    const holder = slot === undefined ? undefined : printer.getChecker ().getSymbolAtLocation (access.expression)?.valueDeclaration?.resolve ();
+    const types = holder === undefined ? undefined : typed.get (holder);
+    const type = types?.[slot];
+    return type === 'String' || type === PAIR_MAP ? type : undefined;
+}
+
+export function installJavaR90j6PairLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function'
+        || typeof printer.printElementAccessExpression !== 'function' || printer._javaR90j6PairLocalsPatched) {
+        return;
+    }
+    printer._javaR90j6PairLocalsPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        let types = typed.get (declaration);
+        try {
+            if (types === undefined && r87j6HeadIsObject (printer, declaration, upto)) {
+                types = r90j6PairLocalTypes (printer, declaration);
+            }
+        } catch (e) {
+            types = undefined;
+        }
+        if (types === undefined) {
+            // a const `x = r[k]` of a typed Pair local: section 28 keyed on the old printed List read, so
+            // the slot's own static type (`r.first()` is A) is restored here (String / Map slots only)
+            const slotType = r90j6PairSlotLocalType (printer, declaration, typed);
+            if (slotType !== undefined && printed.startsWith (marker) && printed.indexOf ('\n') === -1) {
+                return r87j6Head (printer, declaration, identation, slotType) + printed.slice (marker.length);
+            }
+            return printed;
+        }
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        typed.set (declaration, types);
+        return r87j6Head (printer, declaration, identation, pairJavaType (types)) + printed.slice (marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? pairJavaType (typed.get (declaration)) : undefined));
+    const upstreamElement = printer.printElementAccessExpression.bind (printer);
+    printer.printElementAccessExpression = function (node, identation) {
+        try {
+            const receiver = node?.expression;
+            if (receiver !== undefined && ts.isIdentifier (receiver)) {
+                const slot = r90j6PairSlotRead (receiver);
+                const declaration = slot === undefined ? undefined : printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+                if (declaration !== undefined && typed.has (declaration)) {
+                    return `${printer.printNode (receiver, 0)}.${PAIR_ACCESSORS[slot]}()`;
+                }
+            }
+        } catch (e) {
+            // keep the upstream print
+        }
+        return upstreamElement (node, identation);
+    };
+}
