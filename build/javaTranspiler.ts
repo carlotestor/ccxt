@@ -10686,6 +10686,7 @@ function javaR92j4NullSeedConsumerSelfTest (): string[] {
         "    }",
         "    async m4 (f: boolean, a: string, b: string) { let url: Str = undefined; if (f) { url = a.toLowerCase (); } else { url = b.trim (); } return await this.watch (url as string, 'h'); }",
         "    exp (parts: string[], f: boolean) { let expiry = undefined; if (f) { expiry = this.safeString (parts, 1); } else { expiry = this.convertMarketIdExpireDate (this.safeString (parts, 1)); } return this.convertExpireDate (expiry); }",
+        "    bal (sym: string, parts: string[], f: boolean) { let baseId = undefined; if (f) { baseId = this.safeString (parts, 0); } else { const baseLength = sym.length - 3; if (baseLength > 0) { baseId = sym.slice (0, baseLength); } } return this.safeCurrencyCode (baseId); }",
         "    async m3 (f: boolean, raw: Dict) { let other: Str = undefined; let mixed: Str = undefined; if (f) { other = 'a'; mixed = other; } else { mixed = raw['k']; } return await this.sp (mixed, other); }",
         '}',
     ].join('\n');
@@ -10696,6 +10697,7 @@ function javaR92j4NullSeedConsumerSelfTest (): string[] {
         if (!/String hash = null/.test(out) || !/String channel = null/.test(out) || !/this\.sp\(channel, hash/.test(out)) problems.push("r92-j4: 'hash' / 'channel' (String writes of each other, String slots) must print String with bare arguments");
         if (!/String url = null/.test(out) || !/this\.watch\(url, /.test(out)) problems.push("r92-j4: 'url' (String writes, `url as string` into watch) must print String with the identity cast dropped");
         if (!/String expiry = null/.test(out) || !/this\.convertExpireDate\(expiry\)/.test(out)) problems.push("r92-j4: 'expiry' (safeString / convertMarketIdExpireDate writes, String slot) must print String with a bare argument");
+        if (!/String baseId = null/.test(out) || !/this\.safeCurrencyCode\(baseId, /.test(out)) problems.push("r92-j4: 'baseId' (safeString / integral-bound slice writes, String slot) must print String with a bare argument");
         if (!/\bObject mixed = null/.test(out)) problems.push("r92-j4: 'mixed' (one Object element write) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {

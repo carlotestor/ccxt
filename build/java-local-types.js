@@ -12787,10 +12787,41 @@ function nullSeedNativeStringSlice (printer, value) {
         const parsed = args.map ((a) => printer.printNode (a, 0).trimStart ());
         const native = printer.nativeSliceCallIfProvable?.(value, name)
             ?? printer.javaTypedStringSliceCall?.(value, name, parsed[0], parsed[1], 64);
-        return typeof native === 'string';
+        return typeof native === 'string' || nullSeedLaterIntegralBounds (printer, value);
     } catch (e) {
         return false;
     }
+}
+
+// a String slice whose bounds are integer literals or const locals of the same function declared before the
+// call with an integral initializer (`s.length - 3`, base `parseToInt (..)` printed Long): they print before the
+// write does, so the printer's typed substring arm takes them (asked again of the printer at the real print)
+function nullSeedLaterIntegralBounds (printer, value) {
+    const receiver = value.expression.expression;
+    if (!ts.isIdentifier (receiver) || typeof printer.javaPrintsIntegralNumber !== 'function') {
+        return false;
+    }
+    return value.arguments.every ((arg) => {
+        const bound = unwrapParens (arg);
+        if (printer.javaPrintsIntegralNumber (bound)) {
+            return true;
+        }
+        if (!ts.isIdentifier (bound)) {
+            return false;
+        }
+        try {
+            const d = printer.getChecker ().getSymbolAtLocation (bound)?.valueDeclaration?.resolve ();
+            if (d === undefined || !ts.isVariableDeclaration (d) || (d.parent.flags & ts.NodeFlags.Const) === 0
+                || enclosingFunction (d) !== enclosingFunction (value) || d.pos > value.pos) {
+                return false;
+            }
+            const init = unwrapParens (d.initializer);
+            return printer.javaPrintsIntegralNumber (init)
+                || (isThisCall (init) && init.expression.name.text === 'parseToInt' && nullSeedResolvedInBase (printer, init));
+        } catch (e) {
+            return false;
+        }
+    });
 }
 
 function nullSeedWriteType (printer, value, depth = 0) {
