@@ -22743,3 +22743,172 @@ export function installJavaR84j8Locals (transpiler) {
         return info?.cast ? accumulatorCastWrite (printer, node, printed, { cast: JAVA_MAP_LOCAL_CAST }) : printed;
     };
 }
+
+// ===== ral-87j3 R2. int-literal counters written only by base `this.sum` of integral operands =====
+// `let i = 0; ... i = this.sum (i, 1)` keeps every value a whole number: Generic.sum maps null to 0,
+// adds toDouble of both sides and answers `(long) s` for a whole s, so integral operands always give
+// a Long box, never null. The local prints `Long i = 0L`, each sum write `i = (Long) this.sum (..)`
+// (the checkcast the earlier `Object` declaration did not need) and int-literal writes `NL`.
+// Decided from the TS AST and checker; admitted only when some use is an ordering comparison or an
+// arithmetic operand, the reads the printer then prints natively on the published Long.
+const R87J3_ARITH_OPS = new Set ([ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken,
+    ts.SyntaxKind.GreaterThanEqualsToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken ]);
+
+function r87j3IntLiteral (node) {
+    const n = unwrapParens (node);
+    return n !== undefined && ts.isNumericLiteral (n) && /^\d{1,9}$/.test (n.text);
+}
+
+function r87j3BaseSum (printer, node) {
+    const call = unwrapParens (node);
+    if (!isThisCall (call) || call.expression.name.text !== 'sum' || call.arguments.length !== 2) {
+        return undefined;
+    }
+    let member;
+    try {
+        member = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName) ? call : undefined;
+}
+
+// a sum operand that is a whole number or null at runtime
+function r87j3IntegralOperand (printer, declaration, node) {
+    const n = unwrapParens (node);
+    if (n === undefined) {
+        return false;
+    }
+    if (r87j3IntLiteral (n)) {
+        return true;
+    }
+    if (ts.isPropertyAccessExpression (n) && n.name.text === 'length') {
+        return true;
+    }
+    if (ts.isIdentifier (n)) {
+        const target = printer.getChecker ().getSymbolAtLocation (n)?.valueDeclaration?.resolve ();
+        if (target === declaration) {
+            return true;
+        }
+        const t = String (target !== undefined ? (printer.javaDeclaredTypeOfDeclaration?.(target) ?? '') : '').trim ();
+        return [ 'Long', 'Integer', 'long', 'int' ].includes (t);
+    }
+    if (isThisCall (n) && [ 'safeInteger', 'safeInteger2', 'safeIntegerN' ].includes (n.expression.name.text)) {
+        return isBaseDeclaration (printer, n);
+    }
+    return false;
+}
+
+function r87j3SumWrite (printer, declaration, node) {
+    const call = r87j3BaseSum (printer, node);
+    return call !== undefined && call.arguments.every ((a) => r87j3IntegralOperand (printer, declaration, a));
+}
+
+function r87j3SumCounter (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || !r87j3IntLiteral (declaration.initializer)
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.declarations.length !== 1
+        || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const name = declaration.name.text;
+    const checker = printer.getChecker ();
+    let sumWrites = 0;
+    let nativeUse = false;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        if (checker.getSymbolAtLocation (n)?.valueDeclaration?.resolve () !== declaration) {
+            return false; // a shadowing binding
+        }
+        const parent = n.parent;
+        if (ts.isBinaryExpression (parent) && parent.left === n) {
+            const op = parent.operatorToken.kind;
+            if (op === ts.SyntaxKind.EqualsToken) {
+                if (r87j3SumWrite (printer, declaration, parent.right)) {
+                    sumWrites++;
+                } else if (!r87j3IntLiteral (parent.right)) {
+                    return false;
+                }
+                continue;
+            }
+            if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                return false;
+            }
+        }
+        if (ts.isBinaryExpression (parent) && R87J3_ARITH_OPS.has (parent.operatorToken.kind)) {
+            nativeUse = true;
+        }
+    }
+    if (sumWrites === 0 || !nativeUse) {
+        return false;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    return isSafeToNarrow (printer, declaration, name, 'Long', isProFile, {
+        nonNull: true,
+        writeOnly: true,
+        writeOk: (rhs) => r87j3IntLiteral (rhs) || r87j3SumWrite (printer, declaration, rhs),
+    });
+}
+
+export function installJavaR87j3SumCounterLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR87j3SumCounterPatched) {
+        return;
+    }
+    printer._javaR87j3SumCounterPatched = true;
+    const memo = new WeakMap ();
+    const decide = (declaration) => {
+        if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
+            return false;
+        }
+        if (!memo.has (declaration)) {
+            memo.set (declaration, false); // recursion guard
+            let ok = false;
+            try {
+                ok = r87j3SumCounter (printer, declaration);
+            } catch (e) {
+                ok = false;
+            }
+            memo.set (declaration, ok);
+        }
+        return memo.get (declaration);
+    };
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || (at !== 0 && printed.charAt (at - 1) !== '\n') || !decide (declaration)) {
+            return printed;
+        }
+        const literal = printer.printNode (declaration.initializer, 0).trim ();
+        if (!/^\d+$/.test (literal) || printed.slice (at + marker.length).trim () !== literal) {
+            return printed;
+        }
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + literal + 'L';
+    };
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        if (node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (node.left)) {
+            const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            if (declaration !== undefined && ts.isVariableDeclaration (declaration) && memo.get (declaration) === true) {
+                const left = printer.printNode (node.left, 0);
+                if (r87j3IntLiteral (node.right)) {
+                    return `${left} = ${printer.printNode (unwrapParens (node.right), 0)}L`;
+                }
+                return `${left} = (Long) ${printer.printNode (node.right, 0)}`;
+            }
+        }
+        return upstreamBinary (node, identation);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (decide (declaration) ? 'Long' : undefined));
+}
