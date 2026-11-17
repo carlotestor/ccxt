@@ -1474,15 +1474,15 @@ impl Limitless {
             while { if !__for_first_1305 { i += 1; } __for_first_1305 = false; i < (expandedRaw.len() as i64) } {
             let mut raw: Value = expandedRaw.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut groupId: Option<String> = self.safe_string_n_opt(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
-            let mut eventKey: Value = Value::Null;
+            let mut eventKey: Option<String> = None;
             if (groupId.is_some()) && (groupId.as_deref() != Some("")) {
-                eventKey = self.shorten_slug(Value::from(groupId.as_deref()));
+                eventKey = self.shorten_slug(Value::from(groupId.as_deref())).as_str().map(str::to_owned);
             }
             let mut m: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_market(self, raw.clone()).into_dict();
             markets.push(Value::from(&m));
-            if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
-                if !(matches!(&eventKey, Value::Str(__k) if eventGroups.contains_key(__k.as_ref()))) {
-                    eventGroups.insert(crate::runtime::stringify_param(&eventKey), Value::Map({
+            if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) {
+                if !(matches!(eventKey.as_deref(), Some(__k) if eventGroups.contains_key(__k))) {
+                    eventGroups.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
@@ -1491,7 +1491,7 @@ impl Limitless {
     m
 }));
                 }
-                let mut eventGroup: Value = eventGroups.get(eventKey.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                let mut eventGroup: Value = eventGroups.get(eventKey.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -4184,18 +4184,18 @@ if _try_result.is_err() {
             while { if !__for_first_1332 { i += 1; } __for_first_1332 = false; i < rawMarketsLength } {
             let mut raw: Value = expandedMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut groupId: Option<String> = self.safe_string_n_opt(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
-            let mut eventKey: Value = Value::Null;
+            let mut eventKey: Option<String> = None;
             if (groupId.is_some()) && (groupId.as_deref() != Some("")) {
-                eventKey = self.shorten_slug(Value::from(groupId.as_deref()));
+                eventKey = self.shorten_slug(Value::from(groupId.as_deref())).as_str().map(str::to_owned);
             }
             let mut m: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, raw.clone());
             if (m == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing m")));
             }
             add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
-            if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
-                if !(matches!(&eventKey, Value::Str(__k) if eventGroups.contains_key(__k.as_ref()))) {
-                    eventGroups.insert(crate::runtime::stringify_param(&eventKey), Value::Map({
+            if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) {
+                if !(matches!(eventKey.as_deref(), Some(__k) if eventGroups.contains_key(__k))) {
+                    eventGroups.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
@@ -4204,7 +4204,7 @@ if _try_result.is_err() {
     m
 }));
                 }
-                let mut eventGroup: Value = eventGroups.get(eventKey.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                let mut eventGroup: Value = eventGroups.get(eventKey.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
