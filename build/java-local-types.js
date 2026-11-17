@@ -13030,9 +13030,18 @@ function nullScalarWriteType (printer, node) {
     const r84 = nullSeedWriteType (printer, value);
     if (r84 !== undefined) {
         NULL_SEED_R84_WRITES.add (node);
+        return r84;
     }
-    return r84;
+    // `x = market['baseId']` of a structure local whose DTO field is `public String`: the write takes that
+    // checkcast (printed by this section's write hook); lands only with a native use
+    if (ts.isElementAccessExpression (value) && structureKeyReadLocalType (printer, value)?.type === JAVA_DATAFLOW_STRING) {
+        NULL_SEED_R84_WRITES.add (node);
+        NULL_SEED_CAST_WRITES.add (value);
+        return JAVA_DATAFLOW_STRING;
+    }
+    return undefined;
 }
+const NULL_SEED_CAST_WRITES = new WeakSet ();
 
 // r84-j4: null-seed writes typed from the TS AST and checker that section 24's first pass declined.
 // Each answers the box the printed write statically has, so the write needs no cast.
@@ -13495,6 +13504,23 @@ export function installJavaNullScalarLocalTypes (transpiler) {
             }
         }
         return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
+    };
+    // a structure-key String write to a String-retyped seed prints its checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const right = unwrapParens (node?.right);
+        if (node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (node.left) && right !== undefined
+            && NULL_SEED_CAST_WRITES.has (right)) {
+            try {
+                const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+                if (declaration !== undefined && retyped.get (declaration) === JAVA_DATAFLOW_STRING) {
+                    return `${printer.printNode (node.left, 0)} = (String) ${printer.printNode (right, 0)}`;
+                }
+            } catch (e) {
+                // fall through to the upstream print
+            }
+        }
+        return upstreamBinary (node, identation);
     };
     // `x as string` of a String-retyped seed is the identity: print the bare local
     const upstreamAs = printer.printAsExpression.bind (printer);
