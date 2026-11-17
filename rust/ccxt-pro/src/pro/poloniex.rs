@@ -130,7 +130,7 @@ impl Poloniex {
             "parse_ws_order_trade" => self.parse_ws_order_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "subscribe" => { crate::exchange_stubs::enqueue_spawn("subscribe", args.to_vec()); crate::Value::Null },
             "trade_request" => { crate::exchange_stubs::enqueue_spawn("trade_request", args.to_vec()); crate::Value::Null },
             "un_subscribe" => { crate::exchange_stubs::enqueue_spawn("un_subscribe", args.to_vec()); crate::Value::Null },
@@ -1116,7 +1116,7 @@ impl Poloniex {
         // subscribing
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
-        self.set_balance_cache(client.as_value(), Value::from(name.clone()));
+        self.set_balance_cache(client.as_value(), name.as_str());
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
@@ -1128,7 +1128,8 @@ impl Poloniex {
         }).await?))
     }
 
-    pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value) {
+    pub fn set_balance_cache(&mut self, mut client: Value, type_var: &str) {
+        let mut type_var: Value = type_var.into();
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         if (__ch.has_subscription(&type_var)) {
             return;

@@ -60,11 +60,11 @@ impl crate::exchange_generated::ExchangeBase for Bitrue {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..]).await,
-                "convert_from_raw_quantity" => self.convert_from_raw_quantity(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "convert_from_raw_quantity" => self.convert_from_raw_quantity(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "find_swap_market_by_ws_base_quote" => self.find_swap_market_by_ws_base_quote(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "keep_alive_listen_key" => self.keep_alive_listen_key(&args[..]).await,
-                "parse_contract_bids_asks" => self.parse_contract_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "parse_contract_bids_asks" => self.parse_contract_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
@@ -93,7 +93,7 @@ impl Bitrue {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "convert_from_raw_quantity" => self.convert_from_raw_quantity(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "convert_from_raw_quantity" => self.convert_from_raw_quantity(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "find_swap_market_by_ws_base_quote" => self.find_swap_market_by_ws_base_quote(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -104,7 +104,7 @@ impl Bitrue {
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "keep_alive_listen_key" => { crate::exchange_stubs::enqueue_spawn("keep_alive_listen_key", args.to_vec()); crate::Value::Null },
-            "parse_contract_bids_asks" => self.parse_contract_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "parse_contract_bids_asks" => self.parse_contract_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "parse_ws_balances" => { self.parse_ws_balances(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -653,8 +653,8 @@ impl Bitrue {
             let mut rawBuys: crate::value::List = self.safe_list_k(&tick, "buys", &[Value::from(vec![])]).into_list();
             parseable = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("asks".to_string(), self.parse_contract_bids_asks(&rawAsks, symbol.clone().map(Value::from).unwrap_or(Value::Null)));
-                    m.insert("buys".to_string(), self.parse_contract_bids_asks(&rawBuys, symbol.clone().map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("asks".to_string(), self.parse_contract_bids_asks(&rawAsks, symbol.as_deref().unwrap_or_default()));
+                    m.insert("buys".to_string(), self.parse_contract_bids_asks(&rawBuys, symbol.as_deref().unwrap_or_default()));
                 m
             });
         }
@@ -701,7 +701,7 @@ impl Bitrue {
     Value::Null
 }
 
-    pub fn parse_contract_bids_asks(&self, bidsAsks: impl Into<crate::Value>, mut symbol: Value) -> Value {
+    pub fn parse_contract_bids_asks(&self, bidsAsks: impl Into<crate::Value>, symbol: &str) -> Value {
         let mut bidsAsks: Value = bidsAsks.into();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -711,7 +711,7 @@ impl Bitrue {
             let mut level: crate::value::List = self.safe_list(bidsAsks.clone(), Value::Int(i), &[]).into_list();
             let mut price: Option<f64> = self.safe_number(&level, Value::Int(0), &[]).as_f64();
             let mut rawAmount: Option<f64> = self.safe_number(&level, Value::Int(1), &[]).as_f64();
-            let mut amount: Value = self.convert_from_raw_quantity(symbol.clone(), Value::from(rawAmount));
+            let mut amount: Value = self.convert_from_raw_quantity(symbol, Value::from(rawAmount));
             result.push(Value::from(vec![Value::from(price), amount]));
         }
         }
@@ -720,7 +720,8 @@ impl Bitrue {
     Value::Null
 }
 
-    pub fn convert_from_raw_quantity(&self, mut symbol: Value, mut rawQuantity: Value) -> Value {
+    pub fn convert_from_raw_quantity(&self, symbol: &str, mut rawQuantity: Value) -> Value {
+        let mut symbol: Value = symbol.into();
         if (rawQuantity == Value::Null) {
             return Value::Null;
         }
@@ -959,7 +960,7 @@ if _try_result.is_err() {
         let mut sideLower: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut rawVol: Option<f64> = self.safe_number_k(trade.clone(), "vol", &[]).as_f64();
-        let mut baseAmount: Value = self.convert_from_raw_quantity(Value::from(symbol.clone()), Value::from(rawVol));
+        let mut baseAmount: Value = self.convert_from_raw_quantity(symbol.as_str(), Value::from(rawVol));
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
@@ -1175,7 +1176,7 @@ if _try_result.is_err() {
         let mut low: Option<f64> = self.safe_number_k(tick.clone(), "low", &[]).as_f64();
         let mut close: Option<f64> = self.safe_number_k(tick.clone(), "close", &[]).as_f64();
         let mut rawVol: Option<f64> = self.safe_number_k(tick, "vol", &[]).as_f64();
-        let mut baseVolume: Value = self.convert_from_raw_quantity(Value::from(symbol), Value::from(rawVol));
+        let mut baseVolume: Value = self.convert_from_raw_quantity(symbol.as_str(), Value::from(rawVol));
         return Value::from(vec![Value::from(timestamp), Value::from(open), Value::from(high), Value::from(low), Value::from(close), baseVolume]);
 
     Value::Null
@@ -1280,8 +1281,8 @@ if _try_result.is_err() {
         let mut symbol: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut rawVol: Option<f64> = self.safe_number_k(tick.clone(), "vol", &[]).as_f64();
         let mut rawAmount: Option<f64> = self.safe_number_k(tick.clone(), "amount", &[]).as_f64();
-        let mut baseVolume: Value = self.convert_from_raw_quantity(Value::from(symbol.clone()), Value::from(rawVol));
-        let mut quoteVolume: Value = self.convert_from_raw_quantity(Value::from(symbol.clone()), Value::from(rawAmount));
+        let mut baseVolume: Value = self.convert_from_raw_quantity(symbol.as_str(), Value::from(rawVol));
+        let mut quoteVolume: Value = self.convert_from_raw_quantity(symbol.as_str(), Value::from(rawAmount));
         let mut close: Option<f64> = self.safe_number_k(tick.clone(), "close", &[]).as_f64();
         let mut rose: Option<f64> = self.safe_number_k(tick.clone(), "rose", &[]).as_f64();
         let mut percentage: Option<f64> = (if (rose.is_none()) { None } else { (if let Some(__l) = rose { Some(__l * 100.0) } else { None }) });
