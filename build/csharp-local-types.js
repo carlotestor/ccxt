@@ -23721,3 +23721,27 @@ const c93UpstreamLocalDeclarationD1 = csharpLocalDeclaration;
 csharpLocalDeclaration = function (csharp, declaration, context) {
     return c93UpstreamLocalDeclarationD1 (csharp, declaration, context) ?? c93GuardedConcatOnlyConditionalLocal (csharp, declaration, context);
 };
+// (D1b) the consumer: `const t = m + r ...` over such an m prints the guarded concat, whose static type
+// is already string, so the `((string)` cast another rule names on t's declaration is dropped
+function c93GuardedConcatBaseIsD1 (csharp, declaration) {
+    const init = stripParens (declaration?.initializer);
+    if (init?.kind !== ts.SyntaxKind.BinaryExpression || init.operatorToken.kind !== ts.SyntaxKind.PlusToken || typeof csharp.csharpPlusSpine !== 'function') {
+        return false;
+    }
+    const base = stripParens (csharp.csharpPlusSpine (init)?.base);
+    if (base?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const source = resolveReference (csharp, base);
+    return source?.kind === ts.SyntaxKind.VariableDeclaration && source !== declaration
+        && c93GuardedConcatOnlyConditionalLocal (csharp, source, undefined) !== undefined;
+}
+const c93UpstreamLocalDeclarationD1b = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = c93UpstreamLocalDeclarationD1b (csharp, declaration, context);
+    if (info?.cast === 'string' && info.castWhole !== true && STRING_TYPES.includes (info.type) && c93GuardedConcatBaseIsD1 (csharp, declaration)) {
+        return { ...info, cast: undefined };
+    }
+    return info;
+};

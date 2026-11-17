@@ -9571,6 +9571,9 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('c ? lit : <string? local> also stored in a map keeps object',
             'safeString (o, k, d = undefined) { return d; }\n f (c, o) { const s = this.safeString (o, \'k\'); const m = c ? \'/a\' : s; const t = m + \':\' + o; return { \'m\': m, \'t\': t }; }',
             'object m = ');
+        check ('the guarded concat over that local needs no declaration cast',
+            'safeString (o, k, d = undefined) { return d; }\n f (c, o) { const s = this.safeString (o, \'k\'); const m = c ? \'/a\' : s; const t = m + \':\' + o; return t; }',
+            'string? t = (m == null ? null : ', 'string? t = ((string)(');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {
