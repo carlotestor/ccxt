@@ -13107,7 +13107,8 @@ function javaOmitSourceIsMap (printer, source, depth) {
         type = printer.javaDeclaredLocalType?.(declaration) ?? HANDLE_TYPED_BINDINGS.get (declaration)
             ?? javaPairBoundType (declaration);
     }
-    if (String (type ?? '').replace (/^java\.util\./, '') !== 'Map<String, Object>') {
+    // sections publish the Map spelling with or without the space after the comma
+    if (String (type ?? '').replace (/^java\.util\./, '').replace (/\s+/g, '') !== 'Map<String,Object>') {
         return false;
     }
     if (!ts.isParameterDeclaration (declaration)) {
