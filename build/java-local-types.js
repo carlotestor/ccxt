@@ -681,7 +681,9 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 const J90J7_MAP_RETURN_METHODS = [ 'setMarkets', 'safePredictionPosition', 'parsePredictionPosition' ];
 // base safePosition returns its own Map parameter after in-place writes (no override); pro kucoin
 // parseWsUtaPosition returns this.safePosition ({..}). Result locals are read by keys / delete
-const J92J7_MAP_RETURN_METHODS = [ 'safePosition', 'parseWsUtaPosition' ];
+const J92J7_MAP_RETURN_METHODS = [ 'safePosition', 'parseWsUtaPosition', 'parseTradingBalance' ];
+// okx parseTradingBalance returns this.safeBalance (..) (a Balances view, itself a Map<String, Object>)
+const J92J7_MAP_VIEW_RETURNS = new Set ([ 'safeBalance' ]);
 const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS, ...J90J7_MAP_RETURN_METHODS, ...J92J7_MAP_RETURN_METHODS ]);
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
@@ -6267,6 +6269,7 @@ export function installJavaLocalTypes (transpiler) {
                 || (ts.isIdentifier (expression) && expression.text === 'undefined')
                 || (isThisOrSuperCall (expression) && JAVA_MAP_RETURN_METHODS.has (expression.expression.name.text))
                 || (J90J7_MAP_RETURN_METHODS.includes (methodName) && javaBaseMapField (printer, expression))
+                || (J92J7_MAP_RETURN_METHODS.includes (methodName) && isThisCall (expression) && J92J7_MAP_VIEW_RETURNS.has (expression.expression.name.text))
                 || ((JAVA_84J7_MAP_RETURN_METHODS.includes (methodName) || J90J7_MAP_RETURN_METHODS.includes (methodName) || J92J7_MAP_RETURN_METHODS.includes (methodName)) && ts.isIdentifier (expression)
                     && typeof printer.javaDeclaredTypeOf === 'function'
                     && /^(java\.util\.)?Map<String, ?Object>$/.test (printer.javaDeclaredTypeOf (expression) ?? ''))) {

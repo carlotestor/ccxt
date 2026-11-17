@@ -6205,6 +6205,23 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r92j7, { force: true });
     }
+    // okx parseTradingBalance (returns this.safeBalance (..)) prints Map: its result keys are read natively
+    const r92j7b = path.join(process.cwd(), 'ts', 'src', `zz92j7bselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7b, [
+            "import Exchange from './okx.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz92j7bselftest extends Exchange {',
+            "    zzBalance (message: Dict) { const balance = this.parseTradingBalance (message); const keys = Object.keys (balance); return keys.length; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7b).content as string;
+        if (!/Map<String, ?Object> balance = this\.parseTradingBalance\(/.test(out) || !/\(balance\.keySet\(\)\)/.test(out)) problems.push("ral-92j7: a parseTradingBalance result must print Map<String, Object> read by keySet()");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7b, { force: true });
+    }
     return problems;
 }
 
