@@ -22517,3 +22517,55 @@ const c92UpstreamLocalDeclarationC3 = csharpLocalDeclaration;
 csharpLocalDeclaration = function (csharp, declaration, context) {
     return c92UpstreamLocalDeclarationC3 (csharp, declaration, context) ?? c92LiteralOrStringParamConditionalLocal (csharp, declaration, context);
 };
+
+// (C5) `const u = d['k']` (printed `(d.ContainsKey ("k") ? d["k"] : null)`) whose every use converts
+// it to a string anyway: a string-method receiver (`u.replace (..)` prints `((string)u).Replace`) or
+// the value of a `return` in a method annotated to return `string` / `Str` (printed `(string?)` cast).
+// Every path already throws on a non-string box, so the declaration names `string?` behind one cast
+// and those uses print natively. At least one string-method receiver is required.
+const C92_STRING_RECEIVER_METHODS = [ 'replace', 'split', 'toLowerCase', 'toUpperCase', 'trim', 'endsWith', 'startsWith', 'indexOf' ];
+function c92StringSunkElementReadLocal (csharp, declaration, context) {
+    if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || declaration.type !== undefined || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const read = stripParens (declaration.initializer);
+    if (read?.kind !== ts.SyntaxKind.ElementAccessExpression || elementAccessLiteralKey (read.argumentExpression) === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || /(^|[\\/])test[\\/]/.test (declaration.getSourceFile?.()?.fileName ?? '')) {
+        return undefined;
+    }
+    const returnsString = [ 'string', 'Str' ].includes (scope.type?.getText?.());
+    let receivers = 0;
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
+            return undefined;
+        }
+        const p = n.parent;
+        if (p?.kind === ts.SyntaxKind.PropertyAccessExpression && p.expression === n && C92_STRING_RECEIVER_METHODS.includes (p.name?.text)
+                && p.parent?.kind === ts.SyntaxKind.CallExpression && p.parent.expression === p) {
+            receivers++;
+            continue;
+        }
+        if (p?.kind === ts.SyntaxKind.ReturnStatement && returnsString && enclosingFunction (p) === scope) {
+            continue;
+        }
+        return undefined;
+    }
+    if (receivers === 0) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const type = 'string?';
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: 'string', castWhole: true } : undefined;
+}
+const c92UpstreamLocalDeclarationC5 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c92UpstreamLocalDeclarationC5 (csharp, declaration, context) ?? c92StringSunkElementReadLocal (csharp, declaration, context);
+};

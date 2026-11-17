@@ -9548,6 +9548,12 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('c ? lit : <unwritten Str param> compared to literals -> string? with native ==',
             'f (type: Str, postOnly) { let t: Str = postOnly ? \'post_only\' : type; if (postOnly) { t = \'ioc\'; } if (t === \'limit\' || t === \'ioc\') { return 1; } return 0; }',
             'string? t = ((string)(', 'object t = ');
+        check ('dict[lit] read used as a string receiver and returned from a string method -> string?',
+            'f (d: Dict, k): string { const u = d[\'stock\']; if (k) { return u.replace (\'/ws\', \'/stream\'); } return u; }',
+            'string? u = ((string)(', 'object u = ');
+        check ('dict[lit] read also stored in a map keeps object',
+            'f (d: Dict, k) { const u = d[\'stock\']; const r = u.replace (\'/ws\', \'/stream\'); return { \'u\': u, \'r\': r }; }',
+            'object u = ');
         check ('c ? lit : <written Str param> keeps object',
             'f (type: Str, postOnly) { type = \'x\'; let t: Str = postOnly ? \'post_only\' : type; if (t === \'limit\') { return 1; } return 0; }',
             'object t = ');
