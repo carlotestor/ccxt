@@ -5498,12 +5498,12 @@ if _try_result.is_err() {
             return Value::from(vec![]);
         }
         let mut result: Vec<Value> = Vec::new();
-        let mut futureSettlementCurrencies: Value = self.get_settlement_currencies(Some("future"), Some("fetchMarkets"));
+        let mut futureSettlementCurrencies: crate::value::List = self.get_settlement_currencies(Some("future"), Some("fetchMarkets")).into_list();
         {
                         let mut c: i64 = 0;
             let mut __for_first_686: bool = true;
             while { if !__for_first_686 { c += 1; } __for_first_686 = false; c < (futureSettlementCurrencies.len() as i64) } {
-            let mut settleId: Option<String> = self.safe_string_opt(futureSettlementCurrencies.clone(), Value::Int(c), &[]);
+            let mut settleId: Option<String> = self.safe_string_opt(&futureSettlementCurrencies, Value::Int(c), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("settle".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));

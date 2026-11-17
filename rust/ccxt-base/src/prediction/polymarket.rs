@@ -4798,8 +4798,8 @@ if _try_result.is_err() {
             while { if !__for_first_1455 { i += 1; } __for_first_1455 = false; i < (changes.len() as i64) } {
             let mut change: crate::value::Dict = self.safe_dict(&changes, Value::Int(i), &[]).into_dict();
             let mut tokenId: Option<String> = self.safe_string_k_opt(&change, "asset_id", &[]);
-            let mut outcome: Value = self.token_id_to_symbol(tokenId.as_deref()).map(Value::from).unwrap_or(Value::Null);
-            if (outcome == Value::Null) || !(self.orderbooks.has(&outcome)) {
+            let mut outcome: Option<String> = self.token_id_to_symbol(tokenId.as_deref());
+            if (outcome.is_none()) || !(self.orderbooks.has(&outcome)) {
                 continue;
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcome);
@@ -4812,7 +4812,7 @@ if _try_result.is_err() {
             sideRef.store_array(Value::from(vec![Value::from(price), Value::from(size)]));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
-            updated.insert(crate::runtime::stringify_param(&outcome), Value::Bool(true));
+            updated.insert(outcome.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
         }
         }
         let mut updatedSymbols: Vec<Value> = Value::Array(updated.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
