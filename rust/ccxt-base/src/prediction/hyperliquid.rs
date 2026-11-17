@@ -3017,7 +3017,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Option<String> {
+    pub fn amount_to_precision(&self, mut outcome: Value, amount: impl Into<crate::Value>) -> Option<String> {
+        let mut amount: Value = amount.into();
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3034,7 +3035,8 @@ impl Hyperliquid {
         return self.decimal_to_precision(amount, Value::Int(1), Value::from(decimals), &[Value::Int(2), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Option<String> {
+    pub fn price_to_precision(&self, mut outcome: Value, price: impl Into<crate::Value>) -> Option<String> {
+        let mut price: Value = price.into();
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

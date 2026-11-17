@@ -3052,7 +3052,8 @@ impl Hyperliquid {
         }).await?))
     }
 
-    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
+    pub fn amount_to_precision(&self, mut symbol: Value, amount: impl Into<crate::Value>) -> Option<String> {
+        let mut amount: Value = amount.into();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut result: Option<String> = self.decimal_to_precision(amount.clone(), Value::Int(crate::runtime::ROUND), self.safe_number_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
         // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
@@ -3065,7 +3066,8 @@ impl Hyperliquid {
         return result;
 }
 
-    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Option<String> {
+    pub fn price_to_precision(&self, mut symbol: Value, price: impl Into<crate::Value>) -> Option<String> {
+        let mut price: Value = price.into();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut priceStr: Option<String> = self.number_to_string(price.clone());
         let mut priceStrParts: Vec<Value> = Value::Array(if let Some(__s) = priceStr.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();

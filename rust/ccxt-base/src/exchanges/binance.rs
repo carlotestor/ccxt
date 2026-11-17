@@ -11921,7 +11921,7 @@ impl Binance {
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " editOrder() requires a triggerPrice extra param for a ").into()), type_var).into()), " order")));
             }  else {
-                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(triggerPrice))));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
             }
         }
         request.insert("cancelReplaceMode".into(), Value::Str("STOP_ON_FAILURE".into())); // If the cancel request fails, the new order placement will not be attempted.
@@ -13059,7 +13059,7 @@ impl Binance {
         let mut icebergAmount: Option<f64> = self.safe_number_k(&paramsPapi, "icebergAmount", &[]).as_f64();
         if (icebergAmount.is_some()) {
             if (market).spot {
-                request.insert("icebergQty".into(), Value::from(self.amount_to_precision(symbol, Value::from(icebergAmount))));
+                request.insert("icebergQty".into(), Value::from(self.amount_to_precision(symbol, icebergAmount)));
             }
         }
         let mut requestParams: crate::value::Dict = self.omit(&paramsStp, Value::from(omitKeys), &[]).into_dict();

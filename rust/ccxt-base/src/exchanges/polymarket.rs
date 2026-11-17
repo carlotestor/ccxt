@@ -4120,7 +4120,8 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Option<String> {
+    pub fn price_to_precision(&self, mut symbol: Value, price: impl Into<crate::Value>) -> Option<String> {
+        let mut price: Value = price.into();
         if (price == Value::Null) {
             return None;
         }
@@ -4141,7 +4142,8 @@ impl Polymarket {
         return result;
 }
 
-    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
+    pub fn amount_to_precision(&self, mut symbol: Value, amount: impl Into<crate::Value>) -> Option<String> {
+        let mut amount: Value = amount.into();
         if (amount == Value::Null) {
             return None;
         }

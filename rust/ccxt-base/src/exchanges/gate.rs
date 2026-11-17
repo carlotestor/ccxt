@@ -8358,7 +8358,7 @@ if _try_result.is_err() {
                     let mut cost: Option<f64> = self.safe_number_k(&query, "cost", &[]).as_f64();
                     query = self.omit(Value::Dict(query), Value::Str("cost".into()), &[]).into_dict();
                     if (cost.is_some()) {
-                        quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                        quoteAmount = self.cost_to_precision(symbol.clone(), cost);
                     }  else if createMarketBuyOrderRequiresPrice {
                         if (priceResolved == Value::Null) {
                             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
@@ -8445,10 +8445,10 @@ if _try_result.is_err() {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = (if (side.as_str() == Some("buy")) { Some(1) } else { Some(2) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice));
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), stopLossPrice);
                     }  else if isTakeProfitOrder {
                         rule = (if (side.as_str() == Some("buy")) { Some(2) } else { Some(1) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), takeProfitPrice);
                     }
                     let mut priceType: i64 = self.safe_integer_k(&query, "price_type", &[Value::Int(0)]).as_i64().unwrap_or(0);
                     if priceType < 0 || priceType > 2 {
@@ -8498,10 +8498,10 @@ if _try_result.is_err() {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = (if (side.as_str() == Some("buy")) { Some(">=".to_string()) } else { Some("<=".to_string()) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice));
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), stopLossPrice);
                     }  else if isTakeProfitOrder {
                         rule = (if (side.as_str() == Some("buy")) { Some("<=".to_string()) } else { Some(">=".to_string()) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), takeProfitPrice);
                     }
                     let mut triggerRequest: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();

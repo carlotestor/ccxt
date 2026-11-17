@@ -2007,7 +2007,7 @@ impl Onetrading {
             if (uppercaseType == "MARKET") {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() cannot place stop market orders, only stop limit")));
             }
-            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
             request.insert("type".into(), Value::Str("STOP".into()));
         }  else if (uppercaseType == "STOP") {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice param for ").into()), type_var).into()), " orders")));

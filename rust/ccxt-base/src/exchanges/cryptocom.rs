@@ -3100,14 +3100,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }  else {
                 request.insert("type".into(), Value::Str("STOP_LOSS".into()));
             }
-            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))));
+            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice)));
         }  else if isTakeProfitTrigger {
             if (uppercaseType == "LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
                 request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
             }  else {
                 request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
             }
-            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitPrice))));
+            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol, takeProfitPrice)));
         }  else {
             request.insert("type".into(), Value::from(uppercaseType));
         }
@@ -3396,7 +3396,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsCreateMarketBuy), Value::Str("cost".into()), Value::Str("notional".into()), &[]).as_f64();
             paramsMarketBuy = self.omit(&paramsCreateMarketBuy, Value::Str("cost".into()), &[]).into_dict();
             if (cost.is_some()) {
-                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                quoteAmount = self.cost_to_precision(symbol.clone(), cost);
             }  else if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));

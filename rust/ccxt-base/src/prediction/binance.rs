@@ -2316,7 +2316,8 @@ impl Binance {
     Value::Null
 }
 
-    pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Option<String> {
+    pub fn price_to_precision(&self, mut outcome: Value, price: impl Into<crate::Value>) -> Option<String> {
+        let mut price: Value = price.into();
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2329,7 +2330,8 @@ impl Binance {
         return self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Option<String> {
+    pub fn amount_to_precision(&self, mut outcome: Value, amount: impl Into<crate::Value>) -> Option<String> {
+        let mut amount: Value = amount.into();
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut prec: Option<f64> = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
