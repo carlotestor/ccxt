@@ -24959,6 +24959,12 @@ export function installJavaR92j3SafeIntegerOperands (transpiler) {
     printer._javaR92j3SafeIntegerOperandsPatched = true;
     const upstream = printer.javaProvableNumericKind.bind (printer);
     printer.javaProvableNumericKind = function (node, allowDeclaredLocals = true) {
+        // a negated whole-number literal `-N` prints `-N`: a primitive operand like N itself
+        const bare = unwrapParens (node);
+        if (bare !== undefined && ts.isPrefixUnaryExpression (bare) && bare.operator === ts.SyntaxKind.MinusToken
+            && r87j3IntLiteral (bare.operand)) {
+            return 'long';
+        }
         const kind = upstream (node, allowDeclaredLocals);
         // the call form relies on no retyped local, so it also answers `+` (allowDeclaredLocals false)
         if (kind !== undefined || (!allowDeclaredLocals && !ts.isCallExpression (unwrapParens (node) ?? node))) {
