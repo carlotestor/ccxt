@@ -2706,6 +2706,18 @@ function wsHashPrefixes (node, scope, params, depth) {
         }
         return out;
     }
+    case ts.SyntaxKind.CallExpression: {
+        const key = wsSubscriptionKeyRead (node, scope);
+        if (key === undefined) {
+            return any;
+        }
+        const out = wsSubscriptionKeyPrefixes (node.getSourceFile (), key, depth);
+        if (out === undefined) {
+            return any;
+        }
+        const fallback = node.arguments[2];
+        return (fallback === undefined) ? out : out.concat (wsHashPrefixes (fallback, scope, params, depth + 1));
+    }
     case ts.SyntaxKind.ElementAccessExpression: {
         // `hashes[i]` of `const hashes = this.findMessageHashes (client, 'lit')`: a hash holding 'lit'
         const list = (node.expression?.kind === ts.SyntaxKind.Identifier) ? wsIdentifierWrites (node.expression, scope) : undefined;
@@ -2829,6 +2841,42 @@ function wsHashListPrefixes (node, scope, params, depth) {
 
 // a `contains` hash meets a watched prefix holding its literal, or one whose literal is
 // a prefix of it (unified symbols carry no hash family tag)
+// `this.safeString (subscription, 'k')` on the handler's `subscription` parameter: the key's value
+// is what the file's own subscription literals store under 'k'
+function wsSubscriptionKeyRead (call, scope) {
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'safeString' || call.arguments.length < 2 || call.arguments[1].kind !== ts.SyntaxKind.StringLiteral) {
+        return undefined;
+    }
+    const receiver = call.arguments[0];
+    const isParam = receiver?.kind === ts.SyntaxKind.Identifier && receiver.text === 'subscription'
+        && (scope?.parameters ?? []).some ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === 'subscription');
+    return isParam ? call.arguments[1].text : undefined;
+}
+
+function wsSubscriptionKeyPrefixes (source, key, depth) {
+    const out = [];
+    let ok = true;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.PropertyAssignment && (n.name?.kind === ts.SyntaxKind.StringLiteral || n.name?.kind === ts.SyntaxKind.Identifier) && n.name.text === key) {
+            out.push (...wsHashPrefixes (n.initializer, enclosingFunction (n), undefined, depth + 1));
+        } else if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken?.kind === ts.SyntaxKind.EqualsToken
+                && n.left?.kind === ts.SyntaxKind.ElementAccessExpression && n.left.argumentExpression?.kind === ts.SyntaxKind.StringLiteral
+                && n.left.argumentExpression.text === key) {
+            out.push (...wsHashPrefixes (n.right, enclosingFunction (n), undefined, depth + 1));
+        } else if (n.kind === ts.SyntaxKind.ShorthandPropertyAssignment && n.name?.text === key) {
+            ok = false;
+        }
+        n?.forEachChild (visit);
+    };
+    source?.forEachChild (visit);
+    return (ok && out.length > 0) ? out : undefined;
+}
+
 function wsPrefixesMeet (a, b) {
     if (a.contains || b.contains) {
         const [ c, o ] = a.contains ? [ a, b ] : [ b, a ];
