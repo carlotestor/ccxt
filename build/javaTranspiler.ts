@@ -5902,6 +5902,28 @@ function javaR84j5CalleeReturnsSelfTest (): string[] {
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
 function mapLocalsSelfTest (): string[] {
     const problems: string[] = [];
+    // ral-87j7: a prediction venue's parsePredictionOrder (returns this.safePredictionOrder ({..})) is a
+    // fresh map through base/PredictionExchange.ts: its result local prints Map and the write a native put;
+    // parsePredictionPositions / parsePredictionTrades results print List<Object> read by size()/get
+    const r87j7 = path.join(process.cwd(), 'ts', 'src', 'prediction', `zz87j7selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r87j7, [
+            "import Exchange from '../abstract/prediction/kalshi.js';",
+            "import type { Dict, Market, PredictionOrder } from '../base/types.js';",
+            'export default class zz87j7selftest extends Exchange {',
+            "    zzCancel (response: Dict, id: string) { const order = this.parsePredictionOrder (response); order['id'] = id; return order; }",
+            "    zzPositions (rows: any[]) { const parsed = this.parsePredictionPositions (rows); let n = 0; for (let i = 0; i < parsed.length; i++) { n += 1; } return n; }",
+            "    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder { return this.safePredictionOrder ({ 'id': this.safeString (order, 'id') }, market); }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j7).content as string;
+        if (!/Map<String, ?Object> order = this\.parsePredictionOrder\(/.test(out) || !/order\.put\("id", id\);/.test(out)) problems.push("ral-87j7: a prediction-order result local must print Map with a native put");
+        if (!/List<Object> parsed = this\.parsePredictionPositions\(/.test(out) || !/i < parsed\.size\(\)/.test(out)) problems.push("ral-87j7: a parsePredictionPositions result must print List<Object> read by size()");
+    } catch (e: any) {
+        problems.push(`ral-87j7 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(r87j7, { force: true });
+    }
     // ral-77j3: `url = <string> + url` keeps a non-null String local String (its own read anchors the native concat)
     const selfAnchored = path.join(process.cwd(), 'ts', 'src', `zz77j3selftest${process.pid}.ts`);
     try {
