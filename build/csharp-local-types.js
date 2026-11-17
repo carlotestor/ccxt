@@ -21360,3 +21360,66 @@ function listBucketMapReadLocal87c7 (csharp, declaration, context) {
     const type = 'List<object>';
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type, castWhole: true } : undefined;
 }
+
+// ===== 90c5: copies of typed parameters and locals (continues 87c5 / 84c5) =====
+// (R1) a read of a `Dict` parameter the D-17 rule prints `IDictionary<string, object>` (csharpParameterDecision:
+// every declaration, body and call-site argument proves the dictionary; the parameter is never written)
+// has that static type, exactly as the trailing params bag of dictParamsCopyReadType. `let q = query`
+// then starts its join at the interface; the 84c5 wrapper keeps the copy `object` unless some use is
+// native (dictParamsCopyHasNativeUse: omit receiver, indexer, `in`). It answers nothing while a call-site
+// parameter proof runs (c5ParameterProofDepth), so no signature moves (lane 90c1 owns signatures).
+function c90DictAliasParameterReadType (csharp, scope, identifier) {
+    if (c5ParameterProofDepth > 0 || scope?.kind !== ts.SyntaxKind.MethodDeclaration || enclosingFunction (identifier) !== scope) {
+        return undefined;
+    }
+    const parameter = (scope.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === identifier.text);
+    if (parameter === undefined || parameterIsRefSunk (csharp, identifier) || useRefersToDeclaration (csharp, scope, parameter, identifier) === false) {
+        return undefined;
+    }
+    return (csharpParameterDecision (csharp, parameter) === 'IDictionary<string, object>') ? 'IDictionary<string, object>' : undefined;
+}
+const c90UpstreamDictParamsCopyReadType = dictParamsCopyReadType;
+// eslint-disable-next-line no-func-assign
+dictParamsCopyReadType = function (csharp, scope, identifier) {
+    return c90UpstreamDictParamsCopyReadType (csharp, scope, identifier) ?? c90DictAliasParameterReadType (csharp, scope, identifier);
+};
+// (R1 guard) a copy that a destructuring slot writes (`[ x, q ] = ...`) would print the slot read behind a
+// bare `(IDictionary<string, object>)` write cast (a counted conversion): such a copy keeps `object`
+function c90DestructuredSlotWritten (csharp, scope, declaration) {
+    const name = declaration.name?.text;
+    for (const n of (indexScope (csharp, scope).identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        let use = n;
+        while (use.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            use = use.parent;
+        }
+        if (use.parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            return true;
+        }
+    }
+    return false;
+}
+const c90UpstreamLocalDeclarationR1 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = c90UpstreamLocalDeclarationR1 (csharp, declaration, context);
+    if (info === undefined || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return info;
+    }
+    const init = stripParens (declaration.initializer);
+    if (init?.kind !== ts.SyntaxKind.Identifier) {
+        return info;
+    }
+    const scope = (context?.scope) ?? enclosingFunction (declaration);
+    if (c90DictAliasParameterReadType (csharp, scope, init) === undefined || c90UpstreamDictParamsCopyReadType (csharp, scope, init) !== undefined) {
+        return info;
+    }
+    // a declaration already emitted `object` answers `object` for good: a later classification (a read
+    // inside another local's initializer) must not name the interface the printed line does not carry
+    if (printedObjectDeclarations.has (declaration)) {
+        return undefined;
+    }
+    return c90DestructuredSlotWritten (csharp, scope, declaration) ? undefined : info;
+};
