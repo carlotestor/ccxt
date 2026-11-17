@@ -706,11 +706,10 @@ export default class hyperliquid extends Exchange {
             // no filter — warm the whole outcome set so identities resolve from the cache
             await this.loadOutcomes ();
         }
-        const response = await this.publicPostInfoDict (this.extend ({ 'type': 'allMids' }, params));
+        const allMids: Dict = await this.publicPostInfoDict (this.extend ({ 'type': 'allMids' }, params));
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        const allMids: Dict = response;
         const mids = this.safeDict (allMids, 'mids', allMids);
         const tickers: PredictionTickers = {};
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
@@ -898,7 +897,7 @@ export default class hyperliquid extends Exchange {
             },
         };
         const paramsOmitted: Dict = this.omit (params, 'until');
-        const response = await this.publicPostInfoList (this.extend (request, paramsOmitted));
+        const candles: List = await this.publicPostInfoList (this.extend (request, paramsOmitted));
         //
         //     [
         //         {
@@ -915,7 +914,6 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        const candles: List = response;
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -1502,9 +1500,8 @@ export default class hyperliquid extends Exchange {
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchOpenOrders', params);
         const [ method, paramsMethod ] = this.handleOptionStringAndParams (paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         const request = { 'type': method, 'user': userAddress };
-        const response = await this.publicPostInfoList (this.extend (request, paramsMethod));
+        const rawOrders: Dict[] = await this.publicPostInfoList (this.extend (request, paramsMethod));
         const ordersWithStatus: Dict[] = [];
-        const rawOrders: Dict[] = response;
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
             ordersWithStatus.push (this.extend (order, { 'ccxtStatus': 'open' }));
@@ -1534,10 +1531,9 @@ export default class hyperliquid extends Exchange {
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchOrders', params);
         const request = { 'type': 'historicalOrders', 'user': userAddress };
-        const response = await this.publicPostInfoList (this.extend (request, paramsPublicAddress));
+        const historicalOrders: Dict[] = await this.publicPostInfoList (this.extend (request, paramsPublicAddress));
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped: Dict = {};
-        const historicalOrders: Dict[] = response;
         for (let i = 0; i < historicalOrders.length; i++) {
             const raw = historicalOrders[i];
             let entry = this.safeDict (raw, 'order');
@@ -1592,8 +1588,7 @@ export default class hyperliquid extends Exchange {
             const isCloid = id.length >= 34;
             request['oid'] = isCloid ? id : this.parseToNumeric (id);
         }
-        const response = await this.publicPostInfoDict (this.extend (request, paramsValue));
-        const orderStatus: Dict = response;
+        const orderStatus: Dict = await this.publicPostInfoDict (this.extend (request, paramsValue));
         const orderWrapper = this.safeDict (orderStatus, 'order', orderStatus);
         const parsed = this.parsePredictionOrder (orderWrapper, undefined);
         if (outcome !== undefined) {
@@ -2240,21 +2235,13 @@ export default class hyperliquid extends Exchange {
     }
 
     async publicPostInfoList (params: Dict = {}): Promise<Dict[]> {
-        // info requests whose documented answer is a JSON array; any other body reads as no rows
-        const response = await this.publicPostInfo (params);
-        if (Array.isArray (response)) {
-            return response;
-        }
-        return [];
+        // info requests documented to answer a JSON array: any other body reads as no rows
+        return this.safeList ([ await this.publicPostInfo (params) ], 0, []);
     }
 
     async publicPostInfoDict (params: Dict = {}): Promise<Dict> {
-        // info requests whose documented answer is a JSON object; any other body reads as empty
-        const response = await this.publicPostInfo (params);
-        if ((typeof response !== 'string') && !Array.isArray (response)) {
-            return response;
-        }
-        return {};
+        // info requests documented to answer a JSON object: any other body reads as empty
+        return this.safeDict ([ await this.publicPostInfo (params) ], 0, {});
     }
 
     handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
