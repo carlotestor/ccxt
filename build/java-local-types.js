@@ -2476,6 +2476,9 @@ const VENUE_RETURN_KINDS = {
     // base `convertMarketIdExpireDate (date: Str): Str` (no override in ts/src): returns undefined or its String
     // concat; the bybit / deribit `expiry` seeds it writes are handed to String slots (convertExpireDate*)
     'convertMarketIdExpireDate': [ 'String' ],
+    // pro kraken `formatNumber (data: string): string` (one declaration in ts/src): returns its own concat
+    // of two safeString (.., '') reads, trimmed by slice; the checksum concat of two calls goes native
+    'formatNumber': [ 'String' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -25009,6 +25012,17 @@ function r92j3HexStringCall (printer, node) {
     return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName);
 }
 
+// pro kraken `this.formatNumber (x)`: printed `public String` (VENUE_RETURN_KINDS) and never null (its
+// one return is a local seeded by a concat of two defaulted safeString reads, then sliced)
+function r93j3FormatNumberCall (printer, node) {
+    const call = unwrapParens (node);
+    if (!isThisCall (call) || call.expression.name.text !== 'formatNumber' || call.arguments.length !== 1
+        || r87j6UnderPropertyAssignment (call)) {
+        return false;
+    }
+    return venueCallJavaType (printer, call) === 'String';
+}
+
 export function installJavaR92j3HexStringCalls (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || printer._javaR92j3HexStringCallsPatched) {
@@ -25017,7 +25031,7 @@ export function installJavaR92j3HexStringCalls (transpiler) {
     printer._javaR92j3HexStringCallsPatched = true;
     const upstream = printer.javaExpressionTypeResolver;
     printer.javaExpressionTypeResolver = function (node) {
-        if (r92j3HexStringCall (printer, node)) {
+        if (r92j3HexStringCall (printer, node) || r93j3FormatNumberCall (printer, node)) {
             return 'String';
         }
         return typeof upstream === 'function' ? upstream (node) : undefined;
