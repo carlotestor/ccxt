@@ -14508,20 +14508,17 @@ export function patchJavaDeclaredMapReceiverCasts (transpiler) {
             return printed;
         }
         const head = `${JAVA_MAP_RECEIVER_CAST}${receiver.text}).get(`;
-        if (printed.startsWith (head) && printer.javaDeclaredMapReceiver (receiver)) {
-            return `${receiver.text}.get(` + printed.slice (head.length);
-        }
-        return printed;
+        return printed.startsWith (head) && printer.javaDeclaredMapReceiver (receiver)
+            ? `${receiver.text}.get(` + printed.slice (head.length) : printed;
     };
-    // a required tuple slot `x[i]` (numeric literal) on a local declared List<Object> (a typed tuple core
-    // result) binds List.get on the declaration: decided from the checker and the declaration, no cast
+    // `x[N]` (required slot) on a const bound to `await this.m (..)` of a proven venue tuple core: x is
+    // declared List<Object>, so List.get binds with no cast (decided from the binding and the checker)
     const tupleRead = printer.printCheckerTypedElementAccessRead.bind (printer);
     printer.printCheckerTypedElementAccessRead = function (node) {
         const receiver = node?.expression;
         const key = node?.argumentExpression;
         if (receiver !== undefined && ts.isIdentifier (receiver) && key !== undefined && ts.isNumericLiteral (key)
-            && typeof printer.javaDeclaredTypeOf === 'function' && typeof printer.isJavaListStructureType === 'function'
-            && /^(java\.util\.)?List<Object>$/.test (printer.javaDeclaredTypeOf (receiver) ?? '')) {
+            && typeof printer.isJavaListStructureType === 'function' && typedTupleCoreBinding (printer, receiver)) {
             let type;
             try {
                 type = printer.getChecker ().getTypeAtLocation (receiver);
@@ -14536,6 +14533,22 @@ export function patchJavaDeclaredMapReceiverCasts (transpiler) {
         }
         return tupleRead (node);
     };
+}
+
+function typedTupleCoreBinding (printer, identifier) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)
+        || (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) === 0) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    const call = init?.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (init.expression) : undefined;
+    return isThisCall (call) && javaVenueTupleCoreProven (call.expression.name.text);
 }
 
 // ===== 32. element reads on a base field declared Map<String, Object> =====
