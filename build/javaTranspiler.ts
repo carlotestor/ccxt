@@ -10672,6 +10672,7 @@ function javaR92j8LocalsSelfTest (): string[] {
         "    async zzr92j8Outer (params: Dict = {}): Promise<Dict[]> {",
         "        return await this.zzr92j8Inner (params);",
         "    }",
+        "    omitPerBinding (a: Dict, flag: boolean) { if (flag) { let tickers = [ 1 ]; tickers = [ 2 ]; return tickers; } const data = this.safeDict (a, 'data', {}); const tickers = this.omit (data, 'date'); return Object.keys (tickers).length; }",
         "    async zzr92j8Use (q: string, params: Dict = {}) { const first = await this.zzr92j8Inner (params); let rows: List = []; if (q !== undefined) { rows = await this.zzr92j8Outer (params); } return [ first.length, rows.length ]; }",
         '}',
     ].join('\n');
@@ -10680,6 +10681,7 @@ function javaR92j8LocalsSelfTest (): string[] {
         resetJavaVenueIndexes();
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<Object> rows = /.test(out) || !/\brows\.size\(\)/.test(out)) problems.push("'rows' (let x: List = [] written from a list fetcher) must print List<Object> with a native size()");
+        if (!/Map<String, Object> tickers = this\.omit\(/.test(out)) problems.push("'tickers' (omit of a Map, a same-named sibling binding written elsewhere) must print Map<String, Object>");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);

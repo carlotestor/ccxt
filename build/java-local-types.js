@@ -3911,8 +3911,13 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         return false;
     }
     const uses = identifierIndex (scope).get (sourceName) ?? [];
+    // a family opting in (info.ownBinding) skips uses of a same-named sibling binding (checker symbol)
+    const own = info?.ownBinding === true ? printer.getChecker ().getSymbolAtLocation (declaration.name) : undefined;
     for (const n of uses) {
         if (n === declaration.name) {
+            continue;
+        }
+        if (own !== undefined && printer.getChecker ().getSymbolAtLocation (n) !== own) {
             continue;
         }
         const parent = n.parent;
@@ -13164,7 +13169,7 @@ function javaOmitLocalType (printer, declaration) {
     const writeOk = (right) => javaOmitMapCall (printer, right) !== undefined || javaOmitMapTernary (printer, right) !== undefined
         || javaOmitSelfCall (printer, right, declaration) || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE;
     return isSafeToNarrow (printer, declaration, String (declaration.name.text), JAVA_STRUCTURE_TYPE, isProFile,
-        { noCastAssertions: true, writeOk, destructureOk: (assignment, at) => at === 1 && handleElement1Type (printer, unwrapParens (assignment.right)) !== undefined })
+        { noCastAssertions: true, ownBinding: true, writeOk, destructureOk: (assignment, at) => at === 1 && handleElement1Type (printer, unwrapParens (assignment.right)) !== undefined })
         ? info : undefined;
 }
 
