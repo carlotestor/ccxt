@@ -1800,7 +1800,7 @@ function javaCoreVenueTable (tier) {
         const merged = new Map (typedReturnTable (tier));
         for (const [ name, javaReturnType ] of javaVenueAsyncReturnTable ()) {
             if (!merged.has (name)) {
-                merged.set (name, { name, javaReturnType, isArray: false });
+                merged.set (name, { name, javaReturnType, isArray: false, returnsProven: javaVenueTupleCoreProven (name) });
             }
         }
         javaCoreTierTables.set (key, merged);
@@ -11371,11 +11371,13 @@ const JAVA_VENUE_RETURN_MAP = {
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];
+const javaVenueTupleNames = new Set ();
 
 // self-test hook: drop the ts/src indexes so a probe file written after they were built is seen
 export function resetJavaVenueIndexes () {
     javaVenueReturnTable = undefined;
     javaVenueListFiles.length = 0;
+    javaVenueTupleNames.clear ();
     javaFreshMapMethodIndex = undefined;
 }
 
@@ -11484,6 +11486,7 @@ function javaVenueListReturnsProven (file, name, listNames = new Set ()) {
                 const value = unwrapParens (node.expression);
                 const awaited = value !== undefined && value.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (value.expression) : undefined;
                 ok = value !== undefined && (ts.isIdentifier (value)
+                    || (javaVenueTupleNames.has (name) && ts.isArrayLiteralExpression (value))
                     || (isThisCall (value) && value.expression.name.text === 'arraySlice')
                     || (isThisCall (awaited) && listNames.has (awaited.expression.name.text)));
                 return;
@@ -11530,7 +11533,12 @@ export function javaVenueAsyncReturnTable () {
             javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )(\w+) \(/, (m, line) => {
                 const full = /^ {4}(async )?\w+ \(.*\)\s*(?::\s*(.+?))?\s*\{\s*$/.exec (line);
                 const promise = full === null ? undefined : /^Promise<(\w+(?:\[\])?)>$/.exec (full[2] ?? '');
-                const spelling = (full !== null && full[1] !== undefined && promise) ? JAVA_VENUE_RETURN_MAP[promise[1]] : undefined;
+                // a `Promise<[A, B]>` tuple core prints List<Object> when every return is an array literal
+                const tuple = full !== null && full[1] !== undefined && /^Promise<\[[^\]]*\]>$/.test (full[2] ?? '');
+                if (tuple) {
+                    javaVenueTupleNames.add (m[2]);
+                }
+                const spelling = (full !== null && full[1] !== undefined && promise) ? JAVA_VENUE_RETURN_MAP[promise[1]] : tuple ? 'List<Object>' : undefined;
                 const set = seen.get (m[2]) ?? new Set ();
                 if (spelling === 'List<Object>') {
                     javaVenueListFiles.push ([ m[2], path.join (JAVA_VENUE_TS_ROOT, dir, f) ]);
@@ -11576,6 +11584,11 @@ export function javaVenueAsyncReturnTable () {
         }
     }
     return javaVenueReturnTable;
+}
+
+// tuple cores whose every return the TS AST proved an array literal (prints ArrayList<Object>): no cast lambda
+export function javaVenueTupleCoreProven (name) {
+    return javaVenueAsyncReturnTable ().get (name) === 'List<Object>' && javaVenueTupleNames.has (name);
 }
 
 // the local type of `await this.m (...)` for a table method declared outside ts/src/base
@@ -13899,6 +13912,8 @@ function javaTupleElementReadForms (list, k) {
         `(${list} == null || ${k} >= ((java.util.List<?>)${list}).size() ? null : ((java.util.List<?>)${list}).get(${k}))`,
         `(${list} == null || ${k} >= ${list}.size() ? null : ${list}.get(${k}))`,
         `Helpers.GetValue(${list}, ${k})`,
+        // a holder declared List<Object> (proven venue tuple core result) reads with no cast
+        `${list}.get(${k})`,
     ];
 }
 
@@ -14498,6 +14513,44 @@ export function patchJavaDeclaredMapReceiverCasts (transpiler) {
         return printed.startsWith (head) && printer.javaDeclaredMapReceiver (receiver)
             ? `${receiver.text}.get(` + printed.slice (head.length) : printed;
     };
+    // `x[N]` (required slot) on a const bound to `await this.m (..)` of a proven venue tuple core: x is
+    // declared List<Object>, so List.get binds with no cast (decided from the binding and the checker)
+    const tupleRead = printer.printCheckerTypedElementAccessRead.bind (printer);
+    printer.printCheckerTypedElementAccessRead = function (node) {
+        const receiver = node?.expression;
+        const key = node?.argumentExpression;
+        if (receiver !== undefined && ts.isIdentifier (receiver) && key !== undefined && ts.isNumericLiteral (key)
+            && typeof printer.isJavaListStructureType === 'function' && typedTupleCoreBinding (printer, receiver)) {
+            let type;
+            try {
+                type = printer.getChecker ().getTypeAtLocation (receiver);
+            } catch (e) {
+                type = undefined;
+            }
+            const index = Number (key.text);
+            if (type !== undefined && printer.isJavaListStructureType (type) && Number.isInteger (index)
+                && index >= 0 && index < printer.tupleRequiredElementCount (type) && tupleRead (node) !== undefined) {
+                return `${receiver.text}.get(${printer.printNode (key, 0)})`;
+            }
+        }
+        return tupleRead (node);
+    };
+}
+
+function typedTupleCoreBinding (printer, identifier) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)
+        || (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) === 0) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    const call = init?.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (init.expression) : undefined;
+    return isThisCall (call) && javaVenueTupleCoreProven (call.expression.name.text);
 }
 
 // ===== 32. element reads on a base field declared Map<String, Object> =====
