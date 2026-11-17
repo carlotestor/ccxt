@@ -1788,11 +1788,12 @@ impl Backpack {
         let mut asks: crate::value::List = self.safe_list_k(delta, "a", &[Value::from(vec![])]).into_list();
         let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
         let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
-        self.handle_bid_asks(storedBids, Value::Arr(bids));
-        self.handle_bid_asks(storedAsks, Value::Arr(asks));
+        self.handle_bid_asks(storedBids, &bids);
+        self.handle_bid_asks(storedAsks, &asks);
 }
 
-    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, mut bidAsks: Value) {
+    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, bidAsks: impl Into<crate::Value>) {
+        let mut bidAsks: Value = bidAsks.into();
         let __bidAsks_empty = Vec::new();
         let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
         {

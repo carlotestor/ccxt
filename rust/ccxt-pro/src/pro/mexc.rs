@@ -1304,7 +1304,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
-    pub fn handle_bookside_delta(&self, mut bookside: crate::pro::order_book::Side, mut bidasks: Value) {
+    pub fn handle_bookside_delta(&self, mut bookside: crate::pro::order_book::Side, bidasks: impl Into<crate::Value>) {
+        let mut bidasks: Value = bidasks.into();
         let __bidasks_empty = Vec::new();
         let bidasks = bidasks.as_array().unwrap_or(&__bidasks_empty);
         {
@@ -1334,8 +1335,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut bids: crate::value::List = self.safe_list_k(delta, "bids", &[Value::from(vec![])]).into_list();
         let mut asksOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
         let mut bidsOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
-        self.handle_bookside_delta(asksOrderSide, Value::Arr(asks));
-        self.handle_bookside_delta(bidsOrderSide, Value::Arr(bids));
+        self.handle_bookside_delta(asksOrderSide, &asks);
+        self.handle_bookside_delta(bidsOrderSide, &bids);
 }
 
 /*

@@ -876,8 +876,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub async fn subscribe_public_multiple_uta(&mut self, mut messageHashes: Value, channel: &str, mut symbols: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_public_multiple_uta(&mut self, mut messageHashes: Value, channel: &str, symbols: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut channel: Value = channel.into();
+        let mut symbols: Value = symbols.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -939,7 +940,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             messageHashes.push(Value::from(subMessageHash));
         }
         }
-        let mut tickers: Value = self.subscribe_public_multiple_uta(Value::from(messageHashes), "ticker", Value::Arr(symbolsNormalized.clone()), &[params]).await;
+        let mut tickers: Value = self.subscribe_public_multiple_uta(Value::from(messageHashes), "ticker", &symbolsNormalized, &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return tickers;
         }
@@ -2526,17 +2527,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else if (changes != Value::Null) {
             let mut bids: crate::value::List = self.safe_list_k(changes.clone(), "bids", &[Value::from(vec![])]).into_list();
             let mut asks: crate::value::List = self.safe_list_k(changes, "asks", &[Value::from(vec![])]).into_list();
-            self.handle_bid_asks(storedBids.clone(), Value::Arr(bids));
-            self.handle_bid_asks(storedAsks.clone(), Value::Arr(asks));
+            self.handle_bid_asks(storedBids.clone(), &bids);
+            self.handle_bid_asks(storedAsks.clone(), &asks);
         }  else {
             let mut bids: crate::value::List = self.safe_list2(delta.clone(), Value::Str("bids".into()), Value::Str("b".into()), &[Value::from(vec![])]).into_list();
             let mut asks: crate::value::List = self.safe_list2(delta, Value::Str("asks".into()), Value::Str("a".into()), &[Value::from(vec![])]).into_list();
-            self.handle_bid_asks(storedBids, Value::Arr(bids));
-            self.handle_bid_asks(storedAsks, Value::Arr(asks));
+            self.handle_bid_asks(storedBids, &bids);
+            self.handle_bid_asks(storedAsks, &asks);
         }
 }
 
-    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, mut bidAsks: Value) {
+    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, bidAsks: impl Into<crate::Value>) {
+        let mut bidAsks: Value = bidAsks.into();
         let __bidAsks_empty = Vec::new();
         let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
         {

@@ -3417,8 +3417,9 @@ impl Bitget {
     Value::Null
 }
 
-    pub async fn watch_public_multiple(&mut self, uta: bool, mut messageHashes: Value, mut argsArray: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_public_multiple(&mut self, uta: bool, mut messageHashes: Value, argsArray: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut uta: Value = uta.into();
+        let mut argsArray: Value = argsArray.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -416,7 +416,8 @@ impl Gemini {
         }
 }
 
-    pub fn handle_trades_for_multidata(&mut self, mut client: Value, mut trades: Value, mut timestamp: Value) {
+    pub fn handle_trades_for_multidata(&mut self, mut client: Value, trades: impl Into<crate::Value>, mut timestamp: Value) {
+        let mut trades: Value = trades.into();
         let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut storesForSymbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -748,7 +749,8 @@ impl Gemini {
         }).await?))
     }
 
-    pub fn handle_bids_asks_for_multidata(&mut self, mut client: Value, mut rawBidAskChanges: Value, mut timestamp: Value, mut nonce: Value) {
+    pub fn handle_bids_asks_for_multidata(&mut self, mut client: Value, rawBidAskChanges: impl Into<crate::Value>, mut timestamp: Value, mut nonce: Value) {
+        let mut rawBidAskChanges: Value = rawBidAskChanges.into();
         //
         // {
         //     eventId: '1683002916916153',
@@ -882,7 +884,8 @@ impl Gemini {
     Value::Null
 }
 
-    pub fn handle_order_book_for_multidata(&mut self, mut client: Value, mut rawOrderBookChanges: Value, mut timestamp: Value, mut nonce: Value) {
+    pub fn handle_order_book_for_multidata(&mut self, mut client: Value, rawOrderBookChanges: impl Into<crate::Value>, mut timestamp: Value, mut nonce: Value) {
+        let mut rawOrderBookChanges: Value = rawOrderBookChanges.into();
         //
         // rawOrderBookChanges
         //

@@ -897,7 +897,7 @@ impl Gate {
                 m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
-        let mut orderbook: Value = self.subscribe_public(url.as_deref(), messageHash.as_str(), Value::Arr(payload), Some(channel.as_str()), &[Value::Dict(query), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.subscribe_public(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), &[Value::Dict(query), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1192,7 +1192,8 @@ impl Gate {
     Value::Null
 }
 
-    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, mut bidAsks: Value) {
+    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, bidAsks: impl Into<crate::Value>) {
+        let mut bidAsks: Value = bidAsks.into();
         let __bidAsks_empty = Vec::new();
         let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
         {
@@ -1220,8 +1221,8 @@ impl Gate {
         let mut asks: crate::value::List = self.safe_list_k(delta, "a", &[Value::from(vec![])]).into_list();
         let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
         let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
-        self.handle_bid_asks(storedBids, Value::Arr(bids));
-        self.handle_bid_asks(storedAsks, Value::Arr(asks));
+        self.handle_bid_asks(storedBids, &bids);
+        self.handle_bid_asks(storedAsks, &asks);
 }
 
 /*
@@ -1381,7 +1382,7 @@ impl Gate {
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
-        let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_opt_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_list();
         let channelNameparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsCallerMethodName, callerMethodNameOption.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("method".into()), &[Value::Str("".into())]).as_array().cloned().unwrap_or_default();
         let mut channelName: Option<String> = channelNameparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = channelNameparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1404,7 +1405,7 @@ impl Gate {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, ":").into()), symbol.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut tickerOrBidAsk: Value = self.subscribe_public_multiple(url.as_deref(), Value::from(messageHashes), marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[Value::Dict(paramsMethod)]).await;
+        let mut tickerOrBidAsk: Value = self.subscribe_public_multiple(url.as_deref(), Value::from(messageHashes), &marketIds, Some(channel.as_str()), &[Value::Dict(paramsMethod)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut items: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1712,8 +1713,8 @@ impl Gate {
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".candlesticks");
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", interval.as_deref().unwrap_or("null")).into()), ":").into()), Value::from((market).symbol.clone()));
         let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
-        let mut payload: Value = Value::from(vec![interval.map(Value::from).unwrap_or(Value::Null), marketId.map(Value::from).unwrap_or(Value::Null)]);
-        let mut ohlcv: Value = self.subscribe_public(url.as_deref(), messageHash.as_str(), payload, Some(channel.as_str()), &[params]).await;
+        let mut payload: crate::value::List = std::sync::Arc::new(vec![interval.map(Value::from).unwrap_or(Value::Null), marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut ohlcv: Value = self.subscribe_public(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -3223,9 +3224,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return reqid;
 }
 
-    pub async fn subscribe_public(&mut self, url: Option<&str>, messageHash: &str, mut payload: Value, channel: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_public(&mut self, url: Option<&str>, messageHash: &str, payload: impl Into<crate::Value>, channel: Option<&str>, optional_args: &[Value]) -> Value {
         let mut url: Value = url.into();
         let mut messageHash: Value = messageHash.into();
+        let mut payload: Value = payload.into();
         let mut channel: Value = channel.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3256,8 +3258,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn subscribe_public_multiple(&mut self, url: Option<&str>, mut messageHashes: Value, mut payload: Value, channel: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_public_multiple(&mut self, url: Option<&str>, mut messageHashes: Value, payload: impl Into<crate::Value>, channel: Option<&str>, optional_args: &[Value]) -> Value {
         let mut url: Value = url.into();
+        let mut payload: Value = payload.into();
         let mut channel: Value = channel.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();

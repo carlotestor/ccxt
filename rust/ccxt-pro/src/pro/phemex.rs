@@ -523,7 +523,8 @@ impl Phemex {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, mut type_var: Value, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, mut type_var: Value, mut client: Value, message: impl Into<crate::Value>) {
+        let mut message: Value = message.into();
         // spot
         //    [
         //       {
@@ -1177,7 +1178,8 @@ impl Phemex {
         bookside.store_array(Value::Arr(bidAsk));
 }
 
-    pub fn custom_handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value, optional_args: &[Value]) {
+    pub fn custom_handle_deltas(&self, mut bookside: crate::pro::order_book::Side, deltas: impl Into<crate::Value>, optional_args: &[Value]) {
+        let mut deltas: Value = deltas.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
@@ -1273,8 +1275,8 @@ impl Phemex {
                 })]).into_dict();
                 let mut asks: crate::value::List = self.safe_list_k(&changes, "asks", &[Value::from(vec![])]).into_list();
                 let mut bids: crate::value::List = self.safe_list_k(&changes, "bids", &[Value::from(vec![])]).into_list();
-                self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks), &[crate::Value::from(&market)]);
-                self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids), &[crate::Value::from(&market)]);
+                self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), &asks, &[crate::Value::from(&market)]);
+                self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), &bids, &[crate::Value::from(&market)]);
                 orderbook.set_book_meta("nonce", Value::from(nonce));
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
                 orderbook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -1351,7 +1353,8 @@ impl Phemex {
         }).await?))
     }
 
-    pub fn handle_my_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_my_trades(&self, mut client: Value, message: impl Into<crate::Value>) {
+        let mut message: Value = message.into();
         let __message_empty = Vec::new();
         let message = message.as_array().unwrap_or(&__message_empty);
         //
@@ -1763,7 +1766,7 @@ impl Phemex {
             }
             }
         }
-        self.handle_my_trades(client.clone(), Value::Arr(trades));
+        self.handle_my_trades(client.clone(), &trades);
         let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2123,7 +2126,7 @@ impl Phemex {
                 type_var = "perpetual".to_string();
             }
             let mut accounts: crate::value::List = self.safe_list_n(message, Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]).into_list();
-            self.handle_balance(Value::from(type_var), client, Value::Arr(accounts));
+            self.handle_balance(Value::from(type_var), client, &accounts);
         }
 }
 

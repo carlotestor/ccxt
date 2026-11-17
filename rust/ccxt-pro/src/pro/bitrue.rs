@@ -326,12 +326,13 @@ impl Bitrue {
         //    }
         //
         let mut balances: crate::value::List = message.get("B").cloned().unwrap_or_default().into_list();
-        self.parse_ws_balances(Value::Arr(balances));
+        self.parse_ws_balances(&balances);
         let mut messageHash: String = "balance".to_string();
         client.resolve(self.balance.clone(), messageHash.as_str());
 }
 
-    pub fn parse_ws_balances(&mut self, mut balances: Value) {
+    pub fn parse_ws_balances(&mut self, balances: impl Into<crate::Value>) {
+        let mut balances: Value = balances.into();
         //
         //    [{
         //         "a": "btc",
@@ -652,8 +653,8 @@ impl Bitrue {
             let mut rawBuys: crate::value::List = self.safe_list_k(&tick, "buys", &[Value::from(vec![])]).into_list();
             parseable = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("asks".to_string(), self.parse_contract_bids_asks(Value::Arr(rawAsks), symbol.clone().map(Value::from).unwrap_or(Value::Null)));
-                    m.insert("buys".to_string(), self.parse_contract_bids_asks(Value::Arr(rawBuys), symbol.clone().map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("asks".to_string(), self.parse_contract_bids_asks(&rawAsks, symbol.clone().map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("buys".to_string(), self.parse_contract_bids_asks(&rawBuys, symbol.clone().map(Value::from).unwrap_or(Value::Null)));
                 m
             });
         }
@@ -700,7 +701,8 @@ impl Bitrue {
     Value::Null
 }
 
-    pub fn parse_contract_bids_asks(&self, mut bidsAsks: Value, mut symbol: Value) -> Value {
+    pub fn parse_contract_bids_asks(&self, bidsAsks: impl Into<crate::Value>, mut symbol: Value) -> Value {
+        let mut bidsAsks: Value = bidsAsks.into();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

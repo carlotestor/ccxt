@@ -3057,7 +3057,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn batch_orders_request(&self, mut actions: Value) -> Value {
+    pub fn batch_orders_request(&self, actions: impl Into<crate::Value>) -> Value {
+        let mut actions: Value = actions.into();
         //
         // [
         //     {
