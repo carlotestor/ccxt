@@ -13032,8 +13032,8 @@ function nullScalarWriteType (printer, node) {
         NULL_SEED_R84_WRITES.add (node);
         return r84;
     }
-    // `x = market['baseId']` of a structure local whose DTO field is `public String`: the write takes that
-    // checkcast (printed by this section's write hook); lands only with a native use
+    // `x = market['baseId']` of a structure local whose DTO field is `public String`: the write takes the
+    // String-slot conversion the uses printed before (`Objects.toString(v, null)`); lands only with a native use
     if (ts.isElementAccessExpression (value) && structureKeyReadLocalType (printer, value)?.type === JAVA_DATAFLOW_STRING) {
         NULL_SEED_R84_WRITES.add (node);
         NULL_SEED_CAST_WRITES.add (value);
@@ -13505,7 +13505,7 @@ export function installJavaNullScalarLocalTypes (transpiler) {
         }
         return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
     };
-    // a structure-key String write to a String-retyped seed prints its checkcast
+    // a structure-key String write to a String-retyped seed prints the String-slot conversion
     const upstreamBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node, identation) {
         const right = unwrapParens (node?.right);
@@ -13514,7 +13514,7 @@ export function installJavaNullScalarLocalTypes (transpiler) {
             try {
                 const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
                 if (declaration !== undefined && retyped.get (declaration) === JAVA_DATAFLOW_STRING) {
-                    return `${printer.printNode (node.left, 0)} = (String) ${printer.printNode (right, 0)}`;
+                    return `${printer.printNode (node.left, 0)} = java.util.Objects.toString(${printer.printNode (right, 0)}, null)`;
                 }
             } catch (e) {
                 // fall through to the upstream print
