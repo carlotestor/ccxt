@@ -5929,17 +5929,40 @@ function mapLocalsSelfTest (): string[] {
             'export default class zz84j3selftest extends Exchange {',
             "    enc (q: Dict, p: string) { let body = ''; if (p === 'a') { body = this.urlencode (q); } const base = p + '/'; let auth = ''; auth = base; auth = body + '|' + base; return auth + body; }",
             "    num (m: string) { let nonce = ''; nonce = this.milliseconds ().toString (); let a = ''; a = nonce + m; return a; }",
-            "    neg (q: any) { let other = ''; other = JSON.stringify (q); return other; }",
+            "    neg (q: any, p: string) { let other = ''; other = this.implodeParams (p, q); return other; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r84j3).content as string;
         if (!/String body = "";/.test(out) || !/String auth = "";/.test(out)) problems.push("ral-84j3: 'body' (urlencode write) and 'auth' (const String copy) must print String");
         if (!/String nonce = "";/.test(out)) problems.push("ral-84j3: 'nonce' (`this.milliseconds ().toString ()` write) must print String");
-        if (!/Object other = "";/.test(out)) problems.push("ral-84j3: 'other' (Helpers.json may answer null) must stay Object");
+        if (!/Object other = "";/.test(out)) problems.push("ral-84j3: 'other' (implodeParams is declared Object) must stay Object");
     } catch (e: any) {
         problems.push(`ral-84j3 self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(r84j3, { force: true });
+    }
+    // ral-87j3 R1: JSON.stringify / toUpperCase / replaceAll-of-self / remove0xPrefix writes keep a non-null String local String
+    const r87j3 = path.join(process.cwd(), 'ts', 'src', `zz87j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r87j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict, Str } from './base/types.js';",
+            'export default class zz87j3selftest extends Exchange {',
+            "    js (q: Dict, p: string) { let body = ''; if (p === 'a') { body = JSON.stringify (q); } let auth = ''; auth = p + '?'; auth += body; return auth; }",
+            "    up (p: string, k: string) { let s = ''; s = p.toUpperCase (); s = s.replaceAll (k, '-'); const parts = s.split ('-'); return parts; }",
+            "    hex (p: string) { let h = ''; h = this.remove0xPrefix (p); return h + '00'; }",
+            "    neg (p: Str, k: string) { let t = ''; t = p.replaceAll (k, '-'); return t + k; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j3).content as string;
+        if (!/String body = "";/.test(out) || !/auth = \(auth \+ body\)/.test(out)) problems.push("ral-87j3: 'body' (JSON.stringify write) must print String and `auth += body` a native concat");
+        if (!/String s = "";/.test(out) || !/\(s\.split\(/.test(out)) problems.push("ral-87j3: 's' (toUpperCase / replaceAll-of-self writes) must print String with a bare split receiver");
+        if (!/String h = "";/.test(out)) problems.push("ral-87j3: 'h' (remove0xPrefix write) must print String");
+        if (!/Object t = "";/.test(out)) problems.push("ral-87j3: 't' (replaceAll of a nullable Str receiver) must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-87j3 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(r87j3, { force: true });
     }
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [

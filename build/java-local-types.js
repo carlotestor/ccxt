@@ -14957,13 +14957,74 @@ function javaNonNullStringValue (printer, declaration, retyped, node, depth) {
         if (value.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
             return false;
         }
-        return javaNonNullStringValue (printer, declaration, retyped, value.left, depth + 1)
+        return (javaNonNullStringValue (printer, declaration, retyped, value.left, depth + 1) && !javaNonNullStringCall87Left (printer, value.left))
             || printedJavaIsString (printer, value.left) || printedConcatIsNative (printer, value.left, value.right)
             || javaNonNullStringSelfAnchoredConcat (printer, declaration, value);
     case ts.SyntaxKind.CallExpression:
-        return javaNonNullStringCall (printer, value);
+        return javaNonNullStringCall (printer, value, declaration, retyped, depth);
     }
     return false;
+}
+
+// ral-87j3: more non-null String calls, each proven from the hand-written Java it prints to:
+// - `JSON.stringify (x)` prints Helpers.json (Jackson writeValueAsString: "null" for null, throws on
+//   failure, never answers null);
+// - `<recv>.toUpperCase ()` / `.toLowerCase ()` / `.trim ()` print the native String method
+//   (a null receiver throws, nothing returns null);
+// - `<recv>.replace (a, b)` / `.replaceAll (a, b)` whose receiver is itself a non-null String value
+//   (Helpers.replace / replaceAll / String.replace answer null only for a null receiver);
+// - base `this.remove0xPrefix (..)` / `this.intToBase16 (..)` (Encode.*: declared String,
+//   `s.startsWith` / Long.toHexString, never null), resolved in ts/src/base only.
+// undefined = not one of these shapes (the older proof decides).
+const JAVA_NON_NULL_STRING_CASE_METHODS = new Set ([ 'toUpperCase', 'toLowerCase', 'trim' ]);
+const JAVA_NON_NULL_STRING_BASE_METHODS = new Set ([ 'remove0xPrefix', 'intToBase16' ]);
+
+function javaNonNullStringCall87 (printer, node, name, declaration, retyped, depth) {
+    const receiver = node.expression.expression;
+    if (name === 'stringify' && ts.isIdentifier (receiver) && receiver.text === 'JSON') {
+        return node.arguments.length === 1 && node.arguments[0].kind !== ts.SyntaxKind.SpreadElement;
+    }
+    if (receiver.kind === ts.SyntaxKind.ThisKeyword) {
+        if (!JAVA_NON_NULL_STRING_BASE_METHODS.has (name)) {
+            return undefined;
+        }
+        let member;
+        try {
+            member = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration?.resolve ();
+        } catch (e) {
+            return false;
+        }
+        return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName)
+            && node.arguments.length === 1 && new RegExp (`^this\\.${name}\\(`).test (printer.printNode (node, 0));
+    }
+    if (JAVA_NON_NULL_STRING_CASE_METHODS.has (name)) {
+        return node.arguments.length === 0 && javaStringLikeReceiver (printer, receiver);
+    }
+    if (name === 'replace' || name === 'replaceAll') {
+        return node.arguments.length === 2 && javaStringLikeReceiver (printer, receiver)
+            && declaration !== undefined && javaNonNullStringValue (printer, declaration, retyped, receiver, (depth ?? 0) + 1);
+    }
+    return undefined;
+}
+
+// a ral-87j3 call shape as the LEFT of `+`: the printer's concat proof does not see these calls, so
+// the `+` may print Helpers.add (Object); only the older shapes anchor a native concat there
+function javaNonNullStringCall87Left (printer, node) {
+    const call = unwrapParens (node);
+    return call !== undefined && ts.isCallExpression (call) && ts.isPropertyAccessExpression (call.expression)
+        && javaNonNullStringCall87 (printer, call, String (call.expression.name.text), undefined, undefined, 0) !== undefined;
+}
+
+// the checker types the receiver as a string (nullish members dropped): the printer's
+// String-method arms are the ones that print
+function javaStringLikeReceiver (printer, receiver) {
+    try {
+        const checker = printer.getChecker ();
+        const type = checker.getNonNullableType (checker.getTypeAtLocation (receiver));
+        return (type.flags & (ts.TypeFlags.StringLike)) !== 0;
+    } catch (e) {
+        return false;
+    }
 }
 
 // ral-84j3: base calls whose hand-written Java is declared String and never answers null:
@@ -14975,11 +15036,16 @@ const JAVA_NON_NULL_STRING_BASE_CALLS = new Set ([ 'urlencode', 'urlencodeWithAr
 // a non-null String call: one of the base encoders above, or a zero-argument `.toString ()`
 // whose receiver the printer proves a Java numeric primitive (printToStringCall prints
 // `String.valueOf (<primitive>)`, which is never null; javaStringBoxText decides the same way)
-function javaNonNullStringCall (printer, node) {
+function javaNonNullStringCall (printer, node, declaration, retyped, depth) {
     if (!ts.isPropertyAccessExpression (node.expression)) {
         return false;
     }
     const name = String (node.expression.name.text);
+    // ral-87j3: shapes decided from the call's own AST, never from printed text
+    const r87 = javaNonNullStringCall87 (printer, node, name, declaration, retyped, depth);
+    if (r87 !== undefined) {
+        return r87;
+    }
     if (name === 'toString') {
         if (node.arguments.length !== 0 || typeof printer.javaProvableNumericKind !== 'function') {
             return false;
@@ -15149,6 +15215,22 @@ export function patchJavaNonNullStringLocals (transpiler) {
         return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (retyped.has (declaration) ? 'String' : undefined));
+    // ral-87j3: a String-method receiver that is a local this section retyped prints bare (`s.split(..)`
+    // instead of `((String)s).split(..)`). Only for a declaration whose initializer is not a call:
+    // the ws post-pass reverts `String x = this.f(..)` / `Helpers.f(..)` declarations to Object.
+    const upstreamReceiverText = printer.javaStringReceiverText?.bind (printer);
+    if (typeof upstreamReceiverText === 'function') {
+        printer.javaStringReceiverText = function (receiver, name) {
+            const target = unwrapParens (receiver);
+            if (target !== undefined && ts.isIdentifier (target) && name === target.text) {
+                const declaration = javaNonNullStringDeclarationOf (printer, target);
+                if (declaration !== undefined && retyped.has (declaration) && !ts.isCallExpression (unwrapParens (declaration.initializer))) {
+                    return name;
+                }
+            }
+            return upstreamReceiverText (receiver, name);
+        };
+    }
 }
 
 // ===== 42. `a - b` over two proven non-null Long operands =====
