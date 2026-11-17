@@ -12883,6 +12883,9 @@ export function nullSeedChecks90c4 (): string[] {
     // R2: a `typeof r === 'string'` const alias guards the copy `x = r` like the direct test, so the receiver prints natively
     const r2 = print ('f (r) { let x: Str = undefined; const isString = (typeof r === \'string\'); if (isString) { x = r; } else { x = this.signed (\'a\'); } const u = (x as string).toUpperCase (); return u; }');
     if (!r2.includes ('string? x = null;') || !r2.includes ('x = ((string)r);')) problems.push (`90c4 R2 typeof alias copy: ${r2.replace (/\n/g, ' | ').slice (-400)}`);
+    // R3: `const b = h; h = (b === undefined) ? {} : b;` reads h's own box through the alias, so h stays a Dictionary and its writes are native
+    const r3 = print ('f (o) { let h = undefined; if (o) { h = { \'a\': 1 }; } const b = h; h = (b === undefined) ? {} : b; h[\'k\'] = 2; return h; }');
+    if (!r3.includes ('Dictionary<string, object> h = null;') || r3.includes ('((IDictionary<string,object>)h)')) problems.push (`90c4 R3 self alias ternary: ${r3.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
 

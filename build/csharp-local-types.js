@@ -10466,12 +10466,38 @@ function selfTernaryWriteType (csharp, context, declaration, value) {
     if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
         return undefined;
     }
-    const selfTrue = isSelfRead (csharp, node.whenTrue, declaration);
-    const selfFalse = isSelfRead (csharp, node.whenFalse, declaration);
+    const selfTrue = isSelfRead (csharp, node.whenTrue, declaration) || selfAliasRead90c4 (csharp, node.whenTrue, declaration, value);
+    const selfFalse = isSelfRead (csharp, node.whenFalse, declaration) || selfAliasRead90c4 (csharp, node.whenFalse, declaration, value);
     if (selfTrue === selfFalse) {
         return undefined; // both arms read this local, or neither does
     }
     return conditionalArmType (csharp, selfTrue ? node.whenFalse : node.whenTrue, context);
+}
+
+// ral-90c4 R3: `const alias = x; x = (alias === undefined) ? {} : alias;` — the arm reads a const whose
+// initializer is a plain read of x, declared in the statement right before the write's statement (same
+// block), so it holds x's own box at the write exactly as a self read would
+function selfAliasRead90c4 (csharp, operand, declaration, value) {
+    const arm = stripParens (operand);
+    if (arm?.kind !== ts.SyntaxKind.Identifier || c5ParameterProofDepth > 0) {
+        return false;
+    }
+    const alias = resolveReference (csharp, arm);
+    if (alias?.kind !== ts.SyntaxKind.VariableDeclaration || (alias.parent?.flags & ts.NodeFlags.Const) === 0
+            || alias.parent.declarations.length !== 1 || !isSelfRead (csharp, stripParens (alias.initializer), declaration)) {
+        return false;
+    }
+    const aliasStatement = alias.parent.parent;
+    let writeStatement = value;
+    while (writeStatement !== undefined && writeStatement.kind !== ts.SyntaxKind.ExpressionStatement) {
+        writeStatement = writeStatement.parent;
+    }
+    const block = aliasStatement?.parent;
+    if (writeStatement === undefined || block === undefined || writeStatement.parent !== block || block.statements === undefined) {
+        return false;
+    }
+    const at = block.statements.indexOf (aliasStatement);
+    return at >= 0 && block.statements[at + 1] === writeStatement && writeStatement.expression === value.parent;
 }
 
 // `c ? parseInt (v) : null` / `null : parseInt (v)`: the arms' own C# types are `object` (the
