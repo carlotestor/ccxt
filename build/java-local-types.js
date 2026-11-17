@@ -22665,9 +22665,10 @@ export function installJavaR84j8Locals (transpiler) {
 // ===== 87j8. String accumulators fed by String locals declared after the list =====
 // Sections 26 / 31 prove a pushed identifier String only from its PRINTED declaration
 // (javaDeclaredTypeOf), which does not exist yet when the list (declared before the loop) prints.
-// Decide the element from the AST instead: a single-binding local whose own family decision
-// (javaLocalTypeOf / section 36 javaNonNullStringLocal) is String, a `<String> + ..` chain whose
-// left spine is such a value, or the existing static-String proof.
+// Decide the element from the AST instead: a single-binding local whose own family decision is
+// String (section 1 with a statically-String initializer, 84j1 string element reads, section 36
+// non-null String locals), a `<String> + ..` chain whose left spine is such a value, or the
+// existing static-String proof.
 function r87j8StringElement (printer, node, depth = 0) {
     const value = unwrapParens (node);
     if (value === undefined || depth > 4) {
@@ -22692,8 +22693,16 @@ function r87j8StringElement (printer, node, depth = 0) {
         || declaration.initializer === undefined || printer.printNode (value, 0) !== value.text) {
         return false;
     }
-    if (javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
+    // a same-named sibling binding makes the printing families refuse by name (mudrex assetId)
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    if (index === undefined || (index.bindingCounts.get (value.text) ?? 0) !== 1 || index.blockedNames.has (value.text)) {
+        return false;
+    }
+    // section 1 also gates on the printed value shape, so only its statically-String initializers are certain
+    if (isStaticallyStringExpression (printer, unwrapParens (declaration.initializer), undefined)
+        && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
         return true;
     }
-    return javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true;
+    return r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true;
 }
