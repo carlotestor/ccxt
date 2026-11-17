@@ -3953,7 +3953,7 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan ccxt.AsyncResult[[]map[
 	var pageSize *int64 = this.SafeInteger(this.Options, "marketsPageSize", 25)
 	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags"})
 	var allRaw []any = []any{}
-	var page any = 1
+	var page int = 1
 	for true {
 		var request map[string]any = map[string]any{
 			"page":  page,
@@ -3987,7 +3987,7 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan ccxt.AsyncResult[[]map[
 				allRaw = append(allRaw, data[i])
 			}
 		}
-		page = this.Sum(page, 1)
+		page = page + 1
 		var collectedTotal int = len(allRaw)
 		if (pageSize != nil && int64(dataLength) < *pageSize) || (maxMarkets == nil || int64(collectedTotal) >= *maxMarkets) {
 			break
