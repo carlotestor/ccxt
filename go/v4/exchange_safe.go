@@ -1123,6 +1123,11 @@ func (this *BaseExchange) MarketIdsStrings(symbols any) []string {
 	return joinListValue(this.MarketIds(symbols))
 }
 
+// MarketIdsSlice is MarketIds read as a []any: nil exactly where MarketIds answers nil.
+func (this *BaseExchange) MarketIdsSlice(symbols any) []any {
+	return listValueToTypedSlice(this.MarketIds(symbols))
+}
+
 // SafeListSlice is SafeList read as a []any: the member or default list, nil where that answer is
 // not a list (GetArrayLength of such a box was 0, so a length-bounded read sees nothing either way).
 func (this *BaseExchange) SafeListSlice(dictionaryOrList any, key any, defaultValue any) []any {
