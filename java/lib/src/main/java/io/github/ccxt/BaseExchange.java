@@ -1569,8 +1569,10 @@ public class BaseExchange {
         return (java.util.Map<String, Object>) this.safeDict(dictionaryOrList, key, (Object) defaultValue);
     }
     // a List default: the transpiled safeList hands back a List value or this default, so the result is a List
-    public java.util.List<Object> safeList(Object dictionaryOrList, Object key, java.util.List<Object> defaultValue) {
-        return (java.util.List<Object>) this.safeList(dictionaryOrList, key, (Object) defaultValue);
+    // (raw, so a `(List<String>)` cast of the call still compiles)
+    @SuppressWarnings("rawtypes")
+    public java.util.List safeList(Object dictionaryOrList, Object key, java.util.List<Object> defaultValue) {
+        return (java.util.List) this.safeList(dictionaryOrList, key, (Object) defaultValue);
     }
     // ----- END OF WRAPPERS ----- //
     // when true, sleep() blocks the calling thread and returns an already
