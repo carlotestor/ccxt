@@ -671,7 +671,10 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 // Structure accessors whose Java return is declared Map<String, Object> on every declaration
 // (base + overrides): each return is a literal/null, a markets/currencies row, super./this. call
 // of the same family or createExpiredOptionMarket (a row) - checkcast at the return site only.
-const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS ]);
+// ral-90j7 R2: setMarkets (base returns the Map field this.markets; PredictionExchange / deepcoin return their own
+// super.setMarkets result local). Its result locals are read by Object.keys / put (native on a Map)
+const J90J7_MAP_RETURN_METHODS = [ 'setMarkets' ];
+const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS, ...J90J7_MAP_RETURN_METHODS ]);
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
@@ -3075,6 +3078,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         if (bare !== undefined) {
             return { type: bare, valuePrefix: String (initializer.expression.text) + '(' };
         }
+    }
+    // ral-90j7 R2: `this.setMarkets (..)` / `super.setMarkets (..)` print Map<String, Object> on every declaration
+    if (!asserted && isThisOrSuperCall (initializer) && J90J7_MAP_RETURN_METHODS.includes (String (initializer.expression.name.text))
+        && resolvesToMethodNamed (printer, initializer, String (initializer.expression.name.text))) {
+        return { type: JAVA_STRUCTURE_TYPE, valuePrefixes: [ 'this.', 'super.' ] };
     }
     if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
@@ -6246,7 +6254,8 @@ export function installJavaLocalTypes (transpiler) {
                 || ts.isObjectLiteralExpression (expression) || expression.kind === ts.SyntaxKind.NullKeyword
                 || (ts.isIdentifier (expression) && expression.text === 'undefined')
                 || (isThisOrSuperCall (expression) && JAVA_MAP_RETURN_METHODS.has (expression.expression.name.text))
-                || (JAVA_84J7_MAP_RETURN_METHODS.includes (methodName) && ts.isIdentifier (expression)
+                || (J90J7_MAP_RETURN_METHODS.includes (methodName) && javaBaseMapField (printer, expression))
+                || ((JAVA_84J7_MAP_RETURN_METHODS.includes (methodName) || J90J7_MAP_RETURN_METHODS.includes (methodName)) && ts.isIdentifier (expression)
                     && typeof printer.javaDeclaredTypeOf === 'function'
                     && /^(java\.util\.)?Map<String, ?Object>$/.test (printer.javaDeclaredTypeOf (expression) ?? ''))) {
                 return printed;

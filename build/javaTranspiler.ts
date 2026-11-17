@@ -6116,10 +6116,12 @@ function mapLocalsSelfTest (): string[] {
             'export default class zz90j7selftest extends Exchange {',
             "    createOrderRequest (symbol: Str, type: Str, side: Str, amount: number, price: number = undefined, params: Dict = {}): Dict { return { 'instId': symbol }; }",
             "    zzWs (symbol: string, code: number) { const args = this.createOrderRequest (symbol, 'limit', 'buy', 1, undefined, {}); delete args['instId']; args['instIdCode'] = code; return args; }",
+            "    setMarkets (markets: any, currencies: any = undefined) { const result = super.setMarkets (markets, currencies); const symbols = Object.keys (result); return result; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r90j7).content as string;
         if (!/Map<String, ?Object> args = this\.createOrderRequest\(/.test(out) || !/\bargs\.remove\("instId"\);/.test(out)) problems.push("ral-90j7: a Map callee result with a delete must print Map<String, Object> and a bare remove");
+        if (!/Map<String, ?Object> result = super\.setMarkets\(/.test(out) || !/result\.keySet\(\)/.test(out)) problems.push("ral-90j7: a super.setMarkets result must print Map<String, Object> read by keySet()");
     } catch (e) {
         problems.push(`ral-90j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
