@@ -1943,9 +1943,9 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut secondPart: Value = Value::Int((((i * 10000)) - 10000));
-            let mut offset: Value = self.sum(&[Value::Int(110000), secondPart]);
-            add_element_to_object(&mut perpDexesOffset, &self.safe_string_k(&dex, "name", &[Value::Str("".into())]), offset.clone());
+            let mut secondPart: i64 = (((i * 10000)) - 10000);
+            let mut offset: i64 = (110000 + secondPart);
+            add_element_to_object(&mut perpDexesOffset, &self.safe_string_k(&dex, "name", &[Value::Str("".into())]), Value::from(offset));
         }
         }
         let mut fetchDexesList: crate::value::List = std::sync::Arc::new(Vec::new());
