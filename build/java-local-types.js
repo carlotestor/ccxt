@@ -371,6 +371,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     // ral-90j7 R5: base parseWsTrades returns parseTradesHelper (List), the hitbtc override filterBySymbolSinceLimit (List);
     // the hitbtc handleTrades result local is read by size()/get(j)
     'parseWsTrades',
+    // base reduceFeesByCurrency returns its own `result: any[]` list (arrayConcat writes cast back to List); no override
+    'reduceFeesByCurrency',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>', 'sendEvmTransaction': 'String' }; // ral-90j5 R1: + sendEvmTransaction
@@ -3909,8 +3911,13 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         return false;
     }
     const uses = identifierIndex (scope).get (sourceName) ?? [];
+    // a family opting in (info.ownBinding) skips uses of a same-named sibling binding (checker symbol)
+    const own = info?.ownBinding === true ? printer.getChecker ().getSymbolAtLocation (declaration.name) : undefined;
     for (const n of uses) {
         if (n === declaration.name) {
+            continue;
+        }
+        if (own !== undefined && printer.getChecker ().getSymbolAtLocation (n) !== own) {
             continue;
         }
         const parent = n.parent;
@@ -11041,6 +11048,8 @@ const JAVA_VENUE_RETURN_MAP = {
     'Dict[]': 'List<Object>',
     // ral-87j7 R4: `Str[]` / `string[]` locals print java.util.List<Object> too (array literal + push)
     'Str[]': 'List<Object>', 'string[]': 'List<Object>',
+    // venue-only `Promise<any[]>` fetchers: the same every-return-proven and list-read gates apply
+    'any[]': 'List<Object>',
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];
@@ -11105,18 +11114,23 @@ function javaVenueSafeListSeededWrites () {
             continue;
         }
         const sf = ts.createSourceFile (file, text);
+        // seeded names are kept per enclosing function: a same-named local of another method is a different binding
         const seeded = new Set ();
+        const key = (node, name) => {
+            const scope = enclosingFunction (node);
+            return (scope === undefined ? -1 : scope.pos) + ':' + name;
+        };
         const collect = (node) => {
             if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && isThisCall (unwrapParens (node.initializer))
                 && unwrapParens (node.initializer).expression.name.text === 'safeList') {
-                seeded.add (node.name.text);
+                seeded.add (key (node, node.name.text));
             }
             node.forEachChild (collect);
         };
         collect (sf);
         const writes = (node) => {
             if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (node.left)
-                && seeded.has (node.left.text)) {
+                && seeded.has (key (node, node.left.text))) {
                 const right = unwrapParens (node.right);
                 const call = right !== undefined && right.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (right.expression) : undefined;
                 if (isThisCall (call)) {
@@ -11130,7 +11144,7 @@ function javaVenueSafeListSeededWrites () {
     return names;
 }
 
-function javaVenueListReturnsProven (file, name) {
+function javaVenueListReturnsProven (file, name, listNames = new Set ()) {
     const text = readTsIndexSource (file);
     if (text === undefined) {
         return false;
@@ -11150,8 +11164,10 @@ function javaVenueListReturnsProven (file, name) {
             }
             if (ts.isReturnStatement (node)) {
                 const value = unwrapParens (node.expression);
+                const awaited = value !== undefined && value.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (value.expression) : undefined;
                 ok = value !== undefined && (ts.isIdentifier (value)
-                    || (isThisCall (value) && value.expression.name.text === 'arraySlice'));
+                    || (isThisCall (value) && value.expression.name.text === 'arraySlice')
+                    || (isThisCall (awaited) && listNames.has (awaited.expression.name.text)));
                 return;
             }
             node.forEachChild (walk);
@@ -11215,9 +11231,15 @@ export function javaVenueAsyncReturnTable () {
     // ral-87j7: a `Promise<Dict[]>` core keeps no cast only when every return is a local or
     // this.arraySlice (..) (List<Object> in BaseExchange.java); a returned Object call (safeList) would
     // need a checkcast at the return, so those names stay out (parsed from the TS AST of each file)
-    for (const [ name, file ] of javaVenueListFiles) {
-        if (javaVenueReturnTable.get (name) === 'List<Object>' && !javaVenueListReturnsProven (file, name)) {
-            javaVenueReturnTable.delete (name);
+    // a returned `await this.m (..)` of another proven list fetcher also holds; iterate to the greatest fixed point
+    for (let changed = true; changed;) {
+        changed = false;
+        const listNames = new Set ([ ...javaVenueReturnTable ].filter (([ , t ]) => t === 'List<Object>').map (([ n ]) => n));
+        for (const [ name, file ] of javaVenueListFiles) {
+            if (javaVenueReturnTable.get (name) === 'List<Object>' && !javaVenueListReturnsProven (file, name, listNames)) {
+                javaVenueReturnTable.delete (name);
+                changed = true;
+            }
         }
     }
     // a `x = await this.m (..)` write into a local seeded from this.safeList (..) would make that
@@ -13085,7 +13107,8 @@ function javaOmitSourceIsMap (printer, source, depth) {
         type = printer.javaDeclaredLocalType?.(declaration) ?? HANDLE_TYPED_BINDINGS.get (declaration)
             ?? javaPairBoundType (declaration);
     }
-    if (String (type ?? '').replace (/^java\.util\./, '') !== 'Map<String, Object>') {
+    // sections publish the Map spelling with or without the space after the comma
+    if (String (type ?? '').replace (/^java\.util\./, '').replace (/\s+/g, '') !== 'Map<String,Object>') {
         return false;
     }
     if (!ts.isParameterDeclaration (declaration)) {
@@ -13147,7 +13170,7 @@ function javaOmitLocalType (printer, declaration) {
     const writeOk = (right) => javaOmitMapCall (printer, right) !== undefined || javaOmitMapTernary (printer, right) !== undefined
         || javaOmitSelfCall (printer, right, declaration) || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE;
     return isSafeToNarrow (printer, declaration, String (declaration.name.text), JAVA_STRUCTURE_TYPE, isProFile,
-        { noCastAssertions: true, writeOk, destructureOk: (assignment, at) => at === 1 && handleElement1Type (printer, unwrapParens (assignment.right)) !== undefined })
+        { noCastAssertions: true, ownBinding: true, writeOk, destructureOk: (assignment, at) => at === 1 && handleElement1Type (printer, unwrapParens (assignment.right)) !== undefined })
         ? info : undefined;
 }
 
@@ -25500,7 +25523,9 @@ function r90j8ArrayLocalAwaitWrite (node) {
     walk (scope);
     const init = found === undefined ? undefined : unwrapParens (found.initializer);
     return count === 1 && init !== undefined && ts.isArrayLiteralExpression (init) && init.elements.length === 0
-        && found.type !== undefined && ts.isArrayTypeNode (found.type) ? { right, declaration: found } : undefined;
+        && found.type !== undefined && (ts.isArrayTypeNode (found.type)
+            || (ts.isTypeReferenceNode (found.type) && ts.isIdentifier (found.type.typeName) && found.type.typeName.text === 'List'))
+        ? { right, declaration: found } : undefined;
 }
 
 // ral-90j8: every declaration of m in the file returns a local declared `[]` (an ArrayList<Object> the printer
@@ -25535,8 +25560,11 @@ function r90j8VenueReturnsFreshList (file, name) {
                 const value = unwrapParens (n.expression);
                 const decls = value !== undefined && ts.isIdentifier (value) ? (locals.get (value.text) ?? []) : [];
                 const init = decls.length === 1 ? unwrapParens (decls[0].initializer) : undefined;
+                // or the awaited result of another venue list fetcher already proven in the table being built
+                const awaited = value !== undefined && value.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (value.expression) : undefined;
                 ok = (init !== undefined && ts.isArrayLiteralExpression (init))
-                    || (value !== undefined && isThisCall (value) && value.expression.name.text === 'arraySlice');
+                    || (value !== undefined && isThisCall (value) && value.expression.name.text === 'arraySlice')
+                    || (isThisCall (awaited) && javaVenueReturnTable?.get (awaited.expression.name.text) === 'List<Object>');
                 return;
             }
             n.forEachChild (walk);
