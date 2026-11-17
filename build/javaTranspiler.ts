@@ -6187,6 +6187,24 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r90j7, { force: true });
     }
+    // a parse* result typed Map from its declaration (returns this.safePosition ({..})) is read natively
+    const r92j7 = path.join(process.cwd(), 'ts', 'src', `zz92j7selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7, [
+            "import Exchange from './abstract/kucoin.js';",
+            "import type { Dict, Market } from './base/types.js';",
+            'export default class zz92j7selftest extends Exchange {',
+            "    parseWsUtaPosition (position: Dict, market: Market = undefined): Dict { return this.safePosition ({ 'info': position, 'symbol': undefined }); }",
+            "    zzUta (data: Dict) { const newPosition = this.parseWsUtaPosition (data); const keys = Object.keys (newPosition); for (let i = 0; i < keys.length; i++) { const key = keys[i]; if (newPosition[key] === undefined) { delete newPosition[key]; } } return newPosition; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7).content as string;
+        if (!/Map<String, ?Object> newPosition = this\.parseWsUtaPosition\(/.test(out) || !/newPosition\.remove\(key\);/.test(out)) problems.push("ral-92j7: a parseWsUtaPosition result must print Map<String, Object> with a bare remove");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7, { force: true });
+    }
     return problems;
 }
 
