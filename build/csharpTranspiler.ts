@@ -12811,17 +12811,18 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
 // a seed with no string-receiver use keeps object
 export function nullSeedNativeStringChecks87c4 (): string[] {
     const problems: string[] = [];
-    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
     const transpiler = new Transpiler (config);
     setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } };
     const pre = 'type Str = string | undefined;\nclass Test {\n signed (a: Str): Str { if (a === undefined) { return undefined; } return \'-\' + a; }\n';
-    const print = (body: string) => (transpiler as any).transpileCSharp (pre + body + '\n}').content as string;
+    const print = (body: string) => emit.transpileCSharp (pre + body + '\n}').content;
     const out = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = this.signed (a); } if (x !== undefined) { return x.toLowerCase (); } return x; }');
     if (!out.includes ('string? x = null;') || out.includes ('((string)x)')) problems.push (`87c4 null-seed native string: ${out.replace (/\n/g, ' | ').slice (-400)}`);
     const kept = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = this.signed (a); } return x; }');
     if (!kept.includes ('object x = null;')) problems.push (`87c4 null-seed native string: seed with no string use retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
     // R2: a null seed written by `this.sum (a, b)` over integer operands and read by `<` is Int64? (needs the corpus' typed until/since)
-    const whitebit: string = (transpiler as any).transpileCSharpByPath ('./ts/src/whitebit.ts').content;
+    const whitebit: string = emit.transpileCSharpByPath ('./ts/src/whitebit.ts').content;
     const start = whitebit.indexOf (' fetchOHLCV(');
     const body = (start < 0) ? '' : whitebit.slice (start, whitebit.indexOf ('\n    }\n', start));
     if (!body.includes ('Int64? endTime = null;')) problems.push ('87c4 R2 null-seed sum write: whitebit fetchOHLCV endTime not Int64?');
