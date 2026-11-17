@@ -2995,6 +2995,12 @@ function wsResolvedCacheBox (csharp, value, depth) {
             && CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES[v.arguments[0].name?.text] !== undefined && wsCacheElementSourceOk (v)) {
         return bareCsharpType (CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES[v.arguments[0].name.text]);
     }
+    // `this.safeValue (this.ohlcvs[s] | this.safeDict (this.ohlcvs, s), tf)` reads the same bucket element
+    if (v.kind === ts.SyntaxKind.CallExpression && v.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && v.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && v.expression.name?.text === 'safeValue'
+            && v.arguments?.length === 2 && wsCacheElementSourceOk (v) && wsOhlcvsReceiver (v.arguments[0])) {
+        return 'ArrayCacheByTimestamp';
+    }
     const element = wsCacheElementReadType (v) ?? wsOhlcvsBucketReadType (v);
     if (element !== undefined) {
         return bareCsharpType (element);
@@ -4538,6 +4544,18 @@ function wsCacheElementReadType (node) {
 // `this.ohlcvs[symbol][timeframe]` — printed `getValue(getValue(this.ohlcvs, symbol), timeframe)`.
 // Every writer stores `new ArrayCacheByTimestamp`, a SIBLING of ArrayCache (both : BaseCache),
 // so the exact box is ArrayCacheByTimestamp; an ArrayCache cast throws on the first kline frame.
+// `this.ohlcvs[s]` or `this.safeDict (this.ohlcvs, s)`: one symbol's timeframe buckets
+function wsOhlcvsReceiver (node) {
+    let bucket;
+    if (node?.kind === ts.SyntaxKind.ElementAccessExpression) {
+        bucket = node.expression;
+    } else if (node?.kind === ts.SyntaxKind.CallExpression && node.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && node.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && node.expression.name?.text === 'safeDict' && node.arguments?.length === 2) {
+        bucket = node.arguments[0];
+    }
+    return bucket?.kind === ts.SyntaxKind.PropertyAccessExpression && bucket.expression?.kind === ts.SyntaxKind.ThisKeyword && bucket.name?.text === 'ohlcvs';
+}
+
 function wsOhlcvsBucketReadType (node) {
     if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
