@@ -10119,7 +10119,7 @@ function j6ReaderLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Map<String, Object> stats = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("j6 reader: 'stats' (Dict default) must print Map<String, Object> with a checkcast");
+        if (!/Map<String, Object> stats = this\.safeDict\(/.test(out)) problems.push("j6 reader: 'stats' (Map-declared default) must print Map<String, Object> binding the Map-default overload, no checkcast");
         if (!/List<Object> rows = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("j6 reader: 'rows' (Dict[] default) must print List<Object> with a checkcast");
         if (!/Map<String, Object> opts = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("j6 reader: 'opts' (createSafeDictionary default) must print Map<String, Object>");
         if (!/\bObject inner = /.test(out)) problems.push("j6 reader: 'inner' (any default) must stay Object");

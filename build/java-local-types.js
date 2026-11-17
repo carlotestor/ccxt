@@ -774,6 +774,20 @@ function safeDictDefaultIsEmptyMap (node) {
     return unwrapped !== undefined && ts.isObjectLiteralExpression (unwrapped) && unwrapped.properties.length === 0;
 }
 
+// an identifier default whose Java declaration is already a Map binds the Map-default overload
+function safeDictDefaultIsMapLocal (printer, node) {
+    const arg = unwrapParens (node);
+    if (arg === undefined || !ts.isIdentifier (arg) || typeof printer.javaDeclaredTypeOf !== 'function') {
+        return false;
+    }
+    try {
+        return printer.printNode (arg, 0) === arg.text
+            && /^(java\.util\.)?Map<String, ?Object>$/.test (String (printer.javaDeclaredTypeOf (arg) ?? '').trim ());
+    } catch (e) {
+        return false;
+    }
+}
+
 function safeDictLocalType (printer, initializer, name) {
     const defaultArg = SAFE_DICT_ACCESSORS.get (name);
     if (defaultArg === undefined) {
@@ -783,7 +797,8 @@ function safeDictLocalType (printer, initializer, name) {
     if (args === undefined || args.length < defaultArg || args.length > defaultArg + 1) {
         return undefined;
     }
-    if (args.length === defaultArg + 1 && !safeDictDefaultIsEmptyMap (args[defaultArg])) {
+    const mapLocalDefault = args.length === defaultArg + 1 && name === 'safeDict' && safeDictDefaultIsMapLocal (printer, args[defaultArg]);
+    if (args.length === defaultArg + 1 && !safeDictDefaultIsEmptyMap (args[defaultArg]) && !mapLocalDefault) {
         return undefined;
     }
     if (!resolvesToMethodNamed (printer, initializer, name)) {
