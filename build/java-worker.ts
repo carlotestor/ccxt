@@ -20,6 +20,8 @@ import { installJavaR84j8Locals } from './java-local-types.js';
 import { installJavaR87j2WsLocals } from './java-local-types.js';
 import { installJavaR87j2UrlLocals } from './java-local-types.js';
 import { installJavaR87j3SumCounterLocals } from './java-local-types.js';
+import { installJavaR90j3NativeSumLocals } from './java-local-types.js';
+import { installJavaR90j3CounterLoops } from './java-local-types.js';
 import { installJavaR87j4SplitLists } from './java-local-types.js';
 import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
 import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
@@ -185,6 +187,8 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaR87j4SplitLists (cachedTranspiler);
         installJavaR87j5CalleeStringArgs (cachedTranspiler);
         installJavaR87j8CopyStringResolver (cachedTranspiler);
+        installJavaR90j3NativeSumLocals (cachedTranspiler);
+        installJavaR90j3CounterLoops (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
