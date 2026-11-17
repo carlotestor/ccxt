@@ -3102,8 +3102,8 @@ impl Hyperliquid {
 
     pub fn action_hash(&self, mut action: Value, vaultAddress: Option<&str>, mut nonce: Value) -> Value {
         let mut vaultAddress: Value = vaultAddress.into();
-        let mut dataBinary: Value = self.packb(action, &[]);
-        let mut dataHex: String = self.binary_to_base16(dataBinary, &[]);
+        let mut dataBinary: crate::value::Bytes = crate::value::Bytes(self.packb(action, &[]).into_list());
+        let mut dataHex: String = self.binary_to_base16(&dataBinary, &[]);
         let mut data: String = dataHex;
         data.push_str(&format!("{}{}", Value::Str("00000".into()), self.int_to_base16(nonce, &[])));
         if (vaultAddress == Value::Null) {
