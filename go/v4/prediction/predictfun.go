@@ -439,8 +439,8 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		}
 	} else {
 		var request map[string]any = map[string]any{}
-		var tags any = this.SafeList(paramsValue, "tags", []any{})
-		if ccxt.GetArrayLength(tags) > 0 {
+		var tags []any = ccxt.SafeListTyped(paramsValue, "tags")
+		if len(tags) > 0 {
 			request["tagIds"] = ccxt.Join(tags, ",")
 		}
 		postOmitKeys = append(postOmitKeys, "limit")

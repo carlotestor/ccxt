@@ -2188,7 +2188,7 @@ func (this *Xt) HandleMessage(client any, message map[string]any) {
 			return this.SafeValue(methods, topic)
 		}()
 		if topic != nil && *topic == "trade" {
-			var data any = this.SafeDict(message, "data")
+			var data map[string]any = this.SafeDictMap(message, "data")
 			if (data != nil) && ((ccxt.InOp(data, "oi")) || (ccxt.InOp(data, "orderId"))) {
 				method = this.HandleMyTrades
 			} else {
