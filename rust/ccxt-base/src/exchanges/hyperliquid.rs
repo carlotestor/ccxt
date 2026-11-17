@@ -2188,10 +2188,10 @@ impl Hyperliquid {
             // Significant digits, always 5 in this case
             let mut significantDigits: i64 = 5;
             // Get the part after the decimal separator
-            let mut decimalPart: Value = self.safe_string(&priceSplitted, Value::Int(1), &[Value::Str("".into())]);
+            let mut decimalPart: String = self.safe_string(&priceSplitted, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // Count the number of leading zeros in the decimal part
             let mut leadingZeros: Option<i64> = self.parse_to_int(Value::Int(0));
-            while (matches!(leadingZeros, Some(__p) if (__p as f64) <= ((decimalPart.len() as i64) as f64))) && (get_value(&decimalPart, &Value::from(leadingZeros)).as_str() == Some("0")) {
+            while ((leadingZeros.is_some() && leadingZeros <= Some(((decimalPart.chars().count() as i64))))) && (matches!(leadingZeros, Some(__i) if __i >= 0 && decimalPart.chars().nth(__i as usize) == Some('0'))) {
                 leadingZeros = self.parse_to_int(Value::from((if let Some(__l) = leadingZeros { Some(__l + 1) } else { None })));
             }
             // Calculate price precision based on leading zeros and significant digits

@@ -2235,7 +2235,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
+        let mut limit: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("limit".into()), &[]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2258,11 +2258,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut paramsMethod: crate::value::Dict = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut method: Option<String> = methodOption;
         if !method.as_deref().unwrap_or_default().contains("Depth") {
-            if (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(50.0)) {
+            if (limit == Some(5)) || (limit == Some(50)) {
                 if !isFuturesMethod {
                     method = Some("/spotMarket/level2".to_string());
                 }
-                method = Some(format!("{}{}", method.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("Depth".into()), Value::Str(format!("{}", limit).into()))));
+                method = Some(format!("{}{}", method.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("Depth".into()), Value::Str(limit.map_or_else(|| "null".to_string(), |__n| __n.to_string()).into()))));
             }
         }
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method.as_deref().unwrap_or("null"), ":").into()), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
