@@ -9054,14 +9054,14 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) Transact
 		feeCost = Precise.StringAbs(feeCost)
 	}
 	var networkId *string = this.SafeString(transaction, "chain")
-	var txHash any
-	if derefPtr := this.SafeString(transaction, "tx-hash"); derefPtr != nil {
-		txHash = *derefPtr
-	}
+	var txHash *string = this.SafeString(transaction, "tx-hash")
 	// a freshly created withdrawal has no tx-hash yet, the create
 	// endpoint returns only { "status": "ok", "data": "<id>" }
-	if (txHash != nil) && (networkId != nil && *networkId == "ETH") && (GetIndexOf(txHash, "0x") < 0) {
-		txHash = Add("0x", txHash)
+	if (txHash != nil) && (networkId != nil && *networkId == "ETH") && (strings.Index(*txHash, "0x") < 0) {
+		if txHash != nil {
+			txHashValue := "0x" + *txHash
+			txHash = &txHashValue
+		}
 	}
 	var subType *string = this.SafeString(transaction, "sub-type")
 	var internal bool = (subType != nil && *subType == "FAST")
