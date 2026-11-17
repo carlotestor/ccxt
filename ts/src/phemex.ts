@@ -2444,11 +2444,11 @@ export default class phemex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const timestamp = this.safeIntegerProduct2 (order, 'actionTimeNs', 'createTimeNs', 0.000001);
-        let fee: Fee = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.fromEv (this.safeString (order, 'cumFeeEv'), marketResolved);
         if (feeCost !== undefined) {
             fee = {
-                'cost': this.parseNumber (feeCost),
+                'cost': feeCost,
                 'currency': this.safeCurrencyCode (this.safeString (order, 'feeCurrency')),
             };
         }
