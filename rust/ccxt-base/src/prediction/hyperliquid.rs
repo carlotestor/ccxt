@@ -1655,7 +1655,7 @@ impl Hyperliquid {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_4]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_4]).await.into_opt_list();
         //
         //     [
         //         {
@@ -1673,8 +1673,8 @@ impl Hyperliquid {
         //     ]
         //
         let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            candles = response.into_list();
+        if (response.is_some()) {
+            candles = response.unwrap_or_default();
         }
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
@@ -2430,11 +2430,11 @@ impl Hyperliquid {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMethod]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_8]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_8]).await.into_opt_list();
         let mut ordersWithStatus: Vec<Value> = Vec::new();
         let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            rawOrders = response.into_list();
+        if (response.is_some()) {
+            rawOrders = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;
@@ -2495,15 +2495,15 @@ impl Hyperliquid {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_9]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_9]).await.into_opt_list();
         // Deduplicate by oid keeping most recent statusTimestamp
         let mut deduped: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut historicalOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            historicalOrders = response.into_list();
+        if (response.is_some()) {
+            historicalOrders = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;

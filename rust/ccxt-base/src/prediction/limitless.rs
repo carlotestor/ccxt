@@ -4328,10 +4328,10 @@ if _try_result.is_err() {
 }));
         let __tags_empty = Vec::new();
         let tags = tags.as_array().unwrap_or(&__tags_empty);
-        let mut categoriesResponse: Value = self.limitless_public_get_categories(&[]).await;
+        let mut categoriesResponse: Option<crate::value::List> = self.limitless_public_get_categories(&[]).await.into_opt_list();
         let mut categories: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&categoriesResponse, Value::Arr(_))) {
-            categories = categoriesResponse.into_list();
+        if (categoriesResponse.is_some()) {
+            categories = categoriesResponse.unwrap_or_default();
         }
         let mut wanted: Vec<Value> = Vec::new();
         {
