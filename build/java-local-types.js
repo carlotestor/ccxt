@@ -24008,34 +24008,40 @@ function r90j7MapWriteOk (printer, selfName, upstream) {
 // with no cast. Decided from the TS declaration and the type the layer published for it.
 export function installJavaR90j7MapDelete (transpiler) {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || printer._javaR90j7MapDeletePatched || typeof printer.printDeleteExpression !== 'function') {
+    if (!printer || printer._javaR90j7MapDeletePatched || typeof printer.printDeleteExpression !== 'function'
+        || typeof printer.javaBaseDeclaredMapCacheField !== 'function') {
         return;
     }
     printer._javaR90j7MapDeletePatched = true;
+    // the printer's delete arm already prints `<receiver>.remove(..)` with no receiver cast when
+    // javaBaseDeclaredMapCacheField(receiver) holds; answer it for the one Map-declared identifier
+    // receiver of the delete being printed (decided from the TS declaration and its published type)
+    let mapReceiver;
+    const upstreamField = printer.javaBaseDeclaredMapCacheField.bind (printer);
+    printer.javaBaseDeclaredMapCacheField = function (expression) {
+        return (mapReceiver !== undefined && expression === mapReceiver) || upstreamField (expression);
+    };
     const upstream = printer.printDeleteExpression.bind (printer);
     printer.printDeleteExpression = function (node, identation) {
-        const out = upstream (node, identation);
         const receiver = node?.expression?.expression;
-        if (typeof out !== 'string' || receiver === undefined || !ts.isIdentifier (receiver)) {
-            return out;
-        }
+        let isMap = false;
         try {
-            const declaration = this.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
-            if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.name?.text !== receiver.text) {
-                return out;
+            if (receiver !== undefined && ts.isIdentifier (receiver)) {
+                const declaration = this.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+                isMap = declaration !== undefined && ts.isVariableDeclaration (declaration) && declaration.name?.text === receiver.text
+                    && J90J7_MAP_DECLARED.has (String (this.javaDeclaredTypeOfDeclaration?.(declaration) ?? ''));
             }
-            const declared = String (this.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').replace (/^final\s+/, '').replace (/\s+/g, '').replace (/java\.util\./g, '');
-            if (declared !== 'Map<String,Object>') {
-                return out;
-            }
-            // the receiver cast the upstream chain printed has a fixed length (receiver printed from the AST
-            // node); the key argument it chose (section 10 / printer) is kept as printed
-            // (fail-closed shape check only: other upstream arms, e.g. ws client maps, already print bare)
-            const object = this.printNode (receiver, 0);
-            const cast = '((java.util.Map<String,Object>)' + object + ')';
-            return out.startsWith (cast + '.remove(') ? object + out.slice (cast.length) : out;
         } catch (e) {
-            return out;
+            isMap = false;
+        }
+        const saved = mapReceiver;
+        mapReceiver = isMap ? receiver : undefined;
+        try {
+            return upstream (node, identation);
+        } finally {
+            mapReceiver = saved;
         }
     };
 }
+// the declared-type spellings sections publish for a Map<String, Object> local
+const J90J7_MAP_DECLARED = new Set ([ 'java.util.Map<String, Object>', 'Map<String, Object>', 'final java.util.Map<String, Object>', 'final Map<String, Object>' ]);
