@@ -6055,6 +6055,8 @@ function mapLocalsSelfTest (): string[] {
             "    walk (xs: any[]) { const n = xs.length; let i = 0; while (i < n) { i = this.sum (i, 1); } return i; }",
             "    neg (p: Dict) { const a = this.sum (this.safeInteger (p, 'a'), 1); return a; }",
             "    neg2 (p: Dict) { const b = this.sum (this.safeValue (p, 'b'), 1); return b; }",
+            "    cut (s: string, p: Dict) { const a = this.safeInteger (p, 'a', 0); const e = this.sum (a, 2); return s.slice (a, e); }",
+            "    put (p: Dict) { const a = this.safeInteger (p, 'a', 0); const f = this.sum (a, 2); p['f'] = f; return p; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r90j3).content as string;
@@ -6063,6 +6065,8 @@ function mapLocalsSelfTest (): string[] {
         if (!/i = \(i \+ 1L\);/.test(out)) problems.push("ral-90j3: counter sum write must print the native long add");
         if (!/Long a = \(Long\) this\.sum\(/.test(out) && !/Object a = this\.sum\(/.test(out)) problems.push("ral-90j3: 'a' (safeInteger without default) must keep this.sum");
         if (!/Object b = this\.sum\(/.test(out)) problems.push("ral-90j3: 'b' (Object operand) must stay Object");
+        if (!/Long e = \(a \+ 2L\);/.test(out)) problems.push("ral-90j3 R2: 'e' (const-local sum feeding a slice bound) must print the native long add");
+        if (/Long f = \(a \+ 2L\);/.test(out)) problems.push("ral-90j3 R2: 'f' (const-local sum only put into a map) must not be retyped by R2");
     } catch (e) {
         problems.push(`ral-90j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {

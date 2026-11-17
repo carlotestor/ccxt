@@ -23808,6 +23808,30 @@ function r90j3NativeSum (printer, node, depth = 0, constLocals = true) {
     return b === undefined ? undefined : `(${a} + ${b})`;
 }
 
+// ral-90j3 R2: a read of the local the printer makes native on a Long: an ordering comparison or
+// `- * + /` operand, or a `<string>.slice (a, b)` bound (native substring on a non-null long)
+function r90j3NativeUse (printer, declaration) {
+    const scope = enclosingFunction (declaration);
+    const checker = printer.getChecker ();
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n)?.valueDeclaration?.resolve () !== declaration) {
+            continue;
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent)
+            && (R87J3_ARITH_OPS.has (parent.operatorToken.kind) || parent.operatorToken.kind === ts.SyntaxKind.PlusToken
+                || parent.operatorToken.kind === ts.SyntaxKind.SlashToken)) {
+            return true;
+        }
+        if (parent !== undefined && ts.isCallExpression (parent) && parent.arguments.includes (host)
+            && ts.isPropertyAccessExpression (parent.expression) && parent.expression.name.text === 'slice') {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function installJavaR90j3NativeSumLocals (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR90j3NativeSumPatched) {
@@ -23822,8 +23846,11 @@ export function installJavaR90j3NativeSumLocals (transpiler) {
                 ok = ts.isIdentifier (declaration.name) && ts.isVariableDeclarationList (declaration.parent)
                     && (declaration.parent.flags & ts.NodeFlags.Const) !== 0 && declaration.parent.declarations.length === 1
                     && declaration.initializer !== undefined && ts.isCallExpression (unwrapParens (declaration.initializer))
-                    // const-local operands are refused here: they freed only declaration-only locals (gate 15755)
-                    && !r87j6UnderPropertyAssignment (declaration) && r90j3NativeSum (printer, declaration.initializer, 0, false) !== undefined
+                    // R2: const-local operands only when the local itself has a native use (gate 15755 freed three
+                    // declaration-only locals without this)
+                    && !r87j6UnderPropertyAssignment (declaration)
+                    && (r90j3NativeSum (printer, declaration.initializer, 0, false) !== undefined
+                        || (r90j3NativeUse (printer, declaration) && r90j3NativeSum (printer, declaration.initializer) !== undefined))
                     && isSafeToNarrow (printer, declaration, declaration.name.text, 'Long',
                         /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), { nonNull: true });
             } catch (e) {
@@ -23847,7 +23874,7 @@ export function installJavaR90j3NativeSumLocals (transpiler) {
             typed.set (declaration, false);
             return printed;
         }
-        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + r90j3NativeSum (printer, declaration.initializer, 0, false);
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + r90j3NativeSum (printer, declaration.initializer);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.get (declaration) === true ? 'Long' : undefined));
 }
