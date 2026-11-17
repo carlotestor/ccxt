@@ -11042,18 +11042,22 @@ function javaVenueListReadNames () {
         }
         const sf = ts.createSourceFile (file, text);
         const visit = (node) => {
-            if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.initializer !== undefined) {
-                const init = unwrapParens (node.initializer);
+            // ral-90j8: also `x = await this.m (..)` into a `let x: T[] = []` local of the same function
+            const r90j8Write = r90j8ArrayLocalAwaitWrite (node);
+            const decl = r90j8Write !== undefined ? r90j8Write.declaration : node;
+            if (r90j8Write !== undefined || (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.initializer !== undefined)) {
+                const init = r90j8Write !== undefined ? r90j8Write.right : unwrapParens (node.initializer);
                 const call = init.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (init.expression) : undefined;
-                const scope = isThisCall (call) ? enclosingFunction (node) : undefined;
+                const scope = isThisCall (call) && (r90j8Write === undefined || r90j8VenueReturnsFreshList (file, call.expression.name.text))
+                    ? enclosingFunction (decl) : undefined;
                 if (scope !== undefined) {
-                    const local = node.name.text;
+                    const local = decl.name.text;
                     let read = false;
                     const uses = (n) => {
                         if (read) {
                             return;
                         }
-                        if (ts.isIdentifier (n) && n.text === local && n !== node.name) {
+                        if (ts.isIdentifier (n) && n.text === local && n !== decl.name) {
                             const parent = n.parent;
                             read = (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.name.text === 'length')
                                 || (ts.isElementAccessExpression (parent) && parent.expression === n);
@@ -24135,4 +24139,80 @@ export function installJavaR90j8OmitParamLocals (transpiler) {
             + '(' + JAVA_MAP_TYPE + ') ' + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// ral-90j8: `x = await this.m (..)` where x is a single `let x: T[] = []` declaration of the same function
+function r90j8ArrayLocalAwaitWrite (node) {
+    if (!ts.isBinaryExpression (node) || node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+        return undefined;
+    }
+    const right = unwrapParens (node.right);
+    if (right === undefined || right.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const scope = enclosingFunction (node);
+    let found;
+    let count = 0;
+    const walk = (n) => {
+        if (ts.isVariableDeclaration (n) && ts.isIdentifier (n.name) && n.name.text === node.left.text) {
+            count++;
+            found = n;
+        }
+        n.forEachChild (walk);
+    };
+    if (scope === undefined) {
+        return undefined;
+    }
+    walk (scope);
+    const init = found === undefined ? undefined : unwrapParens (found.initializer);
+    return count === 1 && init !== undefined && ts.isArrayLiteralExpression (init) && init.elements.length === 0
+        && found.type !== undefined && ts.isArrayTypeNode (found.type) ? { right, declaration: found } : undefined;
+}
+
+// ral-90j8: every declaration of m in the file returns a local declared `[]` (an ArrayList<Object> the printer
+// declares List) or this.arraySlice; a returned awaited response (Object) would not compile in the List core
+function r90j8VenueReturnsFreshList (file, name) {
+    const text = readTsIndexSource (file);
+    if (text === undefined) {
+        return false;
+    }
+    const sf = ts.createSourceFile (file, text);
+    let ok = true;
+    let found = 0;
+    const visitMethod = (member) => {
+        if (member.kind !== ts.SyntaxKind.MethodDeclaration || !ts.isIdentifier (member.name ?? {}) || member.name.text !== name
+            || member.body === undefined) {
+            return;
+        }
+        found++;
+        const locals = new Map ();
+        const collect = (n) => {
+            if (ts.isVariableDeclaration (n) && ts.isIdentifier (n.name)) {
+                locals.set (n.name.text, (locals.get (n.name.text) ?? []).concat ([ n ]));
+            }
+            n.forEachChild (collect);
+        };
+        collect (member.body);
+        const walk = (n) => {
+            if (!ok || (n !== member && ts.isFunctionLike (n))) {
+                return;
+            }
+            if (ts.isReturnStatement (n)) {
+                const value = unwrapParens (n.expression);
+                const decls = value !== undefined && ts.isIdentifier (value) ? (locals.get (value.text) ?? []) : [];
+                const init = decls.length === 1 ? unwrapParens (decls[0].initializer) : undefined;
+                ok = (init !== undefined && ts.isArrayLiteralExpression (init))
+                    || (value !== undefined && isThisCall (value) && value.expression.name.text === 'arraySlice');
+                return;
+            }
+            n.forEachChild (walk);
+        };
+        walk (member);
+    };
+    for (const statement of sf.statements) {
+        if (ts.isClassDeclaration (statement)) {
+            statement.members.forEach (visitMethod);
+        }
+    }
+    return ok && found > 0;
 }
