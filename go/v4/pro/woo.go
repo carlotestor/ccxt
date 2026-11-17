@@ -892,7 +892,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = this.SafeDictMap(data, i)
+		var ticker any = this.SafeDict(data, i)
 		if ticker == nil {
 			continue
 		}
