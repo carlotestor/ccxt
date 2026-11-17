@@ -16366,17 +16366,17 @@ impl Binance {
             let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]);
-            let mut code: Value = (if ((market).linear == Some(true)) { crate::value::KeyRead::key_read(&&market, "quote") } else { crate::value::KeyRead::key_read(&&market, "base") });
+            let mut code: String = (if ((market).linear == Some(true)) { (market).quote.clone() } else { (market).base.clone() });
             let mut maintenanceMargin: Option<String> = self.safe_string_k_opt(&position, "maintMargin", &[]);
             // check for maintenance margin so empty positions are not returned
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
             if !filterClosed || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
-                if (matches!(&code, Value::Str(__k) if balances.contains_key(__k.as_ref()))) {
+                if (balances.contains_key(code.as_str())) {
                     let __ws_arg_159 = self.extend(position, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("crossMargin".to_string(), self.safe_value(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("crossMargin".into()), &[]));
-                            m.insert("crossWalletBalance".to_string(), self.safe_value(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("crossWalletBalance".into()), &[]));
+                            m.insert("crossMargin".to_string(), self.safe_value(balances.get(code.as_str()).cloned().unwrap_or(Value::Null), Value::Str("crossMargin".into()), &[]));
+                            m.insert("crossWalletBalance".to_string(), self.safe_value(balances.get(code.as_str()).cloned().unwrap_or(Value::Null), Value::Str("crossWalletBalance".into()), &[]));
                         m
                     })]);
                     let mut parsed: crate::value::Dict = self.parse_account_position(__ws_arg_159, Some(&market)).into_dict();
