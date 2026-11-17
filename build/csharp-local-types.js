@@ -12617,7 +12617,44 @@ function narrowedCopyWriteType (declaration, node) {
 
 // the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
 function nullInitWriteValueType (csharp, declaration, node) {
-    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node) ?? arrayGuardedListWriteType (csharp, declaration, node);
+    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node) ?? arrayGuardedListWriteType (csharp, declaration, node)
+        ?? boolLiteralRowWriteType (csharp, declaration, node);
+}
+
+// ral-87c8 R3: `let x = true|false` later written `x = market['contract']` (a MARKET_ROW_BOOL_KEYS read of a
+// proven market row): that box is a bool or null, so the local is `bool?` and the write carries the exact
+// `((bool?)...)` cast back (the 84c2 conditional-arm proof, applied to a plain write)
+const boolLiteralRowWrites = new WeakSet ();
+
+function boolLiteralRowWriteType (csharp, declaration, node) {
+    const init = declaration.initializer?.kind;
+    if ((init !== ts.SyntaxKind.TrueKeyword && init !== ts.SyntaxKind.FalseKeyword) || declaration.parent?.declarations?.length !== 1
+            || node?.kind !== ts.SyntaxKind.ElementAccessExpression || marketRowBoolReadType (csharp, node) !== 'bool') {
+        return undefined;
+    }
+    const write = node.parent;
+    if (write?.kind !== ts.SyntaxKind.BinaryExpression || write.right !== node || write.left?.kind !== ts.SyntaxKind.Identifier
+            || write.left.text !== declaration.name?.text) {
+        return undefined;
+    }
+    // only a local some read of which compares it with a bool literal (`x === true`, prints `== true` once
+    // typed); a local only handed on to object parameters would gain nothing but the cast
+    const scope = enclosingFunction (declaration);
+    const compared = (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []).some ((n) => {
+        const p = n.parent;
+        if (n === declaration.name || p?.kind !== ts.SyntaxKind.BinaryExpression || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            return false;
+        }
+        const op = p.operatorToken.kind;
+        const other = (p.left === n) ? p.right : p.left;
+        return (op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken)
+            && (other?.kind === ts.SyntaxKind.TrueKeyword || other?.kind === ts.SyntaxKind.FalseKeyword);
+    });
+    if (!compared) {
+        return undefined;
+    }
+    boolLiteralRowWrites.add (node);
+    return 'bool?';
 }
 
 // ral-87c8 R1: `let x = []` (List<object>) written `x = y` as the FIRST statement of the then-block of
@@ -12692,6 +12729,22 @@ function installArrayGuardedListWriteCasts (csharp) {
         return (target !== undefined && retypedDeclarationTypes.get (target) === 'List<object>') ? '((List<object>)' + printed + ')' : printed;
     };
     csharp._arrayGuardedListWriteCastsPatched = true;
+}
+
+function installBoolLiteralRowWriteCasts (csharp) {
+    if (typeof csharp.printElementAccessExpression !== 'function' || csharp._boolLiteralRowWriteCastsPatched) {
+        return;
+    }
+    const upstream = csharp.printElementAccessExpression.bind (csharp);
+    csharp.printElementAccessExpression = (node, identation) => {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || !boolLiteralRowWrites.has (node)) {
+            return printed;
+        }
+        const target = resolveReference (csharp, node.parent.left);
+        return (target !== undefined && retypedDeclarationTypes.get (target) === 'bool?') ? '((bool?)' + printed + ')' : printed;
+    };
+    csharp._boolLiteralRowWriteCastsPatched = true;
 }
 
 // the write-time record of a retyped name-keyed local (`scope -> Map<printed name, declaration>`), read
@@ -14789,6 +14842,7 @@ export function installCsharpLocalTypes (transpiler) {
     installCsharpDictionaryIndexWriteCastElision (csharp);
     installNullInitRowReadWriteCasts (csharp);
     installArrayGuardedListWriteCasts (csharp);
+    installBoolLiteralRowWriteCasts (csharp);
 }
 
 // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` — ast-transpiler's printer

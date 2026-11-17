@@ -284,3 +284,14 @@ describe ('ral-87c8-guarded-self-concat-write', () => {
         assert.match (out, /url = \(url == null \? null : url \+ "\/private"\);/);
     });
 });
+
+describe ('ral-87c8-bool-literal-row-write', () => {
+    test('kucoin: a bool literal local written from a market-row bool read prints bool? with a native compare', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as any).transpileCSharpByPath ('./ts/src/kucoin.ts').content as string;
+        assert.match (out, /bool\? isContractMarket = true;/);
+        assert.match (out, /isContractMarket = \(\(bool\?\)\(market\.ContainsKey\("contract"\) \? market\["contract"\] : null\)\);/);
+        assert.match (out, /if \(\(isContractMarket != true\)\)/);
+    });
+});
