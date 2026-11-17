@@ -2159,7 +2159,7 @@ public partial class BaseExchange
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
-            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey11 && marketsById.ContainsKey(inOpKey11)))
+            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey10 && marketsById.ContainsKey(inOpKey10)))
             {
                 IList<object> marketsByIdArray = ((IList<object>)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
                 marketsByIdArray.Add(value);
@@ -7697,7 +7697,7 @@ public partial class BaseExchange
         for (int i = 0; i < (input?.Count ?? 0); i++)
         {
             object entry = (input != null && i < input.Count ? input[i] : null);
-            object id = this.safeString(entry, "id");
+            string? id = this.safeString(entry, "id");
             if ((id == null))
             {
                 string price = this.safeString(entry, "price", "");
@@ -7711,9 +7711,9 @@ public partial class BaseExchange
                 }
                 // optional parts are empty when absent, separators keep positions distinct
                 id = (((("t_" + ((object)timestamp).ToString()) + "_") + side) + "_");
-                id = ((object)(id == null ? null : id + (((price + "_") + amount))));
+                id = (id == null ? null : id + (((price + "_") + amount)));
             }
-            if ((id != null) && !((id is string inOpKey8 && uniqueResult.ContainsKey(inOpKey8))))
+            if ((id != null) && !(((id != null) && (uniqueResult?.ContainsKey(id) == true))))
             {
                 uniqueResult[(string)id] = entry;
             }
@@ -8133,7 +8133,7 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
@@ -8141,7 +8141,7 @@ public partial class BaseExchange
         {
             if (subHashIsPrefix != true)
             {
-                if ((client.subscriptions != null && subHash is string inOpKey10 && client.subscriptions.ContainsKey(inOpKey10)))
+                if ((client.subscriptions != null && subHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
                 }

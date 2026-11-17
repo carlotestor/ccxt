@@ -80,10 +80,10 @@ public partial class xt : ccxt.xt
             tradeType = "contract";
         }
         IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
-        object url = this.safeString(apiUrls, tradeType);
+        string? url = this.safeString(apiUrls, tradeType);
         if (!isContract)
         {
-            url = ((object)(url == null ? null : url + "/private"));
+            url = (url == null ? null : url + "/private");
         }
         var client = this.client(url);
         string? token = this.safeString(client.subscriptions, "token");
