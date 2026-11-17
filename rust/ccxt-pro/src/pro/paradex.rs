@@ -3705,7 +3705,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if !handled {
                 // not a reply to a known request, every watcher on the connection gets the error,
                 // and the next private watch authenticates again instead of waiting on a rejected future
-                if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
+                if (__ch.has_subscription("authenticated")) {
                     __ch.remove_subscription("authenticated");
                 }
                 client.reject(e, None);

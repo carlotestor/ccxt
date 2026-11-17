@@ -2889,15 +2889,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                             marketType = parsedChannel.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
                         }
                         let mut symbol: Option<String> = self.safe_symbol(payload.get(i as usize).cloned().unwrap_or(Value::Null), None, &[Value::Str("_".into()), marketType.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-                        let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), ":").into()), symbol.as_deref().unwrap_or("null")).into());
-                        if (messageHashSymbol != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                            __ch.remove_subscription(&messageHashSymbol);
+                        let mut messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), ":").into()), symbol.as_deref().unwrap_or("null"));
+                        if (true) && (__ch.has_subscription(&messageHashSymbol[..])) {
+                            __ch.remove_subscription(messageHashSymbol.as_str());
                         }
                     }
                     }
                 }
             }
-            if (id.is_some()) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (id.is_some()) && (__ch.has_subscription((&id).as_deref())) {
                 __ch.remove_subscription(id.as_deref());
             }
             return Value::Bool(true);
