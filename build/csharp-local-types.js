@@ -21462,6 +21462,12 @@ function c90ArrayGuardedConditionalLocal (csharp, declaration, context) {
         return undefined;
     }
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    // the guarded arm must print as `object`: a statically typed arm (a `Dictionary` endpoint result)
+    // gives the cast conditional no natural type (CS0029) and is never a list anyway
+    const armType = csharpTypeOfValue (csharp, arm, ctx) ?? retypedDeclarationTypes.get (target);
+    if (armType !== undefined && armType !== 'object') {
+        return undefined;
+    }
     if (csharpTypeOfValue (csharp, conditional.whenFalse, ctx) !== 'List<object>') {
         return undefined;
     }
