@@ -13354,6 +13354,7 @@ function nullScalarLocalTypeOpen (printer, declaration) {
     const sourceName = String (declaration.name.text);
     let type;
     let r84Write = false;
+    let venueString = false;
     for (const n of (identifierIndex (scope).get (sourceName) ?? [])) {
         if (n === declaration.name || dataflowNotAUse (n) || checker.getSymbolAtLocation (n) !== symbol) {
             continue;
@@ -13373,10 +13374,10 @@ function nullScalarLocalTypeOpen (printer, declaration) {
             if (written === undefined || (written !== 'null' && type !== undefined && written !== type)) {
                 return undefined;
             }
-            // a VENUE_RETURN_KINDS String callee write lands only with a native use (`x as string` included)
-            const venueString = written === JAVA_DATAFLOW_STRING && isThisCall (unwrapParens (parent.right))
-                && venueCallJavaType (printer, unwrapParens (parent.right)) === JAVA_DATAFLOW_STRING;
-            r84Write = r84Write || venueString || NULL_SEED_R84_WRITES.has (parent.right);
+            // a VENUE_RETURN_KINDS String callee write: `x as string` on the seed may print as the bare local
+            venueString = venueString || (written === JAVA_DATAFLOW_STRING && isThisCall (unwrapParens (parent.right))
+                && venueCallJavaType (printer, unwrapParens (parent.right)) === JAVA_DATAFLOW_STRING);
+            r84Write = r84Write || NULL_SEED_R84_WRITES.has (parent.right);
             type = (written === 'null') ? type : written;
         }
         // r90-j4: `[ x, p ] = this.handle*AndParams (..)`: the typed Pair slot the printer reads with `.first()`
@@ -13410,7 +13411,7 @@ function nullScalarLocalTypeOpen (printer, declaration) {
     const destructureOk = (assignment, at) => nullSeedPairSlotWrite (printer, assignment.left.elements[at]) === type;
     // `x as string` on a String seed is the identity checkcast (admitted only where a String core slot / overload
     // is the seed's native use: nullSeedHasNativeUse)
-    const stringAsCast = type === JAVA_DATAFLOW_STRING && r84Write;
+    const stringAsCast = type === JAVA_DATAFLOW_STRING && (r84Write || (venueString && nullSeedHasNativeUse (printer, declaration, type)));
     return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk, noCastAssertions: container, writeOnly: container, destructureOk, stringAsCast }) ? type : undefined;
 }
 
