@@ -6119,12 +6119,14 @@ function mapLocalsSelfTest (): string[] {
             "    createOrderRequest (symbol: Str, type: Str, side: Str, amount: number, price: number = undefined, params: Dict = {}): Dict { return { 'instId': symbol }; }",
             "    zzWs (symbol: string, code: number) { const args = this.createOrderRequest (symbol, 'limit', 'buy', 1, undefined, {}); delete args['instId']; args['instIdCode'] = code; return args; }",
             "    async zzEdit (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) { await this.loadMarkets (); let request = this.createOrderRequest (symbol, type, side, amount, price, params); request = this.omit (request, [ 'instruction', 'client_id' ]); request['order_id'] = id; request = await this.signOrderRequest (request, true); return request; }",
+            "    zzWsTrades (rows: any[]) { const trades = this.parseWsTrades (rows); let n = 0; for (let j = 0; j < trades.length; j++) { n += 1; } return n; }",
             "    setMarkets (markets: any, currencies: any = undefined) { const result = super.setMarkets (markets, currencies); const symbols = Object.keys (result); return result; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r90j7).content as string;
         if (!/Map<String, ?Object> args = this\.createOrderRequest\(/.test(out) || !/\bargs\.remove\("instId"\);/.test(out)) problems.push("ral-90j7: a Map callee result with a delete must print Map<String, Object> and a bare remove");
         if (!/Map<String, ?Object> request = this\.createOrderRequest\(/.test(out) || !/\brequest\.put\("order_id", id\);/.test(out)) problems.push("ral-90j7: a Map callee result rewritten by this.omit (self, ..) must stay Map<String, Object> with a native put");
+        if (!/List<Object> trades = this\.parseWsTrades\(/.test(out) || !/j < trades\.size\(\)/.test(out)) problems.push("ral-90j7: a parseWsTrades result must print List<Object> read by size()");
         if (!/Map<String, ?Object> result = super\.setMarkets\(/.test(out) || !/result\.keySet\(\)/.test(out)) problems.push("ral-90j7: a super.setMarkets result must print Map<String, Object> read by keySet()");
     } catch (e) {
         problems.push(`ral-90j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);

@@ -368,6 +368,9 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     // `results` local, parsePredictionTrades returns filterByValueSinceLimit (List<Object>). Only
     // these two of 84j7 R1's names: their result locals are read by size()/get(i) (native uses)
     'parsePredictionPositions', 'parsePredictionTrades',
+    // ral-90j7 R5: base parseWsTrades returns parseTradesHelper (List), the hitbtc override filterBySymbolSinceLimit (List);
+    // the hitbtc handleTrades result local is read by size()/get(j)
+    'parseWsTrades',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>' };
