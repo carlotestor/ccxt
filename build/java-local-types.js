@@ -791,8 +791,8 @@ function safeDictLocalType (printer, initializer, name) {
     }
     // later Map producer writes (extend/deepExtend/safeDict/awaits) join; their checkcast is printed by the write hook
     const writeOk = (right) => accumulatorWriteInfo (printer, right)?.type === JAVA_SAFE_DICT_TYPE;
-    // a `{}` default binds the hand-written Map-default safeDict overload: the call is already a Map
-    const mapDefault = name === 'safeDict' && args.length === defaultArg + 1;
+    // a `{}` or absent default binds the hand-written Map-default safeDict overload: the call is already a Map
+    const mapDefault = name === 'safeDict';
     return { type: JAVA_SAFE_DICT_TYPE, cast: mapDefault ? undefined : '(' + JAVA_SAFE_DICT_TYPE + ')', noCastAssertions: true, writeOk };
 }
 
@@ -10974,9 +10974,9 @@ export function patchJavaSafeListLocalTypes (transpiler) {
             return printed;
         }
         typed.add (declaration);
-        // an array-literal default binds the hand-written List-default safeList overload: no checkcast
+        // an array-literal or absent default binds the hand-written List-default safeList overload: no checkcast
         const args = unwrapSafeListCall (declaration.initializer).arguments;
-        const listDefault = name === 'safeList' && args.length === 3 && ts.isArrayLiteralExpression (unwrapParens (args[2]));
+        const listDefault = name === 'safeList' && (args.length === 2 || ts.isArrayLiteralExpression (unwrapParens (args[2])));
         return printed.slice (0, at) + `${iden}${JAVA_SAFE_LIST_TYPE} ${printedName} = ${listDefault ? '' : JAVA_SAFE_LIST_CAST + ' '}${value}`;
     };
     // later safeList*/arrayConcat writes are declared Object in Java: same checkcast as the declaration
@@ -27100,4 +27100,34 @@ function j92j7FeedsMapSlot (printer, call) {
         return false;
     }
     return false;
+}
+
+// ===== reader results keyed on the default argument =====
+// An absent default of the base safeDict / safeList prints a bare `null` instead of `(Object) null`, so
+// the call binds the hand-written Map / List default overload (the most specific one for a null argument).
+// Those overloads hand back the transpiled reader's own result, so behaviour is unchanged.
+const JAVA_TYPED_DEFAULT_READERS = new Set ([ 'safeDict', 'safeList' ]);
+
+function javaTypedDefaultReaderSlot (param) {
+    const method = param?.parent;
+    if (method === undefined || !ts.isMethodDeclaration (method) || method.name === undefined
+        || !ts.isIdentifier (method.name) || !JAVA_TYPED_DEFAULT_READERS.has (method.name.text)
+        || method.parameters.indexOf (param) !== 2) {
+        return false;
+    }
+    const fileName = String (method.getSourceFile ().fileName).replace (/\\/g, '/');
+    return /(^|\/)ts\/src\/base\/Exchange(\.nooverloads\.\d+)?\.ts$/.test (fileName);
+}
+
+export function installJavaTypedDefaultReaders (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaCoreDefaultArgument !== 'function' || printer._javaTypedDefaultReadersPatched) {
+        return;
+    }
+    printer._javaTypedDefaultReadersPatched = true;
+    const upstreamDefault = printer.javaCoreDefaultArgument.bind (printer);
+    printer.javaCoreDefaultArgument = function (param, type) {
+        const printed = upstreamDefault (param, type);
+        return printed === '(Object) null' && javaTypedDefaultReaderSlot (param) ? 'null' : printed;
+    };
 }

@@ -62,7 +62,7 @@ import { installJavaR92j3HexStringCalls } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaR92j1AssertedStringLocals } from './java-local-types.js';
 import { installJavaR92j1StringRowLocals } from './java-local-types.js';
-import { installJavaR92j2MarketTypeParams } from './java-local-types.js';
+import { installJavaR92j2MarketTypeParams, installJavaTypedDefaultReaders } from './java-local-types.js';
 import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
@@ -2566,6 +2566,7 @@ class NewTranspiler {
         installJavaR92j1AssertedStringLocals(this.transpiler);
         installJavaR92j1StringRowLocals(this.transpiler);
         installJavaR92j2MarketTypeParams(this.transpiler);
+        installJavaTypedDefaultReaders(this.transpiler);
         installJavaR92j2MapSlotHandOff(this.transpiler);
         installJavaR92j2StringSlotLocals(this.transpiler);
     }
