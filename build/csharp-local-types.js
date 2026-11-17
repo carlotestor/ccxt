@@ -16709,7 +16709,7 @@ export const PARSE_CURRENCY_IDICT_PARAMS = {
     'getCurrencyFromChaincode': 1, 'getExtendedCurrencyCodeById': 1, 'parseLedger': 1, 'parseLedgerEntry': 1,
     'parseTransaction': 1, 'parseTransactions': 1,
     // the consumer chain the rows above forward to; parseConversion's two slots are fromCurrency / toCurrency
-    'safeCurrency': 1, 'safeCurrencyCode': 1, 'parseConversion': [ 1, 2 ],
+    'safeCurrencyCode': 1, 'parseConversion': [ 1, 2 ],
 };
 const CURRENCY_SLOT_NAMES = [ 'currency', 'fromCurrency', 'toCurrency' ];
 
