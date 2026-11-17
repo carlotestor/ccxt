@@ -6083,6 +6083,7 @@ function mapLocalsSelfTest (): string[] {
             'export default class zz87j7selftest extends Exchange {',
             "    zzCancel (response: Dict, id: string) { const order = this.parsePredictionOrder (response); order['id'] = id; return order; }",
             "    zzPositions (rows: any[]) { const parsed = this.parsePredictionPositions (rows); let n = 0; for (let i = 0; i < parsed.length; i++) { n += 1; } return n; }",
+            "    zzPosition (raw: Dict) { const position = this.parsePredictionPosition (raw); return position['outcome']; }",
             "    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder { return this.safePredictionOrder ({ 'id': this.safeString (order, 'id') }, market); }",
             "    async zzRawRows (params: Dict = {}): Promise<Dict[]> {",
             "        const out: Dict[] = [];",
@@ -6101,6 +6102,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/Map<String, ?Object> order = this\.parsePredictionOrder\(/.test(out) || !/order\.put\("id", id\);/.test(out)) problems.push("ral-87j7: a prediction-order result local must print Map with a native put");
         if (!/List<Object> parsed = this\.parsePredictionPositions\(/.test(out) || !/i < parsed\.size\(\)/.test(out)) problems.push("ral-87j7: a parsePredictionPositions result must print List<Object> read by size()");
         if (!/List<Object> rows = \(this\.zzRawRows\(/.test(out) || !/rows\.size\(\)/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Dict[]> core (returns a local) must give a List<Object> local read by size()");
+        if (!/Map<String, ?Object> position = this\.parsePredictionPosition\(/.test(out) || !/position\.get\("outcome"\)/.test(out)) problems.push("ral-90j7: a parsePredictionPosition result must print Map<String, Object> read by get()");
         if (!/List<Object> ids = \(this\.zzRawIds\(/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Str[]> core (returns a local) must give a List<Object> local");
     } catch (e) {
         problems.push(`ral-87j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);

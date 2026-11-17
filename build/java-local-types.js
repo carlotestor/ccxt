@@ -673,7 +673,9 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 // of the same family or createExpiredOptionMarket (a row) - checkcast at the return site only.
 // ral-90j7 R2: setMarkets (base returns the Map field this.markets; PredictionExchange / deepcoin return their own
 // super.setMarkets result local). Its result locals are read by Object.keys / put (native on a Map)
-const J90J7_MAP_RETURN_METHODS = [ 'setMarkets' ];
+// ral-90j7 R3: safePredictionPosition (returns its own Map `result` literal) and every parsePredictionPosition
+// (base throws; venues return this.safePredictionPosition ({..}) or an object literal)
+const J90J7_MAP_RETURN_METHODS = [ 'setMarkets', 'safePredictionPosition', 'parsePredictionPosition' ];
 const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS, ...J90J7_MAP_RETURN_METHODS ]);
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
@@ -6248,7 +6250,11 @@ export function installJavaLocalTypes (transpiler) {
             return printed.slice (0, at + 'return '.length) + open + tail.slice (0, end) + ')' + tail.slice (end);
         }
         if (JAVA_MAP_RETURN_METHODS.has (methodName) && !printer.isAsyncFunction?.(method)) {
-            const expression = unwrapNoCastAssertion (unwrapParens (node.expression));
+            let expression = unwrapNoCastAssertion (unwrapParens (node.expression));
+            // ral-90j7: `{..} as unknown as T` (two no-cast assertions) is still the literal
+            while (J90J7_MAP_RETURN_METHODS.includes (methodName) && expression !== undefined && unwrapNoCastAssertion (expression) !== expression) {
+                expression = unwrapNoCastAssertion (expression);
+            }
             const at = printed.lastIndexOf ('return ');
             if (expression === undefined || at === -1 || enclosingFunction (node) !== method
                 || ts.isObjectLiteralExpression (expression) || expression.kind === ts.SyntaxKind.NullKeyword
