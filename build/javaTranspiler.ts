@@ -6111,12 +6111,12 @@ function mapLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(r92j3, [
             "import Exchange from './abstract/binance.js';",
-            "import type { Int, Dict } from './base/types.js';",
+            "import type { Int, Dict, Trade } from './base/types.js';",
             'export default class zz92j3selftest extends Exchange {',
-            "    candles (trades: any[]) { const c = this.buildOHLCVC (trades, '1m', 0, 100); return c; }",
-            "    insertMissingCandles (candles: any[], distanceInMs: number, since: Int, limit: number): any[] { const out = []; let n: Int = 0; while (n < limit) { out.push (n); n = this.sum (n, 1); } return out; }",
-            "    fill (xs: any[]) { return this.insertMissingCandles (xs, 1000, undefined, 5); }",
-            "    within (xs: any[], p: Dict) { const end = this.safeInteger (p, 'end'); return this.parseToInt (xs[0]) > end; }",
+            "    candles (trades: Trade[]) { const c = this.buildOHLCVC (trades, '1m', 0, 100); return c; }",
+            "    insertMissingCandles (candles: number[][], distanceInMs: number, since: Int, limit: number): number[] { const out: number[] = []; let n: Int = 0; while (n < limit) { out.push (n); n = this.sum (n, 1); } return out; }",
+            "    fill (xs: number[][]) { return this.insertMissingCandles (xs, 1000, undefined, 5); }",
+            "    within (xs: string[], p: Dict) { const end = this.safeInteger (p, 'end'); return this.parseToInt (xs[0]) > end; }",
             "    deadline () { const d = this.seconds () + this.safeInteger (this.options, 'expiry', 600); return d; }",
             "    grow (p: Dict, n: Int = 1) { const have = this.safeInteger (p, 'have', 0); const next = have + n; return next > 10; }",
             "    sig (o: Dict) { const s = this.remove0xPrefix (this.safeString (o, 'r')) + this.intToBase16 (o['v']); return '0x' + s; }",
