@@ -364,6 +364,10 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'parseBorrowInterests', 'parseMarginModifications', 'parseConversions', 'parseIncomes',
     'parseLiquidations', 'parseFundingRateHistories', 'parseLongShortRatioHistory', 'parseOpenInterestsHistory',
     'arraySlice',
+    // ral-87j7: no override in ts/src; parsePredictionPositions returns its own List<Object>
+    // `results` local, parsePredictionTrades returns filterByValueSinceLimit (List<Object>). Only
+    // these two of 84j7 R1's names: their result locals are read by size()/get(i) (native uses)
+    'parsePredictionPositions', 'parsePredictionTrades',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>' };
