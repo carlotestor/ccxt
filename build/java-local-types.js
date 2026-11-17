@@ -2479,6 +2479,7 @@ const VENUE_RETURN_KINDS = {
     // gate `getGateFuturesSignedAmount (..): Str` (one declaration): returns amountToPrecision's String local or
     // Precise.stringNeg (public static String); its null seed is parsed through `x as string`
     'getGateFuturesSignedAmount': [ 'String' ],
+    'getPrivateWsUrl': [ 'String' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2582,6 +2583,11 @@ function venueReturnCast (printer, node, method, javaType) {
     }
     if (javaType === 'Long' && numericFamilyCallType (printer, expression) === 'Long') {
         return undefined; // already a declared Long (safeInteger/parseToInt): no conversion
+    }
+    // a `+` the printer emits as the native Java concat is statically String: no checkcast
+    if (javaType === 'String' && ts.isBinaryExpression (expression) && expression.operatorToken.kind === ts.SyntaxKind.PlusToken
+        && printedConcatIsNative (printer, expression.left, expression.right)) {
+        return undefined;
     }
     // Precise.string* statics are declared `public static String`: no checkcast
     if (javaType === 'String' && ts.isCallExpression (expression) && ts.isPropertyAccessExpression (expression.expression)
