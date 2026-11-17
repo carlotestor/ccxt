@@ -24314,3 +24314,100 @@ export function installJavaR90j6PairLocals (transpiler) {
         return upstreamElement (node, identation);
     };
 }
+
+// ===== 90j6 R4. safeList* locals re-written from a List-declared local =====
+// Section 10's proof (base safeList* reader, list-shaped default, array checker type) plus writes
+// `x = y` where `y` is a local the printer already declared `java.util.List<Object>` (e.g. a
+// `const spotTickers = []` accumulator). Section 10 refuses those only because accumulatorWriteInfo has
+// no identifier arm. Admitted only with a native use: at least one `x.length` or `x[i]` read.
+function r90j6ListCopyWrite (printer, right) {
+    const value = unwrapParens (right);
+    if (value === undefined || !ts.isIdentifier (value)) {
+        return false;
+    }
+    const declared = String (printer.javaDeclaredTypeOf?.(value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    if (declared === 'List<Object>') {
+        return true;
+    }
+    // a const source printed later: prove it from its own initializer (an array literal / proven List producer)
+    let source;
+    try {
+        source = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return source !== undefined && ts.isVariableDeclaration (source) && source.initializer !== undefined
+        && (source.parent?.flags & ts.NodeFlags.Const) !== 0
+        && accumulatorWriteInfo (printer, source.initializer)?.type === JAVA_SAFE_LIST_TYPE
+        && accumulatorWriteInfo (printer, source.initializer)?.cast === '';
+}
+
+function r90j6ListLocal (printer, declaration, isProFile) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const initializer = unwrapParens (declaration.initializer);
+    if (initializer === undefined || !isThisCall (initializer)) {
+        return undefined;
+    }
+    const name = String (initializer.expression.name.text);
+    if (!JAVA_SAFE_LIST_NAMES.has (name) || !resolvesToBaseOrStrippedAccessor (printer, initializer, name)
+        || !safeListInitializerIsList (printer, initializer) || !safeListDefaultIsList (printer, initializer, name)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const local = String (declaration.name.text);
+    let copies = 0;
+    let native = 0;
+    for (const n of (scope === undefined ? [] : identifierIndex (scope).get (local) ?? [])) {
+        const parent = n.parent;
+        if (n === declaration.name || parent === undefined) {
+            continue;
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && r90j6ListCopyWrite (printer, parent.right)) {
+            copies++;
+        }
+        if (r90j6LengthRead (n) || (ts.isElementAccessExpression (parent) && parent.expression === n)) {
+            native++;
+        }
+    }
+    if (copies === 0 || native === 0) {
+        return undefined; // section 10 already decides the rest
+    }
+    const writeOk = (right) => accumulatorWriteInfo (printer, right)?.type === JAVA_SAFE_LIST_TYPE || r90j6ListCopyWrite (printer, right);
+    return isSafeToNarrow (printer, declaration, local, JAVA_SAFE_LIST_TYPE, isProFile, { noCastAssertions: true, writeOk }) ? name : undefined;
+}
+
+export function installJavaR90j6ListCopyLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR90j6ListCopyPatched) {
+        return;
+    }
+    printer._javaR90j6ListCopyPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        let name;
+        try {
+            const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+            name = (typed.has (declaration) || r87j6HeadIsObject (printer, declaration, upto)) ? r90j6ListLocal (printer, declaration, isProFile) : undefined;
+        } catch (e) {
+            name = undefined;
+        }
+        if (name === undefined || !printed.startsWith (marker) || printed.indexOf ('\n') !== -1
+            || !printed.slice (marker.length).startsWith ('this.' + name + '(')) {
+            return printed;
+        }
+        typed.add (declaration);
+        return r87j6Head (printer, declaration, identation, JAVA_SAFE_LIST_TYPE) + JAVA_SAFE_LIST_CAST + ' ' + printed.slice (marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? JAVA_SAFE_LIST_TYPE : undefined));
+}
