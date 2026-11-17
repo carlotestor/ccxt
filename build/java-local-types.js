@@ -22028,6 +22028,10 @@ function r84j1BoxUse (printer, n) {
             if (method === 'push' && parent.arguments.length === 1 && !isThisOrSuperCall (parent)) {
                 return 'same';
             }
+            // (R3, ral-90j1) the ws cache `append (Object item)`: one hand-written overload, takes the box as is
+            if (method === 'append' && parent.arguments.length === 1 && !isThisOrSuperCall (parent)) {
+                return 'same';
+            }
             if (isThisCall (parent) && R84J1_OBJECT_ARG_READERS.has (method) && resolvesToBaseOrStrippedAccessor (printer, parent, method)) {
                 return 'same';
             }
@@ -22046,6 +22050,21 @@ function r84j1BoxUse (printer, n) {
         }
     }
     return undefined;
+}
+
+// (R3, ral-90j1) a unified structure interface of ts/src/base/types.ts (Trade, Order, Position, ...): the
+// Java side of every such value is a TypedMap view (a java.util.Map) or null, so an element of a
+// `Trade[]` list holds exactly what an element of a `Dict[]` list holds
+function r90j1UnifiedStructureType (checker, type) {
+    if (type === undefined || (type.flags & ts.TypeFlags.Object) === 0 || checker.isArrayType (type) || checker.isTupleType (type)) {
+        return false;
+    }
+    const declaration = type.getSymbol?.()?.declarations?.[0]?.resolve?.();
+    if (declaration === undefined || !ts.isInterfaceDeclaration (declaration)
+        || !/(^|[\\/])ts[\\/]src[\\/]base[\\/]types\.ts$/.test (declaration.getSourceFile ().fileName)) {
+        return false;
+    }
+    return checker.getIndexTypeOfType (type, ts.IndexKind.Number) === undefined;
 }
 
 function r84j1BoxElementLocal (printer, declaration) {
@@ -22067,7 +22086,7 @@ function r84j1BoxElementLocal (printer, declaration) {
         return false;
     }
     const element = checker.getTypeArguments (listType)?.[0];
-    if (element === undefined || !printer.javaJsonBoxType (element)) {
+    if (element === undefined || !(printer.javaJsonBoxType (element) || r90j1UnifiedStructureType (checker, element))) {
         return false;
     }
     const scope = enclosingFunction (declaration);
