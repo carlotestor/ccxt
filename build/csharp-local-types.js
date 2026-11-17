@@ -8983,6 +8983,53 @@ function stringElementLocalHasNativeUse (csharp, declaration) {
     return false;
 }
 
+// ral-90c3 rule B: `const x = xs[i]` where `xs` is a `string[]` / `Strings` PARAMETER the printer's own
+// list-parameter census prints `IList<object>` (csharpArrayListParamType: every declaration of the
+// (method, position) pair and every resolved call agree, never rebound), and the body neither
+// writes nor mutates it in place (stringListParameterElementType's use scan, which only covers the
+// CORE_LIST_ARGS positions). Same `string?` + `(string)` cast; admitted only with a native use.
+function censusStringListParameterElementType (csharp, initializer, declaration) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier
+            || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || typeof csharp.csharpArrayListParamType !== 'function') {
+        return undefined;
+    }
+    const fileName = (initializer.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const parameter = csharpIdentifierDeclaration (csharp, initializer.expression);
+    if (parameter?.kind !== ts.SyntaxKind.Parameter || parameter.name?.kind !== ts.SyntaxKind.Identifier || !stringListParameterAnnotation (parameter)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+    if (scope === undefined || parameter.parent !== scope || enclosingFunction (declaration) !== scope) {
+        return undefined;
+    }
+    let listType;
+    try {
+        listType = csharp.csharpArrayListParamType (parameter);
+    } catch (e) {
+        return undefined;
+    }
+    if (listType !== 'IList<object>') {
+        return undefined;
+    }
+    for (const use of indexScope (csharp, scope).identifiers.get (parameter.name.text) ?? []) {
+        if (use === parameter.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, parameter, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            return undefined;
+        }
+        if (parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
+            return undefined;
+        }
+    }
+    return stringElementLocalHasNativeUse (csharp, declaration) ? 'string' : undefined;
+}
+
 function keyedStringListElementType (csharp, initializer, declaration) {
     if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier
             || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
@@ -11603,7 +11650,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `const x = recv[key]`: the runtime element is a proven box, but the call's C# type
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
-        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer) ?? keyedStringListElementType (csharp, declaration.initializer, declaration)) : undefined;
+        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer) ?? keyedStringListElementType (csharp, declaration.initializer, declaration) ?? censusStringListParameterElementType (csharp, declaration.initializer, declaration)) : undefined;
         // `const key = keys[i]` over a receiver whose PRINTED declaration head is a scalar list
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back
