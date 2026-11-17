@@ -16698,6 +16698,14 @@ export const SIGNATURE_ARG_TYPES = {
 export const PARSE_MARKET_IDICT_PARAMS = {
     'parseContractOrder': 1, 'parseMarketToEvent': 1, 'parseOrder': 1, 'parseSpotOrder': 1,
     'parseSwapOrder': 1, 'parseSxbetV3Fill': 1, 'parseUtaOrder': 1,
+    // ral-90c1: the trade / ticker / ohlcv row builders and their forwarders, admitted as one closed set
+    // (a member fed an `object market` from outside the set is dropped, never cast at the call)
+    'createPublicSubscriptionRequest': 2, 'fromEp': 1, 'fromEv': 1, 'getOutcomeBySlugAndLabel': 2,
+    'handleMarketTypeAndParams': 1, 'handleStockParams': 2, 'outcomeForToken': 1, 'parseContractTicker': 1,
+    'parseDustTrade': 1, 'parseMyUtaTrade': 1, 'parseOHLCV': 1, 'parseOHLCVs': 1, 'parseTicker': 1,
+    'parseTrade': 1, 'parseTrades': 1, 'parseTradesHelper': 2, 'parseWsOHLCV': 1, 'parseWsTrade': 1,
+    'resolveMarketByAltnameOrId': 1, 'safeMarket': 1, 'safeOpenInterest': 1, 'safeOrder': 1,
+    'safeSymbol': 1, 'safeTicker': 1, 'safeTrade': 1, 'stockDataRequest': 2,
 };
 
 // every write of the parameter is a market-row producer or a nullish reset (the text pass keeps
