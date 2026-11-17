@@ -2437,20 +2437,20 @@ impl Gate {
         m.insert("option".to_string(), Value::Str("options".into()));
     m
 })]).as_str().unwrap_or_default().to_string();
-        let mut isTrigger: Value = Value::Bool(false);
-        { let __destr_tmp: Vec<Value> = self.handle_param_bool2(query.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); isTrigger = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (isTrigger.as_bool() == Some(true)) && (typeId == "options") {
+        let mut isTrigger: bool = false;
+        { let __destr_tmp: Vec<Value> = self.handle_param_bool2(query.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); isTrigger = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (isTrigger == true) && (typeId == "options") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202")));
         }
         // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
         // see https://github.com/ccxt/ccxt/issues/27202
         let mut suffix: String = ".orders".to_string();
-        if (isTrigger.as_bool() == Some(true)) {
+        if (isTrigger == true) {
             suffix = (if (typeId == "spot") { ".priceorders".to_string() } else { ".autoorders".to_string() });
         }
         let mut channel: String = format!("{}{}", typeId, suffix);
         let mut messageHash: String = "orders".to_string();
-        if (isTrigger.as_bool() == Some(true)) {
+        if (isTrigger == true) {
             messageHash = "triggerOrders".to_string();
         }
         let mut payload: crate::value::List = std::sync::Arc::new(vec![Value::Str(format!("{}{}", "!", "all").into())]);

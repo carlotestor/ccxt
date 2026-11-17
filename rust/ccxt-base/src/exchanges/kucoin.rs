@@ -8039,9 +8039,9 @@ impl Kucoin {
                     }
                 }
                 let mut reduceOnly: bool = self.safe_bool_k_opt(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
-                let mut hedged: Value = Value::Bool(false);
-                { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsOmitted.clone(), Value::Str("hedged".into()), &[hedged.clone()]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-                if (hedged.as_bool() == Some(true)) {
+                let mut hedged: bool = false;
+                { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsOmitted.clone(), Value::Str("hedged".into()), &[Value::Bool(hedged)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+                if (hedged == true) {
                     let mut positionSide: String = "SHORT".to_string();
                     if (side.as_str() == Some("buy")) {
                         positionSide = "LONG".to_string();
