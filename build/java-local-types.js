@@ -14546,14 +14546,16 @@ function javaFreshMapExtendCall (call) {
 // extend, or another such call); hand-written base methods of that name are never proven
 function javaFreshMapMethod (file, name, visiting) {
     const state = javaFreshMapMethods ();
-    const key = `${path.resolve (file)}#${name}`;
+    const scoped = javaFreshMapPredictionScope && JAVA_84J7_MAP_RETURN_METHODS.includes (name);
+    const key = `${path.resolve (file)}#${name}${scoped ? '#p87' : ''}`;
     if (state.verdicts.has (key)) {
         return state.verdicts.get (key);
     }
     if (visiting.has (key) || visiting.size > 6) {
         return false;
     }
-    const declarations = javaFreshMapDispatch (file, name) ?? [];
+    const dispatched = javaFreshMapDispatch (file, name);
+    const declarations = (scoped && !(dispatched?.length > 0) ? javaFreshMapPredictionBase (file, name) : dispatched) ?? dispatched ?? [];
     const declaredByHand = state.handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text));
     let fresh = declarations.length > 0 && !declaredByHand;
     visiting.add (key);
@@ -14597,6 +14599,9 @@ function javaFreshMapValue (expression, visiting) {
     if (ts.isObjectLiteralExpression (value)) {
         return true;
     }
+    if (ts.isIdentifier (value)) {
+        return javaFreshMapPredictionScope && javaFreshMapConstLiteral (value); // ral-87j7
+    }
     if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression)) {
         return false;
     }
@@ -14606,6 +14611,65 @@ function javaFreshMapValue (expression, visiting) {
     }
     return javaFreshMapExtendCall (value) || javaFreshMapMethod (value.getSourceFile ().fileName, value.expression.name.text, visiting)
         || javaFreshMapPassThroughCall (value, visiting);
+}
+
+// ral-87j7: `return result` where `const result = { .. }` is a single-binding const declared in the
+// same function (safePredictionOrder): a const binding is never rebound, and element writes keep the
+// object literal's HashMap, so the value is that fresh map. Decided from the declaration node alone.
+function javaFreshMapConstLiteral (identifier) {
+    const scope = enclosingFunction (identifier);
+    if (scope === undefined) {
+        return false;
+    }
+    let found;
+    let count = 0;
+    const walk = (node) => {
+        if (node === undefined || count > 1) {
+            return;
+        }
+        if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.name.text === identifier.text) {
+            count++;
+            found = node;
+        }
+        if (node.kind === ts.SyntaxKind.Parameter) {
+            if (ts.isIdentifier (node.name) && node.name.text === identifier.text) {
+                count += 2;
+            }
+        }
+        node.forEachChild (walk);
+    };
+    walk (scope);
+    if (count !== 1 || found === undefined || found.parent === undefined || !ts.isVariableDeclarationList (found.parent)
+        || (found.parent.flags & ts.NodeFlags.Const) === 0 || enclosingFunction (found) !== scope) {
+        return false;
+    }
+    const init = javaFreshMapUnwrap (found.initializer);
+    return init !== undefined && ts.isObjectLiteralExpression (init);
+}
+
+// ral-87j7: a prediction venue's chain leaves its file through ../abstract/prediction/<id>.js, which
+// the index does not hold, so dispatch is not closed. For the prediction-order names only
+// (JAVA_84J7_MAP_RETURN_METHODS, no abstract class declares them) the next declaration up that
+// chain is base/PredictionExchange.ts. A prediction venue class has no subclass in ts/src (checked
+// below), so its own declaration or the base one is the whole dispatch set.
+// Only the declared-Map put rewrite (patchJavaFreshMapElementWrites) turns the scope on: other
+// readers of the fresh-map proof would add a checkcast on an Object local instead of a native use.
+let javaFreshMapPredictionScope = false;
+function javaFreshMapPredictionBase (file, name) {
+    if (!JAVA_84J7_MAP_RETURN_METHODS.includes (name)) {
+        return undefined;
+    }
+    const { classes } = javaFreshMapMethods ();
+    const own = classes.get (path.resolve (file));
+    const base = classes.get (path.resolve (JAVA_FRESH_MAP_TS_ROOT, 'base', 'PredictionExchange.ts'));
+    const root = path.resolve (file);
+    if (own === undefined || base === undefined || typeof own.parent !== 'string' || classes.has (own.parent)
+        || !/[\\/]abstract[\\/]prediction[\\/][^\\/]+\.ts$/.test (own.parent) || !/[\\/]prediction[\\/][^\\/]+\.ts$/.test (root)
+        || [ ...classes.values () ].some ((entry) => entry.parent === root)) {
+        return undefined;
+    }
+    const decls = own.methods.get (name) ?? base.methods.get (name);
+    return decls === undefined ? undefined : [ ...decls ];
 }
 
 // `this.m (x, ..)` where every dispatchable m hands back its own never-reassigned parameter
@@ -14727,8 +14791,14 @@ export function patchJavaFreshMapElementWrites (transpiler) {
         // a null start (`let x = undefined`) holds no map yet: every later write must be fresh
         const init = declaration !== undefined && ts.isVariableDeclaration (declaration) ? javaFreshMapUnwrap (declaration.initializer) : undefined;
         const nullStart = init !== undefined && (init.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (init) && init.text === 'undefined'));
-        const fresh = init !== undefined && (nullStart || javaFreshMapValue (init, new Set ()))
-            && javaFreshMapStable (printer, receiver, declaration);
+        javaFreshMapPredictionScope = true;
+        let fresh;
+        try {
+            fresh = init !== undefined && (nullStart || javaFreshMapValue (init, new Set ()))
+                && javaFreshMapStable (printer, receiver, declaration);
+        } finally {
+            javaFreshMapPredictionScope = false;
+        }
         if (!fresh && !printer.javaPrintsNonNullValue (node.right)) {
             return printed;
         }
@@ -17921,6 +17991,19 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
     if (!isAsyncMethodCall (printer, value) && javaFreshMapValue (value, new Set ())) {
         const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
         return { cast: declared !== 'Map<String,Object>' };
+    }
+    // ral-87j7: a prediction-order call (signature printed Map<String, Object>) proven fresh through
+    // base/PredictionExchange.ts: the local takes it with no cast and its writes bind the native put
+    if (JAVA_84J7_MAP_RETURN_METHODS.includes (name) && !isAsyncMethodCall (printer, value)
+        && resolvesToMethodNamed (printer, value, name)) {
+        javaFreshMapPredictionScope = true;
+        try {
+            if (javaFreshMapValue (value, new Set ())) {
+                return { cast: false };
+            }
+        } finally {
+            javaFreshMapPredictionScope = false;
+        }
     }
     if (!isAsyncMethodCall (printer, value) && x21MapCallee (printer, value)) {
         const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
