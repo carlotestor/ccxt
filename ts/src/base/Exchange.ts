@@ -6756,11 +6756,14 @@ export class BaseExchange {
             await this.throttle (cost);
         }
         const retries = 0;
-        // implicit endpoints may pass a list body as params: keep it an untyped box
-        const requestParams: object = params;
-        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionIntegerAndParams (requestParams, path, 'maxRetriesOnFailure', retries);
+        // implicit endpoints may pass a list body as params: it carries no option keys, so the
+        // options are read from an empty bag and the list is signed unchanged
+        const isListBody = Array.isArray (params);
+        const optionParams: Dict = isListBody ? {} : params;
+        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionIntegerAndParams (optionParams, path, 'maxRetriesOnFailure', retries);
         const retryDelay = 0;
         const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionIntegerAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
+        const requestParams: object = isListBody ? params : paramsMaxRetriesOnFailureDelay;
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retriesMaxRetriesOnFailure + 1; i++) {
             let fetchData: NullableDict = undefined;
@@ -6769,7 +6772,7 @@ export class BaseExchange {
             }
             try {
                 this.setLastRestRequestTimestamp ();
-                const request = this.sign (path, api, method, paramsMaxRetriesOnFailureDelay);
+                const request = this.sign (path, api, method, requestParams);
                 if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
@@ -7251,20 +7254,20 @@ export class BaseExchange {
     }
 
     /* eslint-disable no-unused-vars */
-    handleOptionIntegerAndParams (params: object, methodName: Str, optionName: string, defaultValue: number): [number, Dict];
-    handleOptionIntegerAndParams (params: object, methodName: Str, optionName: string, defaultValue?: Int): [Int, Dict];
+    handleOptionIntegerAndParams (params: Dict, methodName: Str, optionName: string, defaultValue: number): [number, Dict];
+    handleOptionIntegerAndParams (params: Dict, methodName: Str, optionName: string, defaultValue?: Int): [Int, Dict];
     /* eslint-enable no-unused-vars */
-    handleOptionIntegerAndParams (params: object, methodName: Str, optionName: string, defaultValue: Int = undefined): [Int, Dict] {
+    handleOptionIntegerAndParams (params: Dict, methodName: Str, optionName: string, defaultValue: Int = undefined): [Int, Dict] {
         // handleOptionAndParams read as an integer; the statically typed ports throw on another type
         const [ value, newParams ] = this.handleOptionAndParams (params, methodName, optionName, defaultValue);
         return [ this.checkOptionInteger (methodName, optionName, value), newParams ];
     }
 
     /* eslint-disable no-unused-vars */
-    handleOptionIntegerAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue: number): [number, Dict];
-    handleOptionIntegerAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue?: Int): [Int, Dict];
+    handleOptionIntegerAndParams2 (params: Dict, methodName: string, optionName1: string, optionName2: string, defaultValue: number): [number, Dict];
+    handleOptionIntegerAndParams2 (params: Dict, methodName: string, optionName1: string, optionName2: string, defaultValue?: Int): [Int, Dict];
     /* eslint-enable no-unused-vars */
-    handleOptionIntegerAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue: Int = undefined): [Int, Dict] {
+    handleOptionIntegerAndParams2 (params: Dict, methodName: string, optionName1: string, optionName2: string, defaultValue: Int = undefined): [Int, Dict] {
         const [ value, newParams ] = this.handleOptionAndParams2 (params, methodName, optionName1, optionName2, defaultValue);
         return [ this.checkOptionInteger (methodName, optionName1, value), newParams ];
     }
