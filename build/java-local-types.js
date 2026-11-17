@@ -12616,7 +12616,7 @@ function nullScalarWriteType (printer, node) {
         if (known !== undefined) {
             return known;
         }
-        const later = nullSeedWriteType (printer, value); // r87-j4 R2: a const printed later
+        const later = nullSeedWriteType (printer, value) ?? nullSeedPeerSeedType (printer, value); // r87-j4 R2: a const printed later
         if (later !== undefined) {
             NULL_SEED_R84_WRITES.add (node);
         }
@@ -12703,6 +12703,12 @@ function nullSeedHasNativeUse (printer, declaration, type) {
                 return true;
             }
         }
+        // a Map seed handed to a Map core parameter (`watchPublic (.., market: Market, ..)`): the checkcast drops
+        if (type === JAVA_STRUCTURE_TYPE && parent !== undefined && ts.isCallExpression (parent) && parent.arguments.indexOf (host) !== -1
+            && typeof printer.javaNativeCallParameterTypes === 'function'
+            && nullContainerSpelling (printer.javaNativeCallParameterTypes (parent)[parent.arguments.indexOf (host)]) === JAVA_STRUCTURE_TYPE) {
+            return true;
+        }
         // r90-j4: a Map seed read by a string-literal key prints `x.get("k")` instead of `((Map)x).get("k")`
         if (type === JAVA_STRUCTURE_TYPE && parent !== undefined && ts.isElementAccessExpression (parent) && parent.expression === host
             && ts.isStringLiteral (parent.argumentExpression) && !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent)
@@ -12785,6 +12791,11 @@ function nullSeedWriteType (printer, value, depth = 0) {
         const init = source === undefined ? undefined : unwrapParens (source.initializer);
         if (init === undefined || isNullishInitializer (init)) {
             return undefined;
+        }
+        // a Map from a sync core printed with that return (`Map<String, Object> m = this.market (..)`) is kept by
+        // the ws post-pass, which only rewrites String heads; it needs a Map core slot use (nullSeedHasNativeUse)
+        if (isThisCall (init) && nullContainerSpelling (syncCoreCallType (printer, init)) === JAVA_STRUCTURE_TYPE) {
+            return JAVA_STRUCTURE_TYPE;
         }
         const wsFile = /[\\/](pro|prediction)[\\/]/.test (source.getSourceFile ().fileName);
         if (wsFile && ts.isCallExpression (init) && (isThisCall (init) || init.expression.kind === ts.SyntaxKind.ElementAccessExpression)) {
@@ -12882,7 +12893,44 @@ function nullSeedSplitElementWrite (printer, value) {
     }
 }
 
+// a copy of another null seed of the same function (`channel = messageHash; messageHash = channel`): that
+// seed's own decision, with the seed being decided read as a null write while it is open (the peer's real
+// declaration re-decides at its print with this one published, so both print the same box or neither does)
+const NULL_SEED_OPEN = new Set ();
+function nullSeedPeerSeedType (printer, id) {
+    let peer;
+    try {
+        peer = printer.getChecker ().getSymbolAtLocation (id)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    if (peer === undefined || !ts.isVariableDeclaration (peer) || !ts.isIdentifier (peer.name) || !isNullishInitializer (peer.initializer)
+        || enclosingFunction (peer) !== enclosingFunction (id) || peer.pos > id.pos) {
+        return undefined;
+    }
+    if (NULL_SEED_OPEN.has (peer)) {
+        return 'null';
+    }
+    if (NULL_SEED_OPEN.size > 2) {
+        return undefined;
+    }
+    const type = nullScalarLocalType (printer, peer);
+    return type === JAVA_DATAFLOW_STRING ? type : undefined;
+}
+
 function nullScalarLocalType (printer, declaration) {
+    if (NULL_SEED_OPEN.has (declaration)) {
+        return undefined;
+    }
+    NULL_SEED_OPEN.add (declaration);
+    try {
+        return nullScalarLocalTypeOpen (printer, declaration);
+    } finally {
+        NULL_SEED_OPEN.delete (declaration);
+    }
+}
+
+function nullScalarLocalTypeOpen (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || !isNullishInitializer (declaration.initializer)
         || declaration.parent?.declarations?.length !== 1 || declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
         return undefined;
