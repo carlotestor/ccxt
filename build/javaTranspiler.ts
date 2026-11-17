@@ -10017,10 +10017,12 @@ function javaR87j4SplitSeedSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j4seed${process.pid}.ts`);
     const body = [
-        "import Exchange from './abstract/binance.js';",
+        "import Exchange from './abstract/binance.js';", "import Precise from './base/Precise.js';", "import type { Str } from './base/types.js';",
         'export default class zzr87j4seed extends Exchange {',
         "    one (s: string) { let currencyId = undefined; const currencyParts = s.split ('-'); currencyId = currencyParts[0]; return this.safeCurrencyCode (currencyId); }",
         "    obj (s: string) { let k = undefined; const ps = s.split ('-'); k = ps[0]; return { 'k': k }; }",
+        "    cost (a: string, p: string, params = {}) { const c = this.safeString (params, 'c'); let orderCost: Str = undefined; if (c !== undefined) { orderCost = c; } else { const q = Precise.stringMul (a, p); orderCost = q; } if (c === 'x') { const q = Precise.stringAdd (a, p); return q; } return this.getAmount2 (orderCost); }",
+        "    getAmount2 (x: string) { return x; }",
         '}',
     ].join('\n');
     try {
@@ -10029,6 +10031,7 @@ function javaR87j4SplitSeedSelfTest (): string[] {
         if (!/String currencyId = null/.test(out) || !/safeCurrencyCode\(currencyId[,)]/.test(out)) problems.push("r87-j4: 'currencyId' (split element write, String core argument) must print String with no argument cast");
         if (!/java\.util\.List<String> currencyParts = /.test(out)) problems.push("r87-j4: 'currencyParts' must print List<String>");
         if (!/\bObject k = null/.test(out)) problems.push("r87-j4: 'k' (only an Object-slot use) must stay Object");
+        if (!/String orderCost = null/.test(out) || !/getAmount2\(orderCost\)/.test(out)) problems.push("r87-j4 R2: 'orderCost' (copy of a later-declared Precise const, String core argument) must print String");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`r87-j4 self-test threw: ${e.message}`);

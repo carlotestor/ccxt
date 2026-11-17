@@ -12371,8 +12371,16 @@ function nullScalarWriteType (printer, node) {
     if (ts.isIdentifier (value)) {
         // an element binding section 4/28 typed, a String-printed local/param, or a later-printed
         // `const x = this.omitZero (<String>)` local that the declaration scan proves String
-        return handleTypedBindingReadType (printer, value) ?? (isDeclaredStringIdentifier (printer, value) || omitZeroConstStringLocal (printer, value)
+        const known = handleTypedBindingReadType (printer, value) ?? (isDeclaredStringIdentifier (printer, value) || omitZeroConstStringLocal (printer, value)
             ? JAVA_DATAFLOW_STRING : nullScalarDeclaredIdentifierType (printer, value));
+        if (known !== undefined) {
+            return known;
+        }
+        const later = nullSeedWriteType (printer, value); // r87-j4 R2: a const printed later
+        if (later !== undefined) {
+            NULL_SEED_R84_WRITES.add (node);
+        }
+        return later;
     }
     if (ts.isConditionalExpression (value)) {
         // arms that are each String (or null) keep the Java conditional String
@@ -12493,9 +12501,25 @@ function nullSeedNativeStringSlice (printer, value) {
     }
 }
 
-function nullSeedWriteType (printer, value) {
+function nullSeedWriteType (printer, value, depth = 0) {
     if (nullSeedSplitElementWrite (printer, value)) {
         return JAVA_DATAFLOW_STRING;
+    }
+    // r87-j4 R2: a copy of a const of the same function that prints after the seed (its declared type is not
+    // published yet): decided from the const's own initializer. A `this.` / `Helpers.` initializer is
+    // refused in a ws / prediction file, where postProcessWsJava turns `String x = this.m(..)` back to Object
+    if (ts.isIdentifier (value) && depth < 3) {
+        const source = nullSeedLaterConst (printer, value);
+        const init = source === undefined ? undefined : unwrapParens (source.initializer);
+        if (init === undefined || isNullishInitializer (init)) {
+            return undefined;
+        }
+        const wsFile = /[\\/](pro|prediction)[\\/]/.test (source.getSourceFile ().fileName);
+        if (wsFile && ts.isCallExpression (init) && (isThisCall (init) || init.expression.kind === ts.SyntaxKind.ElementAccessExpression)) {
+            return undefined;
+        }
+        const t = nullSeedSourceType (printer, init, depth + 1);
+        return t === JAVA_DATAFLOW_STRING ? t : undefined;
     }
     if (value.kind === ts.SyntaxKind.AwaitExpression) {
         // `(this.m (..)).join()` of a core declared CompletableFuture<String/Long/..>: that box, no cast
@@ -12536,6 +12560,38 @@ function nullSeedWriteType (printer, value) {
         return JAVA_DATAFLOW_STRING;
     }
     return undefined;
+}
+
+// r87-j4 R2: the const declaration of `id` in the same function, positioned after the use's own seed
+// declaration (so not printed yet), never written
+function nullSeedLaterConst (printer, id) {
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (id)?.valueDeclaration?.resolve ();
+        if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)
+            || (declaration.parent.flags & ts.NodeFlags.Const) === 0 || declaration.parent.declarations.length !== 1
+            || enclosingFunction (declaration) !== enclosingFunction (id) || declaration.type !== undefined && !ts.isTypeReferenceNode (declaration.type) && declaration.type.kind !== ts.SyntaxKind.StringKeyword) {
+            return undefined;
+        }
+        return declaration;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// the box a const initializer prints with: the section-24 write answer for scalar String producers
+function nullSeedSourceType (printer, init, depth) {
+    if (ts.isCallExpression (init) && ts.isPropertyAccessExpression (init.expression) && ts.isIdentifier (init.expression.expression)
+        && init.expression.expression.text === 'Precise') {
+        return PRECISE_STRING_STATICS.has (String (init.expression.name.text)) ? JAVA_DATAFLOW_STRING : undefined;
+    }
+    if (init.kind === ts.SyntaxKind.StringLiteral || init.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+        return JAVA_DATAFLOW_STRING;
+    }
+    const direct = nullSeedWriteType (printer, init, depth);
+    if (direct !== undefined || ts.isIdentifier (init)) {
+        return direct;
+    }
+    return nullScalarWriteType (printer, init);
 }
 
 // r87-j4: `x = parts[N]` (numeric literal index) of a const native-split local that section r87-j4 /
