@@ -2131,6 +2131,8 @@ const VENUE_RETURN_KINDS = {
     // string read / replace / string literal (pro binance) or a safeList read / own string[] accumulator
     'getStockWsUrl': [ 'String' ], 'getAccountTypeFromSubscriptions': [ 'String' ],
     'getSettlementCurrencies': [ 'java.util.List<Object>' ], 'findMessageHashes': [ 'java.util.List<Object>' ],
+    // base `buildOHLCVC (..): OHLCVC[]` returns its own `ohlcvs` accumulator (no override)
+    'buildOHLCVC': [ 'java.util.List<Object>' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2239,7 +2241,26 @@ function venueReturnCast (printer, node, method, javaType) {
     if (javaType === JAVA_ARRAY_TYPE_MAP () && constMapCallLocal (printer, expression)) {
         return undefined;
     }
+    // ral-87j5: a local the printer / layer already declares with the method's own type needs no checkcast
+    if (ts.isIdentifier (expression) && venueReturnLocalDeclaredAs (printer, expression, javaType)) {
+        return undefined;
+    }
     return '(' + javaType + ')';
+}
+
+function venueReturnLocalDeclaredAs (printer, expression, javaType) {
+    let declared;
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (expression)?.valueDeclaration?.resolve ();
+        if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.name?.text !== expression.text) {
+            return false;
+        }
+        declared = printer.javaDeclaredTypeOfDeclaration?.(declaration);
+    } catch (e) {
+        return false;
+    }
+    const norm = (t) => String (t ?? '').replace (/^final\s+/, '').replace (/\s+/g, '').replace (/java\.util\./g, '');
+    return declared !== undefined && norm (declared) === norm (javaType);
 }
 
 function constMapCallLocal (printer, expression) {

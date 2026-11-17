@@ -5915,6 +5915,7 @@ function javaR87j5CalleeReturnsSelfTest (): string[] {
         "    getStockWsUrl (streamType: Str = 'market'): string { const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}); const baseUrl = wsUrls['stock']; if (streamType === 'combined') { return baseUrl.replace ('/ws', '/stream'); } return baseUrl; }",
         "    requestId (url: string): Int { return this.sum (url.length, 1); }",
         "    useSu () { const su = this.getStockWsUrl ('user'); return this.requestId (su); }",
+        "    useOh (trades: any[]) { const oh = this.buildOHLCVC (trades, '1m', 0, 10); return oh.length; }",
         '}',
     ].join('\n');
     try {
@@ -5925,6 +5926,7 @@ function javaR87j5CalleeReturnsSelfTest (): string[] {
         if (!/(java\.util\.)?List<Object> mh = this\.findMessageHashes\(/.test(out) || /\(List<\?>\)mh/.test(out)) problems.push("ral-87j5: 'mh' (base findMessageHashes) must print List<Object> with native list reads");
         // a const String result of a venue-typed callee passes a String parameter bare (no `(String) (su)` checkcast)
         if (!/String su = this\.getStockWsUrl\(/.test(out) || !/this\.requestId\(su\)/.test(out)) problems.push("ral-87j5: 'su' (String venue callee result) must be passed to a String parameter with no checkcast");
+        if (!/(java\.util\.)?List<Object> oh = this\.buildOHLCVC\(/.test(out)) problems.push("ral-87j5: 'oh' (base buildOHLCVC: OHLCVC[]) must print List<Object>");
     } catch (e: any) {
         problems.push(`ral-87j5 self-test threw: ${e.message}`);
     } finally {
