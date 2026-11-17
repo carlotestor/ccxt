@@ -377,6 +377,10 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     // the hitbtc handleTrades result local is read by size()/get(j)
     'parseWsTrades',
     ...J92J7_LIST_RETURN_METHODS,
+    // bitfinex parseOrderFlags: its one return is safeList (dict, key, [ .. ]), a List on every path
+    'parseOrderFlags',
+    // every parseSettlements declaration already prints List<Object> and returns its own List `result`
+    'parseSettlements',
     // base reduceFeesByCurrency returns its own `result: any[]` list (arrayConcat writes cast back to List); no override
     'reduceFeesByCurrency',
 ]);
@@ -2476,6 +2480,8 @@ const VENUE_RETURN_KINDS = {
     // base `convertMarketIdExpireDate (date: Str): Str` (no override in ts/src): returns undefined or its String
     // concat; the bybit / deribit `expiry` seeds it writes are handed to String slots (convertExpireDate*)
     'convertMarketIdExpireDate': [ 'String' ],
+    // prediction `parseEvent (..): PredictionEvent`: every declaration returns this.extend (..), a fresh map
+    'parseEvent': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2794,6 +2800,11 @@ function returnCastFor (printer, node, methodName) {
     }
     if (JAVA_LIST_RETURN_METHODS.has (methodName)) {
         if (isThisCall (expression) && expression.expression.name.text === 'arraySlice') {
+            return '(' + JAVA_ARRAY_TYPE + ')';
+        }
+        // safeList with a list-literal default never returns a non-list
+        if (isThisCall (expression) && expression.expression.name.text === 'safeList' && expression.arguments.length === 3
+            && ts.isArrayLiteralExpression (unwrapParens (expression.arguments[2]))) {
             return '(' + JAVA_ARRAY_TYPE + ')';
         }
         if (ts.isIdentifier (expression)) {
@@ -3596,7 +3607,8 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 if (name === 'toArray') {
                     return true;
                 }
-                return false;
+                // a generated venue callee whose own printed signature is List<Object>
+                return printer.javaVenueCalleeReturnType?.(node) === JAVA_ARRAY_TYPE;
             }
             if (javaType === 'Boolean') {
                 // a later `x = this.safeBool (...)` write takes the same
@@ -6570,6 +6582,15 @@ export function installJavaLocalTypes (transpiler) {
                 return printed;
             }
             // numeric boxes (sum/subtract may hand back Integer or Double) convert, not checkcast
+            // a returned one-argument this.extend ({..}) keeps the `((T) call)` form, so its literal argument is still hoisted
+            let returned = unwrapParens (node.expression);
+            while (returned !== undefined && (ts.isAsExpression (returned) || ts.isNonNullExpression (returned))) {
+                returned = unwrapParens (returned.expression);
+            }
+            const wrapsExtend = isThisCall (returned) && returned.expression.name.text === 'extend' && returned.arguments.length === 1;
+            if (venueType !== 'Long' && wrapsExtend) {
+                return printed.slice (0, at + 'return '.length) + '(' + venueCast + ' ' + tail.slice (0, end) + ')' + tail.slice (end);
+            }
             const open = venueType === 'Long' ? 'Helpers.toLongOrNull(' : venueCast + ' (';
             return printed.slice (0, at + 'return '.length) + open + tail.slice (0, end) + ')' + tail.slice (end);
         }
