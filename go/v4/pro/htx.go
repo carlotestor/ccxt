@@ -773,7 +773,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 			// try block:
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			var data map[string]any = ccxt.SafeMapTyped(message, "data")
-			var messages any = orderbook.GetCache()
+			var messages []any = orderbook.GetCache()
 			var firstMessage map[string]any = ccxt.SafeMapTyped(messages, 0)
 			var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 			var tick map[string]any = ccxt.SafeMapTyped(firstMessage, "tick")
@@ -810,8 +810,8 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 			} else {
 				orderbook.Reset(snapshot)
 				// unroll the accumulated deltas
-				for i := 0; i < ccxt.GetArrayLength(messages); i++ {
-					this.HandleOrderBookMessage(client, ccxt.GetValue(messages, i))
+				for i := 0; i < len(messages); i++ {
+					this.HandleOrderBookMessage(client, messages[i])
 				}
 				orderbook.SetCache([]any{})
 				if symbol != nil {
@@ -1085,7 +1085,7 @@ func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if (event == nil) && (this.SafeInteger(orderbook, "nonce") == nil) {
-		ccxt.AppendToArray(orderbook.GetCache(), message)
+		orderbook.AppendCache(message)
 	} else {
 		this.HandleOrderBookMessage(client, message)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

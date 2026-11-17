@@ -330,7 +330,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 		if timestamp == nil {
-			ccxt.AppendToArray(orderbook.GetCache(), message)
+			orderbook.AppendCache(message)
 		} else {
 
 			{
@@ -447,9 +447,9 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 			}
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			orderbook.Reset(snapshot)
-			var messages any = orderbook.GetCache()
-			for i := 0; i < ccxt.GetArrayLength(messages); i++ {
-				var messageItem any = ccxt.GetValue(messages, i)
+			var messages []any = orderbook.GetCache()
+			for i := 0; i < len(messages); i++ {
+				var messageItem any = messages[i]
 				var ts *int64 = this.SafeInteger(messageItem, "ts")
 				if ts == nil {
 					continue

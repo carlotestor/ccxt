@@ -1030,7 +1030,7 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{}) // needed for c#, number of args needs to match
 		}
-		ccxt.AppendToArray(storedOrderBook.GetCache(), delta)
+		storedOrderBook.AppendCache(delta)
 		return
 	} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 		return
