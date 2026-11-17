@@ -14246,11 +14246,17 @@ function stringListWriteOk (printer, node, seen, depth = 0) {
 function stringListNativeKeysOfLocal (printer, value) {
     if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression) || value.arguments.length !== 1
         || !ts.isIdentifier (value.expression.expression) || value.expression.expression.text !== 'Object'
-        || value.expression.name.text !== 'keys' || !ts.isIdentifier (value.arguments[0])
-        || typeof printer.printNativeObjectKeysCall !== 'function') {
+        || value.expression.name.text !== 'keys' || typeof printer.printNativeObjectKeysCall !== 'function'
+        || !(ts.isIdentifier (value.arguments[0]) || stringListKeysAssertedMap (value.arguments[0]))) {
         return false;
     }
     return printer.printNativeObjectKeysCall (value) !== undefined;
+}
+
+// `x as Dict` (not a base field read the printer null-guards): the checker branch prints the cast key copy
+function stringListKeysAssertedMap (node) {
+    return ts.isAsExpression (node) && ts.isTypeReferenceNode (node.type) && ts.isIdentifier (node.type.typeName)
+        && node.type.typeName.text === 'Dict';
 }
 
 // `this.symbols` (base field, printed List<Object>): its values are the market symbols

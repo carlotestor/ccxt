@@ -10980,6 +10980,13 @@ function javaR93j8LocalsSelfTest (): string[] {
         "        }",
         "        return out;",
         "    }",
+        "    keyedAll (symbols: string[]) {",
+        "        let all: string[] = Object.keys (this.markets as Dict);",
+        "        if (symbols !== undefined) {",
+        "            all = this.marketSymbols (symbols);",
+        "        }",
+        "        return all.length;",
+        "    }",
         "    keyed (symbols: string[], byId: Dict) {",
         "        let ids: string[] = [];",
         "        if (symbols.length === 0) {",
@@ -11001,6 +11008,7 @@ function javaR93j8LocalsSelfTest (): string[] {
         resetJavaVenueIndexes();
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<String> ids = /.test(out) || !/ids = new java\.util\.ArrayList<String>\(m\.keySet\(\)\);/.test(out) || !/\bids\.size\(\)/.test(out)) problems.push("'ids' (String list written from Object.keys of a Map local and marketIds) must print List<String> with a native size()");
+        if (!/List<String> all = new java\.util\.ArrayList<String>\(\(\(java\.util\.Map<String, Object>\)this\.markets\)\.keySet\(\)\);/.test(out) || !/\ball\.size\(\)/.test(out)) problems.push("'all' (String list from Object.keys (this.markets as Dict) and marketSymbols) must print List<String> with a native size()");
         if (!/List<String> chunk = /.test(out) || !/\bchunk\.size\(\)/.test(out)) problems.push("'chunk' (String list fed by elements of a list of String copy locals) must print List<String> with a native size()");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
