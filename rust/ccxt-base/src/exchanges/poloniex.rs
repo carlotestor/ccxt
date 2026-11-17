@@ -3038,7 +3038,8 @@ impl Poloniex {
         return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
 }
 
-    pub fn parse_open_orders(&self, mut orders: Value, mut market: Value, mut result: Value) -> Value {
+    pub fn parse_open_orders(&self, orders: impl Into<crate::Value>, mut market: Value, mut result: Value) -> Value {
+        let mut orders: Value = orders.into();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1086: bool = true;

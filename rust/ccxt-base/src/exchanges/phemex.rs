@@ -5359,7 +5359,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 })]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         if (data.is_some()) {
-            return self.parse_orders(data.map_or(Value::Null, Value::Arr), Some(&market), &[since.clone(), limit.clone()]);
+            return self.parse_orders(&data, Some(&market), &[since.clone(), limit.clone()]);
         }  else {
             let mut rows: crate::value::List = self.safe_list_k(&data__map, "rows", &[Value::from(vec![])]).into_list();
             return self.parse_orders(&rows, Some(&market), &[since, limit]);
@@ -5469,7 +5469,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 })]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         if (data.is_some()) {
-            return self.parse_orders(data.map_or(Value::Null, Value::Arr), market.as_ref(), &[since.clone(), limit.clone()]);
+            return self.parse_orders(&data, market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
             let mut rows: crate::value::List = self.safe_list_k(&data__map, "rows", &[Value::from(vec![])]).into_list();
             return self.parse_orders(&rows, market.as_ref(), &[since, limit]);

@@ -2326,7 +2326,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_account_settings(&self, mut settings: Value) -> Value {
+    pub fn parse_account_settings(&self, settings: impl Into<crate::Value>) -> Value {
+        let mut settings: Value = settings.into();
         let __settings_empty = Vec::new();
         let settings = settings.as_array().unwrap_or(&__settings_empty);
         let mut settingsLen: i64 = settings.len() as i64;

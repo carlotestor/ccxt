@@ -13569,7 +13569,7 @@ impl Kucoin {
         //
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
-        return self.parse_borrow_rate_histories(Value::Arr(rows), codes, since.as_i64(), limit.as_i64());
+        return self.parse_borrow_rate_histories(&rows, codes, since.as_i64(), limit.as_i64());
 
     Value::Null
 }
@@ -13645,7 +13645,8 @@ impl Kucoin {
     Value::Null
 }
 
-    pub fn parse_borrow_rate_histories(&self, mut response: Value, mut codes: Value, since: Option<i64>, limit: Option<i64>) -> Value {
+    pub fn parse_borrow_rate_histories(&self, response: impl Into<crate::Value>, mut codes: Value, since: Option<i64>, limit: Option<i64>) -> Value {
+        let mut response: Value = response.into();
         let mut since: Value = since.into();
         let mut limit: Value = limit.into();
         //
