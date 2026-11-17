@@ -377,6 +377,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     // the hitbtc handleTrades result local is read by size()/get(j)
     'parseWsTrades',
     ...J92J7_LIST_RETURN_METHODS,
+    // bitfinex parseOrderFlags: its one return is safeList (dict, key, [ .. ]), a List on every path
+    'parseOrderFlags',
     // base reduceFeesByCurrency returns its own `result: any[]` list (arrayConcat writes cast back to List); no override
     'reduceFeesByCurrency',
 ]);
@@ -2794,6 +2796,11 @@ function returnCastFor (printer, node, methodName) {
     }
     if (JAVA_LIST_RETURN_METHODS.has (methodName)) {
         if (isThisCall (expression) && expression.expression.name.text === 'arraySlice') {
+            return '(' + JAVA_ARRAY_TYPE + ')';
+        }
+        // safeList with a list-literal default never returns a non-list
+        if (isThisCall (expression) && expression.expression.name.text === 'safeList' && expression.arguments.length === 3
+            && ts.isArrayLiteralExpression (unwrapParens (expression.arguments[2]))) {
             return '(' + JAVA_ARRAY_TYPE + ')';
         }
         if (ts.isIdentifier (expression)) {

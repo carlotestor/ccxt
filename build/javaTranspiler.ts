@@ -6327,6 +6327,22 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r92j7d, { force: true });
     }
+    // bitfinex parseOrderFlags prints List<Object> (safeList with a list default): its result is read natively
+    const r93j7a = path.join(process.cwd(), 'ts', 'src', `zz93j7aselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7a, [
+            "import Exchange from './bitfinex.js';",
+            'export default class zz93j7aselftest extends Exchange {',
+            "    zzFlags (raw: string) { const flags = this.parseOrderFlags (raw); let n = 0; for (let i = 0; i < flags.length; i++) { n += 1; } return n; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7a).content as string;
+        if (!/List<Object> flags = this\.parseOrderFlags\(/.test(out) || !/i < flags\.size\(\)/.test(out)) problems.push("ral-93j7: a parseOrderFlags result must print List<Object> with a native size()");
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7a, { force: true });
+    }
     return problems;
 }
 
