@@ -9567,8 +9567,8 @@ impl Htx {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]);
-            let mut currentMarginMode: Option<String> = marginResult.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            let mut marginResult: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]).as_array().cloned().unwrap_or_default();
+            let mut currentMarginMode: Option<String> = marginResult.get(0).and_then(Value::as_str).map(str::to_owned);
             if (currentMarginMode.is_some()) {
                 if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();
@@ -11623,8 +11623,8 @@ impl Htx {
         }
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
-            let mut marginModeAndParams: Value = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]);
-            let mut marginMode: Option<String> = marginModeAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            let mut marginModeAndParams: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
+            let mut marginMode: Option<String> = marginModeAndParams.get(0).and_then(Value::as_str).map(str::to_owned);
             request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_133 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.contract_private_post_v5_position_lever(&[__ws_arg_133]).await.into_opt_dict();

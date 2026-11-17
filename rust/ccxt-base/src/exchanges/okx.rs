@@ -853,9 +853,9 @@ impl crate::exchange::DerivedExchange for Okx {
             // margin position
             if (side.as_deref() == Some("net")) {
                 let mut posCcy: Option<String> = self.safe_string_k_opt(position.clone(), "posCcy", &[]);
-                let mut parsedCurrency: Value = self.safe_currency_code(posCcy.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-                if (parsedCurrency != Value::Null) {
-                    side = (if (crate::value::KeyRead::key_read(&&marketResolved, "base").as_str() == parsedCurrency.as_str()) { Some("long".to_string()) } else { Some("short".to_string()) });
+                let mut parsedCurrency: Option<String> = self.safe_currency_code(posCcy.map(Value::from).unwrap_or(Value::Null), None);
+                if (parsedCurrency.is_some()) {
+                    side = (if ((crate::value::KeyRead::key_read(&&marketResolved, "base").as_str() == parsedCurrency.as_deref())) { Some("long".to_string()) } else { Some("short".to_string()) });
                 }
             }
             if (side.is_none()) {

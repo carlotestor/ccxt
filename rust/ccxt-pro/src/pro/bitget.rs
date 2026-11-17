@@ -436,9 +436,9 @@ impl Bitget {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut symbolsList: Value = symbolsNormalized;
-        let mut market: crate::types::Market = (match self.market((symbolsList.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
+        let mut symbolsList: crate::value::List = symbolsNormalized;
+        let mut market: crate::types::Market = (match self.market((symbolsList.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchTickers".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Option<bool> = utaparamsUtaVariable.get(0).and_then(Value::as_bool);
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -451,7 +451,7 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_110: bool = true;
             while { if !__for_first_110 { i += 1; } __for_first_110 = false; i < (symbolsList.len() as i64) } {
-            let mut symbol: Option<String> = symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<String> = symbolsList.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketInner: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut args: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -484,7 +484,7 @@ impl Bitget {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsList, &[]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsList, &[]);
         Value::Null
         }).await?))
     }
@@ -724,9 +724,9 @@ impl Bitget {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut symbolsList: Value = symbolsNormalized;
-        let mut market: crate::types::Market = (match self.market((symbolsList.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
+        let mut symbolsList: crate::value::List = symbolsNormalized;
+        let mut market: crate::types::Market = (match self.market((symbolsList.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchBidsAsks".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Option<bool> = utaparamsUtaVariable.get(0).and_then(Value::as_bool);
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -739,7 +739,7 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_111: bool = true;
             while { if !__for_first_111 { i += 1; } __for_first_111 = false; i < (symbolsList.len() as i64) } {
-            let mut symbol: Option<String> = symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<String> = symbolsList.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketInner: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut args: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -772,7 +772,7 @@ impl Bitget {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), symbolsList, &[]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsList, &[]);
         Value::Null
         }).await?))
     }
