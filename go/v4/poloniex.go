@@ -926,8 +926,8 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		// so end the window at the start of the limit-th candle from the first one at or after since
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		var firstCandle int64 = this.ParseToInt(math.Ceil(float64(*since)/float64(duration))) * duration
-		var endTimeByLimit any = this.Sum(firstCandle, duration*(*limit-1))
-		AddElementToObject(requestUntil, keyEnd, mathMin(endTimeByLimit, this.Milliseconds()))
+		var endTimeByLimit int64 = firstCandle + duration*(*limit-1)
+		AddElementToObject(requestUntil, keyEnd, min(endTimeByLimit, this.Milliseconds()))
 	}
 	if *this.SafeBool(market, "contract", false) {
 

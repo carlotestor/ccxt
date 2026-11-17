@@ -5012,9 +5012,9 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		var fromTimestamp int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = fromTimestamp
 		var distance int64 = (limitValue - 1) * duration
-		var toTimestamp int64 = this.Sum(fromTimestamp, distance).(int64)
+		var toTimestamp int64 = fromTimestamp + distance
 		var currentTimestamp int64 = this.Seconds()
-		var to any = mathMin(toTimestamp, currentTimestamp)
+		var to any = min(toTimestamp, currentTimestamp)
 		if until != nil {
 			AddElementToObject(request, "to", mathMin(to, until))
 		} else {
@@ -5931,7 +5931,7 @@ func (this *Gate) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	if since != nil {
 		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = start
-		request["to"] = this.Sum(start, (30*24)*60*60)
+		request["to"] = start + (30*24)*60*60
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsPaginate, 0.001)
 
@@ -6008,7 +6008,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	if since != nil {
 		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = start
-		request["to"] = this.Sum(start, (30*24)*60*60)
+		request["to"] = start + (30*24)*60*60
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsPaginate, 0.001)
 

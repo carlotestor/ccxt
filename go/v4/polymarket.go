@@ -2193,7 +2193,7 @@ func (this *Polymarket) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]
 	}
 	var deadline any = 0
 	if (true) && (timeout > 0) {
-		deadline = this.Sum(this.Milliseconds(), timeout)
+		deadline = this.Milliseconds() + timeout
 	}
 	var signable []any = []any{"autoCancel", []any{deadline}}
 	var bodyOp map[string]any = map[string]any{
@@ -4047,7 +4047,7 @@ func (this *Polymarket) CalculateRateLimiterCost(api any, method string, path st
 	if (path == "trade/orders") || (path == "trade/orders-coid") {
 		var op map[string]any = SafeMapTyped(params, "op")
 		var args []any = SafeListTyped(op, "args")
-		return this.Sum(1, this.ParseToInt(float64(len(args))/20))
+		return 1 + this.ParseToInt(float64(len(args))/20)
 	}
 	if path == "info/book" {
 		var depth int64 = *this.SafeInteger(params, "depth", 100)

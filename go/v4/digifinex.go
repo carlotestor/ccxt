@@ -2107,7 +2107,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 				if until != nil {
 					var endByUntil int64 = this.ParseToInt(float64(*until) / 1000)
 					if limit != nil {
-						var endByLimit int64 = this.ParseToInt(this.Sum(startTime, *limit*duration))
+						var endByLimit int64 = this.ParseToInt(startTime + *limit*duration)
 						request["end_time"] = func() int64 {
 							if endByLimit < endByUntil {
 								return endByLimit
@@ -2121,7 +2121,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 					if limit == nil {
 						panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a limit argument"))
 					}
-					request["end_time"] = this.Sum(startTime, *limit*duration)
+					request["end_time"] = startTime + *limit*duration
 				}
 			}
 		}

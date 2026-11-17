@@ -1795,7 +1795,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		requestLimit = min(*limit, int64(maxLimit))
 	}
 	if since != nil {
-		request["startTime"] = mathMax(*since-1, 0)
+		request["startTime"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = requestLimit
