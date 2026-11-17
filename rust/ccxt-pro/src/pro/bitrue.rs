@@ -560,7 +560,7 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         let mut channel: Option<String> = None;
         let mut cbId: Option<String> = None;
         if (market).swap {
@@ -569,12 +569,12 @@ impl Bitrue {
             let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", "e_", baseIdLower).into()), quoteIdLower);
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", "market_", wsId).into()), "_depth_step0"));
             cbId = Some(wsId);
-            url = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
+            url = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         }  else {
             let mut marketIdLowercase: String = self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", "market_", marketIdLowercase).into()), "_simple_depth_step0"));
             cbId = Some(marketIdLowercase);
-            url = wsUrls.get("public").cloned().unwrap_or(Value::Null);
+            url = wsUrls.get("public").cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -588,7 +588,7 @@ impl Bitrue {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
-        return self.watch(&url, &messageHash[..], &request, &messageHash[..], Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -825,7 +825,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut url: Value = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
@@ -838,7 +838,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
-        let mut trades: Option<crate::pro::cache::Cache> = self.watch(&url, &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -1029,7 +1029,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut url: Value = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
@@ -1042,7 +1042,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
-        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(&url, &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
@@ -1215,7 +1215,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut url: Value = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("sub".into()));
@@ -1228,7 +1228,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
-        return self.watch(&url, &messageHash[..], &request, &messageHash[..], Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }

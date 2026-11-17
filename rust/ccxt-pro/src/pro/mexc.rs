@@ -2177,16 +2177,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", "unsubscribe:fundingRate:", Value::from((market).symbol.clone()));
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         let mut channel: String = "unsub.funding.rate".to_string();
         let mut requestParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
+        url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap").as_str().map(str::to_owned);
         self.spawn(&[Value::Str("watch_swap_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null
@@ -2242,11 +2242,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", "unsubscribe:ticker:", Value::from((market).symbol.clone()));
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         let mut channel: Option<String> = None;
         if (market).spot {
             channel = Some(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or(""))));
-            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
+            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot").as_str().map(str::to_owned);
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
             self.spawn(&[Value::Str("watch_spot_public".into()).clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), params.clone()]);
         }  else {
@@ -2256,10 +2256,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
+            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap").as_str().map(str::to_owned);
             self.spawn(&[Value::Str("watch_swap_public".into()).clone(), channel.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null
@@ -2419,14 +2419,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         })]).into_dict();
         let mut timeframeId: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), Value::from((market).symbol.as_str())).into()), ":").into()), timeframe);
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         if (market).spot {
-            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
+            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot").as_str().map(str::to_owned);
             let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "@").into()), timeframeId.as_deref().unwrap_or("null"));
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
             self.spawn(&[Value::Str("watch_spot_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), params.clone()]);
         }  else {
-            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
+            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap").as_str().map(str::to_owned);
             let mut channel: String = "unsub.kline".to_string();
             let mut requestParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2436,7 +2436,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             self.spawn(&[Value::Str("watch_swap_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null
@@ -2468,9 +2468,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), Value::from((market).symbol.as_str()));
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         if (market).spot {
-            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
+            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot").as_str().map(str::to_owned);
             let frequencyparamsFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]).as_array().cloned().unwrap_or_default();
             let mut frequency: Option<String> = frequencyparamsFrequencyVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsFrequency: crate::value::Dict = frequencyparamsFrequencyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2478,7 +2478,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             std::sync::Arc::make_mut(&mut paramsFrequency).insert("unsubscribed".into(), Value::Bool(true));
             self.spawn(&[Value::Str("watch_spot_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), Value::Dict(paramsFrequency)]);
         }  else {
-            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
+            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap").as_str().map(str::to_owned);
             let mut channel: String = "unsub.depth".to_string();
             let mut requestParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2487,7 +2487,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             self.spawn(&[Value::Str("watch_swap_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null
@@ -2519,14 +2519,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:trades:".into()), Value::from((market).symbol.as_str()));
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         if (market).spot {
-            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
+            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot").as_str().map(str::to_owned);
             let mut channel: String = format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or("")));
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
             self.spawn(&[Value::Str("watch_spot_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), params.clone()]);
         }  else {
-            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
+            url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap").as_str().map(str::to_owned);
             let mut channel: String = "unsub.deal".to_string();
             let mut requestParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2535,7 +2535,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             self.spawn(&[Value::Str("watch_swap_public".into()).clone(), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
         Value::Null

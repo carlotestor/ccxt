@@ -3478,14 +3478,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if isClassicFuturesMethod {
             subscriptionHash = Some("/contractAccount/wallet".to_string());
         }
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         if utaOption {
-            url = self.get_uta_url().await;
+            url = self.get_uta_url().await.as_str().map(str::to_owned);
             subscriptionHash = uniformType.clone();
         }  else {
-            url = self.negotiate(true, &[Value::Bool(isClassicFuturesMethod)]).await;
+            url = self.negotiate(true, &[Value::Bool(isClassicFuturesMethod)]).await.as_str().map(str::to_owned);
         }
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value(), Value::from(uniformType.as_deref()));
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
@@ -3518,7 +3518,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if !(client.has_subscription(subscriptionHash.as_deref())) {
                 client.add_subscription(requestId.as_str(), subscriptionHash.map(Value::from).unwrap_or(Value::Null));
             }
-            return self.watch(&url, messageHash.as_str(), &message, uniformType.as_deref(), Value::Null).await;
+            return self.watch(url.as_deref(), messageHash.as_str(), &message, uniformType.as_deref(), Value::Null).await;
         }
         Value::Null
         }).await?))
