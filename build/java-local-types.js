@@ -23965,3 +23965,179 @@ function r87j8StringListRead (printer, value) {
     }
     return numeric && /^(java\.util\.)?List<String>$/.test (declared.trim ());
 }
+
+// ===== 90j2 R1. element-read List locals decided per checker binding =====
+// `const g = m[k]` followed at once by `g.push (v)`, or `const g = m[k] as any[]` (the printer already
+// prints the `(List<Object>)` checkcast for the assertion) with a `.length` / `g[i]` read. Sections
+// r84j2 / r84j2 R2 refuse these only because a sibling block declares the same name (ral-87j2 next
+// candidates): here every use is resolved through the checker symbol of THIS binding, so a sibling
+// never decides. The push form adds one declaration checkcast and drops the push receiver cast
+// (net 0); the asserted form only retypes the head. Uses of the binding: push statements, `.length`
+// and `g[i]` reads, a value written into an element; everything else refuses.
+function r90j2BindingUses (printer, declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const checker = printer.getChecker ();
+    const own = checker.getSymbolAtLocation (declaration.name);
+    if (own === undefined) {
+        return undefined;
+    }
+    const uses = [];
+    for (const n of (identifierIndex (scope).get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+            || (ts.isPropertyAssignment (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        let symbol;
+        try {
+            symbol = checker.getSymbolAtLocation (n);
+        } catch (e) {
+            return undefined;
+        }
+        if (symbol === own) {
+            uses.push (n);
+        } else if (symbol === undefined) {
+            return undefined; // unresolved: fail closed
+        }
+    }
+    return uses;
+}
+
+function r90j2ListUse (n) {
+    const parent = n.parent;
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === n) {
+        if (parent.name.text === 'length') {
+            return ts.isBinaryExpression (parent.parent) && parent.parent.left === parent ? undefined : 'native';
+        }
+        if (parent.name.text === 'push' && ts.isCallExpression (parent.parent) && parent.parent.expression === parent
+            && parent.parent.arguments.length === 1 && !ts.isSpreadElement (parent.parent.arguments[0])
+            && ts.isExpressionStatement (parent.parent.parent)) {
+            return 'push';
+        }
+        return undefined;
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === n) {
+        const grand = parent.parent;
+        if (grand?.kind === ts.SyntaxKind.DeleteExpression || (ts.isBinaryExpression (grand) && grand.left === parent)
+            || ts.isPostfixUnaryExpression (grand) || ts.isPrefixUnaryExpression (grand)) {
+            return undefined;
+        }
+        return 'native';
+    }
+    if (ts.isBinaryExpression (parent) && parent.right === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+        && ts.isElementAccessExpression (parent.left)) {
+        return 'value';
+    }
+    return undefined;
+}
+
+function r90j2ElementListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || !ts.isVariableStatement (declaration.parent.parent)
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    let init = unwrapParens (declaration.initializer);
+    let asserted = false;
+    if (init !== undefined && ts.isAsExpression (init) && init.type.kind === ts.SyntaxKind.ArrayType
+        && init.type.elementType.kind === ts.SyntaxKind.AnyKeyword) {
+        asserted = true;
+        init = unwrapParens (init.expression);
+    }
+    if (init === undefined || !ts.isElementAccessExpression (init) || ts.isStringLiteralLike (init.argumentExpression)
+        || ts.isNumericLiteral (init.argumentExpression)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || dataflowTypeTokenCollides (index, JAVA_LIST_LOCAL_TYPE)) {
+        return undefined;
+    }
+    const uses = r90j2BindingUses (printer, declaration);
+    if (uses === undefined || uses.length === 0) {
+        return undefined;
+    }
+    const kinds = uses.map (r90j2ListUse);
+    if (kinds.some ((k) => k === undefined) || !kinds.some ((k) => k === 'native' || k === 'push')) {
+        return undefined;
+    }
+    if (!asserted) {
+        // the declaration checkcast must sit right before the first push, which then loses its own cast
+        const statement = declaration.parent.parent;
+        const block = statement.parent;
+        const next = block?.statements?.[block.statements.indexOf (statement) + 1];
+        const first = uses.find ((n) => r90j2ListUse (n) === 'push');
+        if (first === undefined || next === undefined || first.parent.parent.parent !== next) {
+            return undefined;
+        }
+        let array;
+        try {
+            array = r84j2TsIsArray (printer, init);
+        } catch (e) {
+            return undefined;
+        }
+        if (array === false || array === 'mixed') {
+            return undefined;
+        }
+    }
+    return { type: JAVA_LIST_LOCAL_TYPE, cast: asserted ? '' : R84J2_LIST_CAST };
+}
+
+export function installJavaR90j2ElementListLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || typeof printer.printArrayPushCall !== 'function'
+        || printer._javaR90j2ElementListPatched) {
+        return;
+    }
+    printer._javaR90j2ElementListPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let info;
+        try {
+            info = (typed.has (declaration) || r87j6HeadIsObject (printer, declaration, upto)) ? r90j2ElementListLocal (printer, declaration) : undefined;
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const rest = printed.slice (marker.length);
+        const semi = rest.lastIndexOf (';');
+        const body = semi === -1 ? rest : rest.slice (0, semi);
+        const tail = semi === -1 ? '' : rest.slice (semi);
+        if (tail !== '' && tail.trim () !== ';') {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        return r87j6Head (printer, declaration, identation, info.type) + (info.cast === '' ? rest : `${info.cast} (${body})${tail}`);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    const upstreamPush = printer.printArrayPushCall.bind (printer);
+    printer.printArrayPushCall = function (node, identation, name = undefined, parsedArg = undefined) {
+        const receiver = node?.expression?.expression;
+        let declaration;
+        try {
+            declaration = receiver !== undefined && ts.isIdentifier (receiver)
+                ? printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve () : undefined;
+        } catch (e) {
+            declaration = undefined;
+        }
+        return declaration !== undefined && typed.get (declaration) === JAVA_LIST_LOCAL_TYPE && name === receiver.text
+            ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
+    };
+}
