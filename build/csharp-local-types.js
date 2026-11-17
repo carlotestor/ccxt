@@ -13183,7 +13183,7 @@ function rowReadWriteType (csharp, declaration, node) {
     if (!isNullInitFamilyString (declaration)) {
         return undefined;
     }
-    return (marketRowStringReadType (csharp, node) === 'string') ? 'string' : undefined;
+    return (marketRowStringReadType (csharp, node) === 'string' || currencyRowStringReadType92c4 (csharp, node) === 'string') ? 'string' : undefined;
 }
 
 // `typeof x === 'string'` prints `(x is string)`, so a copy inside that branch assigns that very
@@ -13504,7 +13504,7 @@ function rowReadWriteNeedsCast (csharp, node) {
         return false;
     }
     if (node.kind === ts.SyntaxKind.ElementAccessExpression) {
-        return marketRowStringReadType (csharp, node) === 'string';
+        return marketRowStringReadType (csharp, node) === 'string' || currencyRowStringReadType92c4 (csharp, node) === 'string';
     }
     return narrowedCopyNodeName (node) === node.text;
 }
@@ -22325,4 +22325,57 @@ function nullSeedLiteralCompareUse92c4 (n) {
     }
     const other = stripParens ((parent.left === current) ? parent.right : parent.left);
     return other?.kind === ts.SyntaxKind.StringLiteral && !/^\s*[-+.0-9]|^\s*(NaN|Infinity)\s*$/.test (other.text);
+}
+
+// `currency['id']` / `currency['code']` where `currency` is a single local bound once to this.currency (..) /
+// this.safeCurrency (..) and never written into: the audited currency-row key table. Every currency-row
+// writer stores a string or undefined at these keys (safeCurrencyStructure's 124 parseCurrency callers
+// pass safeString / safeCurrencyCode / string-literal / Object.keys values; base safeCurrency writes its
+// Str id and the derived code), so the `(string)` cast names the box the `object` local held.
+const CURRENCY_ROW_STRING_KEYS_92C4 = [ 'id', 'code' ];
+
+function currencyRowStringReadType92c4 (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || node.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const key = elementAccessLiteralKey (node.argumentExpression);
+    if (!CURRENCY_ROW_STRING_KEYS_92C4.includes (key)) {
+        return undefined;
+    }
+    const receiver = node.expression;
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    const candidates = (index.declarations.get (receiver.text) ?? [])
+        .filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, receiver) === true);
+    if (candidates.length !== 1) {
+        return undefined;
+    }
+    const declaration = candidates[0];
+    const call = stripParens (declaration.initializer);
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || ![ 'currency', 'safeCurrency' ].includes (callee.name?.text)
+            || declaration.getStart () > node.getStart ()) {
+        return undefined;
+    }
+    for (const n of (index.identifiers.get (receiver.text) ?? [])) {
+        if (n === receiver || n === declaration.name || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            return undefined; // a rebind: the row proof stops
+        }
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === n) {
+            const grand = parent.parent;
+            if (grand?.kind === ts.SyntaxKind.DeleteExpression
+                    || (grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind))) {
+                return undefined; // a write into the row
+            }
+        }
+    }
+    return 'string';
 }
