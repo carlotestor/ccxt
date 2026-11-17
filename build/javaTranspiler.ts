@@ -10980,6 +10980,14 @@ function javaR93j8LocalsSelfTest (): string[] {
         "        }",
         "        return out;",
         "    }",
+        "    pushedIds (symbols: string[]) {",
+        "        const ids: string[] = [];",
+        "        for (let i = 0; i < symbols.length; i++) {",
+        "            const id = this.market (symbols[i])['id'] as string;",
+        "            ids.push (id);",
+        "        }",
+        "        return ids.join (',');",
+        "    }",
         "    keyedAll (symbols: string[]) {",
         "        let all: string[] = Object.keys (this.markets as Dict);",
         "        if (symbols !== undefined) {",
@@ -11008,6 +11016,7 @@ function javaR93j8LocalsSelfTest (): string[] {
         resetJavaVenueIndexes();
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<String> ids = /.test(out) || !/ids = new java\.util\.ArrayList<String>\(m\.keySet\(\)\);/.test(out) || !/\bids\.size\(\)/.test(out)) problems.push("'ids' (String list written from Object.keys of a Map local and marketIds) must print List<String> with a native size()");
+        if (!/List<String> ids = new java\.util\.ArrayList<String>/.test(out) || !/String id = /.test(out) || !/\bids\.add\(id\)/.test(out)) problems.push("'ids' / 'id' (String list fed by an `as string` local) must print List<String> / String with a native add");
         if (!/List<String> all = new java\.util\.ArrayList<String>\(\(\(java\.util\.Map<String, Object>\)this\.markets\)\.keySet\(\)\);/.test(out) || !/\ball\.size\(\)/.test(out)) problems.push("'all' (String list from Object.keys (this.markets as Dict) and marketSymbols) must print List<String> with a native size()");
         if (!/List<String> chunk = /.test(out) || !/\bchunk\.size\(\)/.test(out)) problems.push("'chunk' (String list fed by elements of a list of String copy locals) must print List<String> with a native size()");
         if (problems.length) problems.push('output:\n' + out);

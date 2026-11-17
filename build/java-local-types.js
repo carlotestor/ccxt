@@ -25227,6 +25227,10 @@ function r87j8StringElement (printer, node, depth = 0, internalCalls = true) {
     if (r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true) {
         return true;
     }
+    // a `const x = <expr> as string` local (92j1 R2) whose push into this list is its native use
+    if (r92j1AssertedStringLocal (printer, declaration, true)) {
+        return true;
+    }
     // a String copy (section 77j8 (a), `let t: Str = s; if (c) { t = s.slice (0, -3); }`) decided before it prints
     j8EarlyStringSources++;
     try {
@@ -26517,7 +26521,7 @@ function r92j1WsClientUrlRead (printer, init) {
         && /[\\/]ts[\\/]src[\\/]base[\\/]ws[\\/]Client\.ts$/.test (declaration.getSourceFile ().fileName);
 }
 
-function r92j1AssertedStringLocal (printer, declaration) {
+function r92j1AssertedStringLocal (printer, declaration, pushNative = false) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || (declaration.parent.flags & ts.NodeFlags.Const) === 0
         || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement || declaration.type !== undefined) {
@@ -26544,15 +26548,30 @@ function r92j1AssertedStringLocal (printer, declaration) {
         if (ts.isBinaryExpression (n.parent) && n.parent.left === n && ASSIGNMENT_OPERATORS.includes (n.parent.operatorToken.kind)) {
             return false;
         }
-        if (r84j1NativeUse (printer, n) && r92j1KeyUseIsNative (printer, n)) {
+        if ((r84j1NativeUse (printer, n) && r92j1KeyUseIsNative (printer, n)) || r93j8PushIntoStringList (printer, n)) {
             native++;
         }
     }
-    if (native === 0) {
+    if (native === 0 && !pushNative) {
         return false;
     }
     const info = { type: 'String', nonNull: false, strictPlus: true, stringListElement: true, stringAsCast: true };
     return isSafeToNarrow (printer, declaration, name, 'String', /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info);
+}
+
+// `xs.push (x)` on a list the printer declared List<String>: the push is the typed add the list needs
+function r93j8PushIntoStringList (printer, n) {
+    const push = n.parent;
+    if (push === undefined || !ts.isCallExpression (push) || push.arguments.length !== 1 || push.arguments[0] !== n
+        || !ts.isPropertyAccessExpression (push.expression) || push.expression.name.text !== 'push'
+        || !ts.isExpressionStatement (push.parent) || typeof printer.javaDeclaredTypeOf !== 'function') {
+        return false;
+    }
+    const receiver = push.expression.expression;
+    if (!ts.isIdentifier (receiver)) {
+        return false;
+    }
+    return /^(java\.util\.)?List<String>$/.test (String (printer.javaDeclaredTypeOf (receiver) ?? '').trim ());
 }
 
 // a put / delete key only loses its cast on a receiver declared a Java Map (a field chain or an Object
