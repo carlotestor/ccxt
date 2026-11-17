@@ -10988,6 +10988,15 @@ function javaR93j8LocalsSelfTest (): string[] {
         "        }",
         "        return ids.join (',');",
         "    }",
+        "    tail (ids: string[]) {",
+        "        const first = this.safeString (ids, 0, '');",
+        "        const n = first.length;",
+        "        let suffix = first;",
+        "        if (n > 6) {",
+        "            suffix = first.slice (n - 6);",
+        "        }",
+        "        return suffix.toUpperCase ();",
+        "    }",
         "    keyedAll (symbols: string[]) {",
         "        let all: string[] = Object.keys (this.markets as Dict);",
         "        if (symbols !== undefined) {",
@@ -11017,6 +11026,7 @@ function javaR93j8LocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<String> ids = /.test(out) || !/ids = new java\.util\.ArrayList<String>\(m\.keySet\(\)\);/.test(out) || !/\bids\.size\(\)/.test(out)) problems.push("'ids' (String list written from Object.keys of a Map local and marketIds) must print List<String> with a native size()");
         if (!/List<String> ids = new java\.util\.ArrayList<String>/.test(out) || !/String id = /.test(out) || !/\bids\.add\(id\)/.test(out)) problems.push("'ids' / 'id' (String list fed by an `as string` local) must print List<String> / String with a native add");
+        if (!/String suffix = first;/.test(out) || !/suffix\.toUpperCase\(\)/.test(out)) problems.push("'suffix' (String copy written by a non-literal slice) must print String with a native toUpperCase()");
         if (!/List<String> all = new java\.util\.ArrayList<String>\(\(\(java\.util\.Map<String, Object>\)this\.markets\)\.keySet\(\)\);/.test(out) || !/\ball\.size\(\)/.test(out)) problems.push("'all' (String list from Object.keys (this.markets as Dict) and marketSymbols) must print List<String> with a native size()");
         if (!/List<String> chunk = /.test(out) || !/\bchunk\.size\(\)/.test(out)) problems.push("'chunk' (String list fed by elements of a list of String copy locals) must print List<String> with a native size()");
         if (problems.length) problems.push('output:\n' + out);

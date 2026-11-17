@@ -25257,6 +25257,12 @@ function r87j8NativeStringSlice (printer, value, declaration) {
     let printed;
     try {
         printed = printer.nativeSliceCallIfProvable (value, receiver.text);
+        // a repeatable non-literal bound on a String-printed receiver: the printer's typed slice arm
+        if (printed === undefined && typeof printer.javaTypedStringSliceCall === 'function'
+            && value.arguments.every ((a) => !ts.isSpreadElement (a))) {
+            const args = value.arguments.map ((a) => printer.printNode (a, 0));
+            printed = printer.javaTypedStringSliceCall (value, receiver.text, args[0], args[1], 0);
+        }
     } catch (e) {
         return false;
     }
@@ -25296,6 +25302,25 @@ export function installJavaR87j8CopyStringResolver (transpiler) {
         }
         return printed;
     };
+    // a String-method receiver on such a local needs no checkcast (only String writes reach it)
+    if (typeof printer.javaDeclaredStringElementLocal === 'function') {
+        const upstreamElement = printer.javaDeclaredStringElementLocal.bind (printer);
+        printer.javaDeclaredStringElementLocal = function (node, name) {
+            if (upstreamElement (node, name)) {
+                return true;
+            }
+            const target = unwrapParens (node);
+            if (target === undefined || !ts.isIdentifier (target) || name !== target.text || !r93j8StringMethodReceiver (target)) {
+                return false;
+            }
+            try {
+                const declaration = printer.getChecker ().getSymbolAtLocation (target)?.valueDeclaration?.resolve ();
+                return declaration !== undefined && strings.has (declaration);
+            } catch (e) {
+                return false;
+            }
+        };
+    }
     const upstreamResolver = printer.javaExpressionTypeResolver;
     printer.javaExpressionTypeResolver = function (node) {
         const target = unwrapParens (node);
@@ -25312,6 +25337,14 @@ export function installJavaR87j8CopyStringResolver (transpiler) {
         }
         return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
     };
+}
+
+// `x.m ()` with no arguments (toUpperCase / toLowerCase / trim): no literal argument cast can follow
+function r93j8StringMethodReceiver (node) {
+    const access = node.parent;
+    return access !== undefined && ts.isPropertyAccessExpression (access) && access.expression === node
+        && ts.isCallExpression (access.parent) && access.parent.expression === access && access.parent.arguments.length === 0
+        && [ 'toUpperCase', 'toLowerCase', 'trim' ].includes (access.name.text);
 }
 
 // 87j8 (d): `xs[i]` with a number key on a bare identifier the printer already declared List<String>
