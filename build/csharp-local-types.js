@@ -10895,7 +10895,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -20413,4 +20413,128 @@ function passThroughHelperLocal84c7 (csharp, declaration, context) {
         return undefined;
     }
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type } : undefined;
+}
+
+// ===== ral-87c7 R2: `this.sum (a, b)` Int64 locals with int / Int64 rewrites, read only by comparisons =====
+// `let end = this.sum (start, size); if (end > n) { end = n; } for (let i = start; i < end; i++)`:
+// the initializer binds the typed Int64 twin (integerBoxCastType / integerOverloadCallType), but
+// the int write (`end = n` with n an `int` local) has no join with Int64 and kept the local
+// `object`. int converts implicitly to Int64 and every read is a relational comparison (the
+// object helpers compare by numeric value, so an Int32 versus Int64 box answers the same), so the
+// local may name Int64 (the comparison helpers order by numeric value, so neither the Int32 vs
+// Int64 box nor the other operand's box changes an answer); any other read, an escaping use or
+// another write keeps object.
+function int64SumComparedLocal87c7 (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const init = stripParens (declaration.initializer);
+    if (!int64SumCall87c7 (csharp, init, ctx)) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    const relational = new Set ([ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanEqualsToken ]);
+    const integral = (node) => {
+        const kind = csharpTypeOfValue (csharp, node, ctx);
+        return kind === 'int' || kind === 'Int64';
+    };
+    let ok = true;
+    let reads = 0;
+    const visit = (node) => {
+        if (!ok) {
+            return;
+        }
+        if (node !== declaration.name && node.kind === ts.SyntaxKind.Identifier && node.text === name && !isNotAUse (node)) {
+            if (useRefersToDeclaration (csharp, scope, declaration, node) === false) {
+                return;
+            }
+            const parent = node.parent;
+            if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === node && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+                const value = stripParens (parent.right);
+                ok = parent.parent?.kind === ts.SyntaxKind.ExpressionStatement && (integral (value) || int64SumCall87c7 (csharp, value, ctx));
+                return;
+            }
+            if (parent?.kind === ts.SyntaxKind.BinaryExpression && relational.has (parent.operatorToken.kind)) {
+                // the comparison helpers (and the native operators the printer may choose) order
+                // by numeric value, so the other operand's box does not matter
+                reads++;
+                return;
+            }
+            ok = false;
+            return;
+        }
+        node.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    return (ok && reads > 0) ? { type: 'Int64' } : undefined;
+}
+
+// `this.sum (a, b)` binding a typed Int64 twin: both operands are what integerOrNullArgumentKind
+// proves, or a literal-seeded sum counter (sumCounterLocal87c7)
+function int64SumCall87c7 (csharp, call, context) {
+    if (integerBoxCastType (csharp, call, context) === 'Int64' && integerOverloadCallType (call) === 'Int64') {
+        return true;
+    }
+    if (integerOverloadCallType (call) !== 'Int64') {
+        return false;
+    }
+    return call.arguments.every ((argument) => integerOrNullArgumentKind (csharp, argument, context) !== undefined || sumCounterLocal87c7 (csharp, stripParens (argument), context));
+}
+
+// `let start = 0; ... start = this.sum (start, size);` with size an int / Int64 / Int64? value:
+// the same proof the post-print counter pass (B) in build/csharpTranspiler.ts makes on the printed
+// `object start = 0;`, decided here from the AST so the declaration reading it can name its box.
+// Every other write, and a read that is not a comparison, a sum operand or a for-initializer,
+// refuses (the post-print pass then refuses too, and this local stays object).
+function sumCounterLocal87c7 (csharp, node, context) {
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const scope = context?.scope;
+    const declaration = (scope === undefined) ? undefined : (indexScope (csharp, scope).declarations.get (node.text) ?? []);
+    if (declaration === undefined || declaration.length !== 1 || declaration[0].parent?.declarations?.length !== 1
+            || declaration[0].type !== undefined || !/^\d{1,9}$/.test (stripParens (declaration[0].initializer)?.text ?? '')
+            || stripParens (declaration[0].initializer)?.kind !== ts.SyntaxKind.NumericLiteral || declaration[0].getStart () >= node.getStart ()) {
+        return false;
+    }
+    const counter = declaration[0];
+    const name = node.text;
+    const relational = new Set ([ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanEqualsToken ]);
+    let sums = 0;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === counter.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, counter, use) !== true) {
+            if (use !== counter.name && !isNotAUse (use) && useRefersToDeclaration (csharp, scope, counter, use) === undefined) {
+                return false;
+            }
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            const value = stripParens (parent.right);
+            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || parent.parent?.kind !== ts.SyntaxKind.ExpressionStatement
+                    || value?.kind !== ts.SyntaxKind.CallExpression || integerOverloadCallType (value) !== 'Int64'
+                    || stripParens (value.arguments[0])?.kind !== ts.SyntaxKind.Identifier || stripParens (value.arguments[0]).text !== name
+                    || integerOrNullArgumentKind (csharp, value.arguments[1], context) === undefined) {
+                return false;
+            }
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.CallExpression && integerOverloadCallType (parent) === 'Int64' && parent.arguments[0] === use) {
+            sums++;
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && relational.has (parent.operatorToken.kind)) {
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.VariableDeclaration && parent.initializer === use && parent.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
+            continue;
+        }
+        return false;
+    }
+    return sums > 0;
 }

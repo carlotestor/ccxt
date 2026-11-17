@@ -12808,5 +12808,14 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
     for (const expected of [ 'string ts = callDynamically(this, "numberToString"', 'string auth = ((ts + method) + (path));', 'auth = (auth + "?");' ]) {
         if (!signed.includes (expected)) problems.push (`87c7 clock-string seed of a guarded concat: ${expected}: ${signed.replace (/\n/g, ' | ').slice (-400)}`);
     }
+    // ral-87c7 R2: an Int64 sum bound clamped by an int length and read only by comparisons
+    const chunked = (transpiler as any).transpileCSharp ('class Test {\n sum (a, b) { return a; }\n safeInteger (o, k, d = undefined) { return d; }\n'
+        + ' f (ids: string[]) { const n = ids.length; const size = this.safeInteger ({}, \'x\', 50); let start = 0; const out = []; while (start < n) { let end = this.sum (start, size); if (end > n) { end = n; } for (let i = start; i < end; i++) { out.push (ids[i]); } start = this.sum (start, size); } return out; }\n}').content as string;
+    for (const expected of [ 'Int64 end = this.sum(start, size);', 'if (end > n)' ]) {
+        if (!chunked.includes (expected)) problems.push (`87c7 Int64 sum bound: ${expected}: ${chunked.replace (/\n/g, ' | ').slice (-500)}`);
+    }
+    const escaped = (transpiler as any).transpileCSharp ('class Test {\n sum (a, b) { return a; }\n safeInteger (o, k, d = undefined) { return d; }\n'
+        + ' f (ids: string[]) { const n = ids.length; const size = this.safeInteger ({}, \'x\', 50); let start = 0; let end = this.sum (start, size); if (end > n) { end = n; } return [ start, end ]; }\n}').content as string;
+    if (!escaped.includes ('object end = this.sum(start, size);')) problems.push (`87c7 Int64 sum bound: escaping read retyped: ${escaped.replace (/\n/g, ' | ').slice (-500)}`);
     return problems;
 }
