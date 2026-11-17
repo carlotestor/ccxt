@@ -13355,7 +13355,7 @@ function stringListElementOk (printer, element) {
     if (e !== undefined && ts.isAsExpression (e) && e.type.kind === ts.SyntaxKind.StringKeyword) {
         return true; // prints ((String) x)
     }
-    return e !== undefined && (isStaticallyStringExpression (printer, e, undefined) || stringProducerLocal (printer, e) || r87j8StringElement (printer, e));
+    return e !== undefined && (isStaticallyStringExpression (printer, e, undefined) || stringProducerLocal (printer, e) || r87j8StringElement (printer, e, 0, false));
 }
 
 function stringListLocalDeclaration (printer, node) {
@@ -22672,7 +22672,7 @@ export function installJavaR84j8Locals (transpiler) {
 // String (section 1 with a statically-String initializer, 84j1 string element reads, section 36
 // non-null String locals), a `<String> + ..` chain whose left spine is such a value, or the
 // existing static-String proof.
-function r87j8StringElement (printer, node, depth = 0) {
+function r87j8StringElement (printer, node, depth = 0, internalCalls = true) {
     const value = unwrapParens (node);
     if (value === undefined || depth > 4) {
         return false;
@@ -22681,13 +22681,14 @@ function r87j8StringElement (printer, node, depth = 0) {
         return true;
     }
     if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-        return r87j8StringElement (printer, value.left, depth + 1);
+        return r87j8StringElement (printer, value.left, depth + 1, internalCalls);
     }
     if (r87j8StringListRead (printer, value)) {
         return true;
     }
-    // a `this.m (..)` whose declaration the printer itself prints `public String` (javaNativeReturnType)
-    if (isThisCall (value) && internalReturnLocalType (printer, value)?.type === 'String') {
+    // a `this.m (..)` whose declaration the printer itself prints `public String` (javaNativeReturnType);
+    // section 26 accumulators only (in section 31 lists it freed only declaration-only locals)
+    if (internalCalls && isThisCall (value) && internalReturnLocalType (printer, value)?.type === 'String') {
         return true;
     }
     if (!ts.isIdentifier (value)) {
