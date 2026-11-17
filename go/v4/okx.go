@@ -4008,12 +4008,12 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		limitResolved = mathMin(limit, requestMaxLimit)
 	}
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var bar any
-	if derefPtr := this.SafeString(this.Timeframes, timeframe, timeframe); derefPtr != nil {
-		bar = *derefPtr
-	}
+	var bar *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	if (timezone == "UTC") && (duration >= 21600) {
-		bar = Add(bar, strings.ToLower(timezone))
+		if bar != nil {
+			barValue := *bar + strings.ToLower(timezone)
+			bar = &barValue
+		}
 	}
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
