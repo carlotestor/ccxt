@@ -26657,8 +26657,8 @@ function r92j1StringRowLocal (printer, declaration) {
     return native > 0;
 }
 
-// (93j1) `const xs = rows[i]` where the checker types the element an array (`Position[]` of an awaited
-// Promise.all): every use is `.length` or a counter-index read, the first in the next statement, so the
+// (93j1) `const xs = rows[i]` where the checker types the element an array or tuple (`Position[]` of an
+// awaited Promise.all, an OHLCV row): every use is `.length` or a counter-index read, the first in the next statement, so the
 // one `(java.util.List<?>)` checkcast moves to the declaration and each use prints the plain List call
 function r93j1ArrayRowLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
@@ -26675,7 +26675,7 @@ function r93j1ArrayRowLocal (printer, declaration) {
     const checker = printer.getChecker ();
     const type = checker.getTypeAtLocation (declaration.name);
     const declared = printer.javaDeclaredTypeOf (read.expression);
-    if (type === undefined || !checker.isArrayType (type) || declared === undefined || !/^(java\.util\.)?List<[^;=]+>$/.test (declared)) {
+    if (type === undefined || !(checker.isArrayType (type) || checker.isTupleType (type)) || declared === undefined || !/^(java\.util\.)?List<[^;=]+>$/.test (declared)) {
         return false;
     }
     const scope = enclosingFunction (declaration);
@@ -26700,7 +26700,10 @@ function r93j1ArrayRowLocal (printer, declaration) {
         }
         const parent = n.parent;
         const length = ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.name.text === 'length';
-        const element = ts.isElementAccessExpression (parent) && parent.expression === n && printer.javaPrimitiveCounterIndex (parent.argumentExpression)
+        const literal = ts.isElementAccessExpression (parent) && ts.isNumericLiteral (parent.argumentExpression)
+            && /^[0-9]+$/.test (parent.argumentExpression.text) && Number (parent.argumentExpression.text) <= 2147483647;
+        const element = ts.isElementAccessExpression (parent) && parent.expression === n
+            && (literal || printer.javaPrimitiveCounterIndex (parent.argumentExpression))
             && parent.parent?.kind !== ts.SyntaxKind.DeleteExpression && !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent)
             && !(ts.isCallExpression (parent.parent) && parent.parent.expression === parent);
         if (!length && !element) {
