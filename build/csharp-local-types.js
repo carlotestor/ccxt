@@ -13050,6 +13050,7 @@ function nullSeedNativeStringLocal (declaration) {
     const name = declaration.name.text;
     const scope = enclosingFunction (declaration);
     let found = false;
+    let foundByLiteral = false;
     const visit = (n) => {
         if (found) {
             return;
@@ -13061,12 +13062,19 @@ function nullSeedNativeStringLocal (declaration) {
                 found = true;
             } else if (parent?.kind === ts.SyntaxKind.AsExpression && parent.type?.kind === ts.SyntaxKind.StringKeyword) {
                 found = true;
+            } else if (nullSeedLiteralCompareUse92c4 (n)) {
+                foundByLiteral = true;
             }
         }
         n.forEachChild (visit);
     };
     if (scope?.body !== undefined) {
         visit (scope.body);
+    }
+    if (!found && foundByLiteral) {
+        // the literal-compare trigger is new: inside the signature lane's call-site proof it answers
+        // nothing and caches nothing, so no parameter is typed from it
+        return c5ParameterProofDepth === 0;
     }
     nullSeedNativeStringCache.set (declaration, found);
     return found;
@@ -22298,3 +22306,23 @@ stringValueIsNonNullAtUse = function (csharp, scope, declaration, name, read, co
     return c90UpstreamStringValueIsNonNullAtUse (csharp, scope, declaration, name, read, context)
         || c90DereferenceDominates (csharp, scope, declaration, name, read);
 };
+
+// `x === '<lit>'` / `x !== '<lit>'` on a Str null seed prints `(x is "lit")` over the object local; declared
+// string? it prints the native `==` / `!=` (same answer on null and on any string). Numeric-looking literals
+// keep the isEqual helper, so they are not a native use.
+function nullSeedLiteralCompareUse92c4 (n) {
+    let current = n;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const parent = current.parent;
+    if (parent?.kind !== ts.SyntaxKind.BinaryExpression) {
+        return false;
+    }
+    const op = parent.operatorToken.kind;
+    if (op !== ts.SyntaxKind.EqualsEqualsEqualsToken && op !== ts.SyntaxKind.ExclamationEqualsEqualsToken) {
+        return false;
+    }
+    const other = stripParens ((parent.left === current) ? parent.right : parent.left);
+    return other?.kind === ts.SyntaxKind.StringLiteral && !/^\s*[-+.0-9]|^\s*(NaN|Infinity)\s*$/.test (other.text);
+}
