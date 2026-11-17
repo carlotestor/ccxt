@@ -159,6 +159,32 @@ func SafeList2Typed(m any, key1 any, key2 any, optionalArgs ...any) []any {
 	return listValueToTypedSlice(defaultValue)
 }
 
+// SafeList2Strings / SafeListNStrings read the list SafeList2 / SafeListN return for a local only
+// joined as strings: nil exactly where that list is nil, else its elements as Join prints them.
+func SafeList2Strings(m any, key1 any, key2 any) []string {
+	return listValueToJoinStrings(SafeList2Typed(m, key1, key2))
+}
+
+func SafeListNStrings(m any, keys any) []string {
+	keysArray, _ := keys.([]any)
+	value := SafeValueN(m, keysArray, nil)
+	if !IsArray(value) {
+		return nil
+	}
+	return listValueToJoinStrings(listValueToTypedSlice(value))
+}
+
+func listValueToJoinStrings(list []any) []string {
+	if list == nil {
+		return nil
+	}
+	out := make([]string, 0, len(list))
+	for _, elem := range list {
+		out = append(out, ToString(elem))
+	}
+	return out
+}
+
 // SafeListTypedDefault mirrors SafeList's admit-set for a local declared []any: the member when
 // IsArray admits it, the caller's default otherwise, handed back as a typed slice exactly like
 // SafeListTyped. The printer emits it for a local whose default is a non-empty array literal.
