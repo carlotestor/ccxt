@@ -25585,6 +25585,18 @@ function r90j8VenueReturnsFreshList (file, name) {
 // The assertion already prints the `((String)..)` checkcast on the initializer, so declaring the local
 // String moves no failure point and adds no cast; its uses (String methods, put / remove keys, String
 // core slots) then print natively. Never written; at least one use must gain a native form.
+// (R3) `client.url` of the ws Client class (ts/src/base/ws/Client.ts `url: string`): the hand-written
+// WsClient declares `public String url`, so the read is a String or null with no cast at all
+function r92j1WsClientUrlRead (printer, init) {
+    if (!ts.isPropertyAccessExpression (init) || init.name.text !== 'url' || !ts.isIdentifier (init.expression)) {
+        return false;
+    }
+    const property = printer.getChecker ().getSymbolAtLocation (init.name);
+    const declaration = property?.valueDeclaration?.resolve ();
+    return declaration !== undefined && ts.isPropertyDeclaration (declaration)
+        && /[\\/]ts[\\/]src[\\/]base[\\/]ws[\\/]Client\.ts$/.test (declaration.getSourceFile ().fileName);
+}
+
 function r92j1AssertedStringLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || (declaration.parent.flags & ts.NodeFlags.Const) === 0
@@ -25592,7 +25604,7 @@ function r92j1AssertedStringLocal (printer, declaration) {
         return false;
     }
     const init = unwrapParens (declaration.initializer);
-    if (init === undefined || !ts.isAsExpression (init) || init.type.kind !== ts.SyntaxKind.StringKeyword) {
+    if (init === undefined || !((ts.isAsExpression (init) && init.type.kind === ts.SyntaxKind.StringKeyword) || r92j1WsClientUrlRead (printer, init))) {
         return false;
     }
     const scope = enclosingFunction (declaration);
@@ -25612,7 +25624,7 @@ function r92j1AssertedStringLocal (printer, declaration) {
         if (ts.isBinaryExpression (n.parent) && n.parent.left === n && ASSIGNMENT_OPERATORS.includes (n.parent.operatorToken.kind)) {
             return false;
         }
-        if (r84j1NativeUse (printer, n)) {
+        if (r84j1NativeUse (printer, n) && r92j1KeyUseIsNative (printer, n)) {
             native++;
         }
     }
@@ -25621,6 +25633,24 @@ function r92j1AssertedStringLocal (printer, declaration) {
     }
     const info = { type: 'String', nonNull: false, strictPlus: true, stringListElement: true, stringAsCast: true };
     return isSafeToNarrow (printer, declaration, name, 'String', /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info);
+}
+
+// a put / delete key only loses its cast on a receiver declared a Java Map (a field chain or an Object
+// receiver keeps Helpers.addElementToObject, so the key use is not native there)
+function r92j1KeyUseIsNative (printer, n) {
+    let child = n;
+    while (ts.isParenthesizedExpression (child.parent)) {
+        child = child.parent;
+    }
+    const parent = child.parent;
+    if (!ts.isElementAccessExpression (parent) || parent.argumentExpression !== child) {
+        return true;
+    }
+    const receiver = unwrapParens (parent.expression);
+    if (!ts.isIdentifier (receiver) || typeof printer.javaDeclaredTypeOf !== 'function') {
+        return false;
+    }
+    return /^(java\.util\.)?(Map|HashMap)<String, ?Object>$/.test (String (printer.javaDeclaredTypeOf (receiver) ?? '').trim ());
 }
 
 export function installJavaR92j1AssertedStringLocals (transpiler) {
@@ -25678,6 +25708,131 @@ export function installJavaR92j1AssertedStringLocals (transpiler) {
                 }
             }
             return upstreamElement (node, printedName);
+        };
+    }
+}
+
+// ===== 92j1 R4. rows of an unwritten `string[][]` parameter read by literal index =====
+// `const row = rows[i]` where rows is a never-written parameter / local annotated `string[][]`: every
+// row is a List (or null), so the local takes one `(java.util.List<?>)` checkcast at the declaration
+// and each `row[0]` read prints the plain List get instead of casting the Object local at every read.
+// Uses: element reads (native), base safe* reader arguments (unchanged); anything else refuses.
+// read-only rows: the wildcard list takes the same checkcast the old reads spelled at every use
+const R92J1_ROW_TYPE = 'java.util.List<?>';
+
+function r92j1StringRowLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || (declaration.parent.flags & ts.NodeFlags.Const) === 0
+        || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement || declaration.type !== undefined
+        || typeof printer.javaPrimitiveCounterIndex !== 'function') {
+        return false;
+    }
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || !printer.javaPrimitiveCounterIndex (read.argumentExpression)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const checker = printer.getChecker ();
+    const outer = checker.getSymbolAtLocation (read.expression);
+    if (scope === undefined || !r90j1AnnotatedStringList (printer, read.expression, outer, outer?.valueDeclaration?.resolve (), scope, 2)) {
+        return false;
+    }
+    const index = dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || ((index.bindingCounts.get (name) ?? 0) !== 1 && !r87j1SiblingConstBindings (index, name))) {
+        return false;
+    }
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let native = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const parent = n.parent;
+        if (ts.isElementAccessExpression (parent) && parent.expression === n && ts.isNumericLiteral (parent.argumentExpression)
+            && /^[0-9]+$/.test (parent.argumentExpression.text)) {
+            const grand = parent.parent;
+            if (grand?.kind === ts.SyntaxKind.DeleteExpression || (ts.isBinaryExpression (grand) && grand.left === parent)
+                || (ts.isCallExpression (grand) && grand.expression === parent)) {
+                return false;
+            }
+            native++;
+            continue;
+        }
+        if (ts.isCallExpression (parent) && parent.arguments.indexOf (n) !== -1 && isThisCall (parent)
+            && R84J1_OBJECT_ARG_READERS.has (String (parent.expression.name.text))
+            && resolvesToBaseOrStrippedAccessor (printer, parent, String (parent.expression.name.text))) {
+            continue;
+        }
+        return false;
+    }
+    return native > 0;
+}
+
+export function installJavaR92j1StringRowLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR92j1StringRowPatched) {
+        return;
+    }
+    printer._javaR92j1StringRowPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return upstream (node, identation);
+        }
+        let ok = typed.has (declaration);
+        if (!ok) {
+            try {
+                ok = r92j1StringRowLocal (printer, declaration) && r87j6HeadIsObject (printer, declaration, upto);
+            } catch (e) {
+                ok = false;
+            }
+        }
+        if (ok) {
+            typed.set (declaration, R92J1_ROW_TYPE);
+        }
+        const printed = upstream (node, identation);
+        if (!ok) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            typed.delete (declaration);
+            return printed;
+        }
+        return printed.slice (0, at) + r87j6Head (printer, declaration, identation, R92J1_ROW_TYPE)
+            + '(' + R92J1_ROW_TYPE + ') ' + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // `row[K]` on a row this section declared List: the same guarded read, bound on the declaration
+    if (typeof printer.printCheckerTypedElementAccessRead === 'function') {
+        const upstreamRead = printer.printCheckerTypedElementAccessRead.bind (printer);
+        printer.printCheckerTypedElementAccessRead = function (node) {
+            if (node !== undefined && ts.isElementAccessExpression (node) && ts.isIdentifier (node.expression)
+                && node.argumentExpression !== undefined && ts.isNumericLiteral (node.argumentExpression)
+                && /^[0-9]+$/.test (node.argumentExpression.text) && Number (node.argumentExpression.text) <= 2147483647
+                && node.parent?.kind !== ts.SyntaxKind.ExpressionStatement) {
+                let declaration;
+                try {
+                    declaration = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration?.resolve ();
+                } catch (e) {
+                    declaration = undefined;
+                }
+                if (declaration !== undefined && typed.get (declaration) === R92J1_ROW_TYPE
+                    && printer.printNode (node.expression, 0) === node.expression.text) {
+                    const target = node.expression.text;
+                    const key = node.argumentExpression.text;
+                    return `(${target} == null || ${key} >= ${target}.size() ? null : ${target}.get(${key}))`;
+                }
+            }
+            return upstreamRead (node);
         };
     }
 }

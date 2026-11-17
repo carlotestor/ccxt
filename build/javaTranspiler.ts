@@ -56,6 +56,7 @@ import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
 import { installJavaR90j7MapDelete } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaR92j1AssertedStringLocals } from './java-local-types.js';
+import { installJavaR92j1StringRowLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2536,6 +2537,7 @@ class NewTranspiler {
         installJavaR90j7MapDelete(this.transpiler);
         installJavaR90j8OmitParamLocals(this.transpiler);
         installJavaR92j1AssertedStringLocals(this.transpiler);
+        installJavaR92j1StringRowLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
