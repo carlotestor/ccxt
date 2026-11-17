@@ -12941,7 +12941,7 @@ function stringAccumulatorListLocal (printer, declaration) {
         if (push !== undefined) {
             const arg = unwrapParens (push.arguments[0]);
             if (push.arguments.length !== 1
-                || !(isStaticallyStringExpression (printer, arg, undefined) || stringProducerLocal (printer, arg))) {
+                || !(isStaticallyStringExpression (printer, arg, undefined) || stringProducerLocal (printer, arg) || r87j8StringElement (printer, arg))) {
                 return false;
             }
             pushes++;
@@ -22660,4 +22660,40 @@ export function installJavaR84j8Locals (transpiler) {
         const info = r84j8BalanceWrite (printer, node.right, declaration);
         return info?.cast ? accumulatorCastWrite (printer, node, printed, { cast: JAVA_MAP_LOCAL_CAST }) : printed;
     };
+}
+
+// ===== 87j8. String accumulators fed by String locals declared after the list =====
+// Sections 26 / 31 prove a pushed identifier String only from its PRINTED declaration
+// (javaDeclaredTypeOf), which does not exist yet when the list (declared before the loop) prints.
+// Decide the element from the AST instead: a single-binding local whose own family decision
+// (javaLocalTypeOf / section 36 javaNonNullStringLocal) is String, a `<String> + ..` chain whose
+// left spine is such a value, or the existing static-String proof.
+function r87j8StringElement (printer, node, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 4) {
+        return false;
+    }
+    if (isStaticallyStringExpression (printer, value, undefined) || stringProducerLocal (printer, value)) {
+        return true;
+    }
+    if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return r87j8StringElement (printer, value.left, depth + 1);
+    }
+    if (!ts.isIdentifier (value)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)
+        || declaration.initializer === undefined || printer.printNode (value, 0) !== value.text) {
+        return false;
+    }
+    if (javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
+        return true;
+    }
+    return javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true;
 }
