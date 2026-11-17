@@ -872,15 +872,15 @@ impl Myriad {
             while { if !__for_first_1342 { i += 1; } __for_first_1342 = false; i < (queries.len() as i64) } {
             let mut q: Value = queries.get(i as usize).cloned().unwrap_or(Value::Null);
             let __ws_arg_0 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("keyword".to_string(), q);
-                    m.insert("state".to_string(), Value::from(state.as_deref()));
-                    m.insert("limit".to_string(), Value::from(limit));
-                m
-            }), &[&rest]);
-            let mut response: Value = self.myriad_public_get_markets(&[__ws_arg_0]).await;
-            let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
-            let mut found: Value = (if (responseIsArray) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
+    let mut m = indexmap::IndexMap::new();
+        m.insert("keyword".to_string(), q);
+        m.insert("state".to_string(), Value::from(state.as_deref()));
+        m.insert("limit".to_string(), Value::from(limit));
+    m
+}), &[&rest]);
+            let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.myriad_public_get_markets(&[__ws_arg_0]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+            let mut responseIsArray: bool = response.is_some();
+            let mut found: Value = (if (responseIsArray) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1341: bool = true;
@@ -932,16 +932,16 @@ impl Myriad {
         let mut page: i64 = 1;
         loop {
             let __ws_arg_1 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("state".to_string(), Value::from(state.as_deref()));
-                    m.insert("limit".to_string(), Value::from(limit));
-                    m.insert("page".to_string(), Value::from(page));
-                    m.insert("trading_model".to_string(), Value::from(tradingModel.as_deref()));
-                m
-            }), &[&rest]);
-            let mut response: Value = self.myriad_public_get_markets(&[__ws_arg_1]).await;
-            let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
-            let mut rawMarkets: Value = (if (responseIsArray) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
+    let mut m = indexmap::IndexMap::new();
+        m.insert("state".to_string(), Value::from(state.as_deref()));
+        m.insert("limit".to_string(), Value::from(limit));
+        m.insert("page".to_string(), Value::from(page));
+        m.insert("trading_model".to_string(), Value::from(tradingModel.as_deref()));
+    m
+}), &[&rest]);
+            let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.myriad_public_get_markets(&[__ws_arg_1]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+            let mut responseIsArray: bool = response.is_some();
+            let mut rawMarkets: Value = (if (responseIsArray) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
             let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
             if (rawMarketsLength == 0) {
                 break;
@@ -1128,14 +1128,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_1346 { i += 1; } __for_first_1346 = false; i < (queries.len() as i64) } {
             let mut q: Value = queries.get(i as usize).cloned().unwrap_or(Value::Null);
             let __ws_arg_5 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("keyword".to_string(), q);
-                    m.insert("limit".to_string(), Value::from(limit));
-                m
-            }), &[&rest]);
-            let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_5]).await;
-            let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
-            let mut found: Value = (if (responseIsArray) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
+    let mut m = indexmap::IndexMap::new();
+        m.insert("keyword".to_string(), q);
+        m.insert("limit".to_string(), Value::from(limit));
+    m
+}), &[&rest]);
+            let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.myriad_public_get_questions(&[__ws_arg_5]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+            let mut responseIsArray: bool = response.is_some();
+            let mut found: Value = (if (responseIsArray) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1345: bool = true;
@@ -1191,9 +1191,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 request.insert("state".into(), Value::from(state.as_deref()));
             }
             let __ws_arg_6 = self.extend(Value::Map(request), &[&rest]);
-            let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_6]).await;
-            let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
-            let mut rawQuestions: Value = (if (responseIsArray) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
+            let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.myriad_public_get_questions(&[__ws_arg_6]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+            let mut responseIsArray: bool = response.is_some();
+            let mut rawQuestions: Value = (if (responseIsArray) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
             let mut rawQuestionsLength: i64 = rawQuestions.len() as i64;
             if (rawQuestionsLength == 0) {
                 break;
@@ -4227,7 +4227,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.myriad_public_get_markets_id_events(&[__ws_arg_29]).await;
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.myriad_public_get_markets_id_events(&[__ws_arg_29]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         //
         //     {
         //         "data": [
@@ -4250,8 +4250,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
-        let mut rows: Value = (if (responseIsArray) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
+        let mut responseIsArray: bool = response.is_some();
+        let mut rows: Value = (if (responseIsArray) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
         let mut trades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

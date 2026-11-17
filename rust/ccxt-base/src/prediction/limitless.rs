@@ -2552,12 +2552,12 @@ impl Limitless {
         let mut outcomeLabel: Option<String> = self.safe_string_upper_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "outcomeLabel", &[]);
         let mut interval: String = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[Value::Str("1d".into())]).as_str().unwrap_or("1d").to_string();
         let __ws_arg_21 = self.extend(Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
-                m.insert("interval".to_string(), Value::from(interval));
-            m
-        }), &[params]);
-        let mut response: Value = self.limitless_public_get_markets_slug_historical_price(&[__ws_arg_21]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
+        m.insert("interval".to_string(), Value::from(interval));
+    m
+}), &[params]);
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.limitless_public_get_markets_slug_historical_price(&[__ws_arg_21]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         //
         //     {
         //         "data": [
@@ -2591,10 +2591,10 @@ impl Limitless {
         //     ]
         //
         let mut responseRows: Value = Value::from(vec![]);
-        if (matches!(&response, Value::Arr(_))) {
-            responseRows = response.clone();
+        if (response.is_some()) {
+            responseRows = response.clone().map_or(Value::Null, Value::Arr);
         }
-        let mut rawHistory: Value = self.safe_list_k(response.clone(), "data", &[self.safe_list(response.clone(), Value::Str("prices".into()), &[responseRows])]);
+        let mut rawHistory: Value = self.safe_list_k(&response__map, "data", &[self.safe_list(&response__map, Value::Str("prices".into()), &[responseRows])]);
         let mut history: Value = rawHistory.clone();
         let mut rawHistoryLength: i64 = rawHistory.len() as i64;
         if rawHistoryLength > 0 {

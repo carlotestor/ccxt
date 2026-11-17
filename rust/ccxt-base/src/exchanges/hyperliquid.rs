@@ -6772,7 +6772,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit(params2, &["until"], &[]);
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[params2.clone()]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_33]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_33]).await.into_opt_list();
         //
         // [
         //     {
@@ -6787,8 +6787,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // ]
         //
         let mut depositLedger: Value = Value::from(vec![]);
-        if (matches!(&response, Value::Arr(_))) {
-            depositLedger = response;
+        if (response.is_some()) {
+            depositLedger = response.map_or(Value::Null, Value::Arr);
         }
         let mut records: crate::value::List = self.extract_type_from_delta(&[depositLedger]).into_list();
         let mut vaultAddress: Option<String> = None;
@@ -6871,7 +6871,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit(params2, &["until"], &[]);
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[params2.clone()]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_34]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_34]).await.into_opt_list();
         //
         // [
         //     {
@@ -6886,8 +6886,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // ]
         //
         let mut withdrawalLedger: Value = Value::from(vec![]);
-        if (matches!(&response, Value::Arr(_))) {
-            withdrawalLedger = response;
+        if (response.is_some()) {
+            withdrawalLedger = response.map_or(Value::Null, Value::Arr);
         }
         let mut records: crate::value::List = self.extract_type_from_delta(&[withdrawalLedger]).into_list();
         let mut vaultAddress: Option<String> = None;

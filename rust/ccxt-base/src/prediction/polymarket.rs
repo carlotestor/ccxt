@@ -1761,9 +1761,9 @@ impl Polymarket {
             m
         }).into_dict();
         firstPageRequest = self.extend(firstPageRequest, &[&baseRequest]).into_dict();
-        let mut firstPageResponse: Value = self.gamma_public_get_events(&[Value::Dict(firstPageRequest)]).await;
-        let mut firstPageIsArray: bool = matches!(&firstPageResponse, Value::Arr(_));
-        let mut firstPage: Value = (if (firstPageIsArray) { firstPageResponse } else { Value::from(vec![]) });
+        let mut firstPageResponse: Option<crate::value::List> = self.gamma_public_get_events(&[Value::Dict(firstPageRequest)]).await.into_opt_list();
+        let mut firstPageIsArray: bool = firstPageResponse.is_some();
+        let mut firstPage: Value = (if (firstPageIsArray) { firstPageResponse.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) });
         let mut firstPageLength: i64 = firstPage.len() as i64;
         let mut allRawEvents: Vec<Value> = Vec::new();
         {
@@ -2907,8 +2907,8 @@ impl Polymarket {
         });
         request.insert("limit".into(), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)]));
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.data_public_get_trades(&[__ws_arg_6]).await;
-        let mut rawTrades: Value = (if (matches!(&response, Value::Arr(_))) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.data_public_get_trades(&[__ws_arg_6]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        let mut rawTrades: Value = (if (response.is_some()) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
         let mut filteredTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2961,8 +2961,8 @@ impl Polymarket {
             request.insert("asset_id".into(), self.safe_string_k(&outcomeObj, "outcomeId", &[]));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.clob_private_get_data_trades(&[__ws_arg_7]).await;
-        let mut rawTrades: Value = (if (matches!(&response, Value::Arr(_))) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.clob_private_get_data_trades(&[__ws_arg_7]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        let mut rawTrades: Value = (if (response.is_some()) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
         return self.parse_prediction_trades(rawTrades, &[crate::Value::from(outcomeObj.as_ref()), since, limit]);
         Value::Null
         }).await?))
@@ -4144,9 +4144,9 @@ impl Polymarket {
             }  else {
                 lookup.insert("slug".into(), requestedSlug.map(Value::from).unwrap_or(Value::Null));
             }
-            let mut response: Value = self.gamma_public_get_events(&[Value::Map(lookup)]).await;
-            let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
-            rawEvents = (if (responseIsArray) { response } else { Value::from(vec![]) }).into_list();
+            let mut response: Option<crate::value::List> = self.gamma_public_get_events(&[Value::Map(lookup)]).await.into_opt_list();
+            let mut responseIsArray: bool = response.is_some();
+            rawEvents = (if (responseIsArray) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) }).into_list();
         }  else if queriesLength > 0 {
             rawEvents = self.fetch_raw_events_by_search(Value::from(&queries), &[Value::from(&rest)]).await.into_list();
         }  else {
