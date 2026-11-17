@@ -24229,6 +24229,10 @@ function r87j3SumWrite (printer, declaration, node) {
 // `int`/`double` kinds are refused (int does not box to Long; double would change the box).
 function r87j3LongValue (printer, node) {
     const n = unwrapParens (node);
+    // a base `this.parseToInt (..)`: declared Long, throws or answers a long, never null
+    if (n !== undefined && r92j3ParseToIntCall (printer, n)) {
+        return true;
+    }
     if (n === undefined || !ts.isBinaryExpression (n) || typeof printer.javaProvableNumericKind !== 'function') {
         return false;
     }
