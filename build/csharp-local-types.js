@@ -2847,6 +2847,34 @@ function typedCoreFunnelType (csharp, declaration) {
     return undefined;
 }
 
+// `let xs = []; … xs = await this.<core> (...)` where the core is a typed list core (`List<Family>`
+// in the printer's typedCores config): the funnel pass wraps the write in `From<Family>List(...)`,
+// whose typed overload returns List<object>, so the `[]`-seeded local joins it as List<object>.
+function typedCoreListFunnelWriteBox (csharp, declaration, value) {
+    if (value?.kind !== ts.SyntaxKind.AwaitExpression || typeof csharp.csharpTypedCoreType !== 'function') {
+        return undefined;
+    }
+    let seed = declaration?.initializer;
+    while (seed?.kind === ts.SyntaxKind.ParenthesizedExpression || seed?.kind === ts.SyntaxKind.AsExpression) {
+        seed = seed.expression;
+    }
+    if (seed?.kind !== ts.SyntaxKind.ArrayLiteralExpression || seed.elements.length !== 0) {
+        return undefined;
+    }
+    const call = value.expression;
+    const callee = (call?.kind === ts.SyntaxKind.CallExpression) ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || callee.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const core = csharp.csharpTypedCoreType (call, callee.name.text);
+    if (typeof core !== 'string' || !core.startsWith ('List<') || !core.endsWith ('>')) {
+        return undefined;
+    }
+    const family = core.slice (5, -1);
+    const helper = (family === 'Dictionary<string, object>') ? 'FromDictList' : (/^[A-Za-z]+$/.test (family) ? ('From' + family + 'List') : undefined);
+    return (helper !== undefined && csharpTypedCoreFunnelTypes ().get (helper) === 'List<object>') ? 'List<object>' : undefined;
+}
+
 const CSHARP_IDENTITY_FUNNEL_HELPERS = [ 'FromInt64', 'FromStringValue', 'FromDict' ];
 function csharpIdentityCoreBox (content, core, table) {
     const boxes = new Set (CSHARP_IDENTITY_FUNNEL_HELPERS.map ((helper) => table.get (helper)));
@@ -7370,7 +7398,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             if (parent.left === n) {
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
-                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context) ?? nullSeedStringConcatWriteType90c4 (csharp, declaration, parent.right, context);
+                    const written = typedCoreListFunnelWriteBox (csharp, declaration, parent.right) ?? csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context) ?? nullSeedStringConcatWriteType90c4 (csharp, declaration, parent.right, context);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
@@ -13822,7 +13850,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             }
             continue;
         }
-        let written = csharpTypeOfValue (csharp, parent.right, context);
+        let written = typedCoreListFunnelWriteBox (csharp, declaration, parent.right) ?? csharpTypeOfValue (csharp, parent.right, context);
         if (written === undefined) {
             // a MARKET ROW read by a proven string key, or a `typeof x === 'string'`
             // narrowed copy (see rowReadWriteType / narrowedCopyWriteType)
