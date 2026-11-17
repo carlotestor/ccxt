@@ -6383,13 +6383,15 @@ function mapLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(r93j7d, [
             "import Exchange from './myriad.js';",
-            "import type { Dict } from '../base/types.js';",
+            "import type { Dict, PredictionEvent } from '../base/types.js';",
             'export default class zz93j7dselftest extends Exchange {',
             "    zzEv (raw: Dict) { const ev = this.parseEvent (raw); ev['markets'] = []; return ev; }",
+            "    parseEvent (rawEvent: Dict): PredictionEvent { return this.extend ({ 'id': this.safeString (rawEvent, 'id'), 'info': rawEvent }); }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7d).content as string;
         if (!/Map<String, ?Object> ev = this\.parseEvent\(/.test(out) || !/\bev\.put\("markets"/.test(out)) problems.push("ral-93j7: a parseEvent result must print Map<String, Object> with a native put\n" + out.split('\n').filter((l) => /\bev\b/.test(l)).join('\n'));
+        if (!/return \(\((java\.util\.)?Map<String, ?Object>\) this\.extend\(/.test(out)) problems.push("ral-93j7: a parseEvent `return this.extend ({..})` must print the ((Map) call) form the literal hoist accepts\n" + out.split('\n').filter((l) => /return|mapLiteral/.test(l)).join('\n'));
     } catch (e) {
         problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
