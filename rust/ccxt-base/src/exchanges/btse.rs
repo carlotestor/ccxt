@@ -5014,7 +5014,7 @@ impl Btse {
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response.map(Value::Arr).or_else(|| response__map.map(Value::Dict)).unwrap_or_default());
+                m.insert("info".to_string(), (match response { Some(__l) => Value::Arr(__l), None => response__map.map_or(Value::Null, Value::Dict) }));
                 m.insert("symbol".to_string(), symbol);
             m
         });
