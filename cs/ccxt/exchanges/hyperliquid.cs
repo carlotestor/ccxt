@@ -3784,7 +3784,7 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = null;
-        object params2 = null;
+        IDictionary<string, object> params2 = null;
         userAddress = this.safeString(this.handlePublicAddress("fetchOrder", parameters), 0);
         params2 = this.safeDict(this.handlePublicAddress("fetchOrder", parameters), 1, new Dictionary<string, object>() {});
         if ((this.markets == null))
@@ -5261,7 +5261,7 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         string? userAddress = null;
-        object params2 = null;
+        IDictionary<string, object> params2 = null;
         userAddress = this.safeString(this.handlePublicAddress("fetchLedger", parameters), 0);
         params2 = this.safeDict(this.handlePublicAddress("fetchLedger", parameters), 1, new Dictionary<string, object>() {});
         Dictionary<string, object> request = new Dictionary<string, object>() {

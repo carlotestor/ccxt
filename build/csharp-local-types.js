@@ -13132,6 +13132,11 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             written = selfOmitWriteType (csharp, context, declaration, parent.right);
         }
         written ??= interfaceSelfOmitWriteType (csharp, context, declaration, type, sawNull, parent.right);
+        // ral-87c4 R4: `let x = undefined; … x = this.safeDict (o, k, {}); … x = this.omit (x, k)`: the null seed
+        // set sawNull, but omit(object) on any receiver (null included) returns the fresh outDict, so the
+        // self-omit stores a Dictionary into the IDictionary? declaration exactly like the non-null family
+        written ??= (type === 'IDictionary<string, object>' && sawNull && isNullInit (declaration))
+            ? interfaceSelfOmitWriteType (csharp, context, declaration, type, false, parent.right) : undefined;
         if (written === undefined && safeHelperLocalInitializer (declaration.initializer)) {
             // `let x = this.safeString (…); … x = <expression reading x>`: the read of x inside
             // the write is statically the declaration's own type, so the expression can only be
