@@ -11205,7 +11205,9 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
     if (scan !== undefined) {
         // only a declaration that prints with no cast: its initializer is already a string-or-null call
         const own = (scan.declaration.initializer?.kind === ts.SyntaxKind.CallExpression) ? callReturnType (csharp, scan.declaration.initializer) : undefined;
-        if (own !== 'string?' && own !== 'string') {
+        // ral-90c4 R1: a null seed (`let x: Str = undefined`) prints `string? x = null;`, also with no cast;
+        // every write is checked by the rest of the retype scan, so its box is a string or null
+        if (own !== 'string?' && own !== 'string' && !nullSeedGuardedConcat90c4 (scan.declaration)) {
             return false;
         }
     }
@@ -11216,6 +11218,18 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
         guardedConcatReads.add (n);
     }
     return ok;
+}
+
+// ral-90c4 R1: `let x: Str = undefined` / `let x: string = undefined` (TS annotation only names the
+// string family; the writes still go through the retype scan)
+function nullSeedGuardedConcat90c4 (declaration) {
+    // signatures belong to lane 90c1: inside the call-site parameter proof the seed stays `object`
+    if (c5ParameterProofDepth > 0 || !isNullInit (declaration) || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const t = declaration.type;
+    const isStr = (n) => n?.kind === ts.SyntaxKind.StringKeyword || (n?.kind === ts.SyntaxKind.TypeReference && n.typeName?.kind === ts.SyntaxKind.Identifier && n.typeName.text === 'Str');
+    return isStr (t);
 }
 
 // the initializer predicates of the `string?` -> `string` retries in csharpLocalTypeOf
