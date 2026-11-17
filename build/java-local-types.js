@@ -27219,6 +27219,11 @@ export function installJavaIntSeedLongLocals (transpiler) {
                     return `${node.left.text} = ${literal}L`;
                 }
             }
+            // native long arithmetic into a Long local autoboxes: no checkcast
+            if (declaration !== undefined && ts.isVariableDeclaration (declaration) && r87j3LongValue (printer, node.right)
+                && String (printer.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').trim () === 'Long') {
+                return `${node.left.text} = ${printer.printNode (node.right, 0)}`;
+            }
         }
         return upstreamBinary (node, identation);
     };
