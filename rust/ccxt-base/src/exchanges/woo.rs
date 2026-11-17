@@ -1204,7 +1204,7 @@ impl crate::exchange::DerivedExchange for Woo {
                     }
                 }
             }
-            let mut paramsSigned: Value = self.keysort(Value::Map(paramsSorted), &[]);
+            let mut paramsSigned: crate::value::Dict = self.keysort(Value::Map(paramsSorted), &[]).into_dict();
             let mut auth: String = "".to_string();
             let mut ts: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
             let mut authBase: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), pathWithParams);
@@ -1223,19 +1223,19 @@ impl crate::exchange::DerivedExchange for Woo {
                     auth = format!("{}{}", authBase, jsonBody.as_deref().unwrap_or("null"));
                     signedHeaders.insert("content-type".into(), Value::Str("application/json".into()));
                 }  else {
-                    if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                        let mut query: String = self.urlencode(paramsSigned.clone(), &[]);
+                    if ((Value::Array(paramsSigned.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                        let mut query: String = self.urlencode(&paramsSigned, &[]);
                         url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), "?").into()), query);
                         auth = format!("{}{}", Value::Str(format!("{}{}", authBase, "?").into()), query);
                     }
                 }
             }  else {
-                let mut encodedParams: String = self.urlencode(paramsSigned.clone(), &[]);
+                let mut encodedParams: String = self.urlencode(&paramsSigned, &[]);
                 auth = encodedParams.clone();
                 if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE")) {
                     requestBody = Some(encodedParams.clone());
                 }  else {
-                    if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                    if ((Value::Array(paramsSigned.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                         url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), "?").into()), encodedParams);
                     }
                 }
