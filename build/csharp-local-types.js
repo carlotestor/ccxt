@@ -12586,7 +12586,81 @@ function narrowedCopyWriteType (declaration, node) {
 
 // the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
 function nullInitWriteValueType (csharp, declaration, node) {
-    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node);
+    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node) ?? arrayGuardedListWriteType (csharp, declaration, node);
+}
+
+// ral-87c8 R1: `let x = []` (List<object>) written `x = y` as the FIRST statement of the then-block of
+// `if (Array.isArray (y))`. The guard prints `(y is IList<object>) || (y is a generic List<>)` and every
+// list box the generated code and JsonHelper build is a List<object> (ArrayCache derives from it), so
+// the write carries the exact `((List<object>)y)` cast back and the local keeps one List<object> box.
+// Only a local with a use that prints natively on the declared list (`x.length` -> Count, `x.push` ->
+// Add) is taken; a local that is only handed on to object parameters stays `object`.
+const arrayGuardedListWrites = new WeakSet ();
+
+function arrayIsArrayGuardedFirstWrite (node) {
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const write = node.parent;
+    if (write?.kind !== ts.SyntaxKind.BinaryExpression || write.right !== node || write.operatorToken.kind !== ts.SyntaxKind.EqualsToken
+            || write.left?.kind !== ts.SyntaxKind.Identifier || write.parent?.kind !== ts.SyntaxKind.ExpressionStatement) {
+        return false;
+    }
+    const block = write.parent.parent;
+    const guard = block?.parent;
+    if (block?.kind !== ts.SyntaxKind.Block || block.statements[0] !== write.parent || guard?.kind !== ts.SyntaxKind.IfStatement || guard.thenStatement !== block) {
+        return false;
+    }
+    const test = guard.expression;
+    return test?.kind === ts.SyntaxKind.CallExpression && test.arguments?.length === 1
+        && test.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && test.expression.expression?.kind === ts.SyntaxKind.Identifier
+        && test.expression.expression.text === 'Array' && test.expression.name?.text === 'isArray'
+        && test.arguments[0].kind === ts.SyntaxKind.Identifier && test.arguments[0].text === node.text;
+}
+
+function arrayGuardedListLocalHasNativeUse (csharp, declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === n
+                && (parent.name?.text === 'length' || (parent.name?.text === 'push' && parent.parent?.kind === ts.SyntaxKind.CallExpression && parent.parent.expression === parent))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function arrayGuardedListWriteType (csharp, declaration, node) {
+    if (declaration.initializer?.kind !== ts.SyntaxKind.ArrayLiteralExpression || declaration.parent?.declarations?.length !== 1
+            || !arrayIsArrayGuardedFirstWrite (node) || node.parent.left.text !== declaration.name?.text
+            || !arrayGuardedListLocalHasNativeUse (csharp, declaration)) {
+        return undefined;
+    }
+    arrayGuardedListWrites.add (node);
+    return 'List<object>';
+}
+
+// the cast back on the guarded write, only once the declaration was emitted List<object>
+function installArrayGuardedListWriteCasts (csharp) {
+    if (typeof csharp.printIdentifier !== 'function' || csharp._arrayGuardedListWriteCastsPatched) {
+        return;
+    }
+    const upstream = csharp.printIdentifier.bind (csharp);
+    csharp.printIdentifier = (node) => {
+        const printed = upstream (node);
+        if (typeof printed !== 'string' || !arrayGuardedListWrites.has (node)) {
+            return printed;
+        }
+        const target = resolveReference (csharp, node.parent.left);
+        return (target !== undefined && retypedDeclarationTypes.get (target) === 'List<object>') ? '((List<object>)' + printed + ')' : printed;
+    };
+    csharp._arrayGuardedListWriteCastsPatched = true;
 }
 
 // the write-time record of a retyped name-keyed local (`scope -> Map<printed name, declaration>`), read
@@ -14680,6 +14754,7 @@ export function installCsharpLocalTypes (transpiler) {
     // module actually emits, not the printer's `object ... = ` it replaced
     installCsharpDictionaryIndexWriteCastElision (csharp);
     installNullInitRowReadWriteCasts (csharp);
+    installArrayGuardedListWriteCasts (csharp);
 }
 
 // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` — ast-transpiler's printer
