@@ -55,6 +55,7 @@ import { installJavaR90j6PairLocals } from './java-local-types.js';
 import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
 import { installJavaR90j7MapDelete } from './java-local-types.js';
 import { installJavaR92j3LongDefaultParams } from './java-local-types.js';
+import { installJavaR92j3LongFixedParams } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
@@ -2535,6 +2536,7 @@ class NewTranspiler {
         installJavaR90j6ListCopyLocals(this.transpiler);
         installJavaR90j7MapDelete(this.transpiler);
         installJavaR92j3LongDefaultParams(this.transpiler);
+        installJavaR92j3LongFixedParams(this.transpiler);
         installJavaR90j8OmitParamLocals(this.transpiler);
     }
 
@@ -6103,12 +6105,17 @@ function mapLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(r92j3, [
             "import Exchange from './abstract/binance.js';",
+            "import type { Int } from './base/types.js';",
             'export default class zz92j3selftest extends Exchange {',
             "    candles (trades: any[]) { const c = this.buildOHLCVC (trades, '1m', 0, 100); return c; }",
+            "    insertMissingCandles (candles: any[], distanceInMs: number, since: Int, limit: number): any[] { const out = []; let n: Int = 0; while (n < limit) { out.push (n); n = this.sum (n, 1); } return out; }",
+            "    fill (xs: any[]) { return this.insertMissingCandles (xs, 1000, undefined, 5); }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j3).content as string;
         if (!/this\.buildOHLCVC\([^\n]*, 0L, 100L\)/.test(out)) problems.push("r92j3 R1: buildOHLCVC since / limit must take Long arguments");
+        if (!/this\.insertMissingCandles\(xs, 1000, \(Object\) null, 5L\)|this\.insertMissingCandles\(xs, 1000, null, 5L\)/.test(out)) problems.push("r92j3 R2: a fixed whole-number slot must take its int literal as NL");
+        if (!/List<Object> insertMissingCandles\([^)]*Long limit\)/.test(out)) problems.push("r92j3 R2: insertMissingCandles limit must print Long");
     } catch (e) {
         problems.push(`r92j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {

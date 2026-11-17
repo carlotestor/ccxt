@@ -24241,6 +24241,104 @@ export function installJavaR92j3LongDefaultParams (transpiler) {
     };
 }
 
+// ===== r92j3 R2. fixed whole-number parameters print `Long` =====
+// Venue methods whose (method, position) slot is annotated number/int, has no default, is never
+// written and is handed a whole number at every call site (an int literal, a Long-declared local,
+// a loop counter or native long arithmetic): the slot prints Long, so the body's compares of it
+// print the native long forms instead of the inline helper blobs.
+const R92J3_LONG_FIXED_PARAMS = {
+    'futuresTransfer': [ 2 ],
+    'insertMissingCandles': [ 3 ],
+    'unsubscribeChannelsFrom': [ 5 ],
+};
+
+function r92j3LongFixedParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || !ts.isIdentifier (method.name ?? {}) || node.initializer !== undefined
+        || !Object.hasOwn (R92J3_LONG_FIXED_PARAMS, method.name.text)) {
+        return undefined;
+    }
+    const index = method.parameters.indexOf (node);
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (!R92J3_LONG_FIXED_PARAMS[method.name.text].includes (index) || fileName.includes ('/ts/src/test/')
+        || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    if (![ 'number', 'int' ].includes (annotation) || !ts.isIdentifier (node.name) || node.dotDotDotToken !== undefined
+        || node.questionToken !== undefined || printer.javaParameterIsWritten (node)) {
+        throw new Error (`java long param ${method.name.text}#${index} (${fileName}) is not a read-only whole number`);
+    }
+    return 'Long';
+}
+
+// the argument prints a Java whole number the Long slot takes as is (or via the NL literal form)
+function r92j3LongArgumentIsTyped (printer, arg) {
+    const bare = unwrapParens (arg);
+    if (bare === undefined) {
+        return false;
+    }
+    if (ts.isNumericLiteral (bare) && /^\d+$/.test (bare.text)) {
+        return true;
+    }
+    const kind = printer.javaProvableNumericKind (bare);
+    if (!ts.isIdentifier (bare) && (kind === 'long' || printer.javaNativeArithmeticType?.(bare) === 'Long')) {
+        return true;
+    }
+    // `i + 1` over a printed int loop counter prints the widened native add `(((long) i) + 1L)`
+    if (ts.isBinaryExpression (bare) && bare.operatorToken.kind === ts.SyntaxKind.PlusToken
+        && printer.javaPrintedIntCounter (unwrapParens (bare.left)) && ts.isNumericLiteral (unwrapParens (bare.right))
+        && /^\d+$/.test (unwrapParens (bare.right).text)) {
+        return true;
+    }
+    if (ts.isIdentifier (bare)) {
+        const declaration = printer.javaDeclarationOfIdentifier (bare);
+        const declared = declaration === undefined ? undefined : String (printer.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').trim ();
+        return declared === 'Long' && printer.printNode (bare, 0) === bare.text;
+    }
+    return false;
+}
+
+export function installJavaR92j3LongFixedParams (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterType !== 'function' || printer._javaR92j3LongFixedParamsPatched) {
+        return;
+    }
+    printer._javaR92j3LongFixedParamsPatched = true;
+    const upstreamType = printer.javaNativeParameterType.bind (printer);
+    printer.javaNativeParameterType = function (node) {
+        return r92j3LongFixedParamType (printer, node) ?? upstreamType (node);
+    };
+    // an int literal handed to such a slot prints its long form `NL`
+    const literalSlot = (node) => {
+        const call = node?.parent;
+        if (call === undefined || !ts.isCallExpression (call) || !call.arguments.includes (node)) {
+            return false;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        } catch (e) {
+            return false;
+        }
+        const param = declaration?.parameters?.[call.arguments.indexOf (node)];
+        return param !== undefined && r92j3LongFixedParamType (printer, param) === 'Long';
+    };
+    const upstreamLiteral = printer.printNumericLiteral.bind (printer);
+    printer.printNumericLiteral = function (node) {
+        const printed = upstreamLiteral (node);
+        return (/^\d+$/.test (printed) && literalSlot (node)) ? printed + 'L' : printed;
+    };
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        if (type === 'Long' && r92j3LongArgumentIsTyped (printer, arg)) {
+            return true;
+        }
+        return upstreamTyped (arg, type);
+    };
+}
+
 // ===== r87-j4. const native-split locals already printed List<Object> =====
 // `const parts = s.split (sep)` that an earlier section declared `java.util.List<Object>` holds only the
 // Strings of `String.split`: when 84j8's split audit accepts every use, declare it List<String> (the
