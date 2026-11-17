@@ -16575,12 +16575,12 @@ impl Binance {
                 // where ± is negative for long and positive for short
                 // TODO: calculate liquidation price for coinm contracts
                 let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
-                let mut entryPriceSignString: Value = entryPriceString.clone().map(Value::from).unwrap_or(Value::Null);
+                let mut entryPriceSignString: Option<String> = entryPriceString.clone();
                 if (side.as_deref() == Some("short")) {
                     onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                 }  else {
                     onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
-                    entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
+                    entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString).as_str().map(str::to_owned);
                 }
                 let mut leftSide: Option<String> = crate::precise::Precise::stringDiv(&walletBalance, &crate::precise::Precise::stringMul(&contractsStringAbs, &onePlusMaintenanceMarginPercentageString)).as_str().map(str::to_owned);
                 let mut rightSide: Option<String> = crate::precise::Precise::stringDiv(&entryPriceSignString, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
@@ -16591,12 +16591,12 @@ impl Binance {
                 // liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
                 //
                 let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
-                let mut entryPriceSignString: Value = entryPriceString.map(Value::from).unwrap_or(Value::Null);
+                let mut entryPriceSignString: Option<String> = entryPriceString;
                 if (side.as_deref() == Some("short")) {
                     onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                 }  else {
                     onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
-                    entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
+                    entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString).as_str().map(str::to_owned);
                 }
                 let mut size: Option<String> = crate::precise::Precise::stringMul(&contractsStringAbs, &contractSizeString).as_str().map(str::to_owned);
                 let mut leftSide: Option<String> = crate::precise::Precise::stringMul(&size, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
@@ -16802,10 +16802,10 @@ impl Binance {
                 if linear {
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                     let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
-                    let mut entryPriceSignString: Value = entryPriceString.clone().map(Value::from).unwrap_or(Value::Null);
+                    let mut entryPriceSignString: Option<String> = entryPriceString.clone();
                     if (side.as_deref() == Some("short")) {
                         onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
-                        entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
+                        entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString).as_str().map(str::to_owned);
                     }  else {
                         onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     }
@@ -16816,12 +16816,12 @@ impl Binance {
                 }  else {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
-                    let mut entryPriceSignString: Value = entryPriceString.map(Value::from).unwrap_or(Value::Null);
+                    let mut entryPriceSignString: Option<String> = entryPriceString;
                     if (side.as_deref() == Some("short")) {
                         onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     }  else {
                         onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
-                        entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
+                        entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString).as_str().map(str::to_owned);
                     }
                     let mut leftSide: Option<String> = crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString).as_str().map(str::to_owned);
                     let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString)).as_str().map(str::to_owned);

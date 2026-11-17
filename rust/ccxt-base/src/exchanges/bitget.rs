@@ -8226,8 +8226,8 @@ if _try_result.is_err() {
                 if (instrument.is_some()) {
                     // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
                     let mut assetType: Option<String> = self.safe_string_lower_k_opt(&instrument, "symbolType", &[]);
-                    let mut isReality: bool = self.safe_string_lower_k(&instrument, "isReality", &[]).as_str() == Some("yes");
-                    if let Value::Dict(__rda) = &mut parsedMarket { std::sync::Arc::make_mut(__rda).insert("stock".to_string(), Value::Bool((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality))); }
+                    let mut isReality: bool = (self.safe_string_lower_k(&instrument, "isReality", &[]).as_str() == Some("yes"));
+                    if let Value::Dict(__rda) = &mut parsedMarket { std::sync::Arc::make_mut(__rda).insert("stock".to_string(), Value::Bool(((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality)))); }
                 }
             }
             result.push(parsedMarket);
@@ -11297,10 +11297,10 @@ if _try_result.is_err() {
         let mut isTriggerOrder: bool = triggerPrice.is_some();
         let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut hasStopLoss: bool = stopLoss.is_some();
-        let mut hasTakeProfit: bool = takeProfit.is_some();
+        let mut hasStopLoss: bool = (stopLoss.is_some());
+        let mut hasTakeProfit: bool = (takeProfit.is_some());
         let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        let mut isStopLossOrTakeProfit: bool = hasStopLoss || hasTakeProfit;
+        let mut isStopLossOrTakeProfit: bool = (hasStopLoss || hasTakeProfit);
         let mut trailingTriggerPrice: Option<String> = self.safe_string_k_opt(paramsMarketType.clone(), "trailingTriggerPrice", &[Value::from(self.number_to_string(price.clone()))]);
         let mut trailingPercent: Option<String> = self.safe_string2_opt(paramsMarketType.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRatio".into()), &[]);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();

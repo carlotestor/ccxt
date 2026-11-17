@@ -5151,8 +5151,8 @@ impl Kucoin {
             let mut market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let mut expiry: Option<i64> = self.safe_integer_k(&market, "expireDate", &[]).as_i64();
-            let mut future: Value = Value::Bool(self.safe_string_k(&market, "nextFundingRateTime", &[]) == Value::Null);
-            let mut swap: Value = Value::Bool(!(matches!(&future, Value::Bool(true))));
+            let mut future: bool = (self.safe_string_k(&market, "nextFundingRateTime", &[]) == Value::Null);
+            let mut swap: bool = !(future);
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCurrency", &[]);
             let mut settleId: Option<String> = self.safe_string_k_opt(&market, "settleCurrency", &[]);
@@ -5164,7 +5164,7 @@ impl Kucoin {
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             let mut type_var: String = "swap".to_string();
-            if matches!(&future, Value::Bool(true)) {
+            if future {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())]));
                 type_var = "future".to_string();
             }
@@ -5200,8 +5200,8 @@ impl Kucoin {
                     m.insert("type".to_string(), Value::from(type_var));
                     m.insert("spot".to_string(), Value::Bool(false));
                     m.insert("margin".to_string(), Value::Bool(false));
-                    m.insert("swap".to_string(), swap);
-                    m.insert("future".to_string(), future);
+                    m.insert("swap".to_string(), Value::Bool(swap));
+                    m.insert("future".to_string(), Value::Bool(future));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("Open"))));
                     m.insert("contract".to_string(), Value::Bool(true));
