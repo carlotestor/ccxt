@@ -7806,9 +7806,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (result.as_deref() == Some("0")) {
             let mut pricePrecision: Option<String> = self.number_to_string(crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null));
             if (pricePrecision.is_none()) {
-                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " priceToPrecision() market ").into()), Value::from((market).symbol.clone())).into()), " has no price precision")));
+                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " priceToPrecision() market ").into()), Value::from((market).symbol.as_str())).into()), " has no price precision")));
             }
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " price of ").into()), Value::from((market).symbol.clone())).into()), " must be greater than minimum price precision of ").into()), pricePrecision.as_deref().unwrap_or("null"))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " price of ").into()), Value::from((market).symbol.as_str())).into()), " must be greater than minimum price precision of ").into()), pricePrecision.as_deref().unwrap_or("null"))));
         }
         return result;
 }
@@ -7822,9 +7822,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (result.as_deref() == Some("0")) {
             let mut amountPrecision: Option<String> = self.number_to_string(crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
             if (amountPrecision.is_none()) {
-                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amountToPrecision() market ").into()), Value::from((market).symbol.clone())).into()), " has no amount precision")));
+                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amountToPrecision() market ").into()), Value::from((market).symbol.as_str())).into()), " has no amount precision")));
             }
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amount of ").into()), Value::from((market).symbol.clone())).into()), " must be greater than minimum amount precision of ").into()), amountPrecision.as_deref().unwrap_or("null"))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amount of ").into()), Value::from((market).symbol.as_str())).into()), " must be greater than minimum amount precision of ").into()), amountPrecision.as_deref().unwrap_or("null"))));
         }
         return result;
 }
@@ -8296,8 +8296,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        return self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut symbol: Option<String> = (if (market == Value::Null) { None } else { market.as_map().and_then(|__m| __m.get("symbol")).and_then(Value::as_str).map(str::to_owned) });
+        return self.filter_by_symbol_since_limit(&sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8367,8 +8367,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        return self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut symbol: Option<String> = (if (market == Value::Null) { None } else { market.as_map().and_then(|__m| __m.get("symbol")).and_then(Value::as_str).map(str::to_owned) });
+        return self.filter_by_symbol_since_limit(&sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
