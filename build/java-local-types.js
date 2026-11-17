@@ -12616,7 +12616,8 @@ function nullScalarWriteType (printer, node) {
         if (known !== undefined) {
             return known;
         }
-        const later = nullSeedWriteType (printer, value) ?? nullSeedPeerSeedType (printer, value); // r87-j4 R2: a const printed later
+        const later = nullSeedWriteType (printer, value) ?? nullSeedLaterNonNullString (printer, value)
+            ?? nullSeedPeerSeedType (printer, value); // r87-j4 R2: a const printed later
         if (later !== undefined) {
             NULL_SEED_R84_WRITES.add (node);
         }
@@ -12893,6 +12894,20 @@ function nullSeedSplitElementWrite (printer, value) {
     }
 }
 
+// a later `let` of the same function that section 36 declares String (non-null literal / concat writes): asked
+// of that section's own AST decision, since its published type does not exist before it prints
+function nullSeedLaterNonNullString (printer, id) {
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (id)?.valueDeclaration?.resolve ();
+        if (declaration === undefined || !ts.isVariableDeclaration (declaration) || enclosingFunction (declaration) !== enclosingFunction (id)) {
+            return undefined;
+        }
+        return javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true ? JAVA_DATAFLOW_STRING : undefined;
+    } catch (e) {
+        return undefined;
+    }
+}
+
 // a copy of another null seed of the same function (`channel = messageHash; messageHash = channel`): that
 // seed's own decision, with the seed being decided read as a null write while it is open (the peer's real
 // declaration re-decides at its print with this one published, so both print the same box or neither does)
@@ -12911,7 +12926,9 @@ function nullSeedPeerSeedType (printer, id) {
     if (NULL_SEED_OPEN.has (peer)) {
         return 'null';
     }
-    if (NULL_SEED_OPEN.size > 2) {
+    // an earlier peer has printed already: only its published type counts (read before this, so not String)
+    const outer = [ ...NULL_SEED_OPEN ][0];
+    if (NULL_SEED_OPEN.size > 2 || outer === undefined || peer.pos < outer.pos) {
         return undefined;
     }
     const type = nullScalarLocalType (printer, peer);
