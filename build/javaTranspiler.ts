@@ -6229,9 +6229,9 @@ function mapLocalsSelfTest (): string[] {
             "import Exchange from './abstract/htx.js';",
             "import type { Dict } from './base/types.js';",
             'export default class zz92j7cselftest extends Exchange {',
-            "    zzAddr (data: any[], code: string) { const allAddresses: Dict[] = this.parseDepositAddresses (data, [ code ], false); let n = 0; for (let i = 0; i < allAddresses.length; i++) { n += 1; } return n; }",
-            "    zzPos (raw: any[]) { const positions = this.parsePositions (raw); const positionsLength = positions.length; return positionsLength; }",
-            "    zzPass (raw: any[]) { const passed = this.parsePositions (raw); return this.filterBySinceLimit (passed, undefined, undefined); }",
+            "    zzAddr (data: Dict[], code: string) { const allAddresses: Dict[] = this.parseDepositAddresses (data, [ code ], false); let n = 0; for (let i = 0; i < allAddresses.length; i++) { n += 1; } return n; }",
+            "    zzPos (raw: Dict[]) { const positions = this.parsePositions (raw); const positionsLength = positions.length; return positionsLength; }",
+            "    zzPass (raw: Dict[]) { const passed = this.parsePositions (raw); return this.filterBySinceLimit (passed, undefined, undefined); }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7c).content as string;
@@ -6250,7 +6250,7 @@ function mapLocalsSelfTest (): string[] {
             "import Exchange from './abstract/gemini.js';",
             "import type { Dict } from './base/types.js';",
             'export default class zz92j7dselftest extends Exchange {',
-            "    zzTickers (response: any[], keys: string[]): Dict { const result = this.parseTickers (response); return this.removeKeysFromDict (result, keys); }",
+            "    zzTickers (response: Dict[], keys: string[]): Dict { const result = this.parseTickers (response); return this.removeKeysFromDict (result, keys); }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7d).content as string;
