@@ -9917,7 +9917,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j1selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
-        "import type { Dict, Ticker, Trade } from './base/types.js';",
+        "import type { Dict, Ticker, Trade } from './base/types.js';", "import { ArrayCache } from './base/ws/Cache.js';",
         'export default class zzr84j1selftest extends Exchange {',
         "    tick (t: Ticker, m: Dict) { const symbol = t['symbol']; m[(symbol as string)] = t; return m; }",
         "    keys (m: any) { const ks = Object.keys (m); const out: Dict = {}; for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k.startsWith ('x')) { delete m[k]; } out[k] = this.currency (k); } return out; }",
@@ -9926,7 +9926,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         "    sib (m: any, f: boolean) { const out: Dict = {}; if (f) { const cs = Object.keys (m); for (let i = 0; i < cs.length; i++) { const c = cs[i]; out[c] = 1; } } else { const ds = Object.keys (out); for (let i = 0; i < ds.length; i++) { const c = ds[i]; out[c] = 2; } } return out; }",
         "    lit (response: Dict) { const out: Dict = {}; const currencyIds = Object.keys (response); for (let i = 0; i < currencyIds.length; i++) { const entry = currencyIds[i]; const splitEntry = entry.split (' '); const head = splitEntry[0]; const code = this.safeCurrencyCode (head); out[code] = 1; } return out; }",
         "    sibbox (m: Dict, f: boolean) { const out: Dict = {}; if (f) { const rs: Dict[] = this.safeList (m, 'a', []); for (let i = 0; i < rs.length; i++) { const e = rs[i]; e['x'] = 1; out['a'] = e; } } else { const qs: Dict[] = this.safeList (m, 'b', []); for (let i = 0; i < qs.length; i++) { const e = qs[i]; e['y'] = 2; out['b'] = e; } } const ls: Dict[] = this.safeList (m, 'c', []); const first = ls[0]; first['z'] = 3; return out; }",
-        "    unified (m: Dict, trades: Trade[], cache: any) { const out: Dict = {}; for (let i = 0; i < trades.length; i++) { const trade = trades[i]; cache.append (trade); out[trade['id']] = 1; } return out; }",
+        "    unified (m: Dict, trades: Trade[], cache: ArrayCache) { const out: Dict = {}; for (let i = 0; i < trades.length; i++) { const trade = trades[i]; cache.append (trade); out[trade['id']] = 1; } return out; }",
         "    pairs (sts: string[][]) { const out = []; for (let i = 0; i < sts.length; i++) { const st = sts[i]; const sy = st[0]; out.push (sy.toUpperCase ()); } return out; }",
         "    neg (m: Dict, xs: string[]) { const vs: any[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < vs.length; i++) { const a = vs[i]; out.push (a.length); const b = xs[i]; out.push (b.toUpperCase ()); } return out; }",
         '}',
