@@ -494,7 +494,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "subscribe_user_channel" => self.subscribe_user_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "tag_to_slug" => self.tag_to_slug(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "tag_to_slug" => self.tag_to_slug(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1633,7 +1633,8 @@ impl Polymarket {
  * @param {string} tag the tag label or slug
  * @returns {string} the gamma tag slug
  */
-    pub fn tag_to_slug(&self, mut tag: Value) -> Value {
+    pub fn tag_to_slug(&self, tag: &str) -> Value {
+        let mut tag: Value = tag.into();
         let mut lower: String = tag.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut allowed: String = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
         let mut chars: Vec<Value> = self.string_to_chars_array(Value::from(lower.clone())).as_array().cloned().unwrap_or_default();
@@ -1744,7 +1745,7 @@ impl Polymarket {
         if requestedTagsLength > 0 {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
-            std::sync::Arc::make_mut(&mut baseRequest).insert("tag_slug".into(), self.tag_to_slug(self.safe_string(&requestedTags, Value::Int(0), &[])));
+            std::sync::Arc::make_mut(&mut baseRequest).insert("tag_slug".into(), self.tag_to_slug((self.safe_string(&requestedTags, Value::Int(0), &[])).as_str().unwrap_or_default()));
         }
         if (status.as_deref() == Some("active")) {
             std::sync::Arc::make_mut(&mut baseRequest).insert("active".into(), Value::Bool(true));

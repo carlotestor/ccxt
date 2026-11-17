@@ -1144,7 +1144,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "construct_phantom_agent" => self.construct_phantom_agent(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).and_then(crate::Value::as_text).as_deref(), &args[5.min(args.len())..]),
+                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_text).as_deref(), &args[5.min(args.len())..]),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_orders_request" => self.create_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "create_sub_account" => self.create_sub_account(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -4033,10 +4033,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, price: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: &str, price: Option<&str>, optional_args: &[Value]) -> Value {
         let mut symbol: Value = symbol.into();
         let mut type_var: Value = type_var.into();
         let mut side: Value = side.into();
+        let mut amount: Value = amount.into();
         let mut price: Value = price.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4206,7 +4207,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut hasStopLoss: bool = stopLoss.is_some();
             let mut hasTakeProfit: bool = takeProfit.is_some();
             orderParams = self.omit(&orderParams, &["stopLoss", "takeProfit"], &[]).into_dict();
-            let mut mainOrderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), type_var.as_deref(), side.as_deref(), amount.clone().map(Value::from).unwrap_or(Value::Null), price.as_deref(), &[Value::from(&orderParams)]).into_dict();
+            let mut mainOrderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), type_var.as_deref(), side.as_deref(), amount.as_deref().unwrap_or_default(), price.as_deref(), &[Value::from(&orderParams)]).into_dict();
             if hasStopLoss || hasTakeProfit {
                 // grouping opposed orders for sl/tp
                 let mut stopLossOrderTriggerPrice: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
@@ -4239,7 +4240,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })]);
-                    let mut orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.clone().map(Value::from).unwrap_or(Value::Null), takeProfitOrderLimitPrice.as_deref(), &[__ws_arg_19]).into_dict();
+                    let mut orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.as_deref().unwrap_or_default(), takeProfitOrderLimitPrice.as_deref(), &[__ws_arg_19]).into_dict();
                     orderReq.push(Value::Dict(orderObj));
                 }
                 if hasStopLoss {
@@ -4249,7 +4250,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })]);
-                    let mut orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(stopLossOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.map(Value::from).unwrap_or(Value::Null), stopLossOrderLimitPrice.as_deref(), &[__ws_arg_20]).into_dict();
+                    let mut orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(stopLossOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.as_deref().unwrap_or_default(), stopLossOrderLimitPrice.as_deref(), &[__ws_arg_20]).into_dict();
                     orderReq.push(Value::Dict(orderObj));
                 }
             }  else {
