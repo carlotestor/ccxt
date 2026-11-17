@@ -8970,6 +8970,13 @@ function stringElementLocalHasNativeUse (csharp, declaration) {
         if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && parent.operatorToken.kind === ts.SyntaxKind.InKeyword) {
             return true;
         }
+        // rule D: the argument of `s.indexOf (x)` / `s.startsWith (x)` on a string receiver (the
+        // printer casts an `object` argument there)
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && DICT_ROW_STRING_METHODS.has (parent.expression.name?.text) && parent.expression.expression?.kind === ts.SyntaxKind.Identifier
+                && localIdentifierType (csharp, parent.expression.expression) === 'string') {
+            return true;
+        }
         if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use && DICT_ROW_STRING_METHODS.has (parent.name?.text)
                 && parent.parent?.kind === ts.SyntaxKind.CallExpression && parent.parent.expression === parent) {
             return true;
@@ -9024,6 +9031,61 @@ function censusStringListParameterElementType (csharp, initializer, declaration)
             return undefined;
         }
         if (parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
+            return undefined;
+        }
+    }
+    return stringElementLocalHasNativeUse (csharp, declaration) ? 'string' : undefined;
+}
+
+// ral-90c3 rule D: two more string-element receivers, same `string?` + `(string)` cast and the same
+// native-use gate. (1) `const xs = this.requireValue (p, ..)` over a narrowed string-list parameter
+// (stringListParameterElementType: a CORE_LIST_ARGS position, never written or mutated): requireValue
+// hands its argument back unchanged or throws. (2) `s[i]` over a local this module prints `string`:
+// GetValue's string branch answers a one-character string (an out-of-range index throws there both
+// ways). A receiver of either kind must be once-bound, declared before the read and never written.
+function requireValueStringListOrStringReceiver (csharp, initializer, declaration) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier
+            || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const fileName = (initializer.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const receiver = initializer.expression;
+    const receiverDeclaration = csharpIdentifierDeclaration (csharp, receiver);
+    if (receiverDeclaration?.kind !== ts.SyntaxKind.VariableDeclaration || receiverDeclaration.name?.kind !== ts.SyntaxKind.Identifier
+            || receiverDeclaration.getStart () > initializer.getStart ()) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+    if (scope === undefined || enclosingFunction (receiverDeclaration) !== enclosingFunction (initializer)) {
+        return undefined;
+    }
+    let proven = false;
+    let init = receiverDeclaration.initializer;
+    while (init?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        init = init.expression;
+    }
+    if (init?.kind === ts.SyntaxKind.CallExpression && init.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && init.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && init.expression.name?.text === 'requireValue'
+            && init.arguments?.[0]?.kind === ts.SyntaxKind.Identifier) {
+        const parameter = csharpIdentifierDeclaration (csharp, init.arguments[0]);
+        proven = parameter?.kind === ts.SyntaxKind.Parameter && parameter.parent === scope && stringListParameterElementType (csharp, scope, parameter);
+    } else if (localIdentifierType (csharp, receiver) === 'string') {
+        proven = true;
+    }
+    if (!proven) {
+        return undefined;
+    }
+    for (const n of indexScope (csharp, scope).identifiers.get (receiver.text) ?? []) {
+        if (n === receiver || n === receiverDeclaration.name || (n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && n.parent.name === n)) {
+            continue;
+        }
+        if (csharpIdentifierDeclaration (csharp, n) !== receiverDeclaration) {
+            continue;
+        }
+        if (receiverUseIsWrite (n)) {
             return undefined;
         }
     }
@@ -11650,7 +11712,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `const x = recv[key]`: the runtime element is a proven box, but the call's C# type
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
-        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer) ?? keyedStringListElementType (csharp, declaration.initializer, declaration) ?? censusStringListParameterElementType (csharp, declaration.initializer, declaration)) : undefined;
+        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer) ?? keyedStringListElementType (csharp, declaration.initializer, declaration) ?? censusStringListParameterElementType (csharp, declaration.initializer, declaration) ?? requireValueStringListOrStringReceiver (csharp, declaration.initializer, declaration)) : undefined;
         // `const key = keys[i]` over a receiver whose PRINTED declaration head is a scalar list
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back
