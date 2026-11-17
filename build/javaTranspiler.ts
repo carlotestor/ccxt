@@ -6360,6 +6360,24 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r93j7b, { force: true });
     }
+    // an awaited List<Object> venue fetch rewritten by a List<Object> venue filter stays List: its length is native
+    const r93j7c = path.join(process.cwd(), 'ts', 'src', 'prediction', `zz93j7cselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7c, [
+            "import Exchange from './sxbet.js';",
+            "import type { Dict } from '../base/types.js';",
+            'export default class zz93j7cselftest extends Exchange {',
+            "    zzFixture (raw: Dict[], id: string): Dict[] { const result: Dict[] = []; for (let i = 0; i < raw.length; i++) { if (this.safeString (raw[i], 'sportXeventId') === id) { result.push (raw[i]); } } return result; }",
+            "    async zzRaw (id: string, params: Dict = {}) { let rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': id }, params), undefined); rawMarkets = this.zzFixture (rawMarkets, id); const rawMarketsLength = rawMarkets.length; return rawMarketsLength; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7c).content as string;
+        if (!/List<Object> rawMarkets = \(this\.fetchRawMarketsPaged\(/.test(out) || !/= rawMarkets\.size\(\);/.test(out)) problems.push("ral-93j7: a venue List fetch rewritten by a venue List filter must print List<Object> with a native size()\n" + out.split('\n').filter((l) => /rawMarkets|zzFixture/.test(l)).join('\n'));
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7c, { force: true });
+    }
     return problems;
 }
 

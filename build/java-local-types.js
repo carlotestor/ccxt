@@ -3605,7 +3605,8 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 if (name === 'toArray') {
                     return true;
                 }
-                return false;
+                // a generated venue callee whose own printed signature is List<Object>
+                return printer.javaVenueCalleeReturnType?.(node) === JAVA_ARRAY_TYPE;
             }
             if (javaType === 'Boolean') {
                 // a later `x = this.safeBool (...)` write takes the same
