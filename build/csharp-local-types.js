@@ -20274,6 +20274,10 @@ const CSHARP_EXCHANGE_LOCAL_RETURN_TYPES = {
     'parseSbeFundingData': 'Dictionary<string, object>', 'parseSbeMarketSummary': 'Dictionary<string, object>',
     'parseSbeOrder': 'Dictionary<string, object>', 'parseSbeOrderBook': 'Dictionary<string, object>',
     'parseSbePosition': 'Dictionary<string, object>', 'parseSbeTrade': 'Dictionary<string, object>',
+    // venue market lookups (TS `: Market`): every path returns a market-row read, a row literal or null
+    'findSwapMarketByWsBaseQuote': 'IDictionary<string, object>', 'resolveMarketByAltnameOrId': 'IDictionary<string, object>',
+    'findMarketByAltnameOrId': 'IDictionary<string, object>', 'getDelistedMarketById': 'IDictionary<string, object>',
+    'getMarketFromTrade': 'IDictionary<string, object>',
 };
 for (const [ name, type ] of Object.entries (CSHARP_EXCHANGE_LOCAL_RETURN_TYPES)) {
     if (CSHARP_METHOD_RETURN_TYPES[name] === undefined) {
