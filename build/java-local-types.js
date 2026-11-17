@@ -2476,6 +2476,9 @@ const VENUE_RETURN_KINDS = {
     // base `convertMarketIdExpireDate (date: Str): Str` (no override in ts/src): returns undefined or its String
     // concat; the bybit / deribit `expiry` seeds it writes are handed to String slots (convertExpireDate*)
     'convertMarketIdExpireDate': [ 'String' ],
+    // gate `getGateFuturesSignedAmount (..): Str` (one declaration): returns amountToPrecision's String local or
+    // Precise.stringNeg (public static String); its null seed is parsed through `x as string`
+    'getGateFuturesSignedAmount': [ 'String' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2579,6 +2582,12 @@ function venueReturnCast (printer, node, method, javaType) {
     }
     if (javaType === 'Long' && numericFamilyCallType (printer, expression) === 'Long') {
         return undefined; // already a declared Long (safeInteger/parseToInt): no conversion
+    }
+    // Precise.string* statics are declared `public static String`: no checkcast
+    if (javaType === 'String' && ts.isCallExpression (expression) && ts.isPropertyAccessExpression (expression.expression)
+        && ts.isIdentifier (expression.expression.expression) && expression.expression.expression.text === 'Precise'
+        && PRECISE_STRING_STATICS.has (String (expression.expression.name.text))) {
+        return undefined;
     }
     // a const local fed by this.market/safeMarket is already declared Map<String, Object>: no cast
     if (javaType === JAVA_ARRAY_TYPE_MAP () && constMapCallLocal (printer, expression)) {
@@ -13364,7 +13373,10 @@ function nullScalarLocalTypeOpen (printer, declaration) {
             if (written === undefined || (written !== 'null' && type !== undefined && written !== type)) {
                 return undefined;
             }
-            r84Write = r84Write || NULL_SEED_R84_WRITES.has (parent.right);
+            // a VENUE_RETURN_KINDS String callee write lands only with a native use (`x as string` included)
+            const venueString = written === JAVA_DATAFLOW_STRING && isThisCall (unwrapParens (parent.right))
+                && venueCallJavaType (printer, unwrapParens (parent.right)) === JAVA_DATAFLOW_STRING;
+            r84Write = r84Write || venueString || NULL_SEED_R84_WRITES.has (parent.right);
             type = (written === 'null') ? type : written;
         }
         // r90-j4: `[ x, p ] = this.handle*AndParams (..)`: the typed Pair slot the printer reads with `.first()`
