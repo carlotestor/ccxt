@@ -21314,6 +21314,14 @@ function r84j1NativeUse (printer, n) {
     return false;
 }
 
+// (r5, ral-87j1) every binding of the name in the function is a block-scoped `const` declaration with an
+// identifier name: no `let` / `var` re-binding can carry a value across the siblings
+function r87j1SiblingConstBindings (index, name) {
+    const declarations = index.declarations.get (name) ?? [];
+    return declarations.length === (index.bindingCounts.get (name) ?? 0) && declarations.every ((d) => ts.isIdentifier (d.name)
+        && ts.isVariableDeclarationList (d.parent) && (d.parent.flags & ts.NodeFlags.Const) !== 0);
+}
+
 function r84j1StringElementLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement) {
@@ -21338,15 +21346,23 @@ function r84j1StringElementLocal (printer, declaration) {
             return false;
         }
     } else {
-        const counterRead = ts.isIdentifier (read.expression) && typeof printer.javaPrimitiveCounterIndex === 'function'
-            && printer.javaPrimitiveCounterIndex (read.argumentExpression) && r84j1StringOnlyList (printer, read.expression, scope);
+        // (r6, ral-87j1) a non-negative integer literal index prints the same bounds-checked List read
+        const literalIndex = read.argumentExpression !== undefined && ts.isNumericLiteral (read.argumentExpression)
+            && /^[0-9]+$/.test (read.argumentExpression.text);
+        const counterRead = ts.isIdentifier (read.expression)
+            && (literalIndex || (typeof printer.javaPrimitiveCounterIndex === 'function' && printer.javaPrimitiveCounterIndex (read.argumentExpression)))
+            && r84j1StringOnlyList (printer, read.expression, scope);
         if (!counterRead && !r84j1EcdsaSlot (printer, read, scope) && !structureStringFieldRead (printer, read)) {
             return false;
         }
     }
     const name = String (declaration.name.text);
     const index = dataflowIndex (printer, scope);
-    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+    // (r5, ral-87j1) a name bound by several sibling `const` declarations is decided per binding: every
+    // use below is matched to THIS binding by checker symbol, and the printer resolves each use's
+    // declared type through its own declaration; only parameters and destructured names still refuse
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || ((index.bindingCounts.get (name) ?? 0) !== 1 && !r87j1SiblingConstBindings (index, name))) {
         return false;
     }
     const symbol = checker.getSymbolAtLocation (declaration.name);
