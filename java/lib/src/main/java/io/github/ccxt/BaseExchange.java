@@ -1564,6 +1564,10 @@ public class BaseExchange {
     // public long parseTimeframe(Object timeframe) {
     //     return Misc.parseTimeframe(timeframe);
     // }
+    // a Map default: the transpiled safeDict hands back a Map value or this default, so the result is a Map
+    public java.util.Map<String, Object> safeDict(Object dictionaryOrList, Object key, java.util.Map<String, Object> defaultValue) {
+        return (java.util.Map<String, Object>) this.safeDict(dictionaryOrList, key, (Object) defaultValue);
+    }
     // ----- END OF WRAPPERS ----- //
     // when true, sleep() blocks the calling thread and returns an already
     // completed future instead of a delayed one. joining an incomplete future

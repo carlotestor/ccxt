@@ -791,7 +791,9 @@ function safeDictLocalType (printer, initializer, name) {
     }
     // later Map producer writes (extend/deepExtend/safeDict/awaits) join; their checkcast is printed by the write hook
     const writeOk = (right) => accumulatorWriteInfo (printer, right)?.type === JAVA_SAFE_DICT_TYPE;
-    return { type: JAVA_SAFE_DICT_TYPE, cast: '(' + JAVA_SAFE_DICT_TYPE + ')', noCastAssertions: true, writeOk };
+    // a `{}` default binds the hand-written Map-default safeDict overload: the call is already a Map
+    const mapDefault = name === 'safeDict' && args.length === defaultArg + 1;
+    return { type: JAVA_SAFE_DICT_TYPE, cast: mapDefault ? undefined : '(' + JAVA_SAFE_DICT_TYPE + ')', noCastAssertions: true, writeOk };
 }
 
 // ===== parse* structure locals =====

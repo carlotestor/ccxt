@@ -7210,7 +7210,7 @@ function javaMapLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Map<String, Object> a = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("'a' (safeDict + omit-self) must print Map<String, Object> with a checkcast");
+        if (!/Map<String, Object> a = (\(java\.util\.Map<String, Object>\) )?this\.safeDict\(/.test(out)) problems.push("'a' (safeDict + omit-self) must print Map<String, Object>");
         if (!/Map<String, Object> b = (\(java\.util\.Map<String, Object>\) )?this\.depositWithdrawFee\(/.test(out)) problems.push("'b' (fresh-map method) must print Map<String, Object>");
         if (!/Map<String, Object> c = /.test(out)) problems.push("'c' (safeDict + Map copy) must print Map<String, Object>");
         if (/Helpers\.addElementToObject\(a, /.test(out) || /Helpers\.GetValue\(a, /.test(out)) problems.push("'a' put/get must go native");
