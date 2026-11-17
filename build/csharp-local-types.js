@@ -20452,3 +20452,56 @@ csharpLocalDeclaration = function (csharp, declaration, context) {
     return c87UpstreamLocalDeclaration (csharp, declaration, context) ?? c87StringCopyLocal (csharp, declaration, context);
 };
 
+
+// (R2) a local initialised by a proven `Dictionary<string, object>` (an omit of a dict receiver, no
+// cast) whose later writes store IDictionary boxes too (an element-1 params binding, a typed bag copy)
+// beside the `x = this.omit (x, k)` accumulator writes: the plain join stops at Dictionary + IDictionary.
+// Dictionary implements IDictionary by an implicit reference conversion, so the interface declaration
+// holds every write's box unchanged (INTERFACE_FIRST_WIDENING_EDGES, the 84c5 R3 widening without its
+// slot-write condition). Top-level decisions only; the retype scan re-checks every use against the
+// interface and some use must be native (dictParamsCopyHasNativeUse: omit receiver, indexer, `in`).
+function c87DictionaryWriteWidening (csharp, declaration, context) {
+    if (context !== undefined || declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration) || declaration.initializer === undefined || isNullInit (declaration)
+            || c84WideningInProgress.size > 0 || c87WideningInProgress.size > 0) {
+        return undefined;
+    }
+    if (classifyInProgress.has (declaration)) {
+        return undefined;
+    }
+    c87WideningInProgress.add (declaration);
+    try {
+        return c87DictionaryWriteWideningInner (csharp, declaration);
+    } finally {
+        c87WideningInProgress.delete (declaration);
+        classifyInProgress.delete (declaration);
+    }
+}
+const c87WideningInProgress = new Set ();
+function c87DictionaryWriteWideningInner (csharp, declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = { scope, stack: new Set (), depth: 0 };
+    const name = declaration.name.text;
+    // the declaration stays in classifyInProgress for the whole decision: a read of the local inside its
+    // own writes (`x = this.omit (x, k)`) must not re-enter the classifier for it
+    classifyInProgress.add (declaration);
+    const initial = csharpTypeOfValue (csharp, declaration.initializer, ctx);
+    if (initial !== 'Dictionary<string, object>') {
+        return undefined;
+    }
+    const type = 'IDictionary<string, object>';
+    if (typeFromValueOrWrites (csharp, scope, declaration, name, initial, ctx, INTERFACE_FIRST_WIDENING_EDGES) !== type
+            || !csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx)
+            || !dictParamsCopyHasNativeUse (csharp, scope, declaration)) {
+        return undefined;
+    }
+    return { type };
+}
+const c87UpstreamLocalDeclarationR2 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c87UpstreamLocalDeclarationR2 (csharp, declaration, context) ?? c87DictionaryWriteWidening (csharp, declaration, context);
+};

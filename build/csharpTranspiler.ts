@@ -12818,6 +12818,10 @@ export function copyLocalSnippetChecks87c5 (): string[] {
     const out = print ('f (o) { const orderType = this.safeString (o, \'t\'); const q = orderType; const z = q + \'.x\'; const y = q + \'.y\'; return this.hash (z, y, 1); }');
     if (!out.includes ('string? q = orderType;')) problems.push (`87c5 string copy: not typed: ${out.replace (/\n/g, ' | ').slice (-400)}`);
     if (!out.includes ('string? z = ((string)(q == null ? null : q + ".x"));')) problems.push (`87c5 string copy: guarded read not native: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    // R2: a Dictionary omit result later written from an IDictionary reader and through omit itself
+    const widened = (transpiler as any).transpileCSharp ('type Dict = { [key: string]: any };\nclass Test {\n omit (o, k): Dict { return o; }\n safeDict (o, k, d = undefined): Dict { return d; }\n hash (a, b, c) { return a; }\n'
+        + ' f (o) { let p = this.omit ({}, \'a\'); if (o) { p = this.safeDict (o, \'b\'); } p = this.omit (p, \'c\'); return this.hash (p, 1, 1); }\n}').content as string;
+    if (!widened.includes ('IDictionary<string, object> p = this.omit(')) problems.push (`87c5 R2 dictionary widening: ${widened.replace (/\n/g, ' | ').slice (-400)}`);
     // a copy of an untyped value keeps object
     const kept = print ('f (o, r) { let q = o; q = q + \'?\' + r; return this.hash (q, 1, 1); }');
     if (!kept.includes ('object q = o;')) problems.push (`87c5 string copy: untyped source retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
