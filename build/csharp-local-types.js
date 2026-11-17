@@ -22517,3 +22517,53 @@ const c92UpstreamLocalDeclarationC3 = csharpLocalDeclaration;
 csharpLocalDeclaration = function (csharp, declaration, context) {
     return c92UpstreamLocalDeclarationC3 (csharp, declaration, context) ?? c92LiteralOrStringParamConditionalLocal (csharp, declaration, context);
 };
+
+// (C4) a conditional whose arms are both typed dictionaries (a Dictionary local / call and an
+// IDictionary parameter or local): IDictionary is the conditional's natural type (Dictionary converts
+// implicitly), so the declaration names it with no cast. Taken only with a use that binds natively on
+// a dictionary: `this.omit (x, k)` (the IDictionary overload), `x[k]` or `k in x`.
+const C92_DICT_ARM_TYPES = [ 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+function c92DictLocalHasNativeUse (csharp, scope, declaration) {
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
+            continue;
+        }
+        const p = n.parent;
+        if (p?.kind === ts.SyntaxKind.CallExpression && p.arguments[0] === n && p.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && p.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && p.expression.name?.text === 'omit') {
+            return true;
+        }
+        if ((p?.kind === ts.SyntaxKind.ElementAccessExpression && p.expression === n)
+                || (p?.kind === ts.SyntaxKind.BinaryExpression && p.right === n && p.operatorToken.kind === ts.SyntaxKind.InKeyword)) {
+            return true;
+        }
+    }
+    return false;
+}
+function c92DictArmConditionalLocal (csharp, declaration, context) {
+    if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || declaration.type !== undefined || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const conditional = stripParens (declaration.initializer);
+    if (conditional?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || /(^|[\\/])test[\\/]/.test (declaration.getSourceFile?.()?.fileName ?? '')) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const a = conditionalArmType (csharp, conditional.whenTrue, ctx)?.replace (/\?$/, '');
+    const b = conditionalArmType (csharp, conditional.whenFalse, ctx)?.replace (/\?$/, '');
+    if (!C92_DICT_ARM_TYPES.includes (a) || !C92_DICT_ARM_TYPES.includes (b) || a === b || !c92DictLocalHasNativeUse (csharp, scope, declaration)) {
+        return undefined;
+    }
+    const type = 'IDictionary<string, object>';
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type } : undefined;
+}
+const c92UpstreamLocalDeclarationC4 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c92UpstreamLocalDeclarationC4 (csharp, declaration, context) ?? c92DictArmConditionalLocal (csharp, declaration, context);
+};
