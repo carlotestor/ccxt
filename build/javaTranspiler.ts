@@ -6175,6 +6175,7 @@ function mapLocalsSelfTest (): string[] {
             "    capped (p: Dict) { const left = this.parseToInt (this.safeString (p, 'l')); let digits = 0; if (left > 2) { digits = 5 - left; } return Math.min (left, digits); }",
             "    diff (p: Dict, s: string) { const sz = this.parseToInt (this.safeString (p, 'sz')); const most = 8 - sz; let left = 0; if (s.length <= 5) { left = 5 - (s.length); } const capped = (most < left) ? most : left; let z = ''; for (let i = 1; i < capped; i++) { z = z + '0'; } return z; }",
             "    scale (p: Dict) { let f = 1; for (let i = 0; i < 3; i++) { f = this.parseToInt (f * 256); } return f; }",
+            "    pad (p: string) { const n = parseInt (p); let s = '1'; for (let i = 0; i < -1 - n; i++) { s = s + '0'; } return s; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j3).content as string;
@@ -6184,6 +6185,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/Long digits = 0L;/.test(out)) problems.push("r93j3 R3: an int counter fed to Math.min with a long must print Long");
         if (!/Long most = \(8L - sz\);/.test(out)) problems.push("r93j3 R4: int literal minus a parseToInt const must print Long");
         if (!/Long f = 1L;/.test(out)) problems.push("r93j3 R5: an int counter written by parseToInt must print Long");
+        if (!/i < \(-1 - n\); i\+\+/.test(out)) problems.push("r93j3 R6: a negated int literal minus a Long must print the native compare");
     } catch (e) {
         problems.push(`r93j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
