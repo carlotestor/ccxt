@@ -3596,17 +3596,17 @@ pub trait ExchangeBase:
             useQuote = Some(feeSide.as_deref() == Some("quote"));
         }
         let mut cost: Option<String> = self.number_to_string(amount);
-        let mut key: Value = Value::Null;
+        let mut key: Option<String> = None;
         if (useQuote == Some(true)) {
             let mut priceString: Option<String> = self.number_to_string(price);
             cost = crate::precise::Precise::stringMul(&cost, &priceString).as_str().map(str::to_owned);
-            key = Value::Str("quote".into());
+            key = Some("quote".to_string());
         }  else {
-            key = Value::Str("base".into());
+            key = Some("base".to_string());
         }
         // for derivatives, the fee is in 'settle' currency
         if !(match &(market.get("spot").cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-            key = Value::Str("settle".into());
+            key = Some("settle".to_string());
         }
         // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         let mut takerOrMakerResolved: Value = (if (type_var.as_str() == Some("market")) { Value::Str("taker".into()) } else { takerOrMaker });
@@ -3615,7 +3615,7 @@ pub trait ExchangeBase:
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), takerOrMakerResolved);
-        m.insert("currency".to_string(), market.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+        m.insert("currency".to_string(), market.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
         m.insert("rate".to_string(), self.parse_number(rate.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]));
     m
