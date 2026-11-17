@@ -13059,6 +13059,11 @@ function nullSeedHasNativeUse (printer, declaration, type) {
                 return true;
             }
         }
+        // a String seed receiver of `indexOf` / `slice` drops the `((String)x)` receiver cast
+        if (type === JAVA_DATAFLOW_STRING && parent !== undefined && ts.isPropertyAccessExpression (parent) && parent.expression === host
+            && [ 'indexOf', 'slice' ].includes (String (parent.name.text)) && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
+            return true;
+        }
         // `x as string` on a String seed prints the bare local (this section's printAsExpression wrapper)
         if (type === JAVA_DATAFLOW_STRING && parent !== undefined && ts.isAsExpression (parent) && parent.type.kind === ts.SyntaxKind.StringKeyword) {
             return true;
@@ -13163,7 +13168,8 @@ function nullSeedLaterIntegralBounds (printer, value) {
             }
             const init = unwrapParens (d.initializer);
             return printer.javaPrintsIntegralNumber (init)
-                || (isThisCall (init) && init.expression.name.text === 'parseToInt' && nullSeedResolvedInBase (printer, init));
+                || (isThisCall (init) && init.expression.name.text === 'parseToInt' && nullSeedResolvedInBase (printer, init))
+                || nullSeedStringIndexOf (printer, init);
         } catch (e) {
             return false;
         }
@@ -13234,6 +13240,15 @@ function nullSeedWriteType (printer, value, depth = 0) {
         return JAVA_DATAFLOW_STRING;
     }
     return undefined;
+}
+
+// `s.indexOf (lit)` on a checker-string receiver prints `((String)s).indexOf(..)`, an int (the bound is read
+// through `((Number)b).intValue()` or natively): an integral slice bound
+function nullSeedStringIndexOf (printer, init) {
+    return init !== undefined && ts.isCallExpression (init) && ts.isPropertyAccessExpression (init.expression)
+        && init.expression.name.text === 'indexOf' && init.arguments.length === 1 && ts.isStringLiteral (init.arguments[0])
+        && ts.isIdentifier (init.expression.expression)
+        && nullSeedCheckerIs (printer, init.expression.expression, (c, t) => (t.flags & ts.TypeFlags.StringLike) !== 0);
 }
 
 // r87-j4 R2: the const declaration of `id` in the same function, positioned after the use's own seed
