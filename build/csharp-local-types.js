@@ -19894,8 +19894,6 @@ export const CSHARP_TUPLE_RETURN_ELEMENT1 = {
     'handleOptionStringAndParams': 'IDictionary<string, object>', 'handleOptionStringAndParams2': 'IDictionary<string, object>',
     'handleMarginModeAndParams': 'IDictionary<string, object>',
     'handleOptionBoolAndParams': 'IDictionary<string, object>', 'handleOptionBoolAndParams2': 'IDictionary<string, object>',
-    // the Integer pair takes a Dict bag (fetch2 hands a list body around it): newParams is that bag
-    'handleOptionIntegerAndParams': 'IDictionary<string, object>', 'handleOptionIntegerAndParams2': 'IDictionary<string, object>',
 };
 const tupleElement1 = (name) => (Object.prototype.hasOwnProperty.call (CSHARP_TUPLE_RETURN_ELEMENT1, name) ? CSHARP_TUPLE_RETURN_ELEMENT1[name] : 'object');
 const TUPLE_NAMES = Object.keys (CSHARP_TUPLE_RETURN_ELEMENT0).sort ((a, b) => b.length - a.length).join ('|');

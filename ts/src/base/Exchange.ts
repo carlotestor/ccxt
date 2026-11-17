@@ -6759,10 +6759,18 @@ export class BaseExchange {
         // implicit endpoints may pass a list body as params: it carries no option keys, so the
         // options are read from an empty bag and the list is signed unchanged
         const isListBody = Array.isArray (params);
-        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionIntegerAndParams (isListBody ? {} : params, path, 'maxRetriesOnFailure', retries);
+        let requestParams: object = params;
+        if (isListBody) {
+            requestParams = {};
+        }
+        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionIntegerAndParams (requestParams, path, 'maxRetriesOnFailure', retries);
         const retryDelay = 0;
         const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionIntegerAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
-        const requestParams: object = isListBody ? params : paramsMaxRetriesOnFailureDelay;
+        if (isListBody) {
+            requestParams = params;
+        } else {
+            requestParams = paramsMaxRetriesOnFailureDelay;
+        }
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retriesMaxRetriesOnFailure + 1; i++) {
             let fetchData: NullableDict = undefined;
