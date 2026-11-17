@@ -15896,6 +15896,9 @@ function javaNonNullStringCall87 (printer, node, name, declaration, retyped, dep
         return node.arguments.length === 1 && node.arguments[0].kind !== ts.SyntaxKind.SpreadElement;
     }
     if (receiver.kind === ts.SyntaxKind.ThisKeyword) {
+        if (name === 'safeString' && r93j3SafeStringLiteralDefault (printer, node)) {
+            return true;
+        }
         if (!JAVA_NON_NULL_STRING_BASE_METHODS.has (name)) {
             return undefined;
         }
@@ -15915,7 +15918,33 @@ function javaNonNullStringCall87 (printer, node, name, declaration, retyped, dep
         return node.arguments.length === 2 && javaStringLikeReceiver (printer, receiver)
             && declaration !== undefined && javaNonNullStringValue (printer, declaration, retyped, receiver, (depth ?? 0) + 1);
     }
+    // `<s>.slice (..)` prints `(s == null ? null : ((String)s).substring (..))`: String, and non-null for a
+    // non-null String receiver (substring never answers null)
+    if (name === 'slice' && r93j3StringSliceShape (node)) {
+        return javaStringLikeReceiver (printer, receiver)
+            && declaration !== undefined && javaNonNullStringValue (printer, declaration, retyped, receiver, (depth ?? 0) + 1);
+    }
     return undefined;
+}
+
+// base `this.safeString (x, k, '<lit>')`: SafeMethods.coerceOrDefault answers the coerced String or the
+// String default, so a literal default makes it a non-null String (BaseExchange declares it String)
+function r93j3SafeStringLiteralDefault (printer, node) {
+    if (node.arguments.length !== 3 || !ts.isStringLiteralLike (node.arguments[2]) || r87j6UnderPropertyAssignment (node)) {
+        return false;
+    }
+    let member;
+    try {
+        member = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName);
+}
+
+function r93j3StringSliceShape (node) {
+    return (node.arguments.length === 1 || node.arguments.length === 2)
+        && node.arguments.every ((a) => a.kind !== ts.SyntaxKind.SpreadElement);
 }
 
 // a ral-87j3 call shape as the LEFT of `+`: the printer's concat proof does not see these calls, so
