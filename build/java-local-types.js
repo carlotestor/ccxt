@@ -13355,7 +13355,7 @@ function stringListElementOk (printer, element) {
     if (e !== undefined && ts.isAsExpression (e) && e.type.kind === ts.SyntaxKind.StringKeyword) {
         return true; // prints ((String) x)
     }
-    return e !== undefined && (isStaticallyStringExpression (printer, e, undefined) || stringProducerLocal (printer, e));
+    return e !== undefined && (isStaticallyStringExpression (printer, e, undefined) || stringProducerLocal (printer, e) || r87j8StringElement (printer, e));
 }
 
 function stringListLocalDeclaration (printer, node) {
@@ -22683,6 +22683,9 @@ function r87j8StringElement (printer, node, depth = 0) {
     if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
         return r87j8StringElement (printer, value.left, depth + 1);
     }
+    if (r87j8StringListRead (printer, value)) {
+        return true;
+    }
     if (!ts.isIdentifier (value)) {
         return false;
     }
@@ -22782,4 +22785,27 @@ export function installJavaR87j8CopyStringResolver (transpiler) {
         }
         return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
     };
+}
+
+// 87j8 (d): `xs[i]` with a number key on a bare identifier the printer already declared List<String>
+// (published type): the printed read is the guarded `xs.get(i)` of that list, statically a String
+function r87j8StringListRead (printer, value) {
+    if (!ts.isElementAccessExpression (value) || !ts.isIdentifier (value.expression)
+        || printer.printNode (value.expression, 0) !== value.expression.text) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    let numeric = false;
+    try {
+        numeric = (checker.getTypeAtLocation (value.argumentExpression).flags & ts.TypeFlags.NumberLike) !== 0;
+    } catch (e) {
+        return false;
+    }
+    let declared;
+    try {
+        declared = String (printer.javaDeclaredTypeOf (value.expression) ?? '');
+    } catch (e) {
+        return false;
+    }
+    return numeric && /^(java\.util\.)?List<String>$/.test (declared.trim ());
 }

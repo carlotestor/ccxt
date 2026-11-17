@@ -10022,6 +10022,7 @@ function javaR87j8LocalsSelfTest (): string[] {
         "    acc (rows: Dict[]) { const out = []; for (let i = 0; i < rows.length; i++) { const a = this.safeString (rows[i], 'a', ''); const b = this.safeString (rows[i], 'b', ''); out.push (a + ': ' + b); } return out.join (', '); }",
         "    twice (rows: Dict[], a: string, b: string) { let k: string = a.toLowerCase (); k = k + b; const keys = []; for (let i = 0; i < rows.length; i++) { let k: string = a.toLowerCase (); k = k + b; keys.push (k); } return keys.join (','); }",
         "    sliced (order: Dict) { const code = this.safeString (order, 'b'); let base = code; if ((base !== undefined) && base.startsWith ('EQ_')) { base = base.slice (3); } return this.safeCurrencyCode (base); }",
+        "    chunks (rows: Dict[]) { const ids: string[] = []; for (let i = 0; i < rows.length; i++) { ids.push (this.safeString (rows[i], 'id', '')); } let chunk: string[] = []; const out = []; for (let i = 0; i < ids.length; i++) { chunk.push (ids[i]); const chunkLength = chunk.length; if (chunkLength >= 10) { out.push (chunk.join (',')); chunk = []; } } return out; }",
         "    accAny (rows: Dict[]) { const bad = []; for (let i = 0; i < rows.length; i++) { const v = rows[i]['v']; bad.push (v); } return bad.join (','); }",
         '}',
     ].join('\n');
@@ -10032,6 +10033,7 @@ function javaR87j8LocalsSelfTest (): string[] {
         if (!/\bObject bad = /.test(out)) problems.push("'bad' (push of an Object element read) must stay Object");
         if (!/\bString base = code;/.test(out)) problems.push("'base' (String copy written from a native literal slice of itself) must print String");
         if (/\(String\) \(base\)/.test(out)) problems.push("'base' must reach the String core argument without a checkcast");
+        if (!/List<String> chunk = new java\.util\.ArrayList<String>\(/.test(out) || !/\bchunk\.add\(/.test(out)) problems.push("'chunk' (reassigned list fed by reads of a List<String> local) must print List<String> with a bare add");
         if (!/\bObject keys = /.test(out)) problems.push("'keys' (push of a local with a same-named sibling binding) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
